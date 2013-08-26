@@ -638,7 +638,7 @@ namespace starcounter {
                                                                          ->set_owner_id(new_owner_id);
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
-                                                                      active_segments_update_.push_front
+                                                                      monitor->active_segments_update().push_front
                                                                          (monitor->the_monitor_interface()->get_segment_name());
 #endif //defined (IPC_MONITOR_SHOW_ACTIVITY)
 
