@@ -34,18 +34,19 @@ const int32_t kWsGuidLen = strlen(kWsGuid);
 // A server MUST NOT mask any frames that it sends to the client. 
 // A client MUST close a connection if it detects a masked frame.
 
-const char *kWsHsResponse =
+const char *kWsHsResponseStaticPart =
     "HTTP/1.1 101 Switching Protocols\r\n"
     "Upgrade: websocket\r\n"
     "Connection: Upgrade\r\n"
-    "Sec-WebSocket-Accept: @                           \r\n"
-    "Server: SC\r\n"
-    //"Sec-WebSocket-Protocol: chat\r\n";
-    //"Sec-WebSocket-Protocol: $                                             \r\n"
-    "\r\n";
+    "Server: SC\r\n";
 
-const int32_t kWsHsResponseLen = strlen(kWsHsResponse);
-const int32_t kWsAcceptOffset = abs(kWsHsResponse - strstr(kWsHsResponse, "@"));
+const int32_t kWsHsResponseStaticPartLen = strlen(kWsHsResponseStaticPart);
+
+const char* SecWebSocketAccept = "Sec-WebSocket-Accept: ";
+const int32_t SecWebSocketAcceptLen = strlen(SecWebSocketAccept);
+
+const char* SecWebSocketProtocol = "Sec-WebSocket-Protocol: ";
+const int32_t SecWebSocketProtocolLen = strlen(SecWebSocketProtocol);
 
 const char *kWsBadProto =
     "HTTP/1.1 400 Bad Request\r\n"
@@ -55,6 +56,13 @@ const char *kWsBadProto =
     "\r\n";
 
 const int32_t kWsBadProtoLen = strlen(kWsBadProto);
+
+// Injects data into destination array.
+static inline int32_t InjectData(uint8_t* dest, int32_t dest_offset, const char* data, int32_t data_len_bytes)
+{
+    memcpy(dest + dest_offset, data, data_len_bytes);
+    return dest_offset + data_len_bytes;
+}
 
 // Unmasks frame and pushes it to database.
 uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
@@ -96,17 +104,14 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
         case WS_OPCODE_CLOSE:
         {
+            // Unmasking data.
+            UnMaskAllChunks(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
+
             // Peer wants to close the WebSocket.
             return SCERRGWWEBSOCKETOPCODECLOSE;
         }
 
         case WS_OPCODE_PING:
-        {
-            // Send the request Ping.
-            return SCERRGWWEBSOCKETPINGOPCODE;
-        }
-
-        case WS_OPCODE_PONG:
         {
             uint64_t payload_len = frame_info_.payload_len_;
 
@@ -168,7 +173,9 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
         // Obtaining frame info.
-        ParseFrameInfo(sd, cur_data_ptr, orig_data_ptr + num_accum_bytes);
+        err_code = ParseFrameInfo(sd, cur_data_ptr, orig_data_ptr + num_accum_bytes);
+        if (err_code)
+            return err_code;
 
         // Checking frame information is complete.
         if (!frame_info_.is_complete_)
@@ -312,10 +319,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     uint32_t err_code;
 
     // Pointing to the beginning of the data.
-    uint8_t *resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
-
-    // Copying template in response buffer.
-    memcpy(resp_data_begin, kWsHsResponse, kWsHsResponseLen);
+    uint8_t* resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
 
     // Generating handshake response.
     char handshake_resp_temp[128];
@@ -333,9 +337,25 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     uint8_t base64_len = base64_encode_block(sha1_begin, 20, base64_begin, &b64);
     base64_len += base64_encode_blockend(base64_begin + base64_len, &b64) - 1;
 
+    // Copying initial header in response buffer.
+    int32_t resp_len_bytes = InjectData(resp_data_begin, 0, kWsHsResponseStaticPart, kWsHsResponseStaticPartLen);
+
     // Sec-WebSocket-Accept.
     GW_ASSERT_DEBUG(28 == base64_len);
-    memcpy(resp_data_begin + kWsAcceptOffset, base64_begin, base64_len);
+    resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, SecWebSocketAccept, SecWebSocketAcceptLen);
+    resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, base64_begin, base64_len);
+    resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
+
+    // Sec-WebSocket-Protocol.
+    if (sub_protocol_len_)
+    {
+        resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, SecWebSocketProtocol, SecWebSocketProtocolLen);
+        resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, sub_protocol_, sub_protocol_len_);
+        resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
+    }
+    
+    // Remaining empty line.
+    resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
 
     // Setting WebSocket handshake flag.
     sd->set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
@@ -348,7 +368,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
 
     // Setting user data information so its applied to accumulating buffer on the way back.
     sd->set_user_data_offset_in_socket_data(resp_data_begin - (uint8_t*)sd);
-    sd->set_user_data_written_bytes(kWsHsResponseLen);
+    sd->set_user_data_written_bytes(resp_bytes);
 
     // Just sending on way back.
     sd->set_socket_just_send_flag(true);
@@ -361,7 +381,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
 #else
 
     // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(resp_data_begin, kWsHsResponseLen);
+    sd->get_accum_buf()->PrepareForSend(resp_data_begin, resp_len_bytes);
 
     // Sending data.
     err_code = gw->Send(sd);
@@ -470,7 +490,7 @@ void WsProto::UnMaskAllChunks(
 #define swap64(y) (((uint64_t)ntohl(y)) << 32 | ntohl(y >> 32))
 
 // Parses WebSockets frame info.
-void WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit)
+uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit)
 {
     // Getting final fragment bit.
     frame_info_.is_final_ = (*data & 0x80);
@@ -481,6 +501,10 @@ void WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
     // Getting mask flag.
     data++;
     frame_info_.is_masked_ = (*data & 0x80);
+
+    // From RFC: The server MUST close the connection upon receiving a frame that is not masked.
+    if (!frame_info_.is_masked_)
+        return SCERRGWWEBSOCKETNOMASK;
 
     // Removing the mask flag.
     (*data) &= 0x7F;
@@ -525,7 +549,7 @@ void WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
     
     frame_info_.payload_data_blob_offset_ = data - sd->get_data_blob();
 
-    return;
+    return 0;
 }
 
 // Write payload data.
