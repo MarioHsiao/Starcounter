@@ -250,7 +250,10 @@ inline owner_id test::get_owner_id() const {
 	return owner_id_;
 }
 
-void test::run(uint32_t interval_time_milliseconds) {
+void test::run(uint32_t timeout_seconds) {
+    std::cout << "test::run(): timeout_seconds = " << timeout_seconds << std::endl;
+    uint32_t interval_time_milliseconds = 200;
+
 	// Start workers.
 	for (std::size_t i = 0; i < workers; ++i) {
 		// Set worker parameters.
