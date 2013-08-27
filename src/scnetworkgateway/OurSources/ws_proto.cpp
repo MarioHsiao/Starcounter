@@ -243,9 +243,13 @@ UNMASK_FRAME:
         // Data is complete, no more frames, creating parallel receive clone.
         if (NULL == sd_push_to_db)
         {
-            err_code = sd->CloneToReceive(gw);
-            if (err_code)
-                return err_code;
+            // Only when session is created we can receive non-stop.
+            if (sd->HasActiveSession())
+            {
+                err_code = sd->CloneToReceive(gw);
+                if (err_code)
+                    return err_code;
+            }
 
             // Unmasking frame and pushing to database.
             return UnmaskFrameAndPush(gw, sd, user_handler_id);

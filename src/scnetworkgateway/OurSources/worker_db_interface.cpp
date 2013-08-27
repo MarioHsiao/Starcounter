@@ -406,11 +406,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     smc->set_request_size(4);
 
     // Checking scheduler id validity.
-    if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = GetSchedulerId();
-
-    // Setting scheduler id to session.
-    sd->set_scheduler_id(sched_id);
+    GW_ASSERT(INVALID_SCHEDULER_ID != sched_id);
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
@@ -502,7 +498,7 @@ uint32_t WorkerDbInterface::PushSessionCreate(SocketDataChunkRef sd)
 
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = GetSchedulerId();
+        sched_id = GenerateSchedulerId();
 
     // Pushing the chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), 1, sched_id);
@@ -542,7 +538,7 @@ uint32_t WorkerDbInterface::PushErrorMessage(
 
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = GetSchedulerId();
+        sched_id = GenerateSchedulerId();
 
     // Pushing the chunk.
     PushLinkedChunksToDb(new_chunk_index, 1, sched_id);
