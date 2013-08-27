@@ -6,6 +6,6 @@ namespace Q {
    }
 
    [ParentChild_json.Child2]
-   partial class Mail<T,T2> : Json<T> {
+   partial class Mail<W> : Json<W> {
    }
 }
