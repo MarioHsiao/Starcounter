@@ -72,7 +72,7 @@
     <Compile Include="Generation2\AST\AstMember.cs" />
     <Compile Include="Generation2\AST\Abstract\AstMetadataClass.cs" />
     <Compile Include="Generation2\AST\Abstract\AstInnerClass.cs" />
-    <Compile Include="Generation2\AST\Abstract\AstInstanceClass.cs" />
+    <Compile Include="Generation2\AST\AstInstanceClass.cs" />
     <Compile Include="Generation2\AST\AstJsonClass.cs" />
     <Compile Include="Generation2\AST\AstSchemaClass.cs" />
     <Compile Include="Generation2\AST\AstEventClass.cs" />

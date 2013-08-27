@@ -12,7 +12,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// 
     /// </summary>
-    public abstract class AstInstanceClass : AstClass {
+    public class AstInstanceClass : AstClass {
 
         /// <summary>
         /// 
