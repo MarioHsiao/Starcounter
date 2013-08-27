@@ -695,7 +695,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
             h.Append("using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;\n");
-            h.Append("using uSr = " + root.RootJsonClassAlias + "\n;");
+            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
 			h.Append('\n');

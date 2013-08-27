@@ -15,17 +15,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstJsonClass GetDefaultJson() {
             if (DefaultJson == null) {
                 DefaultJson = new AstJsonClass(this) {
-                    GlobalClassSpecifier = "s:Json<object>",
+                    GlobalClassSpecifier = "s::Json<object>",
                     ClassStemIdentifier = "Json"
                 };
                 DefaultJson.NTemplateClass = new AstSchemaClass(this) {
                     NValueClass = DefaultJson,
                     Template = DefaultObjTemplate,
-                    GlobalClassSpecifier = "s:Json<object>.JsonByExample.Schema<s:Json<object>>"
+                    GlobalClassSpecifier = "s::Json<object>.JsonByExample.Schema<s:Json<object>>"
                 };
                 DefaultJson.NMetadataClass = new AstJsonMetadataClass(this) {
                     NValueClass = DefaultJson,
-                    GlobalClassSpecifier = "s:Json<object>.JsonByExample.Metadata<st:Schema<s:Json<object>>,s:Json<object>>"
+                    GlobalClassSpecifier = "s::Json<object>.JsonByExample.Metadata<st:Schema<s:Json<object>>,s:Json<object>>"
                 };
             }
             return DefaultJson;
@@ -151,6 +151,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var tarr = template as ArrSchema<Json<object>>;
                 var acn = new AstJsonClass(this);
                 ValueClasses.Add(template, acn);
+                if (template.Parent != null) {
+                    acn.Parent = ObtainValueClass(template.Parent);
+                }
                 acn.NMetadataClass = ObtainMetaClass(template);
                 acn.NTemplateClass = ObtainTemplateClass(template);
 
