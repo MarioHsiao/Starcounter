@@ -507,8 +507,8 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
     frame_info_.is_masked_ = (*data & 0x80);
 
     // From RFC: The server MUST close the connection upon receiving a frame that is not masked.
-    if (!frame_info_.is_masked_)
-        return SCERRGWWEBSOCKETNOMASK;
+    // if (!frame_info_.is_masked_)
+    //    return SCERRGWWEBSOCKETNOMASK;
 
     // Removing the mask flag.
     (*data) &= 0x7F;
