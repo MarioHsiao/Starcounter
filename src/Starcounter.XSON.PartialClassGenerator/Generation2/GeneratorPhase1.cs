@@ -187,6 +187,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                       AstClass metaParent) {
 
             var valueClass = Generator.ObtainValueClass(at );
+            //valueClass.Parent = appClassParent;
             var type = Generator.ObtainTemplateClass(at );
 
             //type.NValueProperty = 
