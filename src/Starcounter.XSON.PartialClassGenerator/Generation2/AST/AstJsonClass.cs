@@ -126,8 +126,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (MatchedClass != null) {
                     return MatchedClass.ClassName;
                 }
-                var template = (Schema<Json<object>>)NTemplateClass.Template;
-                var className = template.ClassName;
+                var template = NTemplateClass.Template;
+                string className = null;
+                if (template is Schema<Json<object>>) {
+                    className = (template as Schema<Json<object>>).ClassName;
+                }
                 if (className == null) {
                     className = template.PropertyName;
                     className = className + "Json";

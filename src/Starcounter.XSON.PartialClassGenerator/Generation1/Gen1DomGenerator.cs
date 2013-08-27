@@ -168,8 +168,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 NValueClass = acn,
                 Template = at,
                 _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
-                AutoBindProperties = metadata.RootClassInfo.AutoBindToDataObject
             };
+            if (metadata.RootClassInfo != null) {
+                tcn.AutoBindProperties = metadata.RootClassInfo.AutoBindToDataObject;
+            }
+
 
             if (metadata == CodeBehindMetadata.Empty) {
                 // No codebehind. Need to set a few extra properties depending on metadata from json
