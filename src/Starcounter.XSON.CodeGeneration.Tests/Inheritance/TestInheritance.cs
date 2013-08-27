@@ -30,8 +30,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(codegen.GenerateCode());
         }
 
-
-
         internal static TJson ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = TJson.CreateFromJson(str);
@@ -59,5 +57,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(dump);
             Console.WriteLine(code);
         }
+
+		[Test]
+		public static void TestGlobalClassSpecifier() {
+			string expected = "Starcounter.Json<Object>.JsonByExample.Metadata<Schema<Json<Object>>,Json<Object>>";
+			Type t = new Json<object>.JsonByExample.Metadata<Starcounter.Templates.Schema<Json<object>>, Json<object>>(null, null).GetType();
+			string actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
+			Assert.AreEqual(expected, actual);
+
+			expected = "Starcounter.Json<Object>.JsonByExample.Schema<Json<Object>>";
+			t = new Json<object>.JsonByExample.Schema<Json<object>>().GetType();
+			actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
+			Assert.AreEqual(expected, actual);
+		}
     }
 }
