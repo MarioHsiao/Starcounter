@@ -9,6 +9,28 @@ using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
 namespace Starcounter.Internal.MsBuild.Codegen {
     public partial class Gen2DomGenerator {
 
+
+        private AstJsonClass DefaultJson;
+
+        public AstJsonClass GetDefaultJson() {
+            if (DefaultJson == null) {
+                DefaultJson = new AstJsonClass(this) {
+                    GlobalClassSpecifier = "s:Json<object>",
+                    ClassStemIdentifier = "Json"
+                };
+                DefaultJson.NTemplateClass = new AstSchemaClass(this) {
+                    NValueClass = DefaultJson,
+                    Template = DefaultObjTemplate,
+                    GlobalClassSpecifier = "s:Json<object>.JsonByExample.Schema<s:Json<object>>"
+                };
+                DefaultJson.NMetadataClass = new AstJsonMetadataClass(this) {
+                    NValueClass = DefaultJson,
+                    GlobalClassSpecifier = "s:Json<object>.JsonByExample.Metadata<st:Schema<s:Json<object>>,s:Json<object>>"
+                };
+            }
+            return DefaultJson;
+        }
+
         /// <summary>
         /// 
         /// </summary>

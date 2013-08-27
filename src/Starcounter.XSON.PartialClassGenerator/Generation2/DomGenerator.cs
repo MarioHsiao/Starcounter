@@ -124,6 +124,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             binding.AppParentCount = parentCount;
         }
 
+        /*
         /// <summary>
         /// Employed by the template code generator.
         /// </summary>
@@ -136,6 +137,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return ((TJson)current).Namespace;
             }
         }
+        */
 
         /// <summary>
         /// 

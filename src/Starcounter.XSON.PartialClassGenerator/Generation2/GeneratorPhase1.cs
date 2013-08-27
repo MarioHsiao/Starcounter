@@ -237,9 +237,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 // This means that they can be assigned to any App object. 
                 // A typical example is to have a Page:{} property in a master
                 // app (representing, for example, child web pages)
-                acn = (AstJsonClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
-                tcn = Generator.TemplateClasses[Generator.DefaultObjTemplate];
-                mcn = Generator.MetaClasses[Generator.DefaultObjTemplate];
+                acn = (AstJsonClass)Generator.GetDefaultJson();
+                tcn = acn.NTemplateClass;
+                mcn = acn.NMetadataClass;
+//                tcn = Generator.TemplateClasses[Generator.DefaultObjTemplate];
+//                mcn = Generator.MetaClasses[Generator.DefaultObjTemplate];
             }
             else {
                 AstJsonClass racn;

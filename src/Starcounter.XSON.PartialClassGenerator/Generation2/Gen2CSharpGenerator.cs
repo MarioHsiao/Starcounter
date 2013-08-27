@@ -399,7 +399,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
 
-            var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
+           // var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
         }
 
         /// <summary>
@@ -550,7 +550,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
                     }
 
-                    string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
+                //    string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
                     // TODO!
                     /*                    if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.ClassSpecifierWithoutOwners.Equals( objClassName ))) { // TODO!
                         sb.Clear();
