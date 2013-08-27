@@ -160,7 +160,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var newJson = ObtainValueClass(tarr.ElementType);
                 newJson.Parent = ObtainValueClass(template.Parent);
     
-                acn.NamespaceAlias = "st::";
+//                acn.NamespaceAlias = "st::";
                 acn.Generic = new AstClass[] {
                         newJson.NTemplateClass
                     };
@@ -242,6 +242,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     Generic = gen
                 };
                 MetaClasses.Add(template, mcn);
+
+                mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarr.GetType());
+                mcn.NamespaceAlias = "st::"; 
+
                 mcn.NValueClass = ObtainValueClass(template);
                 return mcn;
             }
