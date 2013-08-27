@@ -12,39 +12,64 @@ namespace Starcounter.Internal
 {
     public class HelperFunctions
     {
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static string GetClassStemIdentifier(Type t) {
+			int genericArgCount;
+			return GetClassStemIdentifier(t, out genericArgCount);
+		}
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        public static string GetClassStemIdentifier(Type t) {
-            return t.Name.Split('`')[0];
+        private static string GetClassStemIdentifier(Type t, out int genericArgCount) {
+			int index = t.Name.IndexOf('`');
+			if (index != -1) {
+				genericArgCount = int.Parse(t.Name.Substring(index + 1));
+				return t.Name.Substring(0, index);
+			} else {
+				genericArgCount = 0;
+				return t.Name;
+			}
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static string GetClassDeclarationSyntax(Type t) {
+			int genericArgIndex = 0;
+			return GetClassDeclarationSyntax(t, t.GetGenericArguments(), ref genericArgIndex);
+		}
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        public static string GetClassDeclarationSyntax(Type t) {
-            string ret = GetClassStemIdentifier(t);
-            Type[] typeArguments = t.GetGenericArguments(); // GenericTypeArguments; // etGenericArguments();
-            if (t.IsGenericType) {
-                ret = ret + "<";
-                var i = 0;
-                foreach (Type tParam in typeArguments) {
-                    if (i > 0)
-                        ret = ret + ",";
-                    if (tParam.IsGenericParameter)
-                        ret += "(GP)";
-                    if (tParam.IsGenericType)
-                        ret += "(GT)";
-                    if (tParam.IsGenericTypeDefinition)
-                        ret += "(GD)";
-                    ret = ret + GetClassDeclarationSyntax(tParam);
-                    i++;
-                }
+		private static string GetClassDeclarationSyntax(Type t, Type[] genericArgs, ref int genericArgIndex) {
+			int genericArgCount;
+			string ret = GetClassStemIdentifier(t, out genericArgCount);
+			if (genericArgCount > 0) {
+				ret = ret + "<";
+				for (int gai = 0; gai < genericArgCount; gai++) {
+					if (gai > 0)
+						ret += ",";
+
+					if (genericArgIndex >= genericArgs.Length)
+						throw new Exception("TODO!");
+					Type tParam = genericArgs[genericArgIndex++];
+
+					// For type params we need to restart from zero again for the generic index.
+					int paramArgIndex = 0;
+					ret = ret + GetClassDeclarationSyntax(tParam, tParam.GetGenericArguments(), ref paramArgIndex);
+				}
                 ret = ret + ">";
             }
             return ret;
@@ -157,19 +182,24 @@ DLLS_LOADED:
         }
 
         public static string GetGlobalClassSpecifier(Type type, bool p) {
+			int genericArgIndex = 0;
             string ret = type.Namespace;
             if (ret != null && !ret.Equals("")) {
                 ret += ".";
             }
+
+			// The type contains all generic arguments, even if it is a nested class (that is
+			// this array contains the arguments for the parents as well).
+			Type[] genericArgs = type.GetGenericArguments();
             if (type.IsNested) {
                 Type pt = type.DeclaringType;
-                string owner = GetClassDeclarationSyntax(pt);
+				string owner = GetClassDeclarationSyntax(pt, genericArgs, ref genericArgIndex);
                 while ((pt = pt.DeclaringType) != null) {
-                    owner = GetClassDeclarationSyntax(pt) + "." + owner;
+					owner = GetClassDeclarationSyntax(pt, genericArgs, ref genericArgIndex) + "." + owner;
                 }
                 ret += owner + ".";
             }
-            ret += GetClassDeclarationSyntax(type);
+			ret += GetClassDeclarationSyntax(type, genericArgs, ref genericArgIndex);
             return ret;
         }
     }
