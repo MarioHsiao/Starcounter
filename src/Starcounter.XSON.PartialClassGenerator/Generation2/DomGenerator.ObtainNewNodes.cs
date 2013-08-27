@@ -149,17 +149,20 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             if (template is ArrSchema<Json<object>>) {
                 var tarr = template as ArrSchema<Json<object>>;
-                var acn = new AstJsonClass(this);
+                var acn = new AstInstanceClass(this);
                 ValueClasses.Add(template, acn);
-                if (template.Parent != null) {
-                    acn.Parent = ObtainValueClass(template.Parent);
-                }
                 acn.NMetadataClass = ObtainMetaClass(template);
                 acn.NTemplateClass = ObtainTemplateClass(template);
 
+                acn.RealType = template.InstanceType;
+                //acn.NTemplateClass.RealType = template.GetType();
+
+                var newJson = ObtainValueClass(tarr.ElementType);
+                newJson.Parent = ObtainValueClass(template.Parent);
+    
                 acn.NamespaceAlias = "st::";
                 acn.Generic = new AstClass[] {
-                        ObtainTemplateClass(tarr.ElementType)
+                        newJson.NTemplateClass
                     };
                 return acn;
             }
@@ -204,6 +207,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AstInstanceClass parent = null;
             if (template.Parent != null)
                 parent = ObtainValueClass(template.Parent);
+            else
+                parent = this.GetDefaultJson();
 
             if (template is Schema<Json<object>>) {
                 AstClass[] gen;
@@ -323,6 +328,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 TemplateClasses.Add(template, ret);
                 ret.NValueClass = ObtainValueClass(template);
                 var acn = ObtainValueClass(tarr.ElementType);
+                ret.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarr.GetType());
                 ret.NamespaceAlias = "st::";
                 ret.Generic = new AstClass[] { acn };
                 return ret;

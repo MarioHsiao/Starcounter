@@ -184,8 +184,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void GenerateProperty(Template at,
                                       AstJsonClass appClassParent,
                                       AstSchemaClass templParent,
-                                      AstClass metaParent) {
-
+                                      AstClass metaParent)
+        {
             var valueClass = Generator.ObtainValueClass(at );
             //valueClass.Parent = appClassParent;
             var type = Generator.ObtainTemplateClass(at );
