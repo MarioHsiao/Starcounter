@@ -35,7 +35,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void GenerateInputAttributesForASingleClass(AstJsonClass acn) {
             var input = new AstOtherClass(Generator) {
                 Parent = acn,
-                _ClassName = "Input",
+                ClassStemIdentifier = "Input",
                 IsStatic = true
             };
             GeneratePrimitiveValueEvents(input, acn, "Input");

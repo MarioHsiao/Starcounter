@@ -99,7 +99,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             //return Old.GenerateCodeOld();
             ProcessAllNodes();
 
-            WriteHeader(Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
+            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
             foreach (var napp in Root.Children)
             {
                 WriteNode(napp);
@@ -174,15 +174,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                       sb.Append(n.Inherits);
 //                    }
                     sb.Append("<__Tjsonobj__,__jsonobj__>");
-                    sb.Append(" : ");
-                    sb.Append(n.InheritedClass.NamespaceAlias);
-                    if (n.InheritedClass.Namespace != null) {
-                        sb.Append(n.InheritedClass.Namespace);
-                        sb.Append(".");
+                    if (n.InheritedClass != null) {
+                        sb.Append(" : ");
+                        sb.Append(n.InheritedClass.GlobalClassSpecifierWithoutGenerics);
+                        sb.Append("<__Tjsonobj__,__jsonobj__>");
                     }
-                    sb.Append(n.InheritedClass.GlobalClassSpecifierWithoutGenerics);
-                    sb.Append("<__Tjsonobj__,__jsonobj__>"); 
-                    
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
 //                    if (node is AstObjMetadata) {
@@ -203,9 +199,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (node is AstSchemaClass) {
                         var ast = node as AstSchemaClass;
                         sb.Append("<__Tjsonobj__>");
-                        sb.Append(" : ");
-                        sb.Append(ast.InheritedClass.GlobalClassSpecifierWithoutGenerics);
-                        sb.Append("<__Tjsonobj__>");
+                        if (ast.InheritedClass != null) {
+                            sb.Append(" : ");
+                            sb.Append(ast.InheritedClass.GlobalClassSpecifierWithoutGenerics);
+                            sb.Append("<__Tjsonobj__>");
+                        }
                     }
                     else {
                         if (n.Inherits != null) {
@@ -680,7 +678,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="fileName">The name of the original json file</param>
         /// <param name="h">The h.</param>
-        static internal void WriteHeader( string fileName, StringBuilder h ) {
+        static internal void WriteHeader( AstRoot root, string fileName, StringBuilder h ) {
             h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);
             h.Append('"');
@@ -697,7 +695,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
             h.Append("using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;\n");
-
+            h.Append("using uSr = " + root.RootJsonClassAlias + "\n;");
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
 			h.Append('\n');

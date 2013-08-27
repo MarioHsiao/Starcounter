@@ -26,11 +26,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
-        public override string ClassStemIdentifier {
-            get {
-                return HelperFunctions.GetClassStemIdentifier(NValueClass.NTemplateClass.Template.MetadataType);
-            }
-        }
+//        public override string ClassStemIdentifier {
+//            get {
+//                return HelperFunctions.GetClassStemIdentifier(NValueClass.NTemplateClass.Template.MetadataType);
+//            }
+//        }
 
         /// <summary>
         /// Uppers the first.
@@ -45,12 +45,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// The instances
         /// </summary>
         public static Dictionary<TJson, AstClass> Instances = new Dictionary<TJson, AstClass>();
-
-        public override string Namespace {
-            get {
-                return this.NValueClass.Namespace;
-            }
-        }
 
     }
 }

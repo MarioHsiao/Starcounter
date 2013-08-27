@@ -16,9 +16,6 @@ namespace Starcounter.Internal.MsBuild.Codegen
     public class AstConstructor : AstBase
     {
 
-        public override string Name {
-            get { return ""; }
-        }
 
         /// <summary>
         /// 

@@ -1,11 +1,11 @@
 ﻿
-namespace NestingTest {
+namespace Q {
 
    [ParentChild_json]
-   partial class HiThere<T,T2> : Json<T> {
+   partial class Hello<T,T2> : Json<T> {
    }
 
    [ParentChild_json.Child2]
-   partial class ContactPage<T,T2> : Json<T> {
+   partial class Mail<T,T2> : Json<T> {
    }
 }

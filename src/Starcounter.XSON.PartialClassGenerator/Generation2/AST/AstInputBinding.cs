@@ -17,10 +17,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// </summary>
     public class AstInputBinding : AstBase {
 
-        public override string Name {
-            get { return BindsToProperty.Name; }
-        }
-
         /// <summary>
         /// The property this binding binds to
         /// </summary>

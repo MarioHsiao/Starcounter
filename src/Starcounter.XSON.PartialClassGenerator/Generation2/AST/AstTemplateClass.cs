@@ -7,10 +7,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
-        public override string Name {
-            get { return Template.ToString(); }
-        }
-
 
         private Template _Template;
 
@@ -28,11 +24,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
-        public override string ClassStemIdentifier {
-            get {
-                return HelperFunctions.GetClassStemIdentifier(Template.GetType());
-            }
-        }
+//        public override string ClassStemIdentifier {
+//            get {
+//                return HelperFunctions.GetClassStemIdentifier(Template.GetType());
+//            }
+//        }
     }
 }
 

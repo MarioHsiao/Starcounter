@@ -32,7 +32,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             DefaultObjTemplate = (TJson)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             CodeBehindMetadata = metadata;
             AstObject = new AstOtherClass(this) {
-                _ClassName = "object",
+                GlobalClassSpecifier = "object",
                 NamespaceAlias = null
             };
         }
@@ -72,6 +72,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         internal AstRoot Root;
         internal CodeBehindMetadata CodeBehindMetadata;
+
 
             //return root;
 

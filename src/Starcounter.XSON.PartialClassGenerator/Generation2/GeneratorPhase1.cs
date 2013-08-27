@@ -34,31 +34,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             acn.IsPartial = true;
             acn.MatchedClass = metadata.RootClassInfo;
 
-            var jsonbyexample = new AstOtherClass(Generator) {
-                Parent = acn,
-                _ClassName = "JsonByExample",
-                IsStatic = true
-            };
 
-            tcn = (AstSchemaClass)Generator.ObtainTemplateClass(at);
-            tcn.Parent = jsonbyexample;
+ //           tcn = (AstSchemaClass)Generator.ObtainTemplateClass(at);
 
-#if DEBUG
-            if (tcn.NValueClass != acn)
-                throw new Exception();
-            if (tcn.Template != at)
-                throw new Exception();
-            if (tcn.Generic[0] != acn )
-                throw new Exception();
-            if (tcn.NValueClass != acn)
-                throw new Exception();
-
-#endif
 
             if (metadata == CodeBehindMetadata.Empty) {
                 // No codebehind. Need to set a few extra properties depending on metadata from json
                 acn.IsPartial = false;
-                acn.InheritedClass = (AstJsonClass)Generator.ObtainValueClass(Generator.DefaultObjTemplate);
+//                acn.InheritedClass = (AstJsonClass)Generator.ObtainValueClass(Generator.DefaultObjTemplate);
 
 //                // A specific IBindable type have been specified in the json.
 //                // We add it as a generic value on the Json-class this class inherits from.
@@ -71,24 +54,43 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
             }
 
-            mcn = Generator.ObtainMetaClass(at);
+            //mcn = Generator.ObtainMetaClass(at);
             //new AstObjMetadata(Generator) {
-            mcn.Parent = jsonbyexample;
-            mcn.NValueClass = acn;
-            mcn.InheritedClass = Generator.MetaClasses[Generator.DefaultObjTemplate];
+            //mcn.Parent = jsonbyexample;
+            //mcn.NValueClass = acn;
+            // mcn.InheritedClass = Generator.MetaClasses[Generator.DefaultObjTemplate];
 
-            tcn.NValueClass.NMetadataClass = mcn;
+            //tcn.NValueClass.NMetadataClass = mcn;
 
             // Generator.ValueClasses.Add(at, acn);
             //Generator.TemplateClasses.Add(at, tcn);
             //Generator.MetaClasses.Add(at, mcn);
 
+            mcn = acn.NMetadataClass;
+            tcn = (AstSchemaClass)acn.NTemplateClass;
+
+#if DEBUG
+            if (tcn.NValueClass != acn)
+                throw new Exception();
+            if (tcn.Template != at)
+                throw new Exception();
+            if (tcn.Generic[0] != acn)
+                throw new Exception();
+            if (tcn.NValueClass != acn)
+                throw new Exception();
+
+#endif
+
+
             root.AppClassClassNode = acn;
-            acn.NTemplateClass = tcn;
+            //acn.NTemplateClass = tcn;
             GenerateKids(acn,
                         (AstSchemaClass)acn.NTemplateClass,
                         acn.NMetadataClass,
                         acn.NTemplateClass.Template);
+
+            root.RootJsonClassAlias = acn.GlobalClassSpecifier;
+            root.RootJsonClassAliasPrefix = acn.GlobalClassSpecifier + ".";
 
             return root;
             //  TODOJOCKE                GenerateJsonAttributes(acn, json);
@@ -97,6 +99,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             // TODOJOCKE                ConnectCodeBehindClasses(root, metadata);
             //  TODOJOCKE              GenerateInputBindings((AstTAppClass)acn.NTemplateClass, metadata);
+
         }
 
 
@@ -243,15 +246,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 acn = racn = (AstJsonClass)Generator.ObtainValueClass(at);
                 acn.Parent = appClassParent;
                     //_Inherits = "global::" + Generator.DefaultObjTemplate.InstanceType.FullName // "Puppet", "Json"
-                acn.InheritedClass = (AstJsonClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
+//                acn.InheritedClass = (AstJsonClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
 
-                tcn = new AstSchemaClass(Generator) {
-                    Parent = racn,
-                    Template = at,
-                    NValueClass = racn,
-                    InheritedClass = Generator.TemplateClasses[Generator.DefaultObjTemplate],
-                    Generic = new AstClass[] { acn }
-                };
+//                tcn = new AstSchemaClass(Generator) {
+//                    Parent = racn,
+//                    Template = at,
+//                    NValueClass = racn,
+//                    ` Generator.TemplateClasses[Generator.DefaultObjTemplate],
+//                    Generic = new AstClass[] { acn }
+//                };
 
 //                // A specific IBindable type have been specified in the json.
 //                // We add it as a generic value on the Json-class this class inherits from.
@@ -259,26 +262,28 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 ////                    racn._Inherits += '<' + at.InstanceDataTypeName + '>';
 //                    ((AstTAppClass)tcn).AutoBindProperties = true;
 //                }
+//                tcn = Generator.ObtainTemplateClass(at);
 
-                mcn = Generator.ObtainMetaClass(at); //new AstObjMetadata(Generator);
-                mcn.Parent = racn;
+//                mcn = Generator.ObtainMetaClass(at); //new AstObjMetadata(Generator);
+//                mcn.Parent = racn;
                 //mcn.NTemplateClass = tcn;
-                mcn.NValueClass = acn;
-                mcn.InheritedClass = Generator.MetaClasses[((AstJsonClass)acn.InheritedClass).NTemplateClass.Template];
-                racn.NMetadataClass = mcn;
-                racn.NTemplateClass = tcn;
-
+//                mcn.NValueClass = acn;
+//                mcn.InheritedClass = Generator.MetaClasses[((AstJsonClass)acn.InheritedClass).NTemplateClass.Template];
+//                racn.NMetadataClass = mcn;
+//                racn.NTemplateClass = tcn;
+                tcn = acn.NTemplateClass;
+                mcn = acn.NMetadataClass;
                 GenerateKids( acn, tcn, mcn, at );
 
-                if (!appClassParent.Children.Remove(acn))
-                    throw new Exception(); // Move to...
-                appClassParent.Children.Add(acn); // Move to...
-                if (!acn.Children.Remove(tcn))
-                    throw new Exception(); // Move to...
-                acn.Children.Add(tcn); // Move to...
-                if (!acn.Children.Remove(mcn))
-                    throw new Exception(); // ...last member
-                acn.Children.Add(mcn); // ...last member
+//                if (!appClassParent.Children.Remove(acn))
+//                    throw new Exception(); // Move to...
+//                appClassParent.Children.Add(acn); // Move to...
+//                if (!acn.Children.Remove(tcn))
+//                    throw new Exception(); // Move to...
+//                acn.Children.Add(tcn); // Move to...
+//                if (!acn.Children.Remove(mcn))
+//                    throw new Exception(); // ...last member
+//                acn.Children.Add(mcn); // ...last member
 
 
             }

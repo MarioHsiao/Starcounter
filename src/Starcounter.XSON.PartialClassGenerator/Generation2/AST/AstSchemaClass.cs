@@ -26,36 +26,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// Gets the name of the class.
-        /// </summary>
-        /// <value>The name of the class.</value>
-        public override string ClassStemIdentifier {
-            get {
-                if (MatchedClass != null) {
-#if DEBUG
-                    if (MatchedClass.ClassName.Contains("<"))
-                        throw new Exception();
-                    if (MatchedClass.ClassName.Contains("."))
-                        throw new Exception();
-#endif
-                    return "CodeBehind" + MatchedClass.ClassName;
-                }
-                var acn = ((AstJsonClass)NValueClass);
-#if DEBUG
-                if (acn.ClassStemIdentifier.Contains("<"))
-                    throw new Exception();
-//                if (Template == Generator.DefaultObjTemplate) {
-//                    return HelperFunctions.GetClassStemIdentifier(Template.GetType());
-//                }
-#endif
-      //          return "Schema";
-                return base.ClassStemIdentifier;
-            }
-        }
-
-
-
-        /// <summary>
         /// The constructor
         /// </summary>
         public AstConstructor Constructor;
