@@ -19,10 +19,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// </summary>
     public class AstProperty : AstBase {
 
-        public override string Name {
-            get { return Template.PropertyName; }
-        }
-
         /// <summary>
         /// 
         /// </summary>

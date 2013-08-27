@@ -122,6 +122,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
         }
 
+        static AstJsonClass DefaultJson;
+
         /// <summary>
         /// 
         /// </summary>
@@ -130,7 +132,23 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private AstJsonClass ObtainInheritedJsonClass(CodeBehindClassInfo mapInfo) {
             AstJsonClass acn;
             if (mapInfo.DerivesDirectlyFromJson) {
-                acn = (AstJsonClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
+                acn = DefaultJson;
+                if (acn == null) {
+                    acn = new AstJsonClass(Generator) {
+                        GlobalClassSpecifier = "s:Json<object>",
+                        ClassStemIdentifier = "Json"
+                    };
+                    acn.NTemplateClass = new AstSchemaClass(Generator) {
+                        NValueClass = acn,
+                        GlobalClassSpecifier = "s:Json<object>.JsonByExample.Schema<s:Json<object>>"
+                    };
+                    acn.NMetadataClass = new AstJsonMetadataClass(Generator) {
+                        NValueClass = acn,
+                        GlobalClassSpecifier = "s:Json<object>.JsonByExample.Metadata<st:Schema<s:Json<object>>,s:Json<object>>"
+                    };
+                    DefaultJson = acn;
+                }
+                //                acn = (AstJsonClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
             }
             else {
                 acn = new AstJsonClass(Generator) {
@@ -190,7 +208,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                             }
                             else {
                                 notExistingClass = new AstOtherClass(Generator);
-                                notExistingClass._ClassName = parentClasses[pi];
+                                notExistingClass.ClassStemIdentifier = parentClasses[pi];
                                 notExistingClass.IsPartial = true;
                                 notExistingClass.Parent = parent;
                                 parent = notExistingClass;

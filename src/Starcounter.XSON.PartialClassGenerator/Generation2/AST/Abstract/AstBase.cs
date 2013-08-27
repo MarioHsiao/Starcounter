@@ -19,13 +19,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public Gen2DomGenerator Generator;
 
         /// <summary>
-        /// Each node can have a name for easier debugging
-        /// </summary>
-        public abstract string Name {
-            get;
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>

@@ -39,14 +39,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
               //  }
 
                 var templateAttributeBaseClass = new AstOtherClass(Generator) {
-                    _ClassName = "TemplateAttribute",
-                    NamespaceAlias = "s::"
+                    GlobalClassSpecifier = "s::TemplateAttribute"
                 };
 
                 var json = new AstJsonAttributeClass(Generator) {
                     Parent = acn.Parent,
                     InheritedClass = templateAttributeBaseClass,
-                    _ClassName = acn.ClassStemIdentifier + "_json"
+                    ClassStemIdentifier = acn.ClassStemIdentifier + "_json"
                 };
                 GenerateJsonAttributes(json, acn.Template,templateAttributeBaseClass );
             }
@@ -74,7 +73,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
                     var x = new AstJsonAttributeClass(Generator) {
                         InheritedClass = templateAttributeBaseClass,
-                        _ClassName = stem,
+                        ClassStemIdentifier = stem,
                         Parent = parent
 
                     };

@@ -19,6 +19,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// </summary>
     public abstract class AstInnerClass : AstClass {
 
+
+
         /// <summary>
         /// Constructor
         /// </summary>

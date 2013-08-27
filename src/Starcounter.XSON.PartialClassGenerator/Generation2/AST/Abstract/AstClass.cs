@@ -46,15 +46,26 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(generator) {
         }
 
-        public override string Name {
-            get { return ClassStemIdentifier; }
-        }
-
         /// <summary>
         /// Gets the name of the class without namespaces, owner classes or generics.
         /// </summary>
         /// <value>The name of the class.</value>
-        public abstract string ClassStemIdentifier { get; }
+        public virtual string ClassStemIdentifier {
+            get {
+                if (_ClassStemIdentifier != null) {
+                    return _ClassStemIdentifier;
+//                    return "Gen(" + _ClassStemIdentifier + ")";
+                }
+                if (RealType != null) {
+                    return HelperFunctions.GetClassStemIdentifier(RealType);
+//                    return "Real(" + HelperFunctions.GetClassStemIdentifier(RealType) + ")";
+                }
+                return "UNKNOWN";
+            }
+            set {
+                _ClassStemIdentifier = value;
+            }
+        }
 
         /// <summary>
         /// Returns the class reference text for the inherited class of this class
@@ -95,16 +106,40 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public string ClassSpecifierWithoutOwners {
             get {
                 var str = ClassStemIdentifier;
-
-                if (Generic != null) {
-                    str += "<" + GetSafeGeneric(Generic,0);
-                    for (int y=1;y<Generic.Length;y++) {
-                        str += ","+GetSafeGeneric(Generic,y);
+                if (RealType != null) {
+                    str += GetGenericsSpecifier(RealType);
+                }
+                else if (MatchedClass != null) {
+                    if (MatchedClass.GenericArg != null) {
+                        str += "<" + MatchedClass.GenericArg + ">";
+                    }
+                }
+                else if (Generic != null) {
+                    str += "<" + GetSafeGeneric(Generic, 0);
+                    for (int y = 1; y < Generic.Length; y++) {
+                        str += "," + GetSafeGeneric(Generic, y);
                     }
                     str += ">";
                 }
                 return str;
             }
+        }
+
+        private string GetGenericsSpecifier(Type type) {
+            var ret = "";
+            Type[] typeArguments = type.GetGenericArguments(); // GenericTypeArguments; // etGenericArguments();
+            if (type.IsGenericType) {
+                ret = ret + "<";
+                var i = 0;
+                foreach (Type tParam in typeArguments) {
+                    if (i > 0)
+                        ret = ret + ",";
+                    ret = ret + HelperFunctions.GetClassDeclarationSyntax(tParam);
+                    i++;
+                }
+                ret = ret + ">";
+            }
+            return ret;
         }
 
         private string GetSafeGeneric(AstClass[] arr, int index) {
@@ -136,12 +171,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         /// <exception cref="System.Exception"></exception>
         public override string ToString() {
-            if (ClassStemIdentifier != null) {
-                var str = "CLASS " + ClassStemIdentifier;
-                    str += ":" + Inherits;
-                return str;
-            }
-            return base.ToString();
+            return this.GetType().Name + " " + this.GlobalClassSpecifier;
         }
 
 
@@ -159,6 +189,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         private string _Namespace;
 
+
+        /// <summary>
+        /// If not null, the namespace, identifier and classspecifier
+        /// should be obtained from this actual type.
+        /// </summary>
+        public Type RealType = null;
+
         /// <summary>
         /// The namespace is calculated from the parent AstNodes unless
         /// there is a matched code behind class or external class with a
@@ -166,16 +203,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         public virtual string Namespace {
             get {
+                if (_Namespace != null) {
+                    return _Namespace;
+                    //return "GEN(" + _Namespace + ")";
+                }
+                if (RealType != null) {
+                    //return "REAL(" + RealType.Namespace + ")";
+                    return RealType.Namespace;
+                }
                 if (MatchedClass == null) {
                     if (Parent is AstJsonClass) {
-                            return (Parent as AstJsonClass).Namespace;
+                        return (Parent as AstJsonClass).Namespace;
+                       // return "CODEBEHIND(" + (Parent as AstJsonClass).Namespace + ")";
                     }
-                    return _Namespace;
+                    return null;
                 }
-#if DEBUG
-                if (_Namespace != null)
-                    throw new Exception("Namespace conflict");
-#endif
                 return MatchedClass.Namespace;
             }
             set {
@@ -184,6 +226,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private string _GlobalClassSpecifier = null;
+        private string _ClassStemIdentifier = null;
 
         /// <summary>
         /// The global class specifier points out one exact type 
@@ -192,17 +235,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public virtual string GlobalClassSpecifier {
             get {
                 if (_GlobalClassSpecifier != null) {
-                    return _GlobalClassSpecifier;
+                    //                    return "gen(" + _GlobalClassSpecifier + ")";
+                    return Clean(_GlobalClassSpecifier);
+                }
+                if (MatchedClass != null) {
+                    return Clean( MatchedClass.GlobalClassSpecifier );
                 }
                 if (Parent == null || !(Parent is AstClass)) {
                     var str = NamespaceAlias;
                     if (Namespace != null)
                         str += Namespace + ".";
-                    if (MatchedClass != null) {
-                        return MatchedClass.GlobalClassSpecifier;
-                    }
-                    //                    return "§[" + str + ClassSpecifierWithoutOwners + "]";
-                    return str + ClassSpecifierWithoutOwners;
+                    return Clean(str + ClassSpecifierWithoutOwners);
                 }
                 else {
                     return (Parent as AstClass).GlobalClassSpecifier + "." + ClassSpecifierWithoutOwners;
@@ -214,6 +257,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+        private string Clean(string str) {
+            if (str.StartsWith("global::Starcounter.Templates.")) {
+                str = "st::" + str.Substring(30);
+            }
+            else if (str.StartsWith("global::Starcounter.")) {
+                str = "s::" + str.Substring(20);
+            }
+            if (Generator.Root!= null && str.StartsWith(Generator.Root.RootJsonClassAliasPrefix)) {
+                str = "uSr::" + str.Substring(Generator.Root.RootJsonClassAliasPrefix.Length - 1);
+            }
+            if (Generator.Root != null && str.Equals(Generator.Root.RootJsonClassAlias)) {
+                str = "uSr";
+            }
+            return str;
+        }
+
 
         /// <summary>
         /// The global class specifier points out one exact type 
@@ -222,9 +281,25 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public virtual string GlobalClassSpecifierWithoutGenerics {
             get {
                 var str = GlobalClassSpecifier;
-                var index = str.IndexOf('<');
-                if (index >= 0)
-                    return str.Substring(0, index);
+                //str = str.Substring(0,str.Length - 1);
+                if (str[str.Length - 1] == '>') {
+                    var nesting = 1;
+                    for (int t = str.Length - 2; t >= 0; t--) {
+                        switch (str[t]) {
+                            case '>':
+                                nesting++;
+                                break;
+                            case '<':
+                                nesting--;
+                                if (nesting == 0) {
+                                    str = str.Substring(0, t);
+                                    goto end;
+                                }
+                                break;
+                        }
+                    }
+                end: { }
+                }
                 return str;                
             }
         }

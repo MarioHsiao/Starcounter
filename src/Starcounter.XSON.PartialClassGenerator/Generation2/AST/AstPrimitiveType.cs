@@ -23,10 +23,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
-        public override string Name {
-            get { return ClassStemIdentifier; }
-        }
-
 
         /// <summary>
         /// Gets the name of the class.
