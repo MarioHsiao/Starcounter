@@ -21,10 +21,10 @@ namespace Starcounter.Templates {
         private bool _DefaultValue = false;
 
         public override Type MetadataType {
-            get { return typeof(BoolMetadata<Json<object>>); }
+            get { return typeof(BoolMetadata<Json>); }
         }
 
-        public override void ProcessInput(Json<object> obj, byte[] rawValue)
+        public override void ProcessInput(Json obj, byte[] rawValue)
         {
             // TODO:
             // Proper implementation.

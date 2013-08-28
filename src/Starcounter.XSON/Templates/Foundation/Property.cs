@@ -26,8 +26,8 @@ namespace Starcounter {
     /// </summary>
     /// <typeparam name="T">The primitive system type of this property.</typeparam>
     public abstract class Property<T> : TValue {
-        public Func<Json<object>, Property<T>, T, Input<T>> CustomInputEventCreator = null;
-        public List<Action<Json<object>, Input<T>>> CustomInputHandlers = new List<Action<Json<object>, Input<T>>>();
+        public Func<Json, Property<T>, T, Input<T>> CustomInputEventCreator = null;
+        public List<Action<Json, Input<T>>> CustomInputHandlers = new List<Action<Json, Input<T>>>();
 
         internal override bool UseBinding(IBindable data) {
 			if (data == null)
@@ -42,17 +42,17 @@ namespace Starcounter {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<Json<object>, Property<T>, T, Input<T>> createInputEvent = null,
-            Action<Json<object>, Input<T>> handler = null) {
+            Func<Json, Property<T>, T, Input<T>> createInputEvent = null,
+            Action<Json, Input<T>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
 
-        internal override object GetBoundValueAsObject(Json<object> obj) {
+        internal override object GetBoundValueAsObject(Json obj) {
             return obj.GetBound<T>(this);
         }
 
-        internal override void SetBoundValueAsObject(Json<object> obj, object value) {
+        internal override void SetBoundValueAsObject(Json obj, object value) {
             obj.SetBound<T>(this, (T)value);
         }
 	}
@@ -132,7 +132,7 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        public abstract void ProcessInput(Json<object> obj, Byte[] rawValue);
+        public abstract void ProcessInput(Json obj, Byte[] rawValue);
 
         /// <summary>
         /// 
@@ -148,7 +148,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        internal virtual object GetBoundValueAsObject(Json<object> obj) {
+        internal virtual object GetBoundValueAsObject(Json obj) {
             throw new NotSupportedException();
         }
 
@@ -157,7 +157,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="value"></param>
-        internal virtual void SetBoundValueAsObject(Json<object> obj, object value) {
+        internal virtual void SetBoundValueAsObject(Json obj, object value) {
             throw new NotSupportedException();
         }
 

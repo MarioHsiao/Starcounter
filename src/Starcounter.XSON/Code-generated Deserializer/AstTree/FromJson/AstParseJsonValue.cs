@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Prefix.Add("if (valueSize != -1) {");
                 GenerateBufferJumpCode();
                 GenerateElseExceptionCode();
-            } else if (template is Schema<Json<object>>) {  
+            } else if (template is Schema) {  
                 Prefix.Add("var" + valueName + " = obj." + template.PropertyName + ";");
                 Prefix.Add("valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize);");
                 Prefix.Add("if (valueSize != -1) {");

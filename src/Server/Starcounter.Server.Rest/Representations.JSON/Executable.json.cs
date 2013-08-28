@@ -6,6 +6,6 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     /// Represents an executable resource.
     /// </summary>
     [Executable_json]
-    partial class Executable : Json<object> {
+    partial class Executable : Json {
     }
 }

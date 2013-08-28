@@ -7,7 +7,7 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     /// <summary>
     /// Represents an engine resource.
     /// </summary>
-    partial class Engine : Json<object> {
+    partial class Engine : Json {
 
         public ExecutableReference GetExecutable(string exePath) {
             for (int i = 0; i < this.Executables.Executing.Count; i++) {

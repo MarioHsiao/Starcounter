@@ -51,27 +51,7 @@ namespace Starcounter {
     /// A Json object can be data bound to a database object such as its bound properties
     /// merely reflect the values of the database objects.
     /// </remarks>
-    public partial class Json<DataType> : Container, IHypermedia where DataType : class {
-
-        /// <summary>
-        /// Allows implicit casting from Json&ltMyClass&gt to Json&ltobject&gt
-        /// </summary>
-        /// <remarks>
-        /// This method does nothing but is needed for C# to compile.
-        /// The method does nothing but return the same object as it is supplied
-        /// with. The C# compiler fails to recognize the "class" constrain in the
-        /// where statement of the class declaration means that all instances of
-        /// this class are also already Json&ltobject&gt instances.
-        /// </remarks>
-        /// <param name="self">The object to cast</param>
-        /// <returns>The same object (self) is returned without further action</returns>
-        public static implicit operator Json<object>(Json<DataType> self) {
-            var ret = self as Json<object>;
-            if (ret == null) {
-                throw new Exception("Internal error");
-            }
-            return ret;
-        }
+    public partial class Json : Container, IHypermedia {
 
         /// <summary>
         /// Base classes to be derived by Json-by-example classes.
@@ -81,8 +61,7 @@ namespace Starcounter {
             /// Used by to support inheritance when using Json-by-example compiler
             /// </summary>
             /// <typeparam name="JsonType">The Json instances described by this schema</typeparam>
-            public class Schema<JsonType> : Starcounter.Templates.Schema<JsonType>
-                where JsonType : Json<object>, new() {
+            public class Schema : Starcounter.Templates.Schema {
             }
 
             /// <summary>
@@ -90,8 +69,8 @@ namespace Starcounter {
             /// </summary>
             /// <typeparam name="JsonType">The Json instances described by this schema</typeparam>
             public class Metadata<SchemaType,JsonType> : Starcounter.Templates.ObjMetadata<SchemaType,JsonType>
-                where SchemaType : Starcounter.Templates.Schema<Json<object>>
-                where JsonType : Json<object> {
+                where SchemaType : Starcounter.Templates.Schema
+                where JsonType : Json {
 
                 public Metadata(JsonType app, SchemaType template) : base(app,template) {}
             }
@@ -114,7 +93,7 @@ namespace Starcounter {
                 if (Template == null) {
                     return false;
                 }
-                return Template is ArrSchema<Json<object>>;
+                return Template is ArrSchema<Json>;
             }
         }
 
@@ -155,11 +134,11 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public Boolean HasThisRoot(Json<object> treeRoot) {
+        public Boolean HasThisRoot(Json treeRoot) {
             Container r = this;
             while (r.Parent != null)
                 r = r.Parent;
-            Json<object> root = (Json<object>)r;
+            Json root = (Json)r;
 
             if (treeRoot == root)
                 return true;
@@ -218,7 +197,7 @@ namespace Starcounter {
                 if (_transaction != null)
                     return _transaction;
 
-                Json<object> parentWithTrans = GetNearestObjParentWithTransaction();
+                Json parentWithTrans = GetNearestObjParentWithTransaction();
                 if (parentWithTrans != null)
                     return parentWithTrans.Transaction;
 
@@ -244,24 +223,24 @@ namespace Starcounter {
         /// Returns the nearest parent that is not an Arr (list).
         /// </summary>
         /// <returns>An Obj or null if this is the root Obj.</returns>
-        Json<object> GetNearestObjParent() {
+        Json GetNearestObjParent() {
             Container parent = Parent;
-            while ((parent != null) && (!(parent is Json<object>))) {
+            while ((parent != null) && (!(parent is Json))) {
                 parent = parent.Parent;
             }
-            return (Json<object>)parent;
+            return (Json)parent;
         }
 
         /// <summary>
         /// Returns the nearest parent that has a transaction.
         /// </summary>
         /// <returns>An Obj or null if this is the root Obj.</returns>
-        Json<object> GetNearestObjParentWithTransaction()
+        Json GetNearestObjParentWithTransaction()
         {
             Container parent = Parent;
             while (parent != null)
             {
-                Json<object> objParent = parent as Json<object>;
+                Json objParent = parent as Json;
 
                 if ((null != objParent) && (null != objParent.Transaction))
                     return objParent;
@@ -269,7 +248,7 @@ namespace Starcounter {
                 parent = parent.Parent;
             }
 
-            return (Json<object>)parent;
+            return (Json)parent;
         }
 
         /// <summary>
@@ -281,8 +260,8 @@ namespace Starcounter {
                 TObjArr apa = (TObjArr)property;
                 this.Set(apa, this.GetBound(apa));
             }
-            else if (property is Schema<Json<object>>) {
-                var at = (Schema<Json<object>>)property;
+            else if (property is Schema) {
+                var at = (Schema)property;
                 IBindable v = this.GetBound(at);
                 this.Set(at, v);
             }
@@ -313,15 +292,15 @@ namespace Starcounter {
 //        /// The template defining the schema (properties) of this Obj.
 //        /// </summary>
 //        /// <value>The template</value>
-//        public new Schema<Json<object>> Template {
-//            get { return (Schema<Json<object>>)base.Template; }
+//        public new Schema Template {
+//            get { return (Schema)base.Template; }
 //            set { base.Template = value; }
 //        }
 
         /// <summary>
         /// Implementation field used to cache the Metadata property.
         /// </summary>
-        private ObjMetadata<Schema<Json<object>>,Json<object>> _Metadata = null;
+        private ObjMetadata<Schema,Json> _Metadata = null;
 
         /// <summary>
         /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).
@@ -331,7 +310,7 @@ namespace Starcounter {
         /// <value>The metadata.</value>
         /// <remarks>It is much less expensive to set this kind of metadata for the
         /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
-        public ObjMetadata<Schema<Json<object>>, Json<object>> Metadata {
+        public ObjMetadata<Schema, Json> Metadata {
             get {
                 return _Metadata;
             }

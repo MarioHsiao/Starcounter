@@ -24,7 +24,7 @@ using System.Web;
 
 namespace Starcounter.Administrator {
 
-    partial class Master : Json<object> {
+    partial class Master : Json {
 
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;

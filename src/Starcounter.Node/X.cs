@@ -243,7 +243,7 @@ namespace Starcounter
             {
                 if (null != Session.Current)
                 {
-                    Json<object> cachedObj = Session.Current.GetCachedJsonNode(uri);
+                    Json cachedObj = Session.Current.GetCachedJsonNode(uri);
                     if (null != cachedObj)
                     {
                         // Calling user delegate directly.

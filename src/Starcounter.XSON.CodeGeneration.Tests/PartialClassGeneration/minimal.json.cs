@@ -1,5 +1,5 @@
 ﻿using Starcounter;
 
 [minimal_json]
-public partial class Minimal : Json<object> {
+public partial class Minimal : Json {
 }

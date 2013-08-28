@@ -2,22 +2,22 @@
 using System.Dynamic;using System.Linq.Expressions;using System.Reflection;using System.Linq;#if CLIENTusing Starcounter.Client.Template;namespace Starcounter.Client {#elseusing Starcounter.Templates;using System.Diagnostics;
 using System.Collections;
 using Starcounter.Internal.XSON;namespace Starcounter {#endif
-    public partial class Json<DataType> : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
+    public partial class Json : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
         /// <summary>
         /// Provides late bound (dynamic) access to Json properties defined
         /// in the Template of the Json object. Also supports data binding 
         /// using the Json.Data property.
-        /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(                System.Linq.Expressions.Expression parameter,                Json<object> value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
+        /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(                System.Linq.Expressions.Expression parameter,                Json value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
             /// Getter implementation. See DynamicPropertyMetaObject.
             /// </summary>
             /// <param name="binder"></param>
             /// <returns></returns>            public override DynamicMetaObject BindGetMember(GetMemberBinder binder) {
-                var app = (Json<object>)Value;
+                var app = (Json)Value;
                 if (app.IsArray) {
                     return base.BindGetMember(binder);
                 }
                 else {
-                    return BindGetMemberForJsonObject(app, (Schema<Json<object>>)app.Template, binder);
+                    return BindGetMemberForJsonObject(app, (Schema)app.Template, binder);
                 }
             }
 
@@ -27,7 +27,7 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
             /// <param name="template"></param>
             /// <param name="binder"></param>
             /// <returns></returns>
-            private DynamicMetaObject BindGetMemberForJsonObject( Json<object>app, Schema<Json<object>>template, GetMemberBinder binder ) {
+            private DynamicMetaObject BindGetMemberForJsonObject( Json app, Schema template, GetMemberBinder binder ) {
 
                 MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
 
@@ -71,7 +71,7 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
             /// <param name="binder"></param>
             /// <param name="value"></param>
             /// <returns></returns>            public override DynamicMetaObject BindSetMember(SetMemberBinder binder, DynamicMetaObject value) {
-                var app = (Json<object>)Value;
+                var app = (Json)Value;
                 if (app.IsArray) {
                     return base.BindSetMember(binder, value);
                 }
@@ -88,7 +88,7 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
             /// <param name="value"></param>
             /// <param name="app"></param>
             /// <returns></returns>
-            private DynamicMetaObject BindSetMemberForJsonObject( SetMemberBinder binder, DynamicMetaObject value, Json<object>app ) {
+            private DynamicMetaObject BindSetMemberForJsonObject( SetMemberBinder binder, DynamicMetaObject value, Json app ) {
                 // Special handling of properties declared in the baseclass (Obj) and overriden
                 // using 'new', like a generic override of Data returning the correct type.
 
@@ -96,10 +96,10 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
 //                    return base.BindSetMember(binder, value);
 //                }
 
-                var ot = (Schema<Json<object>>)app.Template;
+                var ot = (Schema)app.Template;
                 if (ot == null) {
                     app.CreateDynamicTemplate();
-                    ot = (Schema<Json<object>>)app.Template; 
+                    ot = (Schema)app.Template; 
 //                    app.Template = ot = new TDynamicObj(); // Make this an expando object like Obj
                 }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name);                if (pi != null)                    return base.BindSetMember(binder, value);
                 TValue templ = (TValue)(ot.Properties[binder.Name]);                if (templ == null) {

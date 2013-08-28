@@ -7,6 +7,6 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     /// </summary>
     /// 
     [LogEntry_json]
-    partial class LogEntry : Json<object> {
+    partial class LogEntry : Json {
     }
 }

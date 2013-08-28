@@ -2,7 +2,7 @@
 
 namespace PMail {
 
-    partial class Master : Json<object> {
+    partial class Master : Json {
 
         static void Main() {
         }

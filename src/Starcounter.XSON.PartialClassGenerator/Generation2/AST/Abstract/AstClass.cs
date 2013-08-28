@@ -196,7 +196,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </example>
         /// In the below example, this property will contain null
         /// <example>
-        /// class MyStuff : Json<object> { ... }"/>
+        /// class MyStuff : Json { ... }"/>
         /// </example>
         /// </summary>
         public virtual string Generics { get; set; }

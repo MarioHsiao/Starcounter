@@ -23,7 +23,7 @@ namespace Starcounter.Templates {
             get { throw new NotImplementedException(); } // TODO!
         }
 
-        public override void ProcessInput(Json<object> obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new NotImplementedException();
         }
 

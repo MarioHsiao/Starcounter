@@ -2,7 +2,7 @@
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 
@@ -15,18 +15,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstJsonClass GetDefaultJson() {
             if (DefaultJson == null) {
                 DefaultJson = new AstJsonClass(this) {
-                    GlobalClassSpecifier = "global::Starcounter.Json<object>",
+                    GlobalClassSpecifier = "global::Starcounter.Json",
                     ClassStemIdentifier = "Json"
                 };
                 DefaultJson.NTemplateClass = new AstSchemaClass(this) {
                     NValueClass = DefaultJson,
                     Template = DefaultObjTemplate,
-                    GlobalClassSpecifier = "global::Starcounter.Json<object>.JsonByExample.Schema<global::Starcounter.Json<object>>",
+                    GlobalClassSpecifier = "global::Starcounter.Json.JsonByExample.Schema<global::Starcounter.Json>",
                     ClassStemIdentifier = "Schema"
                 };
                 DefaultJson.NMetadataClass = new AstJsonMetadataClass(this) {
                     NValueClass = DefaultJson,
-                    GlobalClassSpecifier = "global::Starcounter.Json<object>.JsonByExample.Metadata<global::Starcounter.Json<object>.JsonByExample.Schema<global::Starcounter.Json<object>>,global::Starcounter.Json<object>>",
+                    GlobalClassSpecifier = "global::Starcounter.Json.JsonByExample.Metadata<global::Starcounter.Json.JsonByExample.Schema<global::Starcounter.Json>,global::Starcounter.Json>",
                     ClassStemIdentifier = "Metadata"
                 };
             }
@@ -95,7 +95,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="template">The template.</param>
         /// <returns>NValueClass.</returns>
         public AstInstanceClass ObtainValueClass(Template template) {
-            //            if (template is Schema<Json<object>>) {
+            //            if (template is Schema<Json>) {
             //                var acn = new AstAppClass(this) {
             //
             //                };
@@ -127,8 +127,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return ret;
             }
 
-            if (template is Schema<Json<object>>) {
-                var tjson = template as Schema<Json<object>>;
+            if (template is Schema) {
+                var tjson = template as Schema;
                 var acn = new AstJsonClass(this);
                 ValueClasses.Add(template, acn);
                 acn.InheritedClass = GetDefaultJson();
@@ -153,8 +153,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 //acn.ClassStemIdentifier = className;
                 return acn;
             }
-            else if (template is ArrSchema<Json<object>>) {
-                var tarr = template as ArrSchema<Json<object>>;
+            else if (template is ArrSchema<Json>) {
+                var tarr = template as ArrSchema<Json>;
                 var acn = new AstInstanceClass(this);
                 ValueClasses.Add(template, acn);
                 acn.NMetadataClass = ObtainMetaClass(template);
@@ -216,7 +216,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             else
                 parent = this.GetDefaultJson();
 
-            if (template is Schema<Json<object>>) {
+            if (template is Schema) {
                 AstClass[] gen;
                 gen = new AstClass[] {
                     ObtainTemplateClass(template),
@@ -243,8 +243,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                }
                 return mcn;
             }
-            else if (template is ArrSchema<Json<object>>) {
-                var tarr = template as ArrSchema<Json<object>>;
+            else if (template is ArrSchema<Json>) {
+                var tarr = template as ArrSchema<Json>;
                 AstClass[] gen;
                 gen = new AstClass[] {
                     ObtainTemplateClass(tarr.ElementType),
@@ -314,7 +314,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
 
 
-            if (template is Schema<Json<object>>) {
+            if (template is Schema) {
                 ret = new AstSchemaClass(this) {
                     Template = template
                 };
@@ -339,8 +339,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ret.NValueClass = acn;
                 return ret;
             }
-            if (template is ArrSchema<Json<object>>) {
-                var tarr = template as ArrSchema<Json<object>>;
+            if (template is ArrSchema<Json>) {
+                var tarr = template as ArrSchema<Json>;
                 ret = new AstTemplateClass(this) {
                     Template = template
                 };

@@ -224,8 +224,8 @@ namespace Starcounter.Internal.JsonPatch
             } else if (property is TDecimal) {
                 ret = change.Obj.Get((TDecimal)property);
             }
-            else if (property is Schema<Json<object>>) {
-                ret = change.Obj.Get((Schema<Json<object>>)property);
+            else if (property is Schema) {
+                ret = change.Obj.Get((Schema)property);
             }
             return ret;
         }

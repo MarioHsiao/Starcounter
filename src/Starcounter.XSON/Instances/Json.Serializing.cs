@@ -13,7 +13,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class Json<DataType> {
+    public partial class Json {
         /// <summary>
         /// 
         /// </summary>
@@ -58,7 +58,7 @@ namespace Starcounter {
         }
 
         internal void CreateDynamicTemplate() {
-            var t = new Schema<Json<object>>();
+            var t = new Schema();
             t.IsDynamic = true;
             Template = t; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.
         }

@@ -88,7 +88,7 @@ namespace Starcounter.Administrator.API.Utilities {
             /// <param name="obj">The resulting strongly typed object.</param>
             /// <returns>A response to be returned if the request can not be
             /// accepted.</returns>
-            public static Response CreateFromRequest<T>(Request request, out T obj) where T : Json<object>, new() {
+            public static Response CreateFromRequest<T>(Request request, out T obj) where T : Json, new() {
                 T result = new T();
                 try {
                     result.PopulateFromJson(request.Body);

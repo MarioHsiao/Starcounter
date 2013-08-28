@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace Starcounter {
 
-    public partial class Json<DataType> {
+    public partial class Json {
 
         public object Get(TValue property) {
 			if (property.UseBinding(DataAsBindable))
@@ -208,8 +208,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public JsonType Get<JsonType>(Schema<JsonType> property)
-            where JsonType : Json<object>, new() {
+        public JsonType Get<JsonType>(Schema property)
+            where JsonType : Json, new() {
             //IBindable data = null;
             //if (property.Bound)
             //    data = GetBound(property);
@@ -224,13 +224,13 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Json<object> Get(Schema<Json<object>> property) {
+        public Json Get(Schema property) {
             //IBindable data = null;
             //if (property.Bound)
             //    data = GetBound(property);
 
 #if QUICKTUPLE
-            return (Json<object>)Values[property.TemplateIndex];
+            return (Json)Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif
@@ -241,7 +241,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(Schema<Json<object>> property, Json<object> value) {
+        public void Set(Schema property, Json value) {
 			if (value != null) {
 				value.Parent = this;
 
@@ -253,7 +253,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             var vals = Values;
             var i = property.TemplateIndex;
-            Json<object> oldValue = vals[i];
+            Json oldValue = vals[i];
             if (oldValue != null) {
                 oldValue.SetParent(null);
 				oldValue._cacheIndexInArr = -1;
@@ -268,28 +268,14 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public T Get<T>(Schema<Json<object>> property) where T : Json<object>, new() {
-#if QUICKTUPLE
-            return (T)Get(property);
-#else
-            throw new NotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(Schema<Json<object>> property, IBindable value) {
+        public void Set(Schema property, IBindable value) {
             if (property.UseBinding(DataAsBindable))
                 SetBound(property, value);
 
 #if QUICKTUPLE
-            Json<object> app = (Json<object>)property.CreateInstance(this);
+            Json app = (Json)property.CreateInstance(this);
             app.Data = value;
             Values[property.TemplateIndex] = app;
 #else
@@ -304,7 +290,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public Arr<ElementType> Get<ElementType>(ArrSchema<ElementType> property) 
-            where ElementType : Json<object>, new()
+            where ElementType : Json, new()
         {
 #if QUICKTUPLE
             return Values[property.TemplateIndex];
@@ -372,7 +358,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
         /// <param name="data"></param>
-        public void Set<T>(TObjArr property, Rows<object> data) where T : Json<object>, new() {
+        public void Set<T>(TObjArr property, Rows<object> data) where T : Json, new() {
             Arr<T> newList;
             var vals = Values;
             Arr<T> current = vals[property.TemplateIndex];
@@ -391,7 +377,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Arr<T> Get<T>(TObjArr property) where T : Json<object>, new() {
+        public Arr<T> Get<T>(TObjArr property) where T : Json, new() {
 #if QUICKTUPLE
             return (Arr<T>)(Values[property.TemplateIndex]);
 #else
@@ -405,7 +391,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="templ"></param>
         /// <param name="data"></param>
-        public void Set<T>(TObjArr templ, Arr<T> data) where T : Json<object>, new() {
+        public void Set<T>(TObjArr templ, Arr<T> data) where T : Json, new() {
             var vals = Values;
             Arr<T> current = vals[templ.TemplateIndex];
             if (current != null)

@@ -4,7 +4,7 @@ using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using System;
 using System.IO;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {

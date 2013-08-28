@@ -397,7 +397,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     parentClass +
                     " Parent { get { return (" +
                    parentClass +
-                    ")(this as s::Json<object>).Parent; } set { (this as s::Json<object>).Parent = value; } }");
+                    ")(this as s::Json).Parent; } set { (this as s::Json).Parent = value; } }");
             }
         }
 
@@ -606,7 +606,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-			sb.Append(".AddHandler((Json<object> pup, ");
+			sb.Append(".AddHandler((Json pup, ");
 
 			if (hasValue) {
 				sb.Append("Property");
@@ -636,7 +636,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 sb.Append(", Value = value");
             }
 
-			sb.Append(" }); }, (Json<object> pup, Starcounter.Input");
+			sb.Append(" }); }, (Json pup, Starcounter.Input");
 
             if (hasValue) {
                 sb.Append('<');
@@ -720,7 +720,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using Starcounter.Templates;\n");
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
-            h.Append("using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;\n");
+            h.Append("using TJson = Starcounter.Templates.Schema;\n");
 //            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
 
             h.Append("#pragma warning disable 0108\n");

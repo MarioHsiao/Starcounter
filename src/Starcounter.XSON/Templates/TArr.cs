@@ -18,10 +18,10 @@ namespace Starcounter.Templates {
     /// </summary>
     /// <typeparam name="OT"></typeparam>
     public class ArrSchema<OT> : TObjArr
-        where OT : Json<object>, new()
+        where OT : Json, new()
     {
         public override Type MetadataType {
-            get { return typeof(ArrMetadata<OT,Json<object>>); }
+            get { return typeof(ArrMetadata<OT,Json>); }
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
         public override object CreateInstance(Container parent) {
-            return new Arr<OT>((Json<object>)parent, this);
+            return new Arr<OT>((Json)parent, this);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Starcounter.Templates {
             get { return typeof(Arr<OT>); }
         }
 
-        public override void ProcessInput(Json<object> obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new System.NotImplementedException();
         }
 
@@ -51,25 +51,25 @@ namespace Starcounter.Templates {
         /// in this object array.
         /// </summary>
         /// <value>The app.</value>
-        public override Schema<Json<object>> ElementType {
+        public override Schema ElementType {
             get {
                 if (_Single.Length == 0)
                     return null;
-                return (Schema<Json<object>>)_Single[0];
+                return (Schema)_Single[0];
             }
             set {
                 if (InstanceDataTypeName != null) {
                     value.InstanceDataTypeName = InstanceDataTypeName;
                 }
-                _Single = new Schema<Json<object>>[1];
-                _Single[0] = (Schema<Json<object>>)value;
+                _Single = new Schema[1];
+                _Single[0] = (Schema)value;
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal Schema<Json<object>>[] _Single = new Schema<Json<object>>[0];
+        internal Schema[] _Single = new Schema[0];
 
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Starcounter.Templates {
         /// in this array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public abstract Schema<Json<object>> ElementType { get; set; }
+        public abstract Schema ElementType { get; set; }
 
         /// <summary>
         /// 
@@ -141,11 +141,11 @@ namespace Starcounter.Templates {
             return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
 
-        internal override object GetBoundValueAsObject(Json<object> obj) {
+        internal override object GetBoundValueAsObject(Json obj) {
             throw new NotImplementedException();
         }
 
-        internal override void SetBoundValueAsObject(Json<object> obj, object value) {
+        internal override void SetBoundValueAsObject(Json obj, object value) {
             throw new NotImplementedException();
         }
     }

@@ -13,7 +13,7 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class StringMetadata<JsonType> : ValueMetadata<JsonType,TString>
-            where JsonType : Json<object>
+            where JsonType : Json
     {
 
         /// <summary>
