@@ -57,10 +57,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var prop = (node as AstProperty);
                 CreateClassAliases(prop.Type);
             }
-            else if (node is AstClass) {
+            else if (node is AstClass ) {
                 var cls = node as AstClass;
 
-                if (cls.ClassAlias == null) {
+                if (cls.ClassAlias == null && !cls.IsPrimitive) {
 
                     if (cls.Generic != null) {
                         foreach (var gen in cls.Generic) {
@@ -80,7 +80,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     alias = new AstClassAlias(node.Generator) {
                         Alias = id,
-                        Specifier = cls.GlobalClassSpecifier
+                        Specifier = cls.GlobalClassSpecifierWithoutGenerics
                     };
                     alias.Parent = Generator.Root;
 

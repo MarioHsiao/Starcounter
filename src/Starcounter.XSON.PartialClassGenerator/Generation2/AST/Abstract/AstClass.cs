@@ -22,6 +22,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+        public virtual bool IsPrimitive {
+            get {
+                return false;
+            }
+        }
+
         private CodeBehindClassInfo _MatchedClass;
 
         /// <summary>
@@ -106,26 +112,31 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public string ClassSpecifierWithoutOwners {
             get {
                 var str = ClassStemIdentifier;
-                if (BuiltInType != null) {
-                    str += GetGenericsSpecifier(BuiltInType);
-                }
-                else if (CodebehindClass != null) {
-                    if (CodebehindClass.GenericArg != null) {
-                        str += "<" + CodebehindClass.GenericArg + ">";
-                    }
-                }
-                else if (Generic != null) {
-                    str += "<" + GetSafeGeneric(Generic, 0);
-                    for (int y = 1; y < Generic.Length; y++) {
-                        str += "," + GetSafeGeneric(Generic, y);
-                    }
-                    str += ">";
-                }
-                return str;
+                return str + GenericAsString();
             }
         }
 
-        private string GetGenericsSpecifier(Type type) {
+        public string GenericAsString() {
+            if (BuiltInType != null) {
+                return GetGenericsSpecifier(BuiltInType);
+            }
+            else if (CodebehindClass != null) {
+                if (CodebehindClass.GenericArg != null) {
+                    return "<" + CodebehindClass.GenericArg + ">";
+                }
+            }
+            else if (Generic != null) {
+                var str = "<" + GetSafeGeneric(Generic, 0);
+                for (int y = 1; y < Generic.Length; y++) {
+                    str += "," + GetSafeGeneric(Generic, y);
+                }
+                str += ">";
+                return str;
+            }
+            return "";
+        }
+
+        private static string GetGenericsSpecifier(Type type) {
             var ret = "";
             Type[] typeArguments = type.GetGenericArguments(); // GenericTypeArguments; // etGenericArguments();
             if (type.IsGenericType) {
@@ -238,7 +249,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public virtual string GlobalClassSpecifier {
             get {
                 if (ClassAlias != null && Generator.Root.AliasesActive) {
-                    return ClassAlias.Alias;
+                    return ClassAlias.Alias + GenericAsString();
                 }
                 if (_GlobalClassSpecifier != null) {
                     //                    return "gen(" + _GlobalClassSpecifier + ")";

@@ -23,6 +23,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
+        public override bool IsPrimitive {
+            get {
+                var type = NTemplateClass.Template.InstanceType;
+                return type.IsPrimitive;
+            }
+        }
+
 
         /// <summary>
         /// Gets the name of the class.
