@@ -27,7 +27,9 @@ chunk_pool_(chunks_total_number_max),
 overflow_pool_(chunks_total_number_max),
 num_channels_(0),
 random_generator_(0 /*seed*/),
-acquired_chunks_(0) {}
+acquired_chunks_(0),
+pushed_(0),
+popped_(0) {}
 
 worker::~worker() {
 	join();
@@ -102,8 +104,6 @@ try {
 	bool worked = false;
 	bool scanned_channel_out_buffers = false;
 	uint64_t scan_counter = scan_counter_preset;
-	uint64_t pushed = 0;
-	uint64_t popped = 0;
 	uint64_t statistics_counter = 0;
 
 	worker->set_state(running);
@@ -148,7 +148,7 @@ try {
 						(worker->shared().scheduler_work_event
 						(the_channel.get_scheduler_number()));
 						
-						++pushed; // Used for statistics.
+						++worker->pushed_; // Used for statistics.
 						worked = true;
 						
 						// Continue with the next channel.
@@ -209,7 +209,7 @@ try {
 									(worker->shared().scheduler_work_event
 									(the_channel.get_scheduler_number()));
 									
-									++pushed; // Used for statistics.
+									++worker->pushed_; // Used for statistics.
 									worked = true;
 									
 									// Continue with the next channel.
@@ -258,7 +258,7 @@ try {
 				(worker->shared().scheduler_work_event
 				(the_channel.get_scheduler_number()));
 				
-				++pushed; // Used for statistics.
+				++worker->pushed_; // Used for statistics.
 				worked = true;
 				
 				// Remove the request message from the channel::in_overflow
@@ -288,7 +288,7 @@ scan_channel_out_buffers:
 					the_channel.scheduler()->notify(worker->shared()
 					.scheduler_work_event(the_channel.get_scheduler_number()));
 					
-					++popped; // Used for statistics.
+					++worker->popped_; // Used for statistics.
 					worked = true;
 					
 					// Handle all responses in this chunk.
@@ -339,7 +339,8 @@ scan_channel_out_buffers:
 		
 		/// Show some statistics
 		if ((++statistics_counter & ((1 << 24) -1)) == 0) {
-			std::cout << "worker[" << worker->id() << "]: pushed " << pushed << ", popped " << popped << std::endl;
+			std::cout << "worker[" << worker->id() << "]: pushed "
+            << worker->pushed_ << ", popped " << worker->popped_ << std::endl;
 		}
 		
 		// Check if this worker wait for work. Assuming not.

@@ -17,7 +17,9 @@ namespace starcounter {
 namespace interprocess_communication {
 
 test::test(int argc, wchar_t* argv[])
-: active_databases_updates_event_()
+: active_databases_updates_event_(),
+all_pushed_(0),
+all_popped_(0)
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 , statistics_thread_()
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
@@ -27,20 +29,20 @@ test::test(int argc, wchar_t* argv[])
 	/// Second argument: <number of worker threads>, for example "4".
     /// Third argument: <timeout in milliseconds>, for example "180000".
     /// Fourth argument: <database name>, for example "myDatabase".
-    /// and the following arguments are <database name>.
-    /// 
-	/// Examples:
-    /// To connect to myDatabase under the PERSONAL server, starting 4 workers
-    /// and running the test for 180 seconds:
-	/// >scipctest.exe PERSONAL 4 180000 myDatabase
-    ///
-    /// To connect to myDatabase1, myDatabase2 and myDatabase3 under the
-    /// PERSONAL server, starting 3 worker threads and running the test for 240
-    /// seconds:
-	/// >scipctest.exe PERSONAL 3 240000 myDatabase1 myDatabase2 myDatabase3
+    /// and optionally following arguments are <database name>.
     ///
     /// For all tests, each worker will connect to each scheduler in each
     /// database.
+    /// 
+	/// Example 1:
+    /// To connect to database1 under the PERSONAL server, starting 1 worker
+    /// and running the IPC test for 18000 ms:
+	/// >sc_ipc_test.exe PERSONAL 1 18000 database1
+    ///
+    /// Example 2:
+    /// To connect to database8 and database5 under the PERSONAL server,
+    /// starting 3 worker threads and running the IPC test for 240000 ms:
+	/// >sc_ipc_test.exe PERSONAL 3 240000 database8 database5
 	///=========================================================================
 	number_of_shared_ = 0;
 
@@ -285,11 +287,8 @@ inline owner_id test::get_owner_id() const {
 }
 
 void test::run() {
-    uint32_t interval_time_milliseconds = 200;
-
 	// Start workers.
 	for (std::size_t i = 0; i < workers(); ++i) {
-        std::wcout << "test::run(): i = " << i << std::endl;
 		// Set worker parameters.
 		get_worker(i)
 		.set_segment_name(segment_name_[i])
@@ -301,11 +300,12 @@ void test::run() {
 		.set_shared_interface();
 
 		// Start the worker - starts the workers thread.
-        std::wcout << "Starting worker " << i << std::endl;
 		get_worker(i).start();
 	}
 	
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+    uint32_t interval_time_milliseconds = 200;
+
 	// Start statistics thread
 # if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	std::pair<test*,std::size_t>* arg = new std::pair<test*,std::size_t>
@@ -324,6 +324,8 @@ void test::stop_worker(std::size_t n) {
 	// Stop worker[n]
 	get_worker(n).set_state(worker::stopped);
 	get_worker(n).join();
+    all_pushed_ += get_worker(n).pushed();
+    all_popped_ += get_worker(n).popped();
 }
 
 void test::stop_all_workers() {
@@ -331,6 +333,7 @@ void test::stop_all_workers() {
 	for (std::size_t i = 0; i < workers(); ++i) {
 		get_worker(i).set_state(worker::stopped);
 		get_worker(i).join();
+        std::wcout << "Stopped worker[" << i << "]" << std::endl;
 	}
 }
 
