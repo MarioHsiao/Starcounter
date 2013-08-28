@@ -21,7 +21,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 DefaultJson.NTemplateClass = new AstSchemaClass(this) {
                     NValueClass = DefaultJson,
                     Template = DefaultObjTemplate,
-                    GlobalClassSpecifier = "global::Starcounter.Json.JsonByExample.Schema<global::Starcounter.Json>",
+                    GlobalClassSpecifier = "global::Starcounter.Json.JsonByExample.Schema",
                     ClassStemIdentifier = "Schema"
                 };
                 DefaultJson.NMetadataClass = new AstJsonMetadataClass(this) {
