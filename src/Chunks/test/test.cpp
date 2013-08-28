@@ -28,9 +28,15 @@ try {
     std::wcout << "Starting " << app.workers() << " workers playing ping-pong with the database for "
     << app.timeout() / 1E3 << " s. . ." << std::endl;
 	app.run();
-    std::wcout << "RUNNING" << std::endl;
+
+    // The main thread sleeps while the workers run. . .
 	::Sleep(app.timeout());
-    std::wcout << "Test done!" << std::endl;
+    
+    std::wcout << "IPC test done, stopping all workers. . ." << std::endl;
+    app.stop_all_workers();
+    
+    // Now all worker threads are joined. Show statistics, and exit.
+    app.show_statistics();
 }
 catch (starcounter::interprocess_communication::test_exception& e) {
 	std::cout << "error: test_exception "

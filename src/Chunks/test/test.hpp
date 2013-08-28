@@ -221,6 +221,20 @@ public:
         return worker_.size();
     }
 
+    void show_statistics() {
+        all_pushed_ = 0;
+        all_popped_ = 0;
+
+        for (size_t i = 0; i < workers(); ++i) {
+            all_pushed_ += get_worker(i).pushed();
+            all_popped_ += get_worker(i).popped();
+        }
+
+        std::cout << "Statistics for all workers together:" << std::endl;
+        std::cout << "Pushed: " << all_pushed_ << std::endl;
+        std::cout << "Popped: " << all_popped_ << std::endl;
+    }
+
 private:
 	//std::vector<database> database_;
 	shared_interface shared_[max_number_of_databases];
@@ -247,6 +261,11 @@ private:
 
 	// Event to wait for active databases update.
 	::HANDLE active_databases_updates_event_;
+
+    // Statistics for all workers together. This is gathered after all worker
+    // threads have joined.
+    uint64_t all_pushed_;
+    uint64_t all_popped_;
 
 	// The workers.
 	std::vector<worker*> worker_;
