@@ -589,18 +589,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
                     }
 
-                //    string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
-                    // TODO!
-                    /*                    if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.ClassSpecifierWithoutOwners.Equals( objClassName ))) { // TODO!
+                    if (mn.Template is TObjArr) {
                         sb.Clear();
                         sb.Append("        ");
                          sb.Append(mn.MemberName);
                         sb.Append(".ElementType = ");
-                        sb.Append(mn.FunctionGeneric.GlobalClassSpecifier);
+                        sb.Append(mn.Type.GlobalClassSpecifier);
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());
                     }
- */
+ 
                 }
                 else if (kid is AstInputBinding)
                 {

@@ -27,6 +27,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
+//        public AstInstanceClass ElementTypeProperty { get; set; }
+
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
