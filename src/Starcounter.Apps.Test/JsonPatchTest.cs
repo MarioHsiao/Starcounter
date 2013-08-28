@@ -236,7 +236,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Arr items = aat.App.Get(itemProperty);
 
             nearestApp = items[1];
-            anotherAppt = nearestApp.Template;
+            anotherAppt = (TJson)nearestApp.Template;
 
             TBool delete = (TBool)anotherAppt.Properties[2];
             indexPath = nearestApp.IndexPathFor(delete);

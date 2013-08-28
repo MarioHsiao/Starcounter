@@ -369,26 +369,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                          + "() { Template = DefaultTemplate; }");
             a.Prefix.Add("    public " 
                          + a.ClassStemIdentifier 
-                         + "(TJson template) { Template = template; }");
-//            a.Prefix.Add("    private " + a.NTemplateClass.ClassName + " _CustomTemplate;");
-//            a.Prefix.Add(
-//                            "    public new " +
-//                            a.NTemplateClass.ClassName +
-//                            " Template { get { return _CustomTemplate; } set { _CustomTemplate = value; (this as s::Json).Template = value; } }");
+                         + "(" +
+                         a.NTemplateClass.GlobalClassSpecifier + 
+                         " template) { Template = template; }");
 
-//                        a.Prefix.Add(
-//                "    public new " +
-//                a.NTemplateClass.ClassName +
-//                " Template { get { return (" +
-//                a.NTemplateClass.ClassName +
-//                ")(this as s::Json).Template; } set { (this as s::Json).Template = value; } }");
+            a.Prefix.Add(
+    "    public new " +
+    a.NTemplateClass.GlobalClassSpecifier +
+    " Template { get { return (" +
+    a.NTemplateClass.GlobalClassSpecifier +
+    ")base.Template; } set { base.Template = value; } }");
 
-//            a.Prefix.Add(
-//                "    public new " +
-//                a.NTemplateClass.NMetadataClass.ClassName +
-//                " Metadata { get { return (" +
-//                a.NTemplateClass.NMetadataClass.ClassName +
-//                ")(this as s::Json).Metadata; } }");
+
             if (a.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassStemIdentifier;
                 a.Prefix.Add(

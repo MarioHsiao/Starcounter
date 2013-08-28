@@ -249,29 +249,31 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public virtual string GlobalClassSpecifier {
             get {
                 if (ClassAlias != null && Generator.Root.AliasesActive) {
-                    return ClassAlias.Alias + GenericAsString();
+                    return ClassAlias.Alias;
                 }
-                if (_GlobalClassSpecifier != null) {
-                    //                    return "gen(" + _GlobalClassSpecifier + ")";
-                    return Clean(_GlobalClassSpecifier);
-                }
-                if (CodebehindClass != null) {
-                    return Clean( CodebehindClass.GlobalClassSpecifier );
-                }
-                if (Parent == null || !(Parent is AstClass)) {
-                    var str = NamespaceAlias;
-                    if (Namespace != null)
-                        str += Namespace + ".";
-                    return Clean(str + ClassSpecifierWithoutOwners);
-                }
-                else {
-                    return (Parent as AstClass).GlobalClassSpecifier + "." + ClassSpecifierWithoutOwners;
-                }
+                return GetRawGlobalClassSpecifier();
 
             }
             set {
                 _GlobalClassSpecifier = value;
             }
+        }
+
+        private string GetRawGlobalClassSpecifier() {
+            if (_GlobalClassSpecifier != null) {
+                //                    return "gen(" + _GlobalClassSpecifier + ")";
+                return Clean(_GlobalClassSpecifier);
+            }
+            if (CodebehindClass != null) {
+                return Clean(CodebehindClass.GlobalClassSpecifier);
+            }
+            if (Parent == null || !(Parent is AstClass)) {
+                var str = NamespaceAlias;
+                if (Namespace != null)
+                    str += Namespace + ".";
+                return Clean(str + ClassSpecifierWithoutOwners);
+            }
+            return (Parent as AstClass).GlobalClassSpecifier + "." + ClassSpecifierWithoutOwners;
         }
 
         private string Clean(string str) {
@@ -297,7 +299,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         public virtual string GlobalClassSpecifierWithoutGenerics {
             get {
-                var str = GlobalClassSpecifier;
+                var str = GetRawGlobalClassSpecifier();
                 //str = str.Substring(0,str.Length - 1);
                 if (str[str.Length - 1] == '>') {
                     var nesting = 1;
