@@ -163,7 +163,10 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(path[i]);
                 } else {
-                    template = app.Template.Properties[path[i]];
+                    if (app.IsArray) {
+                        throw new NotImplementedException();
+                    }
+                    template = ((Schema<Json<object>>)app.Template).Properties[path[i]];
                     sb.Append('/');
                     sb.Append(template.TemplateName);
 

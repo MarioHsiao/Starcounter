@@ -281,14 +281,14 @@ namespace Starcounter {
             //    Session.UpdateValue(this, property);
         }
 
-        /// <summary>
-        /// The template defining the schema (properties) of this Obj.
-        /// </summary>
-        /// <value>The template</value>
-        public new Schema<Json<object>> Template {
-            get { return (Schema<Json<object>>)base.Template; }
-            set { base.Template = value; }
-        }
+//        /// <summary>
+//        /// The template defining the schema (properties) of this Obj.
+//        /// </summary>
+//        /// <value>The template</value>
+//        public new Schema<Json<object>> Template {
+//            get { return (Schema<Json<object>>)base.Template; }
+//            set { base.Template = value; }
+//        }
 
         /// <summary>
         /// Implementation field used to cache the Metadata property.

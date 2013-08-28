@@ -46,8 +46,11 @@ namespace Starcounter.Advanced.XSON {
             // childObjArr: If last value was an object or an object in an array, the array contains the serialized object.
             // posInArray: Set to the last succesful copied value for an objectarray.
 
+            if (obj.IsArray) {
+                throw new NotImplementedException("Serializer does not support arrays as root elements");
+            }
 
-            tObj = obj.Template;
+            tObj = (Schema<Json<object>>)obj.Template;
             buf = new byte[512];
             templateNo = 0;
             nameWritten = false;

@@ -41,10 +41,15 @@ namespace Starcounter {
                 return _data;
             }
             set {
-                if (Template == null) {
-                    this.CreateDynamicTemplate(); // If there is no template, we'll create a template
+                if (IsArray) {
+                    throw new NotImplementedException();
                 }
-                InternalSetData((IBindable)value);
+                else {
+                    if (Template == null) {
+                        this.CreateDynamicTemplate(); // If there is no template, we'll create a template
+                    }
+                    InternalSetData((IBindable)value, (Schema<Json<object>>)Template);
+                }
             }
         }
 
@@ -153,27 +158,27 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data) {
+        protected virtual void InternalSetData(IBindable data, Schema<Json<object>> template ) {
             this._data = (DataType)data;
 
-			if (Template.Bound != Bound.No) {
+			if (template.Bound != Bound.No) {
 				var parent = ((Json<object>)this.Parent);
-				if (parent != null && Template.UseBinding(parent.DataAsBindable)) {
-					((DataValueBinding<IBindable>)Template.dataBinding).Set(parent.DataAsBindable, data);
+				if (parent != null && template.UseBinding(parent.DataAsBindable)) {
+					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
 				}
 			}
 
-			InitBoundArrays();
+			InitBoundArrays(template);
             OnData();
         }
 
         /// <summary>
         /// Initializes bound arrays when a new dataobject is set.
         /// </summary>
-        private void InitBoundArrays() {
+        private void InitBoundArrays(Schema<Json<object>> template) {
             TObjArr child;
-            for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
-                child = Template.Properties[i] as TObjArr;
+            for (Int32 i = 0; i < template.Properties.Count; i++) {
+                child = template.Properties[i] as TObjArr;
                 if (child != null && child.Bound != Bound.No) {
 					if (_data != null) {
 						child.UseBinding(DataAsBindable);

@@ -12,10 +12,15 @@ namespace Starcounter.Advanced.XSON {
 
         public override int PopulateFromJson(Json<object> obj, IntPtr buffer, int jsonSize) {
             string propertyName;
+
+            if (obj.IsArray) {
+                throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
+            }
+
             var reader = new JsonReader(buffer, jsonSize);
             Arr arr;
             Json<object> childObj;
-            Schema<Json<object>> tObj = obj.Template;
+            Schema<Json<object>> tObj = (Schema<Json<object>>)obj.Template;
             Template tProperty;
 
             while (reader.GotoProperty()) {

@@ -19,11 +19,15 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public override byte[] ToJsonUtf8() {
+            // TODO! Move all this code to polymorphic template implementations
             if (Template == null) {
-                //                throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
-                return Encoding.UTF8.GetBytes("{}");
+                return new byte[0];
             }
-            return Template.Serializer.ToJsonUtf8(this);
+            if (!(Template is TContainer)) {
+                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
+            }
+            var template = Template as TContainer;
+            return template.Serializer.ToJsonUtf8(this);
         }
 
         /// <summary>
@@ -36,15 +40,21 @@ namespace Starcounter {
         /// <param name="buf"></param>
         /// <returns></returns>
         public override int ToJsonUtf8(out byte[] buffer) {
+            // TODO! Move all this code to polymorphic template implementations
             if (Template == null) {
              //   throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
-                CreateDynamicTemplate();
-                var ret = this.ToJsonUtf8(out buffer);
-                Template = null;
-                return ret;
-                 
+//                CreateDynamicTemplate();
+//                var ret = this.ToJsonUtf8(out buffer);
+//                Template = null;
+//                return ret;
+                buffer = new byte[0];
+                return 0;               
             }
-            return Template.Serializer.ToJsonUtf8(this, out buffer);
+            if (!(Template is TContainer)) {
+                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
+            }
+            var template = Template as TContainer;
+            return template.Serializer.ToJsonUtf8(this, out buffer);
         }
 
         internal void CreateDynamicTemplate() {
@@ -59,10 +69,13 @@ namespace Starcounter {
         /// <returns></returns>
         public override string ToJson() {
             if (Template == null) {
-             //   throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
-                return "{}";
+                return "";
             }
-            return Template.Serializer.ToJson(this);
+            // TODO! Move all this code to polymorphic template implementations
+            if (!(Template is TContainer)) {
+                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
+            }
+            return ((TContainer)Template).Serializer.ToJson(this);
         }
 
         /// <summary>

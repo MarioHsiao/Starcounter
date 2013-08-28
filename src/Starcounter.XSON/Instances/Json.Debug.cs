@@ -12,6 +12,16 @@ namespace Starcounter {
 
     public partial class Json<DataType> {
 
+        public bool IsArray {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template is ArrSchema<Json<object>>;
+            }
+        }
+
+
         internal string DebugString {
             get {
                 var sb = new StringBuilder();
@@ -20,7 +30,28 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="i"></param>
         internal override void WriteToDebugString(StringBuilder sb, int i) {
+            if (this.IsArray) {
+                throw new NotImplementedException();
+//                WriteToDebugString(sb, i, (ArrSchema<Json<object>>)Template);
+            }
+            else {
+                WriteToDebugString(sb, i, (Schema<Json<object>>)Template);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="i"></param>
+        /// <param name="template"></param>
+        internal void WriteToDebugString(StringBuilder sb, int i, Schema<Json<object>> template ) {
 
             _WriteDebugProperty(sb);
 
@@ -43,7 +74,7 @@ namespace Starcounter {
                     v.WriteToDebugString(sb, i);
                 }
                 else {
-                    var prop = this.Template.Properties[t];
+                    var prop = template.Properties[t];
                     sb.Append('"');
                     sb.Append(prop.PropertyName);
                     sb.Append("\":");

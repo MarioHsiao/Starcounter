@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using Starcounter.Templates;
+using System;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
 
@@ -23,8 +24,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="objTemplate"></param>
         /// <returns></returns>
-        internal static ParseNode BuildParseTree(Schema<Json<object>> objTemplate) {
-            return BuildParseTree(GetTemplateMetadata(objTemplate));
+        internal static ParseNode BuildParseTree( Template objTemplate) {
+            if (objTemplate is TObjArr) {
+                throw new NotImplementedException("Deserializer does not support arrays as root elements");
+            }
+            else {
+                return BuildParseTree(GetTemplateMetadata((Schema<Json<object>>)objTemplate));
+            }
         }
 
         /// <summary>

@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="puppletTemplate"></param>
         /// <returns></returns>
-        internal static AstNamespace BuildAstTree(Schema<Json<object>> objTemplate) {
+        internal static AstNamespace BuildAstTree(Template objTemplate) {
             return BuildAstTree(objTemplate, false);
         }
 
@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="objTemplate"></param>
         /// <param name="createChildSerializers"></param>
         /// <returns></returns>
-        internal static AstNamespace BuildAstTree(Schema<Json<object>> objTemplate, bool createChildSerializers) {
+        internal static AstNamespace BuildAstTree(Template objTemplate, bool createChildSerializers) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
 
             string ns = objTemplate.Namespace;
@@ -50,12 +50,23 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             node.Parent = astNs;
 
             if (createChildSerializers) {
-                CreateChildSerializers(objTemplate, node);
+                if (objTemplate is TObjArr) {
+                    throw new NotImplementedException("Serializer does not currently support array as the root element");
+                }
+                else {
+                    CreateChildSerializers( (Schema<Json<object>>)objTemplate, node);
+                }
             }
 
             return astNs;
         }
 
+        /// <summary>
+        /// Creates serializers for each property for objects defined by an
+        /// object schema.
+        /// </summary>
+        /// <param name="objTemplate"></param>
+        /// <param name="parent"></param>
         private static void CreateChildSerializers(Schema<Json<object>> objTemplate, AstNode parent) {
             AstNode node;
             Schema<Json<object>> tChildObj;

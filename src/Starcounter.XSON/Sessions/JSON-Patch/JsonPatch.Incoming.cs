@@ -349,7 +349,10 @@ namespace Starcounter.Internal.JsonPatch {
                         currentIsTApp = false;
                     }
 
-                    Template t = mainApp.Template.Properties.GetTemplateByName(ptr.Current);
+                    if (mainApp.IsArray) {
+                        throw new NotImplementedException();
+                    }
+                    Template t = ((Schema<Json<object>>)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
 
                     if (t == null) {
                         throw new Exception
