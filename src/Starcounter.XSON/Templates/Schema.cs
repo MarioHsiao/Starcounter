@@ -93,6 +93,21 @@ namespace Starcounter.Templates {
         /// </summary>
         protected Type _JsonType;
 
+		/// <summary>
+		/// Creates a new Message using the schema defined by this template
+		/// </summary>
+		/// <param name="parent">The parent for the new message (if any)</param>
+		/// <returns>The new message</returns>
+		public override object CreateInstance(Container parent) {
+			if (_JsonType != null) {
+				var msg = (Json)Activator.CreateInstance(_JsonType);
+				msg.Template = this;
+				msg.Parent = parent;
+				return msg;
+			}
+			return new Json() { Template = this, Parent = parent };
+		}
+
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>
