@@ -478,6 +478,10 @@ namespace HttpStructs
         {
             ScSessionClass s = apps_sessions_[linear_index];
 
+            // Checking that session is created.
+            if (null == s)
+                return 0;
+
             // Checking that salt is correct.
             if (s.session_struct_.random_salt_ == random_salt)
             {

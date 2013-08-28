@@ -340,13 +340,13 @@ namespace SQLTest.EmployeeDb
         public static bool CreateIndexes()
         {
             // Index on Enum property ASC.
-            Db.SlowSQL("create index Location_Type on SQLTest.EmployeeDb.Location (Type)");
+            Db.SQL("create index Location_Type on SQLTest.EmployeeDb.Location (Type)");
             // Index on Nullable Enum property ASC.
-            Db.SlowSQL("create index Location_NType on SqlTest.EmployeeDb.Location (NType)");
+            Db.SQL("create index Location_NType on SqlTest.EmployeeDb.Location (NType)");
             // Index on Binary property. DOES NOT WORK!
-            Db.SlowSQL("create index Department_IdBinary on SqlTest.EmployeeDb.Department (IdBinary)");
+            Db.SQL("create index Department_IdBinary on SqlTest.EmployeeDb.Department (IdBinary)");
             // Index on Object property ASC.
-            Db.SlowSQL("create index Employee_Department on SqlTest.EmployeeDb.Employee (Department)");
+            Db.SQL("create index Employee_Department on SqlTest.EmployeeDb.Employee (Department)");
             // Index on DateTime property ASC.
             Db.SlowSQL("create index Employee_HireDate on SqlTest.EmployeeDb.Employee (HireDate)");
             // Index on Boolean property ASC.

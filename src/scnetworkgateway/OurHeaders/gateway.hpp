@@ -876,7 +876,11 @@ struct ScSessionStruct
     // Reset.
     void Reset()
     {
-        scheduler_id_ = (uint8_t)INVALID_SCHEDULER_ID;
+        // NOTE: We don't reset the scheduler id, since its used for socket
+        // sending data in order, even when session is not created!
+
+        //scheduler_id_ = (uint8_t)INVALID_SCHEDULER_ID;
+
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
         reserved_ = INVALID_VIEW_MODEL_INDEX;
@@ -1703,12 +1707,13 @@ public:
     }
 
     // Setting new unique socket number.
-    session_salt_type CreateUniqueSocketId(SOCKET s, int32_t port_index)
+    session_salt_type CreateUniqueSocketId(SOCKET s, int32_t port_index, scheduler_id_type scheduler_id)
     {
         session_salt_type unique_id = get_unique_socket_id();
 
         all_sessions_unsafe_[s].unique_socket_id_ = unique_id;
         all_sessions_unsafe_[s].port_index_ = port_index;
+        all_sessions_unsafe_[s].session_.scheduler_id_ = scheduler_id;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << s << ":" << unique_id << GW_ENDL;
@@ -2504,7 +2509,7 @@ public:
     }
 
     // Gets scheduler id for specific session.
-    uint32_t GetGlobalSessionSchedulerId(session_index_type session_index)
+    scheduler_id_type GetGlobalSessionSchedulerId(session_index_type session_index)
     {
         // Checking validity of linear session index other wise return a wrong copy.
         if (INVALID_SESSION_INDEX == session_index)

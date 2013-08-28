@@ -84,7 +84,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         internal static VersionBuild GetLatestAvailableBuild(string channel) {
 
             // Get Latest all available versions
-            var result = Db.SlowSQL("SELECT o.Version FROM VersionBuild o WHERE o.Channel=? GROUP BY o.Version", channel);
+            var result = Db.SlowSQL<String>("SELECT o.Version FROM VersionBuild o WHERE o.Channel=? GROUP BY o.Version", channel);
 
             String highestVersion = string.Empty;
 
@@ -99,7 +99,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
             // Get latest available build
             if (highestVersion != string.Empty) {
-                latestBuild = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.Version=? AND o.HasBeenDownloaded=?", highestVersion, false).First;
+                latestBuild = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Version=? AND o.HasBeenDownloaded=?", highestVersion, false).First;
             }
 
             return latestBuild;
@@ -111,7 +111,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// <param name="version"></param>
         /// <returns></returns>
         internal static VersionBuild GetAvilableBuild(string version) {
-            return Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.Source.Version=? AND o.HasBeenDownloaded=?", version, false).First;
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Source.Version=? AND o.HasBeenDownloaded=?", version, false).First;
         }
 
     }
