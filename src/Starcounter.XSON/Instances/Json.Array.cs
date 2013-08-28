@@ -228,7 +228,7 @@ namespace Starcounter {
 
             this.InternalClear();
             Json<object> parent = (Json<object>)this.Parent;
-            parent._CallHasChanged(this.Template);
+            parent._CallHasChanged((TContainer)this.Template);
 #else
          throw new NotImplementedException();
 #endif

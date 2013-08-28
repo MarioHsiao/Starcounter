@@ -4,8 +4,11 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON.DeserializerCompiler;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Starcounter.Templates {
 
@@ -18,36 +21,14 @@ namespace Starcounter.Templates {
     /// instance Obj or Arr objects pertaining to them. This means that new templates need to be created to
     /// use alternate schemas.
     /// </remarks>
-    public abstract partial class TContainer : TValue
-    {
-        /// <summary>
-        /// The _ class name
-        /// </summary>
-        internal string _ClassName;
+    public abstract partial class TContainer : TValue {
 
-        /// <summary>
-        /// Gets or sets the name of the class.
-        /// </summary>
-        /// <value>The name of the class.</value>
-        public string ClassName {
-            get {
-                return _ClassName;
-            }
-            set {
-                _ClassName = value;
-            }
-        }
 
         public override bool IsPrimitive {
             get { return false; }
         }
 
 
-        /// <summary>
-        /// Gets or sets the namespace.
-        /// </summary>
-        /// <value></value>
-        public string Namespace { get; set; }
 
 
         /// <summary>
@@ -85,8 +66,6 @@ namespace Starcounter.Templates {
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
 
-
-     }
-
+    }
 
 }

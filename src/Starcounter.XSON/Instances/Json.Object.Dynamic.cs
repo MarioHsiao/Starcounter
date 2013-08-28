@@ -12,16 +12,26 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
             /// </summary>
             /// <param name="binder"></param>
             /// <returns></returns>            public override DynamicMetaObject BindGetMember(GetMemberBinder binder) {
-                // Special handling of properties declared in the baseclass (Obj) and overriden
-                // using 'new', like a generic override of Data returning the correct type.
-                
-                //if (binder.Name == "Data") {
-                //    return base.BindGetMember(binder);
-                //}
+                var app = (Json<object>)Value;
+                if (app.IsArray) {
+                    return base.BindGetMember(binder);
+                }
+                else {
+                    return BindGetMemberForJsonObject(app, (Schema<Json<object>>)app.Template, binder);
+                }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="template"></param>
+            /// <param name="binder"></param>
+            /// <returns></returns>
+            private DynamicMetaObject BindGetMemberForJsonObject( Json<object>app, Schema<Json<object>>template, GetMemberBinder binder ) {
 
                 MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
 
-                var app = (Json<object>)Value;                TValue templ = (TValue)(app.Template.Properties[binder.Name]);
+                TValue templ = (TValue)(template.Properties[binder.Name]);
 
                 if (templ == null) {
                     if (app.Data != null) {
@@ -40,9 +50,9 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
                             }
                         }
                         if (proptype != null) {
-                            app.Template.OnSetUndefinedProperty(binder.Name, proptype );
+                            template.OnSetUndefinedProperty(binder.Name, proptype );
                             // Check if it is there now
-                            templ = (TValue)(app.Template.Properties[binder.Name]);
+                            templ = (TValue)(template.Properties[binder.Name]);
                         }
                         if (templ == null) {
                             throw new Exception(String.Format("Neither the Json object or the bound Data object (an instance of {0}) contains the property {1}", app.Data.GetType().Name, binder.Name));
@@ -61,6 +71,24 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
             /// <param name="binder"></param>
             /// <param name="value"></param>
             /// <returns></returns>            public override DynamicMetaObject BindSetMember(SetMemberBinder binder, DynamicMetaObject value) {
+                var app = (Json<object>)Value;
+                if (app.IsArray) {
+                    return base.BindSetMember(binder, value);
+                }
+                else {
+                    return BindSetMemberForJsonObject(binder, value, app);
+                }                
+            }
+
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="binder"></param>
+            /// <param name="value"></param>
+            /// <param name="app"></param>
+            /// <returns></returns>
+            private DynamicMetaObject BindSetMemberForJsonObject( SetMemberBinder binder, DynamicMetaObject value, Json<object>app ) {
                 // Special handling of properties declared in the baseclass (Obj) and overriden
                 // using 'new', like a generic override of Data returning the correct type.
 
@@ -68,10 +96,10 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
 //                    return base.BindSetMember(binder, value);
 //                }
 
-                var app = (Json<object>)Value;                var ot = app.Template;
+                var ot = (Schema<Json<object>>)app.Template;
                 if (ot == null) {
                     app.CreateDynamicTemplate();
-                    ot = app.Template; 
+                    ot = (Schema<Json<object>>)app.Template; 
 //                    app.Template = ot = new TDynamicObj(); // Make this an expando object like Obj
                 }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name);                if (pi != null)                    return base.BindSetMember(binder, value);
                 TValue templ = (TValue)(ot.Properties[binder.Name]);                if (templ == null) {

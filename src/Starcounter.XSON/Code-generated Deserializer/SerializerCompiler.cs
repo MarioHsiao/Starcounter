@@ -26,7 +26,7 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             }
         }
 
-        public TypedJsonSerializer CreateTypedJsonSerializer(Schema<Json<object>> jsonTemplate) {
+        public TypedJsonSerializer CreateTypedJsonSerializer( Template jsonTemplate) {
             AstNamespace node;
             string fullTypeName;
 

@@ -6,6 +6,7 @@
 
 using System.Text;
 using Starcounter.Templates;
+using System;
 
 namespace Starcounter {
     /// <summary>
@@ -21,15 +22,24 @@ namespace Starcounter {
         /// server side represetation should use the default session blob model.
         /// </summary>
         protected override void _InitializeValues() {
-                var prop = Template.Properties;
-                var vc = prop.Count;
-                _Dirty = false;
-                _Values = new object[vc];
-                _BoundDirtyCheck = new object[vc];
-                _DirtyProperties = new bool[vc];
-                for (int t = 0; t < vc; t++) {
-                    _Values[t] = ((Template)prop[t]).CreateInstance(this);
-                }
+            if (IsArray) {
+                throw new NotImplementedException();
+            }
+            else {
+                _InitializeValues( (Schema<Json<object>>)Template);
+            }
+        }
+
+        private void _InitializeValues(Schema<Json<object>> template) {
+            var prop = template.Properties;
+            var vc = prop.Count;
+            _Dirty = false;
+            _Values = new object[vc];
+            _BoundDirtyCheck = new object[vc];
+            _DirtyProperties = new bool[vc];
+            for (int t = 0; t < vc; t++) {
+                _Values[t] = ((Template)prop[t]).CreateInstance(this);
+            }
         }
 
         /// <summary>
@@ -37,7 +47,8 @@ namespace Starcounter {
         /// </summary>
         protected dynamic[] Values {
             get {
-                if (_Values.Length < this.Template.Properties.Count) {
+                var template = (Schema<Json<object>>)Template;
+                if (_Values.Length < template.Properties.Count) {
                     // We allow adding new properties to dynamic templates
                     // even after instsances have been created.
                     // For this reason, we need to allow the expansion of the 
@@ -45,7 +56,7 @@ namespace Starcounter {
                     var old = _Values;
                     var oldD = _DirtyProperties;
                     var oldB = _BoundDirtyCheck;
-                    var prop = Template.Properties;
+                    var prop = template.Properties;
                     var vc = prop.Count;
                     _Values = new object[vc];
                     _DirtyProperties = new bool[vc];

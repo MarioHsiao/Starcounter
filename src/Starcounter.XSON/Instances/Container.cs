@@ -59,14 +59,14 @@ namespace Starcounter {
         /// <summary>
         /// The _ template
         /// </summary>
-        internal TContainer _Template;
+        internal Template _Template;
 
         /// <summary>
         /// The schema element of this app instance
         /// </summary>
         /// <value>The template.</value>
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
-        public TContainer Template {
+        public Template Template {
             set {
                 //if (_Template != null) {
                 //    throw new Exception("Template is already set for App. Cannot change template once it is set");

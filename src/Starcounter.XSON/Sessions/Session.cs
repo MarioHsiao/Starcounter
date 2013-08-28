@@ -341,10 +341,10 @@ namespace Starcounter {
                 json.TransactionOnThisNode.Dispose();
             }
 
-            if (json.Template == null)
+            if (json.Template == null || json.Template.IsPrimitive)
                 return;
 
-            foreach (Template child in json.Template.Children) {
+            foreach (Template child in ((TContainer)json.Template).Children) {
                 if (child is Schema<Json<object>>) {
                     DisposeJsonRecursively(json.Get((Schema<Json<object>>)child));
                 } else if (child is TObjArr) {
