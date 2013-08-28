@@ -389,6 +389,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     a.NTemplateClass.GlobalClassSpecifier +
     ")base.Template; } set { base.Template = value; } }");
 
+            var par = a.ParentProperty;
+            if (par != null) {
+                a.Prefix.Add(
+                    "    public new " +
+                    par.GlobalClassSpecifier +
+                    " Parent { get { return (" +
+                    par.GlobalClassSpecifier +
+                    ")base.Parent; } set { base.Parent = value; } }");
+            }
 
             if (a.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassStemIdentifier;

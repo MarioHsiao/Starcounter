@@ -142,6 +142,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+        public AstInstanceClass ParentProperty { get; set; }
 
     }
 }

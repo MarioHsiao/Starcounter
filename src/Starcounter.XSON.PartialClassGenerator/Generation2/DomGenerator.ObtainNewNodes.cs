@@ -139,6 +139,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     IsStatic = true
                 };
                 acn.NJsonByExample = jsonbyexample;
+                if (template.Parent != null) {
+                    acn.ParentProperty = (AstInstanceClass)ObtainValueClass(template.Parent);
+                }
 
 //                if (template == DefaultObjTemplate) {
 //                    acn.NamespaceAlias = "s::";
