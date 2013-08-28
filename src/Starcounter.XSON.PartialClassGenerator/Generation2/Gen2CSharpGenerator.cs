@@ -543,11 +543,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (a.AutoBindProperties)
                 a.Prefix.Add("        BindChildren = true;");
 
-          //  sb = new StringBuilder();
-          //  sb.Append("        Template.InstanceType = typeof(");
-          //  sb.Append(a.NValueClass.GlobalClassSpecifier);
-          //  sb.Append(");");
-          //  a.Prefix.Add(sb.ToString());
+            sb = new StringBuilder();
+            sb.Append("        InstanceType = typeof(");
+            sb.Append(a.NValueClass.GlobalClassSpecifier);
+            sb.Append(");");
+            a.Prefix.Add(sb.ToString());
+
             
             sb = new StringBuilder();
             sb.Append("        ClassName = \"");
