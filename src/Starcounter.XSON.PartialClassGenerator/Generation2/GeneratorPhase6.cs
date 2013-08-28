@@ -47,18 +47,30 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private void CreateClassAliases(AstBase node) {
+            
+            if (node.IsProcessedForAlias)
+                return;
+
+            node.IsProcessedForAlias = true;
+
             if (node is AstProperty) {
                 var prop = (node as AstProperty);
                 CreateClassAliases(prop.Type);
             }
-            else if (node is AstJsonClass || node is AstInnerClass) {
+            else if (node is AstClass) {
                 var cls = node as AstClass;
 
                 if (cls.ClassAlias == null) {
 
+                    if (cls.Generic != null) {
+                        foreach (var gen in cls.Generic) {
+                            CreateClassAliases(gen);
+                        }
+                    }
+
                     AstClassAlias alias;
                     int variant;
-                    var id = "@" + cls.CalculateClassAliasIdentifier(8);
+                    var id = "__" + cls.CalculateClassAliasIdentifier(8).ToUpper() + "__" ;
                     if (Used.TryGetValue(id, out variant)) {
                         variant++;
                         Used[id] = variant;
