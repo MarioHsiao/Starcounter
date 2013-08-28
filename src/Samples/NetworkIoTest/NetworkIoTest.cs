@@ -16,7 +16,7 @@ namespace NetworkIoTestApp
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
-    public class AppsClass : Json
+    public class AppsClass : Json<object>
     {
         /// <summary>
         /// Initializes some Apps handlers.
