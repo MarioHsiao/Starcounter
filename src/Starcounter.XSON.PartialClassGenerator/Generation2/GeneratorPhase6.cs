@@ -70,11 +70,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     AstClassAlias alias;
                     int variant;
-                    var id = "__" + cls.CalculateClassAliasIdentifier(8).ToUpper() + "__" ;
+                    var id = "__" + cls.CalculateClassAliasIdentifier(8) + "__" ;
                     if (Used.TryGetValue(id, out variant)) {
                         variant++;
                         Used[id] = variant;
-                        id += variant;
+                        id = id.Substring(0,id.Length-2) + variant + "__";
                     }
                     Used.Add(id, 0);
 

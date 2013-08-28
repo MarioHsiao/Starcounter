@@ -127,20 +127,29 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                 if (kid is AstJsonClass) {
                     napp = kid as AstJsonClass;
-                    currentNs = napp.Template.Namespace;
+#if DEBUG
+                    if (napp.NTemplateClass.Namespace != napp.Namespace) {
+                        throw new Exception();
+                    }
+                    if (napp.NMetadataClass.Namespace != napp.Namespace) {
+                        throw new Exception();
+                    }
+#endif
+                    currentNs = napp.Namespace;
                     if (currentNs != previousNs) {
                         if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
                             previousKid.Suffix.Add("}");
                         }
 
                         if (!String.IsNullOrEmpty(currentNs)) {
+                            kid.Prefix.Add("");
                             kid.Prefix.Add("namespace " + currentNs + " {");
                         }
                     }
                 }
                 else if (kid is AstClassAlias) {
                     var alias = kid as AstClassAlias;
-                    kid.Prefix.Add("using " + alias.Alias + "=" + alias.Specifier + ";");
+                    kid.Prefix.Add("using " + alias.Alias + " = " + alias.Specifier + ";");
                 }
 
                 ProcessNode(kid);
