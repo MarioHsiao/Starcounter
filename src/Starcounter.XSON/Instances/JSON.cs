@@ -66,7 +66,11 @@ namespace Starcounter {
         /// <param name="self">The object to cast</param>
         /// <returns>The same object (self) is returned without further action</returns>
         public static implicit operator Json<object>(Json<DataType> self) {
-            return self as Json<object>;
+            var ret = self as Json<object>;
+            if (ret == null) {
+                throw new Exception("Internal error");
+            }
+            return ret;
         }
 
         /// <summary>
