@@ -2,6 +2,6 @@
 using Starcounter;
 
 namespace Starcounter.Administrator {
-    partial class DatabasesApp : Json {
+    partial class DatabasesApp : Json<object> {
     }
 }

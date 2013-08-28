@@ -2,7 +2,7 @@
 using Starcounter;
 
 namespace Starcounter.Administrator {
-    partial class AppApp : Json {
+    partial class AppApp : Json<object> {
     }
 
 

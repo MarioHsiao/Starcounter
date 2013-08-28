@@ -7,7 +7,7 @@ using Sc.Tools.Logging;
 using Starcounter;
 
 namespace Starcounter.Administrator {
-    partial class LogApp : Json {
+    partial class LogApp : Json<object> {
 
         static string directoryPath;
 
