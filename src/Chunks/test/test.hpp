@@ -231,9 +231,11 @@ public:
         }
 
         std::cout << "Statistics for all workers together:" << std::endl;
-        std::cout << "Pushed: " << all_pushed_ << std::endl;
-        std::cout << "Popped: " << all_popped_ << std::endl;
-    }
+        std::cout << "Pushed: " << all_pushed_ <<
+        " (" << uint64_t(double(all_pushed_) * 1E3 / timeout()) << "/s)" << std::endl;
+        std::cout << "Popped: " << all_popped_ <<
+        " (" << uint64_t(double(all_popped_) * 1E3 / timeout()) << "/s)" << std::endl;
+   }
 
 private:
 	//std::vector<database> database_;
