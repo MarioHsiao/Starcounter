@@ -79,13 +79,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Inheritance\Generic.json">
+    <None Include="PartialClassGeneration\Namespaces.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PartialClassGeneration\Generic.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="InputGeneration\MailApp.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Inheritance\minimal.json">
+    <None Include="PartialClassGeneration\minimal.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Nesting\ParentChild.json.cs.v5">
@@ -109,7 +112,7 @@
     <None Include="InputGeneration\Company.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Inheritance\ThreadPage.json">
+    <None Include="PartialClassGeneration\ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="databound.json">
@@ -144,19 +147,19 @@
     <None Include="Compiler\incorrect.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Inheritance\ThreadPage.json.cs">
+    <None Include="PartialClassGeneration\ThreadPage.json.cs">
       <DependentUpon>ThreadPage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="InputGeneration\MailApp.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Inheritance\Generic.json.cs">
+    <None Include="PartialClassGeneration\Generic.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Inheritance\TestInheritance.cs" />
     <Compile Include="JsonSerializeTest.cs" />
-    <None Include="Inheritance\minimal.json.cs">
+    <None Include="PartialClassGeneration\minimal.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Nesting\TestSimpleNesting.cs" />
@@ -166,6 +169,7 @@
     </None>
     <Compile Include="Nesting\DetectVersionToUse.cs" />
     <Compile Include="InputGeneration\TestInputMapping.cs" />
+    <Compile Include="PartialClassGeneration\TestPartialClassGeneration.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Compiler\CodeBehindParserTests.cs" />

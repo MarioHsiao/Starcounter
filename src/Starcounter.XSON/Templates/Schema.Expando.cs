@@ -6,20 +6,6 @@ namespace Starcounter.Templates {
 
 
 
-        private bool _Dynamic = false;
-
-        /// <summary>
-        /// Returns true if this object support expando like (Javascript like) behaviour that
-        /// lets you create properties without a preexisting schema.
-        /// </summary>
-        public bool IsDynamic {
-            get {
-                return _Dynamic;
-            }
-            set {
-                _Dynamic = value;
-            }
-        }
 
         /// <summary>
         /// For dynamic Json objects, templates pertain to only a single object.

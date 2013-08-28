@@ -28,6 +28,23 @@ namespace Starcounter.Templates {
 
 
         /// <summary>
+        /// Returns true if this object support expando like (Javascript like) behaviour that
+        /// lets you create properties without a preexisting schema.
+        /// </summary>
+        public bool IsDynamic {
+            get {
+                return _Dynamic;
+            }
+            set {
+                _Dynamic = value;
+            }
+        }
+
+
+        private bool _Dynamic = false;
+
+
+        /// <summary>
         /// Gets or sets the name of the class.
         /// </summary>
         /// <value>The name of the class.</value>
