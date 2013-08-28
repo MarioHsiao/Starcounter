@@ -202,11 +202,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     sb.Append(n.ClassStemIdentifier);
                     if (node is AstSchemaClass) {
                         var ast = node as AstSchemaClass;
-                        sb.Append("<__Tjsonobj__>");
-                        if (ast.InheritedClass != null) {
+                        var inherited = (AstSchemaClass)ast.InheritedClass; 
+                        sb.Append("<__jsonobj__>");
+                        if (inherited != null) {
                             sb.Append(" : ");
-                            sb.Append(ast.InheritedClass.GlobalClassSpecifierWithoutGenerics);
-                            sb.Append("<__Tjsonobj__>");
+                            sb.Append(inherited.GlobalClassSpecifierWithoutGenerics);
+                            sb.Append("<__jsonobj__> where __jsonobj__ : ");
+                            sb.Append(ast.NValueClass.GlobalClassSpecifier);
+                            sb.Append(", new()");
                         }
                     }
                     else {
