@@ -152,22 +152,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 //acn.ClassStemIdentifier = className;
                 return acn;
             }
-            if (template is ArrSchema<Json<object>>) {
+            else if (template is ArrSchema<Json<object>>) {
                 var tarr = template as ArrSchema<Json<object>>;
                 var acn = new AstInstanceClass(this);
                 ValueClasses.Add(template, acn);
                 acn.NMetadataClass = ObtainMetaClass(template);
                 acn.NTemplateClass = ObtainTemplateClass(template);
 
-                acn.BuiltInType = template.InstanceType;
-                //acn.NTemplateClass.RealType = template.GetType();
 
                 var newJson = ObtainValueClass(tarr.ElementType);
                 newJson.Parent = ObtainValueClass(template.Parent);
     
-//                acn.NamespaceAlias = "st::";
+//                acn.BuiltInType = template.InstanceType;
+                acn.Namespace = template.InstanceType.Namespace;
+                acn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(template.InstanceType );
                 acn.Generic = new AstClass[] {
-                        newJson.NTemplateClass
+                        newJson
                     };
                 return acn;
             }
