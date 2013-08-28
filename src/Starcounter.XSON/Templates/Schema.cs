@@ -52,13 +52,6 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// By default, Starcounter creates
-        /// a JSON-by-example reader that allows you to convert a JSON file to a XOBJ template using the format
-        /// string "json". You can inject other template formats here.
-        /// </summary>
-        public static Dictionary<string, IXsonTemplateMarkupReader> MarkupReaders = new Dictionary<string, IXsonTemplateMarkupReader>();
-
-        /// <summary>
         /// CreateFromMarkup
         /// </summary>
         /// <typeparam name="TypeObj"></typeparam>
@@ -72,7 +65,7 @@ namespace Starcounter.Templates {
                     where TypeTObj : Schema<TypeObj>, new() {
             IXsonTemplateMarkupReader reader;
             try {
-                reader = Schema<Json<object>>.MarkupReaders[format];
+                reader = Modules.Starcounter_XSON_JsonByExample.MarkupReaders[format];
             }
             catch {
                 throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));

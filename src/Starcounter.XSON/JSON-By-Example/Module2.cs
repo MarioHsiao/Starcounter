@@ -1,5 +1,6 @@
 ﻿
 using Starcounter;
+using Starcounter.Advanced.XSON;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Internal.XSON.JsonByExample;
 using Starcounter.Templates;
@@ -22,8 +23,16 @@ namespace Modules {
             //            internal static ;
         }
 
+
+        /// <summary>
+        /// By default, Starcounter creates
+        /// a JSON-by-example reader that allows you to convert a JSON file to a XOBJ template using the format
+        /// string "json". You can inject other template formats here.
+        /// </summary>
+        public static Dictionary<string, IXsonTemplateMarkupReader> MarkupReaders = new Dictionary<string, IXsonTemplateMarkupReader>();
+
         public static void Initialize() {
-            Schema<Json<object>>.MarkupReaders.Add("json", new JsonByExampleTemplateReader());
+            MarkupReaders.Add("json", new JsonByExampleTemplateReader());
         }
 
 
