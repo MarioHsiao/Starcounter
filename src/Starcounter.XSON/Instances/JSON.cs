@@ -126,8 +126,6 @@ namespace Starcounter {
             }
         }
 
-
-
         /// <summary>
         /// Transaction applied to this node.
         /// </summary>

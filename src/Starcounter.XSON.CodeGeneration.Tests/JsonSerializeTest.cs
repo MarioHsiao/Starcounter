@@ -446,8 +446,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
                 else if (child is TJson)
                     AssertAreEqual(expected.Get((TJson)child), actual.Get((TJson)child));
                 else if (child is TObjArr) {
-                    var arr1 = expected.Get((TObjArr)child);
-                    var arr2 = actual.Get((TObjArr)child);
+                    var arr1 = expected.Get((ArrSchema<Json<object>>)child);
+                    var arr2 = actual.Get((ArrSchema<Json<object>>)child);
                     Assert.AreEqual(arr1.Count, arr2.Count);
                     for (int i = 0; i < arr1.Count; i++) {
                         AssertAreEqual(arr1[i], arr2[i]);

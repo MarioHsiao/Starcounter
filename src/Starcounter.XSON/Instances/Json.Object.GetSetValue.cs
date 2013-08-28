@@ -291,9 +291,25 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Arr Get(TObjArr property) {
+        public Arr<ElementType> Get<ElementType>(ArrSchema<ElementType> property) 
+            where ElementType : Json<object>,new()
+        {
 #if QUICKTUPLE
             return Values[property.TemplateIndex];
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Arr Get( TObjArr property) {
+#if QUICKTUPLE
+            return (Arr)Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif

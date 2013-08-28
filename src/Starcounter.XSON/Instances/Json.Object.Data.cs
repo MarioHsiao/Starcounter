@@ -184,7 +184,7 @@ namespace Starcounter {
 						child.UseBinding(DataAsBindable);
 						Refresh(child);
 					} else {
-						var arr = Get(child);
+						var arr = (Arr<Json<object>>)Get(child);
 						arr.Clear();
 					}
                 }

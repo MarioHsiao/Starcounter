@@ -348,7 +348,7 @@ namespace Starcounter {
                 if (child is Schema<Json<object>>) {
                     DisposeJsonRecursively(json.Get((Schema<Json<object>>)child));
                 } else if (child is TObjArr) {
-                    Arr listing = json.Get((TObjArr)child);
+                    Arr<Json<object>> listing = json.Get((ArrSchema<Json<object>>)child);
                     foreach (Json<object> listApp in listing) {
                         DisposeJsonRecursively(listApp);
                     }

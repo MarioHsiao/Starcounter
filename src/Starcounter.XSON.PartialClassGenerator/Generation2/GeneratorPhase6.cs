@@ -80,7 +80,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     alias = new AstClassAlias(node.Generator) {
                         Alias = id,
-                        Specifier = cls.GlobalClassSpecifierWithoutGenerics
+                        Specifier = cls.GlobalClassSpecifier
                     };
                     alias.Parent = Generator.Root;
 
