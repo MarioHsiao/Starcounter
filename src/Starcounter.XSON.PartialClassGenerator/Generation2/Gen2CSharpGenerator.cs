@@ -599,17 +599,23 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>String.</returns>
         private String GetAddInputHandlerCode(AstInputBinding ib)
         {
+			// TODO:
+			// Needs to be rewritten for better handling of changes in xson code.
+
             bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-			sb.Append(".AddHandler((Json<object> pup, TValue");
+			sb.Append(".AddHandler((Json<object> pup, ");
 
-            if (hasValue) {
-                sb.Append('<');
-                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            }
+			if (hasValue) {
+				sb.Append("Property");
+				sb.Append('<');
+				sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+				sb.Append('>');
+			} else {
+				sb.Append("TValue");
+			}
             sb.Append(" prop");
 
             if (hasValue) {
