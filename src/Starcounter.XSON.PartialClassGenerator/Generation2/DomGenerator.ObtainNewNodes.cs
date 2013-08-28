@@ -132,6 +132,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var acn = new AstJsonClass(this);
                 ValueClasses.Add(template, acn);
                 acn.InheritedClass = GetDefaultJson();
+                acn.Namespace = template.Namespace;
                 var jsonbyexample = new AstOtherClass(this) {
                     Parent = acn,
                     ClassStemIdentifier = "JsonByExample",
@@ -228,6 +229,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var acn = (AstJsonClass)ObtainValueClass(template);
                 mcn.NValueClass = acn;
                 mcn.InheritedClass = ((AstJsonClass)acn.InheritedClass).NMetadataClass;
+                mcn.Namespace = template.Namespace;
 
                 
                 // TODO! Add back
@@ -319,6 +321,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 TemplateClasses.Add(template, ret);
                 var acn = (AstJsonClass)ObtainValueClass(template);
                 ret.InheritedClass = ((AstJsonClass)acn.InheritedClass).NTemplateClass;
+                ret.Namespace = template.Namespace;
                 ret.NValueClass = acn;
                 ret.Parent = acn.NJsonByExample;
                 ret.ClassStemIdentifier = "Schema";

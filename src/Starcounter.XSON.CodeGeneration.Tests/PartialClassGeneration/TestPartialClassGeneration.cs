@@ -51,9 +51,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void TestNamespaceWithoutCodeBehind() {
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(
                 "PartialClassGeneration/Namespaces.json", null);
-            var dump = codegen.DumpAstTree();
+//            var dump = codegen.DumpAstTree();
             var code = codegen.GenerateCode();
-            Console.WriteLine(dump);
+//            Console.WriteLine(dump);
             Console.WriteLine(code);
         }
 
