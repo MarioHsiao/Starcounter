@@ -14,7 +14,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Backend {
                     try {
                         InstallerStart item = null;
                         Db.Transaction(() => {
-                            item = Db.SlowSQL("SELECT o FROM InstallerStart o where ObjectID=?", id).First;
+                            item = Db.SlowSQL<InstallerStart>("SELECT o FROM InstallerStart o where ObjectID=?", id).First;
                             if (item != null) {
                                 item.Delete();
                             }
