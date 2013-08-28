@@ -7,11 +7,11 @@ using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 namespace Starcounter.Internal.XSON {
     public class NewtonsoftSerializer : TypedJsonSerializer {
-        public override string ToJson(Json<object> obj) {
+        public override string ToJson(Json obj) {
             bool needsComma;
             int t;
             StringBuilder sb;
@@ -49,7 +49,7 @@ namespace Starcounter.Internal.XSON {
                         }
                         sb.Append(']');
                     } else if (tProp is TJson) {
-                        sb.Append(((Json<object>)val).ToJson());
+                        sb.Append(((Json)val).ToJson());
                     } else {
                         object papa = val;
                         TValue valueProperty = tProp as TValue;
@@ -65,16 +65,16 @@ namespace Starcounter.Internal.XSON {
             return sb.ToString();
         }
 
-        public override byte[] ToJsonUtf8(Json<object> obj) {
+        public override byte[] ToJsonUtf8(Json obj) {
             return Encoding.UTF8.GetBytes(ToJson(obj));
         }
 
-        public override int ToJsonUtf8(Json<object> obj, out byte[] buffer) {
+        public override int ToJsonUtf8(Json obj, out byte[] buffer) {
             buffer = ToJsonUtf8(obj);
             return buffer.Length;
         }
 
-        public override int PopulateFromJson(Json<object> obj, string json) {
+        public override int PopulateFromJson(Json obj, string json) {
             using (JsonTextReader reader = new JsonTextReader(new StringReader(json))) {
                 if (reader.Read()) {
 
@@ -87,11 +87,11 @@ namespace Starcounter.Internal.XSON {
             }
         }
 
-        public override int PopulateFromJson(Json<object> obj, byte[] buffer, int bufferSize) {
+        public override int PopulateFromJson(Json obj, byte[] buffer, int bufferSize) {
             return PopulateFromJson(obj, Encoding.UTF8.GetString(buffer, 0, bufferSize));
         }
 
-        public override int PopulateFromJson(Json<object> obj, IntPtr buffer, int jsonSize) {
+        public override int PopulateFromJson(Json obj, IntPtr buffer, int jsonSize) {
             byte[] jsonArr = new byte[jsonSize];
             Marshal.Copy(buffer, jsonArr, 0, jsonSize);
             return PopulateFromJson(obj, jsonArr, jsonSize);
@@ -103,7 +103,7 @@ namespace Starcounter.Internal.XSON {
         /// </summary>
         /// <param name="obj">The object to set the parsed values in</param>
         /// <param name="reader">The JsonReader containing the json to be parsed.</param>
-        private void PopulateObject(Json<object> obj, Newtonsoft.Json.JsonReader reader) {
+        private void PopulateObject(Json obj, Newtonsoft.Json.JsonReader reader) {
             bool insideArray = false;
             Template tChild = null;
 
@@ -118,7 +118,7 @@ namespace Starcounter.Internal.XSON {
                 while (reader.Read()) {
                     switch (reader.TokenType) {
                         case JsonToken.StartObject:
-                            Json<object> newObj;
+                            Json newObj;
                             if (insideArray) {
                                 newObj = obj.Get((TObjArr)tChild).Add();
                             } else {

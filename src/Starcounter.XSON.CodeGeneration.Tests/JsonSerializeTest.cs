@@ -8,7 +8,7 @@ using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 using Modules;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.XSON.Serializer.Tests {
@@ -86,7 +86,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             TJson tObj = CreateJsonTemplateFromFile("supersimple.json");
 
             TJson.UseCodegeneratedSerializer = false;
-            var obj = (Json<object>)tObj.CreateInstance();
+            var obj = (Json)tObj.CreateInstance();
 
             string invalidJson = "message";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
@@ -110,7 +110,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
             TJson.UseCodegeneratedSerializer = true;
             TJson.DontCreateSerializerInBackground = true;
-            var obj = (Json<object>)tObj.CreateInstance();
+            var obj = (Json)tObj.CreateInstance();
 
             string invalidJson = "message";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
@@ -138,8 +138,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             byte[] correctJson;
             byte[] defaultJson;
             int count;
-            Json<object> correctObj;
-            Json<object> actualObj;
+            Json correctObj;
+            Json actualObj;
             TJson tObj;
             string serializerName = "default serializer";
             if (useCodegen)
@@ -149,7 +149,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
             tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
             TJson.UseCodegeneratedSerializer = false;
-            correctObj = (Json<object>)tObj.CreateInstance();
+            correctObj = (Json)tObj.CreateInstance();
 
             // We use the NewtonSoft implementation as a verifier for correct input and output.
             TJson.FallbackSerializer = newtonSerializer;
@@ -162,7 +162,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             count = correctObj.ToJsonUtf8(out defaultJson);
             AssertAreEqual(correctJson, defaultJson, count);
 
-            actualObj = (Json<object>)tObj.CreateInstance();
+            actualObj = (Json)tObj.CreateInstance();
 
 //            count = actualObj.PopulateFromJson(correctJson, correctJson.Length);
             actualObj.PopulateFromJson(json);
@@ -238,7 +238,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             }
 
             if (testCodegen) {
-                //            TJson<Json<object>>.FallbackSerializer = new __starcountergenerated__.PreGeneratedSerializer();
+                //            TJson<Json>.FallbackSerializer = new __starcountergenerated__.PreGeneratedSerializer();
                 TJson.UseCodegeneratedSerializer = true;
                 count = obj.ToJsonUtf8(out outJsonArr); // Run once to start the codegen.
                 Thread.Sleep(1000);
@@ -275,7 +275,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             Console.WriteLine();
         }
 
-        private static double BenchmarkSerializer(Json<object> person, int nrOfTimes) {
+        private static double BenchmarkSerializer(Json person, int nrOfTimes) {
             DateTime start;
             DateTime stop;
 
@@ -287,7 +287,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             return (stop - start).TotalMilliseconds;
         }
 
-        private static double BenchmarkDeserializer(Json<object> obj, byte[] json, int jsonSize, int nrOfTimes) {
+        private static double BenchmarkDeserializer(Json obj, byte[] json, int jsonSize, int nrOfTimes) {
             DateTime start;
             DateTime stop;
 
@@ -367,7 +367,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         private static TJson CreateJsonTemplateFromFile( string filePath ) {
             string json = File.ReadAllText(filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TJson.CreateFromMarkup<Json<object>, TJson>("json", json, className);
+            var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
         }
@@ -391,7 +391,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             TJson tPerson;
 
             tPerson = CreateJsonTemplateFromFile("supersimple.json");
-            var person = (Json<object>)tPerson.CreateInstance();
+            var person = (Json)tPerson.CreateInstance();
             //SetDefaultPersonValues(person);
 
             TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
@@ -419,14 +419,14 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
             // Now we populate a new person instance with values from the serializer json.
             // And compare it to the original. All values should be identical.
-            var person2 = (Json<object>)tPerson.CreateInstance();
+            var person2 = (Json)tPerson.CreateInstance();
             sizeAfterPopulate = serializer.PopulateFromJson(person2, jsonArr, size);
 
             Assert.AreEqual(size, sizeAfterPopulate);
             AssertAreEqual(person, person2);
         }
 
-        private static void AssertAreEqual(Json<object> expected, Json<object> actual) {
+        private static void AssertAreEqual(Json expected, Json actual) {
             TJson tExpected = (TJson)expected.Template;
             TJson tActual = (TJson)actual.Template;
 
@@ -446,8 +446,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
                 else if (child is TJson)
                     AssertAreEqual(expected.Get((TJson)child), actual.Get((TJson)child));
                 else if (child is TObjArr) {
-                    var arr1 = expected.Get((ArrSchema<Json<object>>)child);
-                    var arr2 = actual.Get((ArrSchema<Json<object>>)child);
+                    var arr1 = expected.Get((ArrSchema<Json>)child);
+                    var arr2 = actual.Get((ArrSchema<Json>)child);
                     Assert.AreEqual(arr1.Count, arr2.Count);
                     for (int i = 0; i < arr1.Count; i++) {
                         AssertAreEqual(arr1[i], arr2[i]);

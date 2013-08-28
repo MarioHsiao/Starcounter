@@ -7,6 +7,6 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     /// for responses with HTTP statuses in the 4xx- and 5xx
     /// range.
     /// </summary>
-    partial class ErrorDetail : Json<object> {
+    partial class ErrorDetail : Json {
     }
 }

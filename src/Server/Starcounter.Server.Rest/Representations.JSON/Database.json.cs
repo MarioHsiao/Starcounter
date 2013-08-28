@@ -6,6 +6,6 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     /// Represents a database resource.
     /// </summary>
     [Database_json]
-    partial class Database : Json<object> {
+    partial class Database : Json {
     }
 }

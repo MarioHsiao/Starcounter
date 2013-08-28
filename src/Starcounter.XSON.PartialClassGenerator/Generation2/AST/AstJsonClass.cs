@@ -8,7 +8,7 @@ using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.MsBuild.Codegen {
@@ -105,8 +105,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <value><c>true</c> if this instance is custom app template; otherwise, <c>false</c>.</value>
         public bool IsCustomGeneratedClass {
             get {
-                if (Template is Schema<Json<object>>) {
-                    return ((Schema<Json<object>>)Template).Properties.Count > 0;
+                if (Template is Schema) {
+                    return ((Schema)Template).Properties.Count > 0;
                 }
                 return false;
             }
@@ -128,8 +128,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 }
                 var template = NTemplateClass.Template;
                 string className = null;
-                if (template is Schema<Json<object>>) {
-                    className = (template as Schema<Json<object>>).ClassName;
+                if (template is Schema) {
+                    className = (template as Schema).ClassName;
                 }
                 if (className == null) {
                     className = template.PropertyName;

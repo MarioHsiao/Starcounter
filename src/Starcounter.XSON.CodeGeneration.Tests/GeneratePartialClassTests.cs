@@ -16,7 +16,7 @@ using Starcounter.Internal;
 using Starcounter.XSON.CodeGeneration;
 using Modules;
 using Starcounter.Internal.XSON;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 using Starcounter.Internal.MsBuild.Codegen;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
@@ -38,7 +38,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         private static TJson CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText(filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TJson.CreateFromMarkup<Json<object>, TJson>("json", json, className);
+            var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
         }

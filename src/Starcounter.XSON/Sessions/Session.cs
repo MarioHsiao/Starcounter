@@ -24,23 +24,23 @@ namespace Starcounter {
         [ThreadStatic]
         static Request _Request;
 
-        internal Json<object> _Data;
+        internal Json _Data;
 
         bool isInUse;
 
         /// <summary>
         /// Cached pages dictionary.
         /// </summary>
-        Dictionary<String, Json<object>> JsonNodeCacheDict;
+        Dictionary<String, Json> JsonNodeCacheDict;
 
         /// <summary>
         /// Tries to get cached JSON node.
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        internal Json<object> GetCachedJsonNode(String uri)
+        internal Json GetCachedJsonNode(String uri)
         {
-            Json<object> obj;
+            Json obj;
             if (!JsonNodeCacheDict.TryGetValue(uri, out obj))
                 return null;
 
@@ -62,11 +62,11 @@ namespace Starcounter {
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="obj"></param>
-        internal void AddJsonNodeToCache(String uri, Json<object> obj)
+        internal void AddJsonNodeToCache(String uri, Json obj)
         {
             // Checking if cached state dictionary is already created.
             if (null == JsonNodeCacheDict)
-                JsonNodeCacheDict = new Dictionary<String, Json<object>>();
+                JsonNodeCacheDict = new Dictionary<String, Json>();
 
             // Adding current URI to cache.
             JsonNodeCacheDict[uri] = obj;
@@ -113,7 +113,7 @@ namespace Starcounter {
         /// <summary>
         /// Sets session data.
         /// </summary>
-        public static Json<object> Data {
+        public static Json Data {
             get {
                 Session s = _Current;
                 if (s == null) {
@@ -162,7 +162,7 @@ namespace Starcounter {
         /// Setting data object.
         /// </summary>
         /// <param name="data"></param>
-        private void SetData(Json<object> data) {
+        private void SetData(Json data) {
 
             // If we are replacing the JSON tree, we need to dispose previous one.
             if (_Data != null) {
@@ -332,7 +332,7 @@ namespace Starcounter {
         /// Destroys Json tree recursively, including session.
         /// </summary>
         /// <param name="json"></param>
-        private void DisposeJsonRecursively(Json<object> json) {
+        private void DisposeJsonRecursively(Json json) {
             if (json == null)
                 return;
 
@@ -345,11 +345,11 @@ namespace Starcounter {
                 return;
 
             foreach (Template child in ((TContainer)json.Template).Children) {
-                if (child is Schema<Json<object>>) {
-                    DisposeJsonRecursively(json.Get((Schema<Json<object>>)child));
+                if (child is Schema) {
+                    DisposeJsonRecursively(json.Get((Schema)child));
                 } else if (child is TObjArr) {
-                    Arr<Json<object>> listing = json.Get((ArrSchema<Json<object>>)child);
-                    foreach (Json<object> listApp in listing) {
+                    Arr<Json> listing = json.Get((ArrSchema<Json>)child);
+                    foreach (Json listApp in listing) {
                         DisposeJsonRecursively(listApp);
                     }
                 }

@@ -21,7 +21,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The owner of this list.
         /// </summary>
-        private Schema<Json<object>> parent;
+        private Schema parent;
 
         /// <summary>
         /// The full name dictionary. These names can contain characters that are not valid for C# properties,
@@ -54,7 +54,7 @@ namespace Starcounter.Templates {
         /// 
         /// </summary>
         /// <param name="parent"></param>
-        internal PropertyList(Schema<Json<object>> parent) {
+        internal PropertyList(Schema parent) {
             this.parent = parent;
         }
 

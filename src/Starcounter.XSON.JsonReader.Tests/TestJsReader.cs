@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.Internal.JsonTemplate;
 using Modules;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.JsonTemplate.Tests {
@@ -84,7 +84,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                     }.Class('TestApp').Namespace('Test')";
 
 
-            var actual = TJson.CreateFromMarkup<Json<object>, TJson>("json", script2, null);
+            var actual = TJson.CreateFromMarkup<Json, TJson>("json", script2, null);
             Assert.IsInstanceOf(typeof(TJson), actual);
             Assert.AreEqual("TestApp", actual.ClassName);
             Assert.AreEqual("Test", actual.Namespace);
@@ -160,7 +160,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     }.Bind('this'),
     HistoryApp: {}.Include('HistoryApp')
 }.Class('CrmApp')";
-            var actual = TJson.CreateFromMarkup<Json<object>, TJson>("json", script, null);
+            var actual = TJson.CreateFromMarkup<Json, TJson>("json", script, null);
             Assert.IsInstanceOf(typeof(TJson), actual);
         }
     }

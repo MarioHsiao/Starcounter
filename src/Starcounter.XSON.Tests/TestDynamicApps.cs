@@ -15,8 +15,8 @@ using Starcounter.Advanced.XSON;
 using System.IO;
 using Starcounter.Internal.XSON;
 using Starcounter.XSON.Tests;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
-using TArr = Starcounter.Templates.ArrSchema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
+using TArr = Starcounter.Templates.ArrSchema<Starcounter.Json>;
 
 namespace Starcounter.Internal.XSON.Tests {
 
@@ -77,7 +77,7 @@ namespace Starcounter.Internal.XSON.Tests {
         /// Creates some.
         /// </summary>
         /// <returns>List{App}.</returns>
-        private static List<Json<object>> _CreateTemplatesAndAppsByCode() {
+        private static List<Json> _CreateTemplatesAndAppsByCode() {
 
             // First, let's create the schema (template)
             var personSchema = new TJson();
@@ -93,8 +93,8 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
-            var jocke = new Json<object>() { Template = personSchema };
-            var tim = new Json<object>() { Template = personSchema };
+            var jocke = new Json() { Template = personSchema };
+            var tim = new Json() { Template = personSchema };
 
             jocke.Set(firstName, "Joachim");
             jocke.Set(lastName, "Wester");
@@ -115,7 +115,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Timothy", tim.Get(firstName));
             Assert.AreEqual("Wester", tim.Get(lastName));
 
-            var ret = new List<Json<object>>();
+            var ret = new List<Json>();
             ret.Add(jocke);
             ret.Add(tim);
             return ret;
@@ -140,8 +140,8 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
-            dynamic jocke = new Json<object>() { Template = personSchema };
-            dynamic tim = new Json<object>() { Template = personSchema };
+            dynamic jocke = new Json() { Template = personSchema };
+            dynamic tim = new Json() { Template = personSchema };
 
             jocke.FirstName = "Joachim";
             jocke.LastName = "Wester";
@@ -162,7 +162,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Timothy", tim.FirstName);
             Assert.AreEqual("Wester", tim.LastName);
 
-            var ret = new List<Json<object>>();
+            var ret = new List<Json>();
             ret.Add(jocke);
             ret.Add(tim);
         }
@@ -234,7 +234,7 @@ namespace Starcounter.Internal.XSON.Tests {
             dynamic n1 = p1.Fields.Add();
             dynamic n2 = p1.Fields.Add();
 
-            Assert.IsInstanceOf<Json<object>>(p1);
+            Assert.IsInstanceOf<Json>(p1);
             Assert.IsInstanceOf<MyFieldMessage>(n1);
             Assert.IsInstanceOf<MyFieldMessage>(n2);
 
@@ -286,7 +286,7 @@ namespace Starcounter.Internal.XSON.Tests {
         private static TJson CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText(filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TJson.CreateFromMarkup<Json<object>, TJson>("json", json, className);
+            var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
         }
@@ -385,6 +385,6 @@ namespace Starcounter.Internal.XSON.Tests {
         }
     }
 
-    internal class MyFieldMessage : Json<object> {
+    internal class MyFieldMessage : Json {
     }
 }

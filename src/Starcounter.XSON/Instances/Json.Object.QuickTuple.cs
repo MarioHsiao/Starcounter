@@ -12,7 +12,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class Json<DataType> {
+    public partial class Json {
 
 #if QUICKTUPLE
         /// <summary>
@@ -26,11 +26,11 @@ namespace Starcounter {
                 throw new NotImplementedException();
             }
             else {
-                _InitializeValues( (Schema<Json<object>>)Template);
+                _InitializeValues( (Schema)Template);
             }
         }
 
-        private void _InitializeValues(Schema<Json<object>> template) {
+        private void _InitializeValues(Schema template) {
             var prop = template.Properties;
             var vc = prop.Count;
             _Dirty = false;
@@ -47,7 +47,7 @@ namespace Starcounter {
         /// </summary>
         protected dynamic[] Values {
             get {
-                var template = (Schema<Json<object>>)Template;
+                var template = (Schema)Template;
                 if (_Values.Length < template.Properties.Count) {
                     // We allow adding new properties to dynamic templates
                     // even after instsances have been created.

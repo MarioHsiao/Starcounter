@@ -14,8 +14,8 @@ namespace Starcounter.Templates {
     /// <typeparam name="AppType"></typeparam>
     /// <typeparam name="TemplateType"></typeparam>
     public class ArrMetadata<AppType,JsonType> : ValueMetadata<JsonType,ArrSchema<AppType>>
-                where AppType : Json<object>, new()
-                where JsonType : Json<object>
+                where AppType : Json, new()
+                where JsonType : Json
     {
 
         /// <summary>

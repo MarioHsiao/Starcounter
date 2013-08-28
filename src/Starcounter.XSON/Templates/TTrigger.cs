@@ -25,17 +25,17 @@ namespace Starcounter.Templates {
         }
 
         public override Type MetadataType {
-            get { return typeof(ActionMetadata<Json<object>>); }
+            get { return typeof(ActionMetadata<Json>); }
         }
 
 
         /// <summary>
         /// </summary>
-        private Func<Json<object>, TValue, Input> CustomInputEventCreator = null;
+        private Func<Json, TValue, Input> CustomInputEventCreator = null;
      
         /// <summary>
         /// </summary>
-        public List<Action<Json<object>, Input>> CustomInputHandlers = new List<Action<Json<object>, Input>>();
+        public List<Action<Json, Input>> CustomInputHandlers = new List<Action<Json, Input>>();
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -71,8 +71,8 @@ namespace Starcounter.Templates {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<Json<object>, TValue, Input> createInputEvent = null,
-            Action<Json<object>, Input> handler = null) {
+            Func<Json, TValue, Input> createInputEvent = null,
+            Action<Json, Input> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
@@ -81,7 +81,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        public override void ProcessInput(Json<object> obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             Input input = null;
 
             if (CustomInputEventCreator != null)

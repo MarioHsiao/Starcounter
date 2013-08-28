@@ -10,7 +10,7 @@ using System;
 using System.Text;
 namespace Starcounter {
 
-    public partial class Json<DataType> {
+    public partial class Json {
 
 
         internal string DebugString {
@@ -29,10 +29,10 @@ namespace Starcounter {
         internal override void WriteToDebugString(StringBuilder sb, int i) {
             if (this.IsArray) {
                 throw new NotImplementedException();
-//                WriteToDebugString(sb, i, (ArrSchema<Json<object>>)Template);
+//                WriteToDebugString(sb, i, (ArrSchema<Json>)Template);
             }
             else {
-                WriteToDebugString(sb, i, (Schema<Json<object>>)Template);
+                WriteToDebugString(sb, i, (Schema)Template);
             }
         }
 
@@ -42,7 +42,7 @@ namespace Starcounter {
         /// <param name="sb"></param>
         /// <param name="i"></param>
         /// <param name="template"></param>
-        internal void WriteToDebugString(StringBuilder sb, int i, Schema<Json<object>> template ) {
+        internal void WriteToDebugString(StringBuilder sb, int i, Schema template ) {
 
             _WriteDebugProperty(sb);
 

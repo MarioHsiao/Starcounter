@@ -12,7 +12,7 @@ namespace Starcounter.Templates
     /// 
     /// </summary>
     public class DecimalMetadata<JsonType> : ValueMetadata<JsonType,TDecimal>
-        where JsonType : Json<object> 
+        where JsonType : Json 
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DecimalMetadata" /> class.

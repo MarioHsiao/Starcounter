@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.IO;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
@@ -71,12 +71,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void TestGlobalClassSpecifier() {
             string expected = "Starcounter.Json<Object>.JsonByExample.Metadata<Schema<Json<Object>>,Json<Object>>";
-            Type t = new Json<object>.JsonByExample.Metadata<Starcounter.Templates.Schema<Json<object>>, Json<object>>(null, null).GetType();
+            Type t = new Json.JsonByExample.Metadata<Starcounter.Templates.Schema<Json>, Json>(null, null).GetType();
             string actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
             Assert.AreEqual(expected, actual);
 
             expected = "Starcounter.Json<Object>.JsonByExample.Schema<Json<Object>>";
-            t = new Json<object>.JsonByExample.Schema<Json<object>>().GetType();
+            t = new Json.JsonByExample.Schema<Json>().GetType();
             actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
             Assert.AreEqual(expected, actual);
         }

@@ -12,8 +12,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
         [Test]
         public static void TestPatchForBrandNewRoot() {
-            dynamic j = new Json<object>();
-            dynamic nicke = new Json<object>();
+            dynamic j = new Json();
+            dynamic nicke = new Json();
 
 
             Session.Data = j;
@@ -29,7 +29,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             // Session.Current.LogChanges = true;
 
-            j.Friends = new List<Json<object>>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
@@ -54,8 +54,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
      //   [Test]
         public static void TestCreateNewArray() {
-            dynamic j = new Json<object>();
-            dynamic nicke = new Json<object>();
+            dynamic j = new Json();
+            dynamic nicke = new Json();
 
             Session.Data = j;
 
@@ -64,7 +64,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Session.Current.CreateJsonPatch(true); // Flushing
 
-            j.Friends = new List<Json<object>>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
@@ -85,20 +85,20 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
  //     [Test]       
 		public static void TestPatchForChangingAnElement() {
 
-            dynamic j = new Json<object>();
-            dynamic nicke = new Json<object>();
+            dynamic j = new Json();
+            dynamic nicke = new Json();
 
             Session.Data = j;
             j.FirstName = "Jack";
             nicke.FirstName = "Nicke";
-            j.Friends = new List<Json<object>>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
             Console.WriteLine(j.DebugString);
 
             Session.Current.CreateJsonPatch(true);
-            dynamic henrik = new Json<object>();
+            dynamic henrik = new Json();
             henrik.FirstName = "Henrik";
             j.Friends[0] = henrik;
 

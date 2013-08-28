@@ -1,7 +1,7 @@
 ﻿
 using System.Diagnostics;
 namespace Starcounter {
-    public partial class Json<DataType> {
+    public partial class Json {
 
         /// <summary>
         /// As messages are not kept at the server, it does not make sense to interact with

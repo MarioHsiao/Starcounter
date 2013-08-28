@@ -18,8 +18,8 @@ namespace Starcounter.Internal.JsonTemplate
     /// Class MetaTemplate
     /// </summary>
     internal class MetaTemplate<OT,OTT> : MetaTemplate
-        where OT : Json<object>, new()
-        where OTT : Schema<OT>, new() 
+        where OT : Json, new()
+        where OTT : Schema, new() 
     {
         /// <summary>
         /// The _boolean properties
@@ -144,7 +144,7 @@ namespace Starcounter.Internal.JsonTemplate
             {
                 appTemplate = _template as OTT;
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-                ((Schema<Json<object>>)_template).ClassName = v;
+                ((Schema)_template).ClassName = v;
             }
             else if (upperName == "RUN")
             {
@@ -162,13 +162,13 @@ namespace Starcounter.Internal.JsonTemplate
             else if (upperName == "TYPE")
             {
                 TValue oldProperty = _template as TValue;
-                if (oldProperty == null || (oldProperty is Schema<Json<object>>)) 
+                if (oldProperty == null || (oldProperty is Schema)) 
                     ErrorHelper.RaiseInvalidTypeConversionError(_debugInfo);
 
                 TValue newProperty = GetPropertyFromTypeName(v);
                 oldProperty.CopyTo(newProperty);
 
-                var parent = (Schema<Json<object>>)oldProperty.Parent;
+                var parent = (Schema)oldProperty.Parent;
                 parent.Properties.Replace(newProperty);
             }
             else if (upperName == "REUSE")
@@ -253,8 +253,8 @@ namespace Starcounter.Internal.JsonTemplate
     /// It is used as a singleton.
     /// </summary>
     public class TAppFactory<OT,OTT> : ITemplateFactory
-        where OT : Json<object>, new()
-        where OTT : Schema<OT>, new() 
+        where OT : Json, new()
+        where OTT : Schema, new() 
     {
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
@@ -715,7 +715,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                string className,
                                                DebugInfo debugInfo)
         {
-            ((Schema<Json<object>>)template).ClassName = className;
+            ((Schema)template).ClassName = className;
         }
 
         /// <summary>
@@ -728,7 +728,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                  string className,
                                                  DebugInfo debugInfo)
         {
-            ((Schema<Json<object>>)template).Include = className;
+            ((Schema)template).Include = className;
         }
 
         /// <summary>
@@ -741,7 +741,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                    string namespaceName,
                                                    DebugInfo debugInfo)
         {
-            ((Schema<Json<object>>)template).Namespace = namespaceName;
+            ((Schema)template).Namespace = namespaceName;
         }
 
         /// <summary>

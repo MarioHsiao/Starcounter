@@ -1,16 +1,15 @@
 ﻿
 
 using System;
+
 namespace Starcounter.Templates {
-    partial class Schema<JsonType> {
 
-
-
+    partial class Schema {
 
         /// <summary>
         /// For dynamic Json objects, templates pertain to only a single object.
         /// </summary>
-        internal Json<object> SingleInstance = null;
+        internal Json SingleInstance = null;
 
         /// <summary>
         /// Called when the user attempted to set a value on a dynamic obj without the object having

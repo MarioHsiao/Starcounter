@@ -11,14 +11,14 @@ using System.Collections;
 using Starcounter.Internal.XSON;
 
 namespace Starcounter {
-    partial class Json<DataType> {
+    partial class Json {
         /// <summary>
         /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
         /// underlying bound object. This is common in database applications where Json messages
         /// or view models (Puppets) are often associated with database objects. I.e. a person form might
         /// reflect a person database object (Entity).
         /// </summary>
-        private DataType _data;
+        private IBindable _data;
 
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Starcounter {
         /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
         /// </summary>
         /// <value>The bound data object (often a database Entity)</value>
-        public DataType Data {
+        public IBindable Data {
             get {
                 return _data;
             }
@@ -48,7 +48,7 @@ namespace Starcounter {
                     if (Template == null) {
                         this.CreateDynamicTemplate(); // If there is no template, we'll create a template
                     }
-                    InternalSetData((IBindable)value, (Schema<Json<object>>)Template);
+                    InternalSetData((IBindable)value, (Schema)Template);
                 }
             }
         }
@@ -129,7 +129,7 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <returns></returns>
-        internal IBindable GetBound(Schema<Json<object>> template) {
+        internal IBindable GetBound(Schema template) {
             IBindable data = DataAsBindable;
             if (data == null)
                 return null;
@@ -145,7 +145,7 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <param name="value"></param>
-        internal void SetBound(Schema<Json<object>> template, IBindable value) {
+        internal void SetBound(Schema template, IBindable value) {
             IBindable data = DataAsBindable;
             if (data == null)
                 return;
@@ -158,11 +158,11 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data, Schema<Json<object>> template ) {
-            this._data = (DataType)data;
+        protected virtual void InternalSetData(IBindable data, Schema template ) {
+            this._data = data;
 
 			if (template.Bound != Bound.No) {
-				var parent = ((Json<object>)this.Parent);
+				var parent = ((Json)this.Parent);
 				if (parent != null && template.UseBinding(parent.DataAsBindable)) {
 					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
 				}
@@ -175,7 +175,7 @@ namespace Starcounter {
         /// <summary>
         /// Initializes bound arrays when a new dataobject is set.
         /// </summary>
-        private void InitBoundArrays(Schema<Json<object>> template) {
+        private void InitBoundArrays(Schema template) {
             TObjArr child;
             for (Int32 i = 0; i < template.Properties.Count; i++) {
                 child = template.Properties[i] as TObjArr;
@@ -184,7 +184,7 @@ namespace Starcounter {
 						child.UseBinding(DataAsBindable);
 						Refresh(child);
 					} else {
-						var arr = (Arr<Json<object>>)Get(child);
+						var arr = (Arr<Json>)Get(child);
 						arr.Clear();
 					}
                 }

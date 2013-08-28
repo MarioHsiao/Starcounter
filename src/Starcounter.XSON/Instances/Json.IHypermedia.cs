@@ -5,8 +5,9 @@ using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Text;
+
 namespace Starcounter {
-    public partial class Json<DataType> {
+    public partial class Json {
 
 
 
@@ -87,15 +88,15 @@ namespace Starcounter {
             throw new NotImplementedException();
         }
 
-        public static implicit operator Response(Json<DataType> x) {
+        public static implicit operator Response(Json x) {
             var response = new Response() {
                 Hypermedia = x
             };
             return response;
         }
 
-        public static implicit operator Json<DataType>(Response r) {            
-            return r.Hypermedia as Json<DataType>;
+        public static implicit operator Json(Response r) {            
+            return r.Hypermedia as Json;
         }
     }
 }

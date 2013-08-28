@@ -1,23 +1,25 @@
 ﻿
 using Starcounter.Templates;
 using System;
+
 namespace Starcounter {
-    partial class Json<DataType> {
+
+    partial class Json {
 
         /// <summary>
         /// 
         /// </summary>
         internal override void CheckpointChangeLog() {
             if (IsArray) {
-//                CheckpointChangeLog((ArrSchema<Json<object>>)Template);
+//                CheckpointChangeLog((ArrSchema<Json>)Template);
                 throw new NotImplementedException();
             }
             else {
-                CheckpointChangeLog((Schema<Json<object>>)Template);
+                CheckpointChangeLog((Schema)Template);
             }
         }
 
-        private void CheckpointChangeLog( Schema<Json<object>> template ) {
+        private void CheckpointChangeLog( Schema template ) {
             _BrandNew = false;
             if (_Dirty) {
                 for (int t = 0; t < _Values.Length; t++) {
@@ -80,14 +82,14 @@ namespace Starcounter {
         internal override void LogValueChangesWithDatabase(Session session) {
             if (this.IsArray) {
                 throw new NotImplementedException();
-//                LogValueChangesWithDatabase(session, (ArrSchema<Json<object>>)template);
+//                LogValueChangesWithDatabase(session, (ArrSchema<Json>)template);
             }
             else {
-                LogValueChangesWithDatabase(session, (Schema<Json<object>>)Template);
+                LogValueChangesWithDatabase(session, (Schema)Template);
             }
         }
 
-        private void LogValueChangesWithDatabase(Session session, Schema<Json<object>> template ) {
+        private void LogValueChangesWithDatabase(Session session, Schema template ) {
             if (_Dirty) {
                 for (int t = 0; t < _Values.Length; t++) {
                     if (_DirtyProperties[t]) {

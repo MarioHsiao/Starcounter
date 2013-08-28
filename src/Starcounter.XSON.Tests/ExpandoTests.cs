@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.XSON.Tests {
@@ -15,14 +15,14 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestDynamicJson() {
 
-            dynamic j = new Json<object>();
-            dynamic nicke = new Json<object>();
+            dynamic j = new Json();
+            dynamic nicke = new Json();
             nicke.FirstName = "Nicke";
 
             j.FirstName = "Joachim";
             j.Age = 43;
             j.Length = 184.7;            
-            j.Friends = new List<Json<object>>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Assert.AreEqual("Joachim", j.FirstName);
             Assert.AreEqual(43, j.Age);
@@ -33,9 +33,9 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestDynamicJsonTemplateProtection() {
 
-            dynamic j = new Json<object>();
-            dynamic nicke = new Json<object>();
-            dynamic olle = new Json<object>();
+            dynamic j = new Json();
+            dynamic nicke = new Json();
+            dynamic olle = new Json();
 
             j.FirstName = "Joachim";
 
@@ -51,7 +51,7 @@ namespace Starcounter.Internal.XSON.Tests {
             p.FirstName = "Joachim";
             p.LastName = "Wester";
 
-            dynamic j = new Json<object>();
+            dynamic j = new Json();
             j.Data = p;
 
             Assert.AreEqual("Joachim", p.FirstName);

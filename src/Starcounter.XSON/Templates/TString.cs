@@ -13,11 +13,11 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class TString : PrimitiveProperty<string> {
-        public override void ProcessInput(Json<object> obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
         }
         public override Type MetadataType {
-            get { return typeof(StringMetadata<Json<object>>); }
+            get { return typeof(StringMetadata<Json>); }
         }
 
 

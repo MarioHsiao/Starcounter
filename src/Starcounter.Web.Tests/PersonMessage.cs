@@ -1,11 +1,11 @@
 ﻿using Starcounter.Templates;
 using System;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
-using TArr = Starcounter.Templates.ArrSchema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
+using TArr = Starcounter.Templates.ArrSchema<Starcounter.Json>;
 
 namespace Starcounter.Internal.Tests {
 
-    public class PersonMessage : Json<object> {
+    public class PersonMessage : Json {
         private static TJson Schema;
 
         static PersonMessage() {

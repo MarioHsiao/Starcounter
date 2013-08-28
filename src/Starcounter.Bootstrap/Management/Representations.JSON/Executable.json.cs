@@ -7,6 +7,6 @@ namespace Starcounter.Bootstrap.Management.Representations.JSON {
     /// defined by the code host.
     /// </summary>
     [Executable_json]
-    partial class Executable : Json<object> {
+    partial class Executable : Json {
     }
 }

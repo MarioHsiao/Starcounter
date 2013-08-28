@@ -14,7 +14,7 @@ using System.IO;
 //using Starcounter.Internal.JsonTemplate;
 using Starcounter.Advanced;
 using Starcounter.XSON.Tests;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
@@ -122,7 +122,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             patchBlob += "{  \"op\":\"replace\", \"value\": \"Abc123\",    \"path\"  :   \"/FirstName\"}";
             patchBlob += "]";
 
-            Json<object> rootApp = CreateSampleApp().App;
+            Json rootApp = CreateSampleApp().App;
             JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
         }
 
@@ -226,7 +226,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
             TJson anotherAppt = (TJson)appt.Properties[3];
-            Json<object> nearestApp = aat.App.Get(anotherAppt);
+            Json nearestApp = aat.App.Get(anotherAppt);
 
             var desc = (Property<string>)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
@@ -331,7 +331,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         private static AppAndTemplate CreateSampleApp()
         {
             dynamic template = TJson.CreateFromJson(File.ReadAllText("SampleApp.json")); //TemplateFromJs.CreateFromJs(File.ReadAllText("SampleApp.json"), false);
-            dynamic app = new Json<object>() { Template = template };
+            dynamic app = new Json() { Template = template };
             
             app.FirstName = "Cliff";
             app.LastName = "Barnes";

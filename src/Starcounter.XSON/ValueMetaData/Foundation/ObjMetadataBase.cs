@@ -10,7 +10,7 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class ObjMetadataBase<JsonType,TemplateType>
-                where JsonType : Json<object> 
+                where JsonType : Json 
                 where TemplateType : Template {
 
         /// <summary>

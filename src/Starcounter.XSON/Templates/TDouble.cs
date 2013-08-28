@@ -18,10 +18,10 @@ namespace Starcounter.Templates {
         private double _DefaultValue = 0;
 
         public override Type MetadataType {
-            get { return typeof(DoubleMetadata<Json<object>>); }
+            get { return typeof(DoubleMetadata<Json>); }
         }
 
-        public override void ProcessInput(Json<object> obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new NotImplementedException();
         }
 

@@ -7,7 +7,7 @@ using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 using System;
 using System.IO;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.XSON {
@@ -26,8 +26,8 @@ namespace Starcounter.Internal.XSON {
                 codeBehind = null;
             }
 
-            //            var t = TJson.CreateFromMarkup<Json<object>, TJson>("json", jsonContent, jsonFilePath);
-            var t = TJson.CreateFromMarkup<Json<object>, Json<object>.JsonByExample.Schema<Json<object>>>("json", jsonContent, jsonFilePath);
+            //            var t = TJson.CreateFromMarkup<Json, TJson>("json", jsonContent, jsonFilePath);
+            var t = TJson.CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", jsonContent, jsonFilePath);
             t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
 
             return GenerateTypedJsonCode( t, codeBehind, codeBehindFilePath);

@@ -4,7 +4,7 @@
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 
 namespace Starcounter.Internal.MsBuild.Codegen {

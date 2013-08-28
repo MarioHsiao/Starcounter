@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using System.Diagnostics;
 
-using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+using TJson = Starcounter.Templates.Schema;
 
 namespace Starcounter.Internal.Test {
     /// <summary>
@@ -24,7 +24,7 @@ namespace Starcounter.Internal.Test {
         public static void TestSetGet() {
             var at = new TJson();
             var st = new TString() { TemplateName = "FirstName", Parent = at };
-            var app = new Json<object>() { Template = at };
+            var app = new Json() { Template = at };
             app.Set(st, "Joachim");
             Assert.AreEqual("Joachim", app.Get(st));
             Console.WriteLine(app.ToJson());
@@ -38,8 +38,8 @@ namespace Starcounter.Internal.Test {
             var main = new TJson();
             var userId = new TString() { TemplateName = "UserId", Parent = main };
             var search = new TJson() { TemplateName = "Search", Parent = main };
-            var app = new Json<object>() { Template = main };
-            var app2 = new Json<object>() { Template = search };
+            var app = new Json() { Template = main };
+            var app2 = new Json() { Template = search };
             app.Set(userId, "Jocke");
             app.Set(search, app2);
             Console.WriteLine(app.ToJson()); //, IncludeView.Never));
@@ -51,7 +51,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public static void TestArray() {
             var appTemplate = new TJson();
-            var persons = new ArrSchema<Json<object>>() { TemplateName = "Persons", Parent = appTemplate };
+            var persons = new ArrSchema<Json>() { TemplateName = "Persons", Parent = appTemplate };
             var person = new TJson() { Parent = persons };
 
 //            persons.App = person;
@@ -61,13 +61,13 @@ namespace Starcounter.Internal.Test {
             var address = new TString() { TemplateName = "Address", Parent = person };
             var userId = new TString() { TemplateName = "UserId", Parent = appTemplate };
 
-            var obj = new Json<object>() { Template = appTemplate };
-            var jocke = new Json<object>() { Template = person };
+            var obj = new Json() { Template = appTemplate };
+            var jocke = new Json() { Template = person };
             jocke.Set(firstName, "Joachim");
             jocke.Set(lastName, "Wester");
             obj.Get(persons).Add(jocke);
 
-            var addie = new Json<object>() { Template = person };
+            var addie = new Json() { Template = person };
             addie.Set(firstName, "Adrienne");
             addie.Set(lastName, "Wester");
             obj.Get(persons).Add(addie);

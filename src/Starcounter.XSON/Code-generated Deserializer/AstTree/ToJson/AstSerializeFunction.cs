@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("    int bufferSize = 512;");
             Prefix.Add("    Obj childObj;");
             Prefix.Add("    Template tProperty;");
-            Prefix.Add("    Schema<Json<object>> tObj = realObj.Template;");
+            Prefix.Add("    Schema tObj = realObj.Template;");
             Prefix.Add("    byte[] apa = new byte[bufferSize];");
             Prefix.Add("    int offset = 1;");
 

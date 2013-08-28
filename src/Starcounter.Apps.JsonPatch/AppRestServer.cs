@@ -61,12 +61,12 @@ namespace Starcounter.Internal.Web {
                     return response;
                 }
 
-                if (response.Hypermedia is Json<object>) {
+                if (response.Hypermedia is Json) {
                     Container r = (Container)response.Hypermedia;
                     while (r.Parent != null) {
                         r = r.Parent;
                     }
-                    response.Hypermedia = (Json<object>)r;
+                    response.Hypermedia = (Json)r;
                 }
                 response.Request = request;
                 response.ConstructFromFields();
@@ -139,8 +139,8 @@ namespace Starcounter.Internal.Web {
 
                         // In case of returned JSON object within current session we need to save it
                         // for later reuse.
-                        Json<object> rootJsonObj = Session.Data;
-                        Json<object> curJsonObj = null;
+                        Json rootJsonObj = Session.Data;
+                        Json curJsonObj = null;
                         if (null != result) {
 
                             // Setting session on result only if its original request.
