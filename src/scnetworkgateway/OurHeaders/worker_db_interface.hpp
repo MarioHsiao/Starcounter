@@ -52,16 +52,6 @@ class WorkerDbInterface
     // Current scheduler id.
     uint32_t cur_scheduler_id_;
 
-    // Round-robin scheduler number.
-    uint32_t GetSchedulerId()
-    {
-        cur_scheduler_id_++;
-        if (cur_scheduler_id_ >= num_schedulers_)
-            cur_scheduler_id_ = 0;
-
-        return cur_scheduler_id_;
-    }
-
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireChunksFromSharedPool(int32_t num_chunks)
     {
@@ -95,6 +85,16 @@ class WorkerDbInterface
     uint32_t RequestRegisteredHandlers(int32_t sched_num);
 
 public:
+
+    // Round-robin scheduler number.
+    uint32_t GenerateSchedulerId()
+    {
+        cur_scheduler_id_++;
+        if (cur_scheduler_id_ >= num_schedulers_)
+            cur_scheduler_id_ = 0;
+
+        return cur_scheduler_id_;
+    }
 
     // Writes given big linear buffer into obtained linked chunks.
     uint32_t WorkerDbInterface::WriteBigDataToChunks(
