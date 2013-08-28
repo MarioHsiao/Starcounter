@@ -26,7 +26,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 };
                 DefaultJson.NMetadataClass = new AstJsonMetadataClass(this) {
                     NValueClass = DefaultJson,
-                    GlobalClassSpecifier = "global::Starcounter.Json.JsonByExample.Metadata<global::Starcounter.Json.JsonByExample.Schema<global::Starcounter.Json>,global::Starcounter.Json>",
+                    GlobalClassSpecifier = "global::Starcounter.Json.JsonByExample.Metadata<global::Starcounter.Json.JsonByExample.Schema",
                     ClassStemIdentifier = "Metadata"
                 };
             }
