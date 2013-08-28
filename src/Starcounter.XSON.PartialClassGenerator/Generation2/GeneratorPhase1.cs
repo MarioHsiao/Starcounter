@@ -128,20 +128,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                            template);
                         }
                         else if (kid is TObjArr) {
-                            // Orphaned by design as primitive types dont get custom template classes
-                            //                            var type = new NArrXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; 
-                            //                            NTemplateClass.Classes[kid] = type;
-
-                          //  GenerateForArr(kid as TObjArr,
-                          //                     appClassParent,
-                          //                     templParent,
-                          //                     metaParent,
-                          //                     template);
                             GenerateProperty(
                                 kid, 
                                 (AstJsonClass)appClassParent, 
                                 (AstSchemaClass)templParent, 
                                 metaParent);
+
+                            GenerateForApp(((TObjArr)kid).ElementType,
+                                           appClassParent,
+                                           templParent,
+                                           metaParent,
+                                           template);
                         }
                         else {
                             throw new Exception();
