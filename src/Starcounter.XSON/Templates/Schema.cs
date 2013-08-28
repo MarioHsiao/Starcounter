@@ -48,7 +48,11 @@ namespace Starcounter.Templates {
         /// <param name="self">The object to cast</param>
         /// <returns>The same object (self) is returned without further action</returns>
         public static implicit operator Schema<Json<object>>(Schema<JsonType> self) {
-            return self as Schema<Json<object>>;
+            var ret = self as Schema<Json<object>>;
+            if (ret == null) {
+                throw new Exception("Internal error");
+            }
+            return ret;
         }
 
         /// <summary>
