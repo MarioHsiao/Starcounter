@@ -331,7 +331,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             //                sb.Append('>');
             //            }
 
-            sb.Append(" { get { return Get");
+            if (m.Type is AstJsonClass) {
+                sb.Append(" { get { return Get<");
+                sb.Append(m.Type.GlobalClassSpecifier);
+                sb.Append('>');
+            }
+            else {
+                sb.Append(" { get { return Get");
+            }
             sb.Append("(Template.");
             sb.Append(m.MemberName);
             sb.Append("); } set { Set");
@@ -398,6 +405,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     par.GlobalClassSpecifier +
                     ")base.Parent; } set { base.Parent = value; } }");
             }
+            /*
 
             if (a.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassStemIdentifier;
@@ -408,6 +416,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                    parentClass +
                     ")(this as s::Json).Parent; } set { (this as s::Json).Parent = value; } }");
             }
+             */
         }
 
         private AstClass GetParentPropertyType(Template a) {
