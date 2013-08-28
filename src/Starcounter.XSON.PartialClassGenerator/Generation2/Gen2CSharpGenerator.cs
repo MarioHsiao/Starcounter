@@ -127,14 +127,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                 if (kid is AstJsonClass) {
                     napp = kid as AstJsonClass;
-#if DEBUG
-                    if (napp.NTemplateClass.Namespace != napp.Namespace) {
-                        throw new Exception();
-                    }
-                    if (napp.NMetadataClass.Namespace != napp.Namespace) {
-                        throw new Exception();
-                    }
-#endif
+
                     currentNs = napp.Namespace;
                     if (currentNs != previousNs) {
                         if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {

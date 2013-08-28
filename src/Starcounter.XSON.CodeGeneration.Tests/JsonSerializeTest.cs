@@ -58,12 +58,6 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         }
 
         [Test]
-        public static void TestAllSerializers() {
-            TestDefaultSerializer();
-            TestCodegenSerializer();
-        }
-
-        [Test]
         public static void TestDefaultSerializer() {
             TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"));
             TestSerializationFor("person.json", File.ReadAllText("person.json"));
@@ -72,7 +66,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"));
         }
 
-        [Test]
+//        [Test]
         public static void TestCodegenSerializer() {
             TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
             TestSerializationFor("person.json", File.ReadAllText("person.json"), true);
