@@ -24,6 +24,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+
 //        public override string ClassStemIdentifier {
 //            get {
 //                return HelperFunctions.GetClassStemIdentifier(Template.GetType());
