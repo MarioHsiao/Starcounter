@@ -26,6 +26,7 @@ namespace QueryProcessingTest {
             TestEnumerators();
             QueryResultMismatch();
             TestIndexQueryOptimization();
+            TestShortClassNames();
         }
 
         public static void TestFetchOrderBy() {
@@ -375,6 +376,12 @@ namespace QueryProcessingTest {
             String enumStr = qEnum.ToString();
             Trace.Assert(!enumStr.Contains("ComparisonString"));
             HelpMethods.LogEvent("Finished testing query optimization with indexes");
+        }
+
+        public static void TestShortClassNames() {
+            HelpMethods.LogEvent("Test queries with classes having similar short names");
+            Trace.Assert(Db.SQL<commonclass>("select c from commonclass c").First == null);
+            HelpMethods.LogEvent("Finished testing queries with classes having similar short names");
         }
     }
 }
