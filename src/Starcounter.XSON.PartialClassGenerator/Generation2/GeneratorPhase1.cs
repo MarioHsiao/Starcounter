@@ -4,7 +4,7 @@
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.MsBuild.Codegen {
@@ -50,9 +50,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
  //                   tcn.AutoBindProperties = true;
  //               }
             }
-            else if (at.InstanceDataTypeName != null) {
-                Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
-            }
+//            else if (at.InstanceDataTypeName != null) {
+//                Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
+//            }
 
             //mcn = Generator.ObtainMetaClass(at);
             //new AstObjMetadata(Generator) {
@@ -74,8 +74,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 throw new Exception();
             if (tcn.Template != at)
                 throw new Exception();
-            if (tcn.Generic[0] != acn)
-                throw new Exception();
+//            if (tcn.Generic[0] != acn)
+//                throw new Exception();
             if (tcn.NValueClass != acn)
                 throw new Exception();
 

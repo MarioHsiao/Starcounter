@@ -75,7 +75,7 @@ namespace Starcounter {
 
             Template typed = template.ElementType;
             if (typed != null) {
-                app.Template = (Schema)typed;
+                app.Template = (TObject)typed;
             }
             else {
                 app.CreateDynamicTemplate();

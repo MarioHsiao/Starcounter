@@ -73,12 +73,12 @@ namespace Starcounter {
                 //}
                 _Template = (TContainer)value;
 
-                if (_Template is Schema && ((Schema)_Template).IsDynamic) {
-                    Schema t = (Schema)_Template;
+                if (_Template is TObject && ((TObject)_Template).IsDynamic) {
+                    TObject t = (TObject)_Template;
                     if (t.SingleInstance != null && t.SingleInstance != this) {
                         throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})",value,this));
                     }
-                    ((Schema)_Template).SingleInstance = (Json)this;
+                    ((TObject)_Template).SingleInstance = (Json)this;
                 }
                 else {
                     _Template.Sealed = true;

@@ -12,7 +12,6 @@ namespace Starcounter {
 
     public partial class Json {
 
-
         internal string DebugString {
             get {
                 var sb = new StringBuilder();
@@ -32,7 +31,7 @@ namespace Starcounter {
 //                WriteToDebugString(sb, i, (ArrSchema<Json>)Template);
             }
             else {
-                WriteToDebugString(sb, i, (Schema)Template);
+                WriteToDebugString(sb, i, (TObject)Template);
             }
         }
 
@@ -42,7 +41,7 @@ namespace Starcounter {
         /// <param name="sb"></param>
         /// <param name="i"></param>
         /// <param name="template"></param>
-        internal void WriteToDebugString(StringBuilder sb, int i, Schema template ) {
+        internal void WriteToDebugString(StringBuilder sb, int i, TObject template ) {
 
             _WriteDebugProperty(sb);
 

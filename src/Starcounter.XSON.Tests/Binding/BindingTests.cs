@@ -2,7 +2,7 @@
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.XSON.Tests {

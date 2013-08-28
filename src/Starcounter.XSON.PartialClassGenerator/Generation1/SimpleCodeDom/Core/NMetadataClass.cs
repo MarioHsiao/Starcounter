@@ -6,7 +6,7 @@
 
 using Starcounter.Templates;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.Application.CodeGeneration {

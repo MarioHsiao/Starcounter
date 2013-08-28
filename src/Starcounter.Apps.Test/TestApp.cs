@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using System.Diagnostics;
 
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Internal.Test {
     /// <summary>
@@ -51,7 +51,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public static void TestArray() {
             var appTemplate = new TJson();
-            var persons = new ArrSchema<Json>() { TemplateName = "Persons", Parent = appTemplate };
+            var persons = new TArray<Json>() { TemplateName = "Persons", Parent = appTemplate };
             var person = new TJson() { Parent = persons };
 
 //            persons.App = person;

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Internal.XSON {
     public class NewtonsoftSerializer : TypedJsonSerializer {

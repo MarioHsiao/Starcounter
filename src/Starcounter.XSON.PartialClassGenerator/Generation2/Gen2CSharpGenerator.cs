@@ -212,13 +212,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (node is AstSchemaClass) {
                         var ast = node as AstSchemaClass;
                         var inherited = (AstSchemaClass)ast.InheritedClass; 
-                        sb.Append("<__jsonobj__>");
+//                        sb.Append("<__jsonobj__>");
                         if (inherited != null) {
                             sb.Append(" : ");
                             sb.Append(inherited.GlobalClassSpecifierWithoutGenerics);
-                            sb.Append("<__jsonobj__> where __jsonobj__ : ");
-                            sb.Append(ast.NValueClass.GlobalClassSpecifier);
-                            sb.Append(", new()");
+//                            sb.Append("<__jsonobj__> where __jsonobj__ : ");
+//                            sb.Append(ast.NValueClass.GlobalClassSpecifier);
+//                            sb.Append(", new()");
                         }
                     }
                     else {
@@ -720,7 +720,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using Starcounter.Templates;\n");
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
-            h.Append("using TJson = Starcounter.Templates.Schema;\n");
+//            h.Append("using TJson = Starcounter.Templates.Schema;\n");
 //            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
 
             h.Append("#pragma warning disable 0108\n");

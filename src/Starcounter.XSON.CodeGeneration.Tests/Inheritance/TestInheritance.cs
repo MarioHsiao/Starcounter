@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.IO;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {

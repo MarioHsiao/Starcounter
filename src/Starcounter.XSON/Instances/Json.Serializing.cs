@@ -58,7 +58,7 @@ namespace Starcounter {
         }
 
         internal void CreateDynamicTemplate() {
-            var t = new Schema();
+            var t = new TObject();
             t.IsDynamic = true;
             Template = t; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.
         }

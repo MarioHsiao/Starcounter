@@ -26,7 +26,7 @@ namespace Starcounter.Internal.XSON.JsonByExample {
         /// <returns></returns>
         public TypeTObj CompileMarkup<TypeObj,TypeTObj>(string markup, string origin)
             where TypeObj : Json, new()
-            where TypeTObj : Schema, new() {
+            where TypeTObj : TObject, new() {
                 return _CreateFromJs<TypeObj, TypeTObj>(markup, origin, false);
         }
 
@@ -41,7 +41,7 @@ namespace Starcounter.Internal.XSON.JsonByExample {
                                           string sourceReference,
                                           bool ignoreNonDesignTimeAssigments)
             where TypeObj : Json, new()
-            where TypeTObj : Schema, new() {
+            where TypeTObj : TObject, new() {
             TypeTObj appTemplate;
 
             ITemplateFactory factory = new TAppFactory<TypeObj, TypeTObj>();

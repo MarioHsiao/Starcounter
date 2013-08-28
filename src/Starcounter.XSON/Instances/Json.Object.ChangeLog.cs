@@ -15,11 +15,11 @@ namespace Starcounter {
                 throw new NotImplementedException();
             }
             else {
-                CheckpointChangeLog((Schema)Template);
+                CheckpointChangeLog((TObject)Template);
             }
         }
 
-        private void CheckpointChangeLog( Schema template ) {
+        private void CheckpointChangeLog( TObject template ) {
             _BrandNew = false;
             if (_Dirty) {
                 for (int t = 0; t < _Values.Length; t++) {
@@ -85,11 +85,11 @@ namespace Starcounter {
 //                LogValueChangesWithDatabase(session, (ArrSchema<Json>)template);
             }
             else {
-                LogValueChangesWithDatabase(session, (Schema)Template);
+                LogValueChangesWithDatabase(session, (TObject)Template);
             }
         }
 
-        private void LogValueChangesWithDatabase(Session session, Schema template ) {
+        private void LogValueChangesWithDatabase(Session session, TObject template ) {
             if (_Dirty) {
                 for (int t = 0; t < _Values.Length; t++) {
                     if (_DirtyProperties[t]) {

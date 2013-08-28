@@ -340,19 +340,19 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Arr<Json> list = mainApp.Get((ArrSchema<Json>)current);
+                    Arr<Json> list = mainApp.Get((TArray<Json>)current);
                     current = list[index];
                 }
                 else {
                     if (currentIsTApp) {
-                        mainApp = (Json)mainApp.Get((Schema)current);
+                        mainApp = (Json)mainApp.Get((TObject)current);
                         currentIsTApp = false;
                     }
 
                     if (mainApp.IsArray) {
                         throw new NotImplementedException();
                     }
-                    Template t = ((Schema)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
+                    Template t = ((TObject)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
 
                     if (t == null) {
                         throw new Exception
@@ -369,7 +369,7 @@ namespace Starcounter.Internal.JsonPatch {
                 if (current is Json) {
                     mainApp = current as Json;
                 }
-                else if (current is Schema) {
+                else if (current is TObject) {
                     currentIsTApp = true;
                 }
                 else if (current is TObjArr) {

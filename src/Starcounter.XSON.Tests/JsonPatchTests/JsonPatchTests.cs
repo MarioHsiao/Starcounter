@@ -4,7 +4,7 @@ using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.XSON.JsonPatch.Tests {
@@ -299,7 +299,7 @@ Assert.AreEqual(facit, result );
             Session.Data = j;
             var start = ((Json)j).DebugString;
 
-            Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
+            Assert.AreEqual("", json.ToJson()); // The data is not bound so the JSON should still be an empty object
             Assert.IsTrue(json._BrandNew);
 
             var t = new TJson();

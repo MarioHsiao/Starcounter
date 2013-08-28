@@ -1,7 +1,7 @@
 ﻿using Starcounter.Templates;
 using System;
-using TJson = Starcounter.Templates.Schema;
-using TArr = Starcounter.Templates.ArrSchema<Starcounter.Json>;
+using TJson = Starcounter.Templates.TObject;
+using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 
 namespace Starcounter.Internal.Tests {
 

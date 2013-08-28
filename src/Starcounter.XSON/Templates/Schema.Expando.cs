@@ -4,7 +4,7 @@ using System;
 
 namespace Starcounter.Templates {
 
-    partial class Schema {
+    partial class TObject {
 
         /// <summary>
         /// For dynamic Json objects, templates pertain to only a single object.

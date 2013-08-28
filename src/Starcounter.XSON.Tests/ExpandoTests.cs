@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.XSON.Tests {

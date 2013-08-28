@@ -8,7 +8,7 @@ using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.Application.CodeGeneration {
