@@ -13,6 +13,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// </summary>
     public abstract class AstBase : IReadOnlyTree {
 
+        public bool IsProcessedForAlias = false;   
+
         /// <summary>
         /// 
         /// </summary>
