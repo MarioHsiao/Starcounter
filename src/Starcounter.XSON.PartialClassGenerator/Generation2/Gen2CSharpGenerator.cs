@@ -594,7 +594,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            sb.Append(".AddHandler((Obj pup, TValue");
+			sb.Append(".AddHandler((Json<object> pup, TValue");
 
             if (hasValue) {
                 sb.Append('<');
@@ -621,7 +621,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 sb.Append(", Value = value");
             }
 
-            sb.Append(" }); }, (Obj pup, Starcounter.Input");
+			sb.Append(" }); }, (Json<object> pup, Starcounter.Input");
 
             if (hasValue) {
                 sb.Append('<');
