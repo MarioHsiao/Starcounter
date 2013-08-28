@@ -74,6 +74,9 @@ namespace Starcounter.Internal.Web {
                 return response;
             }
             catch (Exception ex) {
+				// Logging the exception to server log.
+				LogSources.Hosting.LogException(ex);
+
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             }
