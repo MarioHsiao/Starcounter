@@ -594,7 +594,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         sb.Append("        ");
                          sb.Append(mn.MemberName);
                         sb.Append(".ElementType = ");
-                        sb.Append(mn.Type.GlobalClassSpecifier);
+                        sb.Append(mn.Type.Generic[0].GlobalClassSpecifier);
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());
                     }
