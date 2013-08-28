@@ -185,9 +185,10 @@ public:
     }
 
     // Setting new unique socket number.
-    void CreateUniqueSocketId()
+    void CreateUniqueSocketId(scheduler_id_type scheduler_id)
     {
-        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_, port_index_);
+        session_.scheduler_id_ = scheduler_id;
+        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_, port_index_, session_.scheduler_id_);
     }
 
     // Checking if unique socket number is correct.
@@ -208,6 +209,16 @@ public:
         // Checking unique socket id and session.
         if (CompareUniqueSocketId() && (!g_gateway.IsGlobalSessionActive(sock_)))
             g_gateway.SetGlobalSessionCopy(sock_, session_);
+    }
+
+    // Get socket scheduler id if socket is correct.
+    scheduler_id_type GetSocketSchedulerId()
+    {
+        // Checking that we operate with correct socket.
+        if (CompareUniqueSocketId())
+            return g_gateway.GetGlobalSessionSchedulerId(sock_);
+
+        return INVALID_SCHEDULER_ID;
     }
 
     // Forcedly sets session if socket is correct.
@@ -512,12 +523,6 @@ public:
     scheduler_id_type get_scheduler_id()
     {
         return session_.scheduler_id_;
-    }
-
-    // Setting scheduler id.
-    void set_scheduler_id(scheduler_id_type scheduler_id)
-    {
-        session_.scheduler_id_ = scheduler_id;
     }
 
     // Getting session index.

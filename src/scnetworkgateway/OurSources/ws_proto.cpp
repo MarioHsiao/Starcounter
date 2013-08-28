@@ -243,9 +243,13 @@ UNMASK_FRAME:
         // Data is complete, no more frames, creating parallel receive clone.
         if (NULL == sd_push_to_db)
         {
-            err_code = sd->CloneToReceive(gw);
-            if (err_code)
-                return err_code;
+            // Only when session is created we can receive non-stop.
+            if (sd->HasActiveSession())
+            {
+                err_code = sd->CloneToReceive(gw);
+                if (err_code)
+                    return err_code;
+            }
 
             // Unmasking frame and pushing to database.
             return UnmaskFrameAndPush(gw, sd, user_handler_id);
@@ -503,8 +507,8 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
     frame_info_.is_masked_ = (*data & 0x80);
 
     // From RFC: The server MUST close the connection upon receiving a frame that is not masked.
-    if (!frame_info_.is_masked_)
-        return SCERRGWWEBSOCKETNOMASK;
+    // if (!frame_info_.is_masked_)
+    //    return SCERRGWWEBSOCKETNOMASK;
 
     // Removing the mask flag.
     (*data) &= 0x7F;
