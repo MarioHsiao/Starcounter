@@ -115,7 +115,7 @@ restart:
                             } else
                                 goto restart;
                         } else if (tProperty is TObjArr) {
-                            Arr<Json> arr = obj.Get((TArray<Json>)tProperty);
+                            Arr arr = obj.Get((TObjArr)tProperty);
                             if (buf.Length < (offset + arr.Count * 2 + 2))
                                 goto restart;
 
