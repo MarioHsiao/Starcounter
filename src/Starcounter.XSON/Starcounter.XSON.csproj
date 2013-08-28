@@ -98,7 +98,7 @@
     <Compile Include="Instances\Json.Array.Generic.cs" />
     <Compile Include="Instances\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
-    <Compile Include="Schema.cs" />
+    <Compile Include="Templates\Schema.cs" />
     <Compile Include="Sessions\JSON-Patch\Change.cs" />
     <Compile Include="Sessions\JSON-Patch\HttpPatchBuilder.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
@@ -108,7 +108,7 @@
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Templates\Foundation\Template.Serializer.cs" />
-    <Compile Include="Templates\TObj.Expando.cs" />
+    <Compile Include="Templates\Schema.Expando.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
     <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
@@ -145,13 +145,11 @@
     <Compile Include="Templates\TDecimal.cs" />
     <Compile Include="Templates\TDouble.cs" />
     <Compile Include="Templates\TLong.cs" />
-    <Compile Include="Templates\TObj.Binding.cs" />
-    <Compile Include="Templates\TObjBase.cs" />
+    <Compile Include="Templates\Schema.Binding.cs" />
     <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
     <Compile Include="Templates\TTrigger.cs" />
     <Compile Include="DefaultSerializer\TypedJsonSerializer.cs" />
-    <Compile Include="Templates\TWrapper.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
     <Compile Include="ValueMetaData\DecimalMetadata.cs" />
