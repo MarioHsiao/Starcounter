@@ -61,7 +61,7 @@ namespace Starcounter {
             /// Used by to support inheritance when using Json-by-example compiler
             /// </summary>
             /// <typeparam name="JsonType">The Json instances described by this schema</typeparam>
-            public class Schema : Starcounter.Templates.Schema {
+            public class Schema : Starcounter.Templates.TObject {
             }
 
             /// <summary>
@@ -69,7 +69,7 @@ namespace Starcounter {
             /// </summary>
             /// <typeparam name="JsonType">The Json instances described by this schema</typeparam>
             public class Metadata<SchemaType,JsonType> : Starcounter.Templates.ObjMetadata<SchemaType,JsonType>
-                where SchemaType : Starcounter.Templates.Schema
+                where SchemaType : Starcounter.Templates.TObject
                 where JsonType : Json {
 
                 public Metadata(JsonType app, SchemaType template) : base(app,template) {}
@@ -93,7 +93,7 @@ namespace Starcounter {
                 if (Template == null) {
                     return false;
                 }
-                return Template is ArrSchema<Json>;
+                return Template is TArray<Json>;
             }
         }
 
@@ -260,8 +260,8 @@ namespace Starcounter {
                 TObjArr apa = (TObjArr)property;
                 this.Set(apa, this.GetBound(apa));
             }
-            else if (property is Schema) {
-                var at = (Schema)property;
+            else if (property is TObject) {
+                var at = (TObject)property;
                 IBindable v = this.GetBound(at);
                 this.Set(at, v);
             }
@@ -300,7 +300,7 @@ namespace Starcounter {
         /// <summary>
         /// Implementation field used to cache the Metadata property.
         /// </summary>
-        private ObjMetadata<Schema,Json> _Metadata = null;
+        private ObjMetadata<TObject,Json> _Metadata = null;
 
         /// <summary>
         /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).
@@ -310,7 +310,7 @@ namespace Starcounter {
         /// <value>The metadata.</value>
         /// <remarks>It is much less expensive to set this kind of metadata for the
         /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
-        public ObjMetadata<Schema, Json> Metadata {
+        public ObjMetadata<TObject, Json> Metadata {
             get {
                 return _Metadata;
             }

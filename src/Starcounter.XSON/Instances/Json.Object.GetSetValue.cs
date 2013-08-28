@@ -208,7 +208,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public JsonType Get<JsonType>(Schema property)
+        public JsonType Get<JsonType>(TObject property)
             where JsonType : Json, new() {
             //IBindable data = null;
             //if (property.Bound)
@@ -224,7 +224,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Json Get(Schema property) {
+        public Json Get(TObject property) {
             //IBindable data = null;
             //if (property.Bound)
             //    data = GetBound(property);
@@ -241,7 +241,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(Schema property, Json value) {
+        public void Set(TObject property, Json value) {
 			if (value != null) {
 				value.Parent = this;
 
@@ -270,7 +270,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(Schema property, IBindable value) {
+        public void Set(TObject property, IBindable value) {
             if (property.UseBinding(DataAsBindable))
                 SetBound(property, value);
 
@@ -289,7 +289,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Arr<ElementType> Get<ElementType>(ArrSchema<ElementType> property) 
+        public Arr<ElementType> Get<ElementType>(TArray<ElementType> property) 
             where ElementType : Json, new()
         {
 #if QUICKTUPLE

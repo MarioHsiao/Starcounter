@@ -6,7 +6,7 @@ using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.MsBuild.Codegen {

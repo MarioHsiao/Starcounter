@@ -37,7 +37,7 @@ namespace Starcounter.Advanced.XSON {
             List<Template> exposedProperties;
             Json childObj;
             Template tProperty;
-            Schema tObj;
+            TObject tObj;
 
             // The following variables are offset for remembering last position when buffer needs to be increased:
             // templateNo: The position in the PropertyList that was about to be written.
@@ -50,7 +50,7 @@ namespace Starcounter.Advanced.XSON {
                 throw new NotImplementedException("Serializer does not support arrays as root elements");
             }
 
-            tObj = (Schema)obj.Template;
+            tObj = (TObject)obj.Template;
             buf = new byte[512];
             templateNo = 0;
             nameWritten = false;
@@ -91,9 +91,9 @@ restart:
                         }
 
                         // Property value.
-                        if (tProperty is Schema) {
+                        if (tProperty is TObject) {
                             if (childObjArr == null) {
-                                childObj = obj.Get((Schema)tProperty);
+                                childObj = obj.Get((TObject)tProperty);
                                 if (childObj != null) {
                                     valueSize = childObj.ToJsonUtf8(out childObjArr);
                                 } else {
@@ -115,7 +115,7 @@ restart:
                             } else
                                 goto restart;
                         } else if (tProperty is TObjArr) {
-                            Arr<Json> arr = obj.Get((ArrSchema<Json>)tProperty);
+                            Arr<Json> arr = obj.Get((TArray<Json>)tProperty);
                             if (buf.Length < (offset + arr.Count * 2 + 2))
                                 goto restart;
 

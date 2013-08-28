@@ -45,7 +45,7 @@ namespace Modules {
         /// <returns>an TObj instance</returns>
         public static TypeTObj CreateFromJs<TypeObj,TypeTObj>(string script2, bool restrictToDesigntimeVariable)
             where TypeObj : Json, new()
-            where TypeTObj : Schema, new()
+            where TypeTObj : TObject, new()
         {
             return _CreateFromJs<TypeObj,TypeTObj>(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
         }
@@ -55,7 +55,7 @@ namespace Modules {
                                            string sourceReference,
                                            bool ignoreNonDesignTimeAssigments)
             where TypeObj : Json, new()
-            where TypeTObj : Schema, new() {
+            where TypeTObj : TObject, new() {
 
                 return JsonByExampleTemplateReader._CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments); 
         }
@@ -68,15 +68,15 @@ namespace Modules {
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
         /// <returns>a Schema instance</returns>
-        public static Schema ReadJsonTemplateFromFile(string fileSpec)
+        public static TObject ReadJsonTemplateFromFile(string fileSpec)
         {
             string content = ReadUtf8File(fileSpec);
-            var t = _CreateFromJs<Json, Schema>(content, fileSpec, false);
+            var t = _CreateFromJs<Json, TObject>(content, fileSpec, false);
             if (t.ClassName == null)
             {
                 t.ClassName = Path.GetFileNameWithoutExtension(fileSpec);
             }
-            return (Schema)t;
+            return (TObject)t;
         }
 
 

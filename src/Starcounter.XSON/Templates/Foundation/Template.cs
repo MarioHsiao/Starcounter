@@ -163,8 +163,8 @@ namespace Starcounter.Templates {
                 return _Parent;
             }
             set {
-                if (value is Schema) {
-                    var at = (Schema)value;
+                if (value is TObject) {
+                    var at = (TObject)value;
                     at.Properties.Add(this);
                 }
                 _Parent = (TContainer)value;
@@ -240,7 +240,7 @@ namespace Starcounter.Templates {
                     string name = value.Replace("$", "");
                     _PropertyName = name;
                     if (Parent != null) {
-                        var parent = (Schema)Parent;
+                        var parent = (TObject)Parent;
                         var props = (PropertyList)(parent.Properties);
                         props.ChildPropertyNameIsSet(this);
                         props.ChildNameIsSet(this);
@@ -259,7 +259,7 @@ namespace Starcounter.Templates {
             get {
                 if (_PropertyName == null ) {
                     var p = Parent;
-                    if ( p != null && p is ArrSchema<Json> ) {
+                    if ( p != null && p is TArray<Json> ) {
                        return Parent.PropertyName + "Element";
                     }
                 }

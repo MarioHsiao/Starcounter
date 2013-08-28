@@ -48,7 +48,7 @@ namespace Starcounter {
                     if (Template == null) {
                         this.CreateDynamicTemplate(); // If there is no template, we'll create a template
                     }
-                    InternalSetData((IBindable)value, (Schema)Template);
+                    InternalSetData((IBindable)value, (TObject)Template);
                 }
             }
         }
@@ -129,7 +129,7 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <returns></returns>
-        internal IBindable GetBound(Schema template) {
+        internal IBindable GetBound(TObject template) {
             IBindable data = DataAsBindable;
             if (data == null)
                 return null;
@@ -145,7 +145,7 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <param name="value"></param>
-        internal void SetBound(Schema template, IBindable value) {
+        internal void SetBound(TObject template, IBindable value) {
             IBindable data = DataAsBindable;
             if (data == null)
                 return;
@@ -158,7 +158,7 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data, Schema template ) {
+        protected virtual void InternalSetData(IBindable data, TObject template ) {
             this._data = data;
 
 			if (template.Bound != Bound.No) {
@@ -175,7 +175,7 @@ namespace Starcounter {
         /// <summary>
         /// Initializes bound arrays when a new dataobject is set.
         /// </summary>
-        private void InitBoundArrays(Schema template) {
+        private void InitBoundArrays(TObject template) {
             TObjArr child;
             for (Int32 i = 0; i < template.Properties.Count; i++) {
                 child = template.Properties[i] as TObjArr;

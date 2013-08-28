@@ -3,7 +3,7 @@ using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON;
 
 namespace Starcounter.Templates {
-    partial class Schema {
+    partial class TObject {
 		private bool bindChildren;
         public bool HasAtLeastOneBoundProperty = true; // TODO!
 

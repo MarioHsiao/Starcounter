@@ -15,8 +15,8 @@ using Starcounter.Advanced.XSON;
 using System.IO;
 using Starcounter.Internal.XSON;
 using Starcounter.XSON.Tests;
-using TJson = Starcounter.Templates.Schema;
-using TArr = Starcounter.Templates.ArrSchema<Starcounter.Json>;
+using TJson = Starcounter.Templates.TObject;
+using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 
 namespace Starcounter.Internal.XSON.Tests {
 
@@ -246,7 +246,7 @@ namespace Starcounter.Internal.XSON.Tests {
         //[Test]
         // TODO: Fix this test!
         public static void TestDataBinding() {
-            dynamic msg = new Json<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
+            dynamic msg = new Json { Template = CreateSimplePersonTemplateWithDataBinding() };
 
             var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
             myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
@@ -376,7 +376,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var info = field.Add<TJson>("Info");
             info.Add<TString>("Text");
             field.InstanceType = typeof(MyFieldMessage);
-            personSchema.Add<ArrSchema<MyFieldMessage>>("Fields", field);
+            personSchema.Add<TArray<MyFieldMessage>>("Fields", field);
 
             var extraInfo = personSchema.Add<TJson>("ExtraInfo");
             extraInfo.Add<TString>("Text");

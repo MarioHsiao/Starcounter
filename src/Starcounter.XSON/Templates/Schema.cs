@@ -14,21 +14,21 @@ using Modules;
 using Starcounter.Internal.XSON.DeserializerCompiler;
 using Starcounter.Internal.XSON;
 using System.Collections;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public partial class Schema : TContainer {
+    public partial class TObject : TContainer {
 
         public override Type MetadataType {
-            get { return typeof(ObjMetadata<Schema, Json>); }
+            get { return typeof(ObjMetadata<TObject, Json>); }
         }
         /// <summary>
         /// Static constructor to automatically initialize XSON.
         /// </summary>
-        static Schema() {
+        static TObject() {
             HelperFunctions.LoadNonGACDependencies();
 //            XSON.CodeGeneration.Initializer.InitializeXSON();
             Starcounter_XSON_JsonByExample.Initialize();
@@ -45,7 +45,7 @@ namespace Starcounter.Templates {
         /// <returns></returns>
         public static TypeTObj CreateFromMarkup<TypeObj,TypeTObj>(string format, string markup, string origin )
             where TypeObj : Json, new()
-                    where TypeTObj : Schema, new() {
+                    where TypeTObj : TObject, new() {
             IXsonTemplateMarkupReader reader;
             try {
                 reader = Modules.Starcounter_XSON_JsonByExample.MarkupReaders[format];
@@ -63,7 +63,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static Schema CreateFromJson(string json) {
+        public static TObject CreateFromJson(string json) {
             return CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", json, null);
         }
 
@@ -84,14 +84,14 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Initializes a new instance of the <see cref="TObj" /> class.
         /// </summary>
-        public Schema() {
+        public TObject() {
             _PropertyTemplates = new PropertyList(this);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        protected Type _AppType;
+        protected Type _JsonType;
 
         /// <summary>
         /// The .NET type of the instance represented by this template.
@@ -99,12 +99,12 @@ namespace Starcounter.Templates {
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
             get {
-                if (_AppType == null) {
+                if (_JsonType == null) {
                     return typeof(Json);
                 }
-                return _AppType;
+                return _JsonType;
             }
-            set { _AppType = value; }
+            set { _JsonType = value; }
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new property</param>
         /// <param name="type">The type of each element in the array</param>
         /// <returns>The new property template</returns>
-        public T Add<T>(string name, Schema type) where T : TObjArr, new() {
+        public T Add<T>(string name, TObject type) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
                 t = new T() { TemplateName = name, ElementType = type };
@@ -173,15 +173,15 @@ namespace Starcounter.Templates {
         
 
 
-        private static readonly Dictionary<Type, Func<Schema,string,TValue>> @switch = new Dictionary<Type, Func<Schema,string,TValue>> {
-                    { typeof(byte), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(UInt16), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(Int16), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(UInt32), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(Int32), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(UInt64), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(Int64), (Schema t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(float), (Schema t, string name) => { return t.Add<TLong>(name); }},
+        private static readonly Dictionary<Type, Func<TObject,string,TValue>> @switch = new Dictionary<Type, Func<TObject,string,TValue>> {
+                    { typeof(byte), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(UInt16), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(Int16), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(UInt32), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(Int32), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(UInt64), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(Int64), (TObject t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(float), (TObject t, string name) => { return t.Add<TLong>(name); }},
                     { typeof(double), (TJson t, string name) => { return t.Add<TDouble>(name); }},
                     { typeof(decimal), (TJson t, string name) => { return t.Add<TDecimal>(name); }},
                     { typeof(bool), (TJson t, string name) => { return t.Add<TBool>(name); }},
@@ -202,7 +202,7 @@ namespace Starcounter.Templates {
                 return t.Invoke(this,name);
             }
             if (typeof(IEnumerable<Json>).IsAssignableFrom(type)) {
-                return this.Add<ArrSchema<Json>>(name);
+                return this.Add<TArray<Json>>(name);
             }
 //            if (typeof(IEnumerator<Obj>).IsAssignableFrom(type)) {
 //                return this.Add<TArr<Obj, TDynamicObj>>(name);

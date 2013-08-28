@@ -16,7 +16,7 @@ using Starcounter.Internal;
 using Starcounter.XSON.CodeGeneration;
 using Modules;
 using Starcounter.Internal.XSON;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 using Starcounter.Internal.MsBuild.Codegen;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
@@ -139,10 +139,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(codegen.GenerateCode());
         }
 
-        [Test]
-        public static void TestMissingTypeInformationForDataBinding() {
-            Assert.Catch(() => { PartialClassGenerator.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
-        }
     }
 }
 

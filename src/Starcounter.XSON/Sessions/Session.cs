@@ -345,10 +345,10 @@ namespace Starcounter {
                 return;
 
             foreach (Template child in ((TContainer)json.Template).Children) {
-                if (child is Schema) {
-                    DisposeJsonRecursively(json.Get((Schema)child));
+                if (child is TObject) {
+                    DisposeJsonRecursively(json.Get((TObject)child));
                 } else if (child is TObjArr) {
-                    Arr<Json> listing = json.Get((ArrSchema<Json>)child);
+                    Arr<Json> listing = json.Get((TArray<Json>)child);
                     foreach (Json listApp in listing) {
                         DisposeJsonRecursively(listApp);
                     }

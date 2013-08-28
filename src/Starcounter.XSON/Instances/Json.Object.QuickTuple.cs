@@ -26,11 +26,11 @@ namespace Starcounter {
                 throw new NotImplementedException();
             }
             else {
-                _InitializeValues( (Schema)Template);
+                _InitializeValues( (TObject)Template);
             }
         }
 
-        private void _InitializeValues(Schema template) {
+        private void _InitializeValues(TObject template) {
             var prop = template.Properties;
             var vc = prop.Count;
             _Dirty = false;
@@ -47,7 +47,7 @@ namespace Starcounter {
         /// </summary>
         protected dynamic[] Values {
             get {
-                var template = (Schema)Template;
+                var template = (TObject)Template;
                 if (_Values.Length < template.Properties.Count) {
                     // We allow adding new properties to dynamic templates
                     // even after instsances have been created.

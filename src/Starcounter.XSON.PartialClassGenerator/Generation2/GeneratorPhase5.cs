@@ -6,7 +6,7 @@ using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.Schema;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.MsBuild.Codegen {
@@ -32,7 +32,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (metadata != CodeBehindMetadata.Empty) {
                 // if there is codebehind and the class is not inherited from Json we need 
                 // to change the inheritance on the template and metadata classes as well.
-                var tmp = metadata.RootClassInfo.BaseClassName;
+                //var tmp = metadata.RootClassInfo.BaseClassName;
               //  if (!string.IsNullOrEmpty(tmp) && !tmp.Equals("Json")) {
               //      tcn._Inherits = "T" + metadata.RootClassInfo.BaseClassName;
               //      mcn._Inherits = tmp + "Metadata";

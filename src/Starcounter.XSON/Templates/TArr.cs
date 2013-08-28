@@ -17,7 +17,7 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     /// <typeparam name="OT"></typeparam>
-    public class ArrSchema<OT> : TObjArr
+    public class TArray<OT> : TObjArr
         where OT : Json, new()
     {
         public override Type MetadataType {
@@ -51,25 +51,25 @@ namespace Starcounter.Templates {
         /// in this object array.
         /// </summary>
         /// <value>The app.</value>
-        public override Schema ElementType {
+        public override TObject ElementType {
             get {
                 if (_Single.Length == 0)
                     return null;
-                return (Schema)_Single[0];
+                return (TObject)_Single[0];
             }
             set {
                 if (InstanceDataTypeName != null) {
                     value.InstanceDataTypeName = InstanceDataTypeName;
                 }
-                _Single = new Schema[1];
-                _Single[0] = (Schema)value;
+                _Single = new TObject[1];
+                _Single[0] = (TObject)value;
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal Schema[] _Single = new Schema[0];
+        internal TObject[] _Single = new TObject[0];
 
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Starcounter.Templates {
         /// in this array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public abstract Schema ElementType { get; set; }
+        public abstract TObject ElementType { get; set; }
 
         /// <summary>
         /// 

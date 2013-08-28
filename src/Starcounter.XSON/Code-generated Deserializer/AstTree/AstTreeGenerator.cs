@@ -54,7 +54,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     throw new NotImplementedException("Serializer does not currently support array as the root element");
                 }
                 else {
-                    CreateChildSerializers( (Schema)objTemplate, node);
+                    CreateChildSerializers( (TObject)objTemplate, node);
                 }
             }
 
@@ -67,15 +67,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="objTemplate"></param>
         /// <param name="parent"></param>
-        private static void CreateChildSerializers(Schema objTemplate, AstNode parent) {
+        private static void CreateChildSerializers(TObject objTemplate, AstNode parent) {
             AstNode node;
-            Schema tChildObj;
+            TObject tChildObj;
             string className;
 
             foreach (Template child in objTemplate.Properties) {
                 tChildObj = null;
-                if (child is Schema) {
-                    tChildObj = (Schema)child;
+                if (child is TObject) {
+                    tChildObj = (TObject)child;
                 } else if (child is TObjArr) {
                     tChildObj = ((TObjArr)child).ElementType;
                 }
@@ -165,7 +165,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     Parent = nextParent
                 };
 
-                if (template is Schema) {
+                if (template is TObject) {
                     new AstJsonObjectValue(){
                         Template = template,
                         Parent = nextParent

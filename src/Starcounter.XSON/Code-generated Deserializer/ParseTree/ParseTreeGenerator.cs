@@ -29,7 +29,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 throw new NotImplementedException("Deserializer does not support arrays as root elements");
             }
             else {
-                return BuildParseTree(GetTemplateMetadata((Schema)objTemplate));
+                return BuildParseTree(GetTemplateMetadata((TObject)objTemplate));
             }
         }
 
@@ -38,7 +38,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// registered in the object template.
         /// </summary>
         /// <param name="objTemplate"></param>
-        private static List<TemplateMetadata> GetTemplateMetadata(Schema objTemplate) {
+        private static List<TemplateMetadata> GetTemplateMetadata(TObject objTemplate) {
             List<TemplateMetadata> templates = new List<TemplateMetadata>();
             foreach (Template child in objTemplate.Properties.ExposedProperties) {
                 templates.Add(new TemplateMetadata(child));

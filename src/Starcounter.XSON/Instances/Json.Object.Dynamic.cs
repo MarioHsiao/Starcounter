@@ -17,7 +17,7 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
                     return base.BindGetMember(binder);
                 }
                 else {
-                    return BindGetMemberForJsonObject(app, (Schema)app.Template, binder);
+                    return BindGetMemberForJsonObject(app, (TObject)app.Template, binder);
                 }
             }
 
@@ -27,7 +27,7 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
             /// <param name="template"></param>
             /// <param name="binder"></param>
             /// <returns></returns>
-            private DynamicMetaObject BindGetMemberForJsonObject( Json app, Schema template, GetMemberBinder binder ) {
+            private DynamicMetaObject BindGetMemberForJsonObject( Json app, TObject template, GetMemberBinder binder ) {
 
                 MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
 
@@ -96,10 +96,10 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
 //                    return base.BindSetMember(binder, value);
 //                }
 
-                var ot = (Schema)app.Template;
+                var ot = (TObject)app.Template;
                 if (ot == null) {
                     app.CreateDynamicTemplate();
-                    ot = (Schema)app.Template; 
+                    ot = (TObject)app.Template; 
 //                    app.Template = ot = new TDynamicObj(); // Make this an expando object like Obj
                 }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name);                if (pi != null)                    return base.BindSetMember(binder, value);
                 TValue templ = (TValue)(ot.Properties[binder.Name]);                if (templ == null) {

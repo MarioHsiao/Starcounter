@@ -166,7 +166,7 @@ namespace Starcounter.Internal.JsonPatch {
                     if (app.IsArray) {
                         throw new NotImplementedException();
                     }
-                    template = ((Schema)app.Template).Properties[path[i]];
+                    template = ((TObject)app.Template).Properties[path[i]];
                     sb.Append('/');
                     sb.Append(template.TemplateName);
 
@@ -175,8 +175,8 @@ namespace Starcounter.Internal.JsonPatch {
                         listProp = (TObjArr)template;
                         nextIndexIsPositionInList = true;
                     }
-                    else if (template is Schema) {
-                        app = app.Get((Schema)template);
+                    else if (template is TObject) {
+                        app = app.Get((TObject)template);
                     }
                 }
             }
