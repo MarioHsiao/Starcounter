@@ -302,6 +302,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             m.Prefix.Add(sb.ToString());
         }
 
+
         /// <summary>
         /// Writes the app member prefix.
         /// </summary>
@@ -312,11 +313,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
             sb.Append(m.MemberName);
-            sb.Append(" { get { return ((dynamic)this).__json__");
+            //            if (m.Type is NArr) {
+            //                sb.Append('<');
+            //                sb.Append(((NArr)m.Type).NApp.FullClassName);
+            //                sb.Append('>');
+            //            }
+
+            sb.Append(" { get { return Get");
+            sb.Append("(Template.");
             sb.Append(m.MemberName);
-            sb.Append("; } set { ((dynamic)this).__json__");
+            sb.Append("); } set { Set");
+            sb.Append("(Template.");
             sb.Append(m.MemberName);
-            sb.Append(" = value; } }");
+            sb.Append(", value); } }");
             m.Prefix.Add(sb.ToString());
         }
 
