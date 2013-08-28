@@ -18,9 +18,9 @@
 // >sc_ipc_test.exe --server-name=PERSONAL --database-name=myDatabase --timeout=240 --workers=2 --num_schedulers_each_worker_connect_to=8
 //
 // But we are dropping Boost so we have to make such a lib ourself. No time for that now.
-// Usage example with database named "myDatabase" running under personal server.
-// Running the test for 180 seconds, then showing throughput.
-//>sc_ipc_test.exe PERSONAL 4 18000 myDatabase
+// Usage example with database named "database1" running under PERSONAL server.
+// Running the IPC test for 10000 milliseconds:
+//>sc_ipc_test.exe PERSONAL 4 10000 database1
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	// Start the interprocess_communication test application.
