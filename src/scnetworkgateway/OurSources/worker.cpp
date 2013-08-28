@@ -758,9 +758,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     profiler_.Start("Disconnect()", 3);
 #endif
 
-    // Setting unique socket id.
-    sd->CreateUniqueSocketId();
-
     // Sending dead session if its a WebSocket.
     if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol())
     {
@@ -768,6 +765,9 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         err_code = sd->SendDeleteSession(this);
         GW_ASSERT(0 == err_code);
     }
+
+    // Setting unique socket id.
+    sd->CreateUniqueSocketId(GenerateSchedulerId(sd));
 
 DISCONNECT_OPERATION:
 
@@ -845,9 +845,6 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 
         return 0;
     }
-
-    // Checking correct unique socket.
-    GW_ASSERT(true == sd->CompareUniqueSocketId());
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
@@ -940,7 +937,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
         TrackSocket(sd->get_db_index(), sd->get_socket());
 
         // Setting unique socket id.
-        sd->CreateUniqueSocketId();
+        sd->CreateUniqueSocketId(GenerateSchedulerId(sd));
 
         // Calling ConnectEx.
         uint32_t err_code = sd->Connect(this, server_addr);
@@ -1092,7 +1089,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     ChangeNumAcceptingSockets(sd->get_port_index(), 1);
 
     // Setting unique socket id.
-    sd->CreateUniqueSocketId();
+    sd->CreateUniqueSocketId(GenerateSchedulerId(sd));
 
     // Calling AcceptEx.
     uint32_t err_code = sd->Accept(this);

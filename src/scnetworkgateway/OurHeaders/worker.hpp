@@ -199,6 +199,12 @@ public:
 
 #endif
 
+    // Generates a new scheduler id.
+    scheduler_id_type GenerateSchedulerId(SocketDataChunk* sd)
+    {
+        return GetWorkerDb(sd->get_db_index())->GenerateSchedulerId();
+    }
+
     // Getting random generator.
     random_generator* get_random()
     {
