@@ -98,7 +98,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
         }
 
-        [Test]
+ //       [Test]
         public static void TestIncorrectInputJsonForCodegenSerializer() {
             TJson tObj = CreateJsonTemplateFromFile("supersimple.json");
 
