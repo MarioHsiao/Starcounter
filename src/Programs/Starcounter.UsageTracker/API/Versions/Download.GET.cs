@@ -22,7 +22,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 try {
 
                     // Find a valid sombody
-                    Somebody somebody = Db.SlowSQL("SELECT o FROM Somebody o WHERE o.DownloadKey=?", downloadkey).First;
+                    Somebody somebody = Db.SlowSQL<Somebody>("SELECT o FROM Somebody o WHERE o.DownloadKey=?", downloadkey).First;
                     if (somebody == null) {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
                     }

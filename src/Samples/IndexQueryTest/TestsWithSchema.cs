@@ -140,12 +140,12 @@ namespace IndexQueryTest
         }
 
         static void TestSumTransaction() {
-            Decimal? sum = Db.SlowSQL("select sum(amount*(amount - amount +2)) from account").First;
+            Decimal? sum = Db.SlowSQL<Decimal?>("select sum(amount*(amount - amount +2)) from account").First;
             Trace.Assert(sum == 170);
         }
 
         static void TestSumTransaction(String name) {
-            Decimal? sum = Db.SlowSQL("select sum(amount) from account where Client.FirstName = ?", 
+            Decimal? sum = Db.SlowSQL<Decimal?>("select sum(amount) from account where Client.FirstName = ?", 
                 name).First;
             if (name == "Oleg")
                 Trace.Assert(sum == 55);

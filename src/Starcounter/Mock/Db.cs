@@ -161,66 +161,9 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<dynamic> SlowSQL(String query, params Object[] values)
+        public static SqlResult<Object> SlowSQL(String query, params Object[] values)
         {
-            if (query == null)
-                throw new ArgumentNullException("query");
-
-            UInt64 transactionId = 0;
-#if false
-            if (Starcounter.Transaction.Current != null)
-				transactionId = Starcounter.Transaction.Current.TransactionId;
-#endif
-
-            if (query == "")
-                return new SqlResult<dynamic>(transactionId, query, true, values);
-
-            switch (query[0])
-            {
-                case 'S':
-                case 's':
-                    return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                case 'C':
-                case 'c':
-                    SqlProcessor.ProcessCreateIndex(query);
-                    return null;
-
-                case 'D':
-                case 'd':
-                    if (SqlProcessor.ProcessDQuery(query, values))
-                        return null;
-                    else
-                        return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                case ' ':
-                case '\t':
-                    query = query.TrimStart(' ', '\t');
-                    switch (query[0])
-                    {
-                        case 'S':
-                        case 's':
-                            return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                        case 'C':
-                        case 'c':
-                            SqlProcessor.ProcessCreateIndex(query);
-                            return null;
-
-                        case 'D':
-                        case 'd':
-                            if (SqlProcessor.ProcessDQuery(query, values))
-                                return null;
-                            else
-                                return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                        default:
-                            return new SqlResult<dynamic>(transactionId, query, true, values);
-                    }
-
-                default:
-                    return new SqlResult<dynamic>(transactionId, query, true, values);
-            }
+            return SlowSQL<Object>(query, values);
         }
 
         /// <summary>

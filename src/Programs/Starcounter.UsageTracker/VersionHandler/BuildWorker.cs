@@ -120,7 +120,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 while (source.BuildError == false) {
 
                     // Get number of available builds
-                    Int64 num = Db.SlowSQL("SELECT count(o) FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Version=?", false, source.Version).First;
+                    Int64 num = Db.SlowSQL<Int64>("SELECT count(o) FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Version=?", false, source.Version).First;
 
                     Int64 neededVersions = settings.MaximumBuilds - num;
                     if (neededVersions <= 0) {

@@ -58,7 +58,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             string[] files = Directory.GetFiles(settings.UploadFolder);
             foreach (string file in files) {
 
-                VersionSource versionSource = Db.SlowSQL("SELECT o FROM VersionSource o WHERE PackageFile=?", file).First;
+                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE PackageFile=?", file).First;
                 if (versionSource == null) {
                     string message;
                     try {
@@ -121,7 +121,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     // TODO: Dont use the version folder name for version number.
                     // TODO: Extract the version from VersionInfo.xml
 
-                    VersionSource source = Db.SlowSQL("SELECT o FROM VersionSource o WHERE Version=?", versionFolder.Name).First;
+                    VersionSource source = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE Version=?", versionFolder.Name).First;
                     if (source == null) {
                         LogWriter.WriteLine(string.Format("NOTICE: Adding missing version Source {0} to database", versionFolder.Name));
 
@@ -196,7 +196,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         }
                         else {
                             string file = files[0];
-                            VersionBuild dbVersion = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.File=?", file).First;
+                            VersionBuild dbVersion = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.File=?", file).First;
                             if (dbVersion == null) {
                                 bRemoveBuildFolder = true;
                             }
