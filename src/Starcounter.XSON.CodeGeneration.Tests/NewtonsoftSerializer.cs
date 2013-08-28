@@ -18,7 +18,11 @@ namespace Starcounter.Internal.XSON {
             Template tProp;
             TJson tObj;
 
-            tObj = obj.Template;
+            if (obj.IsPrimitive || obj.IsArray) {
+                throw new NotImplementedException("Serialization of Json objects where the root element is an array or a primtive object is not supported");
+            }
+
+            tObj = (TJson)obj.Template;
             t = 0;
             needsComma = false;
 
@@ -102,7 +106,13 @@ namespace Starcounter.Internal.XSON {
         private void PopulateObject(Json<object> obj, Newtonsoft.Json.JsonReader reader) {
             bool insideArray = false;
             Template tChild = null;
-            TJson tobj = obj.Template;
+
+            if (obj.IsPrimitive || obj.IsArray) {
+                throw new NotImplementedException("Deserialization of Json objects where the root element is an array or a primtive object is not supported");
+            }
+
+
+            TJson tobj = (TJson)obj.Template;
             
             try {
                 while (reader.Read()) {

@@ -427,8 +427,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         }
 
         private static void AssertAreEqual(Json<object> expected, Json<object> actual) {
-            TJson tExpected = expected.Template;
-            TJson tActual = actual.Template;
+            TJson tExpected = (TJson)expected.Template;
+            TJson tActual = (TJson)actual.Template;
 
             // We assume that the instances used the same Template.
             Assert.AreEqual(tExpected, tActual);

@@ -12,15 +12,6 @@ namespace Starcounter {
 
     public partial class Json<DataType> {
 
-        public bool IsArray {
-            get {
-                if (Template == null) {
-                    return false;
-                }
-                return Template is ArrSchema<Json<object>>;
-            }
-        }
-
 
         internal string DebugString {
             get {
