@@ -28,6 +28,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             Generator = gen;
         }
 
+        internal virtual string CalculateClassAliasIdentifier(int chars) {
+            if (Parent != null)
+                return Parent.CalculateClassAliasIdentifier(chars);
+            return "";
+        }
+
+
         /// <summary>
         /// </summary>
         private AstBase _SourceParent;

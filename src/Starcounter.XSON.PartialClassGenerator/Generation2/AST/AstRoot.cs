@@ -21,13 +21,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
-        public string RootJsonClassAliasPrefix;
-        public string RootJsonClassAlias;
+       // public string RootJsonClassAliasPrefix;
+       // public string RootJsonClassAlias;
 
         /// <summary>
         /// The app class class node
         /// </summary>
         public AstJsonClass AppClassClassNode;
+        public bool AliasesActive = false;
 
       //  public TObj DefaultObjTemplate;
     }

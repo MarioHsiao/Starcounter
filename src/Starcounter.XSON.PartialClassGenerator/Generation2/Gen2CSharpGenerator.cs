@@ -128,19 +128,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (kid is AstJsonClass) {
                     napp = kid as AstJsonClass;
                     currentNs = napp.Template.Namespace;
+                    if (currentNs != previousNs) {
+                        if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
+                            previousKid.Suffix.Add("}");
+                        }
+
+                        if (!String.IsNullOrEmpty(currentNs)) {
+                            kid.Prefix.Add("namespace " + currentNs + " {");
+                        }
+                    }
                 }
-                //                    if (napp == null) {
-                //                        throw new Exception("Unable to generate code. Invalid node found. Expected Puppet but found: " + Root.Children[i]);
-                //                    }
-
-                if (currentNs != previousNs) {
-                    if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
-                        previousKid.Suffix.Add("}");
-                    }
-
-                    if (!String.IsNullOrEmpty(currentNs)) {
-                        kid.Prefix.Add("namespace " + currentNs + " {");
-                    }
+                else if (kid is AstClassAlias) {
+                    var alias = kid as AstClassAlias;
+                    kid.Prefix.Add("using " + alias.Alias + "=" + alias.Specifier + ";");
                 }
 
                 ProcessNode(kid);
@@ -166,6 +166,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
 
                 if (node is AstMetadataClass) {
+                    node.Prefix.Add("");
                     var n = node as AstMetadataClass;
                     sb.Append("public class ");
                     sb.Append(n.ClassStemIdentifier);
@@ -184,8 +185,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                    if (node is AstObjMetadata) {
                         WriteObjMetadataClassPrefix(node as AstMetadataClass);
 //                    }
+                        node.Suffix.Add("}");
+
                 }
-                else {
+                else if (node is AstClass) {
+                    node.Prefix.Add("");
                     var n = node as AstClass;
                     sb.Append("public ");
                     if (n.IsStatic) {
@@ -220,8 +224,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         WriteTAppConstructor((node as AstSchemaClass).Constructor);
                        // WriteTAppCreateInstance(node as AstTAppClass);
                     }
+                    node.Suffix.Add("}");
                 }
-                node.Suffix.Add("}");
+                else  {
+                    throw new Exception();
+                }
             }
             else if (node is AstProperty) {
                 if (node.Parent is AstJsonClass)
@@ -695,7 +702,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
             h.Append("using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;\n");
-            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
+//            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
+
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
 			h.Append('\n');

@@ -15,17 +15,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstJsonClass GetDefaultJson() {
             if (DefaultJson == null) {
                 DefaultJson = new AstJsonClass(this) {
-                    GlobalClassSpecifier = "s::Json<object>",
+                    GlobalClassSpecifier = "global::Starcounter.Json<object>",
                     ClassStemIdentifier = "Json"
                 };
                 DefaultJson.NTemplateClass = new AstSchemaClass(this) {
                     NValueClass = DefaultJson,
                     Template = DefaultObjTemplate,
-                    GlobalClassSpecifier = "s::Json<object>.JsonByExample.Schema<s:Json<object>>"
+                    GlobalClassSpecifier = "global::Starcounter.Json<object>.JsonByExample.Schema<global::Starcounter.Json<object>>",
+                    ClassStemIdentifier = "Schema"
                 };
                 DefaultJson.NMetadataClass = new AstJsonMetadataClass(this) {
                     NValueClass = DefaultJson,
-                    GlobalClassSpecifier = "s::Json<object>.JsonByExample.Metadata<st:Schema<s:Json<object>>,s:Json<object>>"
+                    GlobalClassSpecifier = "global::Starcounter.Json<object>.JsonByExample.Metadata<global::Starcounter.Json<object>.JsonByExample.Schema<global::Starcounter.Json<object>>,global::Starcounter.Json<object>>",
+                    ClassStemIdentifier = "Metadata"
                 };
             }
             return DefaultJson;
@@ -110,13 +112,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (template.IsPrimitive) {
                 ret = new AstPrimitiveType(this);
                 ValueClasses.Add(template, ret);
-                var ns = template.GetType().Namespace;
-                string nsa;
-                if (ns == "Starcounter")
-                    nsa = "s::";
-                else
-                    nsa = "st::";
-                ret.NamespaceAlias = nsa;
+                ret.BuiltInType = template.InstanceType;
+//                var ns = template.GetType().Namespace;
+//                string nsa;
+//                if (ns == "Starcounter")
+//                    nsa = "s::";
+//                else
+//                    nsa = "st::";
+//                ret.NamespaceAlias = ;
+//                ret.Namespace = ns;
                 ret.NTemplateClass = ObtainTemplateClass(template);
 
                 ret.NMetadataClass = ObtainMetaClass(template);
@@ -154,7 +158,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 acn.NMetadataClass = ObtainMetaClass(template);
                 acn.NTemplateClass = ObtainTemplateClass(template);
 
-                acn.RealType = template.InstanceType;
+                acn.BuiltInType = template.InstanceType;
                 //acn.NTemplateClass.RealType = template.GetType();
 
                 var newJson = ObtainValueClass(tarr.ElementType);
@@ -197,7 +201,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     nsa = "st::";
                 ret.NamespaceAlias = nsa;
  */
-                ret.RealType = template.MetadataType;
+                ret.BuiltInType = template.MetadataType;
 
                 ret.NValueClass = ObtainValueClass(template);
                 return ret;
@@ -222,7 +226,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 MetaClasses.Add(template, mcn);
                 var acn = (AstJsonClass)ObtainValueClass(template);
                 mcn.NValueClass = acn;
-                mcn.Parent = acn.NJsonByExample;
+                
+                // TODO! Add back
+                //  mcn.Parent = acn.NJsonByExample;
+
                 mcn.ClassStemIdentifier = "Metadata";
 //                mcn.GlobalClassSpecifier = HelperFunctions.GetGlobalClassSpecifier(template.MetadataType, true);
 
@@ -243,8 +250,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 };
                 MetaClasses.Add(template, mcn);
 
-                mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarr.GetType());
-                mcn.NamespaceAlias = "st::"; 
+                var tarrType = tarr.GetType();
+                mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
+                mcn.Namespace = tarrType.Namespace;
 
                 mcn.NValueClass = ObtainValueClass(template);
                 return mcn;
@@ -294,7 +302,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     nsa = "st::";
                 ret.NamespaceAlias = nsa;
  */
-                ret.RealType = type;
+                ret.BuiltInType = type;
  //               ret.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(type);
                 ret.NValueClass = ObtainValueClass(template);
                 return ret;
@@ -332,8 +340,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 TemplateClasses.Add(template, ret);
                 ret.NValueClass = ObtainValueClass(template);
                 var acn = ObtainValueClass(tarr.ElementType);
-                ret.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarr.GetType());
-                ret.NamespaceAlias = "st::";
+                var tarrType = tarr.GetType();
+                ret.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
+//                ret.NamespaceAlias = "st::";
+                ret.Namespace = tarrType.Namespace;
                 ret.Generic = new AstClass[] { acn };
                 return ret;
             }
