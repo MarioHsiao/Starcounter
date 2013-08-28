@@ -26,6 +26,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public override bool IsPrimitive {
             get {
                 var type = NTemplateClass.Template.InstanceType;
+				if (type == null)
+					return true;
                 return type.IsPrimitive || type == typeof(string);
             }
         }
