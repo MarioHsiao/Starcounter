@@ -208,17 +208,29 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
+        public JsonType Get<JsonType>(Schema<JsonType> property)
+            where JsonType : Json<object>, new() {
+            //IBindable data = null;
+            //if (property.Bound)
+            //    data = GetBound(property);
+
+#if QUICKTUPLE
+            return (JsonType)Values[property.TemplateIndex];
+#else
+            throw new NotImplementedException();
+#endif
+        }        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
         public Json<object> Get(Schema<Json<object>> property) {
             //IBindable data = null;
             //if (property.Bound)
             //    data = GetBound(property);
 
 #if QUICKTUPLE
-            Json<object> v = Values[property.TemplateIndex];
-            //if (v.Data != data) {
-            //    v.Data = data;
-            //}
-            return v;
+            return (Json<object>)Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif
@@ -292,7 +304,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public Arr<ElementType> Get<ElementType>(ArrSchema<ElementType> property) 
-            where ElementType : Json<object>,new()
+            where ElementType : Json<object>, new()
         {
 #if QUICKTUPLE
             return Values[property.TemplateIndex];
