@@ -29,7 +29,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// class information that matches this system generated
         /// class goes here.
         /// </summary>
-        public CodeBehindClassInfo MatchedClass {
+        public CodeBehindClassInfo CodebehindClass {
             set {
                 _MatchedClass = value;
             }
@@ -56,8 +56,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     return _ClassStemIdentifier;
 //                    return "Gen(" + _ClassStemIdentifier + ")";
                 }
-                if (RealType != null) {
-                    return HelperFunctions.GetClassStemIdentifier(RealType);
+                if (BuiltInType != null) {
+                    return HelperFunctions.GetClassStemIdentifier(BuiltInType);
 //                    return "Real(" + HelperFunctions.GetClassStemIdentifier(RealType) + ")";
                 }
                 return "UNKNOWN";
@@ -106,12 +106,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public string ClassSpecifierWithoutOwners {
             get {
                 var str = ClassStemIdentifier;
-                if (RealType != null) {
-                    str += GetGenericsSpecifier(RealType);
+                if (BuiltInType != null) {
+                    str += GetGenericsSpecifier(BuiltInType);
                 }
-                else if (MatchedClass != null) {
-                    if (MatchedClass.GenericArg != null) {
-                        str += "<" + MatchedClass.GenericArg + ">";
+                else if (CodebehindClass != null) {
+                    if (CodebehindClass.GenericArg != null) {
+                        str += "<" + CodebehindClass.GenericArg + ">";
                     }
                 }
                 else if (Generic != null) {
@@ -149,6 +149,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             return Generic[index].GlobalClassSpecifier;
         }
 
+
+        public AstClassAlias ClassAlias;
+
         private string _NamespaceAlias = "global::";
 
         /// <summary>
@@ -156,7 +159,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         public string NamespaceAlias {
             get {
-                if (MatchedClass != null)
+                if (CodebehindClass != null)
                     return null;
                 return _NamespaceAlias;
             }
@@ -194,7 +197,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// If not null, the namespace, identifier and classspecifier
         /// should be obtained from this actual type.
         /// </summary>
-        public Type RealType = null;
+        public Type BuiltInType = null;
 
         /// <summary>
         /// The namespace is calculated from the parent AstNodes unless
@@ -207,18 +210,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     return _Namespace;
                     //return "GEN(" + _Namespace + ")";
                 }
-                if (RealType != null) {
+                if (BuiltInType != null) {
                     //return "REAL(" + RealType.Namespace + ")";
-                    return RealType.Namespace;
+                    return BuiltInType.Namespace;
                 }
-                if (MatchedClass == null) {
+                if (CodebehindClass == null) {
                     if (Parent is AstJsonClass) {
                         return (Parent as AstJsonClass).Namespace;
                        // return "CODEBEHIND(" + (Parent as AstJsonClass).Namespace + ")";
                     }
                     return null;
                 }
-                return MatchedClass.Namespace;
+                return CodebehindClass.Namespace;
             }
             set {
                 _Namespace = value;
@@ -234,12 +237,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         public virtual string GlobalClassSpecifier {
             get {
+                if (ClassAlias != null && Generator.Root.AliasesActive) {
+                    return ClassAlias.Alias;
+                }
                 if (_GlobalClassSpecifier != null) {
                     //                    return "gen(" + _GlobalClassSpecifier + ")";
                     return Clean(_GlobalClassSpecifier);
                 }
-                if (MatchedClass != null) {
-                    return Clean( MatchedClass.GlobalClassSpecifier );
+                if (CodebehindClass != null) {
+                    return Clean( CodebehindClass.GlobalClassSpecifier );
                 }
                 if (Parent == null || !(Parent is AstClass)) {
                     var str = NamespaceAlias;
@@ -258,18 +264,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private string Clean(string str) {
-            if (str.StartsWith("global::Starcounter.Templates.")) {
-                str = "st::" + str.Substring(30);
-            }
-            else if (str.StartsWith("global::Starcounter.")) {
-                str = "s::" + str.Substring(20);
-            }
-            if (Generator.Root!= null && str.StartsWith(Generator.Root.RootJsonClassAliasPrefix)) {
-                str = "uSr::" + str.Substring(Generator.Root.RootJsonClassAliasPrefix.Length - 1);
-            }
-            if (Generator.Root != null && str.Equals(Generator.Root.RootJsonClassAlias)) {
-                str = "uSr";
-            }
+//            if (str.StartsWith("global::Starcounter.Templates.")) {
+//                str = "st::" + str.Substring(30);
+//            }
+//            else if (str.StartsWith("global::Starcounter.")) {
+//                str = "s::" + str.Substring(20);
+//            }
+//            if (Generator.Root!= null && str.StartsWith(Generator.Root.RootJsonClassAliasPrefix)) {
+//                str = "uSr::" + str.Substring(Generator.Root.RootJsonClassAliasPrefix.Length - 1);
+//            }
+//            if (Generator.Root != null && str.Equals(Generator.Root.RootJsonClassAlias)) {
+//                str = "uSr";
+//            }
             return str;
         }
 
@@ -302,6 +308,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 }
                 return str;                
             }
+        }
+        public bool UseInAliasName = true;
+
+        internal override string CalculateClassAliasIdentifier(int chars) {
+            if (UseInAliasName) {
+                var str = base.CalculateClassAliasIdentifier(Math.Max(chars/3, 1));
+                var stem = ClassStemIdentifier;
+                if (stem.Length > chars) {
+                    stem = stem.Substring(0, chars);
+                }
+                return str + stem;
+            }
+            return base.CalculateClassAliasIdentifier(chars);
         }
     }
 }

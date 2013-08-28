@@ -53,6 +53,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             var p3 = new GeneratorPhase3() { Generator = this };
             var p4 = new GeneratorPhase4() { Generator = this };
             var p5 = new GeneratorPhase5() { Generator = this };
+            var p6 = new GeneratorPhase6() { Generator = this };
 
             AstJsonClass acn;
             AstSchemaClass tcn;
@@ -62,7 +63,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             p2.RunPhase2(acn,tcn,mcn);
             p3.RunPhase3(acn);
             p4.RunPhase4(acn);
-            p5.RunPhase5(acn,tcn,mcn);
+            p5.RunPhase5(acn, tcn, mcn);
+            p6.RunPhase6(acn);
 
             return this.Root;
             // TODOJOCKE                ConnectCodeBehindClasses(root, metadata);

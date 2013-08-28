@@ -32,7 +32,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             acn = (AstJsonClass)Generator.ObtainValueClass(at);
             acn.Parent = root;
             acn.IsPartial = true;
-            acn.MatchedClass = metadata.RootClassInfo;
+            acn.CodebehindClass = metadata.RootClassInfo;
 
 
  //           tcn = (AstSchemaClass)Generator.ObtainTemplateClass(at);
@@ -89,8 +89,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         acn.NMetadataClass,
                         acn.NTemplateClass.Template);
 
-            root.RootJsonClassAlias = acn.GlobalClassSpecifier;
-            root.RootJsonClassAliasPrefix = acn.GlobalClassSpecifier + ".";
+//            root.RootJsonClassAlias = acn.GlobalClassSpecifier;
+//            root.RootJsonClassAliasPrefix = acn.GlobalClassSpecifier + ".";
 
             return root;
             //  TODOJOCKE                GenerateJsonAttributes(acn, json);

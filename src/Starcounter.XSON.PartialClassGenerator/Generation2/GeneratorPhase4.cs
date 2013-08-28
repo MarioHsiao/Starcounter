@@ -82,7 +82,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     var ntAppClass = Generator.TemplateClasses[appTemplate] as AstSchemaClass;
                     var mdAppClass = Generator.MetaClasses[appTemplate];
 
-                    nAppClass.MatchedClass = mapInfo;
+                    nAppClass.CodebehindClass = mapInfo;
 
                     var outsider = ObtainInheritedJsonClass(mapInfo);
                     nAppClass.InheritedClass = outsider;
@@ -137,7 +137,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             else {
                 acn = new AstJsonClass(Generator) {
-                    MatchedClass = new CodeBehindClassInfo(null) {
+                    CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = mapInfo.BaseClassName,
                         GenericArg = mapInfo.BaseClassGenericArg
                     },
@@ -154,7 +154,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                };
                 acn.NMetadataClass = new AstMetadataClass(Generator) {
                     NValueClass = acn,
-                    MatchedClass = new CodeBehindClassInfo(null) {
+                    CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = CalculateInnerClassName(mapInfo.BaseClassName, mapInfo.BaseClassGenericArg, "MEE"),
                         GenericArg = null //mapInfo.BaseClassGenericArg,
                     }
@@ -418,7 +418,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             //string propertyName;
             //string[] parts;
 
-            var classInfo = ((AstJsonClass)templateClass.NValueClass).MatchedClass;
+            var classInfo = ((AstJsonClass)templateClass.NValueClass).CodebehindClass;
 
             if (classInfo == null) {
                 return;

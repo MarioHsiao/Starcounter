@@ -123,8 +123,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>A name that ends with the text "Json"</returns>
         public override string ClassStemIdentifier {
             get {
-                if (MatchedClass != null) {
-                    return MatchedClass.ClassName;
+                if (CodebehindClass != null) {
+                    return CodebehindClass.ClassName;
                 }
                 var template = NTemplateClass.Template;
                 string className = null;
