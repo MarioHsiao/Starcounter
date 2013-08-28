@@ -18,7 +18,7 @@ namespace Starcounter.Advanced.XSON {
             }
 
             var reader = new JsonReader(buffer, jsonSize);
-            Arr<Json> arr;
+            Arr arr;
             Json childObj;
             TObject tObj = (TObject)obj.Template;
             Template tProperty;
@@ -47,7 +47,7 @@ namespace Starcounter.Advanced.XSON {
                         childObj = obj.Get((TObject)tProperty);
                         reader.PopulateObject(childObj);
                     } else if (tProperty is TObjArr) {
-                        arr = obj.Get((TArray<Json>)tProperty);
+                        arr = obj.Get((TObjArr)tProperty);
                         while (reader.GotoNextObjectInArray()) {
                             childObj = arr.Add();
                             reader.PopulateObject(childObj);
