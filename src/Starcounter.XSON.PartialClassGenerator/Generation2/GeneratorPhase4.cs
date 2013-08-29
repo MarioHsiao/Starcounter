@@ -139,14 +139,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 acn = new AstJsonClass(Generator) {
                     CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = mapInfo.BaseClassName,
-                        GenericArg = mapInfo.BaseClassGenericArg
+                        GenericArg = mapInfo.BaseClassGenericArg,
+						Namespace = mapInfo.Namespace
                     },
                 };
-                acn.NTemplateClass = new AstSchemaClass(Generator) {
+				var jsonbyexample = new AstOtherClass(Generator) {
+					Parent = acn,
+					ClassStemIdentifier = "JsonByExample",
+					IsStatic = true
+				};
+                var genSchemaClass = new AstSchemaClass(Generator) {
                     NValueClass = acn,
+					Parent = jsonbyexample,
                     Template = Generator.DefaultObjTemplate,
-                    IsCodegenerated = true
+                    IsCodegenerated = true,
+					ClassStemIdentifier = "Schema"
                 };
+				acn.NJsonByExample = jsonbyexample;
+				acn.NTemplateClass = genSchemaClass;
 //                acn.Generic = new AstOtherClass(Generator) {
 //                    _ClassName = "Schema",
 //                    NamespaceAlias = "st::",
