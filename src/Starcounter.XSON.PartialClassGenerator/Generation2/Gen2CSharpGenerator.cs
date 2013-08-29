@@ -530,11 +530,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add(sb.ToString());
             a.Prefix.Add("        : base() {");
 
-
 //            a.Prefix.Add("        Template = new st::TJson();");
-
-            if (a.AutoBindProperties)
-                a.Prefix.Add("        BindChildren = true;");
+			a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
 
             sb = new StringBuilder();
             sb.Append("        InstanceType = typeof(");
@@ -564,9 +561,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     sb.Append(">(\"");
                     sb.Append(mn.Template.TemplateName);
                     sb.Append('"');
-                    
+
                     TValue tv = mn.Template as TValue;
-                    if (tv != null && ( tv.Bound == Bound.Yes ) && tv.PropertyName != tv.Bind) {
+					if (tv != null && tv._Bound != Bound.UseParent && tv._Bound != Bound.Auto){
                         if (tv.Bind == null) {
                             sb.Append(", bind:null");
                         } else {

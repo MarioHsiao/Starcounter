@@ -50,7 +50,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         }
 
         private static void AssertMetadataAreEqual(CodeBehindMetadata roslyn, CodeBehindMetadata mono) {
-            Assert.AreEqual(roslyn.RootClassInfo.AutoBindToDataObject, mono.RootClassInfo.AutoBindToDataObject);
+//            Assert.AreEqual(roslyn.RootClassInfo.AutoBindToDataObject, mono.RootClassInfo.AutoBindToDataObject);
             Assert.AreEqual(roslyn.RootClassInfo.GenericArg, mono.RootClassInfo.GenericArg);
             Assert.AreEqual(roslyn.RootClassInfo.BaseClassGenericArg, mono.RootClassInfo.BaseClassGenericArg);
             Assert.AreEqual(roslyn.RootClassInfo.Namespace, mono.RootClassInfo.Namespace);
@@ -70,7 +70,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 var monoMap = mono.JsonPropertyMapList[i];
                 var roslynMap = roslyn.JsonPropertyMapList[i];
 
-                Assert.AreEqual(roslynMap.AutoBindToDataObject, monoMap.AutoBindToDataObject);
+//                Assert.AreEqual(roslynMap.AutoBindToDataObject, monoMap.AutoBindToDataObject);
                 Assert.AreEqual(roslynMap.ClassName, monoMap.ClassName);
                 Assert.AreEqual(roslynMap.GenericArg, monoMap.GenericArg);
                 Assert.AreEqual(roslynMap.BaseClassGenericArg, monoMap.BaseClassGenericArg);
