@@ -11,6 +11,13 @@ using System.Security;
 namespace Starcounter.Internal
 {
 
+    [SuppressUnmanagedCodeSecurity]
+    public static class filter {
+
+        [DllImport("filter.dll")]
+        public unsafe extern static uint init_filter_lib(ulong hmenv);
+    }
+
     /// <summary>
     /// Class sccoredb
     /// </summary>
