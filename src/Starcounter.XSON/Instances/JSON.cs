@@ -93,7 +93,7 @@ namespace Starcounter {
                 if (Template == null) {
                     return false;
                 }
-                return Template is TArray<Json>;
+                return Template is TObjArr;
             }
         }
 

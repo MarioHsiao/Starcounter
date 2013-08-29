@@ -340,7 +340,7 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Arr<Json> list = mainApp.Get((TArray<Json>)current);
+                    Arr list = mainApp.Get((TObjArr)current);
                     current = list[index];
                 }
                 else {

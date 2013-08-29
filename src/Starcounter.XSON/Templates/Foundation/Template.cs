@@ -259,7 +259,7 @@ namespace Starcounter.Templates {
             get {
                 if (_PropertyName == null ) {
                     var p = Parent;
-                    if ( p != null && p is TArray<Json> ) {
+                    if ( p != null && p is TObjArr ) {
                        return Parent.PropertyName + "Element";
                     }
                 }
