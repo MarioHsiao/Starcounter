@@ -16,7 +16,7 @@ START CMD /C "scservice.exe"
 ping -n 10 127.0.0.1 > nul
 
 :: Starting the client part of the test.
-sc_ipc_test.exe PERSONAL 2 60000 administrator
+sc_ipc_test.exe %*
 
 :: Checking exit code.
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
