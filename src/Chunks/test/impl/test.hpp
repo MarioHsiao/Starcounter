@@ -29,7 +29,6 @@ all_popped_(0)
 	/// Second argument: <number of worker threads>, for example "4".
     /// Third argument: <timeout in milliseconds>, for example "180000".
     /// Fourth argument: <database name>, for example "myDatabase".
-    /// and optionally following arguments are <database name>.
     ///
     /// For all tests, each worker will connect to each scheduler in each
     /// database.
@@ -46,7 +45,7 @@ all_popped_(0)
 	///=========================================================================
 	number_of_shared_ = 0;
 
-	if (argc > 4) {
+	if (argc == 5) {
         //----------------------------------------------------------------------
 		// First argument: <server name>
         // Convert it from wide-character string to multibyte string.
@@ -77,7 +76,7 @@ all_popped_(0)
         timeout_ = std::atoi(timeout_buffer);
         
         //----------------------------------------------------------------------
-		// Fourth argument: <first database name>
+		// Fourth argument: <database name>
         // Convert it from wide character string to multibyte string.
 		char database_name_buffer[segment_name_size];
 
@@ -85,6 +84,10 @@ all_popped_(0)
 		std::string db_shm_params_name;
 		std::vector<std::string> ipc_shm_params_name;
 
+        // This loop is obsolete since the IPC test can only connect to one
+        // database. But it works so I leave it as is for now, because the
+        // IPC test shall be able to connect to multiple databases so this
+        // loop may be usable later if that is fixed.
 		for (std::size_t i = 4; i < argc; ++i) {
 			std::wcstombs(database_name_buffer, argv[i], segment_name_size -1);
 			database_name = database_name_buffer;
@@ -104,11 +107,17 @@ all_popped_(0)
 			}
 		}
 		else {
-			std::cout << "error: no database name(s) entered after server name." << std::endl;
+			std::wcout << "error: no database name(s) entered after server name." << std::endl;
 		}
 	}
 	else {
-		std::cout << "error: please enter <server name> <database name(s)>" << std::endl;
+		std::wcout << "Please enter four arguments in this order:\n"
+		"First argument: <server name>, for example \"PERSONAL\" or \"SYSTEM\".\n"
+		"Second argument: <number of worker threads>, for example \"4\".\n"
+		"Third argument: <timeout in milliseconds>, for example \"10000\".\n"
+		"Fourth argument: <database name>, for example \"myDatabase\"." << std::endl;
+		
+		throw test_exception(0 /* TODO: Starcounter error code. SCERRINVALIDARGUMENTSTOIPCTEST */);
 	}
 }
 
@@ -291,11 +300,11 @@ void test::run() {
 	for (std::size_t i = 0; i < workers(); ++i) {
 		// Set worker parameters.
 		get_worker(i)
-		.set_segment_name(segment_name_[i])
+		.set_segment_name(segment_name_[0])
 		.set_monitor_interface_name(monitor_interface_name_)
 		.set_pid(pid_)
 		.set_owner_id(owner_id_)
-		.set_active_schedulers(active_schedulers_[i])
+		.set_active_schedulers(active_schedulers_[0])
 		.set_worker_number(i)
 		.set_shared_interface();
 
