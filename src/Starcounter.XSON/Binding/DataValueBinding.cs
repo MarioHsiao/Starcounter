@@ -22,6 +22,7 @@ namespace Starcounter.Internal.XSON {
         internal Type DataType { get { return dataType; } }
         internal Template Template { get { return template; } }
         internal MemberInfo Property { get { return property; } }
+		internal virtual bool IsDummyBinding { get { return false; } }
     }
 
 	/// <summary>
@@ -32,6 +33,8 @@ namespace Starcounter.Internal.XSON {
 		internal AutoValueBinding(Template template, Type dataType) : base(template, null) {
 			this.dataType = dataType;
 		}
+
+		internal override bool IsDummyBinding { get { return true; } }
 	}
 
     /// <summary>

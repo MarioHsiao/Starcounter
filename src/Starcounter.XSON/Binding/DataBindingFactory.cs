@@ -185,10 +185,11 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			// TODO: 
+			// Rewrite this code. We want to return false if we have an autobinding and the property is not bound 
+			// but we dont want to check every time for missing property.
 			if (VerifyBinding(template.dataBinding, dataType, template)) {
-				if (bound == Bound.Yes)
-					return true;
-				return false;
+				return !template.dataBinding.IsDummyBinding;
 			}
 
 			if (bound == Bound.Yes) {
