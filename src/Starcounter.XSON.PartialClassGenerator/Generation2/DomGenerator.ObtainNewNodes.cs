@@ -156,8 +156,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 //acn.ClassStemIdentifier = className;
                 return acn;
             }
-            else if (template is TArray<Json>) {
-                var tarr = template as TArray<Json>;
+            else if (template is TObjArr) {
+                var tarr = template as TObjArr;
                 var acn = new AstInstanceClass(this);
                 ValueClasses.Add(template, acn);
                 acn.NMetadataClass = ObtainMetaClass(template);
@@ -246,8 +246,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                }
                 return mcn;
             }
-            else if (template is TArray<Json>) {
-                var tarr = template as TArray<Json>;
+            else if (template is TObjArr) {
+                var tarr = template as TObjArr;
                 AstClass[] gen;
                 gen = new AstClass[] {
                     ObtainTemplateClass(tarr.ElementType),
@@ -344,8 +344,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ret.NValueClass = acn;
                 return ret;
             }
-            if (template is TArray<Json>) {
-                var tarr = template as TArray<Json>;
+            if (template is TObjArr) {
+                var tarr = template as TObjArr;
                 ret = new AstTemplateClass(this) {
                     Template = template
                 };

@@ -89,7 +89,7 @@ namespace Starcounter {
        //         if (this is App) {
        //             ((App)this).CallInit();
        //         }
-                this.Init();
+//              this.Init();
             }
             get {
                 return _Template;
@@ -99,8 +99,8 @@ namespace Starcounter {
         /// <summary>
         /// Inits this instance.
         /// </summary>
-        protected virtual void Init() {
-        }
+		//protected virtual void Init() {
+		//}
 
         /// <summary>
         /// Used to generate change logs for all pending property changes in this object and
