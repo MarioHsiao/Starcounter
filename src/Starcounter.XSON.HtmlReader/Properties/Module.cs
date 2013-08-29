@@ -7,6 +7,7 @@ using Modules;
 
 using Starcounter.Advanced.XSON;
 using Starcounter;
+using TJson = Starcounter.Templates.TObject;
 
 namespace Modules {
 

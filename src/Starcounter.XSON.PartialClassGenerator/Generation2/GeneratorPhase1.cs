@@ -4,6 +4,9 @@
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
+using TJson = Starcounter.Templates.TObject;
+
+
 namespace Starcounter.Internal.MsBuild.Codegen {
 
 
@@ -21,58 +24,73 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="at">The TJson template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public AstRoot RunPhase1(TObj at, out AstAppClass acn, out AstTAppClass tcn, out AstObjMetadata mcn ) {
+        public AstRoot RunPhase1(TJson at, out AstJsonClass acn, out AstSchemaClass tcn, out AstMetadataClass mcn) {
 
             CodeBehindMetadata metadata = Generator.CodeBehindMetadata;
 
             var root = new AstRoot(Generator);
-            acn = new AstAppClass(Generator) {
-                Parent = root,
-                IsPartial = true
-            };
+            acn = (AstJsonClass)Generator.ObtainValueClass(at);
+            acn.Parent = root;
+            acn.IsPartial = true;
+            acn.CodebehindClass = metadata.RootClassInfo;
 
-            tcn = new AstTAppClass(Generator) {
-                Parent = acn,
-                NValueClass = acn,
-                Template = at,
-                _Inherits = Generator.DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
-                AutoBindProperties = metadata.RootClassInfo.AutoBindToDataObject
-            };
+
+ //           tcn = (AstSchemaClass)Generator.ObtainTemplateClass(at);
+
 
             if (metadata == CodeBehindMetadata.Empty) {
                 // No codebehind. Need to set a few extra properties depending on metadata from json
                 acn.IsPartial = false;
-                acn._Inherits = Generator.DefaultObjTemplate.InstanceType.Name;
+//                acn.InheritedClass = (AstJsonClass)Generator.ObtainValueClass(Generator.DefaultObjTemplate);
 
-                // A specific IBindable type have been specified in the json.
-                // We add it as a generic value on the Json-class this class inherits from.
-                if (at.InstanceDataTypeName != null) {
-                    acn._Inherits += '<' + at.InstanceDataTypeName + '>';
-                    tcn.AutoBindProperties = true;
-                }
+//                // A specific IBindable type have been specified in the json.
+//                // We add it as a generic value on the Json-class this class inherits from.
+ //               if (at.InstanceDataTypeName != null) {
+ //                   //acn._Inherits += '<' + at.InstanceDataTypeName + '>';
+ //                   tcn.AutoBindProperties = true;
+ //               }
             }
-            else if (at.InstanceDataTypeName != null) {
-                Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
-            }
+//            else if (at.InstanceDataTypeName != null) {
+//                Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
+//            }
 
-            mcn = new AstObjMetadata(Generator) {
-                Parent = acn,
-                NTemplateClass = tcn,
-                _Inherits = "ObjMetadata"
-            };
+            //mcn = Generator.ObtainMetaClass(at);
+            //new AstObjMetadata(Generator) {
+            //mcn.Parent = jsonbyexample;
+            //mcn.NValueClass = acn;
+            // mcn.InheritedClass = Generator.MetaClasses[Generator.DefaultObjTemplate];
 
-            tcn.NMetadataClass = mcn;
+            //tcn.NValueClass.NMetadataClass = mcn;
 
-            Generator.ValueClasses[at] = acn;
-            Generator.TemplateClasses[at] = tcn;
-            Generator.MetaClasses[at] = mcn;
+            // Generator.ValueClasses.Add(at, acn);
+            //Generator.TemplateClasses.Add(at, tcn);
+            //Generator.MetaClasses.Add(at, mcn);
+
+            mcn = acn.NMetadataClass;
+            tcn = (AstSchemaClass)acn.NTemplateClass;
+
+#if DEBUG
+            if (tcn.NValueClass != acn)
+                throw new Exception();
+            if (tcn.Template != at)
+                throw new Exception();
+//            if (tcn.Generic[0] != acn)
+//                throw new Exception();
+            if (tcn.NValueClass != acn)
+                throw new Exception();
+
+#endif
+
 
             root.AppClassClassNode = acn;
-            acn.NTemplateClass = tcn;
+            //acn.NTemplateClass = tcn;
             GenerateKids(acn,
-                        (AstTAppClass)acn.NTemplateClass,
-                        acn.NTemplateClass.NMetadataClass,
+                        (AstSchemaClass)acn.NTemplateClass,
+                        acn.NMetadataClass,
                         acn.NTemplateClass.Template);
+
+//            root.RootJsonClassAlias = acn.GlobalClassSpecifier;
+//            root.RootJsonClassAliasPrefix = acn.GlobalClassSpecifier + ".";
 
             return root;
             //  TODOJOCKE                GenerateJsonAttributes(acn, json);
@@ -81,6 +99,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             // TODOJOCKE                ConnectCodeBehindClasses(root, metadata);
             //  TODOJOCKE              GenerateInputBindings((AstTAppClass)acn.NTemplateClass, metadata);
+
         }
 
 
@@ -93,31 +112,33 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="System.Exception"></exception>
-        private void GenerateKids(AstAppClass appClassParent,
-                                  AstTAppClass templParent,
-                                  AstClass metaParent,
+        private void GenerateKids(AstInstanceClass appClassParent,
+                                  AstTemplateClass templParent,
+                                  AstMetadataClass metaParent,
                                   Template template) {
             if (template is TContainer) {
                 var pt = (TContainer)template;
                 foreach (var kid in pt.Children) {
                     if (kid is TContainer) {
-                        if (kid is TObj) {
-                            GenerateForApp(kid as TObj,
+                        if (kid is TJson) {
+                            GenerateForApp( (TJson)kid,
                                            appClassParent,
                                            templParent,
                                            metaParent,
                                            template);
                         }
                         else if (kid is TObjArr) {
-                            // Orphaned by design as primitive types dont get custom template classes
-                            //                            var type = new NArrXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; 
-                            //                            NTemplateClass.Classes[kid] = type;
+                            GenerateProperty(
+                                kid, 
+                                (AstJsonClass)appClassParent, 
+                                (AstSchemaClass)templParent, 
+                                metaParent);
 
-                            GenerateForArr(kid as TObjArr,
-                                               appClassParent,
-                                               templParent,
-                                               metaParent,
-                                               template);
+                            GenerateForApp(((TObjArr)kid).ElementType,
+                                           appClassParent,
+                                           templParent,
+                                           metaParent,
+                                           template);
                         }
                         else {
                             throw new Exception();
@@ -133,13 +154,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                            Namespace = "orphaned"
 //                        };
 
-                        var type = Generator.TemplateClassesByType[kid.GetType()];
+                        var type = Generator.ObtainTemplateClass(kid);
 
 
 
                         Generator.TemplateClasses[kid] = type;
 
-                        GenerateProperty(kid, appClassParent, templParent, metaParent);
+                        GenerateProperty(
+                            kid, 
+                            (AstJsonClass)appClassParent, 
+                            (AstSchemaClass)templParent, 
+                            metaParent);
                     }
                 }
             }
@@ -147,20 +172,23 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
 
         /// <summary>
-        /// Generates the property.
+        /// 
         /// </summary>
-        /// <param name="at">At.</param>
-        /// <param name="appClassParent">The app class parent.</param>
-        /// <param name="templParent">The templ parent.</param>
-        /// <param name="metaParent">The meta parent.</param>
+        /// <param name="at"></param>
+        /// <param name="appClassParent"></param>
+        /// <param name="templParent"></param>
+        /// <param name="metaParent"></param>
         private void GenerateProperty(Template at,
-                                      AstAppClass appClassParent,
-                                      AstTAppClass templParent,
-                                      AstClass metaParent) {
-            var valueClass = Generator.FindValueClass(at);
-            var type = Generator.FindTemplateClass(at);
+                                      AstJsonClass appClassParent,
+                                      AstSchemaClass templParent,
+                                      AstClass metaParent)
+        {
+            var valueClass = Generator.ObtainValueClass(at );
+            //valueClass.Parent = appClassParent;
+            var type = Generator.ObtainTemplateClass(at );
 
-            type.NValueProperty = new AstProperty(Generator) {
+            //type.NValueProperty = 
+            new AstProperty(Generator) {
                 Parent = appClassParent,
                 Template = at,
                 Type = valueClass
@@ -173,12 +201,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             new AstProperty(Generator) {
                 Parent = templParent.Constructor,
                 Template = at,
-                Type = Generator.FindTemplateClass(at)
+                Type = type
             };
             new AstProperty(Generator) {
                 Parent = metaParent,
                 Template = at,
-                Type = Generator.FindMetaClass(at)
+                Type = Generator.ObtainMetaClass(at)
             };
         }
 
@@ -193,12 +221,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="System.Exception"></exception>
-        private void GenerateForApp(TObj at,
-                                    AstAppClass appClassParent,
-                                    AstTAppClass templParent,
-                                    AstClass metaParent,
+        private void GenerateForApp(TJson at,
+                                    AstInstanceClass appClassParent,
+                                    AstTemplateClass templParent,
+                                    AstMetadataClass metaParent,
                                     Template template) {
-            AstAppClass acn;
+            AstJsonClass acn;
             AstTemplateClass tcn;
             AstMetadataClass mcn;
             if (at.Properties.Count == 0) {
@@ -207,53 +235,55 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 // This means that they can be assigned to any App object. 
                 // A typical example is to have a Page:{} property in a master
                 // app (representing, for example, child web pages)
-                acn = (AstAppClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
-                tcn = Generator.TemplateClasses[Generator.DefaultObjTemplate];
-                mcn = Generator.MetaClasses[Generator.DefaultObjTemplate];
+                acn = (AstJsonClass)Generator.GetDefaultJson();
+                tcn = acn.NTemplateClass;
+                mcn = acn.NMetadataClass;
+//                tcn = Generator.TemplateClasses[Generator.DefaultObjTemplate];
+//                mcn = Generator.MetaClasses[Generator.DefaultObjTemplate];
             }
             else {
-                AstAppClass racn;
-                acn = racn = new AstAppClass(Generator) {
-                    Parent = appClassParent,
-                    _Inherits = "global::" + Generator.DefaultObjTemplate.InstanceType.FullName // "Puppet", "Json"
-                };
+                AstJsonClass racn;
+                acn = racn = (AstJsonClass)Generator.ObtainValueClass(at);
+                acn.Parent = appClassParent;
+                    //_Inherits = "global::" + Generator.DefaultObjTemplate.InstanceType.FullName // "Puppet", "Json"
+//                acn.InheritedClass = (AstJsonClass)Generator.ValueClasses[Generator.DefaultObjTemplate];
 
-                tcn = new AstTAppClass(Generator) {
-                    Parent = racn,
-                    Template = at,
-                    NValueClass = racn,
-                    _Inherits = Generator.DefaultObjTemplate.GetType().Name // "TPuppet", "TJson"
-                };
+//                tcn = new AstSchemaClass(Generator) {
+//                    Parent = racn,
+//                    Template = at,
+//                    NValueClass = racn,
+//                    ` Generator.TemplateClasses[Generator.DefaultObjTemplate],
+//                    Generic = new AstClass[] { acn }
+//                };
 
-                // A specific IBindable type have been specified in the json.
-                // We add it as a generic value on the Json-class this class inherits from.
-                if (at.InstanceDataTypeName != null) {
-                    racn._Inherits += '<' + at.InstanceDataTypeName + '>';
-                    ((AstTAppClass)tcn).AutoBindProperties = true;
-                }
+//                // A specific IBindable type have been specified in the json.
+//                // We add it as a generic value on the Json-class this class inherits from.
+//                if (at.InstanceDataTypeName != null) {
+////                    racn._Inherits += '<' + at.InstanceDataTypeName + '>';
+//                    ((AstTAppClass)tcn).AutoBindProperties = true;
+//                }
+//                tcn = Generator.ObtainTemplateClass(at);
 
-                mcn = new AstObjMetadata(Generator) {
-                    Parent = racn,
-                    NTemplateClass = tcn,
-                    _Inherits = "ObjMetadata"
-                };
-                tcn.NMetadataClass = mcn;
-                racn.NTemplateClass = tcn;
+//                mcn = Generator.ObtainMetaClass(at); //new AstObjMetadata(Generator);
+//                mcn.Parent = racn;
+                //mcn.NTemplateClass = tcn;
+//                mcn.NValueClass = acn;
+//                mcn.InheritedClass = Generator.MetaClasses[((AstJsonClass)acn.InheritedClass).NTemplateClass.Template];
+//                racn.NMetadataClass = mcn;
+//                racn.NTemplateClass = tcn;
+                tcn = acn.NTemplateClass;
+                mcn = acn.NMetadataClass;
+                GenerateKids( acn, tcn, mcn, at );
 
-                GenerateKids(acn as AstAppClass,
-                             tcn as AstTAppClass,
-                             mcn as AstObjMetadata,
-                             at);
-
-                if (!appClassParent.Children.Remove(acn))
-                    throw new Exception(); // Move to...
-                appClassParent.Children.Add(acn); // Move to...
-                if (!acn.Children.Remove(tcn))
-                    throw new Exception(); // Move to...
-                acn.Children.Add(tcn); // Move to...
-                if (!acn.Children.Remove(mcn))
-                    throw new Exception(); // ...last member
-                acn.Children.Add(mcn); // ...last member
+//                if (!appClassParent.Children.Remove(acn))
+//                    throw new Exception(); // Move to...
+//                appClassParent.Children.Add(acn); // Move to...
+//                if (!acn.Children.Remove(tcn))
+//                    throw new Exception(); // Move to...
+//                acn.Children.Add(tcn); // Move to...
+//                if (!acn.Children.Remove(mcn))
+//                    throw new Exception(); // ...last member
+//                acn.Children.Add(mcn); // ...last member
 
 
             }
@@ -261,59 +291,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             Generator.TemplateClasses[at] = tcn;
             Generator.MetaClasses[at] = mcn;
 
-            if (at.Parent is TObj)
-                GenerateProperty(at, appClassParent, templParent, metaParent);
+            if (at.Parent is TJson)
+                GenerateProperty(
+                    at, 
+                    (AstJsonClass)appClassParent, 
+                    (AstSchemaClass)templParent, 
+                    metaParent);
 
 
         }
 
-        /// <summary>
-        /// Generates for listing.
-        /// </summary>
-        /// <param name="alt">The alt.</param>
-        /// <param name="appClassParent">The app class parent.</param>
-        /// <param name="templParent">The templ parent.</param>
-        /// <param name="metaParent">The meta parent.</param>
-        /// <param name="template">The template.</param>
-        private void GenerateForArr(TObjArr alt,
-                                        AstAppClass appClassParent,
-                                        AstTAppClass templParent,
-                                        AstClass metaParent,
-                                        Template template) {
-            var amn = new AstProperty(Generator) {
-                Parent = appClassParent,
-                Template = alt
-            };
-            var tmn = new AstProperty(Generator) {
-                Parent = appClassParent.NTemplateClass,
-                Template = alt
-            };
-            var cstmn = new AstProperty(Generator) {
-                Parent = ((AstTAppClass)appClassParent.NTemplateClass).Constructor,
-                Template = alt
-            };
-            var mmn = new AstProperty(Generator) {
-                Parent = appClassParent.NTemplateClass.NMetadataClass,
-                Template = alt
-            };
-            GenerateKids(appClassParent, templParent, metaParent, alt);
-            var vlist = new AstArrXXXClass(Generator, "Arr", Generator.ValueClasses[alt.ElementType], null, alt, "s::");
-            amn.Type = vlist;
-
-            tmn.Type = new AstArrXXXClass(Generator, "TArr",
-                                            Generator.ValueClasses[alt.ElementType],
-                                            Generator.TemplateClasses[alt.ElementType], alt, "st::");
-            cstmn.Type = new AstArrXXXClass(Generator, "TArr",
-                                            Generator.ValueClasses[alt.ElementType],
-                                            Generator.TemplateClasses[alt.ElementType], alt, "st::");
-
-            mmn.Type = new AstArrXXXClass(Generator, "ArrMetadata",
-                                            Generator.ValueClasses[alt.ElementType],
-                                            Generator.TemplateClasses[alt.ElementType], alt, "st::");
-
-            //ntempl.Template = alt;
-            //            NTemplateClass.Classes[alt] = tlist;
-            Generator.ValueClasses[alt] = vlist;
-        }
+        
     }
 }
