@@ -14,8 +14,10 @@ namespace Starcounter.Internal
     [SuppressUnmanagedCodeSecurity]
     public static class filter {
 
+        /// <summary>
+        /// </summary>
         [DllImport("filter.dll")]
-        public unsafe extern static uint init_filter_lib(ulong hmenv);
+        public extern static uint init_filter_lib(ulong hmenv);
     }
 
     /// <summary>
