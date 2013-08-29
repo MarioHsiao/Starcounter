@@ -120,7 +120,7 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// 
         /// </summary>
-        public Bound BindChildren = Bound.No;
+        public Bound BindChildren = Bound.Auto;
 
         /// <summary>
         /// All parent classes of the specified class in the codebehind file.
