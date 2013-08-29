@@ -1,4 +1,4 @@
 {
-	"Name": "Apapapa"
-
+	"Name": "Apapapa",
+	"SomeObject": { "Value":"Aa", "Inner":{"Key":"Apa"} }
 }
