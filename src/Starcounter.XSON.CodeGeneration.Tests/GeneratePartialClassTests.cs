@@ -147,8 +147,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			var astTree = codegen.DumpAstTree();
 			var code = codegen.GenerateCode();
 
-			Console.WriteLine(astTree);
-			//Console.WriteLine(code);
+			//Console.WriteLine(astTree);
+			Console.WriteLine(code);
 		}
 
     }
