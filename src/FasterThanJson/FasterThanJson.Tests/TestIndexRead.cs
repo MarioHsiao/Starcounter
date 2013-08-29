@@ -133,20 +133,21 @@ namespace FasterThanJson.Tests {
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     TupleWriter arrayWriter = new TupleWriter(start, nrValues, 2);
+                    arrayWriter.SetTupleLength((uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
                         valueTypes[j] = writeRnd.Next(1, 4);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
-                                arrayWriter.Write(uintValues[j]);
+                                arrayWriter.WriteSafe(uintValues[j]);
                                 break;
                             case (int)ValueTypes.STRING:
                                 stringValues[j] = RandomValues.RandomString(writeRnd);
-                                arrayWriter.Write(stringValues[j]);
+                                arrayWriter.WriteSafe(stringValues[j]);
                                 break;
                             case (int)ValueTypes.BINARY:
                                 binaryValues[j] = RandomValues.RandomBinary(writeRnd);
-                                arrayWriter.Write(binaryValues[j]);
+                                arrayWriter.WriteSafe(binaryValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

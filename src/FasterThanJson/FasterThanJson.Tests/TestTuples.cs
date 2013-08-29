@@ -4,7 +4,7 @@ using Starcounter;
 using Starcounter.Internal;
 using System.Diagnostics;
 
-namespace Starcounter.Internal
+namespace FasterThanJson.Tests
 {
    [TestFixture]
    public class Hello
