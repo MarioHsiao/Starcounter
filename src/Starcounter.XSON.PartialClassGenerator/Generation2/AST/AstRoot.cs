@@ -13,10 +13,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// </summary>
     public class AstRoot : AstBase {
 
-        public override string Name {
-            get { return ""; }
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -25,10 +21,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
+       // public string RootJsonClassAliasPrefix;
+       // public string RootJsonClassAlias;
+
         /// <summary>
         /// The app class class node
         /// </summary>
-        public AstAppClass AppClassClassNode;
+        public AstJsonClass AppClassClassNode;
+        public bool AliasesActive = false;
 
       //  public TObj DefaultObjTemplate;
     }

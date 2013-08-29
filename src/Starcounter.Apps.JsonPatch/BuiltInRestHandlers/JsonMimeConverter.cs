@@ -31,7 +31,7 @@ namespace Starcounter.Internal {
                         Container r = (Container)before;
                         while (r.Parent != null)
                             r = r.Parent;
-                        Json root = (Json)r;
+                        var root = (Json)r;
                         var ret = root.ToJsonUtf8();
                         var s = root.Session;
                         if (s != null) {
@@ -71,8 +71,8 @@ namespace Starcounter.Internal {
                 }
             }
 
-            if (before is Obj) {
-                Obj obj = (Obj)before;
+            if (before is Json) {
+                Json obj = (Json)before;
                 var str = obj.AsMimeType(mimeType);
                 if (str == null && request != null) {
                     str = obj.AsMimeType( request["Accept"] );

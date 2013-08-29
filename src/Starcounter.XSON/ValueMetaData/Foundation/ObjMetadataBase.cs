@@ -9,32 +9,34 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class ObjMetadataBase  {
+    public class ObjMetadataBase<JsonType,TemplateType>
+                where JsonType : Json 
+                where TemplateType : Template {
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjMetadataBase" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ObjMetadataBase(Obj app, Template template) {
+        public ObjMetadataBase(JsonType app, TemplateType template) {
             _App = app;
             _Template = template;
         }
 
-        private Obj _App;
-        private Template _Template;
+        private JsonType _App;
+        private TemplateType _Template;
 
         /// <summary>
         /// Gets the app.
         /// </summary>
         /// <value>The app.</value>
-        public Obj App { get { return _App; } }
+        public JsonType App { get { return _App; } }
 
         /// <summary>
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public Template Template { get { return _Template; } }
+        public TemplateType Template { get { return _Template; } }
 
     }
 }

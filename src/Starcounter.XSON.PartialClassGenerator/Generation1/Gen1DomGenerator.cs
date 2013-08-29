@@ -8,6 +8,8 @@ using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
+using TJson = Starcounter.Templates.TObject;
+
 
 namespace Starcounter.Internal.Application.CodeGeneration {
 
@@ -24,8 +26,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// there is no need for the programmer to have deep nesting of class declarations in
     /// JSON trees.</remarks>
     public class Gen1DomGenerator {
-        internal Gen1DomGenerator(Gen1CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType) {
-            DefaultObjTemplate = (TObj)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
+        internal Gen1DomGenerator(Gen1CodeGenerationModule mod, TJson template, Type defaultNewObjTemplateType) {
+            DefaultObjTemplate = (TJson)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             InitTemplateClasses();
             InitMetadataClasses();
             InitValueClasses();
@@ -143,7 +145,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         internal TString TPString = new TString();
         internal TLong TPLong = new TLong();
         internal TDecimal TPDecimal = new TDecimal();
-        internal TObj DefaultObjTemplate = null;
+        internal TJson DefaultObjTemplate = null;
         internal TDouble TPDouble = new TDouble();
         internal TBool TPBool = new TBool();
         internal TTrigger TPAction = new TTrigger();
@@ -154,7 +156,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public NRoot GenerateDomTree(TObj at, CodeBehindMetadata metadata) {
+        public NRoot GenerateDomTree(TJson at, CodeBehindMetadata metadata) {
             var root = new NRoot(this);
             var acn = new NAppClass(this) {
                 Parent = root,
@@ -166,8 +168,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 NValueClass = acn,
                 Template = at,
                 _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
-                AutoBindProperties = metadata.RootClassInfo.AutoBindToDataObject
             };
+            if (metadata.RootClassInfo != null) {
+                tcn.AutoBindProperties = metadata.RootClassInfo.AutoBindToDataObject;
+            }
+
 
             if (metadata == CodeBehindMetadata.Empty) {
                 // No codebehind. Need to set a few extra properties depending on metadata from json
@@ -272,7 +277,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                                     break;
                                 parent = parent.Parent;
                             }
-                            propertyName = ((TObj)parent).ClassName + propertyName;
+                            propertyName = ((TJson)parent).ClassName + propertyName;
                             ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
                         }
                         CheckMissingBindingInformation(childTApp);
@@ -287,13 +292,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="root">The root.</param>
         /// <param name="metadata">The metadata.</param>
         private void ConnectCodeBehindClasses(NRoot root, CodeBehindMetadata metadata) {
-            TObj appTemplate;
-            TObj rootTemplate;
-            TObj[] classesInOrder;
+            TJson appTemplate;
+            TJson rootTemplate;
+            TJson[] classesInOrder;
             CodeBehindClassInfo mapInfo;
             NAppClass nAppClass;
 
-            classesInOrder = new TObj[metadata.JsonPropertyMapList.Count];
+            classesInOrder = new TJson[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
@@ -349,7 +354,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="classesInOrder">The classes in order.</param>
         /// <param name="mapInfos">The map infos.</param>
         /// <param name="root">The root.</param>
-        private void ReorderCodebehindClasses(TObj[] classesInOrder,
+        private void ReorderCodebehindClasses(TJson[] classesInOrder,
                                               List<CodeBehindClassInfo> mapInfos,
                                               NRoot root) {
             List<String> parentClasses;
@@ -411,8 +416,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="rootTemplate">The root template.</param>
         /// <returns>TApp.</returns>
         /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
-        private TObj FindTAppFor(CodeBehindClassInfo ci, TObj rootTemplate) {
-            TObj appTemplate;
+        private TJson FindTAppFor(CodeBehindClassInfo ci, TJson rootTemplate) {
+            TJson appTemplate;
             String[] mapParts;
             Template template;
 
@@ -432,8 +437,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 // of the class path is the root class no matter what name is used.
                 // This makes it easier when user is refactoring his or her code.
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
-                if (template is TObj) {
-                    appTemplate = (TObj)template;
+                if (template is TJson) {
+                    appTemplate = (TJson)template;
                 }
                 else if (template is TObjArr) {
                     appTemplate = ((TObjArr)template).ElementType;
@@ -505,8 +510,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 var pt = (TContainer)template;
                 foreach (var kid in pt.Children) {
                     if (kid is TContainer) {
-                        if (kid is TObj) {
-                            GenerateForApp(kid as TObj,
+                        if (kid is TJson) {
+                            GenerateForApp(kid as TJson,
                                            appClassParent,
                                            templParent,
                                            metaParent,
@@ -548,7 +553,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="System.Exception"></exception>
-        private void GenerateForApp(TObj at,
+        private void GenerateForApp(TJson at,
                                     NAppClass appClassParent,
                                     NTAppClass templParent,
                                     NClass metaParent,
@@ -614,7 +619,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             TemplateClasses[at] = tcn;
             MetaClasses[at] = mcn;
 
-            if (at.Parent is TObj)
+            if (at.Parent is TJson)
                 GenerateProperty(at, appClassParent, templParent, metaParent);
         }
 
@@ -885,11 +890,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         private void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info) {
             Int32 parentCount = 0;
             TContainer candidate = binding.PropertyAppClass.Template;
-            TObj appTemplate;
+            TJson appTemplate;
             NAppClass declaringAppClass = null;
 
             while (candidate != null) {
-                appTemplate = candidate as TObj;
+                appTemplate = candidate as TJson;
                 if (appTemplate != null) {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName)) {
                         declaringAppClass = (NAppClass)FindValueClass(appTemplate);
@@ -918,7 +923,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Template current = DefaultObjTemplate;
                 while (current.Parent != null)
                     current = (Template)current.Parent;
-                return ((TObj)current).Namespace;
+                return ((TJson)current).Namespace;
             }
         }
 

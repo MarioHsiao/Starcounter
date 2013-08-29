@@ -79,7 +79,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PartialClassGeneration\Namespaces.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PartialClassGeneration\Generic.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="InputGeneration\MailApp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PartialClassGeneration\minimal.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Nesting\ParentChild.json.cs.v5">
@@ -103,7 +112,7 @@
     <None Include="InputGeneration\Company.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="ThreadPage.json">
+    <None Include="PartialClassGeneration\ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="databound.json">
@@ -138,14 +147,21 @@
     <None Include="Compiler\incorrect.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="ThreadPage.json.cs">
+    <None Include="PartialClassGeneration\ThreadPage.json.cs">
       <DependentUpon>ThreadPage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="InputGeneration\MailApp.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="PartialClassGeneration\Generic.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Include="Inheritance\TestInheritance.cs" />
     <Compile Include="JsonSerializeTest.cs" />
+    <None Include="PartialClassGeneration\minimal.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="Nesting\TestSimpleNesting.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
     <None Include="Nesting\ParentChild.json.cs.v1">
@@ -153,11 +169,9 @@
     </None>
     <Compile Include="Nesting\DetectVersionToUse.cs" />
     <Compile Include="InputGeneration\TestInputMapping.cs" />
+    <Compile Include="PartialClassGeneration\TestPartialClassGeneration.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="simple.facit.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Compile Include="Compiler\CodeBehindParserTests.cs" />
     <None Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
@@ -167,7 +181,6 @@
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="TestInheritance.cs" />
     <Compile Include="GeneratePartialClassTests.cs" />
     <None Include="TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

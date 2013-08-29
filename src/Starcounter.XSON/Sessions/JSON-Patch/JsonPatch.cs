@@ -21,7 +21,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <summary>
         /// The app
         /// </summary>
-        public readonly Obj App;
+        public readonly Json App;
         /// <summary>
         /// The template
         /// </summary>
@@ -32,7 +32,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public AppAndTemplate(Obj app, Template template) {
+        public AppAndTemplate(Json app, Template template) {
             App = app;
             Template = template;
         }
@@ -102,7 +102,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The value.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        public static String BuildJsonPatch(Int32 patchType, Obj nearestApp, Template from, Object value, Int32 index) {
+        public static String BuildJsonPatch(Int32 patchType, Json nearestApp, Template from, Object value, Int32 index) {
             List<String> pathList = new List<String>();
             StringBuilder sb = new StringBuilder(40);
 
@@ -137,8 +137,8 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="sb">The sb.</param>
         /// <param name="from">From.</param>
         /// <param name="nearestApp">The nearest app.</param>
-        private static void IndexPathToString(StringBuilder sb, Template from, Obj nearestApp) {
-            Obj app;
+        private static void IndexPathToString(StringBuilder sb, Template from, Json nearestApp) {
+            Json app;
             Container parent;
             Boolean nextIndexIsPositionInList;
             Int32[] path;
@@ -150,7 +150,7 @@ namespace Starcounter.Internal.JsonPatch {
             parent = nearestApp;
             while (parent.Parent != null)
                 parent = parent.Parent;
-            app = (Obj)parent;
+            app = (Json)parent;
 
             nextIndexIsPositionInList = false;
             listProp = null;
@@ -163,7 +163,10 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(path[i]);
                 } else {
-                    template = app.Template.Properties[path[i]];
+                    if (app.IsArray) {
+                        throw new NotImplementedException();
+                    }
+                    template = ((TObject)app.Template).Properties[path[i]];
                     sb.Append('/');
                     sb.Append(template.TemplateName);
 
@@ -171,8 +174,9 @@ namespace Starcounter.Internal.JsonPatch {
                         // next index in the path is the index in the list.
                         listProp = (TObjArr)template;
                         nextIndexIsPositionInList = true;
-                    } else if (template is TObj) {
-                        app = app.Get((TObj)template);
+                    }
+                    else if (template is TObject) {
+                        app = app.Get((TObject)template);
                     }
                 }
             }

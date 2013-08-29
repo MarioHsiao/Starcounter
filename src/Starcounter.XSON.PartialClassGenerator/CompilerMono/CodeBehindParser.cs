@@ -71,6 +71,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                 }
 
             }
+            /*
             if (metadata.RootClassInfo == null) {
                 metadata.JsonPropertyMapList.Add( new CodeBehindClassInfo(null) {
                     IsRootClass = true
@@ -80,7 +81,8 @@ namespace Starcounter.XSON.Compiler.Mono {
                     throw new Exception("Expected root class information in partial class code-gen");
                 }
 #endif
-            }
+            }*/
+
             return metadata;
         }
 
@@ -197,6 +199,9 @@ namespace Starcounter.XSON.Compiler.Mono {
                                 if (mce.Token == CSharpToken.OP_GENERICS_GT) {
                                     baseClassGenericArgument = baseClassGenericArgStr;
                                     break;
+                                }
+                                else if (mce.Token == CSharpToken.OBJECT) {
+                                    baseClassGenericArgStr += "object";
                                 }
                                 else if (mce.Token == CSharpToken.IDENTIFIER) {
                                     baseClassGenericArgStr += mce.Value;
