@@ -22,7 +22,7 @@ namespace RunUnitTests
         /// </summary>
         static readonly String[] SkippedTestAssemblies =
         {
-            "Skip.Tests.dll"
+            "behemoth_unittest.exe"
         };
 
         static Int32 Main(string[] args)
@@ -52,9 +52,9 @@ namespace RunUnitTests
                     throw new Exception("Environment variable " + BuildSystem.CheckOutDirEnvVar + " does not exist.");
                 }
 
-                String nunitParameters = "";
-                if (BuildSystem.IsNightlyBuild())
-                    nunitParameters = "/include:LongRunning";
+                String nunitParameters = "/labels";
+                if (!BuildSystem.IsNightlyBuild())
+                    nunitParameters = "/exclude:LongRunning";
 
                 // Getting the path to current build consolidated folder.
                 if (null == outputFolder)
