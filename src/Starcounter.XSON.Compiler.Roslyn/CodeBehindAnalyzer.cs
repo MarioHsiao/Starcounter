@@ -24,7 +24,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
         internal static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
-            bool autoBindToDataObject = false;
+//            bool autoBindToDataObject = false;
             ClassDeclarationSyntax classDecl;
             List<CodeBehindClassInfo> mapList = new List<CodeBehindClassInfo>();
             List<InputBindingInfo> inputList = new List<InputBindingInfo>();
@@ -47,7 +47,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
 
             classDecl = FindClassDeclarationFor(className, root);
             if (IsTypedJsonClass(classDecl)) {
-                autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
+//                autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
                 ns = GetNamespaceForClass(className, root);
                 FillListWithJsonMapInfo(className, root, jsonInstanceName, mapList);
                 FillListWithHandleInputInfo(root, inputList);
@@ -57,7 +57,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             meta.JsonPropertyMapList = mapList;
             meta.RootClassInfo.Namespace = ns;
             meta.RootClassInfo.GenericArg = genericArg;
-            meta.RootClassInfo.AutoBindToDataObject = autoBindToDataObject;
+//            meta.RootClassInfo.AutoBindToDataObject = autoBindToDataObject;
             meta.RootClassInfo.InputBindingList = inputList;
             return meta;
         }
@@ -257,7 +257,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// <param name="jsonInstanceName"></param>
         /// <returns></returns>
         private static CodeBehindClassInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode, string jsonInstanceName) {
-            bool autoBindToDataObject;
+ //           bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
             List<string> parentClassNames = new List<string>();
@@ -265,7 +265,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
 
             // Find the class the attribute was declared on.
             classDecl = FindClass(attributeNode.Parent);
-            autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
+//            autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
             
             // If the class is an inner class we need to get the full name of all classes
             // to be able to connect the generated code in the same structure as the 
@@ -280,7 +280,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             jmi.Namespace = FindNamespaceForClassDeclaration(classDecl);
             jmi.ClassName = classDecl.Identifier.ValueText;
             jmi.GenericArg = genericArg;
-            jmi.AutoBindToDataObject = autoBindToDataObject;
+//            jmi.AutoBindToDataObject = autoBindToDataObject;
             jmi.ParentClasses = parentClassNames;
             return jmi;
         }

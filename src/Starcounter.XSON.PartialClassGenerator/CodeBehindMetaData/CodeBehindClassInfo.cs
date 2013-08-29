@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Starcounter.Templates;
 
 namespace Starcounter.XSON.Metadata {
     /// <summary>
@@ -117,10 +118,9 @@ namespace Starcounter.XSON.Metadata {
         public string BaseClassGenericArg;
 
         /// <summary>
-        /// Boolean telling if this app inherits from a generic App and the properties
-        /// in the app should be automatically bound to the dataobject.
+        /// 
         /// </summary>
-        public bool AutoBindToDataObject;
+        public Bound BindChildren = Bound.No;
 
         /// <summary>
         /// All parent classes of the specified class in the codebehind file.
@@ -166,30 +166,56 @@ namespace Starcounter.XSON.Metadata {
         /// </summary>
         /// <param name="attribute"></param>
         /// <returns></returns>
-        public static CodeBehindClassInfo EvaluateAttributeString(string attribute) {
-
+        public static CodeBehindClassInfo EvaluateAttributeString(string attribute, CodeBehindClassInfo existing) {
             if (attribute == null)
                 return null;
+
+			if (attribute.Contains("BindChildren")) {
+				int count;
+				int index = attribute.IndexOf("Bound.");
+				if (index == -1)
+					throw new Exception("Invalid value for BindChildren attribute");
+
+				index += 6;
+				count = attribute.Length - index - 1;
+
+				Bound bound;
+				if (!Enum.TryParse<Bound>(attribute.Substring(index, count), out bound))
+					throw new Exception("Unable to get correct value from BindChildren attribute");
+
+				if (existing == null)
+					existing = new CodeBehindClassInfo(null);
+				existing.BindChildren = bound;
+				return existing;
+			}
 
             var strings = attribute.Split('.');
 
             // First attempt the old syntax "[MyClass.json.Somestuff]
             for (int t = 0; t < strings.Length; t++) {
                 if (strings[t].Equals("json")) {
-                    var i = new CodeBehindClassInfo(attribute);
-                    i.IsRootClass = (t == strings.Length - 1);
-                    i.ClassPath = CreateClassPathFromOldSyntax(attribute);
-                    return i;
+					if (existing == null)
+						existing = new CodeBehindClassInfo(attribute);
+					else
+						existing.RawDebugJsonMapAttribute = attribute;
+
+					existing.IsRootClass = (t == strings.Length - 1);
+					existing.ClassPath = CreateClassPathFromOldSyntax(attribute);
+					return existing;
                 }
             }
 
             // Then try the new syntax "[MyFile_json.Somestuff]
             for (int t = 0; t < strings.Length; t++) {
                 if (strings[t].EndsWith("_json")) {
-                    var i = new CodeBehindClassInfo(attribute);
-                    i.IsRootClass = (t == strings.Length - 1);
-                    i.ClassPath = CreateClassPathFromNewSyntax(strings);
-                    return i;
+					if (existing == null)
+						existing = new CodeBehindClassInfo(attribute);
+					else
+						existing.RawDebugJsonMapAttribute = attribute;
+
+					existing.IsRootClass = (t == strings.Length - 1);
+					existing.ClassPath = CreateClassPathFromNewSyntax(strings);
+					return existing;
                 }
             }
 

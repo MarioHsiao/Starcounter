@@ -530,11 +530,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add(sb.ToString());
             a.Prefix.Add("        : base() {");
 
-
 //            a.Prefix.Add("        Template = new st::TJson();");
-
-            if (a.AutoBindProperties)
-                a.Prefix.Add("        BindChildren = st::Bound.Yes;");
+			a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
 
             sb = new StringBuilder();
             sb.Append("        InstanceType = typeof(");

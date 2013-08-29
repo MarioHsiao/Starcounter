@@ -34,14 +34,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// If set to true all properties in this appclass will be automatically 
         /// bound, if not specified otherwise on the property, to the underlying dataobject in the app.
         /// </summary>
-        public bool AutoBindProperties {
+        public Bound BindChildren {
             get {
                 var acn = (AstJsonClass)NValueClass;
                 if (acn == null)
-                    return false;
-				if (acn.CodebehindClass == null)
-					return !string.IsNullOrEmpty(((TObject)acn.NTemplateClass.Template).InstanceDataTypeName);
-                return acn.CodebehindClass.AutoBindToDataObject;
+                    return Bound.No;
+				if (acn.CodebehindClass == null) {
+					if (string.IsNullOrEmpty(((TObject)acn.NTemplateClass.Template).InstanceDataTypeName))
+						return Bound.No;
+					return Bound.Yes;
+				}
+				return acn.CodebehindClass.BindChildren;
             }
         }
     }
