@@ -67,7 +67,8 @@ namespace QueryProcessingTest {
             // Test queries with LIKE ?
             //HelpMethods.PrintQueryPlan("select u from user u where userid like ?");
             int nrs = 0;
-            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati%"))
+            var users = Db.SQL<User>("select u from user u where userid like ?", "kati%");
+            foreach (User u in users)
                 nrs++;
             Trace.Assert(nrs == 157);
             nrs = 0;
