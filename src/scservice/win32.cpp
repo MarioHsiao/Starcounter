@@ -95,6 +95,9 @@ uint32_t _exec(wchar_t *command_line, int32_t inherit_console, void **phandle)
     pcf = 0;
     if (!inherit_console) pcf |= CREATE_NO_WINDOW;
 
+    // Uncomment the following to start new console window for each process.
+    //pcf |= CREATE_NEW_CONSOLE;
+
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
     memset(&si, 0, sizeof(pi));
