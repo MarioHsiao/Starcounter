@@ -99,7 +99,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             //return Old.GenerateCodeOld();
             ProcessAllNodes();
 
-            WriteHeader(Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
+            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
             foreach (var napp in Root.Children)
             {
                 WriteNode(napp);
@@ -115,7 +115,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <exception cref="System.Exception">Unable to generate code. Invalid node found. Expected App but found: </exception>
         private void ProcessAllNodes() {
-            AstAppClass napp;
+            AstJsonClass napp;
             AstBase previousKid;
             String previousNs;
             String currentNs = null;
@@ -125,22 +125,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             for (Int32 i = 0; i < Root.Children.Count; i++) {
                 var kid = Root.Children[i];
 
-                if (kid is AstAppClass) {
-                    napp = kid as AstAppClass;
-                    currentNs = napp.Template.Namespace;
+                if (kid is AstJsonClass) {
+                    napp = kid as AstJsonClass;
+
+                    currentNs = napp.Namespace;
+                    if (currentNs != previousNs) {
+                        if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
+                            previousKid.Suffix.Add("}");
+                        }
+
+                        if (!String.IsNullOrEmpty(currentNs)) {
+                            kid.Prefix.Add("");
+                            kid.Prefix.Add("namespace " + currentNs + " {");
+                        }
+                    }
                 }
-                //                    if (napp == null) {
-                //                        throw new Exception("Unable to generate code. Invalid node found. Expected Puppet but found: " + Root.Children[i]);
-                //                    }
-
-                if (currentNs != previousNs) {
-                    if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
-                        previousKid.Suffix.Add("}");
-                    }
-
-                    if (!String.IsNullOrEmpty(currentNs)) {
-                        kid.Prefix.Add("namespace " + currentNs + " {");
-                    }
+                else if (kid is AstClassAlias) {
+                    var alias = kid as AstClassAlias;
+                    kid.Prefix.Add("using " + alias.Alias + " = " + alias.Specifier + ";");
                 }
 
                 ProcessNode(kid);
@@ -162,21 +164,34 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void ProcessNode(AstBase node) {
             var sb = new StringBuilder();
             if (node is AstClass) {
-                if (node is AstObjMetadata) {
-                    var n = node as AstObjMetadata;
+
+
+
+                if (node is AstMetadataClass) {
+                    node.Prefix.Add("");
+                    var n = node as AstMetadataClass;
                     sb.Append("public class ");
-                    sb.Append(n.ClassName);
-                    if (n.Inherits != null) {
+                    sb.Append(n.ClassStemIdentifier);
+//                    if (n.Inherits != null) {
+//                        sb.Append(": ");
+//                       sb.Append(n.Inherits);
+//                    }
+                    sb.Append("<__Tjsonobj__,__jsonobj__>");
+                    if (n.InheritedClass != null) {
                         sb.Append(" : ");
-                        sb.Append(n.Inherits);
+                        sb.Append(n.InheritedClass.GlobalClassSpecifierWithoutGenerics);
+                        sb.Append("<__Tjsonobj__,__jsonobj__>");
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is AstObjMetadata) {
-                        WriteObjMetadataClassPrefix(node as AstObjMetadata);
-                    }
+//                    if (node is AstObjMetadata) {
+                        WriteObjMetadataClassPrefix(node as AstMetadataClass);
+//                    }
+                        node.Suffix.Add("}");
+
                 }
-                else {
+                else if (node is AstClass) {
+                    node.Prefix.Add("");
                     var n = node as AstClass;
                     sb.Append("public ");
                     if (n.IsStatic) {
@@ -186,29 +201,46 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         sb.Append("partial ");
                     }
                     sb.Append("class ");
-                    sb.Append(n.ClassDeclaration);
-                    if (n.Inherits != null) {
-                        sb.Append(" : ");
-                        sb.Append(n.Inherits);
+                    sb.Append(n.ClassStemIdentifier);
+                    if (node is AstSchemaClass) {
+                        var ast = node as AstSchemaClass;
+                        var inherited = (AstSchemaClass)ast.InheritedClass; 
+//                        sb.Append("<__jsonobj__>");
+                        if (inherited != null) {
+                            sb.Append(" : ");
+                            sb.Append(inherited.GlobalClassSpecifierWithoutGenerics);
+//                            sb.Append("<__jsonobj__> where __jsonobj__ : ");
+//                            sb.Append(ast.NValueClass.GlobalClassSpecifier);
+//                            sb.Append(", new()");
+                        }
+                    }
+                    else {
+                        if (n.Inherits != null) {
+                            sb.Append(" : ");
+                            sb.Append(n.Inherits);
+                        }
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is AstAppClass) {
-                        WriteAppClassPrefix(node as AstAppClass);
+                    if (node is AstJsonClass) {
+                        WriteAppClassPrefix(node as AstJsonClass);
                     }
-                    else if (node is AstTAppClass) {
-                        WriteTAppConstructor((node as AstTAppClass).Constructor);
-                        WriteTAppCreateInstance(node as AstTAppClass);
+                    else if (node is AstSchemaClass) {
+                        WriteTAppConstructor((node as AstSchemaClass).Constructor);
+                       // WriteTAppCreateInstance(node as AstTAppClass);
                     }
+                    node.Suffix.Add("}");
                 }
-                node.Suffix.Add("}");
+                else  {
+                    throw new Exception();
+                }
             }
             else if (node is AstProperty) {
-                if (node.Parent is AstAppClass)
+                if (node.Parent is AstJsonClass)
                     WriteAppMemberPrefix(node as AstProperty);
-                else if (node.Parent is AstTAppClass)
+                else if (node.Parent is AstSchemaClass)
                     WriteTAppMemberPrefix(node as AstProperty);
-                else if (node.Parent is AstObjMetadata)
+                else if (node.Parent is AstMetadataClass)
                     WriteObjMetadataMemberPrefix(node as AstProperty);
             } 
 
@@ -242,7 +274,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteAppMemberPrefix(AstProperty m) {
+        private void WriteAppMemberPrefixOld(AstProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.GlobalClassSpecifier);
@@ -253,9 +285,48 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //                sb.Append(((NArr)m.Type).NApp.GlobalClassSpecifier);
 //                sb.Append('>');
 //            }
-            if (m.FunctionGeneric != null) {
+//            if (m.FunctionGeneric != null) {
+//                sb.Append(" { get { return Get<");
+//                sb.Append(m.FunctionGeneric.GlobalClassSpecifier);
+//                sb.Append('>');
+//            }
+//            else {
+                sb.Append(" { get { return Get");
+//            }
+            sb.Append("(Template.");
+            sb.Append(m.MemberName);
+            sb.Append("); } set { Set");
+ //           if (m.Type is AstArrXXXClass) {
+ //               sb.Append('<');
+ //               sb.Append(((AstArrXXXClass)m.Type).NApp.GlobalClassSpecifier);
+ //               sb.Append('>');
+ //           }
+            sb.Append("(Template.");
+            sb.Append(m.MemberName);
+            sb.Append(", value); } }");
+            m.Prefix.Add(sb.ToString());
+        }
+
+
+        /// <summary>
+        /// Writes the app member prefix.
+        /// </summary>
+        /// <param name="m">The m.</param>
+        private void WriteAppMemberPrefix(AstProperty m) {
+            var sb = new StringBuilder();
+            sb.Append("public ");
+            sb.Append(m.Type.GlobalClassSpecifier);
+            sb.Append(' ');
+            sb.Append(m.MemberName);
+            //            if (m.Type is NArr) {
+            //                sb.Append('<');
+            //                sb.Append(((NArr)m.Type).NApp.FullClassName);
+            //                sb.Append('>');
+            //            }
+
+            if (m.Type is AstJsonClass) {
                 sb.Append(" { get { return Get<");
-                sb.Append(m.FunctionGeneric.GlobalClassSpecifier);
+                sb.Append(m.Type.GlobalClassSpecifier);
                 sb.Append('>');
             }
             else {
@@ -264,11 +335,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append("(Template.");
             sb.Append(m.MemberName);
             sb.Append("); } set { Set");
-            if (m.Type is AstArrXXXClass) {
-                sb.Append('<');
-                sb.Append(((AstArrXXXClass)m.Type).NApp.GlobalClassSpecifier);
-                sb.Append('>');
-            }
             sb.Append("(Template.");
             sb.Append(m.MemberName);
             sb.Append(", value); } }");
@@ -279,51 +345,75 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app class prefix.
         /// </summary>
         /// <param name="a">A.</param>
-        private void WriteAppClassPrefix(AstAppClass a) {
+        private void WriteAppClassPrefix(AstJsonClass a) {
             a.Prefix.Add(
                 "    public static " +
-                a.ClassSpecifierWithoutNamespace + " GET(string uri) { return (" + 
-                a.ClassSpecifierWithoutNamespace + ")X.GET(uri); }");
-            a.Prefix.Add(
-                "    public static " +
-                a.NTemplateClass.ClassName +
-                " DefaultTemplate = new " +
-                a.NTemplateClass.ClassName +
-                "();");
+                a.ClassSpecifierWithoutOwners + " GET(string uri) { return (" + 
+                a.ClassSpecifierWithoutOwners + ")X.GET(uri); }");
 
+            a.Prefix.Add(
+                "    public static " +
+                a.NTemplateClass.GlobalClassSpecifier +
+                " DefaultTemplate = new " +
+                a.NTemplateClass.GlobalClassSpecifier + "();");
+
+            //                    public static LogEntry GET(string uri) { return (LogEntry)X.GET(uri); }
+            //    public static TJson DefaultTemplate = new st::TJson();
+            //    public LogEntry() { Template = DefaultTemplate; }
+            //    public LogEntry(TJson template) { Template = template; }
+
+
+//            a.Prefix.Add(
+//                "    public " +
+//                a.NTemplateClass.ClassName +
+//                " XPROP = new " +
+//                a.NTemplateClass.ClassName +
+//                "(Template);");
+
+ //           a.Prefix.Add("    public " 
+ //                        + a.ClassName 
+ //                        + "() : base() { Template = DefaultTemplate; }");
             a.Prefix.Add("    public " 
-                         + a.ClassName 
+                         + a.ClassStemIdentifier 
                          + "() { Template = DefaultTemplate; }");
             a.Prefix.Add("    public " 
-                         + a.ClassName 
-                         + "("
-                         + a.NTemplateClass.ClassName
-                         + " template) { Template = template; }"); 
+                         + a.ClassStemIdentifier 
+                         + "(" +
+                         a.NTemplateClass.GlobalClassSpecifier + 
+                         " template) { Template = template; }");
+
             a.Prefix.Add(
-                "    public new " +
-                a.NTemplateClass.ClassName +
-                " Template { get { return (" +
-                a.NTemplateClass.ClassName +
-                ")(this as s::Json).Template; } set { (this as s::Json).Template = value; } }");
-            a.Prefix.Add(
-                "    public new " +
-                a.NTemplateClass.NMetadataClass.ClassName +
-                " Metadata { get { return (" +
-                a.NTemplateClass.NMetadataClass.ClassName +
-                ")(this as s::Json).Metadata; } }");
+    "    public new " +
+    a.NTemplateClass.GlobalClassSpecifier +
+    " Template { get { return (" +
+    a.NTemplateClass.GlobalClassSpecifier +
+    ")base.Template; } set { base.Template = value; } }");
+
+            var par = a.ParentProperty;
+            if (par != null) {
+                a.Prefix.Add(
+                    "    public new " +
+                    par.GlobalClassSpecifier +
+                    " Parent { get { return (" +
+                    par.GlobalClassSpecifier +
+                    ")base.Parent; } set { base.Parent = value; } }");
+            }
+            /*
+
             if (a.Template.Parent != null) {
-                string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassName;
+                string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassStemIdentifier;
                 a.Prefix.Add(
                     "    public new " +
                     parentClass +
                     " Parent { get { return (" +
-                    parentClass +
+                   parentClass +
                     ")(this as s::Json).Parent; } set { (this as s::Json).Parent = value; } }");
             }
+             */
         }
 
         private AstClass GetParentPropertyType(Template a) {
-            var x = Generator.FindValueClass((Template)a.Parent);
+            var x = Generator.ObtainValueClass((Template)a.Parent);
             return x;
         }
 
@@ -340,7 +430,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
 
-            var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
+           // var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
         }
 
         /// <summary>
@@ -367,7 +457,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(", ");
             sb.Append("App"); // Property name .App TODO
             sb.Append(".Template.");
-            sb.Append(m.MemberName);
+                        sb.Append(m.MemberName);
+            //sb.Append("Properties[\"" + m.Template.PropertyName + "\"]" );
             sb.Append(")); } }");
             m.Prefix.Add(sb.ToString());
 
@@ -380,6 +471,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             m.Prefix.Add(sb.ToString());
         }
 
+        /*
         /// <summary>
         /// Writes override method for creating default appinstance from template.
         /// </summary>
@@ -399,20 +491,47 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             node.Prefix.Add(sb.ToString());
         }
+         */
 
         /// <summary>
         /// Writes the class declaration and constructor for an TApp class
         /// </summary>
         /// <param name="cst">The CST.</param>
         private void WriteTAppConstructor(AstConstructor cst) {
-            AstTAppClass a = (AstTAppClass)cst.Parent;
-            
+            AstSchemaClass a = (AstSchemaClass)cst.Parent;
+
+            /*
+            a.Prefix.Add("    public " + a.ClassName + "(TJson template)");
+            a.Prefix.Add("        : base(template) {");
+
             var sb = new StringBuilder();
+            foreach (AstBase kid in cst.Children) {
+                if (kid is AstProperty) {
+                    var mn = kid as AstProperty;
+                    sb = new StringBuilder();
+                    sb.Append("        ");
+                    sb.Append(mn.MemberName);
+                    sb.Append(" = (");
+                    sb.Append(mn.Type.GlobalClassSpecifier);
+                    sb.Append(")Template.Properties[\"");
+                    sb.Append(mn.Template.TemplateName);
+                    sb.Append("\"];");
+                    a.Prefix.Add(sb.ToString());
+                }
+            }
+            a.Prefix.Add("    }");
+            */
+
+            var sb = new StringBuilder();
+
             sb.Append("    public ");
-            sb.Append(a.ClassName);
+            sb.Append(a.ClassStemIdentifier);
             sb.Append("()");
             a.Prefix.Add(sb.ToString());
             a.Prefix.Add("        : base() {");
+
+
+//            a.Prefix.Add("        Template = new st::TJson();");
 
             if (a.AutoBindProperties)
                 a.Prefix.Add("        BindChildren = true;");
@@ -422,10 +541,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(a.NValueClass.GlobalClassSpecifier);
             sb.Append(");");
             a.Prefix.Add(sb.ToString());
+
             
             sb = new StringBuilder();
             sb.Append("        ClassName = \"");
-            sb.Append(a.NValueClass.ClassName);
+            sb.Append(a.NValueClass.ClassStemIdentifier);
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
 
@@ -462,16 +582,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
                     }
 
-                    string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
-                    if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.FullClassName.Equals( objClassName ))) { // TODO!
+                    if (mn.Template is TObjArr) {
                         sb.Clear();
                         sb.Append("        ");
-                        sb.Append(mn.MemberName);
+                         sb.Append(mn.MemberName);
                         sb.Append(".ElementType = ");
-                        sb.Append(mn.FunctionGeneric.GlobalClassSpecifier);
+                        sb.Append(mn.Type.Generic[0].GlobalClassSpecifier);
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());
                     }
+ 
                 }
                 else if (kid is AstInputBinding)
                 {
@@ -489,17 +609,23 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>String.</returns>
         private String GetAddInputHandlerCode(AstInputBinding ib)
         {
+			// TODO:
+			// Needs to be rewritten for better handling of changes in xson code.
+
             bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
             sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            sb.Append(".AddHandler((Obj pup, TValue");
+			sb.Append(".AddHandler((Json pup, ");
 
-            if (hasValue) {
-                sb.Append('<');
-                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            }
+			if (hasValue) {
+				sb.Append("Property");
+				sb.Append('<');
+				sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
+				sb.Append('>');
+			} else {
+				sb.Append("TValue");
+			}
             sb.Append(" prop");
 
             if (hasValue) {
@@ -510,9 +636,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(") => { return (new ");
             sb.Append(ib.InputTypeName);                       // {2}
             sb.Append("() { App = (");
-            sb.Append(ib.PropertyAppClass.ClassName);          // {3}
+            sb.Append(ib.PropertyAppClass.ClassStemIdentifier);          // {3}
             sb.Append(")pup, Template = (");
-            sb.Append(ib.BindsToProperty.Type.ClassName);      // {4}
+            sb.Append(ib.BindsToProperty.Type.ClassStemIdentifier);      // {4}
             sb.Append(")prop");
             
             if (hasValue)
@@ -520,7 +646,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 sb.Append(", Value = value");
             }
 
-            sb.Append(" }); }, (Obj pup, Starcounter.Input");
+			sb.Append(" }); }, (Json pup, Starcounter.Input");
 
             if (hasValue) {
                 sb.Append('<');
@@ -529,7 +655,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
 
             sb.Append(" input) => { ((");
-            sb.Append(ib.DeclaringAppClass.ClassName);         // {5}
+            sb.Append(ib.DeclaringAppClass.ClassStemIdentifier);         // {5}
             sb.Append(")pup");
 
             for (Int32 i = 0; i < ib.AppParentCount; i++)
@@ -551,26 +677,28 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void WriteObjMetadataClassPrefix(AstMetadataClass a) {
             var sb = new StringBuilder();
             sb.Append("    public ");
-            sb.Append(a.ClassName);
+            sb.Append(a.ClassStemIdentifier);
 
-            string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
-            string tobjClassName = Generator.DefaultObjTemplate.GetType().Name;
+            //string objClassName = Gen2DomGenerator.GetClassDeclarationSyntax( Generator.DefaultObjTemplate.InstanceType );
+            //            string tobjClassName = Gen2DomGenerator.GetClassDeclarationSyntax(Generator.DefaultObjTemplate.GetType());
+//            string tobjClassName = Generator.TemplateClasses[Generator.DefaultObjTemplate].GlobalClassSpecifier;
 
             sb.Append('(');
-            sb.Append( objClassName ); // "Puppet", "Json"
+            sb.Append( ((AstJsonClass)a.NValueClass).GlobalClassSpecifier ); // "Puppet", "Json"
             sb.Append(" obj, ");
-            sb.Append(tobjClassName); // "TPuppet", "TJson"
+            sb.Append(((AstClass)a).GlobalClassSpecifier); // "TPuppet", "TJson"
             sb.Append(" template) : base(obj, template) { }");
             a.Prefix.Add(sb.ToString());
-            sb = new StringBuilder();
-            sb.Append("    public new ");
-            sb.Append(a.NTemplateClass.NValueClass.GlobalClassSpecifier);
-            sb.Append(' ');
-            sb.Append( "App" ); // TODO! Property name .Json
-            sb.Append(" { get { return (");
-            sb.Append(a.NTemplateClass.NValueClass.GlobalClassSpecifier);
-            sb.Append(")base.App; } }");
-            a.Prefix.Add(sb.ToString());
+//            sb = new StringBuilder();
+//            sb.Append("    public new ");
+//            sb.Append(a.NTemplateClass.NValueClass.GlobalClassSpecifier);
+//            sb.Append(' ');
+//            sb.Append( "App" ); // TODO! Property name .Json
+//            sb.Append(" { get { return (");
+//            sb.Append(a.NTemplateClass.NValueClass.GlobalClassSpecifier);
+//            sb.Append(")base.App; } }");
+//            a.Prefix.Add(sb.ToString());
+            /*
             sb = new StringBuilder();
             sb.Append("    public new ");
             sb.Append(a.NTemplateClass.GlobalClassSpecifier);
@@ -578,6 +706,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(a.NTemplateClass.GlobalClassSpecifier);
             sb.Append(")base.Template; } }");
             a.Prefix.Add(sb.ToString());
+ */
         }
 
         /// <summary>
@@ -585,7 +714,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="fileName">The name of the original json file</param>
         /// <param name="h">The h.</param>
-        static internal void WriteHeader( string fileName, StringBuilder h ) {
+        static internal void WriteHeader( AstRoot root, string fileName, StringBuilder h ) {
             h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);
             h.Append('"');
@@ -601,6 +730,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using Starcounter.Templates;\n");
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
+//            h.Append("using TJson = Starcounter.Templates.Schema;\n");
+//            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
+
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
 			h.Append('\n');

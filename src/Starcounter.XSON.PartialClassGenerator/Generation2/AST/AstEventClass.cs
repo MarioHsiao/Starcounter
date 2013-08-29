@@ -40,7 +40,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets the name of the class.
         /// </summary>
         /// <value>The name of the class.</value>
-        public override string ClassName {
+        public override string ClassStemIdentifier {
             get { return NMember.MemberName; }
         }
 
@@ -49,15 +49,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <value>The N template.</value>
         public AstTemplateClass NTemplate {
-            get { return  ((AstValueClass)NMember.Type).NTemplateClass; }
+            get { return  ((AstInstanceClass)NMember.Type).NTemplateClass; }
         }
 
         /// <summary>
         /// Gets the N app.
         /// </summary>
         /// <value>The N app.</value>
-        public AstAppClass NApp {
-            get { return (AstAppClass)NMember.Parent; }
+        public AstJsonClass NApp {
+            get { return (AstJsonClass)NMember.Parent; }
         }
 
 

@@ -18,7 +18,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         internal Gen2DomGenerator Generator;
 
-        internal void RunPhase2( AstAppClass acn, AstTAppClass tcn, AstObjMetadata mcn ) {
+        internal void RunPhase2( AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn ) {
             MoveNestedClassToBottom(Generator.Root);
         }
 
@@ -33,17 +33,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void MoveNestedClassToBottom(AstBase node) {
             var move = new List<AstBase>();
             foreach (var kid in node.Children) {
-                if (kid is AstAppClass) {
+                if (kid is AstJsonClass) {
                     move.Add(kid);
                 }
             }
             foreach (var kid in node.Children) {
-                if (kid is AstTAppClass) {
+                if (kid is AstSchemaClass) {
                     move.Add(kid);
                 }
             }
             foreach (var kid in node.Children) {
-                if (kid is AstObjMetadata) {
+                if (kid is AstMetadataClass) {
                     move.Add(kid);
                 }
             }

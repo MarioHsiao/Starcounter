@@ -29,7 +29,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             // Session.Current.LogChanges = true;
 
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
@@ -64,7 +64,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Session.Current.CreateJsonPatch(true); // Flushing
 
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
@@ -91,7 +91,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Session.Data = j;
             j.FirstName = "Jack";
             nicke.FirstName = "Nicke";
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");

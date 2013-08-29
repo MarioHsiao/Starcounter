@@ -139,8 +139,8 @@ namespace Starcounter.Internal.Web {
 
                         // In case of returned JSON object within current session we need to save it
                         // for later reuse.
-                        Obj rootJsonObj = Session.Data;
-                        Obj curJsonObj = null;
+                        Json rootJsonObj = Session.Data;
+                        Json curJsonObj = null;
                         if (null != result) {
 
                             // Setting session on result only if its original request.

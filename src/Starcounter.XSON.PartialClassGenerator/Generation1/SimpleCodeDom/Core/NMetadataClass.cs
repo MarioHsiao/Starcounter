@@ -6,6 +6,8 @@
 
 using Starcounter.Templates;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.TObject;
+
 
 namespace Starcounter.Internal.Application.CodeGeneration {
 
@@ -42,7 +44,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 // TODO: 
                 // If we have a typed Json or Puppet class either we need to use the ObjMetadata 
                 // class or have a separate JsonMetadata and PuppetMetadata class.
-                if (NTemplateClass.Template is TObj) {
+                if (NTemplateClass.Template is TJson) {
                     type = "Obj";
                 } else {
                     type = NTemplateClass.NValueClass.ClassName;

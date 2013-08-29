@@ -105,11 +105,6 @@ class test : private noncopyable {
 public:
 	//typedef std::set<std::string> monitor_interface_name_type;
 
-	enum {
-		// Number of workers to be instantiated in the test.
-		workers = 2
-	};
-	
 	/// Construction of the test application.
 	// Log messages are appended to the log file, it is never deleted.
 	/**
@@ -136,7 +131,7 @@ public:
 	owner_id get_owner_id() const;
 
 	/// Start the test.
-	void run(uint32_t timeout_seconds);
+	void run();
 	
 	/// Stop a worker.
     /**
@@ -207,8 +202,40 @@ public:
 	}
 
 	worker& get_worker(std::size_t i) {
-		return worker_[i];
+		return *worker_[i];
 	}
+
+    /// Get timeout in milliseconds.
+    /**
+     * @return Timeout in milliseconds.
+     */
+    uint32_t timeout() const {
+        return timeout_;
+    }
+
+    /// Get number of workers.
+    /**
+     * @return Number of workers.
+     */
+    size_t workers() const {
+        return worker_.size();
+    }
+
+    void show_statistics() {
+        all_pushed_ = 0;
+        all_popped_ = 0;
+
+        for (size_t i = 0; i < workers(); ++i) {
+            all_pushed_ += get_worker(i).pushed();
+            all_popped_ += get_worker(i).popped();
+        }
+
+        std::cout << "Statistics for all workers together:" << std::endl;
+        std::cout << "Pushed: " << all_pushed_ <<
+        " (" << uint64_t(double(all_pushed_) * 1E3 / timeout()) << "/s)" << std::endl;
+        std::cout << "Popped: " << all_popped_ <<
+        " (" << uint64_t(double(all_popped_) * 1E3 / timeout()) << "/s)" << std::endl;
+   }
 
 private:
 	//std::vector<database> database_;
@@ -231,14 +258,20 @@ private:
 	//std::map<std::string, owner_id> owner_id_;
 	owner_id owner_id_;
 
+    // Timeout for IPC test, in milliseconds.
+    uint32_t timeout_;
+
 	// Event to wait for active databases update.
 	::HANDLE active_databases_updates_event_;
 
-	// message queue - to simulate fetching messages from a interprocess_communication via Win32API
-	
-	// The workers.
-	worker worker_[workers];
+    // Statistics for all workers together. This is gathered after all worker
+    // threads have joined.
+    uint64_t all_pushed_;
+    uint64_t all_popped_;
 
+	// The workers.
+	std::vector<worker*> worker_;
+    
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	// Statistics thread.
 # if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
