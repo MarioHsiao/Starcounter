@@ -276,9 +276,13 @@ namespace Starcounter.XSON.Compiler.Mono {
 
             while (mce.MoveNext()) {
                 if (mce.Token == CSharpToken.CLOSE_BRACKET) {
-                    var jmi = CodeBehindClassInfo.EvaluateAttributeString(attribute);
+					// TODO:
+					// Need to handle the analyzing of attributes better since we now support
+					// more than one attribute declared on a json class.
+                    var jmi = CodeBehindClassInfo.EvaluateAttributeString(attribute, mce.LastFoundJsonAttribute);
                     if (jmi != null) {
-                        jmi.IsDeclaredInCodeBehind = true;
+						if (jmi.RawDebugJsonMapAttribute != null)
+							jmi.IsDeclaredInCodeBehind = true;
                         mce.LastFoundJsonAttribute = jmi;
                     }
                     break;
@@ -288,7 +292,11 @@ namespace Starcounter.XSON.Compiler.Mono {
                     attribute += ".";
                 } else if (mce.Token == CSharpToken.COMMA) {
                     attribute = null;
-                }
+				} else if (mce.Token == CSharpToken.OPEN_PARENS) {
+					attribute += "(";
+				} else if (mce.Token == CSharpToken.CLOSE_PARENS) {
+					attribute += ")";
+				}
             }
         }
 
@@ -356,7 +364,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     classInfo.GenericArg = genericArg;
                     classInfo.BaseClassGenericArg = baseClassGenericArg;
                     classInfo.BaseClassName = baseClass;
-                    classInfo.AutoBindToDataObject = (genericArg != null);
+//                    classInfo.AutoBindToDataObject = (genericArg != null);
 					metadata.JsonPropertyMapList.Add(classInfo);
 
 #if DEBUG
@@ -369,7 +377,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                 else {
                     var info = classInfo; // JsonMapInfo.EvaluateAttributeString(attribute);
                     if (info != null) {
-                        info.AutoBindToDataObject = (genericArg != null);
+ //                       info.AutoBindToDataObject = (genericArg != null);
                         info.ClassName = foundClassName;
                         info.BaseClassName = baseClass;
                         info.GenericArg = genericArg;

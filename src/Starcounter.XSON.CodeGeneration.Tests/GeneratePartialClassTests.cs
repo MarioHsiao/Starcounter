@@ -139,6 +139,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(codegen.GenerateCode());
         }
 
+		[Test]
+		public static void GenerateInheritedPartialClass() {
+			var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+				"PartialClassGeneration/ChildMsg.json",
+				"PartialClassGeneration/ChildMsg.json.cs");
+			var astTree = codegen.DumpAstTree();
+			var code = codegen.GenerateCode();
+
+			//Console.WriteLine(astTree);
+			Console.WriteLine(code);
+		}
+
     }
 }
 

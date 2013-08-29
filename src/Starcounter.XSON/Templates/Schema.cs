@@ -130,7 +130,7 @@ namespace Starcounter.Templates {
             set {
                 instanceDataTypeName = value;
                 if (!string.IsNullOrEmpty(value))
-                    BindChildren = true;
+					BindChildren = Bound.Yes;
             }
         }
 
@@ -253,7 +253,7 @@ namespace Starcounter.Templates {
         public T Add<T>(string name, string bind) where T : TValue, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
-                t = new T() { TemplateName = name, Bind = bind, Bound = Bound.Yes };
+                t = new T() { TemplateName = name, Bind = bind};
                 Properties.Add(t);
             } else {
                 Properties.Expose(t);
@@ -274,7 +274,7 @@ namespace Starcounter.Templates {
         public T Add<T>(string name, TJson type, string bind) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
-                t = new T() { TemplateName = name, ElementType = type, Bind = bind, Bound = Bound.Yes };
+                t = new T() { TemplateName = name, ElementType = type, Bind = bind};
                 Properties.Add(t);
             } else {
                 Properties.Expose(t);
@@ -303,9 +303,6 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="property"></param>
         internal void OnPropertyAdded(Template property) {
-            if (BindChildren) {
-                CheckBindingForChild(property);
-            }
         }
 
         /// <summary>
