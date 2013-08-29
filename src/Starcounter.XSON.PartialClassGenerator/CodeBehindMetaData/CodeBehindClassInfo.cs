@@ -90,6 +90,10 @@ namespace Starcounter.XSON.Metadata {
                 var str = "global::";
                 if (Namespace != null)
                     str += Namespace + ".";
+
+				for (int i = (ParentClasses.Count - 1); i >= 0; i--)
+					str += ParentClasses[i] + ".";
+				
                 str += ClassName;
                 if (GenericArg != null) {
                     str += "<" + GenericArg + ">";
