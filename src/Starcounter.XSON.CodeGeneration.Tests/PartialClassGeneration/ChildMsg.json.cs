@@ -2,6 +2,7 @@ using Starcounter;
 
 
 namespace StarcounterApplication6 {
+	[BindChildren(Bound.Auto)]
 	[ChildMsg_json]
 	public partial class ChildMsg : BaseMsg {
 
