@@ -10,12 +10,17 @@ namespace Starcounter.Advanced.XSON {
     public class DefaultSerializer : TypedJsonSerializerBase {
         public static readonly TypedJsonSerializer Instance = new DefaultSerializer();
 
-        public override int PopulateFromJson(Obj obj, IntPtr buffer, int jsonSize) {
+        public override int PopulateFromJson(Json obj, IntPtr buffer, int jsonSize) {
             string propertyName;
+
+            if (obj.IsArray) {
+                throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
+            }
+
             var reader = new JsonReader(buffer, jsonSize);
             Arr arr;
-            Obj childObj;
-            TObj tObj = obj.Template;
+            Json childObj;
+            TObject tObj = (TObject)obj.Template;
             Template tProperty;
 
             while (reader.GotoProperty()) {
@@ -37,8 +42,9 @@ namespace Starcounter.Advanced.XSON {
                         obj.Set((TLong)tProperty, reader.ReadLong());
                     } else if (tProperty is TString) {
                         obj.Set((TString)tProperty, reader.ReadString());
-                    } else if (tProperty is TObj) {
-                        childObj = obj.Get((TObj)tProperty);
+                    }
+                    else if (tProperty is TObject) {
+                        childObj = obj.Get((TObject)tProperty);
                         reader.PopulateObject(childObj);
                     } else if (tProperty is TObjArr) {
                         arr = obj.Get((TObjArr)tProperty);

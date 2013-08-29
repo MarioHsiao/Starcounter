@@ -11,7 +11,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class TOid : TValue<UInt64> {
+    public class TOid : PrimitiveProperty<UInt64> {
 
         /// <summary>
         /// Gets or sets the default value.
@@ -19,7 +19,11 @@ namespace Starcounter.Templates {
         /// <value>The default value.</value>
         public UInt64 DefaultValue { get; set; }
 
-        public override void ProcessInput(Obj obj, byte[] rawValue) {
+        public override Type MetadataType {
+            get { throw new NotImplementedException(); } // TODO!
+        }
+
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new NotImplementedException();
         }
 

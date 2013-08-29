@@ -3,6 +3,9 @@ using NUnit.Framework;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.TObject;
+
+
 namespace Starcounter.Internal.XSON.Tests {
 
     [TestFixture]
@@ -19,7 +22,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.FirstName = "Joachim";
             j.Age = 43;
             j.Length = 184.7;            
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Assert.AreEqual("Joachim", j.FirstName);
             Assert.AreEqual(43, j.Age);
@@ -37,7 +40,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.FirstName = "Joachim";
 
             Assert.Throws(typeof(Exception), () => { nicke.Template = j.Template; });
-            Assert.DoesNotThrow(() => olle.Template = new TObj());
+            Assert.DoesNotThrow(() => olle.Template = new TJson());
 
         }
 

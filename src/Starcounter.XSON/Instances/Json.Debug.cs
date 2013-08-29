@@ -10,7 +10,7 @@ using System;
 using System.Text;
 namespace Starcounter {
 
-    public partial class Obj {
+    public partial class Json {
 
         internal string DebugString {
             get {
@@ -20,7 +20,28 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="i"></param>
         internal override void WriteToDebugString(StringBuilder sb, int i) {
+            if (this.IsArray) {
+                throw new NotImplementedException();
+//                WriteToDebugString(sb, i, (ArrSchema<Json>)Template);
+            }
+            else {
+                WriteToDebugString(sb, i, (TObject)Template);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="i"></param>
+        /// <param name="template"></param>
+        internal void WriteToDebugString(StringBuilder sb, int i, TObject template ) {
 
             _WriteDebugProperty(sb);
 
@@ -43,7 +64,7 @@ namespace Starcounter {
                     v.WriteToDebugString(sb, i);
                 }
                 else {
-                    var prop = this.Template.Properties[t];
+                    var prop = template.Properties[t];
                     sb.Append('"');
                     sb.Append(prop.PropertyName);
                     sb.Append("\":");

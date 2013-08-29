@@ -11,7 +11,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API {
 					var sr = new ErrorReport();
 					sr.Installation = Db.SQL<Installation>("SELECT i FROM Installation i WHERE i.InstallationNo=?", report.InstallationNo).First;
 
-					foreach (Report.LoggedItemsObj item in report.LoggedItems) {
+					foreach (Report.LoggedItemsElementJson item in report.LoggedItems) {
 						var dbItem = new ErrorReportItem();
 						dbItem.Report = sr;
 						dbItem.Date = DateTime.Parse(item.Date);

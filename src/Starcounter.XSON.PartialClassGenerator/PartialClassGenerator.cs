@@ -7,6 +7,9 @@ using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 using System;
 using System.IO;
+using TJson = Starcounter.Templates.TObject;
+
+
 namespace Starcounter.Internal.XSON {
     public class PartialClassGenerator {
 
@@ -23,13 +26,14 @@ namespace Starcounter.Internal.XSON {
                 codeBehind = null;
             }
 
-            var t = TObj.CreateFromMarkup<Json, TJson>("json", jsonContent, jsonFilePath);
+            //            var t = TJson.CreateFromMarkup<Json, TJson>("json", jsonContent, jsonFilePath);
+            var t = TJson.CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", jsonContent, jsonFilePath);
             t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
 
             return GenerateTypedJsonCode( t, codeBehind, codeBehindFilePath);
         }
 
-        public static ITemplateCodeGenerator GenerateTypedJsonCode( TJson template, string codebehind, string codeBehindFilePathNote ) {
+        public static ITemplateCodeGenerator GenerateTypedJsonCode(TJson template, string codebehind, string codeBehindFilePathNote) {
 
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
@@ -45,14 +49,13 @@ namespace Starcounter.Internal.XSON {
             //            t = CreateJsonTemplate(className, jsonContent);
 //            className = t.ClassName;
 
-            if (String.IsNullOrEmpty(template.Namespace))
-                template.Namespace = metadata.RootClassInfo.Namespace;
+            var rootClassInfo = metadata.RootClassInfo;
 
-            if (metadata.RootClassInfo.IsMapped ||
-                  (!metadata.RootClassInfo.IsDeclaredInCodeBehind && metadata.JsonPropertyMapList.Count > 1 ) )
-               codegenmodule = new Gen2CodeGenerationModule(); // Before gen2, we did not support json attributes on the root class
-            else
-               codegenmodule = new Gen1CodeGenerationModule();
+            if (rootClassInfo != null) {
+                if (String.IsNullOrEmpty(template.Namespace))
+                    template.Namespace = metadata.RootClassInfo.Namespace;
+            }
+            codegenmodule = new Gen2CodeGenerationModule();
 
             codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", template, metadata);
 

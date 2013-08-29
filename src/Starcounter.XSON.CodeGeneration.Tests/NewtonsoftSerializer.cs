@@ -7,17 +7,22 @@ using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
+using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Internal.XSON {
     public class NewtonsoftSerializer : TypedJsonSerializer {
-        public override string ToJson(Obj obj) {
+        public override string ToJson(Json obj) {
             bool needsComma;
             int t;
             StringBuilder sb;
             Template tProp;
-            TObj tObj;
+            TJson tObj;
 
-            tObj = obj.Template;
+            if (obj.IsPrimitive || obj.IsArray) {
+                throw new NotImplementedException("Serialization of Json objects where the root element is an array or a primtive object is not supported");
+            }
+
+            tObj = (TJson)obj.Template;
             t = 0;
             needsComma = false;
 
@@ -43,8 +48,8 @@ namespace Starcounter.Internal.XSON {
                             sb.Append(x.ToJson());
                         }
                         sb.Append(']');
-                    } else if (tProp is TObj) {
-                        sb.Append(((Obj)val).ToJson());
+                    } else if (tProp is TJson) {
+                        sb.Append(((Json)val).ToJson());
                     } else {
                         object papa = val;
                         TValue valueProperty = tProp as TValue;
@@ -60,16 +65,16 @@ namespace Starcounter.Internal.XSON {
             return sb.ToString();
         }
 
-        public override byte[] ToJsonUtf8(Obj obj) {
+        public override byte[] ToJsonUtf8(Json obj) {
             return Encoding.UTF8.GetBytes(ToJson(obj));
         }
 
-        public override int ToJsonUtf8(Obj obj, out byte[] buffer) {
+        public override int ToJsonUtf8(Json obj, out byte[] buffer) {
             buffer = ToJsonUtf8(obj);
             return buffer.Length;
         }
 
-        public override int PopulateFromJson(Obj obj, string json) {
+        public override int PopulateFromJson(Json obj, string json) {
             using (JsonTextReader reader = new JsonTextReader(new StringReader(json))) {
                 if (reader.Read()) {
 
@@ -82,11 +87,11 @@ namespace Starcounter.Internal.XSON {
             }
         }
 
-        public override int PopulateFromJson(Obj obj, byte[] buffer, int bufferSize) {
+        public override int PopulateFromJson(Json obj, byte[] buffer, int bufferSize) {
             return PopulateFromJson(obj, Encoding.UTF8.GetString(buffer, 0, bufferSize));
         }
 
-        public override int PopulateFromJson(Obj obj, IntPtr buffer, int jsonSize) {
+        public override int PopulateFromJson(Json obj, IntPtr buffer, int jsonSize) {
             byte[] jsonArr = new byte[jsonSize];
             Marshal.Copy(buffer, jsonArr, 0, jsonSize);
             return PopulateFromJson(obj, jsonArr, jsonSize);
@@ -98,20 +103,26 @@ namespace Starcounter.Internal.XSON {
         /// </summary>
         /// <param name="obj">The object to set the parsed values in</param>
         /// <param name="reader">The JsonReader containing the json to be parsed.</param>
-        private void PopulateObject(Obj obj, Newtonsoft.Json.JsonReader reader) {
+        private void PopulateObject(Json obj, Newtonsoft.Json.JsonReader reader) {
             bool insideArray = false;
             Template tChild = null;
-            TObj tobj = obj.Template;
+
+            if (obj.IsPrimitive || obj.IsArray) {
+                throw new NotImplementedException("Deserialization of Json objects where the root element is an array or a primtive object is not supported");
+            }
+
+
+            TJson tobj = (TJson)obj.Template;
             
             try {
                 while (reader.Read()) {
                     switch (reader.TokenType) {
                         case JsonToken.StartObject:
-                            Obj newObj;
+                            Json newObj;
                             if (insideArray) {
                                 newObj = obj.Get((TObjArr)tChild).Add();
                             } else {
-                                newObj = obj.Get((TObj)tChild);
+                                newObj = obj.Get((TJson)tChild);
                             }
                             PopulateObject(newObj, reader);
                             break;
@@ -136,8 +147,8 @@ namespace Starcounter.Internal.XSON {
                             obj.Set((TBool)tChild, (bool)reader.Value);
                             break;
                         case JsonToken.Float:
-                            if (tChild is TDecimal) {
-                                obj.Set((TDecimal)tChild, Convert.ToDecimal(reader.Value));
+                            if (tChild is Property<decimal>) {
+                                obj.Set((Property<decimal>)tChild, Convert.ToDecimal(reader.Value));
                             } else {
                                 obj.Set((TDouble)tChild, (double)reader.Value);
                             }
