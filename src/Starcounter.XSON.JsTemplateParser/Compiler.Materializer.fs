@@ -198,12 +198,12 @@ module public Materializer =
                 | _ ->
                     failedExpectation1 "Property" prop
             | _ ->
-               let parentStr = 
-                   begin
-                       match parent with
-                       | null -> "null"
-                       | _ -> parent.ToString()
-                   end
+//               let parentStr = 
+//                   begin
+//                       match parent with
+//                       | null -> "null"
+//                       | _ -> parent.ToString()
+//                   end
                let newObj = createTemplateObject parent parentAst name ast factory
 //               Console.WriteLine( "Created property " + parentStr + "." + name + "=" + newObj.GetType().Name + " (ast=" + ast.ToString() + ")" );
 

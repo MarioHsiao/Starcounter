@@ -19,6 +19,14 @@ namespace Starcounter.Templates
     /// </summary>
     public class ReplaceableTemplate : Template
     {
+        public override bool IsPrimitive {
+            get { throw new NotImplementedException(); }
+        }
+
+        public override Type MetadataType {
+            get { throw new NotImplementedException(); }
+        }
+
         /// <summary>
         /// The _values
         /// </summary>

@@ -13,11 +13,11 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Backend {
                 lock (LOCK) {
                     dynamic response = new DynamicJson();
                     try {
-                        Int64 start_num = Db.SlowSQL("SELECT count(o) FROM InstallerStart o").First;
-                        Int64 executing_num = Db.SlowSQL("SELECT count(o) FROM InstallerExecuting o").First;
-                        Int64 finish_num = Db.SlowSQL("SELECT count(o) FROM InstallerFinish o").First;
-                        Int64 end_num = Db.SlowSQL("SELECT count(o) FROM InstallerEnd o").First;
-                        Int64 abort_num = Db.SlowSQL("SELECT count(o) FROM InstallerAbort o").First;
+                        Int64 start_num = Db.SlowSQL<Int64>("SELECT count(o) FROM InstallerStart o").First;
+                        Int64 executing_num = Db.SlowSQL<Int64>("SELECT count(o) FROM InstallerExecuting o").First;
+                        Int64 finish_num = Db.SlowSQL<Int64>("SELECT count(o) FROM InstallerFinish o").First;
+                        Int64 end_num = Db.SlowSQL<Int64>("SELECT count(o) FROM InstallerEnd o").First;
+                        Int64 abort_num = Db.SlowSQL<Int64>("SELECT count(o) FROM InstallerAbort o").First;
 
                         //                        response.overview = new object[] { };
 

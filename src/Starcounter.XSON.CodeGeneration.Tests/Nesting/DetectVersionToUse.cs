@@ -4,6 +4,7 @@ using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using System;
 using System.IO;
+using TJson = Starcounter.Templates.TObject;
 
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
@@ -20,12 +21,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void PartialWithoutMapPlusNestedWithMap() {
-            _GenerateCsDOM("v1", "NRoot"); // Generation 1
+            _GenerateCsDOM("v1", "AstRoot"); // Generation 1
         }
 
         [Test]
         public static void SinglePartialWithoutMap() {
-            _GenerateCsDOM("v2", "NRoot"); // Generation 2
+            _GenerateCsDOM("v2", "AstRoot"); // Generation 2
         }
 
         [Test]

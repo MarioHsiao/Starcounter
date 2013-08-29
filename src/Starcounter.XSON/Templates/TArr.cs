@@ -17,18 +17,20 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     /// <typeparam name="OT"></typeparam>
-    /// <typeparam name="OTT"></typeparam>
-    public class TArr<OT,OTT> : TObjArr
-        where OT : Obj, new()
-        where OTT : TObj
+    public class TArray<OT> : TObjArr
+        where OT : Json, new()
     {
+        public override Type MetadataType {
+            get { return typeof(ArrMetadata<OT,Json>); }
+        }
+
         /// <summary>
         /// Creates the instance.
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
         public override object CreateInstance(Container parent) {
-            return new Arr<OT>((Obj)parent, this);
+            return new Arr<OT>((Json)parent, this);
         }
 
         /// <summary>
@@ -39,7 +41,7 @@ namespace Starcounter.Templates {
             get { return typeof(Arr<OT>); }
         }
 
-        public override void ProcessInput(Obj obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new System.NotImplementedException();
         }
 
@@ -49,24 +51,25 @@ namespace Starcounter.Templates {
         /// in this object array.
         /// </summary>
         /// <value>The app.</value>
-        public override TObj ElementType {
+        public override TObject ElementType {
             get {
                 if (_Single.Length == 0)
                     return null;
-                return (TObj)_Single[0];
+                return (TObject)_Single[0];
             }
             set {
-                if (InstanceDataTypeName != null)
+                if (InstanceDataTypeName != null) {
                     value.InstanceDataTypeName = InstanceDataTypeName;
-                _Single = new OTT[1];
-                _Single[0] = (OTT)value;
+                }
+                _Single = new TObject[1];
+                _Single[0] = (TObject)value;
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal OTT[] _Single = new OTT[0];
+        internal TObject[] _Single = new TObject[0];
 
 
         /// <summary>
@@ -102,7 +105,7 @@ namespace Starcounter.Templates {
         /// in this array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public abstract TObj ElementType { get; set; }
+        public abstract TObject ElementType { get; set; }
 
         /// <summary>
         /// 
@@ -110,9 +113,9 @@ namespace Starcounter.Templates {
         public string InstanceDataTypeName {
             get { return instanceDataTypeName; }
             set {
-                TObj app = ElementType;
-                if (app != null)
-                    app.InstanceDataTypeName = value;
+                var tj = ElementType;
+                if (tj != null)
+                    tj.InstanceDataTypeName = value;
                 instanceDataTypeName = value;
             }
         }
@@ -138,11 +141,11 @@ namespace Starcounter.Templates {
             return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
 
-        internal override object GetBoundValueAsObject(Obj obj) {
+        internal override object GetBoundValueAsObject(Json obj) {
             throw new NotImplementedException();
         }
 
-        internal override void SetBoundValueAsObject(Obj obj, object value) {
+        internal override void SetBoundValueAsObject(Json obj, object value) {
             throw new NotImplementedException();
         }
     }
