@@ -10,19 +10,29 @@ namespace Starcounter.Internal.XSON {
     /// Baseclass for bindings.
     /// </summary>
     internal abstract class DataValueBinding {
-        protected Type _DataType;
-        private Template _Template;
-        private MemberInfo _Property;
+        protected Type dataType;
+        private Template template;
+        private MemberInfo property;
 
         internal DataValueBinding(Template template, MemberInfo property) {
-            this._Template = template;
-            this._Property = property;
+            this.template = template;
+            this.property = property;
         }
 
-        internal Type DataType { get { return _DataType; } }
-        internal Template Template { get { return _Template; } }
-        internal MemberInfo Property { get { return _Property; } }
+        internal Type DataType { get { return dataType; } }
+        internal Template Template { get { return template; } }
+        internal MemberInfo Property { get { return property; } }
     }
+
+	/// <summary>
+	/// Empty binding class used to verify the binding (even if the template is not bound)
+	/// when template is set to Auto and a check is already made for the property.
+	/// </summary>
+	internal class AutoValueBinding : DataValueBinding {
+		internal AutoValueBinding(Template template, Type dataType) : base(template, null) {
+			this.dataType = dataType;
+		}
+	}
 
     /// <summary>
     /// Generic class for bindings to a specific type. Creates code that gets and sets the
@@ -45,7 +55,7 @@ namespace Starcounter.Internal.XSON {
                 if (bindToProperty != null) {
                     MethodInfo methodInfo;
 
-                    this._DataType = ((PropertyInfo)bindToMember).DeclaringType;
+                    this.dataType = ((PropertyInfo)bindToMember).DeclaringType;
                     methodInfo = bindToProperty.GetGetMethod();
                     if (methodInfo != null) {
                         // We need to check if this is an abstract or virtual method.
@@ -53,7 +63,7 @@ namespace Starcounter.Internal.XSON {
                         // declares it in first hand.
                         if (methodInfo.IsVirtual) {
                             methodInfo = methodInfo.GetBaseDefinition();
-                            _DataType = methodInfo.DeclaringType;
+                            dataType = methodInfo.DeclaringType;
                         }
                         CreatePropertyGetBinding(methodInfo);
                     }
@@ -67,7 +77,7 @@ namespace Starcounter.Internal.XSON {
                     }
                 }
                 else {
-                    this._DataType = ((FieldInfo)bindToMember).DeclaringType;
+                    this.dataType = ((FieldInfo)bindToMember).DeclaringType;
 
                     CreateFieldGetBinding((FieldInfo)bindToMember);
                     CreateFieldSetBinding((FieldInfo)bindToMember);
@@ -81,7 +91,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="field">The field to read</param>
         private void CreateFieldGetBinding(FieldInfo field) {
             var instance = Expression.Parameter(typeof(IBindable));
-            var cast = Expression.Convert(instance, _DataType);
+            var cast = Expression.Convert(instance, dataType);
             Expression fieldAccess = Expression.Field(cast, field );
 
             if (!field.FieldType.Equals(typeof(TVal))) {
@@ -96,7 +106,7 @@ namespace Starcounter.Internal.XSON {
             var instance = Expression.Parameter(typeof(IBindable));
             var value = Expression.Parameter(typeof(TVal));
 
-            var cast = Expression.TypeAs(instance, _DataType);
+            var cast = Expression.TypeAs(instance, dataType);
             Expression fieldAccess = Expression.Field(cast, field);
 
             Expression setValue = value;
@@ -112,7 +122,7 @@ namespace Starcounter.Internal.XSON {
 
         private void CreatePropertyGetBinding(MethodInfo getMethod) {
             ParameterExpression instance = Expression.Parameter(typeof(IBindable));
-            Expression cast = Expression.Convert(instance, _DataType);
+            Expression cast = Expression.Convert(instance, dataType);
             Expression call = Expression.Call(cast, getMethod);
 
             if (!getMethod.ReturnType.Equals(typeof(TVal))) {
@@ -127,7 +137,7 @@ namespace Starcounter.Internal.XSON {
             ParameterExpression instance = Expression.Parameter(typeof(IBindable));
             ParameterExpression value = Expression.Parameter(typeof(TVal));
 
-            Expression cast = Expression.TypeAs(instance, _DataType);
+            Expression cast = Expression.TypeAs(instance, dataType);
 
             Expression setValue = value;
             Type valueType = setMethod.GetParameters()[0].ParameterType;
@@ -174,7 +184,7 @@ namespace Starcounter.Internal.XSON {
                                                               DataBindingFactory.GetParentClassName(Template),
                                                               Template.TemplateName,
                                                               Template.JsonType,
-                                                              _DataType.FullName,
+                                                              dataType.FullName,
                                                               Property.Name,
                                                               fullName));
                 }

@@ -25,8 +25,9 @@ namespace Starcounter.Internal.XSON {
 		internal static bool VerifyOrCreateBinding(TValue template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -34,12 +35,17 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			if (VerifyBinding(template.dataBinding, dataType, template))
-				return true;
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				if (bound == Bound.Yes)
+					return true;
+				return false;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -64,7 +70,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = @switch[template.InstanceType]();
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
 		}
@@ -78,8 +84,9 @@ namespace Starcounter.Internal.XSON {
         internal static bool VerifyOrCreateBinding(TObjArr template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -87,12 +94,17 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-            if (VerifyBinding(template.dataBinding, dataType, template))
-                return true;
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				if (bound == Bound.Yes)
+					return true;
+				return false;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -103,7 +115,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = new DataValueBinding<IEnumerable>(template, pInfo);
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
         }
@@ -117,8 +129,9 @@ namespace Starcounter.Internal.XSON {
         internal static bool VerifyOrCreateBinding(TObject template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -126,12 +139,17 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-            if (VerifyBinding(template.dataBinding, dataType, template))
-                return true;
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				if (bound == Bound.Yes)
+					return true;
+				return false;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -142,7 +160,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = new DataValueBinding<IBindable>(template, pInfo);
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
         }
@@ -157,8 +175,9 @@ namespace Starcounter.Internal.XSON {
         internal static bool VerifyOrCreateBinding<TVal>(Property<TVal> template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -166,12 +185,17 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			if (VerifyBinding(template.dataBinding, dataType, template))
-                return true;
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				if (bound == Bound.Yes)
+					return true;
+				return false;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -182,7 +206,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = new DataValueBinding<TVal>(template, pInfo);
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
         }

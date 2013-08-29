@@ -332,7 +332,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         private static TJson CreateSimplePersonTemplateWithDataBinding() {
-            var personSchema = new TJson() { BindChildren = true };
+            var personSchema = new TJson() { BindChildren = Bound.Yes };
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
             personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
             personSchema.Add<TLong>("_Age"); // Will not be bound
@@ -345,7 +345,7 @@ namespace Starcounter.Internal.XSON.Tests {
             misc.Bind = null; // Removing the binding for this specific template.
 
             var phoneNumber = personSchema.Add<TJson>("_PhoneNumber", "Number"); // Bound to Number even though name start with '_'
-            phoneNumber.BindChildren = true;
+            phoneNumber.BindChildren = Bound.Yes;
             phoneNumber.Add<TString>("Number"); // Bound to Number
             
             return personSchema;

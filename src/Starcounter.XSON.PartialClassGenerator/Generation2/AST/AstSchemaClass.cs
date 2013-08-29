@@ -37,8 +37,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public bool AutoBindProperties {
             get {
                 var acn = (AstJsonClass)NValueClass;
-                if (acn == null || acn.CodebehindClass == null)
+                if (acn == null)
                     return false;
+				if (acn.CodebehindClass == null)
+					return !string.IsNullOrEmpty(((TObject)acn.NTemplateClass.Template).InstanceDataTypeName);
                 return acn.CodebehindClass.AutoBindToDataObject;
             }
         }
