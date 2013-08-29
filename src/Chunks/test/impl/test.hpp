@@ -17,39 +17,78 @@ namespace starcounter {
 namespace interprocess_communication {
 
 test::test(int argc, wchar_t* argv[])
-: active_databases_updates_event_()
+: active_databases_updates_event_(),
+all_pushed_(0),
+all_popped_(0)
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 , statistics_thread_()
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 {
 	///=========================================================================
-	/// Initialize the test. Change to the debug or release directory.
-	/// First argument: The server name, for example "PERSONAL" or "SYSTEM".
-	///
-	/// Following argument(s): The name(s) of the database(s), for example
-	/// >scipctest.exe PERSONAL MYDB1 MYDB2 MYDB3
+	/// First argument: <server name>, for example "PERSONAL" or "SYSTEM".
+	/// Second argument: <number of worker threads>, for example "4".
+    /// Third argument: <timeout in milliseconds>, for example "180000".
+    /// Fourth argument: <database name>, for example "myDatabase".
+    ///
+    /// For all tests, each worker will connect to each scheduler in each
+    /// database.
+    /// 
+	/// Example 1:
+    /// To connect to database1 under the PERSONAL server, starting 1 worker
+    /// and running the IPC test for 18000 ms:
+	/// >sc_ipc_test.exe PERSONAL 1 18000 database1
+    ///
+    /// Example 2:
+    /// To connect to database8 and database5 under the PERSONAL server,
+    /// starting 3 worker threads and running the IPC test for 240000 ms:
+	/// >sc_ipc_test.exe PERSONAL 3 240000 database8 database5
 	///=========================================================================
 	number_of_shared_ = 0;
 
-	if (argc > 1) {
-		// TODO: Auto-Discover when database is up.
-		//Sleep(2000);
-		
-		// The first argument contains the server name. Convert it from wide-
-		// character string to multibyte string.
+	if (argc == 5) {
+        //----------------------------------------------------------------------
+		// First argument: <server name>
+        // Convert it from wide-character string to multibyte string.
 		char server_name_buffer[server_name_size];
 		std::wcstombs(server_name_buffer, argv[1], server_name_size -1);
 		server_name_ = server_name_buffer;
 
-		// The second argument contains the first database name. Convert it from
-		// wide character string to multibyte string.
+        //----------------------------------------------------------------------
+        // Second argument: <number of worker threads> in the IPC test process.
+        // Convert it from wide-character string to multibyte string.
+        char number_of_workers_buffer[16];
+        std::wcstombs(number_of_workers_buffer, argv[2], 16 -1);
+
+        // Instantiate the number of workers requested.
+        size_t workers = std::atoi(number_of_workers_buffer);
+
+        for (size_t w = 0; w < workers; ++w) {
+            worker_.push_back(new worker());
+        }
+
+        //----------------------------------------------------------------------
+        // Third argument: <timeout in milliseconds>
+        // Convert it from wide-character string to multibyte string.
+        char timeout_buffer[16];
+        std::wcstombs(timeout_buffer, argv[3], 16 -1);
+
+        // Instantiate the number of workers requested.
+        timeout_ = std::atoi(timeout_buffer);
+        
+        //----------------------------------------------------------------------
+		// Fourth argument: <database name>
+        // Convert it from wide character string to multibyte string.
 		char database_name_buffer[segment_name_size];
 
 		std::string database_name;
 		std::string db_shm_params_name;
 		std::vector<std::string> ipc_shm_params_name;
 
-		for (std::size_t i = 2; i < argc; ++i) {
+        // This loop is obsolete since the IPC test can only connect to one
+        // database. But it works so I leave it as is for now, because the
+        // IPC test shall be able to connect to multiple databases so this
+        // loop may be usable later if that is fixed.
+		for (std::size_t i = 4; i < argc; ++i) {
 			std::wcstombs(database_name_buffer, argv[i], segment_name_size -1);
 			database_name = database_name_buffer;
 			
@@ -68,18 +107,24 @@ test::test(int argc, wchar_t* argv[])
 			}
 		}
 		else {
-			std::cout << "error: no database name(s) entered after server name." << std::endl;
+			std::wcout << "error: no database name(s) entered after server name." << std::endl;
 		}
 	}
 	else {
-		std::cout << "error: please enter <server name> <database name(s)>" << std::endl;
+		std::wcout << "Please enter four arguments in this order:\n"
+		"First argument: <server name>, for example \"PERSONAL\" or \"SYSTEM\".\n"
+		"Second argument: <number of worker threads>, for example \"4\".\n"
+		"Third argument: <timeout in milliseconds>, for example \"10000\".\n"
+		"Fourth argument: <database name>, for example \"myDatabase\"." << std::endl;
+		
+		throw test_exception(0 /* TODO: Starcounter error code. SCERRINVALIDARGUMENTSTOIPCTEST */);
 	}
 }
 
 test::~test() {
 	// Join worker threads.
-	for (std::size_t i = 0; i < workers; ++i) {
-		worker_[i].join();
+	for (std::size_t i = 0; i < workers(); ++i) {
+		get_worker(i).join();
 	}
 
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
@@ -205,8 +250,8 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		shared_[n].init(segment_name, monitor_interface_name, pid_, owner_id_);
 		++number_of_shared_;
 
-		for (std::size_t i = 0; i < workers; ++i) {
-			worker_[i].set_segment_name(segment_name_[n])
+		for (std::size_t i = 0; i < workers(); ++i) {
+			get_worker(i).set_segment_name(segment_name_[n])
 			.set_monitor_interface_name(monitor_interface_name_)
 			.set_pid(pid_)
 			.set_owner_id(owner_id_);
@@ -250,27 +295,26 @@ inline owner_id test::get_owner_id() const {
 	return owner_id_;
 }
 
-void test::run(uint32_t timeout_seconds) {
-    std::cout << "test::run(): timeout_seconds = " << timeout_seconds << std::endl;
-    uint32_t interval_time_milliseconds = 200;
-
+void test::run() {
 	// Start workers.
-	for (std::size_t i = 0; i < workers; ++i) {
+	for (std::size_t i = 0; i < workers(); ++i) {
 		// Set worker parameters.
-		worker_[i]
-		.set_segment_name(segment_name_[i])
+		get_worker(i)
+		.set_segment_name(segment_name_[0])
 		.set_monitor_interface_name(monitor_interface_name_)
 		.set_pid(pid_)
 		.set_owner_id(owner_id_)
-		.set_active_schedulers(active_schedulers_[i])
+		.set_active_schedulers(active_schedulers_[0])
 		.set_worker_number(i)
 		.set_shared_interface();
 
 		// Start the worker - starts the workers thread.
-		worker_[i].start();
+		get_worker(i).start();
 	}
 	
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+    uint32_t interval_time_milliseconds = 200;
+
 	// Start statistics thread
 # if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	std::pair<test*,std::size_t>* arg = new std::pair<test*,std::size_t>
@@ -287,15 +331,18 @@ void test::run(uint32_t timeout_seconds) {
 
 void test::stop_worker(std::size_t n) {
 	// Stop worker[n]
-	worker_[n].set_state(worker::stopped);
-	worker_[n].join();
+	get_worker(n).set_state(worker::stopped);
+	get_worker(n).join();
+    all_pushed_ += get_worker(n).pushed();
+    all_popped_ += get_worker(n).popped();
 }
 
 void test::stop_all_workers() {
 	// Stop the workers
-	for (std::size_t i = 0; i < workers; ++i) {
-		worker_[i].set_state(worker::stopped);
-		worker_[i].join();
+	for (std::size_t i = 0; i < workers(); ++i) {
+		get_worker(i).set_state(worker::stopped);
+		get_worker(i).join();
+        std::wcout << "Stopped worker[" << i << "]" << std::endl;
 	}
 }
 

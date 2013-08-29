@@ -11,14 +11,16 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class BoolMetadata : ValueMetadata {
+    public class BoolMetadata<JsonType> : ValueMetadata<JsonType,TBool>
+        where JsonType : Json
+    {
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BoolMetadata" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="prop">The prop.</param>
-        public BoolMetadata(Obj app, Template prop) : base(app, prop) { }
+        public BoolMetadata(JsonType app, TBool prop) : base(app, prop) { }
 
     }
 }

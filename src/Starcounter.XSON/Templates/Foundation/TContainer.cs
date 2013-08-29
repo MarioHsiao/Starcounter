@@ -4,8 +4,11 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON.DeserializerCompiler;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Starcounter.Templates {
 
@@ -18,8 +21,16 @@ namespace Starcounter.Templates {
     /// instance Obj or Arr objects pertaining to them. This means that new templates need to be created to
     /// use alternate schemas.
     /// </remarks>
-    public abstract partial class TContainer : TValue
-    {
+    public abstract partial class TContainer : TValue {
+
+
+        public override bool IsPrimitive {
+            get { return false; }
+        }
+
+
+
+
         /// <summary>
         /// <see cref="Sealed"/>
         /// </summary>
@@ -55,8 +66,6 @@ namespace Starcounter.Templates {
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
 
-
-     }
-
+    }
 
 }

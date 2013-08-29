@@ -23,9 +23,9 @@ namespace Starcounter.XSON.Metadata
 
         static CodeBehindMetadata() {
             Empty = new CodeBehindMetadata();
-            Empty.JsonPropertyMapList.Add( new CodeBehindClassInfo(null) {
-                IsRootClass = true
-            });
+       //     Empty.JsonPropertyMapList.Add( new CodeBehindClassInfo(null) {
+       //         IsRootClass = true
+       //     });
         }
 
         /// <summary>

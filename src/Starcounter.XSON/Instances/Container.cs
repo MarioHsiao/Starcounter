@@ -59,26 +59,26 @@ namespace Starcounter {
         /// <summary>
         /// The _ template
         /// </summary>
-        internal TContainer _Template;
+        internal Template _Template;
 
         /// <summary>
         /// The schema element of this app instance
         /// </summary>
         /// <value>The template.</value>
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
-        public TContainer Template {
+        public Template Template {
             set {
                 //if (_Template != null) {
                 //    throw new Exception("Template is already set for App. Cannot change template once it is set");
                 //}
                 _Template = (TContainer)value;
 
-                if (_Template is TObj && ((TObj)_Template).IsDynamic) {
-                    TObj t = (TObj)_Template;
+                if (_Template is TObject && ((TObject)_Template).IsDynamic) {
+                    TObject t = (TObject)_Template;
                     if (t.SingleInstance != null && t.SingleInstance != this) {
                         throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})",value,this));
                     }
-                    ((TObj)_Template).SingleInstance = (Obj)this;
+                    ((TObject)_Template).SingleInstance = (Json)this;
                 }
                 else {
                     _Template.Sealed = true;
@@ -140,7 +140,7 @@ namespace Starcounter {
                     sb.Append("\":");
                 }
             }
-            if (this is Obj && ((Obj)this).Data != null) {
+            if (this is Json && ((Json)this).Data != null) {
                 sb.Append("(db)");
             }
             if (_BrandNew) {

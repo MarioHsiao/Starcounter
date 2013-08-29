@@ -12,10 +12,14 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class TString : TValue<string> {
-        public override void ProcessInput(Obj obj, byte[] rawValue) {
+    public class TString : PrimitiveProperty<string> {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
         }
+        public override Type MetadataType {
+            get { return typeof(StringMetadata<Json>); }
+        }
+
 
         private string _DefaultValue = "";
 

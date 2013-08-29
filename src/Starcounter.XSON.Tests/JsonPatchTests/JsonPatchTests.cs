@@ -4,6 +4,8 @@ using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.TObject;
+
 
 namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
@@ -64,7 +66,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             nicke.FirstName = "Nicke";
 
             j.FirstName = "Joachim";
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Session.Data = j;
             var before = ((Json)j).ToJson();
@@ -100,7 +102,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
 
-            TObj.UseCodegeneratedSerializer = false;
+            TJson.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -111,7 +113,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.FirstName = "Joachim";
             j.Age = 42;
             j.Length = 184.7;
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Session.Data = j;
 
@@ -154,7 +156,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
 
-            TObj.UseCodegeneratedSerializer = false;
+            TJson.UseCodegeneratedSerializer = false;
 
             Person nickeDb = new Person();
             Person jockeDb = new Person();
@@ -175,7 +177,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             jockeJson.FirstName = "Joachim";
             jockeJson.Age = 42;
             jockeJson.Length = 184.7;
-            jockeJson.Friends = new List<Obj>() { nickeJson };
+            jockeJson.Friends = new List<Json>() { nickeJson };
 
             Session.Data = jockeJson;
 
@@ -219,7 +221,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
 
-            TObj.UseCodegeneratedSerializer = false;
+            TJson.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -229,7 +231,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.FirstName = "Joachim";
             j.Age = 43;
             j.Length = 184.7;
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Session.Data = j;
 
@@ -292,15 +294,15 @@ Assert.AreEqual(facit, result );
             p.LastName = "Wester";
 
             dynamic j = new Json();
-            Json json = (Json)j;
+            var json = (Json)j;
 
             Session.Data = j;
             var start = ((Json)j).DebugString;
 
-            Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
+            Assert.AreEqual("", json.ToJson()); // The data is not bound so the JSON should still be an empty object
             Assert.IsTrue(json._BrandNew);
 
-            TJson t = new TJson();
+            var t = new TJson();
             var fname = t.Add<TString>("FirstName"); // TODO! By default, properties are automatically bound my matching property names
             fname.Bind = "FirstName";
             var lname = t.Add<TString>("LastName"); // TODO! By default, properties are automatically bound my matching property names
@@ -361,7 +363,7 @@ Assert.AreEqual(facit, result );
 
            // Session.Current.LogChanges = true;
 
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Changes:");
             Console.WriteLine("========");

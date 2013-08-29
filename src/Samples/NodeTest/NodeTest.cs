@@ -46,7 +46,7 @@ namespace NodeTest
 
         public Int32 MinEchoBytes = 1;
 
-        public Int32 MaxEchoBytes = 100000;
+        public Int32 MaxEchoBytes = 1000000;
 
         public Int32 NumEchoesPerWorker = 5000;
 

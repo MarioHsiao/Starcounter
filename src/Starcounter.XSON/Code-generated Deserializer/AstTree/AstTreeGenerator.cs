@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="puppletTemplate"></param>
         /// <returns></returns>
-        internal static AstNamespace BuildAstTree(TObj objTemplate) {
+        internal static AstNamespace BuildAstTree(Template objTemplate) {
             return BuildAstTree(objTemplate, false);
         }
 
@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="objTemplate"></param>
         /// <param name="createChildSerializers"></param>
         /// <returns></returns>
-        internal static AstNamespace BuildAstTree(TObj objTemplate, bool createChildSerializers) {
+        internal static AstNamespace BuildAstTree(Template objTemplate, bool createChildSerializers) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
 
             string ns = objTemplate.Namespace;
@@ -50,21 +50,32 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             node.Parent = astNs;
 
             if (createChildSerializers) {
-                CreateChildSerializers(objTemplate, node);
+                if (objTemplate is TObjArr) {
+                    throw new NotImplementedException("Serializer does not currently support array as the root element");
+                }
+                else {
+                    CreateChildSerializers( (TObject)objTemplate, node);
+                }
             }
 
             return astNs;
         }
 
-        private static void CreateChildSerializers(TObj objTemplate, AstNode parent) {
+        /// <summary>
+        /// Creates serializers for each property for objects defined by an
+        /// object schema.
+        /// </summary>
+        /// <param name="objTemplate"></param>
+        /// <param name="parent"></param>
+        private static void CreateChildSerializers(TObject objTemplate, AstNode parent) {
             AstNode node;
-            TObj tChildObj;
+            TObject tChildObj;
             string className;
 
             foreach (Template child in objTemplate.Properties) {
                 tChildObj = null;
-                if (child is TObj) {
-                    tChildObj = (TObj)child;
+                if (child is TObject) {
+                    tChildObj = (TObject)child;
                 } else if (child is TObjArr) {
                     tChildObj = ((TObjArr)child).ElementType;
                 }
@@ -154,7 +165,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     Parent = nextParent
                 };
 
-                if (template is TObj) {
+                if (template is TObject) {
                     new AstJsonObjectValue(){
                         Template = template,
                         Parent = nextParent
