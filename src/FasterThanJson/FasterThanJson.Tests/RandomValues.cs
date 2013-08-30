@@ -20,6 +20,10 @@ namespace FasterThanJson.Tests {
 
         public static String RandomString(Random rnd) {
             int length = rnd.Next(0, 200);
+            return RandomString(rnd, length);
+        }
+
+        public static String RandomString(Random rnd, int length) {
             StringBuilder str = new StringBuilder(length);
             for (int i = 0; i < length; i++) {
                 char c = (char)rnd.Next(char.MinValue, char.MaxValue+1);
@@ -30,8 +34,11 @@ namespace FasterThanJson.Tests {
             return str.ToString();
         }
 
-        public static byte[] RandomBinary(Random rnd) {
+        public static byte[] RandomByteArray(Random rnd) {
             int length = rnd.Next(0, 500);
+            return RandomByteArray(rnd, length);
+        }
+        public static byte[] RandomByteArray(Random rnd, int length) {
             byte[] value = new byte[length];
             for (int i = 0; i < length; i++)
                 value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue+1);
