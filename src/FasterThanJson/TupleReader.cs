@@ -222,8 +222,8 @@ namespace Starcounter.Internal
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
          len -= ValueOffset;
-          SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)len, buffer, 8192, true);
-         var str = new String(buffer, 0, (int)len);
+         int stringLen = SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)len, buffer, 8192, true);
+         var str = new String(buffer, 0, stringLen);
          AtOffsetEnd += OffsetElementSize;
          AtEnd += len;
          ValueOffset += len;

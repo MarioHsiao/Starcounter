@@ -258,7 +258,7 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public uint MeasureNeededSize(String str) {
+      public static uint MeasureNeededSize(String str) {
           uint expectedLen = 0;
           fixed (char* pStr = str) {
               expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
@@ -266,7 +266,7 @@ namespace Starcounter.Internal
           return expectedLen;
       }
 
-      public uint MeasureNeededSize(uint n) {
+      public static uint MeasureNeededSize(uint n) {
 #if BASE64
           return Base64Int.MeasureNeededSize(n);
 #else
@@ -274,7 +274,7 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public uint MeasureNeededSize(byte[] b) {
+      public static uint MeasureNeededSize(byte[] b) {
 #if BASE64
           return Base64Binary.MeasureNeededSizeToEncode((uint)b.Length);
 #else

@@ -146,7 +146,7 @@ namespace FasterThanJson.Tests {
                                 arrayWriter.WriteSafe(stringValues[j]);
                                 break;
                             case (int)ValueTypes.BINARY:
-                                binaryValues[j] = RandomValues.RandomBinary(writeRnd);
+                                binaryValues[j] = RandomValues.RandomByteArray(writeRnd);
                                 arrayWriter.WriteSafe(binaryValues[j]);
                                 break;
                             default:
