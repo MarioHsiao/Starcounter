@@ -35,7 +35,6 @@ namespace Starcounter {
             return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
         }
 
-
         /// <summary>
         /// Adds an inputhandler to this property.
         /// </summary>
@@ -61,10 +60,7 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class TValue : Template {
-
-
-
-        private Bound _Bound = Bound.No;
+        internal Bound _Bound = Bound.UseParent;
         private string _Bind;
 		internal bool invalidateBinding;
 
@@ -121,7 +117,33 @@ namespace Starcounter {
         /// Gets a value indicating whether this template is bound.
         /// </summary>
         /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public Bound Bound { get { return _Bound; } set { _Bound = value; } }
+        public Bound Bound { 
+			get {
+				if (_Bound == Templates.Bound.UseParent) {
+					var parent = Parent;
+					if (parent == null)
+						return Bound.No;
+
+					while (!(parent is TObject))
+						parent = Parent;
+					return ((TObject)parent).BindChildren;
+				}
+				
+				return _Bound; 
+			} 
+			set {
+				_Bound = value;
+
+				// After we set the value we retrieve it again just to get the correct
+				// binding to use in case we read the value from the parent.
+				var real = Bound;
+				if (real == Templates.Bound.No)
+					_Bind = null;
+				else
+					_Bind = PropertyName;
+				invalidateBinding = true;
+			} 
+		}
 
         /// <summary>
         /// 

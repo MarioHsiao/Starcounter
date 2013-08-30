@@ -79,6 +79,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PartialClassGeneration\ChildMsg.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="PartialClassGeneration\Namespaces.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -157,6 +160,10 @@
     <None Include="PartialClassGeneration\Generic.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="PartialClassGeneration\ChildMsg.json.cs">
+      <DependentUpon>ChildMsg.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="Inheritance\TestInheritance.cs" />
     <Compile Include="JsonSerializeTest.cs" />
     <None Include="PartialClassGeneration\minimal.json.cs">
@@ -203,10 +210,6 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Compiler.Roslyn\Starcounter.XSON.Analyzer.Roslyn.csproj">
-      <Project>{01382bc3-096b-466f-a115-6ae04766da3d}</Project>
-      <Name>Starcounter.XSON.Analyzer.Roslyn</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.DeserializerCompiler\Starcounter.XSON.DeserializerCompiler.csproj">
       <Project>{d8eff98a-2225-4991-860f-70d753190a33}</Project>
