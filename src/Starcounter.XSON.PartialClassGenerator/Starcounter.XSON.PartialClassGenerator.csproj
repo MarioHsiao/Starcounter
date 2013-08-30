@@ -58,6 +58,9 @@
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
     <Compile Include="CompilerMono\CodeBehindParser.cs" />
     <Compile Include="CompilerMono\CSharpToken.cs" />
+    <Compile Include="CompilerMono\MiniAst\MastBase.cs" />
+    <Compile Include="CompilerMono\MiniAst\MastClass.cs" />
+    <Compile Include="CompilerMono\MiniAst\MastInherits.cs" />
     <Compile Include="Generation2\AST\AstClassAlias.cs" />
     <Compile Include="Generation2\AST\AstJsonMetadataClass.cs" />
     <Compile Include="Generation2\AST\AstTemplateClass.cs" />

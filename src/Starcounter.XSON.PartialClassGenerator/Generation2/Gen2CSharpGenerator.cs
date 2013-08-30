@@ -373,14 +373,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
  //           a.Prefix.Add("    public " 
  //                        + a.ClassName 
  //                        + "() : base() { Template = DefaultTemplate; }");
-            a.Prefix.Add("    public " 
+
+                        a.Prefix.Add("    public " 
                          + a.ClassStemIdentifier 
-                         + "() { Template = DefaultTemplate; }");
+                         + "() { }");
             a.Prefix.Add("    public " 
                          + a.ClassStemIdentifier 
                          + "(" +
                          a.NTemplateClass.GlobalClassSpecifier + 
                          " template) { Template = template; }");
+
+            a.Prefix.Add("    protected override Template GetDefaultTemplate() { return DefaultTemplate; }");
 
             a.Prefix.Add(
     "    public new " +
@@ -397,6 +400,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     " Parent { get { return (" +
                     par.GlobalClassSpecifier +
                     ")base.Parent; } set { base.Parent = value; } }");
+            }
+
+            if (a.CodebehindClass != null && a.CodebehindClass.BoundDataClass != null ) {
+                a.Prefix.Add(
+                    "    public new " +
+                    a.CodebehindClass.BoundDataClass +
+                    " Data { get { return (" +
+                    a.CodebehindClass.BoundDataClass +
+                    ")base.Data; } set { base.Data = value; } }");
             }
             /*
 
