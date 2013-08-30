@@ -181,10 +181,10 @@ namespace Starcounter {
                 child = template.Properties[i] as TObjArr;
                 if (child != null && child.Bound != Bound.No) {
 					if (_data != null) {
-						child.UseBinding(DataAsBindable);
-						Refresh(child);
+						if (child.UseBinding(DataAsBindable))
+							Refresh(child);
 					} else {
-						var arr = (Arr<Json>)Get(child);
+						var arr = (Arr)Get(child);
 						arr.Clear();
 					}
                 }

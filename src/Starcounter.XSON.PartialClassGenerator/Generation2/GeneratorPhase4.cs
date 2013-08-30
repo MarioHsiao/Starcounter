@@ -139,14 +139,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 acn = new AstJsonClass(Generator) {
                     CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = mapInfo.BaseClassName,
-                        GenericArg = mapInfo.BaseClassGenericArg
+                        GenericArg = mapInfo.BaseClassGenericArg,
+						Namespace = mapInfo.Namespace
                     },
                 };
-                acn.NTemplateClass = new AstSchemaClass(Generator) {
+				var jsonbyexample = new AstOtherClass(Generator) {
+					Parent = acn,
+					ClassStemIdentifier = "JsonByExample",
+					IsStatic = true
+				};
+                var genSchemaClass = new AstSchemaClass(Generator) {
                     NValueClass = acn,
+					Parent = jsonbyexample,
                     Template = Generator.DefaultObjTemplate,
-                    IsCodegenerated = true
+                    IsCodegenerated = true,
+					ClassStemIdentifier = "Schema"
                 };
+				acn.NJsonByExample = jsonbyexample;
+				acn.NTemplateClass = genSchemaClass;
 //                acn.Generic = new AstOtherClass(Generator) {
 //                    _ClassName = "Schema",
 //                    NamespaceAlias = "st::",
@@ -287,7 +297,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AstProperty property;
             string propertyName;
 
-            if (!ntApp.AutoBindProperties)
+            if (!(ntApp.BindChildren == Bound.Yes))
                 return;
 
             foreach (AstBase nb in ntApp.Children) {
@@ -304,7 +314,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         childTApp = property.Type as AstSchemaClass;
 
                     if (childTApp != null) {
-                        if (!childTApp.AutoBindProperties) {
+                        if (!(childTApp.BindChildren == Bound.Yes)) {
                             // We have a property which is an array or an object that should be bound but 
                             // AutoBindProperties is false which means that we have no type information.
 

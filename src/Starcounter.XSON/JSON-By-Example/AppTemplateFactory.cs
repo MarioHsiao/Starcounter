@@ -157,7 +157,6 @@ namespace Starcounter.Internal.JsonTemplate
                 valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 valueTemplate.Bind = v;
-                valueTemplate.Bound = Bound.Yes;
             }
             else if (upperName == "TYPE")
             {

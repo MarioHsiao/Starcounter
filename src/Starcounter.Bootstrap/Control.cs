@@ -523,6 +523,9 @@ namespace StarcounterInternal.Bootstrap
             int empty;
             e = sccoredb.sccoredb_connect(flags, hsched, hmenv, hlogs, &empty);
             if (e != 0) throw ErrorCode.ToException(e);
+
+            e = filter.init_filter_lib(hmenv);
+            if (e != 0) throw ErrorCode.ToException(e);
         }
 
         /// <summary>
