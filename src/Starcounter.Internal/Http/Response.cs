@@ -860,6 +860,7 @@ namespace Starcounter.Advanced
         /// </summary>
         public Response()
         {
+            Retrieved = DateTime.Now.Ticks;
             HeaderInjectionPoint = -1;
         }
 
