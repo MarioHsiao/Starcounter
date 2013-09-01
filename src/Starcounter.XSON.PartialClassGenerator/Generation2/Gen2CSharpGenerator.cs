@@ -43,6 +43,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// which template to use as the default template for new objects.
         /// </summary>
         public Gen2DomGenerator Generator;
+        private const string markAsCodegen = "[_GEN1_][_GEN2_(\"Starcounter\",\"2.0\")]";
+        private const string markAsCodegen2 = "[_GEN2_(\"Starcounter\",\"2.0\")]";
 
 
         /// <summary>
@@ -194,6 +196,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     node.Prefix.Add("");
                     var n = node as AstClass;
                     sb.Append("public ");
+
+                    if (n.MarkAsCodegen) {
+                        node.Prefix.Add(markAsCodegen);
+                    }
+
                     if (n.IsStatic) {
                         sb.Append("static ");
                     }
@@ -313,6 +320,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="m">The m.</param>
         private void WriteAppMemberPrefix(AstProperty m) {
+            m.Prefix.Add(markAsCodegen);
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.GlobalClassSpecifier);
@@ -346,11 +354,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="a">A.</param>
         private void WriteAppClassPrefix(AstJsonClass a) {
+            a.Prefix.Add("    " + markAsCodegen);
             a.Prefix.Add(
                 "    public static " +
                 a.ClassSpecifierWithoutOwners + " GET(string uri) { return (" + 
                 a.ClassSpecifierWithoutOwners + ")X.GET(uri); }");
 
+            a.Prefix.Add("    " + markAsCodegen2);
             a.Prefix.Add(
                 "    public static " +
                 a.NTemplateClass.GlobalClassSpecifier +
@@ -374,17 +384,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
  //                        + a.ClassName 
  //                        + "() : base() { Template = DefaultTemplate; }");
 
-                        a.Prefix.Add("    public " 
+            a.Prefix.Add("    " + markAsCodegen);
+            a.Prefix.Add("    public " 
                          + a.ClassStemIdentifier 
                          + "() { }");
+            a.Prefix.Add("    " + markAsCodegen);
             a.Prefix.Add("    public " 
                          + a.ClassStemIdentifier 
                          + "(" +
                          a.NTemplateClass.GlobalClassSpecifier + 
                          " template) { Template = template; }");
 
+            a.Prefix.Add("    " + markAsCodegen);
             a.Prefix.Add("    protected override Template GetDefaultTemplate() { return DefaultTemplate; }");
 
+            a.Prefix.Add("    " + markAsCodegen);
             a.Prefix.Add(
     "    public new " +
     a.NTemplateClass.GlobalClassSpecifier +
@@ -394,6 +408,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             var par = a.ParentProperty;
             if (par != null) {
+                a.Prefix.Add("    " + markAsCodegen);
                 a.Prefix.Add(
                     "    public new " +
                     par.GlobalClassSpecifier +
@@ -403,6 +418,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
 
             if (a.CodebehindClass != null && a.CodebehindClass.BoundDataClass != null ) {
+                a.Prefix.Add("    " + markAsCodegen);
                 a.Prefix.Add(
                     "    public new " +
                     a.CodebehindClass.BoundDataClass +
@@ -739,6 +755,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using Starcounter.Templates;\n");
             h.Append("using st = Starcounter.Templates;\n");
             h.Append("using s = Starcounter;\n");
+            h.Append("using _GEN1_=System.Diagnostics.DebuggerNonUserCodeAttribute;\n");
+            h.Append("using _GEN2_=System.CodeDom.Compiler.GeneratedCodeAttribute;\n");
+
 //            h.Append("using TJson = Starcounter.Templates.Schema;\n");
 //            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
 
