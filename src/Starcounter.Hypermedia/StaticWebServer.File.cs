@@ -49,7 +49,7 @@ namespace Starcounter.Internal.Web {
         public Response GetFileResource(Response cached, string relativeUri, Request req) {
 
 
-            req.Debug(" (FILE ACCESS)");
+            req.Debug(" (FILE ACCESS) " + relativeUri );
 
             bool shouldBeCached = true;
             bool shouldCompress = req.IsGzipAccepted;
@@ -263,6 +263,7 @@ namespace Starcounter.Internal.Web {
             if (!WatchedPaths.TryGetValue(fileSpecifier, out fsw)) {
                 if (Directory.Exists(dir)) {
                     fsw = new FileSystemWatcher(dir);
+                    fsw.InternalBufferSize = 64 * 1024;
                     fsw.Filter = fileName;
                     fsw.IncludeSubdirectories = false;
                     fsw.Changed += new FileSystemEventHandler(FileHasChanged);
@@ -282,6 +283,15 @@ namespace Starcounter.Internal.Web {
         /// <param name="e">The <see cref="FileSystemEventArgs" /> instance containing the event data.</param>
         internal void FileHasChanged(object sender, FileSystemEventArgs e) {
             string fileSignature = e.FullPath.ToUpper();
+
+            DecacheByFilePath(fileSignature);
+        }
+
+        /// <summary>
+        /// Removes the specified file from the cache
+        /// </summary>
+        /// <param name="fileSignature">The file to remove</param>
+        internal void DecacheByFilePath(string fileSignature) {
             Response cached;
 
             // Locking because execution is done in separate thread.
@@ -289,14 +299,14 @@ namespace Starcounter.Internal.Web {
                 if (CacheOnFilePath.TryGetValue(fileSignature, out cached)) {
 
                     foreach (var uri in cached.Uris) {
-                        Console.WriteLine("(decache) " + uri);
+                        Console.WriteLine("(decache uri) " + uri);
                         CacheOnUri.Remove(uri);
                     }
+                    Console.WriteLine("(decache file) " + fileSignature);
                     CacheOnFilePath.Remove(fileSignature);
                 }
             }
         }
-
 
         /// <summary>
         /// Files the open alternative.
