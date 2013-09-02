@@ -147,7 +147,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe uint ReadUInt() {
+      public unsafe ulong ReadUInt() {
 #if BASE32
          int len = (int)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
          len -= (int)ValueOffset;
@@ -156,7 +156,7 @@ namespace Starcounter.Internal
 #if BASE64
          int len = (int)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
          len -= (int)ValueOffset;
-         var ret = (uint)Base64Int.Read(len, (IntPtr)AtEnd);
+         var ret = Base64Int.Read(len, (IntPtr)AtEnd);
 #endif
 #if BASE256
          int len = (int)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
@@ -170,13 +170,13 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe uint ReadUInt(int index) {
+      public unsafe ulong ReadUInt(int index) {
 #if BASE64
           byte* valuePos;
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
-          var ret = (uint)Base64Int.Read(valueLength, (IntPtr)valuePos);
+          var ret = Base64Int.Read(valueLength, (IntPtr)valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif

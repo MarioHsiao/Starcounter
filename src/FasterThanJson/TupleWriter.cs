@@ -232,7 +232,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="n">The value to write</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(uint n)
+      public unsafe void Write(ulong n)
       {
 #if BASE32
          uint len = Base32Int.Write((IntPtr) AtEnd, n);
@@ -266,7 +266,7 @@ namespace Starcounter.Internal
           return expectedLen;
       }
 
-      public static uint MeasureNeededSize(uint n) {
+      public static uint MeasureNeededSize(ulong n) {
 #if BASE64
           return Base64Int.MeasureNeededSize(n);
 #else
@@ -302,7 +302,7 @@ namespace Starcounter.Internal
           AvaiableSize -= expectedLen;
       }
 
-      public void WriteSafe(uint n) {
+      public void WriteSafe(ulong n) {
           WriteSafeAny(n);
       }
 

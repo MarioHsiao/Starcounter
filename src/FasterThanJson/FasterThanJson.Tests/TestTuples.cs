@@ -101,7 +101,7 @@ namespace FasterThanJson.Tests
          string lastName = first.ReadString();
          var nested = new TupleReader(first.AtEnd, 2); // Allocated on the stack. Will be fast.
          //nested.Skip();
-                  UInt32 phone = nested.ReadUInt();
+                  UInt64 phone = nested.ReadUInt();
          //        UInt32 phone = 1234;
          string mobile = nested.ReadString();
          first.Skip();

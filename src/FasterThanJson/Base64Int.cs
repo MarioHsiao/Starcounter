@@ -292,8 +292,9 @@ namespace Starcounter.Internal
             //      c->b3 = b64e[(value & 0xFC0) >> 06];
             //      c->b4 = b64e[(value & 0x3F)];
             return 5;
-         }
-         return 6;
+         } else if (value <= 0xFFFFFFFFF)
+             return 6;
+         return 11;
       }
 
       /// <summary>
@@ -407,36 +408,30 @@ namespace Starcounter.Internal
       /// <param name="buffer">The buffer.</param>
       /// <param name="value">The value.</param>
       /// <returns>System.UInt32.</returns>
-      public static unsafe uint Write(IntPtr buffer, UInt32 value)
+      public static unsafe uint Write(IntPtr buffer, UInt64 value)
       {
          var c = (Base64x5*) buffer;
-         if ((value & 0xFFFFFFC0) == 0) // 11 111111 111111 111111 111111 000000 (NOTE: groups of SIX bits)
-         {
-            WriteBase64x1(value, buffer);
+         if ((value & 0xFFFFFFFFFFFFFFC0) == 0) {// 11 111111 111111 111111 111111 000000 (NOTE: groups of SIX bits)
+             WriteBase64x1(value, buffer);
             return 1;
-         }
-         else if ((value & 0xFFFFF000) == 0) // 11 111111 111111 111111 000000 000000 (NOTE: groups of SIX bits)
-         {
-            WriteBase64x2(value, buffer);
+         } else if ((value & 0xFFFFFFFFFFFFF000) == 0) {// 11 111111 111111 111111 000000 000000 (NOTE: groups of SIX bits)
+             WriteBase64x2(value, buffer);
             return 2;
-         }
-         else if ((value & (0xFFFC0000)) == 0) // 11 111111 111111 000000 000000 000000 (NOTE: groups of SIX bits)
-         {
-            WriteBase64x3(value, buffer);
+         } else if ((value & (0xFFFFFFFFFFFC0000)) == 0) {// 11 111111 111111 000000 000000 000000 (NOTE: groups of SIX bits)
+             WriteBase64x3(value, buffer);
             return 3;
-         }
-         else if ((value & (0xFF000000)) == 0) // 11 111111 000000 000000 000000 000000 (NOTE: groups of SIX bits)
-         {
-            WriteBase64x4(value, buffer);
+         } else if ((value & (0xFFFFFFFFFF000000)) == 0) {// 11 111111 000000 000000 000000 000000 (NOTE: groups of SIX bits)
+             WriteBase64x4(value, buffer);
             return 4;
-         }
-         else if ((value & (0xC0000000)) == 0) // 11 000000 000000 000000 000000 000000 (NOTE: groups of SIX bits)
-         {
-            WriteBase64x5(value, buffer);
+         } else if ((value & (0xFFFFFFFFC0000000)) == 0) { // 11 000000 000000 000000 000000 000000 (NOTE: groups of SIX bits) 
+             WriteBase64x5(value, buffer);
             return 5;
+         } else if ((value & (0xFFFFFFF000000000)) == 0) {
+             WriteBase64x6(value, buffer);
+             return 6;
          }
-         WriteBase64x6(value, buffer);
-         return 6;
+         WriteBase64x11(value, buffer);
+         return 11;
       }
 
 

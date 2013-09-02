@@ -28,10 +28,10 @@ namespace FasterThanJson.Tests {
             Random rnd = new Random(1);
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
-                uint[] inputUInts = new uint[valueCount];
+                ulong[] inputUInts = new ulong[valueCount];
                 uint tupleLength = TupleWriter.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
-                    inputUInts[i] = RandomValues.RandomUInt(rnd);
+                    inputUInts[i] = RandomValues.RandomULong(rnd);
                     tupleLength += TupleWriter.MeasureNeededSize(inputUInts[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
