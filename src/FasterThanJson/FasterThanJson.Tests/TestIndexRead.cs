@@ -130,12 +130,13 @@ namespace FasterThanJson.Tests {
                 uint[] uintValues = new uint[nrValues];
                 String[] stringValues = new String[nrValues];
                 byte[][] binaryValues = new byte[nrValues][];
+                ulong[] ulongValues = new ulong[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     TupleWriter arrayWriter = new TupleWriter(start, nrValues, 2);
                     arrayWriter.SetTupleLength((uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        valueTypes[j] = writeRnd.Next(1, 4);
+                        valueTypes[j] = writeRnd.Next(1, 5);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
@@ -148,6 +149,10 @@ namespace FasterThanJson.Tests {
                             case (int)ValueTypes.BINARY:
                                 binaryValues[j] = RandomValues.RandomByteArray(writeRnd);
                                 arrayWriter.WriteSafe(binaryValues[j]);
+                                break;
+                            case (int)ValueTypes.ULONG:
+                                ulongValues[j] = RandomValues.RandomULong(writeRnd);
+                                arrayWriter.WriteSafe(ulongValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
@@ -168,6 +173,9 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.BINARY:
                                 Assert.AreEqual(binaryValues[j], arrayReader.ReadByteArray(j));
+                                break;
+                            case (int)ValueTypes.ULONG:
+                                Assert.AreEqual(ulongValues[j], arrayReader.ReadUInt(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

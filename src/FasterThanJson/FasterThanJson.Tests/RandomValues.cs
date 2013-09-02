@@ -7,7 +7,8 @@ namespace FasterThanJson.Tests {
         NOVALUE = 0,
         UINT,
         STRING,
-        BINARY
+        BINARY,
+        ULONG
     }
 
     public static class RandomValues {
@@ -16,6 +17,12 @@ namespace FasterThanJson.Tests {
             Int64 value = (Int64)genValue - Int32.MinValue;
             Trace.Assert(value >= UInt32.MinValue && value <= UInt32.MaxValue);
             return (UInt32)(value);
+        }
+
+        public static UInt64 RandomULong(Random rnd) {
+            UInt64 genVal = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
+            Trace.Assert(genVal >= UInt64.MinValue && genVal <= UInt64.MaxValue);
+            return genVal;
         }
 
         public static String RandomString(Random rnd) {
