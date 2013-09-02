@@ -150,5 +150,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return Parent;
             }
         }
+
+
+        public virtual bool MarkAsCodegen {
+            get {
+                return false;
+            }
+
+        }
+
     }
 }

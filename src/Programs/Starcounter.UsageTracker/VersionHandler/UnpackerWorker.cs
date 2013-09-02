@@ -18,6 +18,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         #region Properties
         private bool _IsRunning;
+        /// <summary>
+        /// True if worker thread is running, otherwise false
+        /// </summary>
         public bool IsRunning {
             get {
                 return this._IsRunning;
@@ -30,6 +33,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         private AutoResetEvent waitEvent = new AutoResetEvent(false);
         #endregion
 
+
         /// <summary>
         /// Start unpacker worker
         /// </summary>
@@ -41,6 +45,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
+
         /// <summary>
         /// Stop unpacker worker
         /// </summary>
@@ -48,12 +53,14 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             this.bAbort = true;
         }
 
+
         /// <summary>
         /// Trigger unpacker worker to check for tasks 
         /// </summary>
         public void Trigger() {
             this.waitEvent.Set();
         }
+
 
         /// <summary>
         /// Unpacker thread
@@ -81,7 +88,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     });
                 }
                 catch (Exception e) {
-                    LogWriter.WriteLine(string.Format("ERROR: {0}", e.ToString()));
+                    LogWriter.WriteLine(string.Format("ERROR: {0}.", e.ToString()));
                 }
 
             }
@@ -91,6 +98,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
+
         /// <summary>
         /// Unpack unpacked uploaded packages
         /// </summary>
@@ -99,17 +107,18 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             bool bUnpacked = false;
             LogWriter.WriteLine("NOTICE: Checking for new packages to unpack.");
 
-            var verions = Db.SlowSQL("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
+            var versions = Db.SlowSQL("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
 
-            foreach (VersionSource item in verions) {
+            foreach (VersionSource item in versions) {
 
                 if (string.IsNullOrEmpty(item.PackageFile)) {
+                    // Already unpacked
                     continue;
                 }
 
                 // Validate the existans of the package file
                 if (!File.Exists(item.PackageFile)) {
-                    LogWriter.WriteLine(string.Format("ERROR: Package file {0} is missing. Please restart to trigger the cleanup process", item.PackageFile));
+                    LogWriter.WriteLine(string.Format("ERROR: Package file {0} is missing. Please restart to trigger the cleanup process.", item.PackageFile));
                     continue;
                 }
 
@@ -121,7 +130,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 // Validate destination folder (it should not exist)
                 if (Directory.Exists(destination)) {
-                    LogWriter.WriteLine(string.Format("ERROR: Package file {0} destination folder {1} already exists. Please restart to trigger the cleanup process", item.PackageFile, destination));
+                    LogWriter.WriteLine(string.Format("ERROR: Package file {0} destination folder {1} already exists. Please restart to trigger the cleanup process.", item.PackageFile, destination));
                     continue;
                 }
 
@@ -135,7 +144,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         File.Delete(item.PackageFile);
                     }
                     catch (Exception e) {
-                        LogWriter.WriteLine(string.Format("ERROR: Failed to delete the uploaded package file {0}, {1}", item.PackageFile, e.Message));
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to delete the uploaded package file {0}, {1}.", item.PackageFile, e.Message));
                     }
 
                     Db.Transaction(() => {

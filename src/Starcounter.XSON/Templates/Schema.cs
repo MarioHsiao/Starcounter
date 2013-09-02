@@ -141,15 +141,17 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new property</param>
         /// <returns>The new property template</returns>
         public T Add<T>(string name) where T : Template, new() {
-            T t = (T)Properties.GetTemplateByName(name);
+            var @new = new T() { TemplateName = name };
+            var t = Properties.GetTemplateByName(name);
             if (t == null) {
-                t = new T() { TemplateName = name };
-                Properties.Add(t);
+                Properties.Add(@new);
+                return @new;
             } else {
-                Properties.Expose(t);
+                Properties.Replace(@new);
+                Properties.Expose(@new);
             }
 
-            return t;
+            return @new;
         }
 
         /// <summary>

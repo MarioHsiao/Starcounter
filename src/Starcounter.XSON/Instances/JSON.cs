@@ -127,6 +127,9 @@ namespace Starcounter {
             _cacheIndexInArr = -1;
             _transaction = null;
 			//LogChanges = false;
+            if (_Template == null) {
+                Template = GetDefaultTemplate();
+            }
         }
 
         /// <summary>
@@ -249,6 +252,10 @@ namespace Starcounter {
             }
 
             return (Json)parent;
+        }
+
+        protected virtual Template GetDefaultTemplate() {
+                return null;
         }
 
         /// <summary>

@@ -18,8 +18,8 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="uPort">Incoming POST port</param>
-        internal static void BootStrap(ushort uPort) {
+        /// <param name="port">Backend gui port</param>
+        internal static void BootStrap(ushort port) {
 
             // Get Settings
             VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
@@ -35,12 +35,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             VersionHandlerApp.BuildkWorker = new BuildWorker();
             VersionHandlerApp.BuildkWorker.Start();
 
-            Download.BootStrap(80);
+            Download.BootStrap(80); // Download port, should be accessable from internet
 
             Upload.BootStrap(8585); // TODO: Hardcoded portnumber for incoming requests.  use TrackingEnvironment.StarcounterTrackerPort
 
-            Utils.BootStrap(8282);
-
+            Utils.BootStrap(port); // Utils gui (should not be accessable from outside (internet)
 
             // Kickstart unpacker worker
             VersionHandlerApp.UnpackWorker.Trigger();

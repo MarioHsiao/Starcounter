@@ -28,7 +28,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var type = NTemplateClass.Template.InstanceType;
 				if (type == null)
 					return true;
-                return type.IsPrimitive || type == typeof(string);
+                return type.IsPrimitive || type == typeof(string) || type == typeof(Decimal);
             }
         }
 

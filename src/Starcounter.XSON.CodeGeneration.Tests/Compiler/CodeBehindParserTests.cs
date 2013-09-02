@@ -14,16 +14,16 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 File.ReadAllText(path),path );
         }
 
-        [Test]
-        public static void AnalyzeSimpleCase() {
-            CodeBehindMetadata monoMetadata;
-            monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
-            Assert.AreEqual("Simple", monoMetadata.JsonPropertyMapList[0].ClassName);
-            Assert.AreEqual("T,T2", monoMetadata.JsonPropertyMapList[0].GenericArg);
-            Assert.AreEqual("Json", monoMetadata.JsonPropertyMapList[0].BaseClassName);
-            Assert.AreEqual("T", monoMetadata.JsonPropertyMapList[0].BaseClassGenericArg);
-            Assert.AreEqual("MySampleNamespace", monoMetadata.JsonPropertyMapList[0].Namespace);
-        }
+//        [Test]
+//        public static void AnalyzeSimpleCase() {
+//            CodeBehindMetadata monoMetadata;
+//            monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
+//            Assert.AreEqual("Simple", monoMetadata.JsonPropertyMapList[0].ClassName);
+//            Assert.AreEqual("T,T2", monoMetadata.JsonPropertyMapList[0].GenericArg);
+//            Assert.AreEqual("Json", monoMetadata.JsonPropertyMapList[0].BaseClassName);
+//            Assert.AreEqual("T", monoMetadata.JsonPropertyMapList[0].BaseClassGenericArg);
+//            Assert.AreEqual("MySampleNamespace", monoMetadata.JsonPropertyMapList[0].Namespace);
+//        }
 
         [Test]
         public static void CodeBehindAnalyzeTest() {

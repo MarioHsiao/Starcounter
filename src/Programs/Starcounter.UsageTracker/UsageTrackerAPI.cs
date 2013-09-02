@@ -13,6 +13,10 @@ using StarcounterApplicationWebSocket.VersionHandler;
 namespace Starcounter.Applications.UsageTrackerApp {
     internal static class UsageTrackerAPI {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="port">Backend gui port</param>
         public static void Bootstrap(ushort port) {
 
             // Starcounter General and usage tracking

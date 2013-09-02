@@ -441,6 +441,7 @@ namespace Starcounter.Advanced {
             }
         }
 
+        /*
         /// <summary>
         /// The is app view_
         /// </summary>
@@ -455,6 +456,7 @@ namespace Starcounter.Advanced {
             get { return is_app_view_; }
             set { is_app_view_ = value; }
         }
+         */
 
         /// <summary>
         /// The gzip advisable_

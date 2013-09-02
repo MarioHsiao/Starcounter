@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using Starcounter;
 using Starcounter.Management.Win32;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Internal;
 using Starcounter.Server.Setup;
 
