@@ -35,10 +35,12 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
 			if (VerifyBinding(template.dataBinding, dataType, template)) {
-				if (bound == Bound.Yes)
-					return true;
-				return false;
+				return !template.dataBinding.IsDummyBinding;
 			}
 
 			if (bound == Bound.Yes) {
@@ -94,10 +96,12 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
 			if (VerifyBinding(template.dataBinding, dataType, template)) {
-				if (bound == Bound.No)
-					return false;
-				return true;
+				return !template.dataBinding.IsDummyBinding;
 			}
 
 			if (bound == Bound.Yes) {
@@ -139,10 +143,12 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
 			if (VerifyBinding(template.dataBinding, dataType, template)) {
-				if (bound == Bound.Yes)
-					return true;
-				return false;
+				return !template.dataBinding.IsDummyBinding;
 			}
 
 			if (bound == Bound.Yes) {
@@ -186,8 +192,9 @@ namespace Starcounter.Internal.XSON {
 			}
 
 			// TODO: 
-			// Rewrite this code. We want to return false if we have an autobinding and the property is not bound 
-			// but we dont want to check every time for missing property.
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
 			if (VerifyBinding(template.dataBinding, dataType, template)) {
 				return !template.dataBinding.IsDummyBinding;
 			}
