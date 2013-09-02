@@ -13,10 +13,18 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
 
         private static string LogFile;
 
+        /// <summary>
+        /// Initilize the logwriter
+        /// </summary>
+        /// <param name="file">Filename</param>
         public static void Init(string file) {
             LogWriter.LogFile = file;
         }
 
+        /// <summary>
+        /// Write to logfile
+        /// </summary>
+        /// <param name="text"></param>
         public static void WriteLine(string text) {
 
             lock (LOCK) {
@@ -48,7 +56,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
                     }
                 }
                 catch (Exception e) {
-                    Console.WriteLine("{0} ERROR: Can not write to logfile {0}. {1}", timestamp, LogWriter.LogFile, e.ToString());
+                    Console.WriteLine("{0} ERROR: Failed to write to log {0}. {1}.", timestamp, LogWriter.LogFile, e.ToString());
                 }
 
             }

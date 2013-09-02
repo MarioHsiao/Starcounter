@@ -28,7 +28,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                     string errorMessage;
                     bool result = PackageHandler.AddFileEntryToDatabase(file, out errorMessage);
                     if (result == false) {
-                        return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.BadRequest, null, errorMessage) };
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.BadRequest, Body = errorMessage };
                     }
 
                     // Trigger unpacker worker
@@ -44,6 +44,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
 
         }
+
 
         /// <summary>
         /// Save file to filesystem
