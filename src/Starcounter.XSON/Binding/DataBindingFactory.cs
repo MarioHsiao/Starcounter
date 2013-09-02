@@ -95,9 +95,9 @@ namespace Starcounter.Internal.XSON {
 			}
 
 			if (VerifyBinding(template.dataBinding, dataType, template)) {
-				if (bound == Bound.Yes)
-					return true;
-				return false;
+				if (bound == Bound.No)
+					return false;
+				return true;
 			}
 
 			if (bound == Bound.Yes) {

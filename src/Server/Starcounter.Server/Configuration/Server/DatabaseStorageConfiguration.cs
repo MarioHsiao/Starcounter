@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
 
     /// <summary>
     /// Defines a set of properties describing the database storage

@@ -3,7 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.ServiceProcess;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Management.Win32;
 using Starcounter.Internal;
 

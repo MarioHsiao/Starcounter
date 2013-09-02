@@ -9,7 +9,7 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
     
     /// <summary>
     /// Configures the server.
