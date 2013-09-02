@@ -211,16 +211,6 @@ public:
             g_gateway.SetGlobalSessionCopy(sock_, session_);
     }
 
-    // Get socket scheduler id if socket is correct.
-    scheduler_id_type GetSocketSchedulerId()
-    {
-        // Checking that we operate with correct socket.
-        if (CompareUniqueSocketId())
-            return g_gateway.GetGlobalSessionSchedulerId(sock_);
-
-        return INVALID_SCHEDULER_ID;
-    }
-
     // Forcedly sets session if socket is correct.
     void ForceSetGlobalSessionIfEmpty()
     {
@@ -523,6 +513,12 @@ public:
     scheduler_id_type get_scheduler_id()
     {
         return session_.scheduler_id_;
+    }
+
+    // Setting scheduler id.
+    void set_scheduler_id(scheduler_id_type sched_id)
+    {
+        session_.scheduler_id_ = sched_id;
     }
 
     // Getting session index.
