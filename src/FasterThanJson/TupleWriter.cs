@@ -283,9 +283,17 @@ namespace Starcounter.Internal
 #endif
       }
 
+      public static uint MeasureNeededSizeByteArray(uint length) {
+#if BASE64
+          return Base64Binary.MeasureNeededSizeToEncode(length);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
       public static uint MeasureNeededSize(byte[] b) {
 #if BASE64
-          return Base64Binary.MeasureNeededSizeToEncode((uint)b.Length);
+          return MeasureNeededSizeByteArray((uint)b.Length);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
 #endif
@@ -324,10 +332,11 @@ namespace Starcounter.Internal
       }
 
       public unsafe void WriteSafe(byte* b, uint length) {
-          ValidateLength(length);
+          uint size = MeasureNeededSizeByteArray(length);
+          ValidateLength(size);
           Write(b, length);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= length;
+          AvaiableSize -= size;
       }
 
       public unsafe void WriteSafe(byte[] b) {
