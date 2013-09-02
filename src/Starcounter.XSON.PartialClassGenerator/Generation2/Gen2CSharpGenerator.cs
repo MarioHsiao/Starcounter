@@ -406,16 +406,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     a.NTemplateClass.GlobalClassSpecifier +
     ")base.Template; } set { base.Template = value; } }");
 
-            var par = a.ParentProperty;
-            if (par != null) {
-                a.Prefix.Add("    " + markAsCodegen);
-                a.Prefix.Add(
-                    "    public new " +
-                    par.GlobalClassSpecifier +
-                    " Parent { get { return (" +
-                    par.GlobalClassSpecifier +
-                    ")base.Parent; } set { base.Parent = value; } }");
-            }
+//            var par = a.ParentProperty;
+//            if (par != null) {
+//                a.Prefix.Add("    " + markAsCodegen);
+//                a.Prefix.Add(
+//                    "    public new " +
+//                    par.GlobalClassSpecifier +
+//                    " Parent { get { return (" +
+//                    par.GlobalClassSpecifier +
+//                    ")base.Parent; } set { base.Parent = value; } }");
+//            }
 
             if (a.CodebehindClass != null && a.CodebehindClass.BoundDataClass != null ) {
                 a.Prefix.Add("    " + markAsCodegen);
@@ -559,7 +559,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add("        : base() {");
 
 //            a.Prefix.Add("        Template = new st::TJson();");
-			a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
+            if (a.BindChildren != Bound.Auto) {
+                a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
+            }
 
             sb = new StringBuilder();
             sb.Append("        InstanceType = typeof(");

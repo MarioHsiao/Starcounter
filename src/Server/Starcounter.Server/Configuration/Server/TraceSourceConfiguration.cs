@@ -8,7 +8,7 @@ using Starcounter.Internal;
 using System;
 using System.Xml.Serialization;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
     /// <summary>
     /// Configures the severity threshold of a trace source.
     /// </summary>

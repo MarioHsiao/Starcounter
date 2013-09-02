@@ -124,26 +124,28 @@ namespace Starcounter.Internal.Web {
          relativeUri = relativeUri.ToLower();
 
          if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
-             if (DateTime.Now.Ticks < resource.Retrieved + 10000000) {
-                 Console.WriteLine("(found cache) " + relativeUri);
+//             if (DateTime.Now.Ticks < resource.Retrieved + 10000000) {
+//                 Console.WriteLine("(found cache) " + relativeUri);
                  return resource;
-             }
-             else {
-                 DecacheByFilePath(resource.FilePath);
-             }
+//             }
+//            else {
+//                 DecacheByFilePath(resource.FilePath);
+//             }
          }
 
-         // Locking because of possible multi-threaded calls.
-         lock (LockObject) {
+         if (!Configuration.Current.FileServer.DisableAllCaching) {
+             // Locking because of possible multi-threaded calls.
+             lock (LockObject) {
 
-             // Checking again if already processed the file..
-             if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
-                 Console.WriteLine("(found cache2) " + relativeUri);
-                 return resource;
+                 // Checking again if already processed the file..
+                 if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
+                     Console.WriteLine("(found cache2) " + relativeUri);
+                     return resource;
+                 }
+
              }
-
-            resource = GetFileResource(resource, relativeUri, request);
          }
+         resource = GetFileResource(resource, relativeUri, request);
          return resource;
       }
 

@@ -70,7 +70,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <returns></returns>
         public override string ToString() {
-            return DebugPropertyNameWithPath;
+            return DebugString;
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace Starcounter.Templates {
                 /// <summary>
         /// The property name including parent path
         /// </summary>
-        public string DebugPropertyNameWithPath {
+        public string DebugString {
             get {
                 return HelperFunctions.GetClassDeclarationSyntax(this.GetType()) + " " + DebugPropertyNameWithPathSuffix;
             }
@@ -281,18 +281,25 @@ namespace Starcounter.Templates {
         /// </summary>
         private string DebugPropertyNameWithPathSuffix {
             get {
+                var str = "";
                 if (Parent != null) {
-                    return Parent.DebugPropertyNameWithPathSuffix + "." + PropertyName;
-                } else {
-                    String str;
+                    str += Parent.DebugPropertyNameWithPathSuffix + ".";
+                }
+                if (Parent is TObjArr) {
+                    str += "ElementType.";
+                }
+                else {
                     if (PropertyName != null) {
-                        str = "(" + PropertyName + ").";
+                        str += PropertyName;
+                    }
+                    else if (ClassName != null) {
+                        str += this.ClassName;
                     }
                     else {
-                        str = "";
+                        str += "(anonymous)";
                     }
-                    return str + this.GetHashCode() + "@" + HelperFunctions.GetClassDeclarationSyntax(this.GetType());
                 }
+                return str;
             }
         }
 
@@ -356,9 +363,9 @@ namespace Starcounter.Templates {
             if (this != prop.Parent) {
                 throw new Exception(String.Format(
                     "The property {0} is declared in {1} but an attempt was made to use it in {2}",
-                    prop.DebugPropertyNameWithPath,
-                    prop.Parent.DebugPropertyNameWithPath,
-                    this.DebugPropertyNameWithPath));
+                    prop.DebugString,
+                    prop.Parent.DebugString,
+                    this.DebugString));
             }
 
         }

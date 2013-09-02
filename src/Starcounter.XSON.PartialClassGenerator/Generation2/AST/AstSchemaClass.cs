@@ -38,10 +38,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             get {
                 var acn = (AstJsonClass)NValueClass;
                 if (acn == null)
-                    return Bound.No;
+                    return Bound.Auto;
 				if (acn.CodebehindClass == null) {
 					if (string.IsNullOrEmpty(((TObject)acn.NTemplateClass.Template).InstanceDataTypeName))
-						return Bound.No;
+						return Bound.Auto;
 					return Bound.Yes;
 				}
 				return acn.CodebehindClass.BindChildren;

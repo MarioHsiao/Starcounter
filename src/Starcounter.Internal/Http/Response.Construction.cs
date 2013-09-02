@@ -65,6 +65,5 @@ namespace Starcounter.Advanced {
 
 
 
-        public long Retrieved { get; set; }
     }
 }

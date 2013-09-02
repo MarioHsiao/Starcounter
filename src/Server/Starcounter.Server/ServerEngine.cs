@@ -4,7 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Logging;
 using Starcounter.Server.Commands;
 using Starcounter.Server.Commands.InternalCommands;

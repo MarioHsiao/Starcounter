@@ -129,7 +129,7 @@ namespace Starcounter {
                     else {
                         if (((TValue)p).UseBinding(DataAsBindable)) {
                             var val = this.GetBound((TValue)p);
-                            if (!val.Equals(this._BoundDirtyCheck[t])) {
+                            if (val != _BoundDirtyCheck[t]) {
                                 _BoundDirtyCheck[t] = val;
                                 Session.UpdateValue(this, (TValue)template.Properties[t]);
                             }

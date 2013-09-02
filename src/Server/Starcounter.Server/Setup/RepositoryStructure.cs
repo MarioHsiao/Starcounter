@@ -6,7 +6,7 @@
 
 using System;
 using System.IO;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Internal;
 
 namespace Starcounter.Server.Setup {

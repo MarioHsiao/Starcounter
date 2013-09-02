@@ -191,11 +191,10 @@ namespace Starcounter.Binding
         /// <returns>TypeBinding.</returns>
         internal static TypeBinding GetTypeBinding(string name)
         {
-            try
-            {
-                return typeBindingsByName_[name];
+            TypeBinding ret;
+            if (typeBindingsByName_.TryGetValue(name,out ret)) {
+                return ret;
             }
-            catch (KeyNotFoundException) { }
 
             return BuildTypeBindingFromTypeDef(name);
         }

@@ -8,7 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
     /// <summary>
     /// Configures how the Starcounter server can start a database and if/how
     /// it should monitor its livetime.

@@ -51,7 +51,7 @@ namespace Starcounter.Internal.Web {
 
             req.Debug(" (FILE ACCESS) " + relativeUri );
 
-            bool shouldBeCached = true;
+            bool shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
             bool shouldCompress = req.IsGzipAccepted;
             Response fres = cached;
             if (fres == null)
@@ -189,11 +189,11 @@ namespace Starcounter.Internal.Web {
             if (didCompress)
                 str += "Content-Encoding: gzip" + StarcounterConstants.NetworkConstants.CRLF;
 
-            if (req.IsAppView)
+            if (Configuration.Current.FileServer.DisableAllCaching)
                 str += "Cache-control: private,max-age=0" + StarcounterConstants.NetworkConstants.CRLF; // Dont cache
             else
                 str += "Cache-control: public,max-age=31536000" + StarcounterConstants.NetworkConstants.CRLF; // 1 year cache
-
+ 
             // Cache-Control: public,max-age=31536000
             // Age: 0
 

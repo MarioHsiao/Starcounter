@@ -860,9 +860,11 @@ namespace Starcounter.Advanced
         /// </summary>
         public Response()
         {
-            Retrieved = DateTime.Now.Ticks;
+//            Retrieved = DateTime.Now.Ticks;
             HeaderInjectionPoint = -1;
         }
+
+//        public long Retrieved { get; set; }
 
         /// <summary>
         /// Reference to corresponding HTTP request.
