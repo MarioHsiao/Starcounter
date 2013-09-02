@@ -10,7 +10,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
 
     /// <summary>
     /// Configuration of a database instance.

@@ -80,11 +80,14 @@ namespace Starcounter {
                     }
                     ((TObject)_Template).SingleInstance = (Json)this;
                 }
+                else if (_Template == null) {
+                    return;
+                }
                 else {
                     _Template.Sealed = true;
                 }
 #if QUICKTUPLE
-                _InitializeValues();
+                 _InitializeValues();
 #endif
        //         if (this is App) {
        //             ((App)this).CallInit();

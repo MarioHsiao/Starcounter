@@ -271,7 +271,9 @@ namespace Starcounter.XSON.Metadata {
             }
             return output;
         }
-  
 
+
+
+        public string BoundDataClass { get; set; }
     }
 }

@@ -36,7 +36,7 @@ namespace Starcounter {
         /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
         /// </summary>
         /// <value>The bound data object (often a database Entity)</value>
-        public IBindable Data {
+        public object Data {
             get {
                 return _data;
             }

@@ -8,7 +8,7 @@ using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Server.Setup;
 using System.Xml;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.InstallerEngine
 {

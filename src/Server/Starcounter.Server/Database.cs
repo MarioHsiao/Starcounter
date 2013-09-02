@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server.PublicModel;
 using System.Diagnostics;
 using Starcounter.Internal;

@@ -23,7 +23,7 @@ using System.Globalization;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Server;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 

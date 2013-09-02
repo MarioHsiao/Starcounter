@@ -335,5 +335,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             return base.CalculateClassAliasIdentifier(chars);
         }
+
+        public override bool MarkAsCodegen {
+            get {
+                if (Parent != null) {
+                    if (Parent.MarkAsCodegen) {
+                        return false;
+                    }
+                }
+                return !IsPartial;
+            }
+        }
     }
 }

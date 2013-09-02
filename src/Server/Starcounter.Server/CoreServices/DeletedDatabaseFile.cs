@@ -1,4 +1,4 @@
-﻿using Starcounter.Configuration;
+﻿using Starcounter.Advanced.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;

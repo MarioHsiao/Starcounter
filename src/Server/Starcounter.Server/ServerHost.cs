@@ -1,5 +1,5 @@
 ﻿
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Internal;
 using Starcounter.Logging;
 using System;
