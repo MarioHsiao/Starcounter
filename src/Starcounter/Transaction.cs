@@ -257,8 +257,7 @@ namespace Starcounter
 				SetCurrent(this);
 				action.Invoke();
 			} finally {
-				if (old != null)
-					SetCurrent(old);
+				SetCurrent(old);
 			}
         }
 
