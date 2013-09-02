@@ -37,6 +37,12 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', fu
 
     $scope.executeQuery = function () {
 
+        if (!$scope.queryState.sqlQuery) {
+            // if this occure then the binding the the textarea failed..
+            var message = "Failed to retrive the query text due to some binding issues. Refresh the page and try again.";
+            $scope.alerts.push({ type: 'error', msg: message });
+            return;
+        }
         $scope.isBusy = true;
 
         $scope.queryState.columns = [];
@@ -79,7 +85,7 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', fu
 
                 if (response.status == 404) {
                     // 404	Not Found
-                    var message = "Could not execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started database";
+                    var message = "Failed to execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started executable.";
                     $scope.alerts.push({ type: 'error', msg: message });
 
                 }
