@@ -10,8 +10,7 @@
         <option value="{{database.name}}" ng-repeat="database in databases | filter: {running:true} | orderBy: 'name'">{{database.name}}</option>
     </select>
 
-
-    <button type="submit" class="btn btn-success input-medium" ng-disabled="queryState.selectedDatabaseName == ''||queryState.selectedDatabaseName == null||isBusy == true||queryState.sqlQuery == ''" ng-click="btnExecute()">{{executeButtonTitle()}}</button>
+    <button type="submit" class="btn btn-success input-medium" ng-disabled="queryState.selectedDatabaseName == ''||queryState.selectedDatabaseName == null||isBusy == true||!queryState.sqlQuery" ng-click="btnExecute()">{{executeButtonTitle()}}</button>
 
 </form>
 
