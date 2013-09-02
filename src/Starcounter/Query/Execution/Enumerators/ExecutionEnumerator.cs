@@ -18,6 +18,7 @@ namespace Starcounter.Query.Execution
 // Implementation for base execution enumerator class.
 internal abstract class ExecutionEnumerator
 {
+    protected uint OFFSETELEMNETSIZE = 2; // Initial size of offset element in tuple writer
     protected readonly byte nodeId; // Unique node identifier in execution tree. Top node has largest nodeId.
     protected Row currentObject = null; // Represents latest successfully retrieved object.
     protected VariableArray variableArray = null; // Array with variables from query.
@@ -299,44 +300,36 @@ internal abstract class ExecutionEnumerator
         if (currentObject == null)
             return null;
 
-        UInt16 globalOffset = 0;
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
-
-        // Getting the amount of leaves in execution tree.
-        //Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
-        byte nodesNum = (byte)(NodeId + 1);
-        // Offset to first enumerator static data
-        globalOffset = (ushort)((nodesNum << 2) + IteratorHelper.RK_HEADER_LEN);
-
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
-
+        uint globalOffset = 0;
         unsafe {
             fixed (Byte* recreationKey = tempBuffer) {
-                // Saving number of enumerators.
-                (*(byte*)(recreationKey + IteratorHelper.RK_NODE_NUM_OFFSET)) = nodesNum;
+                Debug.Assert(TopNode);
+                byte headerLength = 1;
+                byte nodesNum = (byte)(NodeId + headerLength);
+                TupleWriter root = new TupleWriter(recreationKey, (uint)(1 + nodesNum), OFFSETELEMNETSIZE);
+                root.SetTupleLength((uint)tempBuffer.Length);
+                // General validation data
+                root.WriteSafe(nodesNum); // Saving number of enumerators
+                // Saving enumerator data
+                execEnum.SaveEnumerator(root, 0);
+                //execEnum.SaveEnumerator(recreationKey, 0, true);
+                globalOffset = root.SealTuple();
 
-                // Saving static data (or obtaining absolute position of the first dynamic data).
-                globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, false);
-
-                // Saving dynamic data.
-                globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, true);
-
-                // Saving full recreation key length.
-                (*(UInt16*)recreationKey) = globalOffset;
-
-                // Successfully recreated the key.
-                Debug.Assert(globalOffset > IteratorHelper.RK_EMPTY_LEN);
-                // Allocating space for offset key.
-                Byte[] offsetKey = new Byte[globalOffset];
-
-                // Copying the recreation key into provided user buffer.
-                Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, globalOffset);
-
-                // Returning the key.
-                return offsetKey;
             }
         }
+        // Successfully recreated the key.
+        Debug.Assert(globalOffset > IteratorHelper.RK_EMPTY_LEN);
+        // Allocating space for offset key.
+        Byte[] offsetKey = new Byte[globalOffset];
+
+        // Copying the recreation key into provided user buffer.
+        Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, (int)globalOffset);
+
+        // Returning the key.
+        return offsetKey;
     }
 
     protected unsafe Byte* ValidateAndGetStaticKeyOffset(byte* key) {

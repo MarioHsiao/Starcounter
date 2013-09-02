@@ -93,6 +93,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using Starcounter.Binding;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
@@ -1069,6 +1070,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <param name="saveDynamicDataOnly">Specifies if dynamic or static data should be written.</param>
     /// <returns>The offset directly after data were stored or the offset to first dynamic data (reusing the key).</returns>
     unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly);
+    unsafe void SaveEnumerator(TupleWriter root, byte expectedNodeId);
 
     // Flags describing whether the query includes literal, aggregation etc.
     QueryFlags QueryFlags

@@ -606,6 +606,44 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     internal void CreateStaticKeyPart() {
     }
 
+
+    public unsafe void SaveEnumerator(TupleWriter root, byte expectedNodeId) {
+        currentObject = null;
+        Debug.Assert(expectedNodeId == nodeId);
+        TupleWriter tuple = new TupleWriter(root.AtEnd, 2, OFFSETELEMNETSIZE);
+        tuple.WriteSafe((byte)NodeType);
+
+        // Fetching current enumerator key.
+        Byte* createdKey = null;
+        UInt32 err = 0;
+
+        // TODO/Entity:
+        IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
+        Debug.Assert(dbObject != null);
+            // Getting current position of the object in iterator.
+        err = sccoredb.sc_get_index_position_key(
+            indexInfo.Handle,
+            dbObject.Identity,
+            dbObject.ThisHandle,
+            &createdKey
+            );
+
+        // Disposing iterator.
+        enumerator.Dispose();
+
+        // Checking the error.
+        if (err != 0)
+            throw ErrorCode.ToException(err);
+
+        // Checking if it was last object.
+        if (createdKey != null) {
+
+            // Copying the recreation key.
+            UInt16 bytesWritten = *((UInt16*)createdKey);
+            tuple.WriteSafe(
+        }
+        root.HaveWritten(tuple.SealTuple());
+    }
     /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
