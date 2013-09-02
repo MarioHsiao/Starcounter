@@ -85,7 +85,7 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', fu
 
                 if (response.status == 404) {
                     // 404	Not Found
-                    var message = "Failed to execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started database";
+                    var message = "Failed to execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started executable.";
                     $scope.alerts.push({ type: 'error', msg: message });
 
                 }
