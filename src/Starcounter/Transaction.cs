@@ -252,8 +252,13 @@ namespace Starcounter
         /// </summary>
         /// <param name="action"></param>
         public void Add(Action action) {
-            SetCurrent(this);
-            action.Invoke();
+			Transaction old = _current;
+			try {
+				SetCurrent(this);
+				action.Invoke();
+			} finally {
+				SetCurrent(old);
+			}
         }
 
         /// <summary>

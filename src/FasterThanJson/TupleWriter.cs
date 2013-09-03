@@ -250,9 +250,18 @@ namespace Starcounter.Internal
       public unsafe void Write(byte[] value) {
 #if BASE64
           fixed (byte* valuePtr = value) {
-              uint len = Base64Binary.Write((IntPtr)AtEnd, valuePtr, (uint)value.Length);
-              HaveWritten(len);
+              Write(valuePtr, (uint)value.Length);
           }
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
+#endif
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void Write(byte* value, uint length) {
+#if BASE64
+          uint len = Base64Binary.Write((IntPtr)AtEnd, value, length);
+          HaveWritten(len);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
 #endif
@@ -274,9 +283,17 @@ namespace Starcounter.Internal
 #endif
       }
 
+      public static uint MeasureNeededSizeByteArray(uint length) {
+#if BASE64
+          return Base64Binary.MeasureNeededSizeToEncode(length);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
       public static uint MeasureNeededSize(byte[] b) {
 #if BASE64
-          return Base64Binary.MeasureNeededSizeToEncode((uint)b.Length);
+          return MeasureNeededSizeByteArray((uint)b.Length);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
 #endif
@@ -286,32 +303,46 @@ namespace Starcounter.Internal
       /// Checks if string value fits the tuple and writes it
       /// </summary>
       /// <param name="value">String to write</param>
-      private void WriteSafeAny(dynamic value) {
+      private void ValidateLength(uint expectedLen) {
           if (TupleMaxLength == 0)
               throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
           if (ValuesWrittenSoFar() == ValueCount)
               throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot write since the index will be out of range.");
-          uint expectedLen = MeasureNeededSize(value);
           uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
           if (OffsetElementSize < neededOffsetSize)
               expectedLen += MoveValuesRightSize(neededOffsetSize);
           if (expectedLen > AvaiableSize)
               throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
-          Write(value);
-          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= expectedLen;
       }
 
       public void WriteSafe(ulong n) {
-          WriteSafeAny(n);
+          uint size = MeasureNeededSize(n);
+          ValidateLength(size);
+          Write(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= size;
       }
 
       public void WriteSafe(String str) {
-          WriteSafeAny(str);
+          uint size = MeasureNeededSize(str);
+          ValidateLength(size);
+          Write(str);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= size;
       }
 
-      public void WriteSafe(byte[] b) {
-          WriteSafeAny(b);
+      public unsafe void WriteSafe(byte* b, uint length) {
+          uint size = MeasureNeededSizeByteArray(length);
+          ValidateLength(size);
+          Write(b, length);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= size;
+      }
+
+      public unsafe void WriteSafe(byte[] b) {
+          fixed (byte* bPtr = b) {
+              WriteSafe(bPtr, (uint)b.Length);
+          }
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
