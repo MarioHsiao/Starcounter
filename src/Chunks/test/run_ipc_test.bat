@@ -5,6 +5,7 @@ CMD /C "kill_all.bat" 2>NUL
 
 :: Creating repository if it does not exist.
 IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
+COPY /Y scnetworkgateway.xml .srv\personal\scnetworkgateway.xml
 
 :: Setting StarcounterBin as current directory.
 SET StarcounterBin=%CD%
