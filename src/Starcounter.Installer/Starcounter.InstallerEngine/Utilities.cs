@@ -14,6 +14,7 @@ using Starcounter;
 using Microsoft.VisualBasic.Devices;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using System.Xml;
 
 namespace Starcounter.InstallerEngine
 {
@@ -51,6 +52,18 @@ namespace Starcounter.InstallerEngine
             }
 
             return false;
+        }
+
+
+        // Reads server installation path from configuration file.
+        public static String ReadServerInstallationPath(String serverConfigPath)
+        {
+            if (!File.Exists(serverConfigPath))
+                return null;
+
+            XmlDocument serverXML = new XmlDocument();
+            serverXML.Load(serverConfigPath);
+            return (serverXML.GetElementsByTagName("server-dir"))[0].InnerText;
         }
 
         /// <summary>

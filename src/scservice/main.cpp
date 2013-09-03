@@ -201,6 +201,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	wchar_t *admin_working_dir;
 	wchar_t *database_cfg_path;
 	wchar_t *server_cfg_path;
+    wchar_t *gateway_cfg_path;
 	wchar_t *admin_logsteps_flag = logsteps != 0 ? L"--LogSteps" : L"";
 
 	str_num_chars = wcslen(srv_name) + 1;
@@ -259,8 +260,21 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	wprintf(L"Reading server configuration from: %s\n", server_cfg_path);
 
+    // Creating path to gateway configuration file.
+    str_template = L"%s\\scnetworkgateway.xml";
+    str_num_chars =
+        wcslen(str_template) +
+        wcslen(server_dir) +
+        1;
+
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    gateway_cfg_path = (wchar_t *)malloc(str_size_bytes);
+    if (!gateway_cfg_path) goto err_nomem;
+
+    swprintf(gateway_cfg_path, str_num_chars, str_template, server_dir);
+
 	if(logsteps != 0 ) { 
-		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to read config file %s", server_cfg_path);
+		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer), L"About to read config file %s", server_cfg_path);
 		LogVerboseMessage(logmessagebuffer);
 	}
 
@@ -282,6 +296,16 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
         &prolog_port);
 
 	if (r) goto log_scerr;
+
+    wprintf(L"Reading gateway configuration from: %s\n", gateway_cfg_path);
+
+    wchar_t *gateway_workers_number;
+
+    r = _read_gateway_config(
+        gateway_cfg_path,
+        &gateway_workers_number);
+
+    if (r) goto log_scerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Config file %s read", server_cfg_path);
@@ -385,11 +409,11 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	swprintf(monitor_cmd, str_num_chars, str_template, srv_name_upr, server_logs_dir);
 
-	str_template = L"scnetworkgateway.exe \"%s\" \"%s\\scnetworkgateway.xml\" \"%s\"";
+	str_template = L"scnetworkgateway.exe \"%s\" \"%s\" \"%s\"";
 	str_num_chars =
 		wcslen(str_template) +
 		wcslen(srv_name_upr) +
-        wcslen(server_dir) +
+        wcslen(gateway_cfg_path) +
 		wcslen(server_logs_dir) +
 		1;
 
@@ -507,7 +531,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	str_template =
         L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
-        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --FLAG:NoDb %s";
+        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 
@@ -520,6 +544,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(admin_working_dir) +			// WorkingDir
         wcslen(system_http_port) +	        // DefaultSystemHttpPort
 		wcslen(default_user_http_port) +	// DefaultUserHttpPort
+        wcslen(gateway_workers_number) +	// GatewayWorkersNumber
 		wcslen(admin_logsteps_flag) +		// --LogSteps (or "" if not set)
 		1;
 
@@ -540,6 +565,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		admin_working_dir,
         system_http_port,
 		default_user_http_port,
+        gateway_workers_number,
 		admin_logsteps_flag);
 #endif
 
