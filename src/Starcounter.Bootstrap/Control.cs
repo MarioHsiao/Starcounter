@@ -102,6 +102,7 @@ namespace StarcounterInternal.Bootstrap
             OnConfigurationLoaded();
 
             withdb_ = !configuration.NoDb;
+            StarcounterEnvironment.Gateway.NumberOfWorkers = configuration.GatewayNumberOfWorkers;
 
             AssureNoOtherProcessWithTheSameName(configuration);
             OnAssuredNoOtherProcessWithTheSameName();
@@ -447,7 +448,7 @@ namespace StarcounterInternal.Bootstrap
             setup.db_data_dir_path = (char*)Marshal.StringToHGlobalUni(c.OutputDirectory); // TODO: ?
             setup.is_system = 0;
             setup.num_shm_chunks = c.ChunksNumber;
-            setup.gateway_num_workers = 2;
+            setup.gateway_num_workers = c.GatewayNumberOfWorkers;
             setup.mem = mem;
             setup.mem_size = space_needed_for_scheduler;
             setup.hmenv = hmenv;

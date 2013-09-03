@@ -1311,6 +1311,9 @@
     <code hex="008F" severity="Error" name="ScErrWeaverFailedStrongNameAsm">
       <message>A locally deployed strong-named assembly was detected.</message>
     </code>
+    <code hex="0090" severity="Error" name="ScErrBadGatewayWorkersNumberConfig">
+        <message>Gateway workers number is missing in configuration file or has invalid value.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
@@ -4243,6 +4246,16 @@
             <message>
                 This given handler is not found.
             </message>
+        </code>
+
+        <code hex="0005" severity="Error" name="ScErrBadGatewayConfig">
+            <message>Gateway configuration is invalid.</message>
+            <remarks>
+                <para>
+                    The gateway configuration file doesn't exist, isn't accessible or
+                    isn't formatted correctly.
+                </para>
+            </remarks>
         </code>
         
     </facility>
