@@ -261,6 +261,9 @@ private:
     // Timeout for IPC test, in milliseconds.
     uint32_t timeout_;
 
+    // Number of schedulers to connect to.
+    uint32_t num_schedulers_;
+
 	// Event to wait for active databases update.
 	::HANDLE active_databases_updates_event_;
 
