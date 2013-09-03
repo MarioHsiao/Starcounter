@@ -45,7 +45,7 @@ all_popped_(0)
 	///=========================================================================
 	number_of_shared_ = 0;
 
-	if (argc == 5) {
+	if (argc >= 6) {
         //----------------------------------------------------------------------
 		// First argument: <server name>
         // Convert it from wide-character string to multibyte string.
@@ -80,6 +80,15 @@ all_popped_(0)
         // Convert it from wide character string to multibyte string.
 		char database_name_buffer[segment_name_size];
 
+        //----------------------------------------------------------------------
+        // Fifth argument: <number of schedulers to use in database>
+        // Convert it from wide-character string to multibyte string.
+        char num_schedulers_buffer[16];
+        std::wcstombs(num_schedulers_buffer, argv[4], 16 -1);
+
+        // Instantiate the number of workers requested.
+        num_schedulers_ = std::atoi(num_schedulers_buffer);
+
 		std::string database_name;
 		std::string db_shm_params_name;
 		std::vector<std::string> ipc_shm_params_name;
@@ -88,7 +97,7 @@ all_popped_(0)
         // database. But it works so I leave it as is for now, because the
         // IPC test shall be able to connect to multiple databases so this
         // loop may be usable later if that is fixed.
-		for (std::size_t i = 4; i < argc; ++i) {
+		for (std::size_t i = 5; i < argc; ++i) {
 			std::wcstombs(database_name_buffer, argv[i], segment_name_size -1);
 			database_name = database_name_buffer;
 			
@@ -111,11 +120,13 @@ all_popped_(0)
 		}
 	}
 	else {
-		std::wcout << "Please enter four arguments in this order:\n"
+		std::wcout << "Please enter five arguments in this order:\n"
 		"First argument: <server name>, for example \"PERSONAL\" or \"SYSTEM\".\n"
 		"Second argument: <number of worker threads>, for example \"4\".\n"
 		"Third argument: <timeout in milliseconds>, for example \"10000\".\n"
-		"Fourth argument: <database name>, for example \"myDatabase\"." << std::endl;
+		"Fourth argument: <database name>, for example \"myDatabase\".\n"
+		"Fifth argument: <number of schedulers>, for example \"3\".\n"
+        << std::endl;
 		
 		throw test_exception(0 /* TODO: Starcounter error code. SCERRINVALIDARGUMENTSTOIPCTEST */);
 	}
@@ -304,7 +315,7 @@ void test::run() {
 		.set_monitor_interface_name(monitor_interface_name_)
 		.set_pid(pid_)
 		.set_owner_id(owner_id_)
-		.set_active_schedulers(active_schedulers_[0])
+		.set_active_schedulers(num_schedulers_/*active_schedulers_[0]*/)
 		.set_worker_number(i)
 		.set_shared_interface();
 
