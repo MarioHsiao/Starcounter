@@ -211,6 +211,10 @@ namespace Starcounter.Internal
             /// </summary>
             public uint num_shm_chunks;
             /// <summary>
+            /// Number of workers in gateway
+            /// </summary>
+            public byte gateway_num_workers;
+            /// <summary>
             /// The cpuc
             /// </summary>
             public byte cpuc;
