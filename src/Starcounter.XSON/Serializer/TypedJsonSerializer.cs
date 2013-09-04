@@ -6,26 +6,28 @@ using System.Text;
 using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
-    public abstract class TypedJsonSerializer {
-        public abstract string ToJson(Json obj);
-        public abstract byte[] ToJsonUtf8(Json obj);
-        public abstract int ToJsonUtf8(Json obj, out byte[] buffer);
+    public abstract class TypedJsonSerializerBase {
+        public abstract int Serialize(Json obj, out byte[] buffer);
+        public abstract int Populate(Json obj, IntPtr src);
 
-        public abstract int PopulateFromJson(Json obj, string json);
-        public abstract int PopulateFromJson(Json obj, byte[] src, int srcSize);
-        public abstract int PopulateFromJson(Json obj, IntPtr src, int srcSize);
+		protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {
+			byte[] tmpBuffer;
+			long bufferSize = current.Length;
+
+			bufferSize *= 2;
+			if (needed != -1) {
+				while (bufferSize < (offset + needed))
+					bufferSize *= 2;
+			}
+//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
+			tmpBuffer = new byte[bufferSize];
+			Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
+			return tmpBuffer;
+		}
     }
 
-    public abstract class TypedJsonSerializerBase : TypedJsonSerializer {
-        //public abstract int PopulateFromJson(Obj obj, IntPtr src, int srcSize);
-
-        public override string ToJson(Json obj) {
-            byte[] buffer;
-            int count = ToJsonUtf8(obj, out buffer);
-            return Encoding.UTF8.GetString(buffer, 0, count);
-        }
-
-        public override int ToJsonUtf8(Json obj, out byte[] buffer) {
+    public abstract class TypedJsonSerializer : TypedJsonSerializerBase {
+        public override int Serialize(Json obj, out byte[] buffer) {
             bool nameWritten;
             bool recreateBuffer;
             byte[] buf;
@@ -187,43 +189,6 @@ restart:
             }
             buffer = buf;
             return offset;
-        }
-
-        public override byte[] ToJsonUtf8(Json obj) {
-            byte[] buffer;
-            byte[] sizedBuffer;
-            int count = ToJsonUtf8(obj, out buffer);
-            sizedBuffer = new byte[count];
-            Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
-            return sizedBuffer;
-        }
-
-        public override int PopulateFromJson(Json obj, string json) {
-            byte[] buffer = Encoding.UTF8.GetBytes(json);
-            return PopulateFromJson(obj, buffer, buffer.Length);
-        }
-
-        public override int PopulateFromJson(Json obj, byte[] src, int srcSize) {
-            unsafe {
-                fixed (byte* p = src) {
-                    return PopulateFromJson(obj, (IntPtr)p, srcSize);
-                }
-            }
-        }
-
-        protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {
-            byte[] tmpBuffer;
-            long bufferSize = current.Length;
-
-            bufferSize *= 2;
-            if (needed != -1) {
-                while (bufferSize < (offset + needed))
-                    bufferSize *= 2;
-            }
-//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
-            tmpBuffer = new byte[bufferSize];
-            Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
-            return tmpBuffer;
         }
     }
 }
