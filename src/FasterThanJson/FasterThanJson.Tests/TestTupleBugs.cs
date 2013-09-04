@@ -14,19 +14,19 @@ namespace FasterThanJson.Tests {
                    test[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue+1);
                byte[] buffer = new byte[600];
                fixed (byte* start = buffer) {
-                   TupleWriter writeTuple = new TupleWriter(start, 1, 2);
+                   TupleWriterBase64 writeTuple = new TupleWriterBase64(start, 1, 2);
                    writeTuple.Write(test);
                    writeTuple.SealTuple();
 
-                   TupleReader readTuple = new TupleReader(start, 1);
+                   TupleReaderBase64 readTuple = new TupleReaderBase64(start, 1);
                    Assert.AreEqual(test, readTuple.ReadByteArray(0));
                }
                fixed (byte* start = buffer) {
-                   TupleWriter writeTuple = new TupleWriter(start, 1, 5);
+                   TupleWriterBase64 writeTuple = new TupleWriterBase64(start, 1, 5);
                    writeTuple.Write(test);
                    writeTuple.SealTuple();
 
-                   TupleReader readTuple = new TupleReader(start, 1);
+                   TupleReaderBase64 readTuple = new TupleReaderBase64(start, 1);
                    Assert.AreEqual(test, readTuple.ReadByteArray(0));
                }
            }

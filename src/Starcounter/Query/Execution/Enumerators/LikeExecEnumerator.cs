@@ -251,7 +251,7 @@ namespace Starcounter.Query.Execution
             throw new NotImplementedException();
         }
 
-        public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+        public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
             return currentExecEnum.SaveEnumerator(ref enumerators, expectedNodeId);
         }
 

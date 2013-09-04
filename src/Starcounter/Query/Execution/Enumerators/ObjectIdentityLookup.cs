@@ -258,7 +258,7 @@ namespace Starcounter.Query.Execution {
                         Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                         // Checking if recreation key is valid.
                         if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
-                            TupleReader recreationKey = ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
+                            TupleReaderBase64 recreationKey = ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
                             if (obj == null) // Moving out from offset key on first MoveNext
                                 return false;
                             // Check if current object matches stored in the recreation key
@@ -277,11 +277,11 @@ namespace Starcounter.Query.Execution {
             return true;
         }
 
-        public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+        public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
             currentObject = null;
             Debug.Assert(expectedNodeId == nodeId);
             Debug.Assert(OffsetTuppleLength == 3);
-            TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+            TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
             tuple.SetTupleLength(enumerators.AvaiableSize);
             // Static data for validation
             tuple.WriteSafe((byte)NodeType);

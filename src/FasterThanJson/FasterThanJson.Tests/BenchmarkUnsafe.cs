@@ -29,10 +29,10 @@ namespace FasterThanJson.Tests {
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
                 ulong[] inputUInts = new ulong[valueCount];
-                uint tupleLength = TupleWriter.OffsetElementSizeSize;
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputUInts[i] = RandomValues.RandomULong(rnd);
-                    tupleLength += TupleWriter.MeasureNeededSize(inputUInts[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -42,7 +42,7 @@ namespace FasterThanJson.Tests {
                         nrIter *= 10;
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleWriter writer = new TupleWriter(start, valueCount, offsetSize);
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
                             writer.Write(inputUInts[j]);
                     }
@@ -53,7 +53,7 @@ namespace FasterThanJson.Tests {
                     timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleReader reader = new TupleReader(start, valueCount);
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
                             Assert.AreEqual(inputUInts[j],reader.ReadUInt());
                     }
@@ -72,10 +72,10 @@ namespace FasterThanJson.Tests {
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
                 string[] inputStrings = new string[valueCount];
-                uint tupleLength = TupleWriter.OffsetElementSizeSize;
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputStrings[i] = RandomValues.RandomString(rnd, strignLength);
-                    tupleLength += TupleWriter.MeasureNeededSize(inputStrings[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputStrings[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -85,7 +85,7 @@ namespace FasterThanJson.Tests {
                         nrIter *= 10;
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleWriter writer = new TupleWriter(start, valueCount, offsetSize);
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
                             writer.Write(inputStrings[j]);
                     }
@@ -97,7 +97,7 @@ namespace FasterThanJson.Tests {
                     timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleReader reader = new TupleReader(start, valueCount);
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
                             Assert.AreEqual(inputStrings[j], reader.ReadString());
                     }
@@ -117,10 +117,10 @@ namespace FasterThanJson.Tests {
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
                 byte[][] inputByteArrays = new byte[valueCount][];
-                uint tupleLength = TupleWriter.OffsetElementSizeSize;
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputByteArrays[i] = RandomValues.RandomByteArray(rnd, byteArrayLength);
-                    tupleLength += TupleWriter.MeasureNeededSize(inputByteArrays[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputByteArrays[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -130,7 +130,7 @@ namespace FasterThanJson.Tests {
                         nrIter *= 10;
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleWriter writer = new TupleWriter(start, valueCount, offsetSize);
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
                             writer.Write(inputByteArrays[j]);
                     }
@@ -142,7 +142,7 @@ namespace FasterThanJson.Tests {
                     timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleReader reader = new TupleReader(start, valueCount);
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
                             Assert.AreEqual(inputByteArrays[j], reader.ReadByteArray());
                     }
