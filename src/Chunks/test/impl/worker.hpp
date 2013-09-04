@@ -105,6 +105,8 @@ try {
 	bool scanned_channel_out_buffers = false;
 	uint64_t scan_counter = scan_counter_preset;
 	uint64_t statistics_counter = 0;
+    uint64_t popped_from_channels[32] = { 0 };
+    uint64_t pushed_to_channels[32] = { 0 };
 
 	worker->set_state(running);
 
@@ -148,6 +150,7 @@ try {
 						(worker->shared().scheduler_work_event
 						(the_channel.get_scheduler_number()));
 						
+						++pushed_to_channels[n];
 						++worker->pushed_; // Used for statistics.
 						worked = true;
 						
@@ -209,6 +212,7 @@ try {
 									(worker->shared().scheduler_work_event
 									(the_channel.get_scheduler_number()));
 									
+									++pushed_to_channels[n];
 									++worker->pushed_; // Used for statistics.
 									worked = true;
 									
@@ -258,6 +262,7 @@ try {
 				(worker->shared().scheduler_work_event
 				(the_channel.get_scheduler_number()));
 				
+				++pushed_to_channels[n];
 				++worker->pushed_; // Used for statistics.
 				worked = true;
 				
@@ -288,6 +293,7 @@ scan_channel_out_buffers:
 					the_channel.scheduler()->notify(worker->shared()
 					.scheduler_work_event(the_channel.get_scheduler_number()));
 					
+					++popped_from_channels[n];
 					++worker->popped_; // Used for statistics.
 					worked = true;
 					
@@ -339,8 +345,18 @@ scan_channel_out_buffers:
 		
 		/// Show some statistics
 		if ((++statistics_counter & ((1 << 24) -1)) == 0) {
-			std::cout << "worker[" << worker->id() << "]: pushed "
+			std::cout << "worker[" << worker->id() << "]: has " << worker->get_chunk_pool().size() << " chunks, pushed "
             << worker->pushed_ << ", popped " << worker->popped_ << std::endl;
+
+            for (int i = 0; i < worker->num_channels(); i++)
+                std::cout << "worker[" << worker->id() << "]: pushed to channel " <<
+                i << ": " << pushed_to_channels[i] << std::endl;
+
+            for (int i = 0; i < worker->num_channels(); i++)
+                std::cout << "worker[" << worker->id() << "]: popped from channel " <<
+                i << ": " << popped_from_channels[i] << std::endl;
+
+            std::cout << std::endl;
 		}
 		
 		// Check if this worker wait for work. Assuming not.
@@ -374,7 +390,7 @@ scan_channel_out_buffers:
 				
 				// Must not go to sleep if have not scanned out buffers.
 				if (scanned_channel_out_buffers) {
-					std::cout << "worker[" << worker->id() << "]: waits. . ." << std::endl;
+					std::cout << "worker[" << worker->id() << "]: has " << worker->get_chunk_pool().size() << " chunks, waits. . ." << std::endl;
 					if (worker->shared().client_interface().wait_for_work
 					(worker->shared().client_work_event(), wait_for_work_milli_seconds)
 					== true) {

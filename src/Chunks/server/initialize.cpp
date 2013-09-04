@@ -58,8 +58,14 @@ mapped_region global_mapped_region;
 
 //typedef DWORD affinity_mask; // experimenting
 
-unsigned long initialize(const char* segment_name, const char* server_name, std::size_t schedulers, bool
-is_system, uint32_t chunks_total_number) try {
+unsigned long initialize(
+    const char* segment_name,
+    const char* server_name,
+    std::size_t schedulers,
+    bool is_system,
+    uint32_t chunks_total_number,
+    uint8_t gateway_num_workers) try {
+
 	using namespace starcounter::core;
 
 	if (chunks_total_number > chunks_total_number_max) {

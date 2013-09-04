@@ -204,6 +204,11 @@ namespace Starcounter.Internal
             public const string ChunksNumber = "ChunksNumber";
 
             /// <summary>
+            /// Number of workers used in gateway.
+            /// </summary>
+            public const string GatewayWorkersNumber = "GatewayWorkersNumber";
+
+            /// <summary>
             /// Specifies TCP/IP port to be used by SQL parser.
             /// </summary>
             public const string SQLProcessPort = "SQLProcessPort";
