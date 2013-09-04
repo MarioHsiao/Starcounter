@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
@@ -21,7 +22,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     IExecutionEnumerator rightEnumerator;
     Row contextObject;
     ILogicalExpression postFilterCondition;
-    Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+    //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
     private Boolean stayAtOffsetkey = false;
     private Boolean useOffsetkey = true;
 
@@ -34,7 +35,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         INumericalExpression fetchOffsetExpr,
         IBinaryExpression fetchOffsetkeyExpr,
         VariableArray varArr, String query, Boolean topNode)
-        : base(nodeId, EnumeratorNodeType.Join, rowTypeBind, varArr, topNode)
+        : base(nodeId, EnumeratorNodeType.Join, rowTypeBind, varArr, topNode, 2)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -44,7 +45,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect leftEnum.");
         if (rightEnum == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rightEnum.");
-
+        Debug.Assert(OffsetTuppleLength == 2);
         // if (leftEnum.RowTypeBinding != rowTypeBind)
         //    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incompatible input enumerator leftEnum.");
         // if (rightEnum.RowTypeBinding != rowTypeBind)
@@ -217,7 +218,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         currentObject = null;
         contextObject = obj;
         counter = 0;
-        triedEnumeratorRecreation = false;
+        //triedEnumeratorRecreation = false;
 
         leftEnumerator.Reset(contextObject);
         rightEnumerator.Reset();
@@ -273,7 +274,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         if (counter == 0)
         {
             if (fetchOffsetKeyExpr != null)
-                Debug.Assert(ValidOffsetkeyOrNull());
+                ValidOffsetkeyOrNull();
             if (fetchNumberExpr != null)
             {
                 if (fetchNumberExpr.EvaluateToInteger(null) != null)
@@ -382,6 +383,29 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+    public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+        expectedNodeId = leftEnumerator.SaveEnumerator(ref enumerators, expectedNodeId);
+        if (expectedNodeId == -1)
+            return -1;
+        expectedNodeId = rightEnumerator.SaveEnumerator(ref enumerators, expectedNodeId);
+        if (expectedNodeId == -1)
+            return -1;
+        return SaveJoinEnumerator(ref enumerators, expectedNodeId);
+    }
+
+    unsafe short SaveJoinEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+        Debug.Assert(expectedNodeId == nodeId);
+        Debug.Assert(OffsetTuppleLength == 2);
+        TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        tuple.SetTupleLength(enumerators.AvaiableSize);
+        // Static data for validation
+        tuple.WriteSafe((byte)NodeType);
+        tuple.WriteSafe(nodeId);
+        enumerators.HaveWritten(tuple.SealTuple());
+        return (short)(expectedNodeId + 1);
+    }
+
+#if false
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
@@ -434,33 +458,36 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         }
         return globalOffset;
     }
+#endif
 
+#if false // Old implementation
     private unsafe void ValidateAndGetRecreateKey(Byte* rk) {
-        ValidateAndGetStaticKeyOffset(rk);
+        ValidateNodeAndReturnOffsetReader(rk);
 #if false // Not in use
         UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
         Debug.Assert(dynDataOffset != 0);
         return rk + dynDataOffset;
 #endif
     }
+#endif
 
     internal Boolean ValidOffsetkeyOrNull() {
         if (useOffsetkey && fetchOffsetKeyExpr != null) {
             // In order to skip enumerator recreation next time.
-            triedEnumeratorRecreation = true;
+            //triedEnumeratorRecreation = true;
             unsafe {
                 fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
                     Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                     // Checking if recreation key is valid.
                     if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
-                        ValidateAndGetRecreateKey(recrKey);
+                        ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
                     }
                 }
             }
         }
         return true;
     }
-    
+
     /// <summary>
     /// Depending on query flags, populates the flags value.
     /// </summary>

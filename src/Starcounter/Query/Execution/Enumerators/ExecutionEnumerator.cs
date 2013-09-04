@@ -18,8 +18,10 @@ namespace Starcounter.Query.Execution
 // Implementation for base execution enumerator class.
 internal abstract class ExecutionEnumerator
 {
-    protected uint OFFSETELEMNETSIZE = 2; // Initial size of offset element in tuple writer
+    protected static uint OFFSETELEMNETSIZE = 2; // Initial size of offset element in tuple writer
+    protected static byte OffsetRootHeaderLength; // Length of the header of offset key tuple.
     protected readonly byte nodeId; // Unique node identifier in execution tree. Top node has largest nodeId.
+    protected readonly byte OffsetTuppleLength; // Length of the tuple with offset of this enumerator.
     protected Row currentObject = null; // Represents latest successfully retrieved object.
     protected VariableArray variableArray = null; // Array with variables from query.
     protected Int64 counter = 0; // Number of successful hits (retrieved objects).
@@ -56,13 +58,14 @@ internal abstract class ExecutionEnumerator
     /// Default constructor.
     /// </summary>
     internal ExecutionEnumerator(Byte nodeId, EnumeratorNodeType nodeType, RowTypeBinding rowTypeBind, VariableArray varArray,
-        Boolean topNode)
+        Boolean topNode, byte offsetTuppleLength)
     {
         this.nodeId = nodeId;
         NodeType = nodeType;
         rowTypeBinding = rowTypeBind;
         variableArray = varArray;
         TopNode = topNode;
+        OffsetTuppleLength = offsetTuppleLength;
 
         if (varArray != null && (varArray.QueryFlags & QueryFlags.SingletonProjection) != 0)
         {
@@ -303,35 +306,57 @@ internal abstract class ExecutionEnumerator
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
-        uint globalOffset = 0;
+        uint bytesWritten = 0;
         unsafe {
             fixed (Byte* recreationKey = tempBuffer) {
                 Debug.Assert(TopNode);
-                byte headerLength = 1;
-                byte nodesNum = (byte)(NodeId + headerLength);
-                TupleWriter root = new TupleWriter(recreationKey, (uint)(1 + nodesNum), OFFSETELEMNETSIZE);
+                OffsetRootHeaderLength = 1;
+                byte nodesNum = (byte)(NodeId + 1);
+                TupleWriter root = new TupleWriter(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE);
                 root.SetTupleLength((uint)tempBuffer.Length);
                 // General validation data
                 root.WriteSafe(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
-                execEnum.SaveEnumerator(root, 0);
+                TupleWriter enumerators = new TupleWriter(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
+                enumerators.SetTupleLength(root.AvaiableSize);
+                if (execEnum.SaveEnumerator(ref enumerators, 0) == -1)
+                    return null;
                 //execEnum.SaveEnumerator(recreationKey, 0, true);
-                globalOffset = root.SealTuple();
+                root.HaveWritten(enumerators.SealTuple());
+                bytesWritten = root.SealTuple();
 
             }
         }
-        // Successfully recreated the key.
-        Debug.Assert(globalOffset > IteratorHelper.RK_EMPTY_LEN);
         // Allocating space for offset key.
-        Byte[] offsetKey = new Byte[globalOffset];
+        Byte[] offsetKey = new Byte[bytesWritten];
 
         // Copying the recreation key into provided user buffer.
-        Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, (int)globalOffset);
+        Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, (int)bytesWritten);
 
         // Returning the key.
         return offsetKey;
     }
 
+    protected unsafe TupleReader ValidateNodeAndReturnOffsetReader(byte* key, byte tupleLength) {
+        TupleReader root = new TupleReader(key, (uint)(OffsetRootHeaderLength + 1));
+        Debug.Assert(OffsetRootHeaderLength == 1);
+        byte nodesNum = (byte)root.ReadUInt();
+        if (TopNode && nodesNum != (nodeId+1))
+            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected number of nodes in execution plan. Actual number of nodes is " +
+                (nodeId + 1) + ", while the offset key contains " + nodesNum + " nodes.");
+        TupleReader enumerators = new TupleReader(root.AtEnd, nodesNum);
+        for (int i = 0; i < nodeId; i++)
+            enumerators.Skip();
+        TupleReader thisEnumerator = new TupleReader(enumerators.AtEnd, tupleLength);
+        EnumeratorNodeType keyNodeType = (EnumeratorNodeType)thisEnumerator.ReadUInt(0);
+        if (keyNodeType != NodeType)
+            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Current node type " +
+                NodeType.ToString() + ", while the offset key contains node type " + (keyNodeType).ToString() + ".");
+        Debug.Assert(thisEnumerator.ReadUInt(1) == nodeId);
+        return thisEnumerator;
+    }
+
+#if false // Old implementation
     protected unsafe Byte* ValidateAndGetStaticKeyOffset(byte* key) {
         if (TopNode) {
             byte nodeNrs = (*(Byte*)(key + IteratorHelper.RK_NODE_NUM_OFFSET));
@@ -347,6 +372,7 @@ internal abstract class ExecutionEnumerator
                 NodeType.ToString() + ", while the offset key contains node type " + (keyNodeType).ToString() + ".");
         return staticDataOffset;
     }
+#endif
 
     /// <summary>
     /// Enumerator reset functionality.

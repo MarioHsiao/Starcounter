@@ -1062,6 +1062,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
         UInt32 maxBytes,
         UInt32 * outLenBytes);
 
+#if false // Old implementation
     /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
@@ -1070,7 +1071,15 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <param name="saveDynamicDataOnly">Specifies if dynamic or static data should be written.</param>
     /// <returns>The offset directly after data were stored or the offset to first dynamic data (reusing the key).</returns>
     unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly);
-    unsafe void SaveEnumerator(TupleWriter root, byte expectedNodeId);
+#endif
+
+    /// <summary>
+    /// Writes necessary data about enumerator to offset key.
+    /// </summary>
+    /// <param name="enumerators">The tuple writer of enumerators for the offset key.</param>
+    /// <param name="expectedNodeId">Expected nodeId of the enumerator for debug validation.</param>
+    /// <returns>Next expected nodeId, or -1 if failed.</returns>
+    unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId);
 
     // Flags describing whether the query includes literal, aggregation etc.
     QueryFlags QueryFlags
