@@ -14,7 +14,7 @@ namespace Starcounter {
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class Container : StarcounterBase
+    public abstract partial class Container : StarcounterBase
     {
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
@@ -53,8 +53,6 @@ namespace Starcounter {
             if (Parent != null)
                 Parent.Dirtyfy();
         }
-
-
 
         /// <summary>
         /// The _ template
@@ -100,6 +98,30 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public bool IsArray {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template is TObjArr;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsPrimitive {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template.IsPrimitive;
+            }
+        }
+
+        /// <summary>
         /// Inits this instance.
         /// </summary>
 		//protected virtual void Init() {
@@ -112,7 +134,9 @@ namespace Starcounter {
         /// th database.
         /// </summary>
         /// <param name="session">The session (for faster access)</param>
-        internal abstract void LogValueChangesWithoutDatabase(Starcounter.Session session);
+        internal void LogValueChangesWithoutDatabase(Starcounter.Session session) {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Used to generate change logs for all pending property changes in this object and
@@ -121,13 +145,6 @@ namespace Starcounter {
         /// </summary>
         /// <param name="session">The session (for faster access)</param>
         internal abstract void LogValueChangesWithDatabase(Session session);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sb"></param>
-        /// <param name="indentation"></param>
-        internal abstract void WriteToDebugString(StringBuilder sb, int indentation);
 
         /// <summary>
         /// Called by WriteDebugToString implementations
@@ -159,14 +176,6 @@ namespace Starcounter {
         /// </summary>
         internal abstract void CheckpointChangeLog();
 
-#if QUICKTUPLE
-        /// <summary>
-        /// _s the initialize values.
-        /// </summary>
-        protected virtual void _InitializeValues() {
-        }
-
-#endif
         ///// <summary>
         ///// Called when [set parent].
         ///// </summary>

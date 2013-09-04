@@ -22,9 +22,9 @@ namespace Starcounter {
         private void CheckpointChangeLog( TObject template ) {
             _BrandNew = false;
             if (_Dirty) {
-                for (int t = 0; t < _Values.Length; t++) {
-                    if (_DirtyProperties[t]) {
-                        _DirtyProperties[t] = false;
+                for (int t = 0; t < _Values.Count; t++) {
+                    if (_DirtyValues[t]) {
+                        _DirtyValues[t] = false;
                     }
                     var p = template.Properties[t];
                     if (p is TContainer) {
@@ -40,7 +40,7 @@ namespace Starcounter {
                 _Dirty = false;
             }
             else {
-                for (int t = 0; t < _Values.Length; t++) {
+                for (int t = 0; t < _Values.Count; t++) {
                     var p = template.Properties[t];
                     if (p is TValue) {
                         var tv = (TValue)p;
@@ -64,15 +64,7 @@ namespace Starcounter {
 #if DEBUG
             this.Template.VerifyProperty(prop);
 #endif
-            return (_DirtyProperties[prop.TemplateIndex]);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="session"></param>
-        internal override void LogValueChangesWithoutDatabase(Session session) {
-            throw new NotImplementedException();
+            return (_DirtyValues[prop.TemplateIndex]);
         }
 
         /// <summary>
@@ -91,13 +83,13 @@ namespace Starcounter {
 
         private void LogValueChangesWithDatabase(Session session, TObject template ) {
             if (_Dirty) {
-                for (int t = 0; t < _Values.Length; t++) {
-                    if (_DirtyProperties[t]) {
+                for (int t = 0; t < _Values.Count; t++) {
+                    if (_DirtyValues[t]) {
                         var s = Session;
                         if (s != null) {
                             Session.UpdateValue(this, (TValue)template.Properties[t]);
                         }
-                        _DirtyProperties[t] = false;
+                        _DirtyValues[t] = false;
                     }
                     else {
                         var p = template.Properties[t];
@@ -121,7 +113,7 @@ namespace Starcounter {
                 _Dirty = false;
             }
             else if (template.HasAtLeastOneBoundProperty) {
-                for (int t = 0; t < _Values.Length; t++) {
+                for (int t = 0; t < _Values.Count; t++) {
                     var p = template.Properties[t];
                     if (p is TContainer) {
                         ((Container)_Values[t]).LogValueChangesWithDatabase(session);

@@ -26,13 +26,6 @@ namespace Starcounter {
 #endif
  {
 
-#if QUICKTUPLE
-        /// <summary>
-        /// Temporary. Should be replaced by TupleProxy functionality
-        /// </summary>
-        internal List<Json> QuickAndDirtyArray = new List<Json>();
-        internal List<Change> Changes = null;
-#endif
         // private TObjArr _property;
 
         /// <summary>
@@ -61,7 +54,7 @@ namespace Starcounter {
         /// <returns></returns>
         public int IndexOf(Json item) {
 #if QUICKTUPLE
-            return QuickAndDirtyArray.IndexOf(item);
+            return _Values.IndexOf(item);
 #else
          throw new NotImplementedException();
 #endif
@@ -77,7 +70,7 @@ namespace Starcounter {
 //            TObjArr template;
 
 #if QUICKTUPLE
-            QuickAndDirtyArray.Insert(index, item);
+            _Values.Insert(index, item);
 #else
          throw new NotImplementedException();
 #endif
@@ -85,8 +78,8 @@ namespace Starcounter {
 //            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
             _CallHasAddedElement(index,item);
 
-            for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
-                otherItem = QuickAndDirtyArray[i];
+            for (Int32 i = index + 1; i < _Values.Count; i++) {
+                otherItem = (Json)_Values[i];
                 otherItem._cacheIndexInArr = i;
             }
 
@@ -100,10 +93,10 @@ namespace Starcounter {
         private void _CallHasAddedElement(int index, Json item) {
             var tarr = (TObjArr)this.Template;
             if (Session != null) {
-                if (Changes == null) {
-                    Changes = new List<Change>();
+                if (ArrayAddsAndDeletes == null) {
+                    ArrayAddsAndDeletes = new List<Change>();
                 }
-                Changes.Add(Change.Update((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tarr, index));
                 //Dirtyfy();
             }
             Parent.HasAddedElement(tarr, index);
@@ -117,10 +110,10 @@ namespace Starcounter {
         private void _CallHasRemovedElement(int index) {
             var tarr = (TObjArr)this.Template;
             if (Session != null) {
-                if (Changes == null) {
-                    Changes = new List<Change>();
+                if (ArrayAddsAndDeletes == null) {
+                    ArrayAddsAndDeletes = new List<Change>();
                 }
-                Changes.Remove(Change.Add((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Remove(Change.Add((Json)this.Parent, tarr, index));
                 Dirtyfy();
             }
             Parent.HasRemovedElement(tarr, index);
@@ -135,11 +128,11 @@ namespace Starcounter {
             Json otherItem;
 
 #if QUICKTUPLE
-            QuickAndDirtyArray.RemoveAt(index);
+            _Values.RemoveAt(index);
             var tarr = (TObjArr)this.Template;
             _CallHasRemovedElement(index);
-            for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
-                otherItem = QuickAndDirtyArray[i];
+            for (Int32 i = index; i < _Values.Count; i++) {
+                otherItem = (Json)_Values[i];
                 otherItem._cacheIndexInArr = i;
             }
 #else
@@ -157,7 +150,7 @@ namespace Starcounter {
             Int32 index;
 
 #if QUICKTUPLE
-            index = QuickAndDirtyArray.IndexOf(item);
+            index = _Values.IndexOf(item);
             b = (index != -1);
             if (b)
                 RemoveAt(index);
@@ -175,7 +168,7 @@ namespace Starcounter {
         public Json this[int index] {
             get {
 #if QUICKTUPLE
-                return QuickAndDirtyArray[index];
+                return (Json)_Values[index];
 #else
             throw new NotImplementedException();
 #endif
@@ -208,14 +201,14 @@ namespace Starcounter {
         public virtual void Add(Json item) {
             Int32 index;
 #if QUICKTUPLE
-            index = QuickAndDirtyArray.Count;
-            QuickAndDirtyArray.Add(item);
+            index = _Values.Count;
+            _Values.Add(item);
             item._cacheIndexInArr = index;
             item.Parent = this;
 #else
          throw new NotImplementedException();
 #endif
-            _CallHasAddedElement(QuickAndDirtyArray.Count - 1,item);
+            _CallHasAddedElement(_Values.Count - 1,item);
 //            Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
         }
 
@@ -238,11 +231,11 @@ namespace Starcounter {
             int indexesToRemove;
             var app = this.Parent;
             TObjArr property = (TObjArr)this.Template;
-            indexesToRemove = QuickAndDirtyArray.Count;
+            indexesToRemove = _Values.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
                 app.HasRemovedElement(property, i);
             }
-            QuickAndDirtyArray.Clear();
+            _Values.Clear();
         }
 
         /// <summary>
@@ -252,7 +245,7 @@ namespace Starcounter {
         /// <returns></returns>
         public bool Contains(Json item) {
 #if QUICKTUPLE
-            return QuickAndDirtyArray.Contains(item);
+            return _Values.Contains(item);
 #else
          throw new NotImplementedException();
 #endif
@@ -273,7 +266,7 @@ namespace Starcounter {
         public int Count {
             get {
 #if QUICKTUPLE
-                return QuickAndDirtyArray.Count;
+                return _Values.Count;
 #else
             throw new NotImplementedException();
 #endif
@@ -295,14 +288,15 @@ namespace Starcounter {
 
         IEnumerator<Json> IEnumerable<Json>.GetEnumerator() {
 #if QUICKTUPLE
-            return QuickAndDirtyArray.GetEnumerator();
+            IEnumerator<object> ret = _Values.GetEnumerator();
+            return (IEnumerator<Json>)ret;
 #endif
             throw new NotImplementedException();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
 #if QUICKTUPLE
-            return QuickAndDirtyArray.GetEnumerator();
+            return _Values.GetEnumerator();
 #endif
             throw new NotImplementedException();
         }

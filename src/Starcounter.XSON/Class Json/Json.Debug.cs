@@ -10,8 +10,36 @@ using System;
 using System.Text;
 namespace Starcounter {
 
-    public partial class Json {
+    public partial class Container {
 
+        internal void WriteToDebugString(StringBuilder sb, int indentation) {
+            if (IsArray) {
+                WriteArrayToDebugString(sb, indentation);
+            }
+            else {
+                WriteObjectToDebugString(sb, indentation);
+            }
+        }
+
+        private void WriteArrayToDebugString(StringBuilder sb, int indentation) {
+            _WriteDebugProperty(sb);
+
+            sb.Append("[");
+            indentation += 3;
+            int t = 0;
+            foreach (var e in _Values) {
+                if (t > 0) {
+                    sb.AppendLine(",");
+                    sb.Append(' ', indentation);
+                }
+                (e as Json).WriteToDebugString(sb, indentation);
+                t++;
+            }
+            indentation -= 3;
+            sb.AppendLine();
+            sb.Append(' ', indentation);
+            sb.Append("]");
+        }   
         internal string DebugString {
             get {
                 var sb = new StringBuilder();
@@ -25,13 +53,13 @@ namespace Starcounter {
         /// </summary>
         /// <param name="sb"></param>
         /// <param name="i"></param>
-        internal override void WriteToDebugString(StringBuilder sb, int i) {
+        private void WriteObjectToDebugString(StringBuilder sb, int i) {
             if (this.IsArray) {
                 throw new NotImplementedException();
 //                WriteToDebugString(sb, i, (ArrSchema<Json>)Template);
             }
             else {
-                WriteToDebugString(sb, i, (TObject)Template);
+                WriteObjectToDebugString(sb, i, (TObject)Template);
             }
         }
 
@@ -41,7 +69,7 @@ namespace Starcounter {
         /// <param name="sb"></param>
         /// <param name="i"></param>
         /// <param name="template"></param>
-        internal void WriteToDebugString(StringBuilder sb, int i, TObject template ) {
+        private void WriteObjectToDebugString(StringBuilder sb, int i, TObject template ) {
 
             _WriteDebugProperty(sb);
 
@@ -61,7 +89,7 @@ namespace Starcounter {
                 }
                 sb.Append(' ', i);
                 if (v is Container) {
-                    v.WriteToDebugString(sb, i);
+                    (v as Container).WriteToDebugString(sb, i);
                 }
                 else {
                     var prop = template.Properties[t];
@@ -70,7 +98,7 @@ namespace Starcounter {
                     sb.Append("\":");
                     if (prop is TValue && ((TValue)prop).Bind != null) {
                         var tv = (TValue)prop;
-                        if (this.Get(tv) != _BoundDirtyCheck[t]) {
+                        if ((this as Json).Get(tv) != _BoundDirtyCheck[t]) {
                             var dbgVal = _BoundDirtyCheck[t];
                             if (dbgVal == null)
                                 dbgVal = "notsent";
@@ -80,11 +108,11 @@ namespace Starcounter {
                             sb.Append("(db)");
                         }
                     }
-                    if (_DirtyProperties[t]) {
+                    if (_DirtyValues[t]) {
                         if (prop is TContainer) {
                             // The "d" is already anotated for Containers.
                             // Let's just make sure that the dirty flag was the same
-                            var obj = (Container)this.Get((TValue)prop);
+                            var obj = (Container)(this as Json).Get((TValue)prop);
                             if (!obj._Dirty) {
                                 throw new Exception("Missmach in dirty flags");
                             }
@@ -93,7 +121,7 @@ namespace Starcounter {
                             sb.Append("(d\"" + v + "\")");
                         }
                     }
-                    sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(this.Get((TValue)prop)));
+                    sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject((this as Json).Get((TValue)prop)));
                 }
                 t++;
             }
@@ -102,6 +130,5 @@ namespace Starcounter {
             sb.Append(' ', i);
            sb.Append("}");
         }
-
     }
 }
