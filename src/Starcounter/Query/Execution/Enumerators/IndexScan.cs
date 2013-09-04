@@ -131,7 +131,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         // In order to skip enumerator recreation next time.
         //triedEnumeratorRecreation = true;
         Debug.Assert(OffsetTuppleLength == 3);
-        TupleReader thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
+        TupleReaderBase64 thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
         return thisEnumTuple.ReadByteArray(2);
     }
 
@@ -273,11 +273,11 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         return createdKey;
     }
 
-    public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+    public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
         currentObject = null;
         Debug.Assert(expectedNodeId == nodeId);
         Debug.Assert(OffsetTuppleLength == 3);
-        TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
         tuple.SetTupleLength(enumerators.AvaiableSize);
         // Static data for validation
         tuple.WriteSafe((byte)NodeType);

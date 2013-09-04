@@ -31,9 +31,9 @@ namespace FasterThanJson.Tests
          byte* blobEnd;
          byte* start;
          IntPtr blob = SessionBlobProxy.CreateBlob(out buff, out blobEnd, out start);
-         var root = new TupleWriter(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+         var root = new TupleWriterBase64(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
          
-         var t = new TupleWriter(root.AtEnd, 3, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+         var t = new TupleWriterBase64(root.AtEnd, 3, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
          t.Write("Joachim");
          t.Write("Wester");
@@ -95,11 +95,11 @@ namespace FasterThanJson.Tests
 #endif
          /****** Decode tuple ******/
 
-         var rootParent = new TupleReader(start, 1); // Allocated on the stack. Will be fast.
-         var first = new TupleReader(rootParent.AtEnd, 4); // Allocated on the stack. Will be fast.
+         var rootParent = new TupleReaderBase64(start, 1); // Allocated on the stack. Will be fast.
+         var first = new TupleReaderBase64(rootParent.AtEnd, 4); // Allocated on the stack. Will be fast.
          string firstName = first.ReadString();
          string lastName = first.ReadString();
-         var nested = new TupleReader(first.AtEnd, 2); // Allocated on the stack. Will be fast.
+         var nested = new TupleReaderBase64(first.AtEnd, 2); // Allocated on the stack. Will be fast.
          //nested.Skip();
                   UInt64 phone = nested.ReadUInt();
          //        UInt32 phone = 1234;
@@ -116,12 +116,12 @@ namespace FasterThanJson.Tests
       }
 
       public unsafe void CreateTuple(byte* start, uint assumedOffsetElementSize, byte* overflowLimit) {
-          var root = new TupleWriter(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
-          var first = new TupleWriter(root.AtEnd, 4, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+          var root = new TupleWriterBase64(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+          var first = new TupleWriterBase64(root.AtEnd, 4, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
           first.Write("Joachim");
           first.Write("Wester");
-          var nested = new TupleWriter(first.AtEnd, 2, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+          var nested = new TupleWriterBase64(first.AtEnd, 2, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
           nested.Write(1234);
           nested.Write("070-2424472");
@@ -145,42 +145,42 @@ namespace FasterThanJson.Tests
       public static unsafe void TestBinaryTuple() {
           // similar to offsetkey with one node
           fixed (byte* start = new byte[1024]) {
-              var top = new TupleWriter(start, 3, 2);
+              var top = new TupleWriterBase64(start, 3, 2);
               top.Write(1234);
-              var s = new TupleWriter(top.AtEnd, 2, 2);
+              var s = new TupleWriterBase64(top.AtEnd, 2, 2);
               s.Write(41083);
               s.Write("Static data");
               top.HaveWritten(s.SealTuple());
-              var d = new TupleWriter(s.AtEnd, 3, 2);
+              var d = new TupleWriterBase64(s.AtEnd, 3, 2);
               d.Write(2);
               d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
-              var nested = new TupleWriter(d.AtEnd, 2, 1);
+              var nested = new TupleWriterBase64(d.AtEnd, 2, 1);
               nested.Write("dynamic " + 4);
               nested.Write(new byte[] {3, 2, 255, 255, 0, 0, 0, 53, 123});
               d.HaveWritten(nested.SealTuple());
               top.HaveWritten(d.SealTuple());
               top.SealTuple();
 
-              var topReader = new TupleReader(start, 3);
+              var topReader = new TupleReaderBase64(start, 3);
               Assert.AreEqual(1234, topReader.ReadUInt());
-              var sReader = new TupleReader(topReader.AtEnd, 2);
+              var sReader = new TupleReaderBase64(topReader.AtEnd, 2);
               Assert.AreEqual(41083, sReader.ReadUInt());
               Assert.AreEqual("Static data", sReader.ReadString());
               topReader.Skip();
-              var dReader = new TupleReader(topReader.AtEnd, 3);
+              var dReader = new TupleReaderBase64(topReader.AtEnd, 3);
               Assert.AreEqual(2, dReader.ReadUInt());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
-              var nestedReader = new TupleReader(dReader.AtEnd, 2);
+              var nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
 
-              topReader = new TupleReader(start, 3);
+              topReader = new TupleReaderBase64(start, 3);
               topReader.Skip();
               topReader.Skip();
-              dReader = new TupleReader(topReader.AtEnd, 3);
+              dReader = new TupleReaderBase64(topReader.AtEnd, 3);
               Assert.AreEqual(2, dReader.ReadUInt());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
-              nestedReader = new TupleReader(dReader.AtEnd, 2);
+              nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
 
@@ -191,42 +191,42 @@ namespace FasterThanJson.Tests
       public static unsafe void TestBinaryTupleArray() {
           // similar to offsetkey with one node
           fixed (byte* start = new byte[1024]) {
-              var top = new TupleWriter(start, 3, 2);
+              var top = new TupleWriterBase64(start, 3, 2);
               top.Write(1234);
-              var s = new TupleWriter(top.AtEnd, 2, 2);
+              var s = new TupleWriterBase64(top.AtEnd, 2, 2);
               s.Write(41083);
               s.Write("Static data");
               top.HaveWritten(s.SealTuple());
-              var d = new TupleWriter(top.AtEnd, 3, 2);
+              var d = new TupleWriterBase64(top.AtEnd, 3, 2);
               d.Write(2);
               d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
-              var nested = new TupleWriter(d.AtEnd, 2, 1);
+              var nested = new TupleWriterBase64(d.AtEnd, 2, 1);
               nested.Write("dynamic " + 4);
               nested.Write(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 });
               d.HaveWritten(nested.SealTuple());
               top.HaveWritten(d.SealTuple());
               top.SealTuple();
 
-              var topReader = new TupleReader(start, 3);
+              var topReader = new TupleReaderBase64(start, 3);
               Assert.AreEqual(1234, topReader.ReadUInt());
-              var sReader = new TupleReader(topReader.AtEnd, 2);
+              var sReader = new TupleReaderBase64(topReader.AtEnd, 2);
               Assert.AreEqual(41083, sReader.ReadUInt());
               Assert.AreEqual("Static data", sReader.ReadString());
               topReader.Skip();
-              var dReader = new TupleReader(topReader.AtEnd, 3);
+              var dReader = new TupleReaderBase64(topReader.AtEnd, 3);
               Assert.AreEqual(2, dReader.ReadUInt());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
-              var nestedReader = new TupleReader(dReader.AtEnd, 2);
+              var nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
 
-              topReader = new TupleReader(start, 3);
+              topReader = new TupleReaderBase64(start, 3);
               topReader.Skip();
               topReader.Skip();
-              dReader = new TupleReader(topReader.AtEnd, 3);
+              dReader = new TupleReaderBase64(topReader.AtEnd, 3);
               Assert.AreEqual(2, dReader.ReadUInt());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
-              nestedReader = new TupleReader(dReader.AtEnd, 2);
+              nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
 

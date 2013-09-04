@@ -46,7 +46,7 @@ namespace Starcounter.Internal
     /// person.Write("United Kingdom");
     /// person.Seal();</code>
     /// </example>
-   public unsafe struct TupleWriter
+   public unsafe struct TupleWriterBase64
    {
 #if BASE32
       public const int MAXOFFSETSIZE = 6;
@@ -113,7 +113,7 @@ namespace Starcounter.Internal
        /// <param name="valueCount"></param>
        /// <param name="offsetElementSize"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriter(byte* start, uint valueCount, uint offsetElementSize) {
+      public TupleWriterBase64(byte* start, uint valueCount, uint offsetElementSize) {
           AtStart = start;
           AtOffsetEnd = AtStart + OffsetElementSizeSize;
           AtEnd = AtStart + OffsetElementSizeSize + valueCount * offsetElementSize;
@@ -136,8 +136,8 @@ namespace Starcounter.Internal
        /// <param name="start"></param>
        /// <param name="valueCount"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriter(byte* start, uint valueCount)
-          : this(start, valueCount, TupleWriter.DEFAULTOFFSETSIZE)
+      public TupleWriterBase64(byte* start, uint valueCount)
+          : this(start, valueCount, TupleWriterBase64.DEFAULTOFFSETSIZE)
       {
       }
 
@@ -685,7 +685,7 @@ Retry:
       {
          get
          {
-            var tr = new TupleReader(AtStart, ValueCount);
+            var tr = new TupleReaderBase64(AtStart, ValueCount);
             return tr.DebugString;
          }
       }
