@@ -383,7 +383,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+    public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
         expectedNodeId = leftEnumerator.SaveEnumerator(ref enumerators, expectedNodeId);
         if (expectedNodeId == -1)
             return -1;
@@ -393,10 +393,10 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         return SaveJoinEnumerator(ref enumerators, expectedNodeId);
     }
 
-    unsafe short SaveJoinEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+    unsafe short SaveJoinEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
         Debug.Assert(expectedNodeId == nodeId);
         Debug.Assert(OffsetTuppleLength == 2);
-        TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
         tuple.SetTupleLength(enumerators.AvaiableSize);
         // Static data for validation
         tuple.WriteSafe((byte)NodeType);

@@ -1079,7 +1079,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <param name="enumerators">The tuple writer of enumerators for the offset key.</param>
     /// <param name="expectedNodeId">Expected nodeId of the enumerator for debug validation.</param>
     /// <returns>Next expected nodeId, or -1 if failed.</returns>
-    unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId);
+    unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId);
 
     // Flags describing whether the query includes literal, aggregation etc.
     QueryFlags QueryFlags
