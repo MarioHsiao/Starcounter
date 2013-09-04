@@ -69,6 +69,17 @@ namespace Starcounter.Internal
         public static Boolean IsAdministratorApp = false;
 
         /// <summary>
+        /// Gateway configuration.
+        /// </summary>
+        public static class Gateway
+        {
+            /// <summary>
+            /// Number of gateway workers.
+            /// </summary>
+            public static Byte NumberOfWorkers { get; internal set; }
+        }
+
+        /// <summary>
         /// Default configuration parameters.
         /// </summary>
         public static class Default
@@ -219,6 +230,11 @@ namespace Starcounter.Internal
             /// collection file.
             /// </summary>
             public const string ServerStats = "Serverdata.dat";
+
+            /// <summary>
+            /// Gateway configuration file name.
+            /// </summary>
+            public const string GatewayConfigFileName = "scnetworkgateway.xml";
 
             /// <summary>
             /// Holds a constant read-only value representing the name

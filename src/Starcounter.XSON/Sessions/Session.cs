@@ -150,11 +150,6 @@ namespace Starcounter {
                         throw ErrorCode.ToException(errCode);
                 }
                 _Current.SetData(value);
-
-                // Creating new implicit read-write transaction.
-                if (StarcounterBase._DB != null) {
-                    value.Transaction = StarcounterBase._DB.NewCurrent();
-                }
             }
         }
 

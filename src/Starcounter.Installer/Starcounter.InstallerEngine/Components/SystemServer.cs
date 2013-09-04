@@ -528,7 +528,7 @@ public class CSystemServer : CComponentBase
         }
 
         // Checking for Starcounter server configuration file.
-        String serverDir = InstallerMain.ReadServerInstallationPath(SystemServerConfigPath);
+        String serverDir = Utilities.ReadServerInstallationPath(SystemServerConfigPath);
         if (Directory.Exists(serverDir))
             return true;
 

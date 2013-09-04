@@ -18,8 +18,13 @@
 namespace starcounter {
 namespace core {
 
-unsigned long initialize(const char* segment_name, const char* server_name,
-std::size_t schedulers, bool is_system, uint32_t num_shm_chunks);
+unsigned long initialize(
+    const char* segment_name,
+    const char* server_name,
+    std::size_t schedulers,
+    bool is_system,
+    uint32_t chunks_total_number,
+    uint8_t gateway_num_workers);
 
 } // namespace core
 } // namespace starcounter
