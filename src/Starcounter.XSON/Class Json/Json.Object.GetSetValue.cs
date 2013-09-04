@@ -34,7 +34,7 @@ namespace Starcounter {
                 return GetBound(property);
 
 #if QUICKTUPLE
-                return Values[property.TemplateIndex];
+                return (TVal)Values[property.TemplateIndex];
 #else
                 throw new NotImplementedException();
 #endif
@@ -68,7 +68,7 @@ namespace Starcounter {
         internal void _CallHasChanged(TValue property) {
             if (Session != null) {
                 if (!_BrandNew) {
-                    _DirtyProperties[property.TemplateIndex] = true;
+                    _DirtyValues[property.TemplateIndex] = true;
                     this.Dirtyfy();
                 }
             }
@@ -253,7 +253,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             var vals = Values;
             var i = property.TemplateIndex;
-            Json oldValue = vals[i];
+            var oldValue = (Json)vals[i];
             if (oldValue != null) {
                 oldValue.SetParent(null);
 				oldValue._cacheIndexInArr = -1;
@@ -293,7 +293,7 @@ namespace Starcounter {
             where ElementType : Json, new()
         {
 #if QUICKTUPLE
-            return Values[property.TemplateIndex];
+            return (Arr<ElementType>)Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif
@@ -323,7 +323,7 @@ namespace Starcounter {
                 value.Parent = this;
             var i = property.TemplateIndex;
             var vals = Values;
-            Arr oldValue = vals[i]; //this.Get(property);
+            var oldValue = (Arr)vals[i]; //this.Get(property);
             if (oldValue != null) {
                 oldValue.InternalClear();
 //                oldValue.Clear();
@@ -344,7 +344,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="data"></param>
         public void Set(TObjArr property, IEnumerable data) {
-            Arr current = Values[property.TemplateIndex];
+            var current = (Arr)Values[property.TemplateIndex];
             if (current != null) {
                 current.Clear();
                 current.notEnumeratedResult = data;
@@ -361,7 +361,7 @@ namespace Starcounter {
         public void Set<T>(TObjArr property, Rows<object> data) where T : Json, new() {
             Arr<T> newList;
             var vals = Values;
-            Arr<T> current = vals[property.TemplateIndex];
+            var current = (Arr<T>)vals[property.TemplateIndex];
             if (current != null)
                 current.Clear();
 
@@ -393,7 +393,7 @@ namespace Starcounter {
         /// <param name="data"></param>
         public void Set<T>(TObjArr templ, Arr<T> data) where T : Json, new() {
             var vals = Values;
-            Arr<T> current = vals[templ.TemplateIndex];
+            var current = (Arr<T>)vals[templ.TemplateIndex];
             if (current != null)
                 current.Clear();
 
@@ -409,7 +409,7 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Action Get(TTrigger property) {
 #if QUICKTUPLE
-            return Values[property.TemplateIndex];
+            return (Action)Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif

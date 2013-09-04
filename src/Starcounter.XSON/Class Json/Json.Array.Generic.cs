@@ -134,17 +134,17 @@ namespace Starcounter {
         public new T this[int index] {
             get {
 #if QUICKTUPLE
-                return (T)QuickAndDirtyArray[index];
+                return (T)_Values[index];
 #else
             throw new NotImplementedException();
 #endif
             }
             set {
-                QuickAndDirtyArray[index] = value;
+                _Values[index] = value;
                 var s = Session;
                 if (Session != null) {
-                    if (Changes == null) {
-                        Changes = new List<Change>();
+                    if (ArrayAddsAndDeletes == null) {
+                        ArrayAddsAndDeletes = new List<Change>();
                     }
                     this._CallHasChanged((TObjArr)this.Template, index);
 //                    this._
@@ -160,7 +160,7 @@ namespace Starcounter {
         internal void _CallHasChanged(TObjArr property, int index) {
             if (Session != null) {
                 if (!_BrandNew) {
-                    this.QuickAndDirtyArray[property.TemplateIndex]._Dirty = true;
+                    (_Values[index] as Json)._Dirty = true;
                     this.Dirtyfy();
                 }
             }

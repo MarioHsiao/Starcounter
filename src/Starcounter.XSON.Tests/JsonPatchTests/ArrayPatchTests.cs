@@ -9,51 +9,12 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
     [TestFixture]
     static class ArrayPatchTests {
 
-
+        /// <summary>
+        /// Creates a new property in a dynamic JSON object and assigns it to a
+        /// new array of JSON objects.
+        /// </summary>
         [Test]
-        public static void TestPatchForBrandNewRoot() {
-            dynamic j = new Json();
-            dynamic nicke = new Json();
-
-
-            Session.Data = j;
-
-            Assert.NotNull(Session.Current);
-
-            //Session.Data.LogChanges = true;
-            //var cl = ChangeLog.CurrentOnThread = new ChangeLog();
-
-            j.FirstName = "Jack";
-            nicke.FirstName = "Nicke";
-            //((Json)j).LogChanges = true;
-
-            // Session.Current.LogChanges = true;
-
-            j.Friends = new List<Json>() { nicke };
-
-            Console.WriteLine("Dirty status");
-            Console.WriteLine("============");
-            Console.WriteLine(j.DebugString);
-
-
-            var patch = Session.Current.CreateJsonPatch(true);
-
-            Console.WriteLine("Changes:");
-            Console.WriteLine("========");
-            Console.WriteLine(patch);
-
-            Assert.AreEqual(
-                "[{\"op\":\"add\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
-
-
-
-        }
-
-
-
-
-     //   [Test]
-        public static void TestCreateNewArray() {
+        public static void CreateANewArrayProperty() {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
@@ -80,10 +41,12 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
                "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}}]", patch);
         }
 
-
-
- //     [Test]       
-		public static void TestPatchForChangingAnElement() {
+        /// <summary>
+        /// Replaces an element in an array with a completelly new object. The resulting JSON-patch should
+        /// contain a "replace" using a JSON pointer that ends with the index of the element in the array.
+        /// </summary>
+        [Test]       
+		public static void ReplaceAnElementInAnArray() {
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -110,6 +73,14 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Assert.AreEqual(
                 "[{\"op\":\"replace\",\"path\":\"/Friends/0\",\"value\":{\"FirstName\":\"Henrik\"}}]", patch);
+        }
+
+        [Test]
+        public static void AssignArrayPropertyToEnumerableOfDataObjects() {
+        }
+
+        [Test]
+        public static void AssignArrayPropertyToNewArray() {
         }
     }
 }

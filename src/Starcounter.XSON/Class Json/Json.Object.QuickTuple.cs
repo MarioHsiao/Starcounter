@@ -7,12 +7,13 @@
 using System.Text;
 using Starcounter.Templates;
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class Json {
+    public partial class Container {
 
 #if QUICKTUPLE
         /// <summary>
@@ -21,22 +22,27 @@ namespace Starcounter {
         /// strain on the garbage collector and the memory consumption would be to great. Instead, the
         /// server side represetation should use the default session blob model.
         /// </summary>
-        protected override void _InitializeValues() {
+        protected void _InitializeValues() {
             if (IsArray) {
-                throw new NotImplementedException();
+                _Values = new List<object>();
             }
             else {
-                _InitializeValues( (TObject)Template);
+                _InitializeProperties( (TObject)Template);
             }
         }
 
-        private void _InitializeValues(TObject template) {
+        /// <summary>
+        /// If this is an object, each value has a property template
+        /// and each value needs to be set to its initial value
+        /// </summary>
+        /// <param name="template"></param>
+        private void _InitializeProperties(TObject template) {
             var prop = template.Properties;
             var vc = prop.Count;
             _Dirty = false;
-            _Values = new object[vc];
-            _BoundDirtyCheck = new object[vc];
-            _DirtyProperties = new bool[vc];
+            _Values = new List<object>(vc);
+            _BoundDirtyCheck = new List<object>(vc);
+            _DirtyValues = new List<bool>(vc);
             for (int t = 0; t < vc; t++) {
                 _Values[t] = ((Template)prop[t]).CreateInstance(this);
             }
@@ -45,53 +51,48 @@ namespace Starcounter {
         /// <summary>
         /// Use this property to access the values internally
         /// </summary>
-        protected dynamic[] Values {
+        protected List<object> Values {
             get {
                 var template = (TObject)Template;
-                if (_Values.Length < template.Properties.Count) {
-                    // We allow adding new properties to dynamic templates
-                    // even after instsances have been created.
-                    // For this reason, we need to allow the expansion of the 
-                    // values.
-                    var old = _Values;
-                    var oldD = _DirtyProperties;
-                    var oldB = _BoundDirtyCheck;
-                    var prop = template.Properties;
-                    var vc = prop.Count;
-                    _Values = new object[vc];
-                    _DirtyProperties = new bool[vc];
-                    _BoundDirtyCheck = new object[vc];
-                    old.CopyTo(_Values, 0);
-                    oldD.CopyTo(_DirtyProperties, 0);
-                    oldB.CopyTo(_BoundDirtyCheck, 0);
-                    for (int t = old.Length; t < _Values.Length; t++) {
-                        _Values[t] = ((Template)prop[t]).CreateInstance(this);
-                        _DirtyProperties[t] = false; // Reduntant
-                        _BoundDirtyCheck[t] = _Values[t];
-                    }
+                if (IsArray) {
+                    return _Values;
                 }
-                return _Values;
+                else {
+                    while (_Values.Count < template.Properties.Count) {
+                        // We allow adding new properties to dynamic templates
+                        // even after instances have been created.
+                        // For this reason, we need to allow the expansion of the 
+                        // values.
+                        var prop = template.Properties;
+                        var newVal = ((Template)prop[_Values.Count]).CreateInstance(this);
+                        _Values.Add(newVal);
+                        _DirtyValues.Add(false); // Reduntant
+                        _BoundDirtyCheck.Add(newVal);
+                    }
+                    return _Values;
+                }
             }
         }
 
         /// <summary>
         /// Used by the naive reference implementation (see _InitializeValues).
-        /// Stores the actual values of each app property. The value is stored according to the Index value
+        /// Stores the actual values of the JSON objects (the properties) or the
+        /// JSON array (the array elements). The value is stored according to the Index value
         /// of the Template of the property.
         /// </summary>
-        internal dynamic[] _Values;
+        internal List<object> _Values;
 
         /// <summary>
         /// The naive implementation keeps track of the changed values
         /// generate the JSON-Patch document
         /// </summary>
-        internal bool[] _DirtyProperties;
+        internal List<bool> _DirtyValues;
 
         /// <summary>
         /// The naive implementation keeps track of the changed database objects to
         /// generate the JSON-Patch document
         /// </summary>
-        internal dynamic[] _BoundDirtyCheck;
+        internal List<object> _BoundDirtyCheck;
 #endif
     }
 }
