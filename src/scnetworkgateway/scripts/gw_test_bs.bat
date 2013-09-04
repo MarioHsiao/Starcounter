@@ -29,4 +29,4 @@ START CMD /C "32bitComponents\scsqlparser.exe 8066"
 START CMD /C "timeout 2 && sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\NetworkIoTest\NetworkIoTest.exe %7 --SchedulerCount=%3 --ChunksNumber=%6 --GatewayWorkersNumber=%1 --UserArguments="DbNumber=0 PortNumber=%5 TestType=%4""
 
 :: Starting network gateway.
-scnetworkgatewayloopedtest.exe personal scnetworkgateway.xml %DB_OUT_DIR% "%1 %2"
+scnetworkgatewayloopedtest.exe personal scnetworkgateway.xml %DB_OUT_DIR% "%1 "%2""

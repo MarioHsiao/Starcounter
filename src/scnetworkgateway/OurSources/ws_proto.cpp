@@ -104,11 +104,17 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
         case WS_OPCODE_CLOSE:
         {
-            // Unmasking data.
-            UnMaskAllChunks(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
+            uint64_t payload_len = frame_info_.payload_len_;
 
-            // Peer wants to close the WebSocket.
-            return SCERRGWWEBSOCKETOPCODECLOSE;
+            // Send the response Close message.
+            UnMaskAllChunks(gw, sd, payload_len, frame_info_.mask_, payload);
+            payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload, payload_len);
+
+            // Prepare buffer to send outside.
+            sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+
+            // Sending data.
+            return gw->Send(sd);
         }
 
         case WS_OPCODE_PING:
