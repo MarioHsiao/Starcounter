@@ -48,7 +48,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
     UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.
     Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
-    Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+    //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
 
     Boolean stayAtOffsetkey = false;
     public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
@@ -68,7 +68,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
         VariableArray varArr, String query, Boolean topNode)
-        : base(nodeId, EnumeratorNodeType.FullTableScan, rowTypeBind, varArr, topNode)
+        : base(nodeId, EnumeratorNodeType.FullTableScan, rowTypeBind, varArr, topNode, 3)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -76,7 +76,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
         if (queryCond == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");
-
+        Debug.Assert(OffsetTuppleLength == 3);
         extentNumber = extentNum;
         indexHandle = indexInfo.Handle;
         this.indexInfo = indexInfo;
@@ -393,11 +393,21 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+#if false // Old implementation
     private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
         Byte* staticDataOffset = ValidateAndGetStaticKeyOffset(rk);
         UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
         Debug.Assert(dynDataOffset != 0);
         return rk + dynDataOffset;
+    }
+#endif
+
+    unsafe Byte[] ValidateAndGetRecreateKey(Byte* rk) {
+        // In order to skip enumerator recreation next time.
+        //triedEnumeratorRecreation = true;
+        Debug.Assert(OffsetTuppleLength == 3);
+        TupleReader thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
+        return thisEnumTuple.ReadByteArray(2);
     }
 
     /// <summary>
@@ -405,39 +415,39 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// </summary>
     unsafe Boolean TryRecreateEnumerator(Byte* rk) {
         // In order to skip enumerator recreation next time.
-        triedEnumeratorRecreation = true;
+        //triedEnumeratorRecreation = true;
 
-        Byte* recreationKey = ValidateAndGetRecreateKey(rk);
+        fixed (Byte* recreationKey = ValidateAndGetRecreateKey(rk)) {
 
-        // Creating flags.
-        UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
+            // Creating flags.
+            UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
 
-        Byte[] lastKey;
-        if (descending)
-            lastKey = firstKeyBuffer;
-        else
-            lastKey = secondKeyBuffer;
+            Byte[] lastKey;
+            if (descending)
+                lastKey = firstKeyBuffer;
+            else
+                lastKey = secondKeyBuffer;
 
-        // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(recreationKey, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
-            // Indicating that enumerator has been created.
-            enumeratorCreated = true;
+            // Trying to recreate the enumerator from key.
+            if (iterHelper.RecreateEnumerator_CodeGenFilter(recreationKey, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
+                // Indicating that enumerator has been created.
+                enumeratorCreated = true;
 
-            // Checking if we found a deleted object.
-            //if (!innermostExtent)
-            //{
-            // Obtaining saved OID and ETI.
-            IteratorHelper.RecreateEnumerator_GetObjectInfo(recreationKey, out keyOID, out keyETI);
+                // Checking if we found a deleted object.
+                //if (!innermostExtent)
+                //{
+                // Obtaining saved OID and ETI.
+                IteratorHelper.RecreateEnumerator_GetObjectInfo(recreationKey, out keyOID, out keyETI);
 
-            // Enabling recreation object check.
-            enableRecreateObjectCheck = true;
-            //}
+                // Enabling recreation object check.
+                enableRecreateObjectCheck = true;
+                //}
 
-            return true;
-        } else // Checking if we are in outer enumerator.
-            if (!innermostExtent)
-                variableArray.FailedToRecreateObject = true;
-
+                return true;
+            } else // Checking if we are in outer enumerator.
+                if (!innermostExtent)
+                    variableArray.FailedToRecreateObject = true;
+        }
         return false;
     }
 
@@ -603,9 +613,54 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         return false;
     }
 
-    internal void CreateStaticKeyPart() {
+    unsafe byte* GetRecreationKeyFromKernel() {
+        // Fetching current enumerator key.
+        Byte* createdKey = null;
+        UInt32 err = 0;
+
+        // TODO/Entity:
+        IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
+        if (dbObject != null)
+        // Getting current position of the object in iterator.
+        err = sccoredb.sc_get_index_position_key(
+            indexInfo.Handle,
+            dbObject.Identity,
+            dbObject.ThisHandle,
+            &createdKey
+            );
+
+        // Disposing iterator.
+        enumerator.Dispose();
+
+        // Checking the error.
+        if (err != 0)
+            throw ErrorCode.ToException(err);
+        return createdKey;
     }
 
+
+    public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+        currentObject = null;
+        Debug.Assert(expectedNodeId == nodeId);
+        Debug.Assert(OffsetTuppleLength == 3);
+        TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        tuple.SetTupleLength(enumerators.AvaiableSize);
+        // Static data for validation
+        tuple.WriteSafe((byte)NodeType);
+        tuple.WriteSafe(nodeId);
+
+        Byte* createdKey = GetRecreationKeyFromKernel();
+        // Checking if it was last object.
+        if (createdKey == null)
+            return -1;
+        // Copying the recreation key.
+        UInt16 bytesWritten = *((UInt16*)createdKey);
+        tuple.WriteSafe(createdKey, bytesWritten);
+        enumerators.HaveWritten(tuple.SealTuple());
+        return (short)(expectedNodeId + 1);
+    }
+
+#if false // Old implementation
     /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
@@ -701,6 +756,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
         return globalOffset;
     }
+#endif
 
     public Boolean MoveNextSpecial(Boolean force)
     {
@@ -736,7 +792,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         //dataStreamChanged = false;
 
         enableRecreateObjectCheck = false;
-        triedEnumeratorRecreation = false;
+        //triedEnumeratorRecreation = false;
 
         currentObject = null;
         contextObject = obj;

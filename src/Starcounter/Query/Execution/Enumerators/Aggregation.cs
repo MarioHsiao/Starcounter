@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
@@ -39,7 +40,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         String query,
         INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
         Boolean topNode)
-        : base(nodeId, EnumeratorNodeType.Aggregate, rowTypeBind, varArr, topNode)
+        : base(nodeId, EnumeratorNodeType.Aggregate, rowTypeBind, varArr, topNode, 0)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -55,7 +56,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect condition.");
         if (query == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect query.");
-
+        Debug.Assert(OffsetTuppleLength == 0);
         extentNumber = extNum;
 
         subEnumerator = subEnum;
@@ -372,6 +373,11 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+    public unsafe short SaveEnumerator(ref TupleWriter root, short expectedNodeId) {
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Offset keys are not implemented for queries with aggregates.");
+    }
+
+#if false // Old implementation
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
@@ -379,6 +385,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     {
         return enumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
     }
+#endif
 
     /// <summary>
     /// Depending on query flags, populates the flags value.

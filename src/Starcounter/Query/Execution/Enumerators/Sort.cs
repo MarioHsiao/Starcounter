@@ -10,6 +10,8 @@ using Starcounter.Query.Sql;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -26,7 +28,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         String query,
         INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
         Boolean topNode)
-        : base(nodeId, EnumeratorNodeType.Sorting, rowTypeBind, varArr, topNode)
+        : base(nodeId, EnumeratorNodeType.Sorting, rowTypeBind, varArr, topNode, 0)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -36,6 +38,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnum.");
         if (comp == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect comp.");
+        Debug.Assert(OffsetTuppleLength == 0);
 
         subEnumerator = subEnum;
         comparer = comp;
@@ -235,6 +238,11 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Not supported.");
     }
 
+    public unsafe short SaveEnumerator(ref TupleWriter root, short expectedNodeId) {
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Offset keys are not supported for queries with non-indexed sorting.");
+    }
+
+#if false
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
@@ -242,6 +250,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     {
         return globalOffset;
     }
+#endif
 
     /// <summary>
     /// Depending on query flags, populates the flags value.
