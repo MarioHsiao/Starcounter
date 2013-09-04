@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using Starcounter.Binding;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution {
     /// <summary>
@@ -24,7 +25,7 @@ namespace Starcounter.Query.Execution {
         public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
 
         //Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
-        Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+        //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
         internal ObjectIdentityLookup(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IValueExpression expr,
@@ -33,14 +34,14 @@ namespace Starcounter.Query.Execution {
         INumericalExpression fetchOffsetExpr,
         IBinaryExpression fetchOffsetKeyExpr,
         VariableArray varArr, String query, Boolean topNode)
-            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr, topNode) {
+            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr, topNode, 3) {
             if (rowTypeBind == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
             if (varArr == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
             if (expr == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr.");
-
+            Debug.Assert(OffsetTuppleLength == 3);
             extentNumber = extNum;
 
             currentObject = null;
@@ -239,27 +240,29 @@ namespace Starcounter.Query.Execution {
             }
         }
 
+#if false // Old implementation
         private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
             Byte* staticDataOffset = ValidateAndGetStaticKeyOffset(rk);
             UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
             Debug.Assert(dynDataOffset != 0);
             return rk + dynDataOffset;
         }
+#endif
 
         internal Boolean SameAsOffsetkeyOrNull(IObjectView obj) {
             if (useOffsetkey && fetchOffsetKeyExpr != null) {
                 // In order to skip enumerator recreation next time.
-                triedEnumeratorRecreation = true;
+                //triedEnumeratorRecreation = true;
                 unsafe {
                     fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
                         Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                         // Checking if recreation key is valid.
                         if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
-                            Byte* recreationKey = ValidateAndGetRecreateKey(recrKey);
+                            TupleReader recreationKey = ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
                             if (obj == null) // Moving out from offset key on first MoveNext
                                 return false;
                             // Check if current object matches stored in the recreation key
-                            if (currectObjectId == (*(ulong*)recreationKey))
+                            if (currectObjectId == recreationKey.ReadUInt(2))
                                 isAtRecreatedKey = true;
                             else {
                                 isAtRecreatedKey = false;
@@ -274,6 +277,21 @@ namespace Starcounter.Query.Execution {
             return true;
         }
 
+        public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+            currentObject = null;
+            Debug.Assert(expectedNodeId == nodeId);
+            Debug.Assert(OffsetTuppleLength == 3);
+            TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+            tuple.SetTupleLength(enumerators.AvaiableSize);
+            // Static data for validation
+            tuple.WriteSafe((byte)NodeType);
+            tuple.WriteSafe(nodeId);
+            tuple.WriteSafe(currectObjectId);
+            enumerators.HaveWritten(tuple.SealTuple());
+            return (short)(expectedNodeId + 1);
+        }
+
+#if false
         /// <summary>
         /// Used to populate the recreation key.
         /// </summary>
@@ -327,6 +345,7 @@ namespace Starcounter.Query.Execution {
             }
             return globalOffset;
         }
+#endif
 
         /// <summary>
         /// Resets the enumerator with a context object.
@@ -336,7 +355,7 @@ namespace Starcounter.Query.Execution {
             contextObject = obj;
             currentObject = null;
             counter = 0;
-            triedEnumeratorRecreation = false;
+            //triedEnumeratorRecreation = false;
 
             if (obj == null) {
                 stayAtOffsetkey = false;
