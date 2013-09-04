@@ -10,7 +10,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeStringWriter() {
             byte[] buffer = new byte[100];
             fixed (byte* start = buffer) {
-                TupleWriter writer = new TupleWriter(start, 5, 1);
+                TupleWriterBase64 writer = new TupleWriterBase64(start, 5, 1);
 
                 // Test calling WriteSafe before length is set
                 Boolean wasException = false;
@@ -62,7 +62,7 @@ namespace FasterThanJson.Tests {
                 writer.WriteSafe("Рбфюцо[å");
                 writer.SealTuple();
 
-                TupleReader reader = new TupleReader(start, 5);
+                TupleReaderBase64 reader = new TupleReaderBase64(start, 5);
                 Assert.AreEqual("abdsfklaskl;jfAKDJLKSFHA:SKFLHsadnfkalsn2354432sad", reader.ReadString(0));
                 Assert.AreEqual("1234", reader.ReadString(1));
                 Assert.AreEqual(" \" \n ", reader.ReadString(2));
@@ -75,7 +75,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeUIntWriter() {
             byte[] buffer = new byte[10];
             fixed (byte* start = buffer) {
-                TupleWriter writer = new TupleWriter(start, 4, 1);
+                TupleWriterBase64 writer = new TupleWriterBase64(start, 4, 1);
                 writer.SetTupleLength((uint)buffer.Length);
                 writer.WriteSafe((uint)45);
                 writer.WriteSafe(256);
@@ -100,7 +100,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
                 writer.SealTuple();
 
-                TupleReader reader = new TupleReader(start, 4);
+                TupleReaderBase64 reader = new TupleReaderBase64(start, 4);
                 Assert.AreEqual(45, reader.ReadUInt(0));
                 Assert.AreEqual(256, reader.ReadUInt(1));
                 Assert.AreEqual(0, reader.ReadUInt(2));
@@ -119,7 +119,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeBinaryWriter() {
             byte[] buffer = new byte[97]; // (97 - 17) /4 * 3 = 60 original bytes
             fixed (byte* start = buffer) {
-                TupleWriter writer = new TupleWriter(start, 8, 1);
+                TupleWriterBase64 writer = new TupleWriterBase64(start, 8, 1);
                 writer.SetTupleLength((uint)buffer.Length);
                 byte[] value = new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
                 writer.WriteSafe(value); // 1 of 8 value, 14+9 bytes
@@ -169,7 +169,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
                 writer.SealTuple();
 
-                TupleReader reader = new TupleReader(start, 8);
+                TupleReaderBase64 reader = new TupleReaderBase64(start, 8);
                 Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, 
                     reader.ReadByteArray(0));
                 Assert.AreEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -197,7 +197,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void TestSafeBigUIntWriter() {
             fixed (byte* start = new byte[20]) {
-                TupleWriter writer = new TupleWriter(start, 3, 2);
+                TupleWriterBase64 writer = new TupleWriterBase64(start, 3, 2);
                 writer.SetTupleLength(20);
                 // Too big value
                 writer.WriteSafe(64 * 64 * 64 * 64 * 64 -1 + 64 * 64 * 64 * 64 * 64);
@@ -205,7 +205,7 @@ namespace FasterThanJson.Tests {
                 writer.WriteSafe(63);
                 writer.SealTuple();
 
-                TupleReader reader = new TupleReader(start, 3);
+                TupleReaderBase64 reader = new TupleReaderBase64(start, 3);
                 Assert.AreEqual(64 * 64 * 64 * 64 * 64, reader.ReadUInt(1));
                 Assert.AreEqual(63, reader.ReadUInt(2));
                 Assert.AreEqual(64 * 64 * 64 * 64 * 64 - 1 + 64 * 64 * 64 * 64 * 64, reader.ReadUInt(0));

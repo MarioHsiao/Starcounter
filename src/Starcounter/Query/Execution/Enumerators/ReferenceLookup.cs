@@ -258,11 +258,11 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         return true;
     }
 
-    public unsafe short SaveEnumerator(ref TupleWriter enumerators, short expectedNodeId) {
+    public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
         currentObject = null;
         Debug.Assert(expectedNodeId == nodeId);
         Debug.Assert(2 == OffsetTuppleLength);
-        TupleWriter tuple = new TupleWriter(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
         tuple.SetTupleLength(enumerators.AvaiableSize);
         // Static data for validation
         tuple.WriteSafe((byte)NodeType);

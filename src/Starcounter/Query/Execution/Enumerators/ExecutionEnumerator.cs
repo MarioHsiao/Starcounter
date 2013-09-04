@@ -312,12 +312,12 @@ internal abstract class ExecutionEnumerator
                 Debug.Assert(TopNode);
                 OffsetRootHeaderLength = 1;
                 byte nodesNum = (byte)(NodeId + 1);
-                TupleWriter root = new TupleWriter(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE);
+                TupleWriterBase64 root = new TupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE);
                 root.SetTupleLength((uint)tempBuffer.Length);
                 // General validation data
                 root.WriteSafe(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
-                TupleWriter enumerators = new TupleWriter(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
+                TupleWriterBase64 enumerators = new TupleWriterBase64(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
                 enumerators.SetTupleLength(root.AvaiableSize);
                 if (execEnum.SaveEnumerator(ref enumerators, 0) == -1)
                     return null;
@@ -337,17 +337,17 @@ internal abstract class ExecutionEnumerator
         return offsetKey;
     }
 
-    protected unsafe TupleReader ValidateNodeAndReturnOffsetReader(byte* key, byte tupleLength) {
-        TupleReader root = new TupleReader(key, (uint)(OffsetRootHeaderLength + 1));
+    protected unsafe TupleReaderBase64 ValidateNodeAndReturnOffsetReader(byte* key, byte tupleLength) {
+        TupleReaderBase64 root = new TupleReaderBase64(key, (uint)(OffsetRootHeaderLength + 1));
         Debug.Assert(OffsetRootHeaderLength == 1);
         byte nodesNum = (byte)root.ReadUInt();
         if (TopNode && nodesNum != (nodeId+1))
             throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected number of nodes in execution plan. Actual number of nodes is " +
                 (nodeId + 1) + ", while the offset key contains " + nodesNum + " nodes.");
-        TupleReader enumerators = new TupleReader(root.AtEnd, nodesNum);
+        TupleReaderBase64 enumerators = new TupleReaderBase64(root.AtEnd, nodesNum);
         for (int i = 0; i < nodeId; i++)
             enumerators.Skip();
-        TupleReader thisEnumerator = new TupleReader(enumerators.AtEnd, tupleLength);
+        TupleReaderBase64 thisEnumerator = new TupleReaderBase64(enumerators.AtEnd, tupleLength);
         EnumeratorNodeType keyNodeType = (EnumeratorNodeType)thisEnumerator.ReadUInt(0);
         if (keyNodeType != NodeType)
             throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Current node type " +
