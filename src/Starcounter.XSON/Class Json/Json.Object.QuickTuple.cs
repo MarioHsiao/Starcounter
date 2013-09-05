@@ -8,6 +8,7 @@ using System.Text;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
+using Starcounter.Internal;
 
 namespace Starcounter {
     /// <summary>
@@ -15,7 +16,6 @@ namespace Starcounter {
     /// </summary>
     public partial class Container {
 
-#if QUICKTUPLE
         /// <summary>
         /// The QUICKTUPLE implementation keeps the property values of an App in a simple array of 
         /// boxed CLR values. This implementation should never be used on the server side as the
@@ -24,7 +24,7 @@ namespace Starcounter {
         /// </summary>
         protected void _InitializeValues() {
             if (IsArray) {
-                _Values = new List<object>();
+                _Values = new QuickTuple(this,0);
             }
             else {
                 _InitializeProperties( (TObject)Template);
@@ -40,9 +40,7 @@ namespace Starcounter {
             var prop = template.Properties;
             var vc = prop.Count;
             _Dirty = false;
-            _Values = new List<object>(vc);
-            _BoundDirtyCheck = new List<object>(vc);
-            _DirtyValues = new List<bool>(vc);
+            _Values = new QuickTuple(this,vc);
             for (int t = 0; t < vc; t++) {
                 _Values[t] = ((Template)prop[t]).CreateInstance(this);
             }
@@ -51,23 +49,22 @@ namespace Starcounter {
         /// <summary>
         /// Use this property to access the values internally
         /// </summary>
-        protected List<object> Values {
+        protected QuickTuple Values {
             get {
-                var template = (TObject)Template;
+                if (_Values == null) {
+                    return null;
+                }
                 if (IsArray) {
                     return _Values;
                 }
                 else {
+                    var template = (TObject)Template;
                     while (_Values.Count < template.Properties.Count) {
                         // We allow adding new properties to dynamic templates
                         // even after instances have been created.
                         // For this reason, we need to allow the expansion of the 
                         // values.
-                        var prop = template.Properties;
-                        var newVal = ((Template)prop[_Values.Count]).CreateInstance(this);
-                        _Values.Add(newVal);
-                        _DirtyValues.Add(false); // Reduntant
-                        _BoundDirtyCheck.Add(newVal);
+                        _Values.Add(((Template)template.Properties[_Values.Count]).CreateInstance(this));
                     }
                     return _Values;
                 }
@@ -80,19 +77,6 @@ namespace Starcounter {
         /// JSON array (the array elements). The value is stored according to the Index value
         /// of the Template of the property.
         /// </summary>
-        internal List<object> _Values;
-
-        /// <summary>
-        /// The naive implementation keeps track of the changed values
-        /// generate the JSON-Patch document
-        /// </summary>
-        internal List<bool> _DirtyValues;
-
-        /// <summary>
-        /// The naive implementation keeps track of the changed database objects to
-        /// generate the JSON-Patch document
-        /// </summary>
-        internal List<object> _BoundDirtyCheck;
-#endif
+        internal QuickTuple _Values;
     }
 }

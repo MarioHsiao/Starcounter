@@ -119,6 +119,23 @@ namespace Starcounter {
             Parent.HasRemovedElement(tarr, index);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        internal void _CallHasChanged(TObjArr property, int index) {
+            if (Session != null) {
+                if (!_Values._BrandNew) {
+                    //                    (_Values[index] as Json)._Dirty = true;
+                    this.Dirtyfy();
+                }
+            }
+            this.Parent.HasReplacedElement(property, index);
+        }
+
+
+
+
 
         /// <summary>
         /// 
@@ -288,8 +305,8 @@ namespace Starcounter {
 
         IEnumerator<Json> IEnumerable<Json>.GetEnumerator() {
 #if QUICKTUPLE
-            IEnumerator<object> ret = _Values.GetEnumerator();
-            return (IEnumerator<Json>)ret;
+            var x = _Values.GetJsonArray().GetEnumerator();
+            return (IEnumerator<Json>)x;
 #endif
             throw new NotImplementedException();
         }

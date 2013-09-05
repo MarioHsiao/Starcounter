@@ -98,17 +98,17 @@ namespace Starcounter {
                     sb.Append("\":");
                     if (prop is TValue && ((TValue)prop).Bind != null) {
                         var tv = (TValue)prop;
-                        if ((this as Json).Get(tv) != _BoundDirtyCheck[t]) {
-                            var dbgVal = _BoundDirtyCheck[t];
+                        if ((this as Json).Get(tv) != _Values[t]) {
+                            var dbgVal = _Values[t];
                             if (dbgVal == null)
                                 dbgVal = "notsent";
-                            sb.Append("(db d=" + dbgVal + ")");
+                            sb.Append("(db old=" + dbgVal + ")");
                         }
                         else {
                             sb.Append("(db)");
                         }
                     }
-                    if (_DirtyValues[t]) {
+                    if (_Values.WasReplacedAt(t)) {
                         if (prop is TContainer) {
                             // The "d" is already anotated for Containers.
                             // Let's just make sure that the dirty flag was the same
@@ -118,7 +118,7 @@ namespace Starcounter {
                             }
                         }
                         else {
-                            sb.Append("(d\"" + v + "\")");
+                            sb.Append("(dirty=\"" + v + "\")");
                         }
                     }
                     sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject((this as Json).Get((TValue)prop)));
@@ -129,6 +129,32 @@ namespace Starcounter {
             sb.AppendLine();
             sb.Append(' ', i);
            sb.Append("}");
+        }
+
+
+        /// <summary>
+        /// Called by WriteDebugToString implementations
+        /// </summary>
+        /// <param name="sb">The string used to write text to</param>
+        internal void _WriteDebugProperty(StringBuilder sb) {
+            var t = this.Template;
+            if (t != null) {
+                var name = this.Template.PropertyName;
+                if (name != null) {
+                    sb.Append('"');
+                    sb.Append(name);
+                    sb.Append("\":");
+                }
+            }
+            if (this is Json && ((Json)this).Data != null) {
+                sb.Append("(db)");
+            }
+            if (Values == null || _Values._BrandNew) {
+                sb.Append("(new)");
+            }
+            if (_Dirty) {
+                sb.Append("(dirty)");
+            }
         }
     }
 }

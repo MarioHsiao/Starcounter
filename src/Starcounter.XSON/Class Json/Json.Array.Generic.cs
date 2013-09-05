@@ -153,21 +153,6 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        internal void _CallHasChanged(TObjArr property, int index) {
-            if (Session != null) {
-                if (!_BrandNew) {
-                    (_Values[index] as Json)._Dirty = true;
-                    this.Dirtyfy();
-                }
-            }
-            this.Parent.HasReplacedElement(property,index);
-        }
-
-
 
     }
 

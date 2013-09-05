@@ -17,6 +17,8 @@ namespace Starcounter {
 
     public partial class Json {
 
+
+
         public object Get(TValue property) {
 			if (property.UseBinding(DataAsBindable))
                 return GetBound(property);
@@ -58,7 +60,7 @@ namespace Starcounter {
 #else
                     throw new NotImplementedException();
 #endif
-            this._CallHasChanged(property);
+            //this._CallHasChanged(property);
         }
 
         /// <summary>
@@ -67,12 +69,12 @@ namespace Starcounter {
         /// <param name="property"></param>
         internal void _CallHasChanged(TValue property) {
             if (Session != null) {
-                if (!_BrandNew) {
-                    _DirtyValues[property.TemplateIndex] = true;
+                if (!_Values._BrandNew) {
+                   // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
                     this.Dirtyfy();
                 }
             }
-            this.HasChanged(property);
+            //this.HasChanged(property);
         }
 
         /// <summary>
@@ -262,7 +264,7 @@ namespace Starcounter {
 #else
             throw new NotImplementedException();
 #endif
-            this._CallHasChanged(property);
+            //this._CallHasChanged(property);
         }
 
         /// <summary>
@@ -281,7 +283,7 @@ namespace Starcounter {
 #else
             throw new NotImplementedException();
 #endif
-            this._CallHasChanged(property);
+            //this._CallHasChanged(property);
         }
 
         /// <summary>
