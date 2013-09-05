@@ -24,7 +24,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        private IBindable DataAsBindable {
+        internal IBindable DataAsBindable {
             get {
                 return (IBindable)_data;
             }

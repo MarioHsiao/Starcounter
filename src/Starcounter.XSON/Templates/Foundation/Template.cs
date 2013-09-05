@@ -299,7 +299,7 @@ namespace Starcounter.Templates {
                         str += "(anonymous)";
                     }
                 }
-                return str;
+                return str; // +" #" + this.GetHashCode();
             }
         }
 

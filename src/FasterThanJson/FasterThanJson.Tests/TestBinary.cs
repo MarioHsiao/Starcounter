@@ -22,6 +22,15 @@ namespace Starcounter.Internal {
             Assert.AreEqual(decoded.Length, 3);
             for (int i = 0; i < 3; i++)
                 Assert.AreEqual(value[i], decoded[i]);
+            byte[] nullBinary = null;
+            unsafe {
+                fixed (byte* valuePtr = nullBinary, encodedPtr = encoded) {
+                    uint length = Base64Binary.Write((IntPtr)encodedPtr, valuePtr, 0);
+                    Assert.AreEqual(length, 0);
+                    decoded = Base64Binary.Read(0, (IntPtr)encodedPtr);
+                }
+            }
+            Assert.AreEqual(decoded.Length, 0);
         }
 
         internal void ConvertByteArray(byte[] value, uint valueLength, byte[] encoded, uint expectedEncodedLength) {
