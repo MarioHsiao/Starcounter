@@ -291,22 +291,12 @@ unsigned long initialize(
 	(starcounter_core_shared_memory_common_client_interface_name,
 	sizeof(common_client_interface_type));
 	
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	common_client_interface_type* common_client_interface = new(p)
 	common_client_interface_type(segment_name);
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	common_client_interface_type* common_client_interface = new(p)
-	common_client_interface_type(max_number_of_clients,
-	common_client_interface_alloc_inst);
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// Initialize the client_number_pool queue with client numbers.
 	for (client_number n = 0; n < max_number_of_clients; ++n) {
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		common_client_interface->insert_client_number(n, client_interface, owner_id(1));
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-		common_client_interface->release_client_number(n, client_interface);
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
 	//--------------------------------------------------------------------------
