@@ -53,48 +53,15 @@ class common_client_interface {
 public:
 	// Basic types
 	
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	// The type of queue for client_number.
 	typedef client_number_pool<T, client_interface_bits> queue_type;
-
+	
 	// The type of elements stored in the client_number_pool.
 	typedef typename queue_type::value_type value_type;
 	
 	// The size type. (An unsigned integral type that can represent any non-
 	// negative value of the container's distance type.)
 	typedef typename queue_type::size_type size_type;
-
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	// The type of queue for client_number.
-	typedef client_number_pool<T, Alloc> queue_type;
-	
-	// The type of elements stored in the client_number_pool.
-	typedef typename queue_type::value_type value_type;
-	
-	// A pointer to an element.
-	typedef typename queue_type::pointer pointer;
-	
-	// A const pointer to the element.
-	typedef typename queue_type::const_pointer const_pointer;
-	
-	// A reference to an element.
-	typedef typename queue_type::reference reference;
-	
-	// A const reference to an element.
-	typedef typename queue_type::const_reference const_reference;
-	
-	// The distance type. (A signed integral type used to represent the distance
-	// between two iterators.)
-	typedef typename queue_type::difference_type difference_type;
-	
-	// The size type. (An unsigned integral type that can represent any non-
-	// negative value of the container's distance type.)
-	typedef typename queue_type::size_type size_type;
-	
-	// The type of an allocator used in the client_number_pool.
-	//typedef Alloc allocator_type;
-	typedef typename queue_type::allocator_type allocator_type;
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	enum state {
 		normal,
@@ -114,18 +81,10 @@ public:
 	 * @par Complexity
 	 *		Constant.
 	 */
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	explicit common_client_interface(const char* segment_name)
 	: client_number_pool_(segment_name),
 	state_(normal),
 	client_interfaces_to_clean_up_(0) {}
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	explicit common_client_interface(size_type buffer_capacity,
-	const allocator_type& alloc = allocator_type())
-	: client_number_pool_(buffer_capacity, alloc),
-	state_(normal),
-	client_interfaces_to_clean_up_(0) {}
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	queue_type& client_number_pool() {
 		return client_number_pool_;
@@ -185,7 +144,6 @@ public:
 		return _InterlockedDecrement(&client_interfaces_to_clean_up_);
 	}
 	
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	/// Clients acquire a client_number, which allocates
 	/// client_interface[client_number].
 	bool acquire_client_number(value_type* n, client_interface_type*
@@ -203,33 +161,13 @@ public:
 		return client_number_pool_.release(n, base_client_interface, oid,
 		smp::spinlock::milliseconds(timeout_milliseconds));
 	}
-
+	
 	bool insert_client_number(value_type n, client_interface_type*
 	base_client_interface, owner_id oid, uint32_t spin_count = 1000000,
 	uint32_t timeout_milliseconds = 10000) {
 		return client_number_pool_.insert(n, base_client_interface, oid,
 		smp::spinlock::milliseconds(timeout_milliseconds));
 	}
-
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	/// Clients acquire a client_number, which allocates
-	/// client_interface[client_number].
-	bool acquire_client_number(value_type* n, client_interface_type*
-	base_client_interface, owner_id oid, uint32_t spin_count = 1000000,
-	uint32_t timeout_milliseconds = 10000) {
-		return client_number_pool_.pop_back(n, base_client_interface, oid,
-		spin_count, timeout_milliseconds);
-	}
-	
-	/// Clients release its client_number, which releases
-	/// client_interface[client_number].
-	bool release_client_number(value_type n, client_interface_type*
-	base_client_interface, uint32_t spin_count = 1000000,
-	uint32_t timeout_milliseconds = 10000) {
-		return client_number_pool_.push_front(n, base_client_interface,
-		spin_count, timeout_milliseconds);
-	}
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 private:
 	// A pool with client numbers, which is used to acquire the

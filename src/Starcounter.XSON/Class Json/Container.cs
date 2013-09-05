@@ -14,7 +14,7 @@ namespace Starcounter {
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract class Container : StarcounterBase
+    public abstract partial class Container : StarcounterBase
     {
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
@@ -27,11 +27,6 @@ namespace Starcounter {
         /// no changes to the JSON tree (but there can be changes to bound data objects).
         /// </summary>
         internal bool _Dirty = false;
-
-        /// <summary>
-        /// Used by change log
-        /// </summary>
-        internal bool _BrandNew = true;
 
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
@@ -53,8 +48,6 @@ namespace Starcounter {
             if (Parent != null)
                 Parent.Dirtyfy();
         }
-
-
 
         /// <summary>
         /// The _ template
@@ -100,19 +93,36 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public bool IsArray {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template is TObjArr;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsPrimitive {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template.IsPrimitive;
+            }
+        }
+
+        /// <summary>
         /// Inits this instance.
         /// </summary>
 		//protected virtual void Init() {
 		//}
 
-        /// <summary>
-        /// Used to generate change logs for all pending property changes in this object and
-        /// and its children and grandchidren (recursivly) excluding changes to bound data
-        /// objects. This method is much faster than the corresponding method checking
-        /// th database.
-        /// </summary>
-        /// <param name="session">The session (for faster access)</param>
-        internal abstract void LogValueChangesWithoutDatabase(Starcounter.Session session);
+
 
         /// <summary>
         /// Used to generate change logs for all pending property changes in this object and
@@ -120,53 +130,8 @@ namespace Starcounter {
         /// objects.
         /// </summary>
         /// <param name="session">The session (for faster access)</param>
-        internal abstract void LogValueChangesWithDatabase(Session session);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sb"></param>
-        /// <param name="indentation"></param>
-        internal abstract void WriteToDebugString(StringBuilder sb, int indentation);
 
-        /// <summary>
-        /// Called by WriteDebugToString implementations
-        /// </summary>
-        /// <param name="sb">The string used to write text to</param>
-        internal void _WriteDebugProperty(StringBuilder sb) {
-            var t = this.Template;
-            if (t != null) {
-                var name = this.Template.PropertyName;
-                if (name != null) {
-                    sb.Append('"');
-                    sb.Append(name);
-                    sb.Append("\":");
-                }
-            }
-            if (this is Json && ((Json)this).Data != null) {
-                sb.Append("(db)");
-            }
-            if (_BrandNew) {
-                sb.Append("(n)");
-            }
-            if (_Dirty) {
-                sb.Append("(d)");
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal abstract void CheckpointChangeLog();
-
-#if QUICKTUPLE
-        /// <summary>
-        /// _s the initialize values.
-        /// </summary>
-        protected virtual void _InitializeValues() {
-        }
-
-#endif
         ///// <summary>
         ///// Called when [set parent].
         ///// </summary>
