@@ -6,27 +6,12 @@ using System.Text;
 using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
-    public abstract class TypedJsonSerializerBase {
-        public abstract int Serialize(Json obj, out byte[] buffer);
-        public abstract int Populate(Json obj, IntPtr src);
-
-		protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {
-			byte[] tmpBuffer;
-			long bufferSize = current.Length;
-
-			bufferSize *= 2;
-			if (needed != -1) {
-				while (bufferSize < (offset + needed))
-					bufferSize *= 2;
-			}
-//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
-			tmpBuffer = new byte[bufferSize];
-			Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
-			return tmpBuffer;
-		}
+    public abstract class TypedJsonSerializer {
+        public abstract int Serialize(Json json, out byte[] buffer);
+        public abstract int Populate(Json json, IntPtr source, int sourceSize);
     }
 
-    public abstract class TypedJsonSerializer : TypedJsonSerializerBase {
+    public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
         public override int Serialize(Json obj, out byte[] buffer) {
             bool nameWritten;
             bool recreateBuffer;
@@ -190,5 +175,20 @@ restart:
             buffer = buf;
             return offset;
         }
+
+		protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {
+			byte[] tmpBuffer;
+			long bufferSize = current.Length;
+
+			bufferSize *= 2;
+			if (needed != -1) {
+				while (bufferSize < (offset + needed))
+					bufferSize *= 2;
+			}
+			//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
+			tmpBuffer = new byte[bufferSize];
+			Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
+			return tmpBuffer;
+		}
     }
 }
