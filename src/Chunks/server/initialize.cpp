@@ -314,9 +314,7 @@ unsigned long initialize(
 	channel_type* channel = (channel_type*) p;
 	for (std::size_t i = 0; i < channels; ++i) {
 		new(channel +i) channel_type(channel_capacity, channels_alloc_inst);
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 		channel[i].out_overflow().set_chunk_ptr(chunk);
-#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	}
 	
 	// Initialize shared memory STL-compatible allocator.
