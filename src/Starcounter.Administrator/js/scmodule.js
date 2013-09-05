@@ -2113,7 +2113,7 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
     $scope.$on('$destroy', function iVeBeenDismissed() {
 
         if ($scope.socket != null) {
-            if ($scope.socket.readyState == 2 || $scope.socket.readyState == 3) return; // (2) CLOSING, (3) CLOSED
+            if ($scope.socket.readyState == 0 || $scope.socket.readyState == 2 || $scope.socket.readyState == 3) return; // (0) CONNECTING // (2) CLOSING, (3) CLOSED
             $scope.socket.close();
         }
     })
@@ -2154,20 +2154,24 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
                 $scope.socket.send("PING");
             };
 
+            this.socket.onclose = function (evt) {
+                $scope.socket = null;
+            };
+
             this.socket.onmessage = function (evt) {
 
                 if (evt.data == "1") {
                     // 1 = Log has change
-                    $scope.getLog();
                     $scope.$apply();
+                    $scope.getLog();
                 }
             };
 
             this.socket.onerror = function (evt) {
-                console.log("log websocket onerror:" + evt);
+                console.log("Log websocket onerror:" + evt);
                 $scope.isWebsocketSupport = false;
+                $scope.$apply();
                 $scope.getLog();
-                //$scope.$apply();
             };
         }
         catch (exception) {
