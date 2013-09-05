@@ -15,9 +15,6 @@
 
 #include <cstdint>
 #include <iostream>
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-# include <cmath> // log()
-#endif //defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 #include <ios>
 #include <string>
 #include <sstream>
@@ -142,18 +139,6 @@ public:
 	/// Stop the workers.
 	void stop_all_workers();
 	
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	int plot_dots(double rate);
-	void print_rate(double rate);
-	
-	/// Show statistics.
-# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	static void show_statistics(std::pair<test*,std::size_t> arg);
-# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void show_statistics(uint32_t interval_time_milliseconds);
-# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	
 	void gotoxy(int16_t x, int16_t y) {
 		::COORD coord;
 		coord.X = x;
@@ -261,6 +246,9 @@ private:
     // Timeout for IPC test, in milliseconds.
     uint32_t timeout_;
 
+    // Number of schedulers to connect to.
+    uint32_t num_schedulers_;
+
 	// Event to wait for active databases update.
 	::HANDLE active_databases_updates_event_;
 
@@ -271,15 +259,6 @@ private:
 
 	// The workers.
 	std::vector<worker*> worker_;
-    
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	// Statistics thread.
-# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	thread statistics_thread_;
-# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	boost::thread statistics_thread_;
-# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 };
 
 } // namespace interprocess_communication
