@@ -72,16 +72,6 @@
 #define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 
 ///********************************************************************************************
-/// Defining IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
-/// means the IPC monitor do the release of chunks instead of the schedulers.
-#define IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
-
-#if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-#else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-#endif // defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-
-///********************************************************************************************
-
 /// Comment macro IPC_OWNER_ID_IS_32_BIT to go back to the old 64-bit owner_id type.
 #define IPC_OWNER_ID_IS_32_BIT
 
