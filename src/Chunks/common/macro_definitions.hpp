@@ -85,15 +85,6 @@
 /// Comment macro IPC_OWNER_ID_IS_32_BIT to go back to the old 64-bit owner_id type.
 #define IPC_OWNER_ID_IS_32_BIT
 
-/// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event
-/// synchronization in interprocess communication. Comment this out in order to use
-/// Boost.Interprocess condition synchronization.
-/// The plan is to test the implementation with Windows Events and when stable, remove
-/// code using Boost.Interprocess condition variable and remove wrapping of the code
-/// with this macro. Using Windows Events is not yet fully implemented.
-/// While experimenting with this, don't define it when pushing code.
-#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
-
 // Prefix for database names.
 #define DATABASE_NAME_PREFIX "starcounter"
 #define W_DATABASE_NAME_PREFIX L"starcounter"

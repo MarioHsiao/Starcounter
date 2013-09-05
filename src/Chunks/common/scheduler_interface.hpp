@@ -547,11 +547,9 @@ private:
 	-sizeof(::HANDLE) // ipc_monitor_cleanup_event_
 	];
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	// In order to reduce the time taken to open the work_ event the name is
 	// cached. Otherwise the name have to be formated before opening it.
 	wchar_t work_notify_name_[segment_and_notify_name_size];
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// In order to reduce the time taken to open the ipc_monitor_clean_up_event_
 	// the name is cached. Otherwise the name have to be formated before opening it.
