@@ -247,22 +247,6 @@ public:
 	bool insert_database_name(const std::string& database_name);
 	bool erase_database_name(const std::string& database_name);
 	
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	/// Print an estimate of the rate in the space of 4 charactes.
-	/// For example:
-	/// "  0 "
-	/// "999 "
-	/// "999k"
-	/// "1.0M"
-	/// "9.9M"
-	/// " 10M"
-	/// "999M" (or higher)
-	/**
-	 * @param rate Number of items per second, as measured.
-	 */
-	void print_rate_with_precision(double rate);
-#endif // (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	
 	/// Get reference to the log.
 	starcounter::log& log();
 

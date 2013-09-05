@@ -41,11 +41,6 @@
 /// not be defined when pushing code.
 //#define IPC_MONITOR_SHOW_ACTIVITY
 
-/// Debug switch to see atomic_buffer performance counters used in
-/// starcounter::core::channel. NOTE: This macro must be commented out before pushing
-/// code so that performance counters are not used because it degrades performance a bit.
-//#define STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
-
 /// Define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC to use spinlocks to
 /// synchronize access to the IPC monitors monitor_interface shared memory segment.
 ///NOT STARTED YET: #define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
