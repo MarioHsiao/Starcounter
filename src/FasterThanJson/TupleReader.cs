@@ -211,28 +211,27 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString()
       {
-         char* buffer = stackalloc char[8192];
 #if BASE32
          uint len = (uint)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
 #if BASE64
-         uint len = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
+         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
 #if BASE256
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
-         len -= ValueOffset;
-         int stringLen = SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)len, buffer, 8192, true);
+         valueLength -= ValueOffset;
+         char* buffer = stackalloc char[(int)valueLength];
+         int stringLen = SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)valueLength, buffer, (int)valueLength, true);
          var str = new String(buffer, 0, stringLen);
          AtOffsetEnd += OffsetElementSize;
-         AtEnd += len;
-         ValueOffset += len;
+         AtEnd += valueLength;
+         ValueOffset += valueLength;
          return str;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString(int index) {
-          char* buffer = stackalloc char[8192];
 #if BASE64
           byte* valuePos;
           int valueLength;
@@ -240,9 +239,10 @@ namespace Starcounter.Internal
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-          int len = SessionBlobProxy.Utf8Decode.GetChars(valuePos, valueLength, buffer, 8192, true);
+          char* buffer = stackalloc char[valueLength];
+          int strLen = SessionBlobProxy.Utf8Decode.GetChars(valuePos, valueLength, buffer, 8192, true);
           //Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
-          var str = new String(buffer, 0, len);
+          var str = new String(buffer, 0, strLen);
           return str;
       }
 
