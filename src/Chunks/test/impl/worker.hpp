@@ -66,11 +66,7 @@ void worker::start() {
 	/// Start worker thread
 	///=========================================================================
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread_.create((thread::start_routine_type) &worker::work, this); 
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	thread_ = boost::thread(&worker::work, this); 
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread_handle_ = thread_.native_handle();	
 }
 
@@ -86,15 +82,8 @@ inline bool worker::is_running() {
 	return get_state() == running;
 }
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 void worker::work(worker* worker)
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-void worker::work()
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 try {
-#if !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	worker* worker = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	chunk_index request_message;
 	chunk_index response_message;
 	//uint32_t scan_out_buffers = 0;
@@ -422,13 +411,7 @@ scan_channel_out_buffers:
 	return;
 }
 catch (starcounter::interprocess_communication::worker_exception& e) {
-	std::cout << " worker["
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	<< worker->id()
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	<< id()
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	<< "] error: worker exception "
+	std::cout << " worker[" << worker->id() << "] error: worker exception "
 	<< "caught with error code " << e.error_code() << std::endl;
 }
 

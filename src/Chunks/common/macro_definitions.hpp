@@ -12,16 +12,6 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-/// Defining IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS means that the IPC monitor will use
-/// starcounter::core::thread instead of boost::thread.
-#define IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS
-
-/// Defining IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS
-/// means this_client_interface.set_notify_flag(false); will be called in 13 places
-/// in shared_interface::send_to_server_and_wait_response().
-/// If this introduces a bug, disale/comment this macro:
-#define IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS
-
 ///********************************************************************************************
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
 /// to show the activity in shared memory between database(s) and client(s).

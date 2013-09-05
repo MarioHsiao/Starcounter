@@ -49,9 +49,7 @@
 //# include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 # include "../common/thread.hpp"
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #include "../common/pid_type.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/macro_definitions.hpp"
@@ -159,11 +157,7 @@ public:
 	 * @param group Is the group (0..N) of server process events to watch. Each
 	 *		group has up to 64 process events.
 	 */
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void wait_for_database_process_event(std::pair<monitor*,std::size_t> arg);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void wait_for_database_process_event(std::size_t group);
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	//--------------------------------------------------------------------------
 	/// The wait_for_client_process_event() will wait for up to 64 client
@@ -177,11 +171,7 @@ public:
 	 * @param group Is the group (0..N) of client process events to watch. Each
 	 *		group has up to 64 client process events.
 	 */
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void wait_for_client_process_event(std::pair<monitor*,std::size_t> arg);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void wait_for_client_process_event(std::size_t group);
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 #if 0 // idea
 	// Methods for updating the process_register_.
@@ -211,11 +201,7 @@ public:
 	
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
 	/// Show statistics and resource usage.
-# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void watch_resources(monitor*);
-# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void watch_resources();
-# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 	
 	/// The apc_function() calls this so that we can access member variables
@@ -262,13 +248,8 @@ public:
 	}
 
 	struct database_process_group_type {
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 		thread thread_; // TODO: Access method.
 		thread::native_handle_type thread_handle_; // TODO: Access method.
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-		boost::thread thread_; // TODO: Access method.
-		boost::detail::win32::handle thread_handle_; // TODO: Access method.
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 		std::vector<::HANDLE> event_; // TODO: Access method.
 	};
 
@@ -277,13 +258,8 @@ public:
 	}
 
 	struct client_process_group_type {
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 		thread thread_; // TODO: Access method.
 		thread::native_handle_type thread_handle_; // TODO: Access method.
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-		boost::thread thread_; // TODO: Access method.
-		boost::detail::win32::handle thread_handle_; // TODO: Access method.
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 		std::vector<::HANDLE> event_; // TODO: Access method.
 	};
 
@@ -328,18 +304,10 @@ private:
 	void gotoxy(int16_t x, int16_t y);
 
 	/// The registration thread calls this.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void registrar(monitor*);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void registrar();
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	/// The cleanup_ thread calls this.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void cleanup(monitor*);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void cleanup();
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	static void __stdcall apc_function(uint64_t arg);
 	
@@ -363,11 +331,7 @@ private:
 	std::size_t find_chunks_and_mark_them_for_cleanup(owner_id oid);
 	
 	/// Write active databases.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void update_active_databases_file(monitor*);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void update_active_databases_file();
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;
@@ -437,38 +401,22 @@ private:
 	// database_process_event_thread_group_ or the
 	// client_process_event_thread_group_. Then it waits for that thread to
 	// complete the wait_for_registration
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread registrar_;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	boost::thread registrar_;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	// Cleanup thread.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread cleanup_;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	boost::thread cleanup_;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
 	// databases to the file:
 	// %UserProfile%\AppData\Local\Starcounter\active_databases
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread active_databases_file_updater_thread_;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	boost::thread active_databases_file_updater_thread_;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	// The resources watching thread is used for debug, verifying that resources
 	// are recovered. It will keep an eye of all registered databases shared
 	// memory segments resources. Number of free: chunks, channels, and
 	// client_interfaces.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread resources_watching_thread_;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	boost::thread resources_watching_thread_;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 };
 
 } // namespace core
