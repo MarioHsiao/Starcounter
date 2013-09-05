@@ -7,17 +7,15 @@ using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
 
-    public class DefaultSerializer : TypedJsonSerializerBase {
-        public static readonly TypedJsonSerializer Instance = new DefaultSerializer();
-
-        public override int PopulateFromJson(Json obj, IntPtr buffer, int jsonSize) {
+    public class StandardJsonSerializer : StandardJsonSerializerBase {
+        public override int Populate(Json obj, IntPtr source, int sourceSize) {
             string propertyName;
 
             if (obj.IsArray) {
                 throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
             }
 
-            var reader = new JsonReader(buffer, jsonSize);
+            var reader = new JsonReader(source, sourceSize);
             Arr arr;
             Json childObj;
             TObject tObj = (TObject)obj.Template;

@@ -6,7 +6,7 @@ using Starcounter.Internal;
 using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
-	internal class FTJTypedJsonSerializer : TypedJsonSerializerBase {
+	internal class FasterThanJsonSerializer : TypedJsonSerializer {
 		private const int MAX_INT_SIZE = 11;
 
 		public override int Serialize(Json obj, out byte[] buffer) {
@@ -69,7 +69,7 @@ restart:
 						if (tProperty is TObject) {
 							if (childObjArr == null) {
 								childObj = obj.Get((TObject)tProperty);
-								valueSize = childObj.to(out childObjArr);
+								valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
 							}
 
 							if (valueSize != -1) {
@@ -77,7 +77,9 @@ restart:
 									if (valueSize > (buf.Length - writer.Length))
 										goto restart;
 
-									writer.Write(childObjArr);
+									fixed (byte* coa = childObjArr) {
+										writer.Write(coa, (uint)valueSize);
+									}
 									childObjArr = null;
 								}
 							} else
@@ -94,7 +96,7 @@ restart:
 
 							for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
 								if (childObjArr == null) {
-									valueSize = arr[arrPos].ToJsonUtf8(out childObjArr);
+									valueSize = ((TContainer)arr[arrPos].Template).ToFasterThanJson(arr[arrPos], out childObjArr);
 									if (valueSize == -1)
 										goto restart;
 
@@ -102,7 +104,9 @@ restart:
 										goto restart;
 								}
 
-								writer.Write(childObjArr);
+								fixed (byte* coa = childObjArr) {
+									writer.Write(coa, (uint)valueSize);
+								}
 								childObjArr = null;
 								posInArray++;
 							}
@@ -160,20 +164,7 @@ restart:
 			return offset;
 		}
 
-		public override int PopulateFromJson(Json obj, string json) {
-			byte[] buffer = Encoding.UTF8.GetBytes(json);
-			return PopulateFromJson(obj, buffer, buffer.Length);
-		}
-
-		public override int PopulateFromJson(Json obj, byte[] src, int srcSize) {
-			unsafe {
-				fixed (byte* p = src) {
-					return PopulateFromJson(obj, (IntPtr)p, srcSize);
-				}
-			}
-		}
-
-		public override int PopulateFromJson(Json obj, IntPtr src, int srcSize) {
+		public override int Populate(Json obj, IntPtr src, int srcSize) {
 			if (obj.IsArray) {
 				throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
 			}
@@ -226,6 +217,21 @@ restart:
 				}
 				return (int)reader.ReadByteCount;
 			}
+		}
+
+		protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {
+			byte[] tmpBuffer;
+			long bufferSize = current.Length;
+
+			bufferSize *= 2;
+			if (needed != -1) {
+				while (bufferSize < (offset + needed))
+					bufferSize *= 2;
+			}
+			//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
+			tmpBuffer = new byte[bufferSize];
+			Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
+			return tmpBuffer;
 		}
 	}
 }

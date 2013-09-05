@@ -39,6 +39,8 @@ namespace Starcounter.Internal
       /// </summary>
       public byte* AtOffsetEnd;
 
+	   // TODO: 
+	   // Should be renamed to Current.
       /// <summary>
       /// Pointer to the end of the tuple
       /// </summary>

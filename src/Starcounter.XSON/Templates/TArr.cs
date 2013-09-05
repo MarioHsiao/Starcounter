@@ -142,12 +142,47 @@ namespace Starcounter.Templates {
         }
 
         internal override object GetBoundValueAsObject(Json obj) {
-            throw new NotImplementedException();
+			return obj.GetBound(this);
         }
 
         internal override void SetBoundValueAsObject(Json obj, object value) {
-            throw new NotImplementedException();
+			obj.SetBound(this, value);
         }
-    }
 
+		public override IEnumerable<Template> Children {
+			get { throw new NotImplementedException(); }
+		}
+
+		public override string ToJson(Json json) {
+			throw new NotImplementedException();
+		}
+
+		public override byte[] ToJsonUtf8(Json json) {
+			throw new NotImplementedException();
+		}
+
+		public override int ToJsonUtf8(Json json, out byte[] buffer) {
+			throw new NotImplementedException();
+		}
+
+		public override void PopulateFromJson(Json json, string jsonStr) {
+			throw new NotImplementedException();
+		}
+
+		public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
+			throw new NotImplementedException();
+		}
+
+		public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
+			throw new NotImplementedException();
+		}
+
+		public override int ToFasterThanJson(Json json, out byte[] buffer) {
+			throw new NotImplementedException();
+		}
+
+		public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
+			throw new NotImplementedException();
+		}
+	}
 }
