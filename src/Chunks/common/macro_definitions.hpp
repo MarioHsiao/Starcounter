@@ -54,16 +54,6 @@
 //#endif // defined (IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 ///********************************************************************************************
-/// Define IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-/// to use a robust spinlock and windows events to synchronize access to
-/// client_number_pool.
-#define IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-
-///********************************************************************************************
 /// Comment macro IPC_OWNER_ID_IS_32_BIT to go back to the old 64-bit owner_id type.
 #define IPC_OWNER_ID_IS_32_BIT
 
