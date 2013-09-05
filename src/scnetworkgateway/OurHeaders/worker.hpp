@@ -181,8 +181,8 @@ public:
 
         port_num_active_conns_[port_index] += change_value;
 
-        // Changing number of active sessions.
-        g_gateway.ChangeNumActiveSessions(change_value);
+        // Changing number of active sockets.
+        g_gateway.ChangeNumActiveSockets(change_value);
     }
 
     // Set number of active connections.
