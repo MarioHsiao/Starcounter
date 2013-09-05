@@ -69,14 +69,9 @@ public:
 	scheduler_interface_(0),
 	client_interface_(0),
 	server_refs_(0),
-	is_to_be_released_(false)
-#if defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
-	, in_overflow_()
-#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	, out_overflow_()
-#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	{}
+	is_to_be_released_(false),
+	in_overflow_(),
+	out_overflow_() {}
 	
 	void set_scheduler_interface(scheduler_interface_type* i) {
 		scheduler_interface_ = i;
@@ -161,7 +156,6 @@ public:
 	// alignment now.
 	//--------------------------------------------------------------------------
 	
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	//--------------------------------------------------------------------------
 	// The queue here is synchronized enough by the operation of the
 	// co-operative scheduler threads.
@@ -331,7 +325,6 @@ public:
 	const queue& out_overflow() const {
 		return out_overflow_;
 	}
-#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	
 private:
 	// Here we are already aligned on a cache-line. The owner_id,
@@ -369,21 +362,17 @@ private:
 	+sizeof(bool) // is_to_be_released_
 	) % CACHE_LINE_SIZE];
 
-#if defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
 	queue in_overflow_;
 
 	char cache_line_pad_1_[CACHE_LINE_SIZE -(
 	+sizeof(queue) // in_overflow_
 	) % CACHE_LINE_SIZE];
-#endif // defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
-    
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+
 	queue out_overflow_;
 
 	char cache_line_pad_2_[CACHE_LINE_SIZE -(
 	+sizeof(queue) // out_overflow_
 	) % CACHE_LINE_SIZE];
-#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 };
 
 typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_the_channels2;
