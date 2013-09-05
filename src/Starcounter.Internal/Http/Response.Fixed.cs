@@ -2,7 +2,7 @@
 using Starcounter.Internal.Web;
 namespace Starcounter.Advanced {
 
-    public partial class Response {
+    public sealed partial class Response {
 
         private static Response Fixed404 = null;
         private static Response Fixed406 = null;

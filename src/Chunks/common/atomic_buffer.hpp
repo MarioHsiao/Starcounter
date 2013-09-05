@@ -79,9 +79,6 @@ public:
 				_mm_sfence();
 				
 				// The item was pushed.
-				#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-				++pushed_counter();
-				#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 				return true;
 			}
 			
@@ -119,9 +116,6 @@ public:
 				_mm_sfence();
 				
 				// The item was popped.
-				#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-				++popped_counter();
-				#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 				return true;
 			}
 
@@ -151,9 +145,6 @@ public:
 			_mm_sfence();
 
 			// The item was pushed.
-			#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-			++pushed_counter();
-			#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 			return true;
 		}
 
@@ -177,9 +168,6 @@ public:
 			_mm_sfence();
 
 			// The item was popped.
-			#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-			++popped_counter();
-			#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 			return true;
 		}
 
@@ -204,19 +192,6 @@ public:
 		static_size = 1 << N
 	};
 	
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	/// TODO: Remove performance counters, only used for debug.
-	/// Performance counters counts how many objects have been pushed and popped
-	/// in this atomic_buffer.
-	performance_counter& pushed_counter() {
-		return pushed_counter_;
-	}
-	
-	performance_counter& popped_counter() {
-		return popped_counter_;
-	}
-	#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
-
 private:
 	int32_t next(int32_t current) const {
 		return (current +1) & ((1 << N) -1);
@@ -232,21 +207,6 @@ private:
 	char pad_cache_line_1_[CACHE_LINE_SIZE
 	-sizeof(int32_t) // tail_
 	];
-
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	/// Performance counters counts how many objects have been pushed and popped
-	/// in this atomic_buffer.
-	performance_counter pushed_counter_;
-	char pad_cache_line_2_[CACHE_LINE_SIZE
-	-sizeof(performance_counter) // pushed_counter_
-	];
-
-	performance_counter popped_counter_;
-	char pad_cache_line_3_[CACHE_LINE_SIZE
-	-sizeof(performance_counter) // popped_counter_
-	];
-
-	#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 };
 
 // Template specialization for 256 elements, N = 8. This case should improve
@@ -296,9 +256,6 @@ public:
 				_mm_sfence();
 				
 				// The item was pushed.
-				#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-				++pushed_counter();
-				#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 				return true;
 			}
 			
@@ -337,9 +294,6 @@ public:
 				_mm_sfence();
 				
 				// The item was popped.
-				#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-				++popped_counter();
-				#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 				return true;
 			}
 
@@ -369,9 +323,6 @@ public:
 			_mm_sfence();
 			
 			// The item was pushed.
-			#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-			++pushed_counter();
-			#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 			return true;
 		}
 
@@ -395,9 +346,6 @@ public:
 			_mm_sfence();
 			
 			// The item was popped.
-			#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-			++popped_counter();
-			#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 			return true;
 		}
 
@@ -421,19 +369,6 @@ public:
 	enum {
 		static_size = 1 << 8
 	};
-
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	/// TODO: Remove performance counters, only used for debug.
-	/// Performance counters counts how many objects have been pushed and popped
-	/// in this atomic_buffer.
-	performance_counter& pushed_counter() {
-		return pushed_counter_;
-	}
-	
-	performance_counter& popped_counter() {
-		return popped_counter_;
-	}
-	#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 	
 private:
 	uint8_t next(uint8_t current) const {
@@ -450,21 +385,6 @@ private:
 	char pad_cache_line_1_[CACHE_LINE_SIZE
 	-sizeof(int32_t) // tail_
 	];
-
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	/// Performance counters counts how many objects have been pushed and popped
-	/// in this atomic_buffer.
-	performance_counter pushed_counter_;
-	char pad_cache_line_2_[CACHE_LINE_SIZE
-	-sizeof(performance_counter) // pushed_counter_
-	];
-
-	performance_counter popped_counter_;
-	char pad_cache_line_3_[CACHE_LINE_SIZE
-	-sizeof(performance_counter) // popped_counter_
-	];
-
-	#endif // STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
 };
 
 #endif // defined(__x86_64__) || defined (__amd64__) || defined (_M_X64) \

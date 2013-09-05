@@ -41,11 +41,6 @@
 /// not be defined when pushing code.
 //#define IPC_MONITOR_SHOW_ACTIVITY
 
-/// Debug switch to see atomic_buffer performance counters used in
-/// starcounter::core::channel. NOTE: This macro must be commented out before pushing
-/// code so that performance counters are not used because it degrades performance a bit.
-//#define STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
-
 /// Define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC to use spinlocks to
 /// synchronize access to the IPC monitors monitor_interface shared memory segment.
 ///NOT STARTED YET: #define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
@@ -54,45 +49,8 @@
 //#endif // defined (IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 ///********************************************************************************************
-/// Define IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-/// to use a robust spinlock and windows events to synchronize access to
-/// client_number_pool.
-#define IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-
-///********************************************************************************************
-/// Define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-/// to use a robust spinlock and windows events to synchronize access to
-/// scheduler_interface.
-
-/// NOT OPTIONAL TO DISABLE THIS ANYMORE - TODO.
-#define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
-
-///********************************************************************************************
-/// Defining IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
-/// means the IPC monitor do the release of chunks instead of the schedulers.
-#define IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
-
-#if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-#else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-#endif // defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-
-///********************************************************************************************
-
 /// Comment macro IPC_OWNER_ID_IS_32_BIT to go back to the old 64-bit owner_id type.
 #define IPC_OWNER_ID_IS_32_BIT
-
-/// Define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC to use Windows Event
-/// synchronization in interprocess communication. Comment this out in order to use
-/// Boost.Interprocess condition synchronization.
-/// The plan is to test the implementation with Windows Events and when stable, remove
-/// code using Boost.Interprocess condition variable and remove wrapping of the code
-/// with this macro. Using Windows Events is not yet fully implemented.
-/// While experimenting with this, don't define it when pushing code.
-#define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
 
 // Prefix for database names.
 #define DATABASE_NAME_PREFIX "starcounter"

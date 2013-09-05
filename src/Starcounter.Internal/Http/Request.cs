@@ -11,7 +11,7 @@ namespace Starcounter.Advanced {
     /// <summary>
     /// Class Request
     /// </summary>
-    public class Request {
+    public sealed class Request {
         /// <summary>
         /// Creates a minimalistic Http 1.0 GET request with the given uri without any headers or even protocol version specifier.
         /// </summary>

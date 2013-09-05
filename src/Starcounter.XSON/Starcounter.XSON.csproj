@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding\DataValueBinding.cs" />
+    <Compile Include="Class Json\QuickTuple.cs" />
     <Compile Include="Code-generated Deserializer\AstTree\AstFail.cs" />
     <Compile Include="Code-generated Deserializer\AstTree\AstJSConstructor.cs" />
     <Compile Include="Code-generated Deserializer\AstTree\AstJsonSerializerClass.cs" />
@@ -90,14 +91,14 @@
     <Compile Include="Code-generated Deserializer\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="Code-generated Deserializer\ParseTree\TemplateMetadata.cs" />
     <Compile Include="Code-generated Deserializer\SerializerCompiler.cs" />
-    <Compile Include="Instances\IBound.cs" />
-    <Compile Include="Instances\Json.Object.ChangeLog.cs" />
-    <Compile Include="Instances\Json.Array.Assignments.cs" />
-    <Compile Include="Instances\Json.Array.ChangeLog.cs" />
-    <Compile Include="Instances\Json.Array.cs" />
-    <Compile Include="Instances\Json.Array.Debug.cs" />
-    <Compile Include="Instances\Json.Array.Generic.cs" />
-    <Compile Include="Instances\Json.Debug.cs" />
+    <Compile Include="Class Json\IBound.cs" />
+    <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
+    <Compile Include="Class Json\Json.Array.Assignments.cs" />
+    <Compile Include="Class Json\Json.Array.ChangeLog.cs" />
+    <Compile Include="Class Json\Json.Array.cs" />
+    <Compile Include="Class Json\Json.Array.Debug.cs" />
+    <Compile Include="Class Json\Json.Array.Generic.cs" />
+    <Compile Include="Class Json\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Templates\Schema.cs" />
     <Compile Include="Sessions\JSON-Patch\Change.cs" />
@@ -115,7 +116,7 @@
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="JSON-By-Example\Module2.cs" />
-    <Compile Include="Instances\Container.cs" />
+    <Compile Include="Class Json\Container.cs" />
     <Compile Include="Binding\DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Interfaces\IDebugInfo.cs" />
@@ -123,14 +124,14 @@
     <Compile Include="Interfaces\Template\ITemplateCodeGeneratorModule.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Sessions\ManagedTupleWriter.cs" />
-    <Compile Include="Instances\Json.Object.Input.cs" />
-    <Compile Include="Instances\Json.cs" />
-    <Compile Include="Instances\Json.Object.Dynamic.cs" />
-    <Compile Include="Instances\Json.Object.GetSetValue.cs" />
-    <Compile Include="Instances\Json.Object.Data.cs" />
-    <Compile Include="Instances\Json.IHypermedia.cs" />
-    <Compile Include="Instances\Json.Serializing.cs" />
-    <Compile Include="Instances\Json.Object.QuickTuple.cs" />
+    <Compile Include="Class Json\Json.Object.Input.cs" />
+    <Compile Include="Class Json\Json.cs" />
+    <Compile Include="Class Json\Json.Object.Dynamic.cs" />
+    <Compile Include="Class Json\Json.Object.GetSetValue.cs" />
+    <Compile Include="Class Json\Json.Object.Data.cs" />
+    <Compile Include="Class Json\Json.IHypermedia.cs" />
+    <Compile Include="Class Json\Json.Serializing.cs" />
+    <Compile Include="Class Json\Json.Object.QuickTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DefaultSerializer\JsonHelper.cs" />
     <Compile Include="DefaultSerializer\JsonReader.cs" />

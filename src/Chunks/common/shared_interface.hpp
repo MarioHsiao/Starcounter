@@ -72,7 +72,7 @@ class shared_interface {
 public:
 	/// Default constructor.
 	shared_interface();
-
+	
 	/// Constructor.
 	/**
 	 * @param segment_name is used to open the database shared memory.
@@ -187,7 +187,7 @@ public:
 	// acquire_linked_chunks_from_shared_chunk_pool().
 	bool client_acquire_linked_chunks(chunk_index& head, std::size_t size,
 	uint32_t timeout_milliseconds); /// "A"
-
+	
 	/// Allocate linked chunks from the shared_chunk_pool. It is a "timed"
 	/// function that can fail.
 	/**
@@ -407,11 +407,11 @@ public:
 	 * @return A reference to the client work event, or 0 if failed to open.
 	 */ 
 	::HANDLE& open_client_work_event(std::size_t i);
-
+	
 	/// Close client work event. It does not actually close the event, the
 	/// database do that before terminating, instead it sets the event to 0.
 	void close_client_work_event();
-
+	
 	/// Get a reference to the client work event.
 	/**
 	 * @return A reference to the client work event.
@@ -423,7 +423,7 @@ public:
 	 * @param A const reference to the client work event.
 	 */ 
 	const ::HANDLE& client_work_event() const;
-
+	
 	//--------------------------------------------------------------------------
 	/// Open scheduler work event (i) and return a reference to it.
 	/// NOTE: Before attempting to open the event, sets the event to 0
@@ -433,14 +433,14 @@ public:
 	 * @return A reference to scheduler work event (i). NULL if failed to open.
 	 */ 
 	::HANDLE& open_scheduler_work_event(std::size_t i);
-
+	
 	/// Close scheduler work event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
 	 */ 
 	void close_scheduler_work_event(std::size_t i);
-
+	
 	/// Get a reference to scheduler work event (i).
 	/**
 	 * @param i The scheduler's number, related to
@@ -456,8 +456,7 @@ public:
 	 * @param A const reference to scheduler work event (i).
 	 */ 
 	const ::HANDLE& scheduler_work_event(std::size_t i) const;
-
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	
 	/// Open scheduler_number_pool_not_empty event (i) and return a reference to it.
 	/// NOTE: Before attempting to open the event, sets the event to 0
 	/// regardless of if the event is already open or not.
@@ -466,14 +465,14 @@ public:
 	 * @return A reference to scheduler_number_pool_not_empty event (i). NULL if failed to open.
 	 */ 
 	::HANDLE& open_scheduler_number_pool_not_empty_event(std::size_t i);
-
+	
 	/// Close scheduler_number_pool_not_empty event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
 	 */ 
 	void close_scheduler_number_pool_not_empty_event(std::size_t i);
-
+	
 	/// Open scheduler_number_pool_not_full event (i) and return a reference to it.
 	/// NOTE: Before attempting to open the event, sets the event to 0
 	/// regardless of if the event is already open or not.
@@ -482,14 +481,14 @@ public:
 	 * @return A reference to scheduler_number_pool_not_full event (i). NULL if failed to open.
 	 */ 
 	::HANDLE& open_scheduler_number_pool_not_full_event(std::size_t i);
-
+	
 	/// Close scheduler_number_pool_not_full event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
 	/**
 	 * @param i The scheduler's number, related to scheduler number i.
 	 */ 
 	void close_scheduler_number_pool_not_full_event(std::size_t i);
-
+	
 	/// Get a reference to scheduler_number_pool_not_empty event (i).
 	/**
 	 * @param i The scheduler's number, related to
@@ -505,7 +504,7 @@ public:
 	 * @param A const reference to scheduler_number_pool_not_empty event (i).
 	 */ 
 	const ::HANDLE& scheduler_number_pool_not_empty_event(std::size_t i) const;
-
+	
 	/// Get a reference to scheduler_number_pool_not_full event (i).
 	/**
 	 * @param i The scheduler's number, related to
@@ -521,7 +520,6 @@ public:
 	 * @param A const reference to scheduler_number_pool_not_full event (i).
 	 */ 
 	const ::HANDLE& scheduler_number_pool_not_full_event(std::size_t i) const;
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 private:
 	// Specify what it throws.
@@ -552,20 +550,18 @@ private:
 	
 	// Each client need to have all events (HANDLEs) already opened and ready to be used.
 	::HANDLE client_work_;
-
+	
 	// To notify any scheduler. In this array of HANDLEs, only those that correspond to
 	// an active scheduler will be opened/closed.
 	::HANDLE scheduler_work_[max_number_of_schedulers];
-
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	
 	// To notify that scheduler_number_pool_not_empty_[n]. In this array of HANDLEs,
 	// only those that correspond to an active scheduler will be opened/closed.
 	::HANDLE scheduler_number_pool_not_empty_[max_number_of_schedulers];
-
+	
 	// To notify that scheduler_number_pool_not_full_[n]. In this array of HANDLEs,
 	// only those that correspond to an active scheduler will be opened/closed.
 	::HANDLE scheduler_number_pool_not_full_[max_number_of_schedulers];
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 protected:
 	/// TODO: Replace direct accesses to client_number_ with get_client_number()
