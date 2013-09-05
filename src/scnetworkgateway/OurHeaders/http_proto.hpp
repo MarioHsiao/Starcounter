@@ -659,6 +659,8 @@ const int32_t kHttpEchoResponseLength = strlen(kHttpEchoResponse);
 
 const int32_t kHttpEchoResponseInsertPoint = strstr(kHttpEchoResponse, "@") - kHttpEchoResponse;
 
+const int32_t kHttpEchoContentLength = 8;
+
 } // namespace network
 } // namespace starcounter
 

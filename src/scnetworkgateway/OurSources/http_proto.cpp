@@ -11,8 +11,6 @@
 namespace starcounter {
 namespace network {
 
-const int32_t kHttpEchoContentLength = 8;
-
 const char* const kHttpGatewayPongResponse =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
