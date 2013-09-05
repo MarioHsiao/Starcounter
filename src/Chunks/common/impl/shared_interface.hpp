@@ -441,7 +441,6 @@ inline const ::HANDLE& shared_interface::scheduler_work_event(std::size_t i) con
 	return scheduler_work_[i];
 }
 
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 inline ::HANDLE& shared_interface::open_scheduler_number_pool_not_empty_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((scheduler_number_pool_not_empty_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
@@ -489,7 +488,6 @@ inline const ::HANDLE& shared_interface::scheduler_number_pool_not_full_event
 (std::size_t i) const {
 	return scheduler_number_pool_not_full_[i];
 }
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
