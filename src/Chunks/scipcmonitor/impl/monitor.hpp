@@ -1294,15 +1294,9 @@ namespace starcounter {
 
                               client_interface_ptr->set_owner_id(owner_id::none);
 
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
                               bool release_client_number_res =
                                  shared.common_client_interface().release_client_number
                                  (n, &shared.client_interface(0), monitor->get_owner_id());
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-                              bool release_client_number_res =
-                                 shared.common_client_interface().release_client_number
-                                 (n, &shared.client_interface(0));
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
                               ////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
 
