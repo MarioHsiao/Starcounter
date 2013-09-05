@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding\DataValueBinding.cs" />
+    <Compile Include="Class Json\QuickTuple.cs" />
     <Compile Include="Code-generated Deserializer\AstTree\AstFail.cs" />
     <Compile Include="Code-generated Deserializer\AstTree\AstJSConstructor.cs" />
     <Compile Include="Code-generated Deserializer\AstTree\AstJsonSerializerClass.cs" />

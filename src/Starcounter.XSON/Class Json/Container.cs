@@ -29,11 +29,6 @@ namespace Starcounter {
         internal bool _Dirty = false;
 
         /// <summary>
-        /// Used by change log
-        /// </summary>
-        internal bool _BrandNew = true;
-
-        /// <summary>
         /// Json objects can be stored on the server between requests as session data.
         /// </summary>
         public Session Session {
@@ -127,16 +122,7 @@ namespace Starcounter {
 		//protected virtual void Init() {
 		//}
 
-        /// <summary>
-        /// Used to generate change logs for all pending property changes in this object and
-        /// and its children and grandchidren (recursivly) excluding changes to bound data
-        /// objects. This method is much faster than the corresponding method checking
-        /// th database.
-        /// </summary>
-        /// <param name="session">The session (for faster access)</param>
-        internal void LogValueChangesWithoutDatabase(Starcounter.Session session) {
-            throw new NotImplementedException();
-        }
+
 
         /// <summary>
         /// Used to generate change logs for all pending property changes in this object and
@@ -144,37 +130,7 @@ namespace Starcounter {
         /// objects.
         /// </summary>
         /// <param name="session">The session (for faster access)</param>
-        internal abstract void LogValueChangesWithDatabase(Session session);
 
-        /// <summary>
-        /// Called by WriteDebugToString implementations
-        /// </summary>
-        /// <param name="sb">The string used to write text to</param>
-        internal void _WriteDebugProperty(StringBuilder sb) {
-            var t = this.Template;
-            if (t != null) {
-                var name = this.Template.PropertyName;
-                if (name != null) {
-                    sb.Append('"');
-                    sb.Append(name);
-                    sb.Append("\":");
-                }
-            }
-            if (this is Json && ((Json)this).Data != null) {
-                sb.Append("(db)");
-            }
-            if (_BrandNew) {
-                sb.Append("(n)");
-            }
-            if (_Dirty) {
-                sb.Append("(d)");
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal abstract void CheckpointChangeLog();
 
         ///// <summary>
         ///// Called when [set parent].
