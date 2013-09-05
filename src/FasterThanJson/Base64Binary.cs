@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
             return 3 * (length / 4) + (length % 4 == 0 ? 0 : length % 4 - 1);
         }
         
-        public static unsafe uint Write(IntPtr buffer, Byte* value, UInt32 length) {
+        public static unsafe uint Write(byte* buffer, Byte* value, UInt32 length) {
             byte* start = value;
             
             uint triplesNr = length / 3;

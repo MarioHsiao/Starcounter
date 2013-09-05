@@ -11,6 +11,7 @@
 
 using System;
 using System.Data;
+using System.Runtime.CompilerServices;
 
 //using NUnit.Framework;
 
@@ -252,6 +253,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <returns>System.UInt32.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe uint MeasureNeededSize(UInt64 value)
       {
          if (value <= 0x3F)
@@ -302,9 +304,10 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x1(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x1(UInt64 value, byte* ptr)
       {
-         var c = (Base64x1*) ptr;
+          var c = (Base64x1*)ptr;
          c->b0 = b64e[(value & 0x3F)];
       }
 
@@ -313,7 +316,8 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x2(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x2(UInt64 value, byte* ptr)
       {
          var c = (Base64x2*) ptr;
          c->b0 = b64e[(value & 0xFC0) >> 06];
@@ -325,7 +329,8 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x3(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x3(UInt64 value, byte* ptr)
       {
          var c = (Base64x3*) ptr;
          c->b0 = b64e[(value & 0x3F000) >> 12];
@@ -339,7 +344,8 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x4(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x4(UInt64 value, byte* ptr)
       {
          var c = (Base64x4*)ptr;
          c->b0 = b64e[(value & 0xFC0000) >> 18];
@@ -353,7 +359,8 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x5(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x5(UInt64 value, byte* ptr)
       {
          var c = (Base64x5*)ptr;
          c->b0 = b64e[(value & 0x3F000000) >> 24];
@@ -368,7 +375,8 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x6(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x6(UInt64 value, byte* ptr)
       {
          var c = (Base64x6*)ptr;
          c->b0 = b64e[(value & 0x0000000FC0000000UL) >> 30];
@@ -384,7 +392,8 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase64x11(UInt64 value, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x11(UInt64 value, byte* ptr)
       {
          var c = (Base64x11*)ptr;
          c->b0 = b64e[(value  & 0xF000000000000000UL) >> 60];
@@ -408,7 +417,8 @@ namespace Starcounter.Internal
       /// <param name="buffer">The buffer.</param>
       /// <param name="value">The value.</param>
       /// <returns>System.UInt32.</returns>
-      public static unsafe uint Write(IntPtr buffer, UInt64 value)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe uint Write(byte* buffer, UInt64 value)
       {
          var c = (Base64x5*) buffer;
          if ((value & 0xFFFFFFFFFFFFFFC0) == 0) {// 11 111111 111111 111111 111111 000000 (NOTE: groups of SIX bits)
@@ -444,7 +454,8 @@ namespace Starcounter.Internal
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
       /// <exception cref="System.Exception">Illegal size</exception>
-      public static unsafe UInt64 Read( int size, IntPtr ptr)
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe UInt64 Read(int size, IntPtr ptr)
       {
          switch (size)
          {
@@ -476,6 +487,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x1(IntPtr ptr)
       {
          var c = (Base64x1*)ptr;
@@ -487,6 +499,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x2(IntPtr ptr)
       {
          var c = (Base64x2*)ptr;
@@ -498,6 +511,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x3(IntPtr ptr)
       {
          var c = (Base64x3*)ptr;
@@ -509,6 +523,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x4(IntPtr ptr)
       {
          var c = (Base64x4*)ptr;
@@ -521,6 +536,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x5(IntPtr ptr)
       {
          var c = (Base64x5*)ptr;
@@ -533,6 +549,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x6(IntPtr ptr)
       {
          var c = (Base64x6*)ptr;
@@ -545,6 +562,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 ReadBase64x11(IntPtr ptr)
       {
          var c = (Base64x11*)ptr;

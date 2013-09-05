@@ -279,7 +279,7 @@ namespace Starcounter.Internal
        /// <param name="buffer">The buffer.</param>
        /// <param name="value">The value.</param>
        /// <returns>System.UInt32.</returns>
-      public static unsafe uint Write( IntPtr buffer, UInt32 value )
+      public static unsafe uint Write(byte* buffer, UInt32 value )
       {
          var c = (Base32x6*)buffer; 
          if ( ( value & 0xFFFFFFE0 ) == 0 ) // 11 11111 11111 11111 11111 11111 00000 (NOTE: groups of FIVE bits)
@@ -359,7 +359,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase32x6(UInt64 value, IntPtr ptr )
+      public static unsafe void WriteBase32x6(UInt64 value, byte* ptr )
       {
          var c = (Base32x6*) ptr;
          c->b0 = (byte)((value & 0x3E000000) >> 25);
@@ -379,7 +379,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase32x7(UInt64 value, IntPtr ptr)
+      public static unsafe void WriteBase32x7(UInt64 value, byte* ptr)
       {
          var c = (Base32x7*)ptr;
          c->b0 = (byte)((value & 0x00000007C0000000) >> 30);
@@ -399,7 +399,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase32x13(UInt64 value, IntPtr ptr)
+      public static unsafe void WriteBase32x13(UInt64 value, byte* ptr)
       {
          var c = (Base32x13*)ptr;
          c->b0 = (byte)((value  & 0xF000000000000000) >> 60);
@@ -426,9 +426,9 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="c">The c.</param>
-      public static unsafe void WriteBase32x1(UInt64 value, IntPtr c)
+      public static unsafe void WriteBase32x1(UInt64 value, byte* c)
       {
-         *((byte*)(c)) = (byte)( ( value & 0x1F ) | 0x40 );
+         *(c) = (byte)( ( value & 0x1F ) | 0x40 );
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -437,7 +437,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase32x2(UInt64 value, IntPtr ptr)
+      public static unsafe void WriteBase32x2(UInt64 value, byte* ptr)
       {
          var c = (Base32x2*)ptr;
            ((UInt16*)(c))[0] = 0x4040;// Set leading bytes to '@'representing zero.
@@ -453,7 +453,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase32x3(UInt64 value, IntPtr ptr)
+      public static unsafe void WriteBase32x3(UInt64 value, byte* ptr)
       {
          var c = (Base32x3*)ptr;
          ((UInt16*)(c))[0] = 0x4040;// Set leading bytes to '@'representing zero.
@@ -468,7 +468,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="ptr">The PTR.</param>
-      public static unsafe void WriteBase32x4(UInt64 value, IntPtr ptr)
+      public static unsafe void WriteBase32x4(UInt64 value, byte* ptr)
       {
          var c = (Base32x4*)ptr;
          ((UInt32*)(c))[0] = 0x40404040;// Set leading bytes to '@'representing zero.
