@@ -1294,15 +1294,9 @@ namespace starcounter {
 
                               client_interface_ptr->set_owner_id(owner_id::none);
 
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
                               bool release_client_number_res =
                                  shared.common_client_interface().release_client_number
                                  (n, &shared.client_interface(0), monitor->get_owner_id());
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-                              bool release_client_number_res =
-                                 shared.common_client_interface().release_client_number
-                                 (n, &shared.client_interface(0));
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
                               ////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
 
@@ -1505,42 +1499,6 @@ namespace starcounter {
          SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
       }
 
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-      void monitor::print_rate_with_precision(double rate) {
-         // The rate is printed in one of the formats:
-         //    0 - 9999 (<1E4)
-         //  10k - 999k (<1E6)
-         // 1.0M - 9.9M (<1E7)
-         //  10M - 999M (or higher)
-         if (rate >= 1E4) {
-            if (rate >= 1E6) {
-               if (rate >= 1E7) {
-                  // " 10M" - "999M" (or higher)
-                  std::cout.width(3);
-                  std::cout << int(rate / 1E6) << 'M';
-               }
-               else {
-                  // "1.0M" - "9.9M" (<1E7)
-                  std::cout.width(3);
-                  std::cout << std::fixed << std::setprecision(1)
-                     << (double(rate) / 1E6) << 'M';
-               }
-            }
-            else {
-               // "  1k" - "999k" (<1E6)
-               std::cout.width(3);
-               std::cout << std::fixed << std::setprecision(0)
-                  << int(double(rate) / 1E3) << 'k';
-            }
-         }
-         else {
-            // "   0" - "9999" (<1E4)
-            std::cout.width(4);
-            std::cout << int(rate);
-         }
-      }
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-
       inline starcounter::log& monitor::log() {
          return log_;
       }
@@ -1569,75 +1527,6 @@ namespace starcounter {
          Sleep(1000);
          system("cls");
 
-# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-         boost::timer t;
-
-         // stat[0] contains the most recently collected statistics, and
-         // stat[1] contains the previously collected statistics.
-         struct stat {
-            stat()
-               : timestamp(0) {}
-
-            struct channel_statistics {
-               channel_statistics()
-                  : in_pushed(0LL),
-                  in_popped(0LL),
-                  out_pushed(0LL),
-                  out_popped(0LL) {}
-
-               int64_t in_pushed;
-               int64_t in_popped;
-               int64_t out_pushed;
-               int64_t out_popped;
-            } channel[channels];
-
-            double timestamp;
-         } stat[2];
-
-         // Number of chunks in the in and out queue of the current channel,
-         // that have been pushed and popped since start, recent statistics:
-         int64_t in_pushed_recent;
-         int64_t in_popped_recent;
-         int64_t out_pushed_recent;
-         int64_t out_popped_recent;
-
-         // Number of chunks in the in and out queue of the current channel,
-         // that have been pushed and popped since start, previous statistics:
-         int64_t in_pushed_previous;
-         int64_t in_popped_previous;
-         int64_t out_pushed_previous;
-         int64_t out_popped_previous;
-
-         // Sum of number of chunks in all channels in and out queue that have been
-         // pushed and popped recently since start:
-         int64_t in_pushed_recent_sum;
-         int64_t in_popped_recent_sum;
-         int64_t out_pushed_recent_sum;
-         int64_t out_popped_recent_sum;
-
-         // Sum of number of chunks in all channels in and out queue that have been
-         // pushed and popped recently since start:
-         int64_t in_pushed_previous_sum;
-         int64_t in_popped_previous_sum;
-         int64_t out_pushed_previous_sum;
-         int64_t out_popped_previous_sum;
-
-         // The flow in a channel is measured by the rate chunks are passing through
-         // per second.
-         double rate;
-
-         // Elapsed time is used to compute the number of push/pop per second.
-         double elapsed_time;
-
-         // Wait at least 1 ms before showing statistics.
-         Sleep(1);
-
-         //  If elapsed time is 0, division by 0 will happen.
-         while (t.elapsed() == 0) {
-            Sleep(1);
-         }
-
-# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
          int active_segments_update_counter = 0; // Prevent checking too often.
 
          do {
@@ -1719,79 +1608,7 @@ namespace starcounter {
                //}
 
                //------------------------------------------------------------------
-# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-               std::cout << "\nChannels (rate, client/scheduler)    "
-                  << "Elapsed time: " << stat[0].timestamp << " s";
-
-               // Taking the timestamp before collecting statistics is probably better
-               // than taking the timestamp after having collected the statistics,
-               // because the timestamp might be more correct then.
-               stat[0].timestamp = t.elapsed();
-
-               // Elapsed time between stat[0] and stat[1].
-               elapsed_time = stat[0].timestamp -stat[1].timestamp;
-
-               // Copy recent statistics data [0] to previous statistics data [1].
-               stat[1] = stat[0];
-
-               // Collect new statistics data from each channel.
-               for (std::size_t ch = 0; ch < channels; ++ch) {
-                  stat[0].channel[ch].in_pushed
-                     = the_shared.channel(ch).in.pushed_counter().get();
-
-                  stat[0].channel[ch].in_popped
-                     = the_shared.channel(ch).in.popped_counter().get();
-
-                  stat[0].channel[ch].out_pushed
-                     = the_shared.channel(ch).out.pushed_counter().get();
-
-                  stat[0].channel[ch].out_popped
-                     = the_shared.channel(ch).out.popped_counter().get();
-               }
-
-               // Sanity check.
-               if (elapsed_time == 0) {
-                  // Avoid division by zero and don't print statistics.
-                  continue;
-               }
-
-               // Clear sums.
-               in_pushed_recent_sum = 0LL;
-               in_popped_recent_sum = 0LL;
-               out_pushed_recent_sum = 0LL;
-               out_popped_recent_sum = 0LL;
-               in_pushed_previous_sum = 0LL;
-               in_popped_previous_sum = 0LL;
-               out_pushed_previous_sum = 0LL;
-               out_popped_previous_sum = 0LL;
-
-               // Right place?
-               // Get number of chunks pushed and popped in the current
-               // channels (ch) in and out queues, recently and previously.
-               for (std::size_t ch = 0; ch < channels; ++ch) {
-                  in_pushed_recent = stat[0].channel[ch].in_pushed;
-                  in_popped_recent = stat[0].channel[ch].in_popped;
-                  out_pushed_recent = stat[0].channel[ch].out_pushed;
-                  out_popped_recent = stat[0].channel[ch].out_popped;
-                  in_pushed_previous = stat[1].channel[ch].in_pushed;
-                  in_popped_previous = stat[1].channel[ch].in_popped;
-                  out_pushed_previous = stat[1].channel[ch].out_pushed;
-                  out_popped_previous = stat[1].channel[ch].out_popped;
-
-                  // Add to sum.
-                  in_pushed_recent_sum += in_pushed_recent;
-                  in_popped_recent_sum += in_popped_recent;
-                  out_pushed_recent_sum += out_pushed_recent;
-                  out_popped_recent_sum += out_popped_recent;
-                  in_pushed_previous_sum += in_pushed_previous;
-                  in_popped_previous_sum += in_popped_previous;
-                  out_pushed_previous_sum += out_pushed_previous;
-                  out_popped_previous_sum += out_popped_previous;
-               }
-
-# else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                std::cout << "\nChannels (client/scheduler):";
-# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                for (std::size_t ch = 0; ch < channels; ++ch) {
                   if (!(ch % 8)) {
@@ -1812,21 +1629,7 @@ namespace starcounter {
 
                   // First indicator: Rate (chunks/sec that are popped from the out
                   // queue), or spaces if not available.
-# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-
-                  //--------------------------------------------------------------
-                  // Calculate the channel flow as number of chunks that are
-                  // popped from this channels out queue per second.
-
-                  rate = double(out_pushed_recent -out_pushed_previous)
-                     / elapsed_time;
-
-                  print_rate_with_precision(rate);
-
-                  //--------------------------------------------------------------
-# else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                   std::cout << "    "; // Flow unknown.
-# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                   // Distance to next indicator.
                   std::cout << " ";

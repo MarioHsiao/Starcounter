@@ -86,30 +86,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public bool IsArray {
-            get {
-                if (Template == null) {
-                    return false;
-                }
-                return Template is TObjArr;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool IsPrimitive {
-            get {
-                if (Template == null) {
-                    return false;
-                }
-                return Template.IsPrimitive;
-            }
-        }
-
-        /// <summary>
         /// Transaction applied to this node.
         /// </summary>
         private ITransaction _transaction;

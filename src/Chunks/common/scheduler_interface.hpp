@@ -30,11 +30,7 @@
 # include <windows.h>
 # include <intrin.h>
 #undef WIN32_LEAN_AND_MEAN
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #include "../common/scheduler_number_pool.hpp"
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#include "../common/bounded_buffer.hpp"
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 #include "../common/channel.hpp"
 #include "../common/channel_mask.hpp"
 #include "../common/client_interface.hpp"
@@ -68,13 +64,8 @@ class scheduler_interface {
 public:
 	// Basic types
 	
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	// The type of queue for channel_number.
 	typedef scheduler_number_pool<T, channel_bits> channel_number_queue_type;
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	// The type of queue for channel_number.
-	typedef bounded_buffer<T, Alloc> channel_number_queue_type;
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// The type of queue for chunk_pool.
 	typedef chunk_pool<T2, Alloc2> chunk_pool_type;
@@ -83,13 +74,8 @@ public:
 	typedef overflow_buffer<T2, Alloc2> overflow_pool_type;
 	
 	// The type of an allocator used in the channel_number_queue.
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	//typedef typename channel_number_queue_type::allocator_type
 	//channel_number_queue_allocator_type;
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	typedef typename channel_number_queue_type::allocator_type
-	channel_number_queue_allocator_type;
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// The type of an allocator used in the chunk_pool.
 	typedef typename chunk_pool_type::allocator_type
@@ -117,11 +103,6 @@ public:
 	std::size_t channel_number_queue_capacity,
 	std::size_t chunk_pool_capacity,
 	std::size_t overflow_pool_capacity,
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	const channel_number_queue_allocator_type& channel_number_queue_alloc
-	= channel_number_queue_allocator_type(), /// TODO: Not used - remove.
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	const chunk_pool_allocator_type& chunk_pool_alloc
 	= chunk_pool_allocator_type(),
 	const overflow_pool_allocator_type& overflow_pool_alloc
@@ -129,12 +110,7 @@ public:
 	const char* segment_name = 0,
 	const char* server_name = 0,
 	int32_t id = -1)
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	: channel_number_(segment_name, id),
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	: channel_number_(channel_number_queue_capacity,
-	channel_number_queue_alloc),
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
 	channel_scan_mask_(),
@@ -246,20 +222,12 @@ public:
 	}
 
 	void pop_back_channel_number(channel_number* the_channel_number, owner_id id) {
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		channel_number_.acquire(the_channel_number, id, smp::spinlock::milliseconds(10000));
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-		channel_number_.pop_back(the_channel_number);
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
 	void push_front_channel_number(channel_number the_channel_number, owner_id id) {
 		// Release the_channel_number to this channel_number_ queue.
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		channel_number_.release(the_channel_number, id, smp::spinlock::milliseconds(10000));
-#else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-		channel_number_.push_front(the_channel_number);
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
 	/// Access to this schedulers channel_number queue. It is not synchronized,
@@ -547,11 +515,9 @@ private:
 	-sizeof(::HANDLE) // ipc_monitor_cleanup_event_
 	];
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	// In order to reduce the time taken to open the work_ event the name is
 	// cached. Otherwise the name have to be formated before opening it.
 	wchar_t work_notify_name_[segment_and_notify_name_size];
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 	
 	// In order to reduce the time taken to open the ipc_monitor_clean_up_event_
 	// the name is cached. Otherwise the name have to be formated before opening it.
