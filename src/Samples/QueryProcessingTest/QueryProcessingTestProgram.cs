@@ -24,7 +24,7 @@ namespace QueryProcessingTest {
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());
-                throw e;
+                throw;
             }
             Environment.Exit(0);
         }
