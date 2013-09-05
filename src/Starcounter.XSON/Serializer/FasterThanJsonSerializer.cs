@@ -20,7 +20,7 @@ namespace Starcounter.Advanced.XSON {
 			Json childObj;
 			Template tProperty;
 			TObject tObj;
-			TupleWriter writer;
+			TupleWriterBase64 writer;
 
 			// The following variables are offset for remembering last position when buffer needs to be increased:
 			// templateNo: The position in the PropertyList that was about to be written.
@@ -40,7 +40,7 @@ namespace Starcounter.Advanced.XSON {
 			posInArray = -1;
 			recreateBuffer = false;
 			valueSize = -1;
-			writer = new TupleWriter();
+			writer = new TupleWriterBase64();
 
 			exposedProperties = tObj.Properties.ExposedProperties;
 			int valueCount = exposedProperties.Count;
@@ -55,7 +55,7 @@ restart:
 				
 				// Starting from the last written position
 				fixed (byte* p = &buf[0]) {
-					writer = new TupleWriter(p, (uint)valueCount);
+					writer = new TupleWriterBase64(p, (uint)valueCount);
 
 					if (recreateBuffer) {
 						int initLen = writer.Length;
@@ -172,7 +172,7 @@ restart:
 			unsafe {
 				List<Template> exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
 				int valueCount = exposedProperties.Count;
-				var reader = new TupleReader((byte*)src, (uint)valueCount);
+				var reader = new TupleReaderBase64((byte*)src, (uint)valueCount);
 
 				Arr arr;
 				Json childObj;

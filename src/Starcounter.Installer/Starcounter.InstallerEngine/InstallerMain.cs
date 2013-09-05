@@ -108,17 +108,6 @@ namespace Starcounter.InstallerEngine
             }
         }
 
-        // Reads server installation path from configuration file.
-        public static String ReadServerInstallationPath(String PersonalServerConfigPath)
-        {
-            if (!File.Exists(PersonalServerConfigPath))
-                return null;
-
-            XmlDocument serverXML = new XmlDocument();
-            serverXML.Load(PersonalServerConfigPath);
-            return (serverXML.GetElementsByTagName("server-dir"))[0].InnerText;
-        }
-
         /// <summary>
         /// Compares installed and current running Starcounter versions.
         /// Returns installed version string if versions are different.

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using Starcounter.Binding;
 using Starcounter.Internal;
 
@@ -21,8 +22,10 @@ namespace Starcounter.Query.Execution
 
         internal LikeExecEnumerator(byte nodeId, String sqlQuery,
             IExecutionEnumerator[] subExecEnumsClone,
-            Int32[] likeVarIndexRef) : base(nodeId, EnumeratorNodeType.LikeExec, null, null, true)
+            Int32[] likeVarIndexRef) : base(nodeId, EnumeratorNodeType.LikeExec, null, null, true,0)
         {
+            Debug.Assert(OffsetTuppleLength == 0);
+
             query = sqlQuery;
             subExecEnums = subExecEnumsClone;
             likeVarIndexes = likeVarIndexRef;
@@ -248,6 +251,11 @@ namespace Starcounter.Query.Execution
             throw new NotImplementedException();
         }
 
+        public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
+            return currentExecEnum.SaveEnumerator(ref enumerators, expectedNodeId);
+        }
+
+#if false
         /// <summary>
         /// Saves the underlying enumerator state.
         /// </summary>
@@ -255,6 +263,7 @@ namespace Starcounter.Query.Execution
         {
             return currentExecEnum.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
         }
+#endif
 
         /// <summary>
         /// Depending on query flags, populates the flags value.

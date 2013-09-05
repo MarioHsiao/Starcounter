@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 namespace Starcounter.Advanced {
-    public partial class Response {
+    public sealed partial class Response {
 
         /// <summary>
         /// Creates a response from an HTTP status code

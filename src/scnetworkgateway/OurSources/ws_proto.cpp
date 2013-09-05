@@ -57,13 +57,6 @@ const char *kWsBadProto =
 
 const int32_t kWsBadProtoLen = strlen(kWsBadProto);
 
-// Injects data into destination array.
-static inline int32_t InjectData(uint8_t* dest, int32_t dest_offset, const char* data, int32_t data_len_bytes)
-{
-    memcpy(dest + dest_offset, data, data_len_bytes);
-    return dest_offset + data_len_bytes;
-}
-
 // Unmasks frame and pushes it to database.
 uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
@@ -104,13 +97,23 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
         case WS_OPCODE_CLOSE:
         {
-            // Unmasking data.
-            UnMaskAllChunks(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
+            uint64_t payload_len = frame_info_.payload_len_;
 
-            // Peer wants to close the WebSocket.
-            return SCERRGWWEBSOCKETOPCODECLOSE;
+            // Send the response Close message.
+            UnMaskAllChunks(gw, sd, payload_len, frame_info_.mask_, payload);
+            payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload, payload_len);
+
+            // Sending resource not found and closing the connection.
+            sd->set_disconnect_after_send_flag(true);
+
+            // Prepare buffer to send outside.
+            sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+
+            // Sending data.
+            return gw->Send(sd);
         }
 
+		case WS_OPCODE_PONG:
         case WS_OPCODE_PING:
         {
             uint64_t payload_len = frame_info_.payload_len_;
@@ -322,9 +325,6 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
 
     uint32_t err_code;
 
-    // Pointing to the beginning of the data.
-    uint8_t* resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
-
     // Generating handshake response.
     char handshake_resp_temp[128];
     strncpy(handshake_resp_temp, client_key_, client_key_len_);
@@ -340,6 +340,9 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     base64_init_encodestate(&b64);
     uint8_t base64_len = base64_encode_block(sha1_begin, 20, base64_begin, &b64);
     base64_len += base64_encode_blockend(base64_begin + base64_len, &b64) - 1;
+
+    // Pointing to the beginning of the data.
+    uint8_t* resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
 
     // Copying initial header in response buffer.
     int32_t resp_len_bytes = InjectData(resp_data_begin, 0, kWsHsResponseStaticPart, kWsHsResponseStaticPartLen);

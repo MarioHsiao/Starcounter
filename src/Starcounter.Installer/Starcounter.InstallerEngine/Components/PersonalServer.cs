@@ -441,7 +441,7 @@ public class CPersonalServer : CComponentBase
             return true;
 
         // Checking for Starcounter server configuration file.
-        String serverDir = InstallerMain.ReadServerInstallationPath(PersonalServerConfigPath);
+        String serverDir = Utilities.ReadServerInstallationPath(PersonalServerConfigPath);
         if (Directory.Exists(serverDir))
             return true;
 

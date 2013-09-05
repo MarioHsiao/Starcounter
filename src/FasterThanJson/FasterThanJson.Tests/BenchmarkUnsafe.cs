@@ -29,10 +29,10 @@ namespace FasterThanJson.Tests {
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
                 ulong[] inputUInts = new ulong[valueCount];
-                uint tupleLength = TupleWriter.OffsetElementSizeSize;
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputUInts[i] = RandomValues.RandomULong(rnd);
-                    tupleLength += TupleWriter.MeasureNeededSize(inputUInts[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -40,9 +40,11 @@ namespace FasterThanJson.Tests {
                     uint nrIter = NrIterations / valueCount;
                     if (TestLogger.IsRunningOnBuildServer())
                         nrIter *= 10;
+
+                    timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleWriter writer = new TupleWriter(start, valueCount, offsetSize);
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
                             writer.Write(inputUInts[j]);
                     }
@@ -50,17 +52,21 @@ namespace FasterThanJson.Tests {
                     Console.WriteLine("Writing tuple of " + valueCount + " UINTs took " +
                         timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+
                     timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleReader reader = new TupleReader(start, valueCount);
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
-                            Assert.AreEqual(inputUInts[j],reader.ReadUInt());
+                            reader.ReadUInt();
                     }
                     timer.Stop();
                     Console.WriteLine("Reading tuple of " + valueCount + " UINTs took " +
                         timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+                    TupleReaderBase64 validationReader = new TupleReaderBase64(start, valueCount);
+                    for (uint j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputUInts[j], validationReader.ReadUInt());
                 }
             }
         }
@@ -72,10 +78,10 @@ namespace FasterThanJson.Tests {
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
                 string[] inputStrings = new string[valueCount];
-                uint tupleLength = TupleWriter.OffsetElementSizeSize;
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputStrings[i] = RandomValues.RandomString(rnd, strignLength);
-                    tupleLength += TupleWriter.MeasureNeededSize(inputStrings[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputStrings[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -83,9 +89,10 @@ namespace FasterThanJson.Tests {
                     uint nrIter = NrIterations / valueCount / 10;
                     if (TestLogger.IsRunningOnBuildServer())
                         nrIter *= 10;
+                    timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleWriter writer = new TupleWriter(start, valueCount, offsetSize);
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
                             writer.Write(inputStrings[j]);
                     }
@@ -94,18 +101,22 @@ namespace FasterThanJson.Tests {
                         strignLength + "-letters Strings took " + timer.ElapsedMilliseconds + 
                         " ms for " + nrIter + " times, i.e., " +
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+                    
                     timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleReader reader = new TupleReader(start, valueCount);
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
-                            Assert.AreEqual(inputStrings[j], reader.ReadString());
+                            reader.ReadString();
                     }
                     timer.Stop();
                     Console.WriteLine("Reading tuple of " + valueCount + " " +
                         strignLength + "-letters Strings took " +
                         timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+                    TupleReaderBase64 validationReader = new TupleReaderBase64(start, valueCount);
+                    for (uint j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputStrings[j], validationReader.ReadString());
                 }
             }
         }
@@ -117,10 +128,10 @@ namespace FasterThanJson.Tests {
             Stopwatch timer = new Stopwatch();
             foreach (uint valueCount in NrElements) {
                 byte[][] inputByteArrays = new byte[valueCount][];
-                uint tupleLength = TupleWriter.OffsetElementSizeSize;
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputByteArrays[i] = RandomValues.RandomByteArray(rnd, byteArrayLength);
-                    tupleLength += TupleWriter.MeasureNeededSize(inputByteArrays[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputByteArrays[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -128,9 +139,11 @@ namespace FasterThanJson.Tests {
                     uint nrIter = NrIterations / valueCount / 10;
                     if (TestLogger.IsRunningOnBuildServer())
                         nrIter *= 10;
+
+                    timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleWriter writer = new TupleWriter(start, valueCount, offsetSize);
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
                             writer.Write(inputByteArrays[j]);
                     }
@@ -139,18 +152,22 @@ namespace FasterThanJson.Tests {
                         byteArrayLength + "-bytes byte arrays took " +
                         timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+
                     timer.Reset();
                     timer.Start();
                     for (uint i = 0; i < nrIter; i++) {
-                        TupleReader reader = new TupleReader(start, valueCount);
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
-                            Assert.AreEqual(inputByteArrays[j], reader.ReadByteArray());
+                            reader.ReadByteArray();
                     }
                     timer.Stop();
                     Console.WriteLine("Reading tuple of " + valueCount + " " +
                         byteArrayLength + "-bytes byte arrays took " +
                         timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+                    TupleReaderBase64 validationreader = new TupleReaderBase64(start, valueCount);
+                    for (uint j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputByteArrays[j], validationreader.ReadByteArray());
                 }
             }
         }
