@@ -168,7 +168,7 @@ public:
     // Sends session destroyed message.
     uint32_t PushSessionDestroy(
         session_index_type linear_index,
-        session_salt_type random_salt,
+        random_salt_type random_salt,
         uint8_t scheduler_id);
 
     // Sends session create message.

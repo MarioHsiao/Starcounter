@@ -237,8 +237,8 @@ Gateway::Gateway()
     // Maximum total number of sockets.
     setting_max_connections_ = 0;
 
-    // Default inactive session timeout in seconds.
-    setting_inactive_session_timeout_seconds_ = 60 * 20;
+    // Default inactive socket timeout in seconds.
+    setting_inactive_socket_timeout_seconds_ = 60 * 20;
 
     // Starcounter server type.
     setting_sc_server_type_upper_ = MixedCodeConstants::DefaultPersonalServerNameUpper;
@@ -272,9 +272,8 @@ Gateway::Gateway()
     server_addr_ = NULL;
 
     // Initializing critical sections.
-    InitializeCriticalSection(&cs_session_);
     InitializeCriticalSection(&cs_global_lock_);
-    InitializeCriticalSection(&cs_sessions_cleanup_);
+    InitializeCriticalSection(&cs_sockets_cleanup_);
     InitializeCriticalSection(&cs_statistics_);
 
     // Creating gateway handlers table.
@@ -660,21 +659,21 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Getting maximum connection number.
     setting_max_connections_ = atoi(rootElem->first_node("MaxConnections")->value());
 
-    // Getting inactive session timeout.
-    setting_inactive_session_timeout_seconds_ = atoi(rootElem->first_node("InactiveSessionTimeout")->value());
+    // Getting inactive socket timeout.
+    setting_inactive_socket_timeout_seconds_ = atoi(rootElem->first_node("InactiveConnectionTimeout")->value());
 
     // Getting gateway statistics port.
     setting_gw_stats_port_ = (uint16_t)atoi(rootElem->first_node("GatewayStatisticsPort")->value());
 
-    // Just enforcing minimum session timeout multiplier.
-    if ((setting_inactive_session_timeout_seconds_ % SESSION_LIFETIME_MULTIPLIER) != 0)
+    // Just enforcing minimum socket timeout multiplier.
+    if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
         return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
 
-    // Setting minimum session time.
-    min_inactive_session_life_seconds_ = setting_inactive_session_timeout_seconds_ / SESSION_LIFETIME_MULTIPLIER;
+    // Setting minimum socket life time.
+    min_inactive_socket_life_seconds_ = setting_inactive_socket_timeout_seconds_ / SOCKET_LIFETIME_MULTIPLIER;
 
     // Initializing global timer.
-    global_timer_unsafe_ = min_inactive_session_life_seconds_;
+    global_timer_unsafe_ = min_inactive_socket_life_seconds_;
 
 #ifdef GW_TESTING_MODE
 
@@ -817,21 +816,21 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         GW_ERR_CHECK(err_code);
     }
 
-    // Allocating data for worker sessions.
-    all_sessions_unsafe_ = (ScSessionStructPlus*)_aligned_malloc(sizeof(ScSessionStructPlus) * setting_max_connections_, 64);
-    free_session_indexes_unsafe_ = new session_index_type[setting_max_connections_];
-    sessions_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
-    num_active_sessions_ = 0;
-    num_sessions_to_cleanup_unsafe_ = 0;
+    // Allocating data for sockets infos.
+    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
+    free_socket_indexes_unsafe_ = new session_index_type[setting_max_connections_];
+    sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
+    num_active_sockets_ = 0;
+    num_sockets_to_cleanup_unsafe_ = 0;
 
-    // Cleaning all sessions and free session indexes.
+    // Cleaning all socket infos and setting indexes.
     for (int32_t i = 0; i < setting_max_connections_; i++)
     {
         // Filling up indexes linearly.
-        free_session_indexes_unsafe_[i] = i;
+        free_socket_indexes_unsafe_[i] = i;
 
-        // Resetting all sessions.
-        all_sessions_unsafe_[i].Reset();
+        // Resetting all sockets infos.
+        all_sockets_infos_unsafe_[i].Reset();
     }
 
     delete [] config_contents;
@@ -856,10 +855,9 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(core::chunk_type::static_header_size == MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES);
     GW_ASSERT(core::chunk_type::static_data_size == MixedCodeConstants::SOCKET_DATA_MAX_SIZE);
 
-    // Checking overall gateway stuff.
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
-    GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
+    GW_ASSERT(sizeof(ScSocketInfoStruct) == 128);
 
     GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == *(int64_t*)"Accept: ");
     GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == *(int64_t*)"Accept-Encoding: ");
@@ -1337,8 +1335,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 // Active database constructor.
 ActiveDatabase::ActiveDatabase()
 {
-    apps_unique_session_numbers_unsafe_ = NULL;
-    apps_session_salts_unsafe_ = NULL;
     user_handlers_ = NULL;
     num_holding_workers_ = 0;
     InitializeCriticalSection(&cs_db_checks_);
@@ -1352,20 +1348,6 @@ void ActiveDatabase::Init(
     uint64_t unique_num,
     int32_t db_index)
 {
-    // Creating new Apps sessions up to maximum number of connections.
-    if (!apps_unique_session_numbers_unsafe_)
-    {
-        apps_unique_session_numbers_unsafe_ = new apps_unique_session_num_type[g_gateway.setting_max_connections()];
-        apps_session_salts_unsafe_ = new session_salt_type[g_gateway.setting_max_connections()];
-    }
-
-    // Cleaning all Apps session numbers.
-    for (int32_t i = 0; i < g_gateway.setting_max_connections(); i++)
-    {
-        apps_unique_session_numbers_unsafe_[i] = INVALID_APPS_UNIQUE_SESSION_NUMBER;
-        apps_session_salts_unsafe_[i] = INVALID_SESSION_SALT;
-    }
-
     // Creating fresh handlers table.
     user_handlers_ = new HandlersTable();
 
@@ -1458,7 +1440,7 @@ void ActiveDatabase::StartDeletion()
     uint err_code = g_gateway.EraseDatabaseFromPorts(db_index_);
     GW_ASSERT(0 == err_code);
 
-    // Closing all database sockets/sessions data.
+    // Closing all database sockets data.
     CloseSocketData();
 
     // Resetting slot.
@@ -2270,89 +2252,89 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
 // Disconnects arbitrary socket.
 void Gateway::DisconnectSocket(GatewayWorker* gw, SOCKET sock)
 {
-    // Getting existing session copy.
-    ScSessionStructPlus global_session_copy = GetGlobalSessionPlusCopy(sock);
+    // Getting existing socket info copy.
+    ScSocketInfoStruct global_socket_info_copy = GetGlobalSocketInfoCopy(sock);
 
     // Creating new socket data and setting required parameters.
     SocketDataChunk* sd;
-    gw->CreateSocketData(sock, global_session_copy.port_index_, 0, sd);
+    gw->CreateSocketData(sock, global_socket_info_copy.port_index_, 0, sd);
 
-    sd->AssignSession(global_session_copy.session_);
+    sd->AssignSession(global_socket_info_copy.session_);
     sd->set_socket_trigger_disconnect_flag(true);
-    sd->set_unique_socket_id(global_session_copy.unique_socket_id_);
+    sd->set_unique_socket_id(global_socket_info_copy.unique_socket_id_);
     
     gw->DisconnectAndReleaseChunk(sd);
 }
 
-// Cleans up all collected inactive sessions.
-uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
+// Cleans up all collected inactive sockets.
+uint32_t Gateway::CleanupInactiveSockets(GatewayWorker* gw)
 {
     uint32_t err_code;
 
-    EnterCriticalSection(&cs_sessions_cleanup_);
+    EnterCriticalSection(&cs_sockets_cleanup_);
 
-    // Going through all collected inactive sessions.
-    int64_t num_sessions_to_cleanup = num_sessions_to_cleanup_unsafe_;
+    // Going through all collected inactive sockets.
+    int64_t num_sockets_to_cleanup = num_sockets_to_cleanup_unsafe_;
 
-    for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
+    for (int32_t i = 0; i < num_sockets_to_cleanup; i++)
     {
-        // Getting existing session reference.
-        ScSessionStructPlus* global_session = all_sessions_unsafe_ + sessions_to_cleanup_unsafe_[i];
+        // Getting existing socket info reference.
+        ScSocketInfoStruct* global_socket_info_ref = all_sockets_infos_unsafe_ + sockets_to_cleanup_unsafe_[i];
 
-        // Checking if session is valid.
-        if (0 != global_session->session_timestamp_)
+        // Checking if socket is active.
+        if (0 != global_socket_info_ref->socket_timestamp_)
         {
-            // Resetting the session cell.
-            global_session->session_.Reset();
+            // Resetting the socket info cell.
+            global_socket_info_ref->session_.Reset();
 
-            // Setting the session time stamp to zero.
-            global_session->ResetTimestamp();
+            // Setting the socket time stamp to zero.
+            global_socket_info_ref->ResetTimestamp();
 
 #ifdef GW_SESSIONS_DIAG
-            GW_COUT << "Disconnecting inactive socket " << sessions_to_cleanup_unsafe_[i] << "." << GW_ENDL;
+            GW_COUT << "Disconnecting inactive socket " << sockets_to_cleanup_unsafe_[i] << "." << GW_ENDL;
 #endif
 
             // Triggering special light disconnect to reuse the socket.
-            DisconnectSocket(gw, sessions_to_cleanup_unsafe_[i]);
+            DisconnectSocket(gw, sockets_to_cleanup_unsafe_[i]);
         }
 
-        // Inactive session was successfully cleaned up.
-        num_sessions_to_cleanup_unsafe_--;
+        // Inactive socket was successfully cleaned up.
+        num_sockets_to_cleanup_unsafe_--;
     }
 
-    GW_ASSERT(0 == num_sessions_to_cleanup_unsafe_);
+    GW_ASSERT(0 == num_sockets_to_cleanup_unsafe_);
 
-    LeaveCriticalSection(&cs_sessions_cleanup_);
+    LeaveCriticalSection(&cs_sockets_cleanup_);
 
     return 0;
 }
 
-// Collects outdated sessions if any.
-uint32_t Gateway::CollectInactiveSessions()
+// Collects outdated sockets if any.
+uint32_t Gateway::CollectInactiveSockets()
 {
-    // Checking if collected sessions cleanup is not finished yet.
-    if (num_sessions_to_cleanup_unsafe_)
+    // Checking if collected sockets cleanup is not finished yet.
+    if (num_sockets_to_cleanup_unsafe_)
         return 0;
 
-    EnterCriticalSection(&cs_sessions_cleanup_);
+    EnterCriticalSection(&cs_sockets_cleanup_);
 
-    GW_ASSERT(0 == num_sessions_to_cleanup_unsafe_);
+    GW_ASSERT(0 == num_sockets_to_cleanup_unsafe_);
 
     int32_t num_inactive = 0;
 
     // TODO: Optimize scanning range.
     for (int32_t i = 0; i < setting_max_connections_; i++)
     {
-        // Checking if session touch time is older than inactive session timeout.
-        if ((all_sessions_unsafe_[i].session_timestamp_) &&
-            (global_timer_unsafe_ - all_sessions_unsafe_[i].session_timestamp_) >= setting_inactive_session_timeout_seconds_)
+        // Checking if socket touch time is older than inactive socket timeout.
+        if ((all_sockets_infos_unsafe_[i].socket_timestamp_) &&
+            (global_timer_unsafe_ - all_sockets_infos_unsafe_[i].socket_timestamp_) >= setting_inactive_socket_timeout_seconds_)
         {
             // Disconnecting socket.
-            switch (all_sessions_unsafe_[i].type_of_network_protocol_)
+            switch (all_sockets_infos_unsafe_[i].type_of_network_protocol_)
             {
                 case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
                 {
-                    sessions_to_cleanup_unsafe_[num_inactive] = i;
+                    sockets_to_cleanup_unsafe_[num_inactive] = i;
                     ++num_inactive;
 
                     break;
@@ -2360,7 +2342,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
                 /*case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
                 {
-                    sessions_to_cleanup_unsafe_[num_inactive] = i;
+                    sockets_to_cleanup_unsafe_[num_inactive] = i;
                     ++num_inactive;
 
                     break;
@@ -2368,16 +2350,16 @@ uint32_t Gateway::CollectInactiveSessions()
             }
         }
 
-        // Checking if we have checked all active sessions.
-        if (num_inactive >= num_active_sessions_)
+        // Checking if we have checked all active sockets.
+        if (num_inactive >= num_active_sockets_)
             break;
     }
 
-    num_sessions_to_cleanup_unsafe_ = num_inactive;
+    num_sockets_to_cleanup_unsafe_ = num_inactive;
 
-    LeaveCriticalSection(&cs_sessions_cleanup_);
+    LeaveCriticalSection(&cs_sockets_cleanup_);
 
-    if (num_active_sessions_)
+    if (num_active_sockets_)
     {
         // Waking up the worker 0 thread with APC.
         WakeUpThreadUsingAPC(worker_thread_handles_[0]);
@@ -2386,8 +2368,8 @@ uint32_t Gateway::CollectInactiveSessions()
     return 0;
 }
 
-// Entry point for inactive sessions cleanup.
-uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
+// Entry point for inactive sockets cleanup.
+uint32_t __stdcall InactiveSocketsCleanupRoutine(LPVOID params)
 {
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
@@ -2397,13 +2379,13 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 #ifdef GW_COLLECT_INACTIVE_SOCKETS
 
         // Sleeping minimum interval.
-        Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
+        Sleep(g_gateway.get_min_inactive_socket_life_seconds() * 1000);
 
         // Increasing global time by minimum number of seconds.
-        g_gateway.step_global_timer_unsafe(g_gateway.get_min_inactive_session_life_seconds());
+        g_gateway.step_global_timer_unsafe(g_gateway.get_min_inactive_socket_life_seconds());
 
-        // Collecting inactive sessions if any.
-        g_gateway.CollectInactiveSessions();
+        // Collecting inactive sockets if any.
+        g_gateway.CollectInactiveSockets();
 
 #else
         Sleep(100000);
@@ -2471,9 +2453,8 @@ uint32_t Gateway::GlobalCleanup()
     WSACleanup();
 
     // Deleting critical sections.
-    DeleteCriticalSection(&cs_session_);
     DeleteCriticalSection(&cs_global_lock_);
-    DeleteCriticalSection(&cs_sessions_cleanup_);
+    DeleteCriticalSection(&cs_sockets_cleanup_);
     DeleteCriticalSection(&cs_statistics_);
 
     // Closing the log.
@@ -2525,10 +2506,10 @@ uint32_t Gateway::GatewayMonitor()
             return SCERRGWCHANNELSEVENTSTHREADISDEAD;
         }
 
-        // Checking if dead sessions cleanup thread is alive.
-        if (!WaitForSingleObject(dead_sessions_cleanup_thread_handle_, 0))
+        // Checking if dead sockets cleanup thread is alive.
+        if (!WaitForSingleObject(dead_sockets_cleanup_thread_handle_, 0))
         {
-            GW_COUT << "Dead sessions cleanup thread is dead." << GW_ENDL;
+            GW_COUT << "Dead sockets cleanup thread is dead." << GW_ENDL;
             return SCERRGWSESSIONSCLEANUPTHREADISDEAD;
         }
 
@@ -2705,7 +2686,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
         global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
-            ", active sessions " << g_gateway.get_num_active_sessions() <<
+            ", active sockets " << g_gateway.get_num_active_sockets() <<
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
             "<br>" << GW_ENDL;
@@ -2757,7 +2738,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE workerRoutine,
     LPTHREAD_START_ROUTINE monitorDatabasesRoutine,
     LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
-    LPTHREAD_START_ROUTINE deadSessionsCleanupRoutine,
+    LPTHREAD_START_ROUTINE inactiveSocketsCleanupRoutine,
     LPTHREAD_START_ROUTINE gatewayLoggingRoutine,
     LPTHREAD_START_ROUTINE allThreadsMonitorRoutine)
 {
@@ -2808,23 +2789,23 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     // Checking if thread is created.
     GW_ASSERT(channels_events_thread_handle_ != NULL);
 
-    uint32_t deadSessionsCleanupThreadId;
+    uint32_t inactiveSocketsCleanupThreadId;
 
-    // Starting dead sessions cleanup thread.
-    dead_sessions_cleanup_thread_handle_ = CreateThread(
+    // Starting dead sockets cleanup thread.
+    dead_sockets_cleanup_thread_handle_ = CreateThread(
         NULL, // Default security attributes.
         0, // Use default stack size.
-        deadSessionsCleanupRoutine, // Thread function name.
+        inactiveSocketsCleanupRoutine, // Thread function name.
         NULL, // Argument to thread function.
         0, // Use default creation flags.
-        (LPDWORD)&deadSessionsCleanupThreadId); // Returns the thread identifier.
+        (LPDWORD)&inactiveSocketsCleanupThreadId); // Returns the thread identifier.
 
     // Checking if thread is created.
-    GW_ASSERT(dead_sessions_cleanup_thread_handle_ != NULL);
+    GW_ASSERT(dead_sockets_cleanup_thread_handle_ != NULL);
 
     uint32_t gatewayLogRoutineThreadId;
 
-    // Starting dead sessions cleanup thread.
+    // Starting dead sockets cleanup thread.
     gateway_logging_thread_handle_ = CreateThread(
         NULL, // Default security attributes.
         0, // Use default stack size.
@@ -2836,7 +2817,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     // Checking if thread is created.
     GW_ASSERT(gateway_logging_thread_handle_ != NULL);
 
-    // Starting dead sessions cleanup thread.
+    // Starting dead sockets cleanup thread.
     all_threads_monitor_handle_ = CreateThread(
         NULL, // Default security attributes.
         0, // Use default stack size.
@@ -2907,7 +2888,7 @@ int32_t Gateway::StartGateway()
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
         (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
         (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine,
-        (LPTHREAD_START_ROUTINE)InactiveSessionsCleanupRoutine,
+        (LPTHREAD_START_ROUTINE)InactiveSocketsCleanupRoutine,
         (LPTHREAD_START_ROUTINE)GatewayLoggingRoutine,
         (LPTHREAD_START_ROUTINE)GatewayMonitorRoutine);
 

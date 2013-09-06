@@ -113,6 +113,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             return gw->Send(sd);
         }
 
+		case WS_OPCODE_PONG:
         case WS_OPCODE_PING:
         {
             uint64_t payload_len = frame_info_.payload_len_;
