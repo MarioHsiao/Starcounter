@@ -46,6 +46,13 @@ namespace Starcounter.Advanced.XSON {
 			int valueCount = exposedProperties.Count;
 			int offset = 0;
 
+			// TODO:
+			// Need some way to figure out how many tables we have since we need to increase valuecount.
+			for (int i = 0; i < exposedProperties.Count; i++) {
+				if (exposedProperties[i] is TObjArr)
+					valueCount++;
+			}
+
 			unsafe {
 restart:
 				if (recreateBuffer) {
@@ -63,7 +70,7 @@ restart:
 					}
 					recreateBuffer = true;
 
-					for (int i = templateNo; i < valueCount; i++) {
+					for (int i = templateNo; i < exposedProperties.Count; i++) {
 						tProperty = exposedProperties[i];
 
 						if (tProperty is TObject) {
@@ -71,15 +78,13 @@ restart:
 								childObj = obj.Get((TObject)tProperty);
 								valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
 							}
-
 							if (valueSize != -1) {
 								if (childObjArr != null) {
 									if (valueSize > (buf.Length - writer.Length))
 										goto restart;
 
-									fixed (byte* coa = childObjArr) {
-										writer.Write(coa, (uint)valueSize);
-									}
+									Buffer.BlockCopy(childObjArr, 0, buf, writer.Length, valueSize);
+									writer.HaveWritten((uint)valueSize);
 									childObjArr = null;
 								}
 							} else
@@ -89,7 +94,6 @@ restart:
 							if (posInArray == -1) {
 								if (MAX_INT_SIZE > (buf.Length - writer.Length))
 									goto restart;
-
 								writer.Write((ulong)arr.Count);
 								posInArray = 0;
 							}
@@ -104,9 +108,8 @@ restart:
 										goto restart;
 								}
 
-								fixed (byte* coa = childObjArr) {
-									writer.Write(coa, (uint)valueSize);
-								}
+								Buffer.BlockCopy(childObjArr, 0, buf, writer.Length, valueSize);
+								writer.HaveWritten((uint)valueSize);
 								childObjArr = null;
 								posInArray++;
 							}
@@ -172,6 +175,14 @@ restart:
 			unsafe {
 				List<Template> exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
 				int valueCount = exposedProperties.Count;
+
+				// TODO:
+				// Need some way to figure out how many tables we have since we need to increase valuecount.
+				for (int i = 0; i < exposedProperties.Count; i++) {
+					if (exposedProperties[i] is TObjArr)
+						valueCount++;
+				}
+
 				var reader = new TupleReaderBase64((byte*)src, (uint)valueCount);
 
 				Arr arr;
@@ -200,14 +211,14 @@ restart:
 							obj.Set((TString)tProperty, reader.ReadString());
 						} else if (tProperty is TObject) {
 							childObj = obj.Get((TObject)tProperty);
-							childObj.PopulateFromJson((IntPtr)reader.AtEnd, 0);
+							((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)reader.AtEnd, 0);
 							reader.Skip();
 						} else if (tProperty is TObjArr) {
 							arr = obj.Get((TObjArr)tProperty);
 							int arrItemCount = (int)reader.ReadUInt();
-							for (int aic = 0; aic < arrItemCount; aic++){
+							for (int aic = 0; aic < arrItemCount; aic++) {
 								childObj = arr.Add();
-								childObj.PopulateFromJson((IntPtr)reader.AtEnd, 0);
+								((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)reader.AtEnd, 0);
 								reader.Skip();
 							}
 						}
