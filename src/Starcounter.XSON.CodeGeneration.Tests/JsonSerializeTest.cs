@@ -58,6 +58,15 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             }
         }
 
+		[Test]
+		public static void TestFTJSerializer() {
+			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"));
+			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"));
+			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"));
+			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"));
+			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"));
+		}
+
 //		[Test]
 //		public static void TestDefaultSerializer() {
 //			TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"), defaultSerializer);
@@ -84,6 +93,34 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 //			TestSerializationFor("simple.json", File.ReadAllText("simple.json"), defaultSerializer, true);
 //			TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), defaultSerializer, true);
 //		}
+
+		private static void RunFTJSerializerTest(string name, string jsonStr) {
+			byte[] ftj = null;
+			int serializedSize = 0;
+			int afterPopulateSize = 0;
+			TObject tObj;
+			Json original;
+			Json newJson;
+
+			TJson.UseCodegeneratedSerializer = false;
+			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), jsonStr);
+			original = (Json)tObj.CreateInstance();
+
+			// using standard json serializer to populate object with values.
+			original.PopulateFromJson(jsonStr);
+
+			serializedSize = tObj.ToFasterThanJson(original, out ftj);
+
+			unsafe {
+				fixed (byte* p = ftj) {
+					newJson = (Json)tObj.CreateInstance();
+					afterPopulateSize = tObj.PopulateFromFasterThanJson(newJson, (IntPtr)p, serializedSize);
+				}
+			}
+
+			Assert.AreEqual(serializedSize, afterPopulateSize);
+			AssertAreEqual(original, newJson);
+		}
 
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
@@ -271,131 +308,6 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			return after;
 		}
 
-		[Test]
-        [Category("LongRunning")]
-        public static void BenchmarkDefaultSerializer() {
-            BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, false);
-            BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, true, false);
-        }
-
-//        [Test]
-        [Category("LongRunning")]
-        public static void BenchmarkCodegenSerializer() {
-            BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, false, true);
-            BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, false, true);
-        }
-
-//        [Test]
-        [Category("LongRunning")]
-        public static void BenchmarkAllSerializers() {
-            BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, true);
-            BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, true, true);
-        }
-
-        private static void BenchmarkSerializers(string json, bool testNewton, bool testDefault, bool testCodegen) {
-            int count = 0;
-            string newtonJson;
-            byte[] jsonUtf8;
-            byte[] outJsonArr;
-            TJson tObj;
-            double newtonTime;
-            double defaultTime;
-            double codegenTime;
-            int nrOfTimes = 10000;
-
-            Console.WriteLine(json);
-            Console.WriteLine();
-
-//            var newtonSerializer = new NewtonsoftSerializer();
-//            var defaultSerializer = DefaultSerializer.Instance;
-
-            tObj = CreateJsonTemplate(null, json);
-            TJson.UseCodegeneratedSerializer = false;
-
-            dynamic obj = tObj.CreateInstance();
-//            TJson.FallbackSerializer = newtonSerializer;
-            obj.PopulateFromJson(json);
-
-            jsonUtf8 = System.Text.Encoding.UTF8.GetBytes(json);
-            count = jsonUtf8.Length;
-            
-            Console.WriteLine("Serializing " + nrOfTimes + " number of times.");
-            if (testNewton) {
-//                TJson.FallbackSerializer = newtonSerializer;
-                newtonJson = obj.ToJson();
-                newtonTime = BenchmarkSerializer(obj, nrOfTimes);
-                Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
-            }
-
-            if (testDefault) {
-  //              TJson.FallbackSerializer = defaultSerializer;
-                count = obj.ToJsonUtf8(out outJsonArr);
-                defaultTime = BenchmarkSerializer(obj, nrOfTimes);
-                Console.WriteLine("Default:" + defaultTime + " ms.");
-            }
-
-            if (testCodegen) {
-                //            TJson<Json>.FallbackSerializer = new __starcountergenerated__.PreGeneratedSerializer();
-                TJson.UseCodegeneratedSerializer = true;
-                count = obj.ToJsonUtf8(out outJsonArr); // Run once to start the codegen.
-                Thread.Sleep(1000);
-                count = obj.ToJsonUtf8(out outJsonArr); // And then again to make sure everything is initialized.
-                codegenTime = BenchmarkSerializer(obj, nrOfTimes);
-                Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
-            }
-            Console.WriteLine();
-
-            Console.WriteLine("Deserializing " + nrOfTimes + " number of times.");
-
-            if (testNewton) {
-                TJson.UseCodegeneratedSerializer = false;
-      //          TJson.FallbackSerializer = newtonSerializer;
-                obj.PopulateFromJson(json);
-                newtonTime = BenchmarkDeserializer(obj, jsonUtf8, jsonUtf8.Length, nrOfTimes);
-                Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
-            }
-
-            if (testDefault) {
-        //        TJson.FallbackSerializer = defaultSerializer;
-                obj.PopulateFromJson(jsonUtf8, jsonUtf8.Length);
-                defaultTime = BenchmarkDeserializer(obj, jsonUtf8, jsonUtf8.Length, nrOfTimes);
-                Console.WriteLine("Default:" + defaultTime + " ms.");
-            }
-
-            if (testCodegen) {
-                TJson.UseCodegeneratedSerializer = true;
-                obj.PopulateFromJson(jsonUtf8, jsonUtf8.Length);
-                codegenTime = BenchmarkDeserializer(obj, jsonUtf8, jsonUtf8.Length, nrOfTimes);
-                Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
-            }
-
-            Console.WriteLine();
-        }
-
-        private static double BenchmarkSerializer(Json person, int nrOfTimes) {
-            DateTime start;
-            DateTime stop;
-
-            start = DateTime.Now;
-            for (int i = 0; i < nrOfTimes; i++) {
-                var apa = person.ToJson();
-            }
-            stop = DateTime.Now;
-            return (stop - start).TotalMilliseconds;
-        }
-
-        private static double BenchmarkDeserializer(Json obj, byte[] json, int jsonSize, int nrOfTimes) {
-            DateTime start;
-            DateTime stop;
-
-            start = DateTime.Now;
-            for (int i = 0; i < nrOfTimes; i++) {
-                obj.PopulateFromJson(json, jsonSize);
-            }
-            stop = DateTime.Now;
-            return (stop - start).TotalMilliseconds;
-        }
-
         [Test]
         public static void EncodeAndDecodeJsonStrings() {
             // "standard" special characters.
@@ -439,10 +351,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         [Test]
         public static void GenerateSerializationParseTreeOverview() {
             TJson objTemplate;
-
-
             objTemplate = CreateJsonTemplateFromFile("person.json");
-
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
             Console.WriteLine(parseTree.ToString());
         }
@@ -450,9 +359,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         [Test]
         public static void GenerateSerializationAstTreeOverview() {
             TJson objTemplate;
-
             objTemplate = CreateJsonTemplateFromFile("person.json");
-            
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).ToString());
         }
 
