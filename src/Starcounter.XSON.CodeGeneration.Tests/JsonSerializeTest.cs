@@ -141,7 +141,9 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		[Test]
 		[Category("LongRunning")]
 		public static void BenchmarkFTJSerializer() {
-			int numberOfTimes = 10000;
+			int numberOfTimes = 100000;
+
+			Console.WriteLine("Benchmarking ftj serializer, repeats: " + numberOfTimes);
 
 			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
 			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
@@ -153,7 +155,9 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		[Test]
 		[Category("LongRunning")]
 		public static void BenchmarkStandardJsonSerializer() {
-			int numberOfTimes = 10000;
+			int numberOfTimes = 100000;
+
+			Console.WriteLine("Benchmarking standard serializer, repeats: " + numberOfTimes);
 
 			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
 			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
@@ -165,30 +169,18 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		[Test]
 		[Category("LongRunning")]
 		public static void BenchmarkSerializers() {
-			int numberOfTimes = 10000;
+			int numberOfTimes = 1000000;
 
 			Console.WriteLine("Benchmarking serializers, repeats: " + numberOfTimes);
 
 			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
 			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
-
-			Console.WriteLine();
-
 			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
 			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
-
-			Console.WriteLine();
-
 			RunFTJBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes);
 			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes);
-
-			Console.WriteLine();
-
 			RunFTJBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes);
 			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes);
-
-			Console.WriteLine();
-
 			RunFTJBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes);
 			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes);
 		}
@@ -203,7 +195,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 			TJson.UseCodegeneratedSerializer = false;
 
-			Console.Write(name + "\t\tFTJ\t");
+			Console.Write(AddSpaces(name, 20) + AddSpaces("FTJ", 10));
 			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
 			jsonInst = (Json)tObj.CreateInstance();
 
@@ -216,20 +208,21 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 				size = tObj.ToFasterThanJson(jsonInst, out ftj);
 			}
 			stop = DateTime.Now;
-			
-			Console.Write((stop - start).TotalMilliseconds);
+
+			Console.Write(AddSpaces((stop - start).TotalMilliseconds.ToString("0.0000"), 12));
 
 			// Deserializing from FTJ.
-			start = DateTime.Now;
-			for (int i = 0; i < numberOfTimes; i++) {
-				unsafe {
-					fixed (byte* p = ftj) {
+			unsafe {
+				fixed (byte* p = ftj) {
+					start = DateTime.Now;
+					for (int i = 0; i < numberOfTimes; i++) {
+						jsonInst = (Json)tObj.CreateInstance();
 						size = tObj.PopulateFromFasterThanJson(jsonInst, (IntPtr)p, size);
 					}
 				}
 			}
 			stop = DateTime.Now;
-			Console.WriteLine("\t" + (stop - start).TotalMilliseconds);
+			Console.WriteLine((stop - start).TotalMilliseconds.ToString("0.0000"));
 		}
 
         private static void RunStandardJsonBenchmark(string name, string json, int numberOfTimes) {
@@ -242,7 +235,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 			TJson.UseCodegeneratedSerializer = false;
 
-			Console.Write(name + "\t\tSTD\t");
+			Console.Write(AddSpaces(name, 20) + AddSpaces("STD", 10));
 			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
 			jsonInst = (Json)tObj.CreateInstance();
 
@@ -255,22 +248,30 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 				size = tObj.ToJsonUtf8(jsonInst, out jsonArr);
 			}
 			stop = DateTime.Now;
-			Console.Write((stop - start).TotalMilliseconds);
+			Console.Write(AddSpaces((stop - start).TotalMilliseconds.ToString("0.0000"), 12));
 
 			// Deserializing from standard json.
-			start = DateTime.Now;
-			for (int i = 0; i < numberOfTimes; i++) {
-				unsafe {
-					fixed (byte* p = jsonArr) {
+			unsafe {
+				fixed (byte* p = jsonArr) {
+					start = DateTime.Now;
+					for (int i = 0; i < numberOfTimes; i++) {
 						size = tObj.PopulateFromJson(jsonInst, (IntPtr)p, size);
 					}
 				}
 			}
 			stop = DateTime.Now;
-			Console.WriteLine("\t" + (stop - start).TotalMilliseconds);
+			Console.WriteLine((stop - start).TotalMilliseconds);
         }
 
-        [Test]
+		private static string AddSpaces(string str, int totalLength) {
+			string after = str;
+			for (int i = 0; i < (totalLength - str.Length); i++) {
+				after += " ";
+			}
+			return after;
+		}
+
+		[Test]
         [Category("LongRunning")]
         public static void BenchmarkDefaultSerializer() {
             BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, false);
