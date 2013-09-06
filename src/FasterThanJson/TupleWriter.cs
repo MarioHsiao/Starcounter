@@ -192,7 +192,7 @@ namespace Starcounter.Internal
          Base32Int.WriteBase32x1(n, (IntPtr) AtEnd);
 #endif
 #if BASE64
-         Base64Int.WriteBase64x1(n, (IntPtr)AtEnd);
+          Base64Int.WriteBase64x1(n, AtEnd);
 #endif
 #if BASE256
          (*AtEnd) = (byte) n;
@@ -238,7 +238,7 @@ namespace Starcounter.Internal
          uint len = Base32Int.Write((IntPtr) AtEnd, n);
 #endif
 #if BASE64
-         uint len = Base64Int.Write((IntPtr)AtEnd, n);
+         uint len = Base64Int.Write(AtEnd, n);
 #endif
 #if BASE256
          uint len = Base256Int.Write((IntPtr)AtEnd, n);
@@ -249,9 +249,8 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte[] value) {
 #if BASE64
-          fixed (byte* valuePtr = value) {
-              Write(valuePtr, (uint)value.Length);
-          }
+          uint len = Base64Binary.Write(AtEnd, value);
+          HaveWritten(len);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
 #endif
@@ -260,7 +259,7 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte* value, uint length) {
 #if BASE64
-          uint len = Base64Binary.Write((IntPtr)AtEnd, value, length);
+          uint len = Base64Binary.Write(AtEnd, value, length);
           HaveWritten(len);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
@@ -340,9 +339,15 @@ namespace Starcounter.Internal
       }
 
       public unsafe void WriteSafe(byte[] b) {
-          fixed (byte* bPtr = b) {
-              WriteSafe(bPtr, (uint)b.Length);
-          }
+          uint size = 0;
+          if (b == null)
+              size = 1;
+          else
+          size = MeasureNeededSizeByteArray((uint)b.Length);
+          ValidateLength(size);
+          Write(b);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= size;
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -439,15 +444,15 @@ Retry:
              oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
          }
          switch (OffsetElementSize) {
-            case 1: Base64Int.WriteBase64x1(ValueOffset, (IntPtr)oldAtOffsetEnd);
+             case 1: Base64Int.WriteBase64x1(ValueOffset, oldAtOffsetEnd);
                break;
-            case 2: Base64Int.WriteBase64x2(ValueOffset, (IntPtr)oldAtOffsetEnd);
+            case 2: Base64Int.WriteBase64x2(ValueOffset, oldAtOffsetEnd);
                break;
-            case 3: Base64Int.WriteBase64x3(ValueOffset, (IntPtr)oldAtOffsetEnd);
+            case 3: Base64Int.WriteBase64x3(ValueOffset, oldAtOffsetEnd);
                break;
-            case 4: Base64Int.WriteBase64x4(ValueOffset, (IntPtr)oldAtOffsetEnd);
+            case 4: Base64Int.WriteBase64x4(ValueOffset, oldAtOffsetEnd);
                break;
-            case 5: Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
+            case 5: Base64Int.WriteBase64x5(ValueOffset, oldAtOffsetEnd);
                break;
             default:
                throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
@@ -486,8 +491,8 @@ Retry:
 #endif
       }
 
-      public unsafe delegate UInt64 ReadBase64(IntPtr ptr);
-      public unsafe delegate void WriteBase64(UInt64 value, IntPtr ptr);
+      public unsafe delegate UInt64 ReadBase64(byte* ptr);
+      public unsafe delegate void WriteBase64(UInt64 value, byte* ptr);
 
        /// <summary>
        /// Calculates for how many bytes the values should be moved to the right.
@@ -567,8 +572,8 @@ Retry:
               ulong offsetsValue;
               offsets -= oesBefore;
               newOffsets -= oesAfter;
-              offsetsValue = read((IntPtr)offsets);
-              write(offsetsValue, (IntPtr)newOffsets);
+              offsetsValue = read(offsets);
+              write(offsetsValue, newOffsets);
           }
 #if BASE256
          *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple

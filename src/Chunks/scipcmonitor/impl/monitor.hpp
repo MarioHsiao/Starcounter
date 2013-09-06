@@ -351,14 +351,9 @@ namespace starcounter {
 
          // Start a group of threads monitoring database process event.
          for (std::size_t i = 0; i < database_process_event_groups; ++i) {
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 			std::pair<monitor*,std::size_t>* arg = new std::pair<monitor*,std::size_t>(this, i); // TODO: Fix this leak.
             database_process_group(i).thread_.create((thread::start_routine_type)
 			&monitor::wait_for_database_process_event, arg);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-            database_process_group(i).thread_ = boost::thread(boost::bind(&monitor
-               ::wait_for_database_process_event, this, i));
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
             // Store the native handle of the thread. It is used in the call to
             // QueueUserAPC() by the registrar_ thread.
@@ -368,14 +363,9 @@ namespace starcounter {
 
          // Start a group of threads monitoring client process event.
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 			std::pair<monitor*,std::size_t>* arg = new std::pair<monitor*,std::size_t>(this, i); // TODO: Fix this leak.
             client_process_group(i).thread_.create((thread::start_routine_type)
 			&monitor::wait_for_client_process_event, arg);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-            client_process_group(i).thread_ = boost::thread(boost::bind(&monitor
-               ::wait_for_client_process_event, this, i));
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
             // Store the native handle of the thread. It is used in the call to
             // QueueUserAPC() by the registrar_ thread.
@@ -387,48 +377,25 @@ namespace starcounter {
          // database_process_group(s) and client_process_group(s) native_handle(s)
          // for those threads have been stored, since it is used in the call to
          // QueueUserAPC() by the registrar_ thread.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          registrar_.create((thread::start_routine_type) &monitor::registrar, this);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-         registrar_ = boost::thread(boost::bind(&monitor::registrar, this));
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
          // Start the cleanup thread.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          cleanup_.create((thread::start_routine_type) &monitor::cleanup, this);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-         cleanup_ = boost::thread(boost::bind(&monitor::cleanup, this));
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
          // Start the active databases thread.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          active_databases_file_updater_thread_.create
 		 ((thread::start_routine_type) &monitor::update_active_databases_file, this);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-         active_databases_file_updater_thread_ = boost::thread(boost::bind
-            (&monitor::update_active_databases_file, this));
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          // Start the resources watching thread.
-# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          resources_watching_thread_.create
 		 ((thread::start_routine_type) &monitor::watch_resources, this);
-# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-         resources_watching_thread_ = boost::thread(boost::bind
-            (&monitor::watch_resources, this));
-# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
       }
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::wait_for_database_process_event(std::pair<monitor*,std::size_t> arg) {
 		monitor* monitor = arg.first;
 		std::size_t group = arg.second;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-      void monitor::wait_for_database_process_event(std::size_t group) {
-		monitor* monitor = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // The event code returned from WaitForMultipleObjectsEx() and SleepEx().
          uint32_t event_code = 0;
          HANDLE the_event;
@@ -725,14 +692,9 @@ namespace starcounter {
          }
       }
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::wait_for_client_process_event(std::pair<monitor*,std::size_t> arg) {
 		monitor* monitor = arg.first;
 		std::size_t group = arg.second;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-      void monitor::wait_for_client_process_event(std::size_t group) {
-		monitor* monitor = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // The event code returned from WaitForMultipleObjectsEx() and SleepEx().
          uint32_t event_code = 0;
          HANDLE the_event;
@@ -870,7 +832,6 @@ namespace starcounter {
                                           // Unlock the scheduler_interface[s]
                                           // channel number queue.
 
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
                                           for (std::size_t si = 0; si < shared.common_scheduler_interface()
                                              .number_of_active_schedulers(); ++si) {
                                                 if (shared.scheduler_interface(si).channel_number()
@@ -884,7 +845,6 @@ namespace starcounter {
                                                 //	std::cout << "scheduler_interface(" << si << ") is not locked with id of terminated_process." << std::endl;
                                                 //}
                                           }
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
                                           if (client_interface_ptr) {
                                              //common_client_interface_ptr->increment_client_interfaces_to_clean_up();
@@ -1114,12 +1074,7 @@ namespace starcounter {
 
       /// private:
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::registrar(monitor* monitor) {
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-      void monitor::registrar() {
-		monitor* monitor = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          /// TODO: Shutdown mechanism.
          while (true) {
             monitor->the_monitor_interface()->wait_for_registration();
@@ -1227,12 +1182,7 @@ namespace starcounter {
          }
       }
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::cleanup(monitor* monitor) {
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-      void monitor::cleanup() {
-		monitor* monitor = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          /// TODO: Shutdown mechanism.
          while (true) {
             switch (::WaitForSingleObject(monitor->ipc_monitor_cleanup_event(), INFINITE)) {
@@ -1450,12 +1400,7 @@ namespace starcounter {
          }
       }
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::update_active_databases_file(monitor* monitor) {
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-      void monitor::update_active_databases_file() {
-		monitor* monitor = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          do {
             boost::mutex::scoped_lock active_databases_lock
                (monitor->active_databases_mutex());
@@ -1511,12 +1456,7 @@ namespace starcounter {
       /// which it can but then statistics are messed up completely. Only test with
       /// one database running.
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
-# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::watch_resources(monitor* monitor) {
-# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-      void monitor::watch_resources() {
-		monitor* monitor = this;
-# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // Vector of all shared interfaces.
          std::vector<boost::shared_ptr<shared_interface> > shared;
          shared.reserve(256);
