@@ -10,8 +10,11 @@ using System.Runtime.Serialization;
 namespace Starcounter {
 
     /// <summary>
-    /// Class UnhandledTransactionConflictException
+    /// Exception thrown on failure to restart transaction aborted because of a transaction
+    /// conflict at transaction boundary (error code 4090, ScErrUnhandledTransactConflict).
     /// </summary>
+    /// <seealso cref="Starcounter.TransactionConflictException"/>
+    /// <seealso cref="Starcounter.Db.Transaction(System.Action)"/>
     public class UnhandledTransactionConflictException : DbException {
 
         /// <summary>

@@ -355,15 +355,14 @@ namespace Starcounter.Internal
       /// this is done automatically, but when you have written data using the nested tuple, you need to call the HaveWritten method manually.</summary>
       /// <param name="len">The number of bytes that you have written in the nested tuple. This value is returned when you call the <see cref="SealTuple">SealTuple Method</see> method.</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void HaveWritten(uint len)
-      {
-         byte* oldAtOffsetEnd = AtOffsetEnd;
-         ValueOffset = ValueOffset + len;
-         AtEnd += len;
-     
-         AtOffsetEnd += OffsetElementSize;
+      public unsafe void HaveWritten(uint len) {
+          byte* oldAtOffsetEnd = AtOffsetEnd;
+          ValueOffset = ValueOffset + len;
+          AtEnd += len;
 
-         // Write the offset of the *next* value at the end of the offset list
+          AtOffsetEnd += OffsetElementSize;
+
+          // Write the offset of the *next* value at the end of the offset list
 #if BASE32
 Retry:
          switch (OffsetElementSize)
@@ -439,24 +438,22 @@ Retry:
          }
 #endif
 #if BASE64
-         if (OffsetElementSize < Base64Int.MeasureNeededSize(ValueOffset)) {
-             Grow(ValueOffset);
-             oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
-         }
-         switch (OffsetElementSize) {
-             case 1: Base64Int.WriteBase64x1(ValueOffset, oldAtOffsetEnd);
-               break;
-            case 2: Base64Int.WriteBase64x2(ValueOffset, oldAtOffsetEnd);
-               break;
-            case 3: Base64Int.WriteBase64x3(ValueOffset, oldAtOffsetEnd);
-               break;
-            case 4: Base64Int.WriteBase64x4(ValueOffset, oldAtOffsetEnd);
-               break;
-            case 5: Base64Int.WriteBase64x5(ValueOffset, oldAtOffsetEnd);
-               break;
-            default:
-               throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
-         }
+          if (OffsetElementSize < Base64Int.MeasureNeededSize(ValueOffset)) {
+              Grow(ValueOffset);
+              oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
+          }
+          if (OffsetElementSize == 2)
+              Base64Int.WriteBase64x2(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 1)
+              Base64Int.WriteBase64x1(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 3)
+              Base64Int.WriteBase64x3(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 4)
+              Base64Int.WriteBase64x4(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 5)
+              Base64Int.WriteBase64x5(ValueOffset, oldAtOffsetEnd);
+          else
+              throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
 
 #endif
 #if BASE256

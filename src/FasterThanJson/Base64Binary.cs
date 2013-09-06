@@ -48,8 +48,10 @@ namespace Starcounter.Internal {
         }
 
         public static unsafe uint Write(byte* buffer, Byte[] value) {
-            if (value == null)
+            if (value == null) {
+                Base64Int.WriteBase64x1(0, buffer);
                 return 1;
+            }
             fixed (byte* valuePtr = value)
                 return Write(buffer, valuePtr, (uint)value.Length);
         }
