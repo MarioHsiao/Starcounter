@@ -486,7 +486,7 @@ namespace Starcounter.Internal
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
       /// <exception cref="System.Exception"></exception>
-      public static unsafe UInt64 Read(int size, IntPtr ptr )
+      public static unsafe UInt64 Read(int size, byte* ptr )
       {
          switch (size)
          {
@@ -516,7 +516,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x1(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x1(byte* ptr)
       {
          var c = (Base32x1*)ptr;
          return (UInt64)((c->b0 & 0x1F));
@@ -528,7 +528,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x2(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x2(byte* ptr)
       {
          var c = (Base32x2*)ptr;
          return (UInt64) (((c->b0 & 0x1F ) << 5) | (c->b1 & 0x1F) );
@@ -540,7 +540,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x4(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x4(byte* ptr)
       {
          var c = (Base32x4*)ptr;
          return (UInt64)(((c->b0 & 0x1F) << 15) | ((c->b1 & 0x1F) << 10) | ((c->b2 & 0x1F) << 5) | (c->b3 & 0x1F));
@@ -552,7 +552,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x3(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x3(byte* ptr)
       {
          var c = (Base32x3*)ptr;
          return (UInt64)(((c->b0 & 0x1F) << 10) | ((c->b1 & 0x1F) << 5) | (c->b2 & 0x1F));
@@ -564,7 +564,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x6(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x6(byte* ptr)
       {
          var c = (Base32x6*)ptr;
          return (UInt64)(((c->b0 & 0x1F) << 25) | ((c->b1 & 0x1F) << 20) | ((c->b2 & 0x1F) << 15) |
@@ -577,7 +577,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x7(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x7(byte* ptr)
       {
          var c = (Base32x7*)ptr;
          return (UInt64)(((c->b0 & 0x1FLU) << 30) | ((c->b1 & 0x1FLU) << 25) | ((c->b2 & 0x1FLU) << 20) | ((c->b3 & 0x1FLU) << 15) |
@@ -590,7 +590,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="ptr">The PTR.</param>
       /// <returns>UInt64.</returns>
-      public static unsafe UInt64 ReadBase32x13(IntPtr ptr)
+      public static unsafe UInt64 ReadBase32x13(byte* ptr)
       {
          var c = (Base32x13*)ptr;
          return (UInt64)(((c->b0 & 0x1FLU) << 60) | ((c->b1 & 0x1FLU) << 55) |

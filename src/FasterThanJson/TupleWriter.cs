@@ -486,7 +486,7 @@ Retry:
 #endif
       }
 
-      public unsafe delegate UInt64 ReadBase64(IntPtr ptr);
+      public unsafe delegate UInt64 ReadBase64(byte* ptr);
       public unsafe delegate void WriteBase64(UInt64 value, byte* ptr);
 
        /// <summary>
@@ -567,7 +567,7 @@ Retry:
               ulong offsetsValue;
               offsets -= oesBefore;
               newOffsets -= oesAfter;
-              offsetsValue = read((IntPtr)offsets);
+              offsetsValue = read(offsets);
               write(offsetsValue, newOffsets);
           }
 #if BASE256

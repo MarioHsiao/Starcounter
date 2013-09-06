@@ -16,7 +16,7 @@ namespace Starcounter.Internal {
                 fixed (byte* valuePtr = value, encodedPtr = encoded) {
                     uint length = Base64Binary.Write(encodedPtr, valuePtr, 3);
                     Assert.AreEqual(length, 4);
-                    decoded = Base64Binary.Read(4, (IntPtr)encodedPtr);
+                    decoded = Base64Binary.Read(4, encodedPtr);
                 }
             }
             Assert.AreEqual(decoded.Length, 3);
@@ -27,7 +27,7 @@ namespace Starcounter.Internal {
                 fixed (byte* valuePtr = nullBinary, encodedPtr = encoded) {
                     uint length = Base64Binary.Write(encodedPtr, valuePtr, 0);
                     Assert.AreEqual(length, 0);
-                    decoded = Base64Binary.Read(0, (IntPtr)encodedPtr);
+                    decoded = Base64Binary.Read(0, encodedPtr);
                 }
             }
             Assert.AreEqual(decoded.Length, 0);
@@ -39,7 +39,7 @@ namespace Starcounter.Internal {
                 fixed (byte* valuePtr = value, encodedPtr = encoded) {
                     uint length = Base64Binary.Write(encodedPtr, valuePtr, valueLength);
                     Assert.AreEqual(length, expectedEncodedLength);
-                    decoded = Base64Binary.Read(expectedEncodedLength, (IntPtr)encodedPtr);
+                    decoded = Base64Binary.Read(expectedEncodedLength, encodedPtr);
                 }
             }
             Assert.AreEqual(decoded.Length, valueLength);
@@ -129,7 +129,7 @@ namespace Starcounter.Internal {
                 fixed (byte* decodedPtr = decoded, encodedPtr = encoded) {
                     timer.Start();
                     for (int i = 0; i < nrIterations; i++)
-                        Base64Binary.Read(encodedLength, (IntPtr)encodedPtr, decodedPtr);
+                        Base64Binary.Read(encodedLength, encodedPtr, decodedPtr);
                     timer.Stop();
                 }
             }
