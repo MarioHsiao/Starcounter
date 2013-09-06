@@ -10,9 +10,12 @@ using System.Runtime.Serialization;
 namespace Starcounter {
     
     /// <summary>
-    /// Represents a database exception, originating from a failed database
-    /// API invocation.
+    /// Exception thrown on when a database error is detected (4000 or 8000 series error codes).
     /// </summary>
+    /// <remarks>
+    /// On some errors a specialized exception inheriting <see cref="Starcounter.DbException"/> is
+    /// raised.
+    /// </remarks>
     [Serializable]
     public class DbException : Exception {
         private readonly UInt32 _errorCode;

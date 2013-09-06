@@ -8,8 +8,10 @@ using System;
 using System.Runtime.Serialization;
 
 namespace Starcounter {
+
     /// <summary>
-    /// Class TransactionConflictException
+    /// Exception thrown when a transaction is aborted because of a conflict with another
+    /// transaction (error code 8002, ScErrTransactionConflictAbort).
     /// </summary>
     [Serializable]
     public class TransactionConflictException : TransactionAbortedException, ITransactionConflictException {

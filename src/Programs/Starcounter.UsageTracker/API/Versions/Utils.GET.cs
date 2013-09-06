@@ -68,64 +68,64 @@ namespace StarcounterApplicationWebSocket.API.Versions {
             });
 
             #region Hidden Area
-            // TODO: Portnumber
-            Handle.GET(8585, "/hiddenarea/versions", (Request request) => {
+            //// TODO: Portnumber
+            //Handle.GET(8585, "/hiddenarea/versions", (Request request) => {
 
-                dynamic response = new DynamicJson();
-                try {
-                    var result = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.Channel", false);
+            //    dynamic response = new DynamicJson();
+            //    try {
+            //        var result = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.Channel", false);
 
-                    response.versions = new object[] { };
-                    int i = 0;
-                    foreach (VersionSource item in result) {
-                        response.versions[i++] = new {
-                            version = item.Version,
-                            channel = item.Channel
-                        };
-                    }
+            //        response.versions = new object[] { };
+            //        int i = 0;
+            //        foreach (VersionSource item in result) {
+            //            response.versions[i++] = new {
+            //                version = item.Version,
+            //                channel = item.Channel
+            //            };
+            //        }
 
-                    return new Response() { Body = response.ToString(), StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+            //        return new Response() { Body = response.ToString(), StatusCode = (ushort)System.Net.HttpStatusCode.OK };
 
-                }
-                catch (Exception e) {
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
-                }
+            //    }
+            //    catch (Exception e) {
+            //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
+            //    }
 
-            });
-
-
-            Handle.GET(8585, "/hiddenarea/{?}", (string version, Request request) => {
-
-                try {
+            //});
 
 
-                    VersionBuild build = VersionBuild.GetAvilableBuild(version);
-                    if (build == null) {
-                        string message = string.Format("The download is not available at the moment. Please try again later.");
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
-                    }
+            //Handle.GET(8585, "/hiddenarea/{?}", (string version, Request request) => {
 
-                    byte[] fileBytes = File.ReadAllBytes(build.File);
+            //    try {
 
-                    Db.Transaction(() => {
-                        build.DownloadDate = DateTime.UtcNow;
-                        build.IPAdress = request.GetClientIpAddress().ToString();
-                    });
 
-                    VersionHandlerApp.BuildkWorker.Trigger();
+            //        VersionBuild build = VersionBuild.GetAvilableBuild(version);
+            //        if (build == null) {
+            //            string message = string.Format("The download is not available at the moment. Please try again later.");
+            //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
+            //        }
 
-                    LogWriter.WriteLine(string.Format("NOTICE: Sending (KEYLESS) version {0} to ip {1}", build.Version, request.GetClientIpAddress().ToString()));
+            //        byte[] fileBytes = File.ReadAllBytes(build.File);
 
-                    string fileName = Path.GetFileName(build.File);
+            //        Db.Transaction(() => {
+            //            build.DownloadDate = DateTime.UtcNow;
+            //            build.IPAdress = request.GetClientIpAddress().ToString();
+            //        });
 
-                    return new Response() { BodyBytes = fileBytes, Headers = "Content-Disposition: attachment; filename=\"" + fileName + "\"\r\n", StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+            //        VersionHandlerApp.BuildkWorker.Trigger();
 
-                }
-                catch (Exception e) {
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
-                }
+            //        LogWriter.WriteLine(string.Format("NOTICE: Sending (KEYLESS) version {0} to ip {1}", build.Version, request.GetClientIpAddress().ToString()));
 
-            });
+            //        string fileName = Path.GetFileName(build.File);
+
+            //        return new Response() { BodyBytes = fileBytes, Headers = "Content-Disposition: attachment; filename=\"" + fileName + "\"\r\n", StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+
+            //    }
+            //    catch (Exception e) {
+            //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
+            //    }
+
+            //});
 
             #endregion
         }
