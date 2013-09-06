@@ -140,7 +140,7 @@ namespace FasterThanJson.Tests {
             ulong value = UInt64.MaxValue;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             Stopwatch timer = new Stopwatch();
-            fixed (byte* buffer = new byte[100]) {
+            fixed (byte* buffer = new byte[300]) {
                 foreach (uint valueCount in valueCounts) {
                     timer.Start();
                     for (int i = 0; i < nrIterations; i++) {
