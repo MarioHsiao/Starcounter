@@ -218,7 +218,7 @@ namespace Starcounter.Internal
          fixed (char* pStr = str)
          {
             // Write the string to the end of this tuple.
-            len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, 1000, true); // TODO! CHANGE MAX LENGTH
+             len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, str.Length * 3, true); // TODO! CHANGE MAX LENGTH
             //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
          }
 
@@ -325,7 +325,13 @@ namespace Starcounter.Internal
       public void WriteSafe(String str) {
           uint size = MeasureNeededSize(str);
           ValidateLength(size);
-          Write(str);
+          uint len;
+          fixed (char* pStr = str) {
+              // Write the string to the end of this tuple.
+              len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, (int)size, true); // TODO! CHANGE MAX LENGTH
+              //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
+          }
+          HaveWritten(len);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvaiableSize -= size;
       }
