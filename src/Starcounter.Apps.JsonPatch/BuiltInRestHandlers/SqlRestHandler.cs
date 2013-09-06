@@ -71,12 +71,15 @@ namespace Starcounter.Internal {
                 // Handle Console WebSocket connections
                 Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/ws", (Request req, Session session) => {
 
+
                     Byte schedId = ThreadData.Current.Scheduler.Id;
-                    if (!WebSocketSessions[schedId].Contains(session)) {
-                        WebSocketSessions[schedId].Add(session);
-                        session.SetDestroyCallback((Session s) => {
-                            WebSocketSessions[schedId].Remove(s);
-                        });
+                    lock (consoleWriter) {
+                        if (!WebSocketSessions[schedId].Contains(session)) {
+                            WebSocketSessions[schedId].Add(session);
+                            session.SetDestroyCallback((Session s) => {
+                                WebSocketSessions[schedId].Remove(s);
+                            });
+                        }
                     }
 
                     try {
@@ -154,46 +157,50 @@ namespace Starcounter.Internal {
 
                 dbSession.RunSync(() => {
 
-                    // When someting is writing to the console we will get a callback here.
-                    for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                        Byte k = i;
 
-                        // TODO: Avoid calling RunAsync when there is no "listeners"
+                    lock (consoleWriter) {
+
+                        // When someting is writing to the console we will get a callback here.
+                        for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
+                            Byte k = i;
+
+                            // TODO: Avoid calling RunAsync when there is no "listeners"
 
 
-                        Byte sched = k;
+                            Byte sched = k;
 
-                        for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
-                            Session s = WebSocketSessions[sched][m];
+                            for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
+                                Session s = WebSocketSessions[sched][m];
 
-                            // Checking if session is not yet dead.
-                            if (s.IsAlive()) {
-                                s.Push(text);
+                                // Checking if session is not yet dead.
+                                if (s.IsAlive()) {
+                                    s.Push(text);
+                                }
+                                else {
+                                    // Removing dead session from broadcast.
+                                    WebSocketSessions[sched].Remove(s);
+                                }
                             }
-                            else {
-                                // Removing dead session from broadcast.
-                                WebSocketSessions[sched].Remove(s);
-                            }
+
+
+                            //dbSession.RunAsync(() => {
+
+                            //    Byte sched = k;
+
+                            //    for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
+                            //        Session s = WebSocketSessions[sched][m];
+
+                            //        // Checking if session is not yet dead.
+                            //        if (s.IsAlive()) {
+                            //            s.Push(text);
+                            //        }
+                            //        else {
+                            //            // Removing dead session from broadcast.
+                            //            WebSocketSessions[sched].Remove(s);
+                            //        }
+                            //    }
+                            //}, i);
                         }
-
-
-                        //dbSession.RunAsync(() => {
-
-                        //    Byte sched = k;
-
-                        //    for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
-                        //        Session s = WebSocketSessions[sched][m];
-
-                        //        // Checking if session is not yet dead.
-                        //        if (s.IsAlive()) {
-                        //            s.Push(text);
-                        //        }
-                        //        else {
-                        //            // Removing dead session from broadcast.
-                        //            WebSocketSessions[sched].Remove(s);
-                        //        }
-                        //    }
-                        //}, i);
                     }
                 });
 
