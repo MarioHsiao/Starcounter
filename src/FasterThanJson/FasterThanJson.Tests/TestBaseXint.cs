@@ -35,6 +35,7 @@ namespace Starcounter.Internal
    {
 
         public unsafe delegate void WriteInt(UInt64 value, byte* ptr);
+        public unsafe delegate UInt64 ReadInt(byte* ptr);
       /// <summary>
       /// Tests that the integers written to a buffer are the same when they are read back. Also tests that values outside of the maxValue
       /// fails.
@@ -44,7 +45,7 @@ namespace Starcounter.Internal
       /// <param name="maxValue">
       /// The maximum maxValue. For instance for Read/Write Base64x1 this value should be 64 and for Read/Write Base64x2 this value should be 4096 (64^2).
       /// </param>
-      private unsafe void TestFixedReadWrite(WriteInt writeFunc, Func<IntPtr, UInt64> readFunc, int size, ulong maxValue)
+      private unsafe void TestFixedReadWrite(WriteInt writeFunc, ReadInt readFunc, int size, ulong maxValue)
       {
          string str = String.Format("Range 0-{0} using {1} and {2}.", maxValue, writeFunc.Method.ToString(),
                                     readFunc.Method.ToString());
@@ -61,7 +62,7 @@ namespace Starcounter.Internal
                      t = maxValue - 200000;
                   }
                   writeFunc(t, pbuf);
-                  UInt64 read = readFunc((IntPtr) pbuf);
+                  UInt64 read = readFunc(pbuf);
                   if (read != t)
                   {
                      string encoding = Encoding.UTF8.GetString(buffer, 0, size);
@@ -77,7 +78,7 @@ namespace Starcounter.Internal
             {
                var t = (UInt64)(rnd.NextDouble() * maxValue);
                writeFunc(t, pbuf);
-               UInt64 read = readFunc((IntPtr)pbuf);
+               UInt64 read = readFunc(pbuf);
                if (read != t)
                {
                   string encoding = Encoding.UTF8.GetString(buffer, 0, size);
@@ -86,12 +87,12 @@ namespace Starcounter.Internal
             }
             // Test upper boundary
             writeFunc(maxValue, pbuf);
-            Assert.AreEqual(maxValue, readFunc((IntPtr)pbuf), str);
+            Assert.AreEqual(maxValue, readFunc(pbuf), str);
             if (maxValue != 0xFFFFFFFFFFFFFFFF)
             {
                // Its possible to send in a larger integer than is supported by the function. This should fail.
                writeFunc(maxValue + 1, pbuf);
-               Assert.AreNotEqual(maxValue + 1, readFunc((IntPtr)pbuf), str);
+               Assert.AreNotEqual(maxValue + 1, readFunc(pbuf), str);
             }
          }
          Console.WriteLine( str );
