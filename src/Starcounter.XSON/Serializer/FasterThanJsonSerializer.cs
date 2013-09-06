@@ -6,7 +6,7 @@ using Starcounter.Internal;
 using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
-	internal class FasterThanJsonSerializer : TypedJsonSerializer {
+	public class FasterThanJsonSerializer : TypedJsonSerializer {
 		private const int MAX_INT_SIZE = 11;
 
 		public override int Serialize(Json obj, out byte[] buffer) {
@@ -21,6 +21,8 @@ namespace Starcounter.Advanced.XSON {
 			Template tProperty;
 			TObject tObj;
 			TupleWriterBase64 writer;
+			TupleWriterBase64 arrWriter = new TupleWriterBase64();
+			TupleWriterBase64 itemWriter = new TupleWriterBase64();
 
 			// The following variables are offset for remembering last position when buffer needs to be increased:
 			// templateNo: The position in the PropertyList that was about to be written.
@@ -45,13 +47,6 @@ namespace Starcounter.Advanced.XSON {
 			exposedProperties = tObj.Properties.ExposedProperties;
 			int valueCount = exposedProperties.Count;
 			int offset = 0;
-
-			// TODO:
-			// Need some way to figure out how many tables we have since we need to increase valuecount.
-			for (int i = 0; i < exposedProperties.Count; i++) {
-				if (exposedProperties[i] is TObjArr)
-					valueCount++;
-			}
 
 			unsafe {
 restart:
@@ -90,11 +85,18 @@ restart:
 							} else
 								goto restart;
 						} else if (tProperty is TObjArr) {
+							//int currentWriteOffset = 0;
+
 							Arr arr = obj.Get((TObjArr)tProperty);
 							if (posInArray == -1) {
 								if (MAX_INT_SIZE > (buf.Length - writer.Length))
 									goto restart;
-								writer.Write((ulong)arr.Count);
+
+								arrWriter = new TupleWriterBase64(writer.AtEnd, 2);
+								arrWriter.Write((ulong)arr.Count);
+
+								itemWriter = new TupleWriterBase64(arrWriter.AtEnd, (uint)arr.Count);
+
 								posInArray = 0;
 							}
 
@@ -104,15 +106,19 @@ restart:
 									if (valueSize == -1)
 										goto restart;
 
-									if (valueSize > (buf.Length - writer.Length))
+									if (valueSize > (buf.Length - itemWriter.Length))
 										goto restart;
 								}
 
-								Buffer.BlockCopy(childObjArr, 0, buf, writer.Length, valueSize);
-								writer.HaveWritten((uint)valueSize);
+								// WRONG OFFSET...
+								System.Runtime.InteropServices.Marshal.Copy(childObjArr, 0, (IntPtr)itemWriter.AtEnd, valueSize);
+//								Buffer.BlockCopy(childObjArr, 0, buf, itemWriter.Length, valueSize);
+								itemWriter.HaveWritten((uint)valueSize);
 								childObjArr = null;
 								posInArray++;
 							}
+							arrWriter.HaveWritten(itemWriter.SealTuple());
+							writer.HaveWritten(arrWriter.SealTuple());
 							posInArray = -1;
 						} else {
 							string valueAsStr;
@@ -175,14 +181,6 @@ restart:
 			unsafe {
 				List<Template> exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
 				int valueCount = exposedProperties.Count;
-
-				// TODO:
-				// Need some way to figure out how many tables we have since we need to increase valuecount.
-				for (int i = 0; i < exposedProperties.Count; i++) {
-					if (exposedProperties[i] is TObjArr)
-						valueCount++;
-				}
-
 				var reader = new TupleReaderBase64((byte*)src, (uint)valueCount);
 
 				Arr arr;
@@ -215,12 +213,20 @@ restart:
 							reader.Skip();
 						} else if (tProperty is TObjArr) {
 							arr = obj.Get((TObjArr)tProperty);
-							int arrItemCount = (int)reader.ReadUInt();
+
+							var arrReader = new TupleReaderBase64(reader.AtEnd, 2);
+							int arrItemCount = (int)arrReader.ReadUInt();
+
+							var itemReader = new TupleReaderBase64(arrReader.AtEnd, (uint)arrItemCount);
+							
+
 							for (int aic = 0; aic < arrItemCount; aic++) {
 								childObj = arr.Add();
-								((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)reader.AtEnd, 0);
-								reader.Skip();
+								((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)itemReader.AtEnd, 0);
+								itemReader.Skip();
 							}
+							arrReader.Skip();
+							reader.Skip();
 						}
 					} catch (InvalidCastException ex) {
 						JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
