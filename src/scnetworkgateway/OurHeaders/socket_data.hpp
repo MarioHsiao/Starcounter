@@ -46,7 +46,7 @@ class SocketDataChunk
     SOCKET sock_;
 
     // Unique number for socket.
-    session_salt_type unique_socket_id_;
+    random_salt_type unique_socket_id_;
 
     // Proxy socket information.
     SOCKET proxy_sock_;
@@ -132,7 +132,7 @@ public:
         uint8_t* smc = (uint8_t*)get_smc();
 
         GW_ASSERT(8 == sizeof(SOCKET));
-        GW_ASSERT(8 == sizeof(session_salt_type));
+        GW_ASSERT(8 == sizeof(random_salt_type));
         GW_ASSERT(8 == sizeof(BMX_HANDLER_TYPE));
         GW_ASSERT(4 == sizeof(core::chunk_index));
 
@@ -179,7 +179,7 @@ public:
         return 0;
     }
 
-    void set_unique_socket_id(session_salt_type unique_socket_id)
+    void set_unique_socket_id(random_salt_type unique_socket_id)
     {
         unique_socket_id_ = unique_socket_id;
     }
@@ -224,7 +224,7 @@ public:
     {
         // Checking unique socket id and session.
         if (CompareUniqueSocketId())
-            g_gateway.UpdateSessionTimeStamp(sock_);
+            g_gateway.UpdateSocketTimeStamp(sock_);
     }
 
     // Sets connection type if socket is correct.
@@ -528,7 +528,7 @@ public:
     }
 
     // Getting session salt.
-    session_salt_type get_session_salt()
+    random_salt_type get_session_salt()
     {
         return session_.random_salt_;
     }
@@ -540,7 +540,7 @@ public:
     }
 
     // Getting unique id.
-    session_salt_type get_unique_socket_id()
+    random_salt_type get_unique_socket_id()
     {
         return unique_socket_id_;
     }
@@ -748,7 +748,7 @@ public:
     void ExchangeToProxySocket()
     {
         // Getting corresponding proxy socket id.
-        session_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_sock_);
+        random_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_sock_);
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "Exchanging sockets: " << sock_ << "<->" << proxy_sock_ << " and ids " <<

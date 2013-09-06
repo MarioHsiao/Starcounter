@@ -12,29 +12,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-/// Defining IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS means that the IPC monitor will use
-/// starcounter::core::thread instead of boost::thread.
-#define IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS
-
-/// Defining IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS
-/// means this_client_interface.set_notify_flag(false); will be called in 13 places
-/// in shared_interface::send_to_server_and_wait_response().
-/// If this introduces a bug, disale/comment this macro:
-#define IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS
-
 ///********************************************************************************************
-/// Define IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL
-/// to synchronize access to the shared_chunk_pool using a spinlock and Windows Events.
-#define IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL
-
-/// Define IPC_HANDLE_CHANNEL_IN_BUFFER_FULL
-/// to activate the use of one overflow queue per channel, based on linked lists.
-#define IPC_HANDLE_CHANNEL_IN_BUFFER_FULL
-
-/// Define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
-/// to activate the use of one overflow queue per channel, based on linked lists.
-#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
-
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
 /// to show the activity in shared memory between database(s) and client(s).
 /// It shows resource usage and activity in channels. Only used for debug, it shall
