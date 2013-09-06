@@ -64,8 +64,8 @@
     <Compile Include="MemcpyUtil.cs" />
     <Compile Include="SessionBlob.cs" />
     <Compile Include="TupleProxy.cs" />
-    <Compile Include="TupleReader.cs" />
-    <Compile Include="TupleWriter.cs" />
+    <Compile Include="TupleReaderBase64.cs" />
+    <Compile Include="TupleWriterBase64.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
