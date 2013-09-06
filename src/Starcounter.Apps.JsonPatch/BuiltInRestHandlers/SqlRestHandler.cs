@@ -31,7 +31,7 @@ namespace Starcounter.Internal {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
         private static StreamWriter consoleWriter;
- 
+
         /// <summary>
         /// Registers the built in REST handlers.
         /// </summary>
@@ -152,13 +152,14 @@ namespace Starcounter.Internal {
 
             CircularStream circularStream = new CircularStream(2048, (String text) => {
 
-                // When someting is writing to the console we will get a callback here.
-                for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                    Byte k = i;
+                dbSession.RunSync(() => {
 
-                    // TODO: Avoid calling RunAsync when there is no "listeners"
+                    // When someting is writing to the console we will get a callback here.
+                    for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
+                        Byte k = i;
 
-                    dbSession.RunAsync(() => {
+                        // TODO: Avoid calling RunAsync when there is no "listeners"
+
 
                         Byte sched = k;
 
@@ -174,8 +175,27 @@ namespace Starcounter.Internal {
                                 WebSocketSessions[sched].Remove(s);
                             }
                         }
-                    }, i);
-                }
+
+
+                        //dbSession.RunAsync(() => {
+
+                        //    Byte sched = k;
+
+                        //    for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
+                        //        Session s = WebSocketSessions[sched][m];
+
+                        //        // Checking if session is not yet dead.
+                        //        if (s.IsAlive()) {
+                        //            s.Push(text);
+                        //        }
+                        //        else {
+                        //            // Removing dead session from broadcast.
+                        //            WebSocketSessions[sched].Remove(s);
+                        //        }
+                        //    }
+                        //}, i);
+                    }
+                });
 
 
             });
