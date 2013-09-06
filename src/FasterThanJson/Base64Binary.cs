@@ -43,7 +43,15 @@ namespace Starcounter.Internal {
                     break;
             }
             Debug.Assert(value == start + length);
+            Debug.Assert(writtenLength != 1);
             return writtenLength;
+        }
+
+        public static unsafe uint Write(byte* buffer, Byte[] value) {
+            if (value == null)
+                return 1;
+            fixed (byte* valuePtr = value)
+                return Write(buffer, valuePtr, (uint)value.Length);
         }
 
         public static unsafe uint Read(uint size, byte* ptr, byte* value) {
@@ -76,11 +84,14 @@ namespace Starcounter.Internal {
                     writing += 2;
                     break;
             }
+            Debug.Assert(reminder != 1);
             Debug.Assert(value + MeasureNeededSizeToDecode(size) == writing);
             return (uint)(writing - value);
         }
 
         public static unsafe byte[] Read(uint size, byte* ptr) {
+            if (size == 1)
+                return null;
             uint length = MeasureNeededSizeToDecode(size);
             byte[] value = new byte[length];
             fixed (byte* valuePtr = value) {
