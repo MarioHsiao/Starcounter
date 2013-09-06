@@ -249,9 +249,8 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte[] value) {
 #if BASE64
-          fixed (byte* valuePtr = value) {
-              Write(valuePtr, (uint)value.Length);
-          }
+          uint len = Base64Binary.Write(AtEnd, value);
+          HaveWritten(len);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
 #endif
@@ -340,9 +339,15 @@ namespace Starcounter.Internal
       }
 
       public unsafe void WriteSafe(byte[] b) {
-          fixed (byte* bPtr = b) {
-              WriteSafe(bPtr, (uint)b.Length);
-          }
+          uint size = 0;
+          if (b == null)
+              size = 1;
+          else
+          size = MeasureNeededSizeByteArray((uint)b.Length);
+          ValidateLength(size);
+          Write(b);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= size;
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
