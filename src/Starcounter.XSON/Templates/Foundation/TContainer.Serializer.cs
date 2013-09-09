@@ -19,12 +19,25 @@ namespace Starcounter.Templates {
 
 		private static bool shouldUseCodegeneratedSerializer = false;
 		private bool codeGenStarted = false;
-		private TypedJsonSerializer codegenSerializer;
+		private TypedJsonSerializer codegenStandardSerializer;
+		private TypedJsonSerializer codegenFTJSerializer;
 
 		internal TypedJsonSerializer FTJSerializer {
 			get {
-				// TODO: 
-				// Codegenerated FTJ serializer.
+				if (UseCodegeneratedSerializer) {
+					if (codegenFTJSerializer != null)
+						return codegenFTJSerializer;
+
+					if (!codeGenStarted) {
+						codeGenStarted = true;
+						if (!DontCreateSerializerInBackground)
+							ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
+						else {
+							GenerateSerializer(false);
+							return codegenStandardSerializer;
+						}
+					}
+				}
 				return Module.GetJsonSerializer(Module.FTJSerializerId);
 			}
 		}
@@ -36,8 +49,8 @@ namespace Starcounter.Templates {
 		internal TypedJsonSerializer JsonSerializer {
 			get {
 				if (UseCodegeneratedSerializer) {
-					if (codegenSerializer != null)
-						return codegenSerializer;
+					if (codegenStandardSerializer != null)
+						return codegenStandardSerializer;
 
 					// This check might give the wrong answer if the same instance of this template
 					// is used from different threads. However the worst thing that can happen
@@ -46,10 +59,10 @@ namespace Starcounter.Templates {
 					if (!codeGenStarted) {
 						codeGenStarted = true;
 						if (!DontCreateSerializerInBackground)
-							ThreadPool.QueueUserWorkItem(GenerateSerializer);
+							ThreadPool.QueueUserWorkItem(GenerateSerializer, true);
 						else {
-							GenerateSerializer(null);
-							return codegenSerializer;
+							GenerateSerializer(true);
+							return codegenStandardSerializer;
 						}
 					}
 				}
@@ -58,9 +71,15 @@ namespace Starcounter.Templates {
 		}
 
 		private void GenerateSerializer(object state) {
+			bool createStd = (bool)state;
+
 			// it doesn't really matter if setting the variable in the template is synchronized 
 			// or not since if the serializer is null a fallback serializer will be used instead.
-			codegenSerializer = SerializerCompiler.The.CreateTypedJsonSerializer(this);
+			if (createStd)
+				codegenStandardSerializer = SerializerCompiler.The.CreateStandardJsonSerializer(this);
+			else
+				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer(this);
+			codeGenStarted = false;
 		}
 
 		/// <summary>
