@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Templates;
@@ -78,15 +79,13 @@ restart:
 									if (valueSize > (buf.Length - writer.Length))
 										goto restart;
 
-									Buffer.BlockCopy(childObjArr, 0, buf, writer.Length, valueSize);
+									Marshal.Copy(childObjArr, 0, (IntPtr)writer.AtEnd, valueSize);
 									writer.HaveWritten((uint)valueSize);
 									childObjArr = null;
 								}
 							} else
 								goto restart;
 						} else if (tProperty is TObjArr) {
-							//int currentWriteOffset = 0;
-
 							Arr arr = obj.Get((TObjArr)tProperty);
 							if (posInArray == -1) {
 								if (MAX_INT_SIZE > (buf.Length - writer.Length))
@@ -110,9 +109,7 @@ restart:
 										goto restart;
 								}
 
-								// WRONG OFFSET...
-								System.Runtime.InteropServices.Marshal.Copy(childObjArr, 0, (IntPtr)itemWriter.AtEnd, valueSize);
-//								Buffer.BlockCopy(childObjArr, 0, buf, itemWriter.Length, valueSize);
+								Marshal.Copy(childObjArr, 0, (IntPtr)itemWriter.AtEnd, valueSize);
 								itemWriter.HaveWritten((uint)valueSize);
 								childObjArr = null;
 								posInArray++;
