@@ -60,41 +60,41 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 		[Test]
 		public static void TestFTJSerializer() {
-			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"));
-			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"));
-			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"));
-			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"));
-			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"));
+			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
+			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), false);
+			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
+			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
+			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
 		}
 
-//		[Test]
-//		public static void TestDefaultSerializer() {
-//			TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"), defaultSerializer);
-//			TestSerializationFor("person.json", File.ReadAllText("person.json"), defaultSerializer);
-//			TestSerializationFor("supersimple.json", File.ReadAllText("supersimple.json"), defaultSerializer);
-//			TestSerializationFor("simple.json", File.ReadAllText("simple.json"), defaultSerializer);
-//			TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), defaultSerializer);
-//		}
+		[Test]
+		public static void TestFTJCodegenSerializer() {
+			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
+			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), true);
+			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
+			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
+			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+		}
 
-//		[Test]
-//		public static void TestFTJSerializer() {
-//			TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"), ftjSerializer);
-//			TestSerializationFor("person.json", File.ReadAllText("person.json"), ftjSerializer);
-//			TestSerializationFor("supersimple.json", File.ReadAllText("supersimple.json"), ftjSerializer);
-//			TestSerializationFor("simple.json", File.ReadAllText("simple.json"), ftjSerializer);
-//			TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), ftjSerializer);
-//		}
+		[Test]
+		public static void TestStandardSerializer() {
+			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
+			RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), false);
+			RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
+			RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
+			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
+		}
 
-////        [Test]
-//		public static void TestCodegenSerializer() {
-//			TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"), defaultSerializer, true);
-//			TestSerializationFor("person.json", File.ReadAllText("person.json"), defaultSerializer, true);
-//			TestSerializationFor("supersimple.json", File.ReadAllText("supersimple.json"), defaultSerializer, true);
-//			TestSerializationFor("simple.json", File.ReadAllText("simple.json"), defaultSerializer, true);
-//			TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), defaultSerializer, true);
-//		}
+		[Test]
+		public static void TestStandardCodegenSerializer() {
+			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
+			RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), true);
+			RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
+			RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
+			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+		}
 
-		private static void RunFTJSerializerTest(string name, string jsonStr) {
+		private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
 			byte[] ftj = null;
 			int serializedSize = 0;
 			int afterPopulateSize = 0;
@@ -102,7 +102,9 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			Json original;
 			Json newJson;
 
-			TJson.UseCodegeneratedSerializer = false;
+			TJson.UseCodegeneratedSerializer = useCodegen;
+			TJson.DontCreateSerializerInBackground = true;
+
 			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), jsonStr);
 			original = (Json)tObj.CreateInstance();
 
@@ -115,6 +117,39 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 				fixed (byte* p = ftj) {
 					newJson = (Json)tObj.CreateInstance();
 					afterPopulateSize = tObj.PopulateFromFasterThanJson(newJson, (IntPtr)p, serializedSize);
+				}
+			}
+
+			Assert.AreEqual(serializedSize, afterPopulateSize);
+			AssertAreEqual(original, newJson);
+		}
+
+		private static void RunStandardSerializerTest(string name, string jsonStr, bool useCodegen) {
+			byte[] jsonArr = null;
+			int serializedSize = 0;
+			int afterPopulateSize = 0;
+			TObject tObj;
+			Json original;
+			Json newJson;
+
+			TJson.UseCodegeneratedSerializer = useCodegen;
+			TJson.DontCreateSerializerInBackground = true;
+
+			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), jsonStr);
+			original = (Json)tObj.CreateInstance();
+
+			// TODO:
+			// Change to newtonsoft for verification.
+
+			// using standard json serializer to populate object with values.
+			original.PopulateFromJson(jsonStr);
+
+			serializedSize = tObj.ToJsonUtf8(original, out jsonArr);
+
+			unsafe {
+				fixed (byte* p = jsonArr) {
+					newJson = (Json)tObj.CreateInstance();
+					afterPopulateSize = tObj.PopulateFromJson(newJson, (IntPtr)p, serializedSize);
 				}
 			}
 
@@ -196,11 +231,25 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 			Console.WriteLine("Benchmarking standard serializer, repeats: " + numberOfTimes);
 
-			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
-			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
-			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes);
-			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes);
-			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes);
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, false);
+		}
+
+		[Test]
+		[Category("LongRunning")]
+		public static void BenchmarkStandardCodegenJsonSerializer() {
+			int numberOfTimes = 100000;
+
+			Console.WriteLine("Benchmarking standard serializer, repeats: " + numberOfTimes);
+
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, true);
 		}
 
 		[Test]
@@ -211,15 +260,15 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			Console.WriteLine("Benchmarking serializers, repeats: " + numberOfTimes);
 
 			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
-			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes);
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, false);
 			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
-			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, false);
 			RunFTJBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes);
-			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, false);
 			RunFTJBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes);
-			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, false);
 			RunFTJBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes);
-			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, false);
 		}
 
 		private static void RunFTJBenchmark(string name, string json, int numberOfTimes) {
@@ -262,7 +311,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			Console.WriteLine((stop - start).TotalMilliseconds.ToString("0.0000"));
 		}
 
-        private static void RunStandardJsonBenchmark(string name, string json, int numberOfTimes) {
+        private static void RunStandardJsonBenchmark(string name, string json, int numberOfTimes, bool useCodegen) {
 			byte[] jsonArr = null;
 			int size = 0;
 			TObject tObj;
@@ -270,9 +319,15 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			DateTime start;
 			DateTime stop;
 
-			TJson.UseCodegeneratedSerializer = false;
+			TJson.UseCodegeneratedSerializer = useCodegen;
+			TJson.DontCreateSerializerInBackground = true;
 
-			Console.Write(AddSpaces(name, 20) + AddSpaces("STD", 10));
+			if (useCodegen) {
+				Console.Write(AddSpaces(name, 20) + AddSpaces("STD-Codegen", 10));
+			} else {
+				Console.Write(AddSpaces(name, 20) + AddSpaces("STD", 10));
+			}
+
 			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
 			jsonInst = (Json)tObj.CreateInstance();
 
