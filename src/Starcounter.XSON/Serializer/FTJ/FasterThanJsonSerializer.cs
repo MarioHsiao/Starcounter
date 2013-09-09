@@ -10,6 +10,9 @@ namespace Starcounter.Advanced.XSON {
 	public class FasterThanJsonSerializer : TypedJsonSerializer {
 		private const int MAX_INT_SIZE = 11;
 
+		// Only used to get rid of used before initialization warning
+		private static TupleWriterBase64 nullWriter = new TupleWriterBase64();
+
 		public override int Serialize(Json obj, out byte[] buffer) {
 			bool recreateBuffer;
 			byte[] buf;
@@ -22,13 +25,12 @@ namespace Starcounter.Advanced.XSON {
 			Template tProperty;
 			TObject tObj;
 			TupleWriterBase64 writer;
-			TupleWriterBase64 arrWriter = new TupleWriterBase64();
-			TupleWriterBase64 itemWriter = new TupleWriterBase64();
+			TupleWriterBase64 arrWriter = nullWriter;
+			TupleWriterBase64 itemWriter = nullWriter;
 
 			// The following variables are offset for remembering last position when buffer needs to be increased:
 			// templateNo: The position in the PropertyList that was about to be written.
 			// offset: The last verified position in the buf that was succesfully written.
-			// nameWritten: If set to true, the name of the template is succesfully written (but not the value).
 			// childObjArr: If last value was an object or an object in an array, the array contains the serialized object.
 			// posInArray: Set to the last succesful copied value for an objectarray.
 
