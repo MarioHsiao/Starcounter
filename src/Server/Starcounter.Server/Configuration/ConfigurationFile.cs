@@ -11,7 +11,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
     /// <summary>
     /// Base class for all configuration files.
     /// </summary>

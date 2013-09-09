@@ -103,6 +103,13 @@ void ReportStatistics(const char* stat_name, const double stat_value);
 // Invalid value of converted number from hexadecimal string.
 const uint64_t INVALID_CONVERTED_NUMBER = 0xFFFFFFFFFFFFFFFF;
 
+// Injects data into destination array.
+static inline int32_t InjectData(uint8_t* const dest, int32_t dest_offset, const char* data, int32_t data_len_bytes)
+{
+    memcpy(dest + dest_offset, data, data_len_bytes);
+    return dest_offset + data_len_bytes;
+}
+
 // Converts uint64_t number to hexadecimal string.
 inline int32_t uint64_to_hex_string(uint64_t number, char *str_out, int32_t num_4bits, bool null_string)
 {

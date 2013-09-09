@@ -137,7 +137,7 @@ public:
 
     uint8_t *WritePayload(GatewayWorker* gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t* payload, uint64_t& payload_len);
 
-    void ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
+    uint32_t ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
 };
 
 } // namespace network

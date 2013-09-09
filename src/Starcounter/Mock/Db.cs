@@ -13,6 +13,7 @@ using Starcounter.Query.Sql;
 using Starcounter.Binding;
 using System.Text;
 using Starcounter.Advanced;
+using System.Diagnostics;
 
 
 namespace Starcounter
@@ -77,19 +78,8 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<Object> SQL(String query, params Object[] values)
-        {
-            if (query == null)
-                throw new ArgumentNullException("query");
-
-#if true
-            return new SqlResult<Object>(0, query, false, values);
-#else
-            if (Starcounter.Transaction.Current != null)
-                return new SqlResult(Starcounter.Transaction.Current.TransactionId, query, false, values); 
-            else
-                return new SqlResult(0, query, false, values);
-#endif
+        public static SqlResult<Object> SQL(String query, params Object[] values) {
+            return SQL<Object>(query, values);
         }
 
         /// <summary>
@@ -99,19 +89,68 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<T> SQL<T>(String query, params Object[] values)
-        {
+        public static SqlResult<T> SQL<T>(String query, params Object[] values) {
             if (query == null)
-                throw new ArgumentNullException("query");
-
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
+            SqlResult<T> enumerableResult = null;
+            try {
+                enumerableResult = new SqlResult<T>(0, query, false, values);
+                enumerableResult.GetExecutionEnumerator().Dispose();
+            } catch (Exception ex) {
+                try {
+                    if (ParseNonSelectQuery(query, values))
+                        return null;
+                } catch { }
+                throw ex;
+            }
+            Debug.Assert(enumerableResult != null);
 #if true
-            return new SqlResult<T>(0, query, false, values);
+            return enumerableResult;
 #else
             if (Starcounter.Transaction.Current != null)
                 return new SqlResult<T>(Starcounter.Transaction.Current.TransactionId, query, false, values); 
             else
                 return new SqlResult<T>(0, query, false, values);
 #endif
+        }
+
+        private static Boolean ParseNonSelectQuery(String query, params Object[] values) {
+            switch (query[0]) {
+                case 'C':
+                case 'c':
+                    SqlProcessor.ProcessCreateIndex(query);
+                    return true;
+#if false
+                case 'D':
+                case 'd':
+                    if (SqlProcessor.ProcessDQuery(query, values))
+                        return true;
+                    else
+                        return false;
+#endif
+                case ' ':
+                case '\t':
+                    query = query.TrimStart(' ', '\t');
+                    switch (query[0]) {
+                        case 'C':
+                        case 'c':
+                            SqlProcessor.ProcessCreateIndex(query);
+                            return true;
+#if false
+                        case 'D':
+                        case 'd':
+                            if (SqlProcessor.ProcessDQuery(query, values))
+                                return true;
+                            else
+                                return false;
+#endif
+                        default:
+                            return false;
+                    }
+
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -121,66 +160,9 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<dynamic> SlowSQL(String query, params Object[] values)
+        public static SqlResult<Object> SlowSQL(String query, params Object[] values)
         {
-            if (query == null)
-                throw new ArgumentNullException("query");
-
-            UInt64 transactionId = 0;
-#if false
-            if (Starcounter.Transaction.Current != null)
-				transactionId = Starcounter.Transaction.Current.TransactionId;
-#endif
-
-            if (query == "")
-                return new SqlResult<dynamic>(transactionId, query, true, values);
-
-            switch (query[0])
-            {
-                case 'S':
-                case 's':
-                    return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                case 'C':
-                case 'c':
-                    SqlProcessor.ProcessCreateIndex(query);
-                    return null;
-
-                case 'D':
-                case 'd':
-                    if (SqlProcessor.ProcessDQuery(query, values))
-                        return null;
-                    else
-                        return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                case ' ':
-                case '\t':
-                    query = query.TrimStart(' ', '\t');
-                    switch (query[0])
-                    {
-                        case 'S':
-                        case 's':
-                            return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                        case 'C':
-                        case 'c':
-                            SqlProcessor.ProcessCreateIndex(query);
-                            return null;
-
-                        case 'D':
-                        case 'd':
-                            if (SqlProcessor.ProcessDQuery(query, values))
-                                return null;
-                            else
-                                return new SqlResult<dynamic>(transactionId, query, true, values);
-
-                        default:
-                            return new SqlResult<dynamic>(transactionId, query, true, values);
-                    }
-
-                default:
-                    return new SqlResult<dynamic>(transactionId, query, true, values);
-            }
+            return SlowSQL<Object>(query, values);
         }
 
         /// <summary>

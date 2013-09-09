@@ -163,10 +163,8 @@ uint32_t timeout_milliseconds) {
 	// The number of owned channels counter is incremented.
 	client_interface().increment_number_of_allocated_channels();
 	
-#if defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
     // Set the chunk base address relative to the clients address space.
 	channel_[temp_channel_number].in_overflow().set_chunk_ptr(chunk_);
-#endif // defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
     
 	// Set index to the scheduler_interface.
 	channel_[temp_channel_number].set_scheduler_number(the_scheduler_number);
@@ -441,7 +439,6 @@ inline const ::HANDLE& shared_interface::scheduler_work_event(std::size_t i) con
 	return scheduler_work_[i];
 }
 
-#if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 inline ::HANDLE& shared_interface::open_scheduler_number_pool_not_empty_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((scheduler_number_pool_not_empty_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
@@ -489,7 +486,6 @@ inline const ::HANDLE& shared_interface::scheduler_number_pool_not_full_event
 (std::size_t i) const {
 	return scheduler_number_pool_not_full_[i];
 }
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
@@ -524,35 +520,25 @@ push_request_message_with_spin: /// The notify flag could be true...
 					if (this_client_interface.wait_for_work(client_work_event(),
 					timeout)) {
 						// The scheduler or monitor notified the client.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						goto push_request_message_with_spin;
 					}
 					else {
 						// Timeout.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						return SCERRCTIMEOUTPUSHREQUESTMESSAGE;
 					}
 					break;
 				case common_client_interface_type
 				::database_terminated_gracefully:
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDGRACEFULLY;
 				case common_client_interface_type
 				::database_terminated_unexpectedly:
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDUNEXPECTEDLY;
 				default: // Unknown server state.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRUNKNOWNDBSTATE;
 				}
 			}
@@ -586,35 +572,25 @@ pop_response_message_with_spin: /// The notify flag could be true
 					if (this_client_interface.wait_for_work(client_work_event(),
 					timeout)) {
 						// The scheduler or monitor notified the client.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						goto pop_response_message_with_spin;
 					}
 					else {
 						// Timeout.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						return SCERRCTIMEOUTPOPRESPONSEMESSAGE;
 					}
 					break;
 				case common_client_interface_type
 				::database_terminated_gracefully:
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDGRACEFULLY;
 				case common_client_interface_type
 				::database_terminated_unexpectedly:
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDUNEXPECTEDLY;
 				default: // Unknown database state.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRUNKNOWNDBSTATE;
 				}
 			}
@@ -636,20 +612,14 @@ pop_response_message_with_spin: /// The notify flag could be true
 			goto push_request_message_with_spin;
 		case common_client_interface_type
 		::database_terminated_gracefully:
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			return SCERRDBTERMINATEDGRACEFULLY;
 		case common_client_interface_type
 		::database_terminated_unexpectedly:
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			return SCERRDBTERMINATEDUNEXPECTEDLY;
 		default: // Unknown database state.
-#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			this_client_interface.set_notify_flag(false);
-#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			return SCERRUNKNOWNDBSTATE;
 		}
 	}

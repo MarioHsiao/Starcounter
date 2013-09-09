@@ -11,13 +11,17 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class TDouble : TValue<double> {
+    public class TDouble : PrimitiveProperty<double> {
         /// <summary>
         /// 
         /// </summary>
         private double _DefaultValue = 0;
 
-        public override void ProcessInput(Obj obj, byte[] rawValue) {
+        public override Type MetadataType {
+            get { return typeof(DoubleMetadata<Json>); }
+        }
+
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new NotImplementedException();
         }
 

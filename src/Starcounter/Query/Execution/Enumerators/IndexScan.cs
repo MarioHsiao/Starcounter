@@ -7,7 +7,7 @@
 using Starcounter;
 using Starcounter.Binding;
 using Starcounter.Query.Sql;using System;using System.Collections;using System.Collections.Generic;using System.Text;using System.Text.RegularExpressions;using System.IO;using System.Runtime.InteropServices;//using Starcounter.Management.Win32;using Sc.Query.Execution;using Starcounter.Internal;
-using System.Diagnostics;namespace Starcounter.Query.Execution{internal class IndexScan : ExecutionEnumerator, IExecutionEnumerator{    Int32 extentNumber = -1;    IndexInfo indexInfo = null;    List<String> strPathList = null; // List of strings describing the different paths included in the combined index.    List<IDynamicRange> dynamicRangeList = null; // List of dynamic ranges for the different paths included in the combined index.    ILogicalExpression postFilterCondition = null;    Boolean descending = true,        enumeratorCreated = false,        shouldRecalculateRange = true,        onlyEqualities = true; // True as long as all investigated static ranges are equality comparisons.        //rangeChanged = false,    Enumerator enumerator = null;    Row contextObject = null;    ByteArrayBuilder firstKeyBuilder = null,        secondKeyBuilder = null;    Byte[] firstKeyBuffer = null,        secondKeyBuffer = null;    RangeFlags rangeFlags = 0;    IteratorHelper iterHelper; // Stores cached iterator helper.    FilterCallback callbackManagedFilterCached = null;    UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.    Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.    Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+using System.Diagnostics;namespace Starcounter.Query.Execution{internal class IndexScan : ExecutionEnumerator, IExecutionEnumerator{    Int32 extentNumber = -1;    IndexInfo indexInfo = null;    List<String> strPathList = null; // List of strings describing the different paths included in the combined index.    List<IDynamicRange> dynamicRangeList = null; // List of dynamic ranges for the different paths included in the combined index.    ILogicalExpression postFilterCondition = null;    Boolean descending = true,        enumeratorCreated = false,        shouldRecalculateRange = true,        onlyEqualities = true; // True as long as all investigated static ranges are equality comparisons.        //rangeChanged = false,    Enumerator enumerator = null;    Row contextObject = null;    ByteArrayBuilder firstKeyBuilder = null,        secondKeyBuilder = null;    Byte[] firstKeyBuffer = null,        secondKeyBuffer = null;    RangeFlags rangeFlags = 0;    IteratorHelper iterHelper; // Stores cached iterator helper.    FilterCallback callbackManagedFilterCached = null;    UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.    Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.    //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
     Boolean stayAtOffsetkey = false;
     public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
     Boolean useOffsetkey = true;
@@ -16,13 +16,16 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
     public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
 
     internal IndexScan(byte nodeId,         RowTypeBinding rowTypeBind,        Int32 extentNum,        IndexInfo indexInfo,        List<String> pathList,        List<IDynamicRange> dynRangeList,        ILogicalExpression postFilterCond,        SortOrder sortOrder,        INumericalExpression fetchNumberExpr,
-        INumericalExpression fetchOffsetExpr,         IBinaryExpression fetchOffsetKeyExpr,        Boolean innermostExtent,        VariableArray varArr, String query, Boolean topNode)        : base(nodeId, EnumeratorNodeType.IndexScan, rowTypeBind, varArr, topNode)    {
+        INumericalExpression fetchOffsetExpr,         IBinaryExpression fetchOffsetKeyExpr,        Boolean innermostExtent,        VariableArray varArr, String query, Boolean topNode)        : base(nodeId, EnumeratorNodeType.IndexScan, rowTypeBind, varArr, topNode, 3)    {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         if (varArr == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varArr.");
-        if (indexInfo == null)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect indexInfo.");        if (pathList == null && pathList.Count > 0)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect pathList.");        if (dynRangeList == null || dynRangeList.Count != pathList.Count)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect dynRangeList.");        if (postFilterCond == null)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");        extentNumber = extentNum;        this.indexInfo = indexInfo;        strPathList = pathList;        dynamicRangeList = dynRangeList;        postFilterCondition = postFilterCond;        descending = (sortOrder == SortOrder.Descending);        this.fetchNumberExpr = fetchNumberExpr;
-        this.fetchOffsetExpr = fetchOffsetExpr;        this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;        this.innermostExtent = innermostExtent;        this.query = query;        firstKeyBuilder = new ByteArrayBuilder();        secondKeyBuilder = new ByteArrayBuilder();        iterHelper = IteratorHelper.GetIndex(indexInfo.Handle);        // Creating empty enumerator at caching time (with managed level post-filter).        callbackManagedFilterCached = postFilterCondition.Instantiate(null).Filtrate;        enumerator = new Enumerator(callbackManagedFilterCached);        // Checking variables existence once again to calculate range keys.        if (variableArray.Length <= 0)        {            // Since we don't have any variables we can            // calculate and cache the range keys for iterators.            // However we need to think about joins and context            // objects when evaluation of range keys can't be            // performed statically (so we wrap with try-catch).            try            {                CalculateRangeKeys();            }            catch { }            // Determining if range should be recalculated.            shouldRecalculateRange = false;        }    }
+        if (indexInfo == null)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect indexInfo.");        if (pathList == null && pathList.Count > 0)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect pathList.");        if (dynRangeList == null || dynRangeList.Count != pathList.Count)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect dynRangeList.");        if (postFilterCond == null)            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");
+
+        Debug.Assert(OffsetTuppleLength == 3);        extentNumber = extentNum;        this.indexInfo = indexInfo;        strPathList = pathList;        dynamicRangeList = dynRangeList;        postFilterCondition = postFilterCond;        descending = (sortOrder == SortOrder.Descending);        this.fetchNumberExpr = fetchNumberExpr;
+        this.fetchOffsetExpr = fetchOffsetExpr;        this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;        this.innermostExtent = innermostExtent;        this.query = query;
+        firstKeyBuilder = new ByteArrayBuilder();        secondKeyBuilder = new ByteArrayBuilder();        iterHelper = IteratorHelper.GetIndex(indexInfo.Handle);        // Creating empty enumerator at caching time (with managed level post-filter).        callbackManagedFilterCached = postFilterCondition.Instantiate(null).Filtrate;        enumerator = new Enumerator(callbackManagedFilterCached);        // Checking variables existence once again to calculate range keys.        if (variableArray.Length <= 0)        {            // Since we don't have any variables we can            // calculate and cache the range keys for iterators.            // However we need to think about joins and context            // objects when evaluation of range keys can't be            // performed statically (so we wrap with try-catch).            try            {                CalculateRangeKeys();            }            catch { }            // Determining if range should be recalculated.            shouldRecalculateRange = false;        }    }
 
     /// <summary>
     /// The type binding of the resulting objects of the query.
@@ -115,50 +118,61 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
 
     public Row CurrentRow    {        get        {            if (currentObject != null)                return currentObject;            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect currentObject.");        }    }    /// <summary>    /// Depending on query flags, populates the flags value.    /// </summary>    public unsafe override void PopulateQueryFlags(UInt32* flags)    {        // Checking if there is any post managed filter.        if (!(postFilterCondition is LogicalLiteral))            (*flags) |= SqlConnectivityInterface.FLAG_POST_MANAGED_FILTER;        // Calling base function to populate other flags.        base.PopulateQueryFlags(flags);    }
 
+#if false // Old implementation
     private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
         Byte* staticDataOffset = ValidateAndGetStaticKeyOffset(rk); ;
         UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
         Debug.Assert(dynDataOffset != 0);
         return rk + dynDataOffset;
     }
+#endif
+
+    unsafe Byte[] ValidateAndGetRecreateKey(Byte* rk) {
+        // In order to skip enumerator recreation next time.
+        //triedEnumeratorRecreation = true;
+        Debug.Assert(OffsetTuppleLength == 3);
+        TupleReaderBase64 thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
+        return thisEnumTuple.ReadByteArray(2);
+    }
 
     /// <summary>    /// Tries to recreate enumerator using provided key.    /// </summary>
     unsafe Boolean TryRecreateEnumerator(Byte* rk) {
         // In order to skip enumerator recreation next time.
-        triedEnumeratorRecreation = true;
+        //triedEnumeratorRecreation = true;
 
-        Byte* recreationKey = ValidateAndGetRecreateKey(rk);
+        fixed (Byte* recreationKey = ValidateAndGetRecreateKey(rk)) {
 
-        // Getting flags.
-        UInt32 _flags = (UInt32)rangeFlags;
-        if (descending)
-            _flags |= sccoredb.SC_ITERATOR_SORTED_DESCENDING;
+            // Getting flags.
+            UInt32 _flags = (UInt32)rangeFlags;
+            if (descending)
+                _flags |= sccoredb.SC_ITERATOR_SORTED_DESCENDING;
 
-        // Getting lastkey
-        Byte[] lastKey;
-        if (onlyEqualities || descending)
-            lastKey = firstKeyBuffer;
-        else
-            lastKey = secondKeyBuffer;
+            // Getting lastkey
+            Byte[] lastKey;
+            if (onlyEqualities || descending)
+                lastKey = firstKeyBuffer;
+            else
+                lastKey = secondKeyBuffer;
 
-        // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_NoCodeGenFilter(recreationKey, enumerator, _flags, lastKey)) {
-            // Indicating that enumerator has been created.
-            enumeratorCreated = true;
+            // Trying to recreate the enumerator from key.
+            if (iterHelper.RecreateEnumerator_NoCodeGenFilter(recreationKey, enumerator, _flags, lastKey)) {
+                // Indicating that enumerator has been created.
+                enumeratorCreated = true;
 
-            // Checking if we found a deleted object.
-            //if (!innermostExtent)
-            //{
-            // Obtaining saved OID and ETI.
-            IteratorHelper.RecreateEnumerator_GetObjectInfo(recreationKey, out keyOID, out keyETI);
+                // Checking if we found a deleted object.
+                //if (!innermostExtent)
+                //{
+                // Obtaining saved OID and ETI.
+                IteratorHelper.RecreateEnumerator_GetObjectInfo(recreationKey, out keyOID, out keyETI);
 
-            // Enabling recreation object check.
-            enableRecreateObjectCheck = true;
-            //}
-            return true;
-        } else // Checking if we are in outer enumerator.
-            if (!innermostExtent)
-                variableArray.FailedToRecreateObject = true;
+                // Enabling recreation object check.
+                enableRecreateObjectCheck = true;
+                //}
+                return true;
+            } else // Checking if we are in outer enumerator.
+                if (!innermostExtent)
+                    variableArray.FailedToRecreateObject = true;
+        }
         return false;
     }    /// <summary>    /// Creates enumerator which than used in MoveNext.    /// </summary>    private Boolean CreateEnumerator()    {#if false // TODO EOH2: Transaction id        // Check that the current transaction has not been changed.        if (Transaction.Current == null)        {            if (variableArray.TransactionId != 0)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }        else        {            if (variableArray.TransactionId != Transaction.Current.TransactionId)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }#endif
 
@@ -233,7 +247,55 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         //    return MoveNextCodeGen();
 
         return MoveNextManaged();
-    }    /// <summary>
+    }
+
+    unsafe Byte* GetRecreationKeyFromKernel() {
+        // Fetching current enumerator key.
+        Byte* createdKey = null;
+        UInt32 err = 0;
+
+        // TODO/Entity:
+        IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
+        if (dbObject != null)
+            // Getting current position of the object in iterator.
+            err = sccoredb.sc_get_index_position_key(
+                indexInfo.Handle,
+                dbObject.Identity,
+                dbObject.ThisHandle,
+                &createdKey
+                );
+
+        // Disposing iterator.
+        enumerator.Dispose();
+        // Checking the error.
+        if (err != 0)
+            throw ErrorCode.ToException(err);
+        return createdKey;
+    }
+
+    public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
+        currentObject = null;
+        Debug.Assert(expectedNodeId == nodeId);
+        Debug.Assert(OffsetTuppleLength == 3);
+        TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        tuple.SetTupleLength(enumerators.AvaiableSize);
+        // Static data for validation
+        tuple.WriteSafe((byte)NodeType);
+        tuple.WriteSafe(nodeId);
+
+        Byte* createdKey = GetRecreationKeyFromKernel();
+        // Checking if it was last object.
+        if (createdKey == null)
+            return -1;
+        // Copying the recreation key.
+        UInt16 bytesWritten = *((UInt16*)createdKey);
+        tuple.WriteSafe(createdKey, bytesWritten);
+        enumerators.HaveWritten(tuple.SealTuple());
+        return (short)(expectedNodeId + 1);
+    }
+
+#if false // Old implementation
+    /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
     /// <param name="keyData">Pointer to the beginning of the key to populate.</param>
@@ -327,8 +389,8 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         }
 
         return globalOffset;
-    }    /// <summary>    /// Moves data and updates data offsets for all enumerators.    /// </summary>    public static unsafe void MoveEnumStaticData(Byte* keyData, Int32 bytesToMove, Int32 oldDataEndPos, Int32 shiftBytesNum)    {        // Shifting memory around the ending of old static data.        Kernel32.MoveByteMemory(keyData + oldDataEndPos + shiftBytesNum,            keyData + oldDataEndPos,            bytesToMove);        // Calculating number of enumerators and updates.        Int32 numEnumerators = (*(Int32*)(keyData + 4));        Int32 totalUpdates = (numEnumerators << 1) + 1;        // Calculating data offset positions.        Int32* offsetPos = (Int32*)(keyData + 8);        for (Int32 i = 0; i < totalUpdates; i++)        {            // Checking if positions are after the extended data.            if ((*offsetPos) >= oldDataEndPos)                (*offsetPos) += shiftBytesNum;            offsetPos++;        }    }
-    public Boolean MoveNextSpecial(Boolean force)    {        if (!force && MoveNext()) return true;        if (counter == 0 || force)        {            // Create a "null" object.            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));            currentObject = new Row(rowTypeBinding);            currentObject.AttachObject(extentNumber, nullObj);            counter++;            return true;        }        currentObject = null;        return false;    }    /// <summary>    /// Resets the enumerator with a context object.    /// </summary>    /// <param name="obj">Context object from another enumerator.</param>    public override void Reset(Row obj)    {        if (HasCodeGeneration)        {            if (enumeratorCreated)                NewCodeGen.NewCodeGen_Reset(UniqueQueryID);        }        else        {            enumerator.Dispose();        }        enableRecreateObjectCheck = false;        enumeratorCreated = false;        //rangeChanged = false;        currentObject = null;        contextObject = obj;        counter = 0;        triedEnumeratorRecreation = false;        // Checking the context object.        if (contextObject == null)        {            // Updating the enumerator filter to its default state.            enumerator.UpdateFilter(callbackManagedFilterCached);
+    }#endif    /// <summary>    /// Moves data and updates data offsets for all enumerators.    /// </summary>    public static unsafe void MoveEnumStaticData(Byte* keyData, Int32 bytesToMove, Int32 oldDataEndPos, Int32 shiftBytesNum)    {        // Shifting memory around the ending of old static data.        Kernel32.MoveByteMemory(keyData + oldDataEndPos + shiftBytesNum,            keyData + oldDataEndPos,            bytesToMove);        // Calculating number of enumerators and updates.        Int32 numEnumerators = (*(Int32*)(keyData + 4));        Int32 totalUpdates = (numEnumerators << 1) + 1;        // Calculating data offset positions.        Int32* offsetPos = (Int32*)(keyData + 8);        for (Int32 i = 0; i < totalUpdates; i++)        {            // Checking if positions are after the extended data.            if ((*offsetPos) >= oldDataEndPos)                (*offsetPos) += shiftBytesNum;            offsetPos++;        }    }
+    public Boolean MoveNextSpecial(Boolean force)    {        if (!force && MoveNext()) return true;        if (counter == 0 || force)        {            // Create a "null" object.            NullObject nullObj = new NullObject(rowTypeBinding.GetTypeBinding(extentNumber));            currentObject = new Row(rowTypeBinding);            currentObject.AttachObject(extentNumber, nullObj);            counter++;            return true;        }        currentObject = null;        return false;    }    /// <summary>    /// Resets the enumerator with a context object.    /// </summary>    /// <param name="obj">Context object from another enumerator.</param>    public override void Reset(Row obj)    {        if (HasCodeGeneration)        {            if (enumeratorCreated)                NewCodeGen.NewCodeGen_Reset(UniqueQueryID);        }        else        {            enumerator.Dispose();        }        enableRecreateObjectCheck = false;        enumeratorCreated = false;        //rangeChanged = false;        currentObject = null;        contextObject = obj;        counter = 0;        //triedEnumeratorRecreation = false;        // Checking the context object.        if (contextObject == null)        {            // Updating the enumerator filter to its default state.            enumerator.UpdateFilter(callbackManagedFilterCached);
             isAtRecreatedKey = false;
             stayAtOffsetkey = false;
             useOffsetkey = true;

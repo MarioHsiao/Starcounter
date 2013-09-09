@@ -63,4 +63,9 @@
     <ClInclude Include="decimal\impl\decimal.hpp" />
     <ClInclude Include="decimal\macro_definitions.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="run_ipc_test.bat">
+      <Filter>src</Filter>
+    </None>
+  </ItemGroup>
 </Project>

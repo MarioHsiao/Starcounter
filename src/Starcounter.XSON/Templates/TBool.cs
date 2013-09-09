@@ -13,14 +13,18 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines a boolean property in an App object.
     /// </summary>
-    public class TBool : TValue<bool>
+    public class TBool : PrimitiveProperty<bool>
     {
         /// <summary>
         /// The _ default value
         /// </summary>
         private bool _DefaultValue = false;
 
-        public override void ProcessInput(Obj obj, byte[] rawValue)
+        public override Type MetadataType {
+            get { return typeof(BoolMetadata<Json>); }
+        }
+
+        public override void ProcessInput(Json obj, byte[] rawValue)
         {
             // TODO:
             // Proper implementation.

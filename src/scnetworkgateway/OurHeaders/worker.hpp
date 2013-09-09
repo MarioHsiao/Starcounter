@@ -181,8 +181,8 @@ public:
 
         port_num_active_conns_[port_index] += change_value;
 
-        // Changing number of active sessions.
-        g_gateway.ChangeNumActiveSessions(change_value);
+        // Changing number of active sockets.
+        g_gateway.ChangeNumActiveSockets(change_value);
     }
 
     // Set number of active connections.
@@ -198,6 +198,12 @@ public:
     }
 
 #endif
+
+    // Generates a new scheduler id.
+    scheduler_id_type GenerateSchedulerId(SocketDataChunk* sd)
+    {
+        return GetWorkerDb(sd->get_db_index())->GenerateSchedulerId();
+    }
 
     // Getting random generator.
     random_generator* get_random()

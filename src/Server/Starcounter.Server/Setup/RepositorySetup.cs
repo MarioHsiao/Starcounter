@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server;
 using Starcounter.Internal;
 

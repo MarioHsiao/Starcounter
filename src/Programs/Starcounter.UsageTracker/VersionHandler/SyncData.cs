@@ -19,35 +19,73 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         internal static void Start() {
 
-            // 1. Check if uploaded packages in 'Settings.UploadFolder' exist as Database.VersionPackage instances
-            CheckVersionPackageVsDatabase();
 
-            // 2. Check if Database Packages exist in 'Settings.UploadFolder'
-            CheckDatabaseVsVersionPackages();
+            // Check if Database Packages exist in 'Settings.UploadFolder'
+            // NOTE: It's important that this is called before .FixUnhandledPackages();
+            RemoveInvalidSourceItems();
 
-            // 3. Check if unpacked package source 'Settings.SourceFolder' exist in Database.Source class
-            CheckSourcesVsDatabase();
+            // Check if uploaded packages in 'Settings.UploadFolder' exist as Database.VersionPackage instances
+            FixUnhandledPackages();
 
-            // 4. Check if Database Source exist in 'Settings.SourceFolder'
-            CheckDatabaseVsSources();
+            // Check if unpacked package source 'Settings.SourceFolder' exist in Database.Source class
+            FixMissingSources();
 
-            // 5. Check if versions in 'Settings.VersionFolder' exist in Database.Version class
-            CheckBuildsVsDatabase();
+            // Check if versions in 'Settings.VersionFolder' exist in Database.Version class
+            CleanupBuildFolder();
 
-            // 6. Check if Database.Version exist in 'Settings.VersionFolder'
-            CheckDatabaseVsBuilds();
+            // Check if Database.Version exist in 'Settings.VersionFolder'
+            CleanupBuilds();
 
-            // 7. Previously failed builds will be rebuild if necessary
+            // Previously failed builds will be rebuild if necessary
             UnmarkFailedBuilds();
 
         }
 
         /// <summary>
-        /// Check if uploads in the filesystem is registered in the database
-        /// If upload is missing it will be added to the database if it's a vaild uploaded package
+        /// Remove invalid source items
+        /// There is no package to unpack and there is no source folder specified
+        /// </summary>
+        private static void RemoveInvalidSourceItems() {
+
+            Db.Transaction(() => {
+
+                var result = Db.SlowSQL("SELECT o FROM VersionSource o");
+                foreach (VersionSource source in result) {
+
+                    if (!string.IsNullOrEmpty(source.PackageFile) && !File.Exists(source.PackageFile)) {
+                        // Package file is missing
+                        source.PackageFile = null;
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing package {0} from database.", source.Version));
+                    }
+
+                    if (!string.IsNullOrEmpty(source.SourceFolder) && !Directory.Exists(source.SourceFolder)) {
+                        // Source folder is missing
+                        source.SourceFolder = null;
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing source {0} from database.", source.Version));
+                    }
+
+                    if (string.IsNullOrEmpty(source.PackageFile) && string.IsNullOrEmpty(source.SourceFolder)) {
+                        // No Package file specifed and there is no sourcefolder specified
+                        string version = source.Version;
+                        source.Delete();
+                        LogWriter.WriteLine(string.Format("WARNING: Source item {0} was removed from database, package and sourcefolder was not specified.", version));
+                    }
+                }
+            });
+
+            // TODO: Remove duplicates
+
+        }
+
+        /// <summary>
+        /// Check if packages in the filesystem is registered in the database
+        /// If package is missing it will be added to the database if it's a vaild uploaded package
         /// and not a duplicate
         /// </summary>
-        private static void CheckVersionPackageVsDatabase() {
+        /// <remarks>
+        /// A packages is a zipped file.
+        /// </remarks>
+        private static void FixUnhandledPackages() {
 
             VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
@@ -58,49 +96,30 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             string[] files = Directory.GetFiles(settings.UploadFolder);
             foreach (string file in files) {
 
-                VersionSource versionSource = Db.SlowSQL("SELECT o FROM VersionSource o WHERE PackageFile=?", file).First;
+                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE PackageFile=?", file).First;
                 if (versionSource == null) {
+                    // Package file is not registred in database
                     string message;
                     try {
+                        // Register package
                         bool result = PackageHandler.AddFileEntryToDatabase(file, out message);
                         if (result == false) {
-                            LogWriter.WriteLine(string.Format("NOTICE: Can not add version package {0}. {1}", file, message));
+                            LogWriter.WriteLine(string.Format("NOTICE: Failed to register package {0}. {1}.", file, message));
                         }
                     }
                     catch (Exception e) {
-                        LogWriter.WriteLine(string.Format("ERROR: Could not handle version package file {0}. {1}", file, e.Message));
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to handle package {0}. {1}.", file, e.Message));
                     }
                 }
 
             }
         }
 
+
         /// <summary>
-        /// Cleanup database entries that dosent exist on the filesystem
+        /// Check for missing source items.
         /// </summary>
-        private static void CheckDatabaseVsVersionPackages() {
-
-            var result = Db.SlowSQL("SELECT o FROM VersionSource o");
-            foreach (VersionSource source in result) {
-                Db.Transaction(() => {
-
-                    if (!string.IsNullOrEmpty(source.PackageFile) && !File.Exists(source.PackageFile)) {
-                        source.PackageFile = string.Empty;
-                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing package file {0} from database", source.Version));
-                    }
-
-                    if (string.IsNullOrEmpty(source.PackageFile) && string.IsNullOrEmpty(source.SourceFolder)) {
-                        LogWriter.WriteLine(string.Format("NOTICE: Removing source item {0} from database (package and sourcefolder is missing)", source.Version));
-                        source.Delete();
-                    }
-
-                });
-
-
-            }
-        }
-
-        private static void CheckSourcesVsDatabase() {
+        private static void FixMissingSources() {
 
             VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
@@ -114,59 +133,38 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 string[] versionSources = Directory.GetDirectories(channel);
 
-                foreach (string versionSource in versionSources) {
-
-                    DirectoryInfo versionFolder = new DirectoryInfo(versionSource);
+                foreach (string versionSourceFolder in versionSources) {
+                    // ..\nightlybuilds\2.0.0.0\sdflsdljfsdl
 
                     // TODO: Dont use the version folder name for version number.
-                    // TODO: Extract the version from VersionInfo.xml
+                    DirectoryInfo versionFolder = new DirectoryInfo(versionSourceFolder);
 
-                    VersionSource source = Db.SlowSQL("SELECT o FROM VersionSource o WHERE Version=?", versionFolder.Name).First;
+                    // TODO: Extract the version from VersionInfo.xml it's more accurat
+
+                    VersionSource source = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE Version=?", versionFolder.Name).First;
                     if (source == null) {
-                        LogWriter.WriteLine(string.Format("NOTICE: Adding missing version Source {0} to database", versionFolder.Name));
 
                         Db.Transaction(() => {
                             DirectoryInfo channelFolder = new DirectoryInfo(channel);
-                            VersionSource dbSource = new VersionSource();
-                            dbSource.SourceFolder = versionSource;
-                            dbSource.PackageFile = string.Empty;
-                            dbSource.Channel = channelFolder.Name;
-                            dbSource.Version = versionFolder.Name;
-                            dbSource.BuildError = false;
+                            VersionSource versionSource = new VersionSource();
+                            versionSource.SourceFolder = versionSourceFolder;
+                            versionSource.PackageFile = null;
+                            versionSource.Channel = channelFolder.Name;
+                            versionSource.Version = versionFolder.Name;
+                            versionSource.BuildError = false;
                         });
+
+                        LogWriter.WriteLine(string.Format("NOTICE: Missing source {0} was added to database.", versionFolder.Name));
                     }
                 }
             }
         }
 
-        private static void CheckDatabaseVsSources() {
-
-            var result = Db.SlowSQL("SELECT o FROM VersionSource o");
-
-            foreach (VersionSource source in result) {
-
-                Db.Transaction(() => {
-
-                    if (!string.IsNullOrEmpty(source.SourceFolder) && !Directory.Exists(source.SourceFolder)) {
-                        source.SourceFolder = string.Empty;
-                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing source version {0} from database", source.Version));
-                    }
-
-
-                    if (string.IsNullOrEmpty(source.PackageFile) && string.IsNullOrEmpty(source.SourceFolder)) {
-                        LogWriter.WriteLine(string.Format("NOTICE: Removing source item {0} from database (sourcefolder and package is missing)", source.Version));
-                        source.Delete();
-                    }
-
-                });
-
-            }
-
-            // TODO: Remove duplicates
-
-        }
-
-        private static void CheckBuildsVsDatabase() {
+        /// <summary>
+        /// Cleanup build folder
+        /// Downloaded files and files with no reference to database is removed
+        /// </summary>
+        private static void CleanupBuildFolder() {
 
             VersionHandlerSettings settings = VersionHandlerApp.Settings;
             bool bRemoveBuildFolder = false;
@@ -196,13 +194,13 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         }
                         else {
                             string file = files[0];
-                            VersionBuild dbVersion = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.File=?", file).First;
-                            if (dbVersion == null) {
+                            VersionBuild versionBuild = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.File=?", file).First;
+                            if (versionBuild == null) {
                                 bRemoveBuildFolder = true;
                             }
                             else {
-                                // Also remove downloaded builds
-                                if (dbVersion.HasBeenDownloaded == true) {
+                                // Also remove downloaded builds to cleanup
+                                if (versionBuild.HasBeenDownloaded == true) {
                                     bRemoveBuildFolder = true;
                                 }
                             }
@@ -214,11 +212,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                                 // Cleanup
                                 if (Directory.Exists(buildFolder)) {
                                     Directory.Delete(buildFolder, true);
-                                    LogWriter.WriteLine(string.Format("NOTICE: build Folder {0} was removed, File was downloaded or the file is missing in the database.", buildFolder));
+                                    LogWriter.WriteLine(string.Format("NOTICE: Build {0} was removed, File was downloaded or there was no reference to it.", buildFolder));
                                 }
                             }
                             catch (Exception e) {
-                                LogWriter.WriteLine(string.Format("ERROR: Could not cleanup build folder {0}. {1}", buildFolder, e.Message));
+                                LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup build folder {0}. {1}.", buildFolder, e.Message));
                             }
                         }
                     }
@@ -227,20 +225,25 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
-        private static void CheckDatabaseVsBuilds() {
+        /// <summary>
+        /// Remove build's that dosent have a source (we can not build more)
+        /// and remove build where there is no reference to an existing file
+        /// </summary>
+        private static void CleanupBuilds() {
 
             // Remove all builds that dosent have a source and has not been downloaded
             Db.Transaction(() => {
                 var result = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.Source is null AND o.HasBeenDownloaded=?", false);
                 foreach (VersionBuild build in result) {
+                    string file = build.File;
                     build.Delete();
+                    LogWriter.WriteLine(string.Format("NOTICE: Removed build {0} from database, Build have not source.", file));
                 }
             });
 
             Db.Transaction(() => {
 
                 var result = Db.SlowSQL("SELECT o FROM VersionBuild o");
-
                 foreach (VersionBuild build in result) {
 
                     if (!File.Exists(build.File)) {
@@ -249,15 +252,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         if (!build.HasBeenDownloaded) {
                             string file = build.File;
                             build.Delete();
-                            LogWriter.WriteLine(string.Format("NOTICE: Missing build {0} has been removed from the database.", file));
+                            LogWriter.WriteLine(string.Format("NOTICE: Removed build {0} from database, File was missing.", file));
                         }
                     }
-
                 }
             });
-
-
-
 
         }
 
@@ -266,10 +265,13 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// </summary>
         private static void UnmarkFailedBuilds() {
 
+            // TODO: Have a build retry counter. 
+
             var result = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=?", true);
             Db.Transaction(() => {
                 foreach (VersionSource source in result) {
                     source.BuildError = false;
+                    LogWriter.WriteLine(string.Format("NOTICE: Resetted source {0} build error flag.", source.Version));
                 }
             });
 

@@ -147,11 +147,7 @@ public:
 
 	/// This is the method that this worker's thread call at start. It contains
 	/// the worker loop. Here is where the work is done.
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	static void work(worker*);
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	void work();
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void join();
 	worker& set_worker_number(std::size_t n);
 	worker& set_active_schedulers(std::size_t n);
@@ -204,16 +200,27 @@ public:
 		return acquired_chunks_;
 	}
 
+    /// Return number of pushed items.
+    /**
+     * @return Number of pushed items.
+     */
+    uint64_t pushed() const {
+        return pushed_;
+    }
+
+    /// Return number of popped items.
+    /**
+     * @return Number of popped items.
+     */
+    uint64_t popped() const {
+        return popped_;
+    }
+
 private:
 	chunk_pool<chunk_index> chunk_pool_;
 	chunk_pool<channel_chunk> overflow_pool_;
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread thread_;
 	thread::native_handle_type thread_handle_;
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	boost::thread thread_;
-	boost::detail::win32::handle thread_handle_;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::mutex mutex_;
 	std::string monitor_interface_name_;
 	std::string segment_name_;
@@ -252,6 +259,10 @@ private:
 	
 	// Number of acquired chunks.
 	uint64_t acquired_chunks_;
+
+    // For statistics:
+    uint64_t pushed_;
+    uint64_t popped_;
 };
 
 } // namespace interprocess_communication

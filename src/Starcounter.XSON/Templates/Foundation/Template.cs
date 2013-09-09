@@ -19,15 +19,64 @@ namespace Starcounter.Templates {
     /// A template describes an App or a property of an App. A tree of
     /// templates defines the schema of an App.
     /// </summary>
-    public abstract class Template : IReadOnlyTree
+    public abstract partial class Template : IReadOnlyTree
     {
+        /// <summary>
+        /// The _ class name
+        /// </summary>
+        internal string _ClassName;
+
+
+        /// <summary>
+        /// Returns true if this object support expando like (Javascript like) behaviour that
+        /// lets you create properties without a preexisting schema.
+        /// </summary>
+        public bool IsDynamic {
+            get {
+                return _Dynamic;
+            }
+            set {
+                _Dynamic = value;
+            }
+        }
+
+
+        private bool _Dynamic = false;
+
+
+        /// <summary>
+        /// Gets or sets the name of the class.
+        /// </summary>
+        /// <value>The name of the class.</value>
+        public string ClassName {
+            get {
+                return _ClassName;
+            }
+            set {
+                _ClassName = value;
+            }
+        }
+        /// <summary>
+        /// Gets or sets the namespace.
+        /// </summary>
+        /// <value></value>
+        public string Namespace { get; set; }
+
+
+        public abstract bool IsPrimitive { get; }
+
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         public override string ToString() {
-            return DebugPropertyNameWithPath;
+            return DebugString;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public abstract Type MetadataType { get; }
 
         /// <summary>
         /// Gets the type of the json.
@@ -114,8 +163,8 @@ namespace Starcounter.Templates {
                 return _Parent;
             }
             set {
-                if (value is TObj) {
-                    var at = (TObj)value;
+                if (value is TObject) {
+                    var at = (TObject)value;
                     at.Properties.Add(this);
                 }
                 _Parent = (TContainer)value;
@@ -191,7 +240,7 @@ namespace Starcounter.Templates {
                     string name = value.Replace("$", "");
                     _PropertyName = name;
                     if (Parent != null) {
-                        var parent = (TObj)Parent;
+                        var parent = (TObject)Parent;
                         var props = (PropertyList)(parent.Properties);
                         props.ChildPropertyNameIsSet(this);
                         props.ChildNameIsSet(this);
@@ -207,26 +256,50 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The name of the property.</value>
         public string PropertyName {
-            get { return _PropertyName; }
+            get {
+                if (_PropertyName == null ) {
+                    var p = Parent;
+                    if ( p != null && p is TObjArr ) {
+                       return Parent.PropertyName + "Element";
+                    }
+                }
+                return _PropertyName;
+            }
+        }
+
+                /// <summary>
+        /// The property name including parent path
+        /// </summary>
+        public string DebugString {
+            get {
+                return HelperFunctions.GetClassDeclarationSyntax(this.GetType()) + " " + DebugPropertyNameWithPathSuffix;
+            }
         }
 
         /// <summary>
-        /// The property name including parent path
+        /// 
         /// </summary>
-        public string DebugPropertyNameWithPath {
+        private string DebugPropertyNameWithPathSuffix {
             get {
+                var str = "";
                 if (Parent != null) {
-                    return Parent.DebugPropertyNameWithPath + "." + PropertyName;
-                } else {
-                    String str;
+                    str += Parent.DebugPropertyNameWithPathSuffix + ".";
+                }
+                if (Parent is TObjArr) {
+                    str += "ElementType.";
+                }
+                else {
                     if (PropertyName != null) {
-                        str = "(" + PropertyName + ").";
+                        str += PropertyName;
+                    }
+                    else if (ClassName != null) {
+                        str += this.ClassName;
                     }
                     else {
-                        str = "";
+                        str += "(anonymous)";
                     }
-                    return str + this.GetType().Name+"#"+this.GetHashCode();
                 }
+                return str; // +" #" + this.GetHashCode();
             }
         }
 
@@ -290,9 +363,9 @@ namespace Starcounter.Templates {
             if (this != prop.Parent) {
                 throw new Exception(String.Format(
                     "The property {0} is declared in {1} but an attempt was made to use it in {2}",
-                    prop.DebugPropertyNameWithPath,
-                    prop.Parent.DebugPropertyNameWithPath,
-                    this.DebugPropertyNameWithPath));
+                    prop.DebugString,
+                    prop.Parent.DebugString,
+                    this.DebugString));
             }
 
         }

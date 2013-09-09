@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using Starcounter;
 using Starcounter.Management.Win32;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Internal;
 using Starcounter.Server.Setup;
 
@@ -528,7 +528,7 @@ public class CSystemServer : CComponentBase
         }
 
         // Checking for Starcounter server configuration file.
-        String serverDir = InstallerMain.ReadServerInstallationPath(SystemServerConfigPath);
+        String serverDir = Utilities.ReadServerInstallationPath(SystemServerConfigPath);
         if (Directory.Exists(serverDir))
             return true;
 

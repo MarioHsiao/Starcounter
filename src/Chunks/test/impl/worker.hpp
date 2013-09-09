@@ -27,7 +27,9 @@ chunk_pool_(chunks_total_number_max),
 overflow_pool_(chunks_total_number_max),
 num_channels_(0),
 random_generator_(0 /*seed*/),
-acquired_chunks_(0) {}
+acquired_chunks_(0),
+pushed_(0),
+popped_(0) {}
 
 worker::~worker() {
 	join();
@@ -64,11 +66,7 @@ void worker::start() {
 	/// Start worker thread
 	///=========================================================================
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread_.create((thread::start_routine_type) &worker::work, this); 
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	thread_ = boost::thread(&worker::work, this); 
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	thread_handle_ = thread_.native_handle();	
 }
 
@@ -84,15 +82,8 @@ inline bool worker::is_running() {
 	return get_state() == running;
 }
 
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 void worker::work(worker* worker)
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-void worker::work()
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 try {
-#if !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	worker* worker = this;
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	chunk_index request_message;
 	chunk_index response_message;
 	//uint32_t scan_out_buffers = 0;
@@ -102,9 +93,9 @@ try {
 	bool worked = false;
 	bool scanned_channel_out_buffers = false;
 	uint64_t scan_counter = scan_counter_preset;
-	uint64_t pushed = 0;
-	uint64_t popped = 0;
 	uint64_t statistics_counter = 0;
+    uint64_t popped_from_channels[32] = { 0 };
+    uint64_t pushed_to_channels[32] = { 0 };
 
 	worker->set_state(running);
 
@@ -148,7 +139,8 @@ try {
 						(worker->shared().scheduler_work_event
 						(the_channel.get_scheduler_number()));
 						
-						++pushed; // Used for statistics.
+						++pushed_to_channels[n];
+						++worker->pushed_; // Used for statistics.
 						worked = true;
 						
 						// Continue with the next channel.
@@ -209,7 +201,8 @@ try {
 									(worker->shared().scheduler_work_event
 									(the_channel.get_scheduler_number()));
 									
-									++pushed; // Used for statistics.
+									++pushed_to_channels[n];
+									++worker->pushed_; // Used for statistics.
 									worked = true;
 									
 									// Continue with the next channel.
@@ -258,7 +251,8 @@ try {
 				(worker->shared().scheduler_work_event
 				(the_channel.get_scheduler_number()));
 				
-				++pushed; // Used for statistics.
+				++pushed_to_channels[n];
+				++worker->pushed_; // Used for statistics.
 				worked = true;
 				
 				// Remove the request message from the channel::in_overflow
@@ -288,7 +282,8 @@ scan_channel_out_buffers:
 					the_channel.scheduler()->notify(worker->shared()
 					.scheduler_work_event(the_channel.get_scheduler_number()));
 					
-					++popped; // Used for statistics.
+					++popped_from_channels[n];
+					++worker->popped_; // Used for statistics.
 					worked = true;
 					
 					// Handle all responses in this chunk.
@@ -339,7 +334,18 @@ scan_channel_out_buffers:
 		
 		/// Show some statistics
 		if ((++statistics_counter & ((1 << 24) -1)) == 0) {
-			std::cout << "worker[" << worker->id() << "]: pushed " << pushed << ", popped " << popped << std::endl;
+			std::cout << "worker[" << worker->id() << "]: has " << worker->get_chunk_pool().size() << " chunks, pushed "
+            << worker->pushed_ << ", popped " << worker->popped_ << std::endl;
+
+            for (int i = 0; i < worker->num_channels(); i++)
+                std::cout << "worker[" << worker->id() << "]: pushed to channel " <<
+                i << ": " << pushed_to_channels[i] << std::endl;
+
+            for (int i = 0; i < worker->num_channels(); i++)
+                std::cout << "worker[" << worker->id() << "]: popped from channel " <<
+                i << ": " << popped_from_channels[i] << std::endl;
+
+            std::cout << std::endl;
 		}
 		
 		// Check if this worker wait for work. Assuming not.
@@ -373,7 +379,7 @@ scan_channel_out_buffers:
 				
 				// Must not go to sleep if have not scanned out buffers.
 				if (scanned_channel_out_buffers) {
-					std::cout << "worker[" << worker->id() << "]: waits. . ." << std::endl;
+					std::cout << "worker[" << worker->id() << "]: has " << worker->get_chunk_pool().size() << " chunks, waits. . ." << std::endl;
 					if (worker->shared().client_interface().wait_for_work
 					(worker->shared().client_work_event(), wait_for_work_milli_seconds)
 					== true) {
@@ -405,13 +411,7 @@ scan_channel_out_buffers:
 	return;
 }
 catch (starcounter::interprocess_communication::worker_exception& e) {
-	std::cout << " worker["
-#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	<< worker->id()
-#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	<< id()
-#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-	<< "] error: worker exception "
+	std::cout << " worker[" << worker->id() << "] error: worker exception "
 	<< "caught with error code " << e.error_code() << std::endl;
 }
 

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using System.IO;
 using System.Diagnostics;
 using System.Globalization;

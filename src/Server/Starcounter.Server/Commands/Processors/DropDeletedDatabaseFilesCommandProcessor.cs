@@ -1,5 +1,5 @@
 ﻿
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel.Commands;
 using System;

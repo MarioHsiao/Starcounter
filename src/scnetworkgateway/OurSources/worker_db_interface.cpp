@@ -69,12 +69,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
             the_channel.scheduler()->notify(shared_int_.scheduler_work_event
-                (the_channel.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-            the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+            (the_channel.get_scheduler_number()));
 
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(cur_chunk_index));
@@ -296,13 +292,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
     int16_t sched_id)
 {
     // Assuring that session goes to correct scheduler.
-    if (sched_id >= num_schedulers_)
-    {
-        // Returning linked multiple chunks.
-        ReturnLinkedChunksToPool(stats_num_chunks, the_chunk_index);
-
-        return;
-    }
+    GW_ASSERT (sched_id < num_schedulers_);
 
     // Obtaining the channel.
     core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
@@ -406,11 +396,14 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     smc->set_request_size(4);
 
     // Checking scheduler id validity.
-    if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = GetSchedulerId();
+    if (sched_id >= num_schedulers_)
+    {
+        sched_id = GenerateSchedulerId();
+        sd->set_scheduler_id(sched_id);
+    }
 
-    // Setting scheduler id to session.
-    sd->set_scheduler_id(sched_id);
+    // Checking that scheduler is correct for this database.
+    GW_ASSERT(sched_id < num_schedulers_);
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
@@ -422,7 +415,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 }
 
 // Registers push channel.
-uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
+uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_id)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
@@ -442,7 +435,7 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
     request->write(bmx::BMX_REGISTER_PUSH_CHANNEL);
 
     // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk, 1, sched_num);
+    PushLinkedChunksToDb(new_chunk, 1, sched_id);
 
     return 0;
 }
@@ -450,8 +443,8 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
 // Pushes session destroyed message.
 uint32_t WorkerDbInterface::PushSessionDestroy(
     session_index_type linear_index,
-    session_salt_type random_salt,
-    uint8_t scheduler_id)
+    random_salt_type random_salt,
+    uint8_t sched_id)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
@@ -477,7 +470,7 @@ uint32_t WorkerDbInterface::PushSessionDestroy(
     request->write(random_salt);
 
     // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk, 1, scheduler_id);
+    PushLinkedChunksToDb(new_chunk, 1, sched_id);
 
     return 0;
 }
@@ -497,15 +490,8 @@ uint32_t WorkerDbInterface::PushSessionCreate(SocketDataChunkRef sd)
     // Writing BMX message type.
     request->write(bmx::BMX_SESSION_CREATE);
 
-    // Obtaining the current scheduler id.
-    scheduler_id_type sched_id = sd->get_scheduler_id();
-
-    // Checking scheduler id validity.
-    if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = GetSchedulerId();
-
     // Pushing the chunk.
-    PushLinkedChunksToDb(sd->get_chunk_index(), 1, sched_id);
+    PushLinkedChunksToDb(sd->get_chunk_index(), 1, sd->get_scheduler_id());
 
     return 0;
 }
@@ -540,10 +526,6 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     // Writing error string.
     request->write_wstring(err_msg, wcslen(err_msg));
 
-    // Checking scheduler id validity.
-    if (INVALID_SCHEDULER_ID == sched_id)
-        sched_id = GetSchedulerId();
-
     // Pushing the chunk.
     PushLinkedChunksToDb(new_chunk_index, 1, sched_id);
 
@@ -551,7 +533,7 @@ uint32_t WorkerDbInterface::PushErrorMessage(
 }
 
 // Requesting previously registered handlers.
-uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
+uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_id)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
@@ -571,7 +553,7 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
     request->write(bmx::BMX_SEND_ALL_HANDLERS);
 
     // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk, 1, sched_num);
+    PushLinkedChunksToDb(new_chunk, 1, sched_id);
 
     return 0;
 }

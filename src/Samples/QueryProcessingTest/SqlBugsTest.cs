@@ -26,6 +26,7 @@ namespace QueryProcessingTest {
             TestEnumerators();
             QueryResultMismatch();
             TestIndexQueryOptimization();
+            TestShortClassNames();
         }
 
         public static void TestFetchOrderBy() {
@@ -66,7 +67,8 @@ namespace QueryProcessingTest {
             // Test queries with LIKE ?
             //HelpMethods.PrintQueryPlan("select u from user u where userid like ?");
             int nrs = 0;
-            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati%"))
+            var users = Db.SQL<User>("select u from user u where userid like ?", "kati%");
+            foreach (User u in users)
                 nrs++;
             Trace.Assert(nrs == 157);
             nrs = 0;
@@ -292,9 +294,9 @@ namespace QueryProcessingTest {
 
         public static void QueryResultMismatch() {
             HelpMethods.LogEvent("Start testing query result mismatch errors.");
-            var accs = Db.SQL<Account>("select * from account a");
             bool wasException = false;
             try {
+                var accs = Db.SQL<Account>("select * from account a");
                 var a = accs.First;
             } catch (Exception exc) {
                 if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
@@ -303,8 +305,8 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(wasException);
             wasException = false;
-            var users = Db.SQL<User>("select * from user u");
             try {
+                var users = Db.SQL<User>("select * from user u");
                 using (var res = users.GetEnumerator()) {
                     Trace.Assert(res.MoveNext());
                     var row = res.Current;
@@ -316,8 +318,8 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(wasException);
             wasException = false;
-            var users2 = Db.SQL<Account>("select a.client from account a");
             try {
+                var users2 = Db.SQL<Account>("select a.client from account a");
                 using (var res = users2.GetEnumerator()) {
                     Trace.Assert(res.MoveNext());
                     var row = res.Current;
@@ -329,8 +331,8 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(wasException);
             wasException = false;
-            var astrs = Db.SQL<Account>("select name from user");
             try {
+                var astrs = Db.SQL<Account>("select name from user");
                 using (var res = astrs.GetEnumerator()) {
                     Trace.Assert(res.MoveNext());
                     var row = res.Current;
@@ -342,8 +344,8 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(wasException);
             wasException = false;
-            var decs = Db.SQL<Decimal>("select name from user");
             try {
+                var astrs = Db.SQL<Account>("select name from user");
                 var decsres = astrs.First;
             } catch (Exception exc) {
                 if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
@@ -375,6 +377,12 @@ namespace QueryProcessingTest {
             String enumStr = qEnum.ToString();
             Trace.Assert(!enumStr.Contains("ComparisonString"));
             HelpMethods.LogEvent("Finished testing query optimization with indexes");
+        }
+
+        public static void TestShortClassNames() {
+            HelpMethods.LogEvent("Test queries with classes having similar short names");
+            Trace.Assert(Db.SQL<commonclass>("select c from commonclass c").First == null);
+            HelpMethods.LogEvent("Finished testing queries with classes having similar short names");
         }
     }
 }

@@ -10,6 +10,8 @@ using Starcounter.Query.Sql;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -21,7 +23,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     IObjectExpression expression;
     ILogicalExpression condition;
 
-    Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+    //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
     Boolean stayAtOffsetkey = false;
     public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
     Boolean useOffsetkey = true;
@@ -34,7 +36,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         INumericalExpression fetchNumExpr,
         IBinaryExpression fetchOffsetkeyExpr,
         VariableArray varArr, String query)
-        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr, false)
+        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr, false, 2)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -45,6 +47,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         if (cond == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect cond.");
 
+        Debug.Assert(OffsetTuppleLength == 2);
         extentNumber = extNum;
 
         currentObject = null;
@@ -227,6 +230,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+#if false
     private unsafe void ValidateAndGetRecreateKey(Byte* rk) {
         ValidateAndGetStaticKeyOffset(rk);
 #if false // Not in use
@@ -235,17 +239,18 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         return rk + dynDataOffset;
 #endif
     }
+#endif
 
     internal Boolean ValidOffsetkeyOrNull(IObjectView obj) {
         if (useOffsetkey && fetchOffsetKeyExpr != null) {
             // In order to skip enumerator recreation next time.
-            triedEnumeratorRecreation = true;
+            //triedEnumeratorRecreation = true;
             unsafe {
                 fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
                     Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                     // Checking if recreation key is valid.
                     if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
-                        ValidateAndGetRecreateKey(recrKey);
+                        ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
                     }
                 }
             }
@@ -253,6 +258,20 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         return true;
     }
 
+    public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
+        currentObject = null;
+        Debug.Assert(expectedNodeId == nodeId);
+        Debug.Assert(2 == OffsetTuppleLength);
+        TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
+        tuple.SetTupleLength(enumerators.AvaiableSize);
+        // Static data for validation
+        tuple.WriteSafe((byte)NodeType);
+        tuple.WriteSafe(nodeId);
+        enumerators.HaveWritten(tuple.SealTuple());
+        return (short)(expectedNodeId + 1);
+    }
+
+#if false
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
@@ -299,6 +318,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
         return globalOffset;
     }
+#endif
 
     /// <summary>
     /// Resets the enumerator with a context object.
@@ -309,7 +329,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         contextObject = obj;
         currentObject = null;
         counter = 0;
-        triedEnumeratorRecreation = false;
+        //triedEnumeratorRecreation = false;
 
         if (obj == null) {
             stayAtOffsetkey = false;

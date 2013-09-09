@@ -23,7 +23,7 @@ using System.Globalization;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Server;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 
@@ -106,17 +106,6 @@ namespace Starcounter.InstallerEngine
             {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway statistics port.");
             }
-        }
-
-        // Reads server installation path from configuration file.
-        public static String ReadServerInstallationPath(String PersonalServerConfigPath)
-        {
-            if (!File.Exists(PersonalServerConfigPath))
-                return null;
-
-            XmlDocument serverXML = new XmlDocument();
-            serverXML.Load(PersonalServerConfigPath);
-            return (serverXML.GetElementsByTagName("server-dir"))[0].InnerText;
         }
 
         /// <summary>
@@ -433,6 +422,7 @@ namespace Starcounter.InstallerEngine
             StarcounterConstants.ProgramNames.ScService,
             StarcounterConstants.ProgramNames.ScCode,
             StarcounterConstants.ProgramNames.ScData,
+            StarcounterConstants.ProgramNames.ScDbLog,
             StarcounterConstants.ProgramNames.ScIpcMonitor,
             StarcounterConstants.ProgramNames.ScNetworkGateway,
             StarcounterConstants.ProgramNames.ScWeaver,

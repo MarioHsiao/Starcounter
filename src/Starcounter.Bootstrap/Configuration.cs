@@ -8,6 +8,7 @@ using Starcounter;
 using Starcounter.CommandLine;
 using Starcounter.Internal;
 using System;
+using System.IO;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -158,6 +159,26 @@ namespace StarcounterInternal.Bootstrap
                 serverName = serverName.ToUpper();
 
                 return serverName;
+            }
+        }
+
+        /// <summary>
+        /// Number of workers in gateway.
+        /// </summary>
+        public Byte GatewayNumberOfWorkers
+        {
+            get
+            {
+                if (NoNetworkGateway)
+                    return 0;
+
+                String gatewayWorkersNumber;
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber, out gatewayWorkersNumber))
+                {
+                    return Byte.Parse(gatewayWorkersNumber);
+                }
+
+                throw ErrorCode.ToException(Starcounter.Error.SCERRBADGATEWAYWORKERSNUMBERCONFIG);
             }
         }
 

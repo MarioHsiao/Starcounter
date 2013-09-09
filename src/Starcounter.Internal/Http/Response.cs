@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.Advanced
 {
-    public class ResponseSchedulerStore
+    internal class ResponseSchedulerStore
     {
         LinkedList<Response> cachedResponses_ = new LinkedList<Response>();
 
@@ -39,7 +39,7 @@ namespace Starcounter.Advanced
     /// (compressed or uncompressed content) even if the consumer wants to embed the content
     /// in a new http response.
     /// </remarks>
-    public partial class Response
+    public sealed partial class Response
     {
 /*        /// <summary>
         /// If true, the Uncompressed and/or compressed byte arrays contains content AND header.
@@ -58,10 +58,10 @@ namespace Starcounter.Advanced
  */
 
         // From which cache list this response came from.
-        protected LinkedList<Response> responseCacheListFrom_ = null;
+        LinkedList<Response> responseCacheListFrom_ = null;
 
         // Node with this response.
-        protected LinkedListNode<Response> responseListNode_ = null;
+        LinkedListNode<Response> responseListNode_ = null;
 
         /// <summary>
         /// Returns the enumerator back to the cache.
@@ -612,6 +612,8 @@ namespace Starcounter.Advanced
 
             str += "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
 
+            str += "Cache-Control: no-cache" + StarcounterConstants.NetworkConstants.CRLF;
+
             if (null != headersString_)
                 str += headersString_;
 
@@ -860,8 +862,11 @@ namespace Starcounter.Advanced
         /// </summary>
         public Response()
         {
+//            Retrieved = DateTime.Now.Ticks;
             HeaderInjectionPoint = -1;
         }
+
+//        public long Retrieved { get; set; }
 
         /// <summary>
         /// Reference to corresponding HTTP request.

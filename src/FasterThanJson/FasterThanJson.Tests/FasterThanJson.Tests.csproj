@@ -54,7 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BenchmarkUnsafe.cs" />
     <Compile Include="FasterThanJsonProgram.cs" />
+    <Compile Include="InvestigateTuplePerformance.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomValues.cs" />
     <Compile Include="TestBaseXint.cs" />

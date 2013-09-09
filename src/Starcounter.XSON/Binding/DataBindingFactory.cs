@@ -25,8 +25,9 @@ namespace Starcounter.Internal.XSON {
 		internal static bool VerifyOrCreateBinding(TValue template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -34,12 +35,19 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			if (VerifyBinding(template.dataBinding, dataType, template))
-				return true;
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				return !template.dataBinding.IsDummyBinding;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -64,7 +72,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = @switch[template.InstanceType]();
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
 		}
@@ -78,8 +86,9 @@ namespace Starcounter.Internal.XSON {
         internal static bool VerifyOrCreateBinding(TObjArr template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -87,12 +96,19 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-            if (VerifyBinding(template.dataBinding, dataType, template))
-                return true;
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				return !template.dataBinding.IsDummyBinding;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -103,7 +119,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = new DataValueBinding<IEnumerable>(template, pInfo);
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
         }
@@ -114,11 +130,12 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding(TObj template, Type dataType) {
+        internal static bool VerifyOrCreateBinding(TObject template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -126,12 +143,19 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-            if (VerifyBinding(template.dataBinding, dataType, template))
-                return true;
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				return !template.dataBinding.IsDummyBinding;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -142,7 +166,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = new DataValueBinding<IBindable>(template, pInfo);
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
         }
@@ -154,11 +178,12 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding<TVal>(TValue<TVal> template, Type dataType) {
+        internal static bool VerifyOrCreateBinding<TVal>(Property<TVal> template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
+			Bound bound = template.Bound;
 
-			if (template.Bound == Bound.No)
+			if (bound == Bound.No)
 				return false;
 
 			if (template.invalidateBinding) {
@@ -166,12 +191,19 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			if (VerifyBinding(template.dataBinding, dataType, template))
-                return true;
+			// TODO: 
+			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
+			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
+			// the same, but returns false from this method which is confusing.
+			if (VerifyBinding(template.dataBinding, dataType, template)) {
+				return !template.dataBinding.IsDummyBinding;
+			}
 
-			if (template.Bound == Bound.Yes) {
+			if (bound == Bound.Yes) {
 				throwExceptionOnBindingFailure = true;
 				bindingName = template.Bind;
+				if (bindingName == null)
+					bindingName = template.PropertyName;
 			} else {
 				throwExceptionOnBindingFailure = false;
 				bindingName = template.PropertyName;
@@ -182,7 +214,7 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = new DataValueBinding<TVal>(template, pInfo);
 				return true;
 			} else {
-				template.dataBinding = null;
+				template.dataBinding = new AutoValueBinding(template, dataType);
 				return false;
 			}
         }
@@ -238,8 +270,8 @@ namespace Starcounter.Internal.XSON {
         /// <returns></returns>
         internal static string GetParentClassName(Template template) {
             string className = null;
-            if (template.Parent is TObj)
-                className = ((TObj)template.Parent).ClassName;
+            if (template.Parent is TObject)
+                className = ((TObject)template.Parent).ClassName;
             else if (template.Parent is TObjArr) {
                 className = ((TObjArr)template.Parent).ElementType.ClassName;
             }

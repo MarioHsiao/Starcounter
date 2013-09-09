@@ -237,6 +237,81 @@ end:
     return r;
 }
 
+uint32_t _read_gateway_config(
+    const wchar_t *gateway_config_path,
+    wchar_t **pgateway_workers_number)
+{
+    using namespace rapidxml;
+
+    uint32_t r;
+    FILE *file;
+    char *config_data;
+    xml_document<> *doc; // Character type defaults to char.
+    size_t str_num_chars;
+    size_t str_size_bytes;
+
+    r = SCERRBADSERVERCONFIG;
+
+    file = 0;
+    config_data = 0;
+    doc = 0;
+
+    errno_t errno;
+    int32_t file_size;
+    size_t read;
+
+    errno = _wfopen_s(&file, gateway_config_path, L"r");
+    if (errno) goto end;
+    fseek(file, 0, SEEK_END);
+    file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    config_data = (char *)malloc(file_size + 1);
+    if (!config_data) goto end;
+
+    read = fread(config_data, 1, file_size, file);
+    config_data[read] = 0;
+    fclose(file);
+    file = 0;
+
+    // TODO: Handle rapidxml error (exception thrown).
+
+    doc = new xml_document<>; // Character type defaults to char.
+    if (!doc) goto end;
+
+    try
+    {
+        doc->parse<0>(config_data); // 0 means default parse flags.
+    }
+    catch (parse_error)
+    {
+        goto end;
+    }
+
+    xml_node<> *root_elem = doc->first_node("NetworkGateway");
+    if (!root_elem) goto end;
+
+    xml_node<> *gateway_workers_number = root_elem->first_node("WorkersNumber");
+    if (!gateway_workers_number) goto end;
+
+    str_num_chars = gateway_workers_number->value_size() + 1;
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    *pgateway_workers_number = (wchar_t *)malloc(str_size_bytes);
+    if (!*pgateway_workers_number) goto end;
+
+    // Converting from UTF-8 to wchar_t.
+    int32_t num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, gateway_workers_number->value(), -1, *pgateway_workers_number, (int)str_num_chars);
+    if (0 == num_chars_converted) goto end;
+
+    r = 0;
+
+end:
+    if (doc) delete doc;
+    if (config_data) free(config_data);
+    if (file) fclose(file);
+    return r;
+}
+
 uint32_t _read_database_config(const wchar_t *database_config_path,  wchar_t **pdatabase_logs_dir,  wchar_t **pdatabase_temp_dir, wchar_t **pdatabase_image_dir, wchar_t **pdatabase_scheduler_count)
 {
     using namespace rapidxml;

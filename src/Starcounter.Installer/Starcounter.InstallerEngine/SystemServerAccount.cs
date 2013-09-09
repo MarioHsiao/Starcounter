@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using Microsoft.Win32;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Management.Win32;
 using System.DirectoryServices;
 using System.Collections;
