@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using NUnit.Framework;
+using Starcounter.Internal;
 
-namespace Starcounter.Internal {
+namespace FasterThanJson.Tests {
     [TestFixture]
     public class TestBinary {
         [Test]
@@ -14,9 +15,9 @@ namespace Starcounter.Internal {
             byte[] decoded;
             unsafe {
                 fixed (byte* valuePtr = value, encodedPtr = encoded) {
-                    uint length = Base64Binary.Write((IntPtr)encodedPtr, valuePtr, 3);
+                    uint length = Base64Binary.Write(encodedPtr, valuePtr, 3);
                     Assert.AreEqual(length, 4);
-                    decoded = Base64Binary.Read(4, (IntPtr)encodedPtr);
+                    decoded = Base64Binary.Read(4, encodedPtr);
                 }
             }
             Assert.AreEqual(decoded.Length, 3);
@@ -24,22 +25,22 @@ namespace Starcounter.Internal {
                 Assert.AreEqual(value[i], decoded[i]);
             byte[] nullBinary = null;
             unsafe {
-                fixed (byte* valuePtr = nullBinary, encodedPtr = encoded) {
-                    uint length = Base64Binary.Write((IntPtr)encodedPtr, valuePtr, 0);
-                    Assert.AreEqual(length, 0);
-                    decoded = Base64Binary.Read(0, (IntPtr)encodedPtr);
+                fixed (byte* encodedPtr = encoded) {
+                    uint length = Base64Binary.Write(encodedPtr, nullBinary);
+                    Assert.AreEqual(length, 1);
+                    decoded = Base64Binary.Read(1, encodedPtr);
                 }
             }
-            Assert.AreEqual(decoded.Length, 0);
+            Assert.AreEqual(null, decoded);
         }
 
         internal void ConvertByteArray(byte[] value, uint valueLength, byte[] encoded, uint expectedEncodedLength) {
             byte[] decoded;
             unsafe {
                 fixed (byte* valuePtr = value, encodedPtr = encoded) {
-                    uint length = Base64Binary.Write((IntPtr)encodedPtr, valuePtr, valueLength);
+                    uint length = Base64Binary.Write(encodedPtr, valuePtr, valueLength);
                     Assert.AreEqual(length, expectedEncodedLength);
-                    decoded = Base64Binary.Read(expectedEncodedLength, (IntPtr)encodedPtr);
+                    decoded = Base64Binary.Read(expectedEncodedLength, encodedPtr);
                 }
             }
             Assert.AreEqual(decoded.Length, valueLength);
@@ -116,7 +117,19 @@ namespace Starcounter.Internal {
                 fixed (byte* encodedPtr = encoded, valuePtr = value) {
                     timer.Start();
                     for (int i = 0; i < nrIterations; i++)
-                        Base64Binary.Write((IntPtr)encodedPtr, valuePtr, valueLength);
+                        Base64Binary.Write(encodedPtr, valuePtr, valueLength);
+                    timer.Stop();
+                }
+            }
+            Console.WriteLine(nrIterations + " writes of byte array pointer with length " +
+                valueLength + " takes " + timer.ElapsedMilliseconds + " ms, i.e., " +
+                (1000000 * timer.ElapsedMilliseconds) / nrIterations + " ns per write.");
+            timer.Reset();
+            unsafe {
+                fixed (byte* encodedPtr = encoded) {
+                    timer.Start();
+                    for (int i = 0; i < nrIterations; i++)
+                        Base64Binary.Write(encodedPtr, value);
                     timer.Stop();
                 }
             }
@@ -124,18 +137,33 @@ namespace Starcounter.Internal {
                 valueLength + " takes " + timer.ElapsedMilliseconds + " ms, i.e., " +
                 (1000000 * timer.ElapsedMilliseconds) / nrIterations + " ns per write.");
             timer.Reset();
+
             byte[] decoded = new byte[valueLength];
             unsafe {
                 fixed (byte* decodedPtr = decoded, encodedPtr = encoded) {
                     timer.Start();
                     for (int i = 0; i < nrIterations; i++)
-                        Base64Binary.Read(encodedLength, (IntPtr)encodedPtr, decodedPtr);
+                        Base64Binary.Read(encodedLength, encodedPtr, decodedPtr);
                     timer.Stop();
                 }
             }
             for (int i=0; i<valueLength;i++)
                 Assert.AreEqual(value[i], decoded[i]);
             Console.WriteLine(nrIterations + " reads of byte array with length " +
+                valueLength + " takes " + timer.ElapsedMilliseconds + " ms, i.e., " +
+                (1000000 * timer.ElapsedMilliseconds) / nrIterations + " ns per read.");
+            timer.Reset();
+            unsafe {
+                fixed (byte* encodedPtr = encoded) {
+                    timer.Start();
+                    for (int i = 0; i < nrIterations; i++)
+                        decoded = Base64Binary.Read(encodedLength, encodedPtr);
+                    timer.Stop();
+                }
+            }
+            for (int i = 0; i < valueLength; i++)
+                Assert.AreEqual(value[i], decoded[i]);
+            Console.WriteLine(nrIterations + " reads and creates byte array with length " +
                 valueLength + " takes " + timer.ElapsedMilliseconds + " ms, i.e., " +
                 (1000000 * timer.ElapsedMilliseconds) / nrIterations + " ns per read.");
         }

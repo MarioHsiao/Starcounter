@@ -56,7 +56,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
         /// Creates a new property in a dynamic JSON object and assigns it to a
         /// new array of JSON objects.
         /// </summary>
-     //   [Test]
+        [Test]
         public static void CreateANewArrayProperty() {
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -81,7 +81,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(patch);
 
             Assert.AreEqual(
-               "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}}]", patch);
+               "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}]}]", patch);
         }
 
         /// <summary>
@@ -129,13 +129,67 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
         [Test]
         public static void AssignArrayPropertyToEnumerableOfDataObjects() {
+
+            dynamic company = new Json();
+            company.Name = "Starcounter";
+            dynamic person = new Json();
+            dynamic person2 = new Json();
+            company.Contacts = new object[] { person, person2 };
+            person.FirstName = "Timothy";
+            person2.FirstName = "Douglas";
+
+            Console.WriteLine("Initialize status");
+            Console.WriteLine("=================");
+            Console.WriteLine(company.DebugString);
+
+            Session.Data = company;
+            Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("Before status");
+            Console.WriteLine("=============");
+            Console.WriteLine(company.DebugString);
+
+            dynamic charlie = new Json();
+            charlie.FirstName = "Charlie";
+            company.Contacts = new object[] { charlie };
+
+            Console.WriteLine("After status");
+            Console.WriteLine("============");
+            Console.WriteLine(company.DebugString);
+
+            Console.WriteLine("JSON-Patch");
+            Console.WriteLine("==========");
+            Console.WriteLine(Session.Current.CreateJsonPatch(true));
+
         }
 
         [Test]
         public static void AssignArrayPropertyToNewArray() {
+
+
+            dynamic company = new Json();
+            company.Name = "Starcounter";
+ 
+            Session.Data = company;
+            Session.Current.CreateJsonPatch(true);
+
+            dynamic person = new Json();
+            dynamic person2 = new Json();
+            person.FirstName = "Timothy";
+            person2.FirstName = "Douglas";
+
+            company.Contacts = new object[] { person, person2 };
+            company.Success = true;
+
+
+            Console.WriteLine("After status");
+            Console.WriteLine("============");
+            Console.WriteLine(company.DebugString);
+            
+            Console.WriteLine("JSON-Patch");
+            Console.WriteLine("==========");
+            Console.WriteLine(Session.Current.CreateJsonPatch(true));
         }
-
-
 
         [Test]
         public static void TestArrayPatches() {

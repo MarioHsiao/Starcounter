@@ -17,12 +17,15 @@ namespace Starcounter {
 
     public partial class Json {
 
-
-
         public object Get(TValue property) {
-			if (property.UseBinding(DataAsBindable))
-                return GetBound(property);
-            return Values[property.TemplateIndex];
+            object ret;
+            if (property.UseBinding(DataAsBindable)) {
+                ret = GetBound(property);
+            }
+            else {
+                ret = Values[property.TemplateIndex];
+            }
+            return property.Wrap(ret); // Wrap makes sure that object data is returned as a JSON object
         }
 
         /// <summary>
@@ -32,14 +35,14 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public TVal Get<TVal>(Property<TVal> property) {
-            if (property.UseBinding(DataAsBindable))
-                return GetBound(property);
-
-#if QUICKTUPLE
-                return (TVal)Values[property.TemplateIndex];
-#else
-                throw new NotImplementedException();
-#endif
+            object ret;
+            if (property.UseBinding(DataAsBindable)) {
+                ret = GetBound(property);
+            }
+            else {
+                ret = Values[property.TemplateIndex];
+            }
+            return (TVal)property.Wrap(ret);
         }
 
         /// <summary>
@@ -54,13 +57,7 @@ namespace Starcounter {
                 this._CallHasChanged(property);
                 return;
             }
-
-#if QUICKTUPLE
             Values[property.TemplateIndex] = value;
-#else
-                    throw new NotImplementedException();
-#endif
-            //this._CallHasChanged(property);
         }
 
         /// <summary>
@@ -212,30 +209,23 @@ namespace Starcounter {
         /// <returns></returns>
         public JsonType Get<JsonType>(TObject property)
             where JsonType : Json, new() {
-            //IBindable data = null;
-            //if (property.Bound)
-            //    data = GetBound(property);
-
-#if QUICKTUPLE
-            return (JsonType)Values[property.TemplateIndex];
-#else
-            throw new NotImplementedException();
-#endif
-        }        /// <summary>
+            object ret;
+            if (property.UseBinding(DataAsBindable)) {
+                ret = GetBound(property);
+            }
+            else {
+                ret = Values[property.TemplateIndex];
+            }
+            return property.Wrap<JsonType>(ret);
+        }
+        
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
         public Json Get(TObject property) {
-            //IBindable data = null;
-            //if (property.Bound)
-            //    data = GetBound(property);
-
-#if QUICKTUPLE
-            return (Json)Values[property.TemplateIndex];
-#else
-            throw new NotImplementedException();
-#endif
+            return Get<Json>(property);
         }
 
         /// <summary>
