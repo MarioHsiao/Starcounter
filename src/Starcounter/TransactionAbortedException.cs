@@ -8,9 +8,9 @@ using System;
 using System.Runtime.Serialization;
 
 namespace Starcounter {
-    
+
     /// <summary>
-    /// Exception raised when a transaction is aborted.
+    /// Exception thrown on when a transaction is aborted (8000 series error codes).
     /// </summary>
     [Serializable]
     public class TransactionAbortedException : DbException {

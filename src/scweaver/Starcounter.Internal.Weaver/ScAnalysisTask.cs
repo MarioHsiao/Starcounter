@@ -24,6 +24,7 @@ using System.Text;
 
 namespace Starcounter.Internal.Weaver {
 
+    using Starcounter.Binding;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -78,9 +79,9 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private WeavingHelper _weavingHelper;
         /// <summary>
-        /// The _not persistent attribute type
+        /// The type used to mark constructs as transient.
         /// </summary>
-        private IType _notPersistentAttributeType;
+        private IType _transientAttributeType;
 
         private IType _databaseAttributeType;
         /// <summary>
@@ -143,15 +144,6 @@ namespace Starcounter.Internal.Weaver {
         public DateTime Timestamp {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Gets a value describing the type of transformation we are to execute.
-        /// </summary>
-        /// <value>The kind of the transformation.</value>
-        public WeaverTransformationKind TransformationKind {
-            get;
-            private set;
         }
 
         /// <summary>
@@ -321,62 +313,6 @@ namespace Starcounter.Internal.Weaver {
             return false;
         }
 
-        /// <summary>
-        /// Determines the kind of transformation needed for the underlying
-        /// assembly/module, based on that settings in the project and on the
-        /// state of the assembly itself.
-        /// </summary>
-        /// <returns>The kind of transformation needed.</returns>
-        internal WeaverTransformationKind GetTransformationKind() {
-            BindingOptions bindingOptions;
-            Type type;
-            IType weavedAssemblyAttributeType;
-            bool specifiesIPCWeaving;
-            bool assemblyIsWeavedForIPC;
-
-            type = typeof(AssemblyWeavedForIPCAttribute);
-            bindingOptions = BindingOptions.OnlyExisting | BindingOptions.DontThrowException;
-            weavedAssemblyAttributeType = (IType)_module.FindType(typeof(AssemblyWeavedForIPCAttribute), bindingOptions);
-
-            // Decide if the project specifies we should weave for IPC.
-
-            if (string.IsNullOrEmpty(this.Project.Properties["WeaveForIPC"]))
-                specifiesIPCWeaving = false;
-            else
-                specifiesIPCWeaving = this.Project.Properties["WeaveForIPC"].Equals(bool.TrueString);
-
-            // Determine if the assembly is tagged as being weaved by the IPC
-            // weaver already.
-
-            assemblyIsWeavedForIPC = weavedAssemblyAttributeType == null
-                ? false :
-                _module.AssemblyManifest.CustomAttributes.GetOneByType(weavedAssemblyAttributeType) != null;
-
-            // Based on the above checks, establish the appropriate kind
-            // of transformation needed.
-
-            if (assemblyIsWeavedForIPC) {
-                // The assembly is weaved for IPC. If the project tells us we should
-                // weave it for IPC, we can omit transformation (by returning None).
-                // Otherwise, we assume we should transform the assembly from it's IPC
-                // state to a database-ready assembly.
-
-                if (specifiesIPCWeaving)
-                    return WeaverTransformationKind.None;
-
-                return WeaverTransformationKind.IPCToDatabase;
-            }
-
-            // The assembly is not weaved for IPC. We assume it is a user code
-            // assembly (i.e. one that was never transformed at all). We should
-            // either weave it for IPC or directly to a database-ready assembly.
-
-            if (specifiesIPCWeaving)
-                return WeaverTransformationKind.UserCodeToIPC;
-
-            return WeaverTransformationKind.UserCodeToDatabase;
-        }
-
         protected override void Initialize() {
             _module = Project.Module;
             _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
@@ -387,7 +323,6 @@ namespace Starcounter.Internal.Weaver {
                 _module.Cache.GetIntrinsic(IntrinsicType.Void),
                 new IntrinsicTypeSignature[0],
                 0);
-            this.TransformationKind = GetTransformationKind();
         }
 
         /// <summary>
@@ -400,7 +335,7 @@ namespace Starcounter.Internal.Weaver {
         /// even before we check if a reference to Starcounter exist.
         /// </remarks>
         void InitializeModuleThatReferenceStarcounter() {
-            _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
+            _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
             _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));
         }
@@ -640,12 +575,12 @@ namespace Starcounter.Internal.Weaver {
             FieldDefDeclaration fieldDef;
             FieldDefDeclaration synonymFieldDef;
 
-            if (databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField) {
+            if (databaseAttribute.AttributeKind == DatabaseAttributeKind.Field) {
                 if (databaseAttribute.SynonymousTo != null) {
                     synonymTo = databaseAttribute.SynonymousTo;
 
                     // The target attribute should be a persistent field.
-                    if (synonymTo.AttributeKind != DatabaseAttributeKind.PersistentField) {
+                    if (synonymTo.AttributeKind != DatabaseAttributeKind.Field) {
                         ScMessageSource.WriteError(
                             MessageLocation.Of(databaseAttribute),
                             Error.SCERRSYNTARGETNOTPERSISTENT,
@@ -1044,22 +979,7 @@ namespace Starcounter.Internal.Weaver {
             // This has to be done when the type itself has been processed.
 
             foreach (FieldDefDeclaration field in typeDef.Fields) {
-                if (this.TransformationKind == WeaverTransformationKind.IPCToDatabase) {
-                    // We identifiy persistent fields by studying attribute index fields
-                    // emitted earlier by the IPC-weaver.
-
-                    PropertyDeclaration preGeneratedProperty;
-                    string fieldName;
-
-                    if (!field.IsStatic) continue;
-
-                    if (WeaverNamingConventions.TryGetNakedAttributeName(field.Name, out fieldName)) {
-                        // Locate the generated property and create our attribute from that.
-
-                        preGeneratedProperty = typeDef.Properties.GetOneByName(fieldName);
-                        DiscoverIPCWeavedProperty(databaseClass, preGeneratedProperty);
-                    }
-                } else if (!field.IsStatic) {
+                if (!field.IsStatic) {
                     DiscoverDatabaseField(databaseClass, field);
                 }
             }
@@ -1067,11 +987,9 @@ namespace Starcounter.Internal.Weaver {
             // Process the properties if the source is undecorated user code,
             // independent of the target (lucent access or database)
 
-            if (this.TransformationKind != WeaverTransformationKind.IPCToDatabase) {
-                foreach (PropertyDeclaration property in typeDef.Properties) {
-                    if (property.Getter != null && !property.Getter.IsStatic) {
-                        DiscoverDatabaseProperty(databaseClass, property);
-                    }
+            foreach (PropertyDeclaration property in typeDef.Properties) {
+                if (property.Getter != null && !property.Getter.IsStatic) {
+                    DiscoverDatabaseProperty(databaseClass, property);
                 }
             }
 
@@ -1106,10 +1024,10 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.SetFieldDefinition(field);
             databaseAttribute.IsInitOnly = (field.Attributes & FieldAttributes.InitOnly) != 0;
             
-            if (field.CustomAttributes.Contains(this._notPersistentAttributeType)) {
-                databaseAttribute.AttributeKind = DatabaseAttributeKind.NonPersistentField;
+            if (field.CustomAttributes.Contains(this._transientAttributeType)) {
+                databaseAttribute.AttributeKind = DatabaseAttributeKind.TransientField;
             } else {
-                databaseAttribute.AttributeKind = DatabaseAttributeKind.PersistentField;
+                databaseAttribute.AttributeKind = DatabaseAttributeKind.Field;
             }
             if (!databaseAttribute.IsPersistent) {
                 // When the field is not persistent, we don't care about its type.
@@ -1128,34 +1046,6 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
-        }
-
-        /// <summary>
-        /// Inspects a reflection <see cref="PropertyDeclaration" /> originating from the IPC weaver
-        /// and hence representing a persistent field that was removed. From this, builds the corresponding
-        /// schema object (<see cref="DatabaseAttribute" />), and inserts it in the schema.
-        /// </summary>
-        /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
-        /// <param name="property">The property.</param>
-        private void DiscoverIPCWeavedProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
-            DatabaseAttribute databaseAttribute;
-
-            ScAnalysisTrace.Instance.WriteLine(
-                "DiscoverIPCWeavedProperty: processing property {0}.{1} of type {2}.",
-                databaseClass.Name, property.Name, property.PropertyType
-                );
-
-            // The field was already discovered in the IPC weaving phase, and hence we
-            // can rule out some things needed to be checked/verified in that phase.
-
-            databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
-            databaseClass.Attributes.Add(databaseAttribute);
-            databaseAttribute.SetPropertyDefinition(property);
-            databaseAttribute.AttributeKind = DatabaseAttributeKind.PersistentField;
-
-            SetDatabaseAttributeType(property, true, databaseAttribute);
-
-            databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
 
         /// <summary>
@@ -1224,15 +1114,37 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="property">Property to be inspected.</param>
         private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
             ValidateDiscoveredDatabaseProperty(databaseClass, property);
+            var transient = property.CustomAttributes.Contains(this._transientAttributeType);
+
+            if (transient) {
+                // The property is marked transient. Find the corresponding backing field
+                // in the same class. If not found, the attribute is not on an
+                // auto-implemented property (i.e. an error) and if we find it, we need
+                // to change the field to not-persistent.
+                var fieldName = DotNetBindingHelpers.CSharp.GetAutoImplementedBackingFieldName(property.Name);
+                try {
+                    var backingField = databaseClass.Attributes[fieldName];
+                    backingField.AttributeKind = DatabaseAttributeKind.TransientField;
+                } catch (KeyNotFoundException) {
+                    // This is the means we use to distingush the property the
+                    // transient attribute is applied to is an auto-implemented
+                    // property or a regular one. With no backing field, it
+                    // can't be an autoimplemented property.
+                    throw ErrorCode.ToException(
+                        Error.SCERRILLEGALTRANSIENTTARGET, 
+                        string.Format("Class: {0}, Property: {1}.", databaseClass.Name, property.Name));
+                }
+            }
 
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetPropertyDefinition(property);
-            databaseAttribute.AttributeKind = DatabaseAttributeKind.NotPersistentProperty;
+            databaseAttribute.AttributeKind = transient ? DatabaseAttributeKind.TransientProperty : DatabaseAttributeKind.Property;
             databaseAttribute.BackingField = ScanPropertyGetter(databaseAttribute);
             SetDatabaseAttributeType(property, false, databaseAttribute);
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
+
         /// <summary>
         /// Validates the declared <paramref name="property"/> in the specified
         /// <paramref name="databaseClass"/> to see if it violates any constraits.
@@ -1245,7 +1157,7 @@ namespace Starcounter.Internal.Weaver {
             var cursor = databaseClass;
             while (cursor != null) {
                 foreach (var item in cursor.Attributes) {
-                    if (item.AttributeKind == DatabaseAttributeKind.PersistentField && item.IsPublicRead) {
+                    if (item.AttributeKind == DatabaseAttributeKind.Field && item.IsPublicRead) {
                         if (item.Name.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)) {
                             var detail = string.Format("Property {0} in class {1}, field {2} in class {3}.",
                                 property.Name,
@@ -1718,7 +1630,7 @@ namespace Starcounter.Internal.Weaver {
                                 DatabaseAttribute databaseAttribute =
                                     _schema.FindDatabaseAttribute(field.Name, field.DeclaringType.GetReflectionName());
                                 if (databaseAttribute != null &&
-                                    databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField) {
+                                    databaseAttribute.AttributeKind == DatabaseAttributeKind.Field) {
                                     ScAnalysisTrace.Instance.WriteLine(
                                         "This method loads the address of the field {{{0}}} of type {{{1}}}.", field,
                                         field.FieldType);

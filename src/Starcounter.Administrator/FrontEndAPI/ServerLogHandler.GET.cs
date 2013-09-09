@@ -81,7 +81,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
             #endregion
 
-            // Handle Console WebSocket connections
+            // Handle WebSocket connections for listening on log changes
             Handle.GET("/api/admin/log/event/ws", (Request req, Session session) => {
 
                 Byte schedId = ThreadData.Current.Scheduler.Id;

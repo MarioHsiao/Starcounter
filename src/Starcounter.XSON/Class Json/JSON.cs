@@ -316,5 +316,10 @@ namespace Starcounter {
         }
 
 
+
+        internal void MarkAsReplaced(Templates.Template template) {
+            this._Values._ReplacedFlag[template.TemplateIndex] = true;
+            this.Dirtyfy();
+        }
     }
 }

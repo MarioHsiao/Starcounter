@@ -21,27 +21,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <returns>Boolean.</returns>
         public override Boolean Execute() {
-            ScAnalysisTask analysisTask;
-            ModuleDeclaration module;
-            WeaverTransformationKind transformation;
-
-            // Consult the weaver transformation kind established by the preceeding
-            // analysis task to see if we need to execute this task.
-
-            analysisTask = ScAnalysisTask.GetTask(this.Project);
-            transformation = analysisTask.GetTransformationKind();
-
-            if (!WeaverUtilities.IsTargetingDatabase(transformation)) {
-                // The weaver of the current assembly/module runs with another
-                // target than the database. We don't need to do any transformation
-                // of threading calls.
-
-                return true;
-            }
-
-            // Execute the logic of this task.
-
-            module = Project.Module;
+            var module = Project.Module;
             Thread_Priority(module);
             Thread_SleepA(module);
             Thread_SleepB(module);
