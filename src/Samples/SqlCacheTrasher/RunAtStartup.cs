@@ -3,7 +3,6 @@ using System.Text;
 using System.Threading;
 using Starcounter;
 using System.Diagnostics;
-using Starcounter.LucentObjects;
 using System.IO;
 using SqlCacheTrasher;
 using Starcounter.TestFramework;

@@ -612,6 +612,8 @@ namespace Starcounter.Advanced
 
             str += "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
 
+            str += "Cache-Control: no-cache" + StarcounterConstants.NetworkConstants.CRLF;
+
             if (null != headersString_)
                 str += headersString_;
 
