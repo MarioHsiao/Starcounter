@@ -222,6 +222,31 @@ namespace Starcounter.Internal
           return len;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      private unsafe bool WriteFirst(String value) {
+          uint len = 1;
+          if (value == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else if (value.Length > 0)
+              return false;
+          else 
+              len = 0;
+          HaveWritten(len);
+          return true;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      private unsafe uint WriteRest(String value, int expectedLength) {
+          Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
+          uint len = 1;
+          fixed (char* pStr = value) {
+              // Write the string to the end of this tuple.
+              len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
+          }
+          HaveWritten(len);
+          return len;
+      }
+
       /// <summary>
       /// Appends a new value after the last value in this tuple
       /// </summary>
@@ -235,7 +260,12 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(string str)
       {
+#if false
           Write(str, true);
+#else
+          if (!WriteFirst(str))
+              WriteRest(str, str.Length * 3);
+#endif
 #if false
          uint len;
 
@@ -354,8 +384,15 @@ namespace Starcounter.Internal
       public void WriteSafe(String str) {
           uint size = MeasureNeededSize(str);
           ValidateLength(size);
+#if false
           uint len = Write(str, false);
-          Debug.Assert(len == size);
+         Debug.Assert(len == size);
+#else
+          if (!WriteFirst(str)) {
+              uint len = WriteRest(str, (int)size - 1);
+              Debug.Assert(len == size);
+          }
+#endif
 #if false
           fixed (char* pStr = str) {
               // Write the string to the end of this tuple.
