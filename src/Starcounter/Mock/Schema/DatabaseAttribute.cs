@@ -218,7 +218,7 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         public bool IsPersistent {
             get {
-                return this.attributeKind == DatabaseAttributeKind.PersistentField;
+                return this.attributeKind == DatabaseAttributeKind.Field;
             }
         }
 
@@ -227,8 +227,8 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         public bool IsField {
             get {
-                return this.attributeKind == DatabaseAttributeKind.PersistentField ||
-                       this.attributeKind == DatabaseAttributeKind.NonPersistentField;
+                return this.attributeKind == DatabaseAttributeKind.Field ||
+                       this.attributeKind == DatabaseAttributeKind.TransientField;
             }
         }
 
@@ -353,22 +353,34 @@ namespace Sc.Server.Weaver.Schema {
     }
 
     /// <summary>
-    /// 
+    /// Defines the different kinds of attributes emitted by the
+    /// weaver analysis engine when database classes are being analyzed.
     /// </summary>
     public enum DatabaseAttributeKind {
         /// <summary>
-        /// Regular persistent field.
+        /// Indicates a regular database field, i.e. a field
+        /// defined in a database class and not marked with
+        /// any particular attribute meaninful to Starcounter.
         /// </summary>
-        PersistentField,
+        Field,
 
         /// <summary>
-        /// Non-persistent (and non queriable) field.
+        /// Indicates a field in a database class tagged with the
+        /// <see cref="TransientAttribute"/>.
         /// </summary>
-        NonPersistentField,
+        TransientField,
 
         /// <summary>
-        /// Non-persistent (regular) property.
+        /// Indicates a regular database property, i.e. a property
+        /// defined in a database class and not marked with any 
+        /// particular attribute meaninful to Starcounter.
         /// </summary>
-        NotPersistentProperty
+        Property,
+
+        /// <summary>
+        /// Indicates a property in a database class tagged with the
+        /// <see cref="TransientAttribute"/>.
+        /// </summary>
+        TransientProperty
     }
 }
