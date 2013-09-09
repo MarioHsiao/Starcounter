@@ -135,6 +135,38 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal override object Wrap(object value) {
+            if (value is IBindable) {
+                return Wrap<Json>(value);
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Returns a value as a JSON value.
+        /// </summary>
+        /// <typeparam name="ReturnType"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal ReturnType Wrap<ReturnType>(object value) where ReturnType : Json {
+            if (value is ReturnType)
+                return (ReturnType)value;
+            var json = (Json)CreateInstance();
+            json.Data = value;
+            if (!(json is ReturnType)) {
+                throw new Exception(
+                    String.Format("Cannot convert {0} to {1}",
+                        json, typeof(ReturnType)
+                    ));
+            }
+            return (ReturnType)json;
+        }
+
+        /// <summary>
         /// Creates a new property (template) with the specified name and type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -226,6 +258,9 @@ namespace Starcounter.Templates {
 //            }
             if (typeof(Json).IsAssignableFrom(type)) {
                 return this.Add<TJson>(name);
+            }
+            if ((typeof(IEnumerable).IsAssignableFrom(type))) {
+                return this.Add<TObjArr>(name);
             }
             throw new Exception(String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties", name, type.Name));
         }
