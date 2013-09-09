@@ -46,8 +46,14 @@ class GatewayWorker
     // List of reusable connect sockets.
     LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
 
+    // List of reusable accept sockets.
+    LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_accept_sockets_;
+
     // Number of created connections calculated for worker.
     int32_t num_created_conns_worker_;
+
+    // List of sockets indexes to be disconnected.
+    std::list<session_index_type> sockets_indexes_to_disconnect_;
 
 #ifdef GW_LOOPED_TEST_MODE
     LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
@@ -55,6 +61,21 @@ class GatewayWorker
 #endif
 
 public:
+
+    // Pushes socket for further reuse.
+    void PushToReusableAcceptSockets(SOCKET sock)
+    {
+        reusable_accept_sockets_.PushBack(sock);
+    }
+
+    // Adds socket to be disconnected.
+    void AddSocketToDisconnectListUnsafe(session_index_type socket_index)
+    {
+        sockets_indexes_to_disconnect_.push_back(socket_index);
+    }
+
+    // Processes sockets that should be disconnected.
+    void ProcessSocketDisconnectList();
 
 #ifdef GW_LOOPED_TEST_MODE
 
@@ -76,7 +97,7 @@ public:
     }
 
     // Processes looped queue.
-    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, ULONG* removedOvlsNum, uint32_t max_fetched);
+    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, ULONG* removedOvlsNum, int32_t max_fetched);
 
 #endif
 
@@ -86,24 +107,30 @@ public:
         return reusable_connect_sockets_.get_num_entries();
     }
 
+    // Getting number of reusable accept sockets.
+    int32_t NumberOfReusableAcceptSockets()
+    {
+        return reusable_accept_sockets_.get_num_entries();
+    }
+
     // Tracks certain socket.
-    void TrackSocket(int32_t db_index, SOCKET s)
+    void TrackSocket(int32_t db_index, session_index_type index)
     {
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Tracking socket: " << s << GW_ENDL;
+        GW_COUT << "Tracking socket index: " << index << GW_ENDL;
 #endif
 
-        worker_dbs_[db_index]->TrackSocket(s);
+        worker_dbs_[db_index]->TrackSocket(index);
     }
 
     // Untracks certain socket.
-    void UntrackSocket(int32_t db_index, SOCKET s)
+    void UntrackSocket(int32_t db_index, session_index_type index)
     {
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "UnTracking socket: " << s << GW_ENDL;
+        GW_COUT << "UnTracking socket index: " << index << GW_ENDL;
 #endif
 
-        worker_dbs_[db_index]->UntrackSocket(s);
+        worker_dbs_[db_index]->UntrackSocket(index);
     }
 
     // Getting number of used sockets.
@@ -362,6 +389,9 @@ public:
     // Running disconnect on socket data.
     void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
 
+    // Disconnects arbitrary socket.
+    void DisconnectSocket(session_index_type socket_index);
+
     // Running send on socket data.
     uint32_t Send(SocketDataChunkRef sd);
 
@@ -414,7 +444,7 @@ public:
     // Does general data processing using port handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
-        return g_gateway.get_server_port(sd->get_port_index())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
+        return g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
     }
 
     // Push given chunk to database queue.
@@ -425,8 +455,7 @@ public:
 
     // Creates the socket data structure.
     uint32_t CreateSocketData(
-        SOCKET sock,
-        int32_t port_index,
+        session_index_type socket_info_index,
         int32_t db_index,
         SocketDataChunkRef out_sd);
 

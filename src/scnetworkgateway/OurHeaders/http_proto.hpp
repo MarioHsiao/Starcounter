@@ -644,9 +644,9 @@ const char* const kHttpStatsHeader =
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 
-const int32_t kHttpStatsHeaderLength = strlen(kHttpStatsHeader);
+const int32_t kHttpStatsHeaderLength = static_cast<int32_t> (strlen(kHttpStatsHeader));
 
-const int32_t kHttpStatsHeaderInsertPoint = strstr(kHttpStatsHeader, "@") - kHttpStatsHeader;
+const int32_t kHttpStatsHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpStatsHeader, "@") - kHttpStatsHeader);
 
 const char* const kHttpEchoResponse =
     "HTTP/1.1 200 OK\r\n"
@@ -655,9 +655,9 @@ const char* const kHttpEchoResponse =
     "\r\n"
     "@@@@@@@@";
 
-const int32_t kHttpEchoResponseLength = strlen(kHttpEchoResponse);
+const int32_t kHttpEchoResponseLength = static_cast<int32_t> (strlen(kHttpEchoResponse));
 
-const int32_t kHttpEchoResponseInsertPoint = strstr(kHttpEchoResponse, "@") - kHttpEchoResponse;
+const int32_t kHttpEchoResponseInsertPoint = static_cast<int32_t> (strstr(kHttpEchoResponse, "@") - kHttpEchoResponse);
 
 const int32_t kHttpEchoContentLength = 8;
 
