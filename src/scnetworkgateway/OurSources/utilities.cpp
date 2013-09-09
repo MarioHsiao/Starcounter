@@ -137,7 +137,8 @@ uint32_t PrintLastError(bool report_to_log)
 
     // Converting wchar_t to char.
     char err_display_buf_char[max_err_msg_len];
-    wcstombs(err_display_buf_char, err_display_buf, max_err_msg_len);
+    size_t num_chars_conv;
+    wcstombs_s(&num_chars_conv, err_display_buf_char, max_err_msg_len, err_display_buf, _TRUNCATE);
 
     // Printing error to console/log.
     GW_COUT << err_display_buf_char << GW_ENDL;
