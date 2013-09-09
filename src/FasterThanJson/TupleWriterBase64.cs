@@ -207,22 +207,19 @@ namespace Starcounter.Internal
               Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
           else if (value.Length > 0) {
               Base64Int.WriteBase64x1(1, AtEnd); // Write null flag meaning if only flag is written then null
-              if (value != null)
-                  fixed (char* pStr = value) {
-                      int expectedLength;
-                      if (fast)
-                          expectedLength = value.Length * 3;
-                      else
-                          expectedLength = SessionBlobProxy.Utf8Encode.GetByteCount(pStr, value.Length, true);
-                      // Write the string to the end of this tuple.
-                      len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd+1, expectedLength, true);
-                  }
-          }
-          else
+              fixed (char* pStr = value) {
+                  int expectedLength;
+                  if (fast)
+                      expectedLength = value.Length * 3;
+                  else
+                      expectedLength = SessionBlobProxy.Utf8Encode.GetByteCount(pStr, value.Length, true);
+                  // Write the string to the end of this tuple.
+                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
+              }
+          } else
               len = 0;
           HaveWritten(len);
           return len;
-
       }
 
       /// <summary>
