@@ -147,6 +147,10 @@ namespace Starcounter.Templates {
             }
         }
 
+        internal virtual object Wrap(object value) {
+            return value;
+        }
+
         /// <summary>
         /// The _ parent
         /// </summary>

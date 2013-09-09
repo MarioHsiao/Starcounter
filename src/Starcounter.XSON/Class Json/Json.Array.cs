@@ -201,7 +201,14 @@ namespace Starcounter {
         /// <returns></returns>
         public Json Add() {
 #if QUICKTUPLE
-            Json x = (Json)((TObjArr)this.Template).ElementType.CreateInstance(this);
+            var elementType = ((TObjArr)this.Template).ElementType;
+            Json x;
+            if (elementType == null) {
+                x = new Json();
+            }
+            else {
+                x = (Json)elementType.CreateInstance(this);
+            }
 
             //            var x = new App() { Template = ((TArr)this.Template).App };
             Add(x);
