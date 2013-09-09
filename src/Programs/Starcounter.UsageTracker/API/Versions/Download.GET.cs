@@ -17,7 +17,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             // Download latest version from channel 'NightlyBuilds'
             // This link is used by www.starcounter.com
-            Handle.GET(port, "/beta", (string downloadkey, Request request) => {
+            Handle.GET(port, "/beta", (Request request) => {
 
                 try {
 
@@ -32,7 +32,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     Db.Transaction(() => {
                         latestBuild.DownloadDate = DateTime.UtcNow;
-                        latestBuild.DownloadKey = downloadkey;
                         latestBuild.IPAdress = request.GetClientIpAddress().ToString();
                     });
 
