@@ -3076,6 +3076,11 @@
     <code hex="0101" severity="Error" name="ScErrCantLoadTransLogWriterLib">
       <message>Transaction log writer client library could not be loaded.</message>
     </code>
+    <code hex="0102" severity="Error" name="ScErrIllegalTransientTarget">
+      <message>
+        The Transient attribute is not applicable to the target code construct.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

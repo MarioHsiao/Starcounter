@@ -252,41 +252,5 @@ namespace Starcounter.Internal.Weaver
             Trace.Fail("The cached assembly representation was corrupt.");
             return null;
         }
-
-        /// <summary>
-        /// Consults the given <see cref="WeaverTransformationKind"/> to see if the
-        /// target is the database.
-        /// </summary>
-        /// <param name="transformation">The transformation to consult.</param>
-        /// <returns>True if the target is the database; false if not.</returns>
-        public static bool IsTargetingDatabase(WeaverTransformationKind transformation)
-        {
-            return transformation == WeaverTransformationKind.IPCToDatabase || 
-                transformation == WeaverTransformationKind.UserCodeToDatabase;
-        }
-
-        /// <summary>
-        /// Consults the given <see cref="WeaverTransformationKind"/> to see if the
-        /// target is a client.
-        /// </summary>
-        /// <param name="transformation">The transformation to consult.</param>
-        /// <returns>True if the target is a client; false if not.</returns>
-        public static bool IsTargetingClient(WeaverTransformationKind transformation)
-        {
-            return transformation == WeaverTransformationKind.UserCodeToIPC;
-        }
-
-        /// <summary>
-        /// Consults the given <see cref="WeaverTransformationKind"/> to see if the
-        /// source of the transformation is user code.
-        /// </summary>
-        /// <param name="transformation">The transformation to consult.</param>
-        /// <returns>True if the given transformation indicates a transformation
-        /// originating from user code.</returns>
-        public static bool IsFromUserCode(WeaverTransformationKind transformation)
-        {
-            return transformation == WeaverTransformationKind.UserCodeToDatabase ||
-                transformation == WeaverTransformationKind.UserCodeToIPC;
-        }
     }
 }
