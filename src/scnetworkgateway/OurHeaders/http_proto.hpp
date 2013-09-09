@@ -637,7 +637,16 @@ public:
     }
 };
 
-const int32_t kHttpEchoContentLength = 8;
+const char* const kHttpStatsHeader =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html\r\n"
+    "Cache-control: no-cache\r\n"
+    "Content-Length: @@@@@@@@\r\n"
+    "\r\n";
+
+const int32_t kHttpStatsHeaderLength = strlen(kHttpStatsHeader);
+
+const int32_t kHttpStatsHeaderInsertPoint = strstr(kHttpStatsHeader, "@") - kHttpStatsHeader;
 
 const char* const kHttpEchoResponse =
     "HTTP/1.1 200 OK\r\n"
@@ -650,63 +659,7 @@ const int32_t kHttpEchoResponseLength = strlen(kHttpEchoResponse);
 
 const int32_t kHttpEchoResponseInsertPoint = strstr(kHttpEchoResponse, "@") - kHttpEchoResponse;
 
-const char* const kHttpStatsHeader =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html\r\n"
-    "Cache-control: no-cache\r\n"
-    "Content-Length: @@@@@@@@\r\n"
-    "\r\n";
-
-const int32_t kHttpStatsHeaderLength = strlen(kHttpStatsHeader);
-
-const int32_t kHttpStatsHeaderInsertPoint = strstr(kHttpStatsHeader, "@") - kHttpStatsHeader;
-
-const char* const kHttpGatewayPongResponse =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: 5\r\n"
-    "\r\n"
-    "Pong!";
-
-const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
-
-const char* const kHttpNoContent =
-    "HTTP/1.1 204 No Content\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpNoContentLength = strlen(kHttpNoContent);
-
-const char* const kHttpBadRequest =
-    "HTTP/1.1 400 Bad Request\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest);
-
-const char* const kHttpNotFound =
-    "HTTP/1.1 404 Not Found\r\n"
-    "Content-Length: 33\r\n"
-    "\r\n"
-    "Requested URI resource not found.";
-
-const int32_t kHttpNotFoundLength = strlen(kHttpNotFound);
-
-const char* const kHttpServiceUnavailable =
-    "HTTP/1.1 503 Service Unavailable\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable);
-
-const char* const kHttpTooBigUpload =
-    "HTTP/1.1 413 Request Entity Too Large\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: 50\r\n"
-    "\r\n"
-    "Maximum supported HTTP request content size is 32 Mb!";
-
-const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload);
+const int32_t kHttpEchoContentLength = 8;
 
 } // namespace network
 } // namespace starcounter

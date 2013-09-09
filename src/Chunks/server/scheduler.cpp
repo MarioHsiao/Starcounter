@@ -962,7 +962,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	if (channels_left == 0) {
 		if (client_interface_ptr->get_owner_id().get_clean_up()) {
 			// Is the client_interface marked for clean up?
-#if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 			///=================================================================
 			/// Notify the IPC monitor to release all chunks in this
 			/// client_interface, making them available for anyone to allocate.
@@ -987,46 +986,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			else {
 				std::cout << "error: no database_cleanup_index set." << std::endl;
 			}
-			
-#else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
-			///=================================================================
-			/// Release all chunks in this client_interface, making them
-			/// available for anyone to allocate.
-			///=================================================================
-			
-			// Search through the overflow_pool and for each chunk that is
-			// marked in the resource_map of this client, remove it. Otherwise
-			// put it back into the overflow_pool. Not sure if this is needed.
-			// Maybe tranquility means there is no chunks left, because they
-			// were thrown away already. Should be the case, verify!
-			
-			// Now there shall not exist any more chunk indices around, except
-			// those in the resource_map. Release them.
-			
-			//std::size_t chunks_flagged = client_interface_ptr
-			//->get_resource_map().count_chunk_flags_set();
-			
-			bool release_chunk_result = release_clients_chunks
-			(client_interface_ptr, 10000 /* milliseconds */);
-			
-			/// BUG!? Why not clear the resource map here?
-
-			// Release the client_interface[the_client_number].
-			client_interface_ptr->set_owner_id(owner_id::none);
-			
-#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-			bool release_client_number_res =
-			common_client_interface_->release_client_number(the_client_number,
-			client_interface_ptr, get_owner_id());
-#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-			bool release_client_number_res =
-			common_client_interface_->release_client_number(the_client_number,
-			client_interface_ptr);
-#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-			
-			common_client_interface_->decrement_client_interfaces_to_clean_up();
-			// Clean up done for client_interface[the_client_number].
-#endif // defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 		}
 	}
 }

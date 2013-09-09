@@ -8,7 +8,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Starcounter;
 using System.Diagnostics;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;

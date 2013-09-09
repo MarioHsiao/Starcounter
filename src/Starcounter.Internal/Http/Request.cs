@@ -11,7 +11,7 @@ namespace Starcounter.Advanced {
     /// <summary>
     /// Class Request
     /// </summary>
-    public class Request {
+    public sealed class Request {
         /// <summary>
         /// Creates a minimalistic Http 1.0 GET request with the given uri without any headers or even protocol version specifier.
         /// </summary>
@@ -441,6 +441,7 @@ namespace Starcounter.Advanced {
             }
         }
 
+        /*
         /// <summary>
         /// The is app view_
         /// </summary>
@@ -455,6 +456,7 @@ namespace Starcounter.Advanced {
             get { return is_app_view_; }
             set { is_app_view_ = value; }
         }
+         */
 
         /// <summary>
         /// The gzip advisable_

@@ -6,7 +6,7 @@
         <button type="button" ng-disabled="isBusy == true" class="btn btn-warning" ng-model="filterModel.warning" btn-checkbox>Warning</button>
         <button type="button" ng-disabled="isBusy == true" class="btn btn-danger" ng-model="filterModel.error" btn-checkbox>Error</button>
     </div>
-    <button class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
+    <button ng-hide="isWebsocketSupport == true" class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
 </div>
 
 
@@ -59,7 +59,7 @@
       <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
       <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
       <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
-      <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
+      <datacolumn width="100" readOnly="true" value="row.Message" title="'Message'"></datacolumn>
 
     </ui-handsontable>
 </div>

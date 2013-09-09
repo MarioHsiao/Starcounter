@@ -81,24 +81,26 @@ doesn't matter for this example).
 #endif
 
 EXTERN_C unsigned long sc_initialize_io_service(
-const char* name, 
-const char* server_name,
-unsigned long port_count, 
-bool is_system,
-unsigned int num_shm_chunks);
+    const char* name, 
+    const char* server_name,
+    unsigned long port_count, 
+    bool is_system,
+    unsigned int num_shm_chunks,
+    unsigned char gateway_num_workers);
 
 unsigned long sc_initialize_io_service(
-const char* name,
-const char* server_name,
-unsigned long port_count, 
-bool is_system,
-unsigned int num_shm_chunks)
+    const char* name,
+    const char* server_name,
+    unsigned long port_count, 
+    bool is_system,
+    unsigned int num_shm_chunks,
+    unsigned char gateway_num_workers)
 {
 	try {
 		if (strlen(name) > 127) return _E_INVALID_SERVER_NAME;
 		
 		// Initialize the shared memory segments and all objects in it.
-		unsigned long dr = starcounter::core::initialize(name, server_name, port_count, is_system, num_shm_chunks);
+		unsigned long dr = starcounter::core::initialize(name, server_name, port_count, is_system, num_shm_chunks, gateway_num_workers);
 		return dr;
 	}
 	catch (...) {

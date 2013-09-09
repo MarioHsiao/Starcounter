@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
     /// <summary>
     /// Defines the semantics of an element of a configuration file.
     /// </summary>

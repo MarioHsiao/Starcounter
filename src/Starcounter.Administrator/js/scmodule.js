@@ -37,6 +37,12 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', fu
 
     $scope.executeQuery = function () {
 
+        if (!$scope.queryState.sqlQuery) {
+            // if this occure then the binding the the textarea failed..
+            var message = "Failed to retrive the query text due to some binding issues. Refresh the page and try again.";
+            $scope.alerts.push({ type: 'error', msg: message });
+            return;
+        }
         $scope.isBusy = true;
 
         $scope.queryState.columns = [];
@@ -79,7 +85,7 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', fu
 
                 if (response.status == 404) {
                     // 404	Not Found
-                    var message = "Could not execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started database";
+                    var message = "Failed to execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started executable.";
                     $scope.alerts.push({ type: 'error', msg: message });
 
                 }
@@ -1543,6 +1549,11 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
                     $scope.console += evt.data.replace(/\r\n/g, "<br>");
                 }
 
+                if ($scope.console.length > 8000) {
+                    $scope.console = $scope.console.substr($scope.console.length-8000);
+                }
+
+
                 $scope.$apply();
                 $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
             };
@@ -2093,6 +2104,7 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
     $scope.alerts.length = 0;
     $scope.log = {};
     $scope.log.LogEntries = [];
+    $scope.isWebsocketSupport = ("WebSocket" in window);
 
     $scope.filterModel = {
         debug: false,
@@ -2100,6 +2112,17 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
         warning: true,
         error: true
     };
+
+    $scope.socket = null;
+
+    $scope.$on('$destroy', function iVeBeenDismissed() {
+
+        if ($scope.socket != null) {
+            if ($scope.socket.readyState == 0 || $scope.socket.readyState == 2 || $scope.socket.readyState == 3) return; // (0) CONNECTING // (2) CLOSING, (3) CLOSED
+            $scope.socket.close();
+        }
+    })
+
 
     // Set the filters from the address bar parameters to the controller
     $scope.filterModel = $location.search();
@@ -2125,9 +2148,51 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
 
     }
 
+    // Websockets
+    // Retrive the event when the log has changed
+    $scope.listenToLogEvents = function () {
+
+        try {
+            $scope.socket = new WebSocket("ws://" + location.host + "/api/admin/log/event/ws");
+
+            this.socket.onopen = function (evt) {
+                $scope.socket.send("PING");
+            };
+
+            this.socket.onclose = function (evt) {
+                $scope.socket = null;
+            };
+
+            this.socket.onmessage = function (evt) {
+
+                if (evt.data == "1") {
+                    // 1 = Log has change
+                    $scope.$apply();
+                    $scope.getLog();
+                }
+            };
+
+            this.socket.onerror = function (evt) {
+                console.log("Log websocket onerror:" + evt);
+                $scope.isWebsocketSupport = false;
+                $scope.$apply();
+                $scope.getLog();
+            };
+        }
+        catch (exception) {
+            console.log("Log websocket exception:" + exception);
+            $scope.isWebsocketSupport = false;
+            $scope.getLog();
+        }
+    }
+
     $scope.btnRefresh = function () {
         $scope.alerts.length = 0;
         $scope.getLog();
+    }
+
+    if ($scope.isWebsocketSupport) {
+        $scope.listenToLogEvents();
     }
 
     $scope.getLog();

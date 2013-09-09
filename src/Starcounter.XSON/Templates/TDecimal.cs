@@ -11,13 +11,18 @@ namespace Starcounter.Templates {
 
     /// <summary>
     /// </summary>
-    public class TDecimal : TValue<decimal>
+    public class TDecimal : PrimitiveProperty<decimal>
     {
         /// <summary>
         /// </summary>
         decimal _DefaultValue = 0;
 
-        public override void ProcessInput(Obj obj, byte[] rawValue)
+        public override Type MetadataType {
+            get { return typeof(DecimalMetadata<Json>); }
+        }
+
+
+        public override void ProcessInput(Json obj, byte[] rawValue)
         {
             // TODO:
             // Superslow way of parsing the decimal value. Needs to be rewritten.

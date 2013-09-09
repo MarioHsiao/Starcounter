@@ -12,7 +12,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// Class NPrimitiveType
     /// </summary>
-    public class AstPrimitiveType : AstValueClass
+    public class AstPrimitiveType : AstInstanceClass
     {
 
         /// <summary>
@@ -23,25 +23,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             : base(gen) {
         }
 
-        public override string Name {
-            get { return ClassName; }
+        public override bool IsPrimitive {
+            get {
+                var type = NTemplateClass.Template.InstanceType;
+				if (type == null)
+					return true;
+                return type.IsPrimitive || type == typeof(string) || type == typeof(Decimal);
+            }
         }
 
-        /// <summary>
-        /// Gets the inherits.
-        /// </summary>
-        /// <value>The inherits.</value>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override string Inherits
-        {
-            get { throw new NotImplementedException(); }
-        }
 
         /// <summary>
         /// Gets the name of the class.
         /// </summary>
         /// <value>The name of the class.</value>
-        public override string ClassName
+        public override string ClassStemIdentifier
         {
             get
             {
@@ -78,7 +74,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         public override string GlobalClassSpecifier {
             get {
-                return ClassName;
+                return ClassStemIdentifier;
             }
         }
     }

@@ -1,11 +1,12 @@
 ﻿using System;
 using Codeplex.Data;
 using Starcounter;
-using Starcounter.Advanced;
+using Starcounter.Advanced.Configuration;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal;
+using Starcounter.Advanced;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -19,7 +20,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                     try {
 
-                        Starcounter.Configuration.DatabaseConfiguration d = new Starcounter.Configuration.DatabaseConfiguration();
+                        DatabaseConfiguration d = new DatabaseConfiguration();
 
                         ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
 

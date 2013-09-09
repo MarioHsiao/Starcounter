@@ -9,7 +9,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void UIntSimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriter writeArray = new TupleWriter(start, 10, 1);
+                TupleWriterBase64 writeArray = new TupleWriterBase64(start, 10, 1);
                 writeArray.Write(0);
                 writeArray.Write(UInt32.MaxValue);
                 writeArray.Write(UInt32.MinValue);
@@ -22,7 +22,7 @@ namespace FasterThanJson.Tests {
                 writeArray.Write(66001);
                 writeArray.SealTuple();
 
-                TupleReader readArray = new TupleReader(start, 10);
+                TupleReaderBase64 readArray = new TupleReaderBase64(start, 10);
                 Assert.AreEqual(16500, readArray.ReadUInt(4));
                 Assert.AreEqual(65500, readArray.ReadUInt(5));
                 Assert.AreEqual(UInt32.MaxValue, readArray.ReadUInt(1));
@@ -40,7 +40,7 @@ namespace FasterThanJson.Tests {
         public unsafe void StringSimpleTest() {
             byte[] buffer = new byte[1024];
             fixed (byte* start = buffer) {
-                TupleWriter writeArray = new TupleWriter(start, 5, 1);
+                TupleWriterBase64 writeArray = new TupleWriterBase64(start, 5, 1);
                 writeArray.Write("a");
                 writeArray.Write("I've verified that this has been fixed in the next branch. I will keep this issue open until we merged next into develop.");
                 writeArray.Write("AAAAAA");
@@ -48,7 +48,7 @@ namespace FasterThanJson.Tests {
                 writeArray.Write("AAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBcccccccccccccccccccccccccccccEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEdddddddddddddddddddddddZZZZZZZZZZZZZZZZZZZZZZ");
                 writeArray.SealTuple();
 
-                TupleReader readArray = new TupleReader(start, 5);
+                TupleReaderBase64 readArray = new TupleReaderBase64(start, 5);
                 Assert.AreEqual("AAAAAA", readArray.ReadString(2));
                 Assert.AreEqual("AAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBcccccccccccccccccccccccccccccEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEdddddddddddddddddddddddZZZZZZZZZZZZZZZZZZZZZZ",
                     readArray.ReadString(4));
@@ -62,7 +62,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void BinarySimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriter writeArray = new TupleWriter(start, 5, 2);
+                TupleWriterBase64 writeArray = new TupleWriterBase64(start, 5, 2);
                 writeArray.Write(new byte[] { byte.MinValue });
                 writeArray.Write(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 });
                 writeArray.Write(new byte[] { byte.MaxValue });
@@ -70,7 +70,7 @@ namespace FasterThanJson.Tests {
                 writeArray.Write(new byte[] { 123, 7, 0, 12, 142, 255, 0, 0, 255, 2, 48, 129, 243, 23 });
                 writeArray.SealTuple();
 
-                TupleReader readArray = new TupleReader(start, 5);
+                TupleReaderBase64 readArray = new TupleReaderBase64(start, 5);
                 Assert.AreEqual(new byte[] { byte.MinValue }, readArray.ReadByteArray(0));
                 Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 }, readArray.ReadByteArray(1));
                 Assert.AreEqual(new byte[] { byte.MaxValue }, readArray.ReadByteArray(2));
@@ -93,13 +93,13 @@ namespace FasterThanJson.Tests {
                 inputArray3[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
             byte[] buffer = new byte[1024];
             fixed (byte* start = buffer) {
-                TupleWriter tuple = new TupleWriter(start, 3, 1);
+                TupleWriterBase64 tuple = new TupleWriterBase64(start, 3, 1);
                 tuple.Write(inputArray1);
                 tuple.Write(inputArray2);
                 tuple.Write(inputArray3);
                 tuple.SealTuple();
 
-                TupleReader reader = new TupleReader(start, 3);
+                TupleReaderBase64 reader = new TupleReaderBase64(start, 3);
                 Assert.AreEqual(inputArray1, reader.ReadByteArray(0));
                 Assert.AreEqual(inputArray2, reader.ReadByteArray(1));
                 Assert.AreEqual(inputArray3, reader.ReadByteArray(2));
@@ -109,11 +109,11 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void SimpleResizeTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriter writeArray = new TupleWriter(start, 100, 1);
+                TupleWriterBase64 writeArray = new TupleWriterBase64(start, 100, 1);
                 for (int i = 0; i < 100; i++)
                     writeArray.Write(16000);
                 writeArray.SealTuple();
-                TupleReader readArray = new TupleReader(start, 100);
+                TupleReaderBase64 readArray = new TupleReaderBase64(start, 100);
                 for (int i = 0; i < 100; i++)
                     Assert.AreEqual(16000, readArray.ReadUInt(i));
             }
@@ -130,23 +130,29 @@ namespace FasterThanJson.Tests {
                 uint[] uintValues = new uint[nrValues];
                 String[] stringValues = new String[nrValues];
                 byte[][] binaryValues = new byte[nrValues][];
+                ulong[] ulongValues = new ulong[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
-                    TupleWriter arrayWriter = new TupleWriter(start, nrValues, 2);
+                    TupleWriterBase64 arrayWriter = new TupleWriterBase64(start, nrValues, 2);
+                    arrayWriter.SetTupleLength((uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        valueTypes[j] = writeRnd.Next(1, 4);
+                        valueTypes[j] = writeRnd.Next(1, 5);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
-                                arrayWriter.Write(uintValues[j]);
+                                arrayWriter.WriteSafe(uintValues[j]);
                                 break;
                             case (int)ValueTypes.STRING:
                                 stringValues[j] = RandomValues.RandomString(writeRnd);
-                                arrayWriter.Write(stringValues[j]);
+                                arrayWriter.WriteSafe(stringValues[j]);
                                 break;
                             case (int)ValueTypes.BINARY:
-                                binaryValues[j] = RandomValues.RandomBinary(writeRnd);
-                                arrayWriter.Write(binaryValues[j]);
+                                binaryValues[j] = RandomValues.RandomByteArray(writeRnd);
+                                arrayWriter.WriteSafe(binaryValues[j]);
+                                break;
+                            case (int)ValueTypes.ULONG:
+                                ulongValues[j] = RandomValues.RandomULong(writeRnd);
+                                arrayWriter.WriteSafe(ulongValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
@@ -156,7 +162,7 @@ namespace FasterThanJson.Tests {
                     arrayWriter.SealTuple();
                 }
                 fixed (byte* start = tupleBuffer) {
-                    TupleReader arrayReader = new TupleReader(start, nrValues);
+                    TupleReaderBase64 arrayReader = new TupleReaderBase64(start, nrValues);
                     for (int j = 0; j < nrValues; j++) {
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
@@ -167,6 +173,9 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.BINARY:
                                 Assert.AreEqual(binaryValues[j], arrayReader.ReadByteArray(j));
+                                break;
+                            case (int)ValueTypes.ULONG:
+                                Assert.AreEqual(ulongValues[j], arrayReader.ReadUInt(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using System.Runtime.InteropServices;
 
 namespace Starcounter.Server {

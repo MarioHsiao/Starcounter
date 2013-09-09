@@ -18,8 +18,8 @@ namespace Starcounter.Internal.JsonTemplate
     /// Class MetaTemplate
     /// </summary>
     internal class MetaTemplate<OT,OTT> : MetaTemplate
-        where OT : Obj, new()
-        where OTT : TObj, new() 
+        where OT : Json, new()
+        where OTT : TObject, new() 
     {
         /// <summary>
         /// The _boolean properties
@@ -144,7 +144,7 @@ namespace Starcounter.Internal.JsonTemplate
             {
                 appTemplate = _template as OTT;
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-                ((TObj)_template).ClassName = v;
+                ((TObject)_template).ClassName = v;
             }
             else if (upperName == "RUN")
             {
@@ -157,18 +157,17 @@ namespace Starcounter.Internal.JsonTemplate
                 valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 valueTemplate.Bind = v;
-                valueTemplate.Bound = Bound.Yes;
             }
             else if (upperName == "TYPE")
             {
                 TValue oldProperty = _template as TValue;
-                if (oldProperty == null || (oldProperty is TObj)) 
+                if (oldProperty == null || (oldProperty is TObject)) 
                     ErrorHelper.RaiseInvalidTypeConversionError(_debugInfo);
 
                 TValue newProperty = GetPropertyFromTypeName(v);
                 oldProperty.CopyTo(newProperty);
 
-                TObj parent = (TObj)oldProperty.Parent;
+                var parent = (TObject)oldProperty.Parent;
                 parent.Properties.Replace(newProperty);
             }
             else if (upperName == "REUSE")
@@ -253,8 +252,8 @@ namespace Starcounter.Internal.JsonTemplate
     /// It is used as a singleton.
     /// </summary>
     public class TAppFactory<OT,OTT> : ITemplateFactory
-        where OT : Obj, new()
-        where OTT : TObj, new() 
+        where OT : Json, new()
+        where OTT : TObject, new() 
     {
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
@@ -605,7 +604,7 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new TArr<OT, OTT>() { TemplateName = name };
+            newTemplate = new TArray<OT>() { TemplateName = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -715,7 +714,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                string className,
                                                DebugInfo debugInfo)
         {
-            ((TObj)template).ClassName = className;
+            ((TObject)template).ClassName = className;
         }
 
         /// <summary>
@@ -728,7 +727,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                  string className,
                                                  DebugInfo debugInfo)
         {
-            ((TObj)template).Include = className;
+            ((TObject)template).Include = className;
         }
 
         /// <summary>
@@ -741,7 +740,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                    string namespaceName,
                                                    DebugInfo debugInfo)
         {
-            ((TObj)template).Namespace = namespaceName;
+            ((TObject)template).Namespace = namespaceName;
         }
 
         /// <summary>

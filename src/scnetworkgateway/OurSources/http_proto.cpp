@@ -11,6 +11,80 @@
 namespace starcounter {
 namespace network {
 
+const char* const kHttpGatewayPongResponse =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 5\r\n"
+    "\r\n"
+    "Pong!";
+
+const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
+
+const char* const kHttpServiceUnavailable =
+    "HTTP/1.1 503 Service Unavailable\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable);
+
+const char* const kHttpTooBigUpload =
+    "HTTP/1.1 413 Request Entity Too Large\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 50\r\n"
+    "\r\n"
+    "Maximum supported HTTP request content size is 32 Mb!";
+
+const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload);
+
+const char* const kHttpNoContent =
+    "HTTP/1.1 204 No Content\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpNoContentLength = strlen(kHttpNoContent);
+
+const char* const kHttpBadRequest =
+    "HTTP/1.1 400 Bad Request\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest);
+
+const char* const kHttpNotFoundPrefix =
+    "HTTP/1.1 404 Not Found\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: ";
+
+const int32_t kHttpNotFoundPrefixLength = strlen(kHttpNotFoundPrefix);
+
+const char* const kHttpNotFoundMessage = "URI not found: ";
+const int32_t kHttpNotFoundMessageLength = strlen(kHttpNotFoundMessage);
+
+// Constructs HTTP 404 response.
+inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_bytes, const char* uri, const int32_t uri_len)
+{
+    GW_ASSERT(dest_max_bytes > 128);
+
+    int32_t content_len = kHttpNotFoundMessageLength + uri_len;
+
+    if (content_len >= dest_max_bytes - 128)
+        content_len = kHttpNotFoundMessageLength;
+
+    char cont_len_string[16];
+    itoa(content_len, cont_len_string, 10);
+
+    int32_t offset = 0;
+    offset = InjectData(dest, offset, kHttpNotFoundPrefix, kHttpNotFoundPrefixLength);
+    offset = InjectData(dest, offset, cont_len_string, strlen(cont_len_string));
+    offset = InjectData(dest, offset, "\r\n\r\n", 4);
+    offset = InjectData(dest, offset, kHttpNotFoundMessage, kHttpNotFoundMessageLength);
+
+    if (content_len > kHttpNotFoundMessageLength)
+        offset = InjectData(dest, offset, uri, uri_len);
+
+    return offset;
+}
+
 // Destructor.
 RegisteredUris::~RegisteredUris()
 {
@@ -390,7 +464,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case UPGRADE_FIELD:
         {
             // Double checking if its a WebSocket upgrade.
-            if (*(uint64_t*)(at + 1) != *(uint64_t*)"ebsocket")
+            if (*(uint32_t*)(at + 4) != *(uint32_t*)"ocke")
                 return SCERRGWHTTPNONWEBSOCKETSUPGRADE;
 
             break;
@@ -405,6 +479,9 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case WS_PROTOCOL_FIELD:
         {
+            if (length > 32)
+                return SCERRGWHTTPINCORRECTDATA;
+
             http->ws_proto_.SetSubProtocol((char *)at, length);
             break;
         }
@@ -592,7 +669,12 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         {
             // Sending resource not found and closing the connection.
             sd->set_disconnect_after_send_flag(true);
-            err_code = gw->SendPredefinedMessage(sd, kHttpNotFound, kHttpNotFoundLength);
+
+            // Creating 404 message.
+            char stack_temp_mem[512];
+            int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_and_uri, method_and_uri_len);
+
+            err_code = gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
             if (err_code)
                 return err_code;
         }

@@ -29,8 +29,8 @@
   <!-- Maximum number of connections -->
   <MaxConnections>1000000</MaxConnections>
 
-  <!-- Inactive session life time in seconds -->
-  <InactiveSessionTimeout>1200</InactiveSessionTimeout>
+  <!-- Inactive connection life time in seconds -->
+  <InactiveConnectionTimeout>1200</InactiveConnectionTimeout>
 
   <!-- Gateway global statistics port -->
   <GatewayStatisticsPort>12345</GatewayStatisticsPort>

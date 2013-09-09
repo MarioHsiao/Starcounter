@@ -6,6 +6,9 @@
 
 using Starcounter.Templates;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.TObject;
+
+
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
@@ -24,12 +27,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// The template
         /// </summary>
-        public TObj Template;
+        public TJson Template;
 
         /// <summary>
         /// The instances
         /// </summary>
-        public static Dictionary<TObj, NClass> Instances = new Dictionary<TObj, NClass>();
+        public static Dictionary<TJson, NClass> Instances = new Dictionary<TJson, NClass>();
 
         /// <summary>
         /// Gets the name of the class.

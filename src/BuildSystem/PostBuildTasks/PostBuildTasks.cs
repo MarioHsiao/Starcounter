@@ -33,7 +33,8 @@ namespace PostBuildTasks
         static readonly String[] OutputFilesToDelete =
         {
             "personal.xml",
-            "facit.cpp.txt"
+            "facit.cpp.txt",
+            "WebSocket4Net.dll"
         };
 
         /// <summary>

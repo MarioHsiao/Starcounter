@@ -74,8 +74,11 @@ namespace Starcounter.Internal.Web {
                 return response;
             }
             catch (Exception ex) {
-                byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
-                return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
+				// Logging the exception to server log.
+				LogSources.Hosting.LogException(ex);
+				return new Response() {
+					Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(500, null, GetExceptionString(ex), null, "text/plain")
+				};
             }
         }
 
@@ -136,8 +139,8 @@ namespace Starcounter.Internal.Web {
 
                         // In case of returned JSON object within current session we need to save it
                         // for later reuse.
-                        Obj rootJsonObj = Session.Data;
-                        Obj curJsonObj = null;
+                        Json rootJsonObj = Session.Data;
+                        Json curJsonObj = null;
                         if (null != result) {
 
                             // Setting session on result only if its original request.
@@ -169,9 +172,9 @@ namespace Starcounter.Internal.Web {
 
                         // Logging the exception to server log.
                         LogSources.Hosting.LogException(exc);
-
-                        byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(exc));
-                        return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
+						return new Response() {
+							Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(500, null, GetExceptionString(exc), null, "text/plain")
+						};
                     }
                     finally
                     {

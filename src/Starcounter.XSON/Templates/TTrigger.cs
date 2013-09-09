@@ -19,13 +19,23 @@ namespace Starcounter.Templates {
     /// </remarks>
     public class TTrigger : TValue
     {
+
+        public override bool IsPrimitive {
+            get { return true; }
+        }
+
+        public override Type MetadataType {
+            get { return typeof(ActionMetadata<Json>); }
+        }
+
+
         /// <summary>
         /// </summary>
-        private Func<Obj, TValue, Input> CustomInputEventCreator = null;
+        private Func<Json, TValue, Input> CustomInputEventCreator = null;
      
         /// <summary>
         /// </summary>
-        public List<Action<Obj, Input>> CustomInputHandlers = new List<Action<Obj, Input>>();
+        public List<Action<Json, Input>> CustomInputHandlers = new List<Action<Json, Input>>();
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -61,8 +71,8 @@ namespace Starcounter.Templates {
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<Obj, TValue, Input> createInputEvent = null,
-            Action<Obj, Input> handler = null) {
+            Func<Json, TValue, Input> createInputEvent = null,
+            Action<Json, Input> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
@@ -71,7 +81,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        public override void ProcessInput(Obj obj, byte[] rawValue) {
+        public override void ProcessInput(Json obj, byte[] rawValue) {
             Input input = null;
 
             if (CustomInputEventCreator != null)

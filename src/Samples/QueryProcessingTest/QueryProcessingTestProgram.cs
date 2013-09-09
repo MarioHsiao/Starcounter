@@ -20,11 +20,14 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
-                BenchmarkQueryCache.BenchQueryCache();
+                if (TestLogger.IsNightlyBuild())
+                    BenchmarkQueryCache.BenchQueryCache();
+                else
+                    HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());
-                throw e;
+                throw;
             }
             Environment.Exit(0);
         }
@@ -40,7 +43,7 @@ namespace QueryProcessingTest {
 
         internal static void CreateIndexes() {
             if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "accountidindx").First == null)
-                Starcounter.Db.SlowSQL("create index accountidindx on Account(accountid)");
+                Starcounter.Db.SQL("create index accountidindx on Account(accountid)");
             if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "nicknameindx").First == null) {
                 Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
                 Starcounter.Db.SlowSQL("create index anothernicknameindx on User(AnotherNickName)");

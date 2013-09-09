@@ -5,7 +5,7 @@
 // ***********************************************************************
 
 using System.Xml.Serialization;
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.Server.PublicModel {
 

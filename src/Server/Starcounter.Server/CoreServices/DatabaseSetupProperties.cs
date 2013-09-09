@@ -4,7 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Configuration;
+using Starcounter.Advanced.Configuration;
 using System.IO;
 
 namespace Starcounter.Server {

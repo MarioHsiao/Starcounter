@@ -31,7 +31,17 @@ namespace Starcounter.Internal.Web {
        /// <param name="path">The file path for the directory to add</param>
        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
        {
+            if (path.EndsWith("\\")) {
+                path = path.Substring(0,path.Length-1);
+            }
+            if (!Directory.Exists(path)) {
+                throw new Exception(
+                    String.Format("The directory {0} given as the root file server directory does not exist",
+                    path));
+            }
+           
             Console.WriteLine("Adding path to static web server \"" + path + "\"");
+
 
             // Always clearing cache when adding new directory on this port.
             ClearCache();
@@ -110,53 +120,32 @@ namespace Starcounter.Internal.Web {
       /// <returns>The UTF8 encoded response</returns>
       public Response GetStatic(string relativeUri, Request request ) {
 
-         //            if (relativeUri.Equals("/")) {
-         //                relativeUri = "/index.html";
-         //            }
-         //            else {
           Response resource;
          relativeUri = relativeUri.ToLower();
-         //            }
 
-         // Read one byte at offset index and return it.
          if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
-/*            if (request.WantsCompressed) {
-               if (resource.Compressed != null) {
-                  if (resource.WorthWhileCompressing)
-                     request.Debug(" (cached compressed response)");
-                  else
-                     request.Debug(" (cached not-worth-compressing response)");
-                  return resource;
-               }
-            }
-            else {
-               if (resource.Uncompressed != null) {
-                  request.Debug(" (cached uncompressed response)");
-                  return resource.Uncompressed;
-               }
-            }
- */
-             return resource;
-         }
-
-         // Locking because of possible multi-threaded calls.
-         lock (LockObject) {
-
-             // Checking again if already processed the file..
-             if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
+//             if (DateTime.Now.Ticks < resource.Retrieved + 10000000) {
+//                 Console.WriteLine("(found cache) " + relativeUri);
                  return resource;
-             }
-
-            resource = GetFileResource(resource, relativeUri, request);
+//             }
+//            else {
+//                 DecacheByFilePath(resource.FilePath);
+//             }
          }
-         
 
-         //            Cache[relativeUri] = body;
-//         if (request.WantsCompressed) {
-//            return resource.Compressed;
-//         }
-//         return resource.Uncompressed;
-//         // TODO. Only return compressed when allowed
+         if (!Configuration.Current.FileServer.DisableAllCaching) {
+             // Locking because of possible multi-threaded calls.
+             lock (LockObject) {
+
+                 // Checking again if already processed the file..
+                 if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
+                     Console.WriteLine("(found cache2) " + relativeUri);
+                     return resource;
+                 }
+
+             }
+         }
+         resource = GetFileResource(resource, relativeUri, request);
          return resource;
       }
 

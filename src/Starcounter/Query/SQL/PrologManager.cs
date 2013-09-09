@@ -734,13 +734,15 @@ namespace Starcounter.Query.Sql
                     if (typeDef.BaseName != null)
                     {
                         streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
-                        if (shortClassNameUpper != fullClassNameUpper)
+                        var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
+                        if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null))
                             streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
                     }
                     else
                     {
                         streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
-                        if (shortClassNameUpper != fullClassNameUpper)
+                        var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
+                        if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null))
                             streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
                     }
                 }

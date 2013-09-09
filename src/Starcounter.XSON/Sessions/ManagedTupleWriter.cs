@@ -14,7 +14,7 @@ namespace Starcounter.Internal {
        /// <summary>
        /// The tw
        /// </summary>
-      private TupleWriter tw;
+      private TupleWriterBase64 tw;
       /// <summary>
       /// The buffer
       /// </summary>
@@ -26,7 +26,7 @@ namespace Starcounter.Internal {
       /// <param name="capacity">The capacity.</param>
       public FtjWriter( int capacity ) {
          buffer = new byte[capacity]; // TODO!
-         tw = new TupleWriter(); // Dummy tuple writer
+         tw = new TupleWriterBase64(); // Dummy tuple writer
       }
 
       /// <summary>
@@ -68,7 +68,7 @@ namespace Starcounter.Internal {
          buffer = null;
          unsafe {
             fixed (byte* pbuf = buffer) {
-               tw = new TupleWriter(pbuf, (uint)valueCount, (uint)initialOffsetElementSize);
+               tw = new TupleWriterBase64(pbuf, (uint)valueCount, (uint)initialOffsetElementSize);
             }
          }
       }
@@ -78,7 +78,7 @@ namespace Starcounter.Internal {
       /// </summary>
       /// <typeparam name="T"></typeparam>
       /// <param name="appList">The app list.</param>
-      public void Write<T>(Arr appList) where T : Obj {
+      public void Write<T>(Arr appList) where T : Json {
       }
 
       /// <summary>

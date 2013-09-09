@@ -224,7 +224,7 @@ namespace Starcounter.Internal
       public static unsafe string ToString(SessionBlob* blob)
       {
          byte* atStart = ((byte*)blob) + SessionBlob.HeaderSize;
-         var tr = new TupleReader(atStart,1);
+         var tr = new TupleReaderBase64(atStart,1);
          return tr.DebugString;
       }
 

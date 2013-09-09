@@ -41,7 +41,7 @@ namespace Starcounter {
     /// <typeparam name="TApp">The type of the Obj.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     public class Input<TApp, TTemplate> : Input
-        where TApp : Obj
+        where TApp : Json
         where TTemplate : Template {
 
             /// <summary>
@@ -71,7 +71,7 @@ namespace Starcounter {
     /// <typeparam name="TApp">The type of the Obj.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
-    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : Obj where TTemplate : Template {
+    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : Json where TTemplate : Template {
 
         /// <summary>
         /// The _app
@@ -107,7 +107,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parentProperty">The parent property.</param>
         /// <returns>App.</returns>
-        public Obj FindParent(TContainer parentProperty) {
+        public Json FindParent(TContainer parentProperty) {
             return null;
         }
 
@@ -116,7 +116,7 @@ namespace Starcounter {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>``0.</returns>
-        public T FindParent<T>() where T:Obj {
+        public T FindParent<T>() where T : Json {
             return null;
         }
 

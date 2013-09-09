@@ -11,7 +11,7 @@ using System.IO;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace Starcounter.Configuration {
+namespace Starcounter.Advanced.Configuration {
     /// <summary>
     /// Configures the runtime properties of a Starcounter database.
     /// </summary>

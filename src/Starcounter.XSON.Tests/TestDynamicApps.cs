@@ -15,6 +15,8 @@ using Starcounter.Advanced.XSON;
 using System.IO;
 using Starcounter.Internal.XSON;
 using Starcounter.XSON.Tests;
+using TJson = Starcounter.Templates.TObject;
+using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 
 namespace Starcounter.Internal.XSON.Tests {
 
@@ -84,15 +86,15 @@ namespace Starcounter.Internal.XSON.Tests {
             var age = personSchema.Add<TLong>("Age");
 
             var phoneNumber = new TJson();
-            var phoneNumbers = personSchema.Add<TArr<Json,TJson>>("Phonenumbers", phoneNumber);
+            var phoneNumbers = personSchema.Add<TArr>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.TemplateName);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
-            Json jocke = new Json() { Template = personSchema };
-            Json tim = new Json() { Template = personSchema };
+            var jocke = new Json() { Template = personSchema };
+            var tim = new Json() { Template = personSchema };
 
             jocke.Set(firstName, "Joachim");
             jocke.Set(lastName, "Wester");
@@ -131,7 +133,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var age = personSchema.Add<TLong>("Age");
 
             var phoneNumber = new TJson();
-            var phoneNumbers = personSchema.Add<TArr<Json, TJson>>("Phonenumbers", phoneNumber);
+            var phoneNumbers = personSchema.Add<TArr>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.TemplateName);
@@ -226,13 +228,13 @@ namespace Starcounter.Internal.XSON.Tests {
         /// </summary>
         [Test]
         public static void TestCorrectJsonInstances() {
-            TObj personSchema = CreateComplexPersonTemplate();
+            TJson personSchema = CreateComplexPersonTemplate();
 
             dynamic p1 = personSchema.CreateInstance();
             dynamic n1 = p1.Fields.Add();
             dynamic n2 = p1.Fields.Add();
 
-            Assert.IsInstanceOf<Obj>(p1);
+            Assert.IsInstanceOf<Json>(p1);
             Assert.IsInstanceOf<MyFieldMessage>(n1);
             Assert.IsInstanceOf<MyFieldMessage>(n2);
 
@@ -244,7 +246,7 @@ namespace Starcounter.Internal.XSON.Tests {
         //[Test]
         // TODO: Fix this test!
         public static void TestDataBinding() {
-            dynamic msg = new Json<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
+            dynamic msg = new Json { Template = CreateSimplePersonTemplateWithDataBinding() };
 
             var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
             myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
@@ -284,7 +286,7 @@ namespace Starcounter.Internal.XSON.Tests {
         private static TJson CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText(filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TObj.CreateFromMarkup<Json,TJson>("json", json, className);
+            var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
         }
@@ -295,7 +297,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestDataBindingWithDifferentClasses() {
             // Bound to SimpleBase datatype.
-            TObj tSimple = CreateJsonTemplateFromFile("simple.json");
+            TJson tSimple = CreateJsonTemplateFromFile("simple.json");
             dynamic json = tSimple.CreateInstance();
             
             var o = new SubClass1(); 
@@ -330,7 +332,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         private static TJson CreateSimplePersonTemplateWithDataBinding() {
-            var personSchema = new TJson() { BindChildren = true };
+            var personSchema = new TJson() { BindChildren = Bound.Yes };
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
             personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
             personSchema.Add<TLong>("_Age"); // Will not be bound
@@ -341,15 +343,15 @@ namespace Starcounter.Internal.XSON.Tests {
             
             var misc = personSchema.Add<TString>("Misc");
             misc.Bind = null; // Removing the binding for this specific template.
-           
+
             var phoneNumber = personSchema.Add<TJson>("_PhoneNumber", "Number"); // Bound to Number even though name start with '_'
-            phoneNumber.BindChildren = true;
+            phoneNumber.BindChildren = Bound.Yes;
             phoneNumber.Add<TString>("Number"); // Bound to Number
             
             return personSchema;
         }
 
-        private static TObj CreateSimplePersonTemplate() {
+        private static TJson CreateSimplePersonTemplate() {
             var personSchema = new TJson();
             personSchema.Add<TString>("FirstName$");
             personSchema.Add<TString>("LastName");
@@ -357,12 +359,12 @@ namespace Starcounter.Internal.XSON.Tests {
             
             var phoneNumber = new TJson();
             phoneNumber.Add<TString>("Number");
-            personSchema.Add<TArr<Json,TJson>>("PhoneNumbers", phoneNumber);
+            personSchema.Add<TArr>("PhoneNumbers", phoneNumber);
 
             return personSchema;
         }
 
-        private static TObj CreateComplexPersonTemplate() {
+        private static TJson CreateComplexPersonTemplate() {
             var personSchema = new TJson();
             personSchema.Add<TString>("FirstName$");
             personSchema.Add<TString>("LastName");
@@ -374,7 +376,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var info = field.Add<TJson>("Info");
             info.Add<TString>("Text");
             field.InstanceType = typeof(MyFieldMessage);
-            personSchema.Add<TArr<MyFieldMessage, TJson>>("Fields", field);
+            personSchema.Add<TArray<MyFieldMessage>>("Fields", field);
 
             var extraInfo = personSchema.Add<TJson>("ExtraInfo");
             extraInfo.Add<TString>("Text");

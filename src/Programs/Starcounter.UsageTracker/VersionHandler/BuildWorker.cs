@@ -15,6 +15,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         #region Properties
         private bool _IsRunning;
+        /// <summary>
+        /// True if worker thread is running, otherwise false
+        /// </summary>
         public bool IsRunning {
             get {
                 return this._IsRunning;
@@ -27,6 +30,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         private AutoResetEvent waitEvent = new AutoResetEvent(false);
         #endregion
 
+
         /// <summary>
         /// Start Build worker
         /// </summary>
@@ -38,12 +42,14 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
+
         /// <summary>
         /// Stop Build worker
         /// </summary>
         public void Stop() {
             this.bAbort = true;
         }
+
 
         /// <summary>
         /// Trigger Build worker to check for tasks 
@@ -52,12 +58,13 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             this.waitEvent.Set();
         }
 
+
         /// <summary>
         /// Build worker thread
         /// </summary>
         private void WorkerThread(object state) {
 
-            LogWriter.WriteLine("NOTICE: Build worker started");
+            LogWriter.WriteLine("NOTICE: Build worker started.");
 
             this.IsRunning = true;
 
@@ -85,18 +92,19 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             }
 
             this.IsRunning = false;
-            LogWriter.WriteLine("NOTICE: Build worker ended");
+            LogWriter.WriteLine("NOTICE: Build worker ended.");
 
         }
+
 
         /// <summary>
         /// Build missing unique builds
         /// </summary>
         private void BuildMissingBuilds() {
 
-            LogWriter.WriteLine("NOTICE: Checking for versions to build");
+            LogWriter.WriteLine("NOTICE: Checking for new versions to build.");
 
-            var sources = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=?", false);
+            var sources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=?", false);
 
             VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
@@ -105,33 +113,31 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 // Validate the source folder
                 if (string.IsNullOrEmpty(source.SourceFolder)) {
-                    // Not unpacked yet
+                    // Not yet unpacked
                     continue;
                 }
 
                 // Validate the source folder
                 if (!Directory.Exists(source.SourceFolder)) {
-
-                    LogWriter.WriteLine(string.Format("ERROR: Source folder {0} is missing. Please restart to trigger the cleanup process", source.SourceFolder));
-
+                    LogWriter.WriteLine(string.Format("ERROR: Source folder {0} is missing. Please restart to trigger the cleanup process.", source.SourceFolder));
                     continue;
                 }
 
                 while (source.BuildError == false) {
 
                     // Get number of available builds
-                    Int64 num = Db.SlowSQL("SELECT count(o) FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Version=?", false, source.Version).First;
+                    Int64 num = Db.SlowSQL<Int64>("SELECT count(o) FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Version=?", false, source.Version).First;
 
                     Int64 neededVersions = settings.MaximumBuilds - num;
                     if (neededVersions <= 0) {
-                        // No new version build needed
+                        // No new builds is needed
                         break;
                     }
 
-                    // Build destination folder path (unique per build)
-                    // ..\stable\2.0.2345.2\xdfe4lvrlkmv
+                    // Build destination folder path (unique per build) an assure it dosent exits yet
+                    // Example path: ..\stable\2.0.2345.2\xdfe4lvrlkmv
                     string destinationFolder = string.Empty;
-                    for (int i = 0; i < 100; i++) {
+                    for (int i = 0; i < 50; i++) {
                         destinationFolder = settings.VersionFolder;
                         destinationFolder = System.IO.Path.Combine(destinationFolder, source.Channel);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, source.Version);
@@ -141,19 +147,24 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         }
                     }
 
+                    // Check that the folder dosent exits
                     if (Directory.Exists(destinationFolder)) {
-                        LogWriter.WriteLine("ERROR: Can not generate a unique destination folder.");
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to generate a new unique destination folder {0}.", destinationFolder));
+                        Db.Transaction(() => {
+                            // Mark build as a faild to build
+                            source.BuildError = true;
+                        });
                         break;
                     }
-
 
                     string file;
 
                     // Get serial id
                     string serialId = GetUniqueSerialId();
                     if (serialId == null) {
-                        LogWriter.WriteLine("ERROR: Could not generate a unique serial id");
+                        LogWriter.WriteLine("ERROR: Failed to generate a unique serial id.");
                         Db.Transaction(() => {
+                            // Mark build as a faild to build
                             source.BuildError = true;
                         });
                         break;
@@ -175,7 +186,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             }
                         }
                         catch (Exception e) {
-                            LogWriter.WriteLine(string.Format("ERROR: Could not cleanup destination folder {0}. {1}", destinationFolder, e.Message));
+                            LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup destination folder {0}. {1}.", destinationFolder, e.Message));
                         }
 
                     }
@@ -202,13 +213,13 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// <summary>
         /// Generate unique serial id
         /// </summary>
-        /// <returns>Serial otherwice null</returns>
+        /// <returns>Serial otherwise null</returns>
         private static string GetUniqueSerialId() {
             string serial;
 
             for (int i = 0; i < 50; i++) {
                 serial = DownloadID.GenerateNewUniqueDownloadKey();
-                var result = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.Serial=?", serial).First;
+                VersionBuild result = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Serial=?", serial).First;
                 if (result == null) {
                     return serial;
                 }
@@ -225,20 +236,17 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// <param name="serialId">Unique serialid</param>
         /// <param name="certFile">Fullpath to a certificat file</param>
         /// <param name="file">Output file</param>
-        /// <returns>True if successfull, otherwice false</returns>
+        /// <returns>True if successfull, otherwise false</returns>
         private bool Build(string sourceFolder, string destinationFolder, string serialId, string certFile, out string file) {
 
-            file = string.Empty; // TODO: Remove
+            file = string.Empty;
 
             // Assure destination folder
             if (!Directory.Exists(destinationFolder)) {
                 Directory.CreateDirectory(destinationFolder);
             }
 
-            LogWriter.WriteLine(string.Format("NOTICE: Building {0} to {1}", sourceFolder, destinationFolder));
-
             string builderTool = Path.Combine(sourceFolder, "GenerateInstaller.exe");
-
 
             // Start the Building tool process
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -252,28 +260,40 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 "PathToCertificateFile=" + "\"" + certFile + "\"";
             startInfo.WorkingDirectory = sourceFolder;
 
+            LogWriter.WriteLine(string.Format("NOTICE: Building {0} to {1}", serialId, destinationFolder));
+
             try {
                 using (Process exeProcess = Process.Start(startInfo)) {
 
+                    int timeout_min = 5;
                     LogWriter.WriteLine(exeProcess.StandardOutput.ReadToEnd());
+                    exeProcess.WaitForExit(timeout_min * 60 * 1000);
 
-                    exeProcess.WaitForExit();
+                    if (exeProcess.HasExited == false) {
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to build within reasonable time ({0} sec).", timeout_min));
+                        exeProcess.Kill();
+                        return false;
+                    }
+
                     if (exeProcess.ExitCode != 0) {
-                        LogWriter.WriteLine(string.Format("ERROR: Building tool exited with error code {0}", exeProcess.ExitCode));
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to build, error code {0}.", exeProcess.ExitCode));
                         return false;
                     }
 
                     string[] files = Directory.GetFiles(destinationFolder);
                     if (files == null || files.Length == 0) {
-                        LogWriter.WriteLine(string.Format("ERROR: Building tool did not generate an output file in destination folder {0}", destinationFolder));
+                        LogWriter.WriteLine(string.Format("ERROR: Building tool did not generate an output file in destination folder {0}.", destinationFolder));
                         return false;
                     }
                     file = files[0];
+
+                    LogWriter.WriteLine(string.Format("NOTICE: Successfully built {0} to {1}.", serialId, destinationFolder));
+
                     return true;
                 }
             }
             catch (Exception e) {
-                LogWriter.WriteLine(string.Format("ERROR: Can not start the building tool {0}. {1}", builderTool, e.Message));
+                LogWriter.WriteLine(string.Format("ERROR: Failed to start the building tool {0}. {1}.", builderTool, e.Message));
                 return false;
             }
         }
