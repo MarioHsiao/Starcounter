@@ -5,10 +5,13 @@ using System;
 namespace Starcounter.Internal {
 
     /// <summary>
+    /// Interface representing a task. Used by the in process task scheduler to
+    /// run the task.
     /// </summary>
     public interface ITask { // Internal
 
         /// <summary>
+        /// Called to execute the task.
         /// </summary>
         void Run();
     }
@@ -42,6 +45,7 @@ namespace Starcounter.Internal {
 namespace Starcounter {
 
     /// <summary>
+    /// Class representing a task.
     /// </summary>
     internal class Task : ITask {
 
@@ -57,6 +61,9 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// ITask interface implementation. Calls the action delegate
+        /// associated with the task, intercepts any transaction and stores it
+        /// with the task object.
         /// </summary>
         public void Run() {
             try {
@@ -83,7 +90,15 @@ namespace Starcounter {
     public class DbSession {
 
         /// <summary>
+        /// Runs the task represented by the action delegate asynchronously.
         /// </summary>
+        /// <remarks>
+        /// Unless overridden by specifying a specific scheduler for the task
+        /// to run on: If calling thread is attached to a Starcounter
+        /// scheduler, the task runs on the same scheduler as the calling
+        /// thread. If the calling thread is not a Starcounter thread, the task
+        /// is scheduled on scheduler 0.
+        /// </remarks>
         public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
             unsafe {
                 TaskScheduler.Run(new Task(action, null), schedId);
@@ -91,7 +106,22 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Runs the task represented by the action delegate synchronously.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the calling thread is attached to a Starcounter scheduler, the
+        /// thread simply calls the action delegate represetning the task. If
+        /// the calling thread is not a Starcounter thread, the task is
+        /// scheduled on a Starcounter thread and the current thread blocks
+        /// waiting for the task to complete.
+        /// </para>
+        /// <para>
+        /// On unhandled exception in the action delegate representing the task,
+        /// the exception is intercepted and an exception referencing that
+        /// exception, as an inner exception, is thrown by RunSync.
+        /// </para>
+        /// </remarks>
         public void RunSync(Action action) {
             unsafe {
                 uint r;
