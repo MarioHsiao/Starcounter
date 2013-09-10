@@ -39,6 +39,8 @@ namespace Starcounter.Internal
       /// </summary>
       public byte* AtOffsetEnd;
 
+	   // TODO: 
+	   // Should be renamed to Current.
       /// <summary>
       /// Pointer to the end of the tuple
       /// </summary>
@@ -206,7 +208,7 @@ namespace Starcounter.Internal
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString(int valueLength, byte* start) {
-          Debug.Assert(valueLength > 0);
+          Debug.Assert(valueLength >= 0);
           if (valueLength > 1) {
               char* buffer = stackalloc char[(int)valueLength];
               int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);

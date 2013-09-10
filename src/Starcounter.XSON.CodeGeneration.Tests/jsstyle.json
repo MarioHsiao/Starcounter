@@ -1,5 +1,5 @@
 ﻿{
-    FirstName$: "Arne",
+    FirstName: "Arne",
     LastName: "Anka",
     Age: 19,
     Stats: 23.987,
