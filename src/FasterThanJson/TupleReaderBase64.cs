@@ -88,12 +88,12 @@ namespace Starcounter.Internal
           } else {
               int offsetPos = OffsetElementSizeSize + (int)((index - 1) * OffsetElementSize);
               byte* atOffset = AtStart + offsetPos;
-              valueOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)atOffset);
+              valueOffset = (int)Base64Int.Read(OffsetElementSize, atOffset);
               valuePos = AtStart + firstValue + valueOffset;
           }
           // Get value length
           byte* nextOffsetPos = AtStart + OffsetElementSizeSize + index * OffsetElementSize;
-          int nextOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)nextOffsetPos);
+          int nextOffset = (int)Base64Int.Read(OffsetElementSize, nextOffsetPos);
           valueLength = nextOffset - valueOffset;
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
@@ -134,7 +134,7 @@ namespace Starcounter.Internal
          var ret = (uint)Base32Int.ReadBase32x1((IntPtr)AtEnd);
 #endif
 #if BASE64
-         var ret = (uint)Base64Int.ReadBase64x1((IntPtr)AtEnd);
+         var ret = (uint)Base64Int.ReadBase64x1(AtEnd);
 #endif
 #if BASE256
          uint ret = (uint)(*((byte*)AtEnd));
@@ -156,9 +156,9 @@ namespace Starcounter.Internal
          var ret = (uint)Base32Int.Read(len, (IntPtr)AtEnd);
 #endif
 #if BASE64
-         int len = (int)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
+         int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
          len -= (int)ValueOffset;
-         var ret = Base64Int.Read(len, (IntPtr)AtEnd);
+         var ret = Base64Int.Read(len, AtEnd);
 #endif
 #if BASE256
          int len = (int)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
@@ -178,7 +178,7 @@ namespace Starcounter.Internal
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
-          var ret = Base64Int.Read(valueLength, (IntPtr)valuePos);
+          var ret = Base64Int.Read(valueLength, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
@@ -195,7 +195,7 @@ namespace Starcounter.Internal
          uint len = (uint)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
 #if BASE64
-         uint len = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
+         uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
 #endif
 #if BASE256
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
@@ -204,6 +204,20 @@ namespace Starcounter.Internal
          AtOffsetEnd += OffsetElementSize;
          AtEnd += len;
          ValueOffset += len;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe string ReadString(int valueLength, byte* start) {
+          Debug.Assert(valueLength > 0);
+          if (valueLength > 1) {
+              char* buffer = stackalloc char[(int)valueLength];
+              int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
+              return new String(buffer, 0, stringLen);
+          }
+          if (valueLength == 0)
+              return "";
+          // if (valueLength == 1)
+          return null;
       }
 
       /// <summary>
@@ -217,18 +231,16 @@ namespace Starcounter.Internal
          uint len = (uint)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
 #if BASE64
-         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
+         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
 #endif
 #if BASE256
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
          valueLength -= ValueOffset;
-         char* buffer = stackalloc char[(int)valueLength];
-         int stringLen = SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)valueLength, buffer, (int)valueLength, true);
-         var str = new String(buffer, 0, stringLen);
-         AtOffsetEnd += OffsetElementSize;
+         String str = ReadString((int)valueLength, AtEnd);
          AtEnd += valueLength;
          ValueOffset += valueLength;
+         AtOffsetEnd += OffsetElementSize;
          return str;
       }
 
@@ -241,20 +253,17 @@ namespace Starcounter.Internal
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-          char* buffer = stackalloc char[valueLength];
-          int strLen = SessionBlobProxy.Utf8Decode.GetChars(valuePos, valueLength, buffer, 8192, true);
-          //Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
-          var str = new String(buffer, 0, strLen);
+          String str = ReadString(valueLength, valuePos);
           return str;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe byte[] ReadByteArray() {
 #if BASE64
-          uint len = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
+          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= ValueOffset;
           //uint valueLength = Base64Binary.MeasureNeededSizeToDecode(len);
-          byte[] value = Base64Binary.Read(len, (IntPtr)AtEnd);
+          byte[] value = Base64Binary.Read(len, AtEnd);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
 #endif
@@ -271,7 +280,7 @@ namespace Starcounter.Internal
           int len;
           GetAtPosition(index, out valuePos, out len);
           //uint valueLength = Base64Binary.MeasureNeededSizeToDecode((uint)len);
-          byte[] value = Base64Binary.Read((uint)len, (IntPtr)valuePos);
+          byte[] value = Base64Binary.Read((uint)len, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
 #endif
@@ -303,14 +312,14 @@ namespace Starcounter.Internal
             int len = (int)Base32Int.Read( OffsetElementSize, (IntPtr)(AtStart + 1) );
 #endif
 #if BASE64
-            int len = (int)Base64Int.Read( OffsetElementSize, (IntPtr)(AtStart + 1) );
+            int len = (int)Base64Int.Read( OffsetElementSize, (AtStart + 1) );
 #endif
 #if BASE256
             int len = (int) Base256Int.Read(OffsetElementSize, (IntPtr)(AtStart + 1));
 #endif
             len += TupleWriterBase64.OffsetElementSizeSize + OffsetElementSize;
             var buffer = new byte[len];
-            System.Runtime.InteropServices.Marshal.Copy((IntPtr) AtStart, buffer, 0, len);
+            System.Runtime.InteropServices.Marshal.Copy((IntPtr)AtStart, buffer, 0, len);
 
 #if BASE256
             return Base256Int.FixString(buffer);

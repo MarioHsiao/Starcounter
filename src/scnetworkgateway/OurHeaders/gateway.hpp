@@ -46,11 +46,10 @@ namespace network {
 
 // Data types definitions.
 typedef uint32_t channel_chunk;
-typedef uint64_t apps_unique_session_num_type;
-typedef uint64_t session_salt_type;
+typedef uint64_t random_salt_type;
 typedef uint32_t session_index_type;
 typedef uint8_t scheduler_id_type;
-typedef uint64_t session_timestamp_type;
+typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
 
@@ -234,16 +233,16 @@ const session_index_type INVALID_VIEW_MODEL_INDEX = ~0;
 const scheduler_id_type INVALID_SCHEDULER_ID = 255;
 
 // Bad session salt.
-const session_salt_type INVALID_SESSION_SALT = 0;
+const random_salt_type INVALID_SESSION_SALT = 0;
 
 // Bad Apps session salt.
-const session_salt_type INVALID_APPS_SESSION_SALT = 0;
+const random_salt_type INVALID_APPS_SESSION_SALT = 0;
 
 // Invalid Apps unique number.
 const uint64_t INVALID_APPS_UNIQUE_SESSION_NUMBER = ~(uint64_t)0;
 
 // Bad unique database number.
-const session_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
+const random_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
@@ -280,8 +279,8 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 // Maximum blacklisted IPs per worker.
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
-// Session life time multiplier.
-const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
+// Socket life time multiplier.
+const int32_t SOCKET_LIFETIME_MULTIPLIER = 3;
 
 // First port number used for binding.
 const uint16_t FIRST_BIND_PORT_NUM = 1500;
@@ -868,7 +867,7 @@ struct ScSessionStruct
     session_index_type linear_index_;
 
     // Unique random number.
-    session_salt_type random_salt_;
+    random_salt_type random_salt_;
 
     // View model number.
     session_index_type reserved_;
@@ -898,7 +897,7 @@ struct ScSessionStruct
     }
 
     // Compare socket stamps of two sessions.
-    bool CompareSalts(session_salt_type session_salt)
+    bool CompareSalts(random_salt_type session_salt)
     {
         if (INVALID_SESSION_INDEX == linear_index_)
             return false;
@@ -913,18 +912,17 @@ struct ScSessionStruct
     }
 };
 
-// Structure that wraps the session and contains some
-// additional information like session time stamps.
-_declspec(align(64)) struct ScSessionStructPlus
+// Structure that facilitates the socket.
+_declspec(align(128)) struct ScSocketInfoStruct
 {
-    // Main session structure.
+    // Main session structure attached to this socket.
     ScSessionStruct session_;
 
-    // Session last activity timestamp.
-    session_timestamp_type session_timestamp_;
+    // Socket last activity timestamp.
+    socket_timestamp_type socket_timestamp_;
 
     // Unique number for socket.
-    session_salt_type unique_socket_id_;
+    random_salt_type unique_socket_id_;
 
     // Client IP information.
     ip_info_type client_ip_info_;
@@ -941,14 +939,21 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Port index.
     int32_t port_index_;
 
-    ScSessionStructPlus()
+    // Socket number.
+    SOCKET socket_;
+
+    uint64_t unused3_;
+    uint64_t unused4_;
+    uint64_t unused5_;
+
+    ScSocketInfoStruct()
     {
         Reset();
     }
 
     void ResetTimestamp()
     {
-        session_timestamp_ = 0;
+        socket_timestamp_ = 0;
     }
 
     // Resets the session struct.
@@ -994,12 +999,6 @@ class ActiveDatabase
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
 
-    // Apps unique session numbers.
-    apps_unique_session_num_type* apps_unique_session_numbers_unsafe_;
-
-    // Apps session salts.
-    session_salt_type* apps_session_salts_unsafe_;
-
     // Indicates if database is ready to be deleted.
     volatile bool is_empty_;
 
@@ -1033,28 +1032,6 @@ public:
     int32_t get_num_confirmed_push_channels()
     {
         return num_confirmed_push_channels_;
-    }
-
-    // Sets value for Apps specific session.
-    void SetAppsSessionValue(
-        session_index_type session_index,
-        apps_unique_session_num_type apps_unique_session_num,
-        session_salt_type apps_session_salt)
-    {
-        apps_unique_session_numbers_unsafe_[session_index] = apps_unique_session_num;
-        apps_session_salts_unsafe_[session_index] = apps_session_salt;
-    }
-
-    // Gets unique number for Apps specific session.
-    apps_unique_session_num_type GetAppsUniqueSessionNumber(session_index_type session_index)
-    {
-        return apps_unique_session_numbers_unsafe_[session_index];
-    }
-
-    // Gets session salt for Apps specific session.
-    session_salt_type GetAppsSessionSalt(session_index_type session_index)
-    {
-        return apps_session_salts_unsafe_[session_index];
     }
 
     // Spawns channels events monitor thread.
@@ -1388,9 +1365,9 @@ class Gateway
     // Gateway statistics port.
     uint16_t setting_gw_stats_port_;
 
-    // Inactive session timeout in seconds.
-    int32_t setting_inactive_session_timeout_seconds_;
-    int32_t min_inactive_session_life_seconds_;
+    // Inactive socket timeout in seconds.
+    int32_t setting_inactive_socket_timeout_seconds_;
+    int32_t min_inactive_socket_life_seconds_;
 
     // Local network interfaces to bind on.
     std::vector<std::string> setting_local_interfaces_;
@@ -1480,8 +1457,8 @@ class Gateway
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
 
-    // Dead sessions cleanup thread handle.
-    HANDLE dead_sessions_cleanup_thread_handle_;
+    // Dead sockets cleanup thread handle.
+    HANDLE dead_sockets_cleanup_thread_handle_;
 
     // Gateway logging thread handle.
     HANDLE gateway_logging_thread_handle_;
@@ -1490,34 +1467,31 @@ class Gateway
     HANDLE all_threads_monitor_handle_;
 
     ////////////////////////
-    // SESSIONS
+    // SOCKETS INFOS
     ////////////////////////
 
-    // All sessions information.
-    ScSessionStructPlus* all_sessions_unsafe_;
+    // All sockets information.
+    ScSocketInfoStruct* all_sockets_infos_unsafe_;
 
-    // Free session indexes.
-    session_index_type* free_session_indexes_unsafe_;
+    // Free socket indexes.
+    session_index_type* free_socket_indexes_unsafe_;
 
-    // Number of active sessions.
-    volatile int64_t num_active_sessions_;
+    // Number of active sockets.
+    volatile int64_t num_active_sockets_;
 
-    // Global timer to keep track on old sessions.
-    volatile session_timestamp_type global_timer_unsafe_;
+    // Global timer to keep track on old connections.
+    volatile socket_timestamp_type global_timer_unsafe_;
 
-    // Sessions to cleanup.
-    session_index_type* sessions_to_cleanup_unsafe_;
-    volatile int64_t num_sessions_to_cleanup_unsafe_;
+    // Sockets to cleanup.
+    session_index_type* sockets_to_cleanup_unsafe_;
+    volatile int64_t num_sockets_to_cleanup_unsafe_;
 
-    // Critical section for sessions cleanup.
-    CRITICAL_SECTION cs_sessions_cleanup_;
+    // Critical section for sockets cleanup.
+    CRITICAL_SECTION cs_sockets_cleanup_;
 
     ////////////////////////
     // GLOBAL LOCKING
     ////////////////////////
-
-    // Critical section for sessions manipulation.
-    CRITICAL_SECTION cs_session_;
 
     // Critical section on global lock.
     CRITICAL_SECTION cs_global_lock_;
@@ -1530,7 +1504,7 @@ class Gateway
     ////////////////////////
 
     // Unique linear socket id.
-    session_salt_type unique_socket_id_;
+    random_salt_type unique_socket_id_;
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type sc_log_handle_;
@@ -1683,11 +1657,11 @@ public:
     }
 
     // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId(SOCKET s, session_salt_type unique_socket_id)
+    bool CompareUniqueSocketId(SOCKET s, random_salt_type unique_socket_id)
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        return (all_sessions_unsafe_[s].unique_socket_id_ == unique_socket_id);
+        return (all_sockets_infos_unsafe_[s].unique_socket_id_ == unique_socket_id);
     }
 
     // Setting client IP address info.
@@ -1695,7 +1669,7 @@ public:
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        all_sessions_unsafe_[s].client_ip_info_ = origin_ip_info;
+        all_sockets_infos_unsafe_[s].client_ip_info_ = origin_ip_info;
     }
 
     // Getting client IP address info.
@@ -1703,17 +1677,17 @@ public:
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        return all_sessions_unsafe_[s].client_ip_info_;
+        return all_sockets_infos_unsafe_[s].client_ip_info_;
     }
 
     // Setting new unique socket number.
-    session_salt_type CreateUniqueSocketId(SOCKET s, int32_t port_index, scheduler_id_type scheduler_id)
+    random_salt_type CreateUniqueSocketId(SOCKET s, int32_t port_index, scheduler_id_type scheduler_id)
     {
-        session_salt_type unique_id = get_unique_socket_id();
+        random_salt_type unique_id = get_unique_socket_id();
 
-        all_sessions_unsafe_[s].unique_socket_id_ = unique_id;
-        all_sessions_unsafe_[s].port_index_ = port_index;
-        all_sessions_unsafe_[s].session_.scheduler_id_ = scheduler_id;
+        all_sockets_infos_unsafe_[s].unique_socket_id_ = unique_id;
+        all_sockets_infos_unsafe_[s].port_index_ = port_index;
+        all_sockets_infos_unsafe_[s].session_.scheduler_id_ = scheduler_id;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << s << ":" << unique_id << GW_ENDL;
@@ -1723,13 +1697,13 @@ public:
     }
 
     // Getting unique socket number.
-    session_salt_type GetUniqueSocketId(SOCKET s)
+    random_salt_type GetUniqueSocketId(SOCKET s)
     {
-        return all_sessions_unsafe_[s].unique_socket_id_;
+        return all_sockets_infos_unsafe_[s].unique_socket_id_;
     }
 
     // Unique linear socket id.
-    session_salt_type get_unique_socket_id()
+    random_salt_type get_unique_socket_id()
     {
         // NOTE: Doing simple increment here.
         return ++unique_socket_id_;
@@ -1797,10 +1771,10 @@ public:
         }
     }
 
-    // Getting minimum session lifetime.
-    int32_t get_min_inactive_session_life_seconds()
+    // Getting minimum socket lifetime.
+    int32_t get_min_inactive_socket_life_seconds()
     {
-        return min_inactive_session_life_seconds_;
+        return min_inactive_socket_life_seconds_;
     }
 
     // Returns instance of proxied server.
@@ -2046,44 +2020,44 @@ public:
         return num_processed_http_requests_unsafe_;
     }
 
-    // Number of active sessions.
-    int64_t get_num_active_sessions()
+    // Number of active sockets.
+    int64_t get_num_active_sockets()
     {
-        return num_active_sessions_;
+        return num_active_sockets_;
     }
 
-    // Change number of active sessions.
-    void ChangeNumActiveSessions(int64_t value)
+    // Change number of active sockets.
+    void ChangeNumActiveSockets(int64_t value)
     {
-        InterlockedAdd64(&num_active_sessions_, value);
+        InterlockedAdd64(&num_active_sockets_, value);
     }
 
-    // Collects outdated sessions if any.
-    uint32_t CollectInactiveSessions();
+    // Collects outdated sockets if any.
+    uint32_t CollectInactiveSockets();
 
-    // Gets number of sessions to cleanup.
-    int64_t get_num_sessions_to_cleanup_unsafe()
+    // Gets number of sockets to cleanup.
+    int64_t get_num_sockets_to_cleanup_unsafe()
     {
-        return num_sessions_to_cleanup_unsafe_;
+        return num_sockets_to_cleanup_unsafe_;
     }
 
-    // Cleans up all collected inactive sessions.
-    uint32_t CleanupInactiveSessions(GatewayWorker* gw);
+    // Cleans up all collected inactive sockets.
+    uint32_t CleanupInactiveSockets(GatewayWorker* gw);
 
     // Disconnects arbitrary socket.
     void DisconnectSocket(GatewayWorker* gw, SOCKET sock);
 
-    // Updates current global timer value on given session.
-    void UpdateSessionTimeStamp(session_index_type session_index)
+    // Updates current global timer value on given socket.
+    void UpdateSocketTimeStamp(session_index_type index)
     {
-        all_sessions_unsafe_[session_index].session_timestamp_ = global_timer_unsafe_;
+        all_sockets_infos_unsafe_[index].socket_timestamp_ = global_timer_unsafe_;
     }
 
-    // Sets connection type on given session.
-    void SetConnectionType(session_index_type session_index,
+    // Sets connection type on given socket.
+    void SetConnectionType(session_index_type index,
         MixedCodeConstants::NetworkProtocolType proto_type)
     {
-        all_sessions_unsafe_[session_index].type_of_network_protocol_ = proto_type;
+        all_sockets_infos_unsafe_[index].type_of_network_protocol_ = proto_type;
     }
 
     // Steps global timer value.
@@ -2154,7 +2128,7 @@ public:
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        return !all_sessions_unsafe_[s].active_socket_flag_;
+        return !all_sockets_infos_unsafe_[s].active_socket_flag_;
     }
 
     // Deletes specific socket.
@@ -2162,7 +2136,7 @@ public:
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        all_sessions_unsafe_[s].active_socket_flag_ = false;
+        all_sockets_infos_unsafe_[s].active_socket_flag_ = false;
     }
 
     // Makes specific socket available.
@@ -2170,7 +2144,7 @@ public:
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        all_sessions_unsafe_[s].active_socket_flag_ = true;
+        all_sockets_infos_unsafe_[s].active_socket_flag_ = true;
     }
 
     // Getting gateway handlers.
@@ -2383,7 +2357,7 @@ public:
         LPTHREAD_START_ROUTINE workerRoutine,
         LPTHREAD_START_ROUTINE scanDbsRoutine,
         LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
-        LPTHREAD_START_ROUTINE oldSessionsCleanupRoutine,
+        LPTHREAD_START_ROUTINE inactiveSocketsCleanupRoutine,
         LPTHREAD_START_ROUTINE gatewayLoggingRoutine,
         LPTHREAD_START_ROUTINE threadsMonitorRoutine);
 
@@ -2409,114 +2383,67 @@ public:
     void LogWriteNotice(const wchar_t* msg);
     void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
 
-    // Deletes existing session.
-    uint32_t KillSession(session_index_type session_index, bool* was_killed)
-    {
-        GW_ASSERT(INVALID_SESSION_INDEX != session_index);
-
-        *was_killed = false;
-
-        // Only killing the session if its valid.
-        // NOTE: Using double-checked locking.
-        ScSessionStructPlus* session_plus = all_sessions_unsafe_ + session_index;
-        if (session_plus->session_.IsActive())
-        {
-            // Entering the critical section.
-            EnterCriticalSection(&cs_session_);
-
-            // Only killing the session is its valid.
-            if (session_plus->session_.IsActive())
-            {
-                // Number of active sessions should always be correct.
-                GW_ASSERT(num_active_sessions_ > 0);
-
-#ifdef GW_SESSIONS_DIAG
-                GW_COUT << "Session being killed: " << session_plus->session_.linear_index_ << ":"
-                    << session_plus->session_.random_salt_ << GW_ENDL;
-#endif
-
-                // Resetting the session cell.
-                session_plus->session_.Reset();
-
-                // Setting the session time stamp to zero.
-                session_plus->ResetTimestamp();
-
-                // Decrementing number of active sessions.
-                ChangeNumActiveSessions(-1);
-                free_session_indexes_unsafe_[num_active_sessions_] = session_index;
-
-                // Indicating that session is killed.
-                *was_killed = true;
-            }
-
-            // Leaving the critical section.
-            LeaveCriticalSection(&cs_session_);
-        }
-
-        return 0;
-    }
-
     // Checks if global session data is active.
-    bool IsGlobalSessionActive(session_index_type session_index)
+    bool IsGlobalSessionActive(session_index_type index)
     {
-        return all_sessions_unsafe_[session_index].session_.IsActive();
+        return all_sockets_infos_unsafe_[index].session_.IsActive();
     }
 
     // Checks if global session data is active.
     bool CompareGlobalSessionSalt(
-        session_index_type session_index,
-        session_salt_type random_salt)
+        session_index_type index,
+        random_salt_type random_salt)
     {
-        return all_sessions_unsafe_[session_index].session_.CompareSalts(random_salt);
+        return all_sockets_infos_unsafe_[index].session_.CompareSalts(random_salt);
     }
 
     // Gets session data by index.
-    ScSessionStruct GetGlobalSessionCopy(session_index_type session_index)
+    ScSessionStruct GetGlobalSessionCopy(session_index_type index)
     {
         // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == session_index)
+        if (INVALID_SESSION_INDEX == index)
             return ScSessionStruct();
 
         // Fetching the session by index.
-        return all_sessions_unsafe_[session_index].session_;
+        return all_sockets_infos_unsafe_[index].session_;
     }
 
-    // Gets session data by index.
-    ScSessionStructPlus GetGlobalSessionPlusCopy(session_index_type session_index)
+    // Gets socket info data by index.
+    ScSocketInfoStruct GetGlobalSocketInfoCopy(session_index_type index)
     {
         // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == session_index)
-            return ScSessionStructPlus();
+        if (INVALID_SESSION_INDEX == index)
+            return ScSocketInfoStruct();
 
         // Fetching the session by index.
-        return all_sessions_unsafe_[session_index];
+        return all_sockets_infos_unsafe_[index];
     }
 
     // Gets session data by index.
     void SetGlobalSessionCopy(
-        session_index_type session_index,
+        session_index_type index,
         ScSessionStruct session_copy)
     {
         // Fetching the session by index.
-        all_sessions_unsafe_[session_index].session_ = session_copy;
+        all_sockets_infos_unsafe_[index].session_ = session_copy;
     }
 
     // Gets session data by index.
-    void DeleteGlobalSession(session_index_type session_index)
+    void DeleteGlobalSession(session_index_type index)
     {
         // Fetching the session by index.
-        all_sessions_unsafe_[session_index].session_.Reset();
+        all_sockets_infos_unsafe_[index].session_.Reset();
     }
 
     // Gets scheduler id for specific session.
-    scheduler_id_type GetGlobalSessionSchedulerId(session_index_type session_index)
+    scheduler_id_type GetGlobalSessionSchedulerId(session_index_type index)
     {
         // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == session_index)
+        if (INVALID_SESSION_INDEX == index)
             return INVALID_SCHEDULER_ID;
 
         // Fetching the session by index.
-        return all_sessions_unsafe_[session_index].session_.scheduler_id_;
+        return all_sockets_infos_unsafe_[index].session_.scheduler_id_;
     }
 
 #ifdef GW_TESTING_MODE

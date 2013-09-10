@@ -1432,9 +1432,9 @@ uint32_t GatewayWorker::WorkerRoutine()
         if (err_code)
             return err_code;
 
-        // Checking inactive sessions cleanup (only first worker).
-        if ((g_gateway.get_num_sessions_to_cleanup_unsafe()) && (worker_id_ == 0))
-            g_gateway.CleanupInactiveSessions(this);
+        // Checking inactive sockets cleanup (only first worker).
+        if ((g_gateway.get_num_sockets_to_cleanup_unsafe()) && (worker_id_ == 0))
+            g_gateway.CleanupInactiveSockets(this);
 
 #ifdef GW_TESTING_MODE
         // Checking if its time to switch to measured test.

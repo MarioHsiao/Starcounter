@@ -443,7 +443,7 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_id)
 // Pushes session destroyed message.
 uint32_t WorkerDbInterface::PushSessionDestroy(
     session_index_type linear_index,
-    session_salt_type random_salt,
+    random_salt_type random_salt,
     uint8_t sched_id)
 {
     // Get a reference to the chunk.

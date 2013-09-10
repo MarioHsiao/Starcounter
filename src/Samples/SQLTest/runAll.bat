@@ -1,3 +1,6 @@
+:: Checking if test should be run.
+IF "%SC_RUN_SQL_REGRESSION_TEST%"=="False" GOTO :EOF
+
 :: @ECHO OFF
 
 :: clean up the database and processes

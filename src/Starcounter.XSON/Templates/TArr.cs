@@ -41,35 +41,28 @@ namespace Starcounter.Templates {
             get { return typeof(Arr<OT>); }
         }
 
+
+
+
+    }
+
+    /// <summary>
+    /// Class TArr
+    /// </summary>
+    public class TObjArr : TContainer
+#if IAPP
+//        , ITObjArr
+#endif
+    {
+
+        public override Type MetadataType {
+            get { return typeof(ArrMetadata<Json, Json>); }
+        }
+
+
         public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new System.NotImplementedException();
         }
-
-
-        /// <summary>
-        /// Instructs the array what object template should be used for each element
-        /// in this object array.
-        /// </summary>
-        /// <value>The app.</value>
-        public override TObject ElementType {
-            get {
-                if (_Single.Length == 0)
-                    return null;
-                return (TObject)_Single[0];
-            }
-            set {
-                if (InstanceDataTypeName != null) {
-                    value.InstanceDataTypeName = InstanceDataTypeName;
-                }
-                _Single = new TObject[1];
-                _Single[0] = (TObject)value;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal TObject[] _Single = new TObject[0];
 
 
         /// <summary>
@@ -87,26 +80,37 @@ namespace Starcounter.Templates {
         }
 
 
-    }
+        /// <summary>
+        /// 
+        /// </summary>
+        internal TObject[] _Single = new TObject[0];
 
-    /// <summary>
-    /// Class TArr
-    /// </summary>
-    public abstract class TObjArr : TContainer
-#if IAPP
-//        , ITObjArr
-#endif
-    {
+
        // internal DataValueBinding<IEnumerable> dataBinding;
         private string instanceDataTypeName;
     
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.
+        /// Instructs the array what object template should be used for each element
+        /// in this object array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public abstract TObject ElementType { get; set; }
-
+        public TObject ElementType {
+            get {
+                if (_Single.Length == 0) {
+                    return null;
+                }
+                return (TObject)_Single[0];
+            }
+            set {
+                if (InstanceDataTypeName != null) {
+                    value.InstanceDataTypeName = InstanceDataTypeName;
+                }
+                _Single = new TObject[1];
+                _Single[0] = (TObject)value;
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -149,8 +153,8 @@ namespace Starcounter.Templates {
 			obj.SetBound(this, value);
         }
 
-		public override IEnumerable<Template> Children {
-			get { throw new NotImplementedException(); }
+        public override object CreateInstance(Container parent) {
+            return new Arr((Json)parent, this);
 		}
 
 		public override string ToJson(Json json) {

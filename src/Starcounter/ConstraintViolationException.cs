@@ -10,8 +10,8 @@ using System.Runtime.Serialization;
 namespace Starcounter {
     
     /// <summary>
-    /// Exception raised when a database constraint is violated and a transaction
-    /// is aborted because of that.
+    /// Exception thrown when a transaction is aborted because of a constraint violation (error
+    /// code 8001, ScErrConstraintViolationAbort).
     /// </summary>
     [Serializable]
     public class ConstraintViolationException : TransactionAbortedException {
