@@ -6,48 +6,39 @@ using System.Collections.Generic;
 
 namespace Starcounter {
 
-    partial class Container {
-
-        /// <summary>
-        /// Keeps track on when we added/inserted or removed elements
-        /// </summary>
-        internal List<Change> ArrayAddsAndDeletes = null;
+    partial class Json {
 
         /// <summary>
         /// 
         /// </summary>
         internal void CheckpointChangeLog() {
-            _Values._BrandNew = false;
+            _BrandNew = false;
             this.ArrayAddsAndDeletes = null;
+            var values = list;
             if (this.IsArray) {
-                for (int t = 0; t < _Values.Count; t++) {
-                    _Values.CheckpointAt(t);
-                    var value = _Values[t];
-                    if (value is Container) {
-                        ((Container)value).CheckpointChangeLog();
+                for (int t = 0; t < values.Count; t++) {
+                    CheckpointAt(t);
+                    var value = values[t];
+                    if (value is Json) {
+                        ((Json)value).CheckpointChangeLog();
                     }
                 }
             }
             else {
                 var tjson = (TObject)Template;
                 var json = (Json)this;
-                for (int t = 0; t < _Values.Count; t++) {
+                for (int t = 0; t < values.Count; t++) {
                     var property = tjson.Properties[t];
                     if (property is TValue) {
                         var tval = property as TValue;
                         if (!tval.IsArray && tval.UseBinding(json.DataAsBindable)) {
-                            _Values[t] = json.GetBound(tval);
+                            values[t] = json.GetBound(tval);
                         }
                     }
-                    if (_Values[t] is Container) {
-                        (_Values[t] as Container).CheckpointChangeLog();
+                    if (this[t] is Json) {
+                        (this[t] as Json).CheckpointChangeLog();
                     }
-                    else {
-                        if (property is TObject) {
-                            (property.Wrap(_Values[t]) as Json).CheckpointChangeLog();
-                        }
-                    }
-                    _Values.CheckpointAt(t);
+                    CheckpointAt(t);
                 }
             }
             _Dirty = false;
@@ -62,7 +53,7 @@ namespace Starcounter {
 #if DEBUG
             this.Template.VerifyProperty(prop);
 #endif
-            return (_Values.WasReplacedAt(prop.TemplateIndex));
+            return (WasReplacedAt(prop.TemplateIndex));
         }
 
         /// <summary>
@@ -93,11 +84,11 @@ namespace Starcounter {
 
 
             var property = Template as TValue;
-                for (int t = 0; t < _Values.Count; t++) {
-                    if (_Values.WasReplacedAt(t)) {
+                for (int t = 0; t < _list.Count; t++) {
+                    if (WasReplacedAt(t)) {
                         session._Changes.Add( Change.Update( this.Parent as Json,property,t) );
                     }
-                    (_Values[t] as Json).LogValueChangesWithDatabase(session);
+                    (_list[t] as Json).LogValueChangesWithDatabase(session);
                 }
 //            }
         }
@@ -122,8 +113,8 @@ namespace Starcounter {
         private void LogObjectValueChangesWithDatabase(Session session ) {
             var template = (TObject)Template;
             if (_Dirty) {
-                for (int t = 0; t < _Values.Count; t++) {
-                    if (_Values.WasReplacedAt(t)) {
+                for (int t = 0; t < _list.Count; t++) {
+                    if (WasReplacedAt(t)) {
                         var s = Session;
                         if (s != null) {
                             if (IsArray) {
@@ -133,12 +124,12 @@ namespace Starcounter {
                                 Session.UpdateValue((this as Json), (TValue)template.Properties[t]);
                             }
                         }
-                        _Values.CheckpointAt(t);
+                        CheckpointAt(t);
                     }
                     else {
                         var p = template.Properties[t];
                         if (p is TContainer) {
-                            var c = ((Container)this[t]);
+                            var c = ((Json)this[t]);
                             if (c != null) {
                                 c.LogValueChangesWithDatabase(session);
                             }
@@ -151,8 +142,8 @@ namespace Starcounter {
                                 var j = this as Json;
                                 if (((TValue)p).UseBinding(j.DataAsBindable)) {
                                     var val = j.GetBound((TValue)p);
-                                    if ( val != _Values[t] ) {
-                                        _Values[t] = val;
+                                    if ( val != list[t] ) {
+                                        list[t] = val;
                                         Session.UpdateValue(j, (TValue)template.Properties[t]);
                                     }   
                                 }
@@ -163,10 +154,10 @@ namespace Starcounter {
                 _Dirty = false;
             }
             else if (template.HasAtLeastOneBoundProperty) {
-                for (int t = 0; t < _Values.Count; t++) {
-                    var value = _Values[t];
-                    if (value is Container) {
-                        ((Container)value).LogValueChangesWithDatabase(session);
+                for (int t = 0; t < list.Count; t++) {
+                    var value = list[t];
+                    if (value is Json) {
+                        ((Json)value).LogValueChangesWithDatabase(session);
                     }
                     else {
                         if (IsArray) {
@@ -178,8 +169,8 @@ namespace Starcounter {
                             var p = templ.Properties[t] as TValue;
                             if (p != null && p.UseBinding(j.DataAsBindable)) {
                                 var val = j.GetBound(p);
-                                if (val != _Values[t]) {
-                                    _Values[t] = val;
+                                if (val != list[t]) {
+                                    list[t] = val;
                                     Session.UpdateValue(j, (TValue)template.Properties[t]);
                                 }
                             }
@@ -188,9 +179,9 @@ namespace Starcounter {
                 }
             }
             else {
-                foreach (var e in _Values) {
-                    if (e is Container) {
-                        ((Container)e).LogValueChangesWithDatabase(session);
+                foreach (var e in list) {
+                    if (e is Json) {
+                        ((Json)e).LogValueChangesWithDatabase(session);
                     }
                 }
             }

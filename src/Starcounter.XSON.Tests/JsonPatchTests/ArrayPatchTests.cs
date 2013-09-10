@@ -22,7 +22,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.Friends = new List<Json>() { nicke };
 
             Session.Data = j;
-            var before = ((Json)j).ToJson();
+            var before = ((Json)j).DebugString;
             //            Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
 
@@ -31,7 +31,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             x.FirstName = "Henrik";
             x.LastName = "Boman";
 
-            var after = ((Json)j).ToJson();
+            var after = ((Json)j).DebugString;
             var result = Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Before");
@@ -92,25 +92,26 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 		public static void ReplaceAnElementInAnArray() {
 
             TObject schema = new TObject() { ClassName = "Person" };
-            schema.Add<TString>("FirstName");
-            schema.Add<TArray<Json>>("Friends",schema);
-
             TObject friendSchema = new TObject() { ClassName = "Friend" };
+
+            schema.Add<TString>("FirstName");
+            schema.Add<TArray<Json>>("Friends",friendSchema);
+
             friendSchema.Add<TString>("FirstName");
 
-            dynamic j = new Json() { Template = schema };
-            dynamic nicke = new Json() { Template = friendSchema };
+            var j = new Json() { Template = schema };
+            var nicke = new Json() { Template = friendSchema };
 
             Session.Data = j;
-            j.FirstName = "Jack";
-            nicke.FirstName = "Nicke";
-            j.Friends.Add( nicke );
+            j["FirstName"] = "Jack";
+            nicke["FirstName"] = "Nicke";
+            (j["Friends"] as Json).Add( nicke );
 
             Session.Current.CreateJsonPatch(true);
 
             dynamic henrik = new Json() { Template = friendSchema };
-            henrik.FirstName = "Henrik";
-            j.Friends[0] = henrik;
+            henrik["FirstName"] = "Henrik";
+            (j["Friends"] as Json)[0] = henrik;
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
