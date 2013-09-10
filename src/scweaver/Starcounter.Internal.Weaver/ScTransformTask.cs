@@ -221,8 +221,7 @@ namespace Starcounter.Internal.Weaver {
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
             TypeRefDeclaration typeRef;
-            IMethod weavedAssemblyAttributeCtor;
-
+            
             _module = this.Project.Module;
             analysisTask = ScAnalysisTask.GetTask(this.Project);
 
@@ -237,12 +236,6 @@ namespace Starcounter.Internal.Weaver {
 
             ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
             Initialize();
-
-            weavedAssemblyAttributeCtor = _module.FindMethod(
-                typeof(AssemblyWeavedForIPCAttribute).GetConstructor(Type.EmptyTypes),
-                BindingOptions.Default
-                );
-            _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
             
             var assemblySpecification = new AssemblySpecificationEmit(_module);
             TypeSpecificationEmit typeSpecification = null;
