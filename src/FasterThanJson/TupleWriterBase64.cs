@@ -422,7 +422,7 @@ namespace Starcounter.Internal
           ValidateLength(size);
           Write(b);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
