@@ -3081,6 +3081,11 @@
         The Transient attribute is not applicable to the target code construct.
       </message>
     </code>
+    <code hex="0103" severity="Error" name="ScErrFailingEntrypoint">
+      <message>
+        The user code entrypoint method raised an exception.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
