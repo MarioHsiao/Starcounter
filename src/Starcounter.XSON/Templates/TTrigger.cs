@@ -62,7 +62,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The object that will hold the created value (the host Obj or host Array)</param>
         /// <returns>Always returns false or is it null????? TODO!??</returns>
-        public override object CreateInstance(Container parent) {
+        public override object CreateInstance(Json parent) {
             return false;
         }
 

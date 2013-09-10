@@ -233,9 +233,9 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
             TObjArr itemProperty = (TObjArr)appt.Properties[2];
-            Arr items = aat.App.Get(itemProperty);
+            Json items = aat.App.Get(itemProperty);
 
-            nearestApp = items[1];
+            nearestApp = (Json)items[1];
             anotherAppt = (TJson)nearestApp.Template;
 
             TBool delete = (TBool)anotherAppt.Properties[2];

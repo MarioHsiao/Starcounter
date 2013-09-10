@@ -99,7 +99,7 @@ restart:
 							} else
 								goto restart;
 						} else if (tProperty is TObjArr) {
-							Arr arr = obj.Get((TObjArr)tProperty);
+							Json arr = obj.Get((TObjArr)tProperty);
 							if (buf.Length < (offset + arr.Count * 2 + 2))
 								goto restart;
 
@@ -111,7 +111,7 @@ restart:
 							}
 							for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
 								if (childObjArr == null) {
-									valueSize = arr[arrPos].ToJsonUtf8(out childObjArr);
+									valueSize = (arr[arrPos] as Json).ToJsonUtf8(out childObjArr);
 									if (valueSize == -1)
 										goto restart;
 									if (buf.Length < (offset + valueSize + 1))
@@ -198,7 +198,7 @@ restart:
             }
 
             var reader = new JsonReader(source, sourceSize);
-            Arr arr;
+            Json arr;
             Json childObj;
             TObject tObj = (TObject)obj.Template;
             Template tProperty;

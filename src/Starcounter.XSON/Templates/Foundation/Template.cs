@@ -150,10 +150,6 @@ namespace Starcounter.Templates {
             }
         }
 
-        internal virtual object Wrap(object value) {
-            return value;
-        }
-
         /// <summary>
         /// The _ parent
         /// </summary>
@@ -330,7 +326,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public object GetInstance(Container parent) {
+        public object GetInstance(Json parent) {
             return this.CreateInstance(parent);
         }
 
@@ -339,7 +335,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public virtual object CreateInstance(Container parent) {
+        public virtual object CreateInstance(Json parent) {
             return DefaultValueAsObject;
         }
 
