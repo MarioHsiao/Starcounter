@@ -68,6 +68,7 @@ namespace Starcounter.Hosting {
         /// The processed event_
         /// </summary>
         private readonly ManualResetEvent processedEvent_;
+        private volatile uint processedResult;
 
         /// <summary>
         /// Gets or sets the logical working directory the entrypoint
@@ -107,6 +108,7 @@ namespace Starcounter.Hosting {
             assembly_ = assembly;
             stopwatch_ = stopwatch;
             processedEvent_ = new ManualResetEvent(false);
+            processedResult = uint.MaxValue;
             execEntryPointSynchronously_ = execEntryPointSynchronously;
         }
 
@@ -139,7 +141,18 @@ namespace Starcounter.Hosting {
                 if (execEntryPointSynchronously_)
                     ExecuteEntryPoint();
 
+            } catch (Exception e) {
+                uint code = 0;
+                if (!ErrorCode.TryGetCode(e, out code)) {
+                    code = Error.SCERRUNSPECIFIED;
+                }
+                processedResult = code;
+                throw;
             } finally {
+                if (processedResult == uint.MaxValue) {
+                    processedResult = 0;
+                }
+
                 OnProcessingCompleted();
                 processedEvent_.Set();
             }
@@ -151,8 +164,9 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Waits the until processed.
         /// </summary>
-        public void WaitUntilProcessed() {
+        public uint WaitUntilProcessed() {
             processedEvent_.WaitOne();
+            return processedResult;
         }
 
         /// <summary>
