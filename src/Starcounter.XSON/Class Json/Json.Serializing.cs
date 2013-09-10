@@ -19,6 +19,11 @@ namespace Starcounter {
 		/// </summary>
 		/// <returns></returns>
 		public override string ToJson() {
+			// TODO! Move all this code to polymorphic template implementations
+			if (Template == null) {
+				return "";
+			}
+
 			var template = Template as TContainer;
 			if (template == null)
 				throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
@@ -30,6 +35,11 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public override byte[] ToJsonUtf8() {
+			// TODO! Move all this code to polymorphic template implementations
+			if (Template == null) {
+				return new byte[0];
+			}
+
 			var template = Template as TContainer;
 			if (template == null)
 				throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
