@@ -432,7 +432,8 @@ namespace Codeplex.Data
 
         public static implicit operator Response(DynamicJson dynJson) {
             var response = new Response() {
-                Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
+				ContentType = "application/json;charset=UTF-8",
+				Content = dynJson.ToString()
             };
             return response;
         }

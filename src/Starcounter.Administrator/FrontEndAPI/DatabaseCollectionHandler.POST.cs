@@ -121,12 +121,10 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             }
 
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
-
-
-
-
-
+							var newResponse = Response.FromStatusCode((int)HttpStatusCode.OK);
+							newResponse.Content = resultJson.ToString();
+							return newResponse;
+                            
                             //database.Configuration.Save();
                             //resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
 
@@ -157,20 +155,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             //    return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
                             //}
-
-
-
-
-
-
-
-
-
-
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
                             String validationErrors = response.Body;
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
+							var newResponse = Response.FromStatusCode((int)HttpStatusCode.Forbidden);
+							newResponse.Content = validationErrors;
+							return newResponse;
                         }
                         else {
                             // TODO

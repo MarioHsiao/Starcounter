@@ -76,9 +76,11 @@ namespace Starcounter.Internal.Web {
             catch (Exception ex) {
 				// Logging the exception to server log.
 				LogSources.Hosting.LogException(ex);
-				return new Response() {
-					Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(500, null, GetExceptionString(ex), null, "text/plain")
-				};
+				var errResp = Response.FromStatusCode(500);
+				errResp.Content = GetExceptionString(ex);
+				errResp.ContentType = "text/plain";
+				errResp.ConstructFromFields();
+				return errResp;
             }
         }
 
@@ -167,14 +169,19 @@ namespace Starcounter.Internal.Web {
                     catch (Exception exc)
                     {
                         // Checking if session is incorrect.
-                        if (exc is HandlersManagement.IncorrectSessionException)
-                            return new Response() { Uncompressed = HttpResponseBuilder.BadRequest400 };
+						if (exc is HandlersManagement.IncorrectSessionException) {
+							result = Response.FromStatusCode(400);
+							result.Headers = "Connection: close" + StarcounterConstants.NetworkConstants.CRLF;
+						} else {
 
-                        // Logging the exception to server log.
-                        LogSources.Hosting.LogException(exc);
-						return new Response() {
-							Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(500, null, GetExceptionString(exc), null, "text/plain")
-						};
+							// Logging the exception to server log.
+							LogSources.Hosting.LogException(exc);
+							result = Response.FromStatusCode(500);
+							result.Content = GetExceptionString(exc);
+							result.ContentType = "text/plain";
+						}
+						result.ConstructFromFields();
+						return result;
                     }
                     finally
                     {
@@ -271,7 +278,10 @@ namespace Starcounter.Internal.Web {
                 return original;
             }
 
-            return HttpResponseBuilder.BadRequest400;
+			var badReq = Response.FromStatusCode(400);
+			badReq.Headers = "Connection: close" + StarcounterConstants.NetworkConstants.CRLF;
+			badReq.ConstructFromFields();
+			return badReq.Uncompressed;
         }
 
         /// <summary>
