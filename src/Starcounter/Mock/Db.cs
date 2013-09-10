@@ -96,12 +96,12 @@ namespace Starcounter
             try {
                 enumerableResult = new SqlResult<T>(0, query, false, values);
                 enumerableResult.GetExecutionEnumerator().Dispose();
-            } catch (Exception ex) {
+            } catch (Exception) {
                 try {
                     if (ParseNonSelectQuery(query, values))
                         return null;
                 } catch { }
-                throw ex;
+                throw;
             }
             Debug.Assert(enumerableResult != null);
 #if true

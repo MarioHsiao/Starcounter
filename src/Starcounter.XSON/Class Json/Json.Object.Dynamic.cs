@@ -59,13 +59,33 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif
                         }
                     }
                 }
-//                Column c = Column.LookupColumn(binder.Name);//                Debug.WriteLine("DynamicEntity Binding Get " + binder.Name);                MethodInfo method;                if (templ is TObjArr) {                    // The GetMethod does not deal with generic signatures causing an exception                    // for the ambiguous methods GetValue<T>( TObjArr x ) and GetValue( TObjArr x).                    // We need to call GetMethods instead (probably slower).                    // See http://stackoverflow.com/questions/11566613/how-do-i-distinguish-between-generic-and-non-generic-signatures-using-getmethod                    var mis = LimitType.GetMethods().Where( m => {                        if (m.Name.Equals("Get")) {
-                            var paris = m.GetParameters();                            if (paris.Length == 1) {                                var pari = paris[0];//                                var found = (pari.ParameterType.Name.Equals("TArr`2")) && !m.IsGenericMethod;                            // Do we need to check instance of
-                                var found = (pari.ParameterType.Name.Equals("TObjArr")) && !m.IsGenericMethod;                                return found;                            }                        }                        return false;                    });                    method = mis.First();                }                else {
+//                Column c = Column.LookupColumn(binder.Name);//                Debug.WriteLine("DynamicEntity Binding Get " + binder.Name);                MethodInfo method;                if (templ is TObjArr) {                    // The GetMethod does not deal with generic signatures causing an exception                    // for the ambiguous methods GetValue<T>( TObjArr x ) and GetValue( TObjArr x).                    // We need to call GetMethods instead (probably slower).                    // See http://stackoverflow.com/questions/11566613/how-do-i-distinguish-between-generic-and-non-generic-signatures-using-getmethod
+					method = FindGetMember("TObjArr");                } else if (templ is TObject){					// We have Get methods for both TObject and TValue and since we cannot specify return type					// when searching for methods, we have to look in all methods for the correct one.					// We will get an ambiguous match otherwise.
+					method = FindGetMember("TObject");                }else {
                     if (templ == null) {
                         // There is no property with this name, use default late binding mechanism
                         return base.BindGetMember(binder);
-                    }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */                Expression call = Expression.Call(Expression.Convert(this.Expression, this.LimitType), method, Expression.Constant(templ) );                // Expression wrapped = Expression.Block(call); // , Expression.New(typeof(object)));                Expression wrapped = Expression.Convert( call, binder.ReturnType );                return new DynamicMetaObject(wrapped, BindingRestrictions.GetTypeRestriction(Expression, LimitType));            }            /// <summary>
+                    }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */                Expression call = Expression.Call(Expression.Convert(this.Expression, this.LimitType), method, Expression.Constant(templ) );                // Expression wrapped = Expression.Block(call); // , Expression.New(typeof(object)));                Expression wrapped = Expression.Convert( call, binder.ReturnType );                return new DynamicMetaObject(wrapped, BindingRestrictions.GetTypeRestriction(Expression, LimitType));            }
+
+			/// <summary>
+			/// 
+			/// </summary>
+			/// <param name="parameterTypeName"></param>
+			/// <returns></returns>
+			private MethodInfo FindGetMember(string parameterTypeName) {
+				var mis = LimitType.GetMethods().Where(m => {
+					if (m.Name.Equals("Get")) {
+						var paris = m.GetParameters();
+						if (paris.Length == 1) {
+							var pari = paris[0];
+							var found = (pari.ParameterType.Name.Equals(parameterTypeName)) && !m.IsGenericMethod;
+							return found;
+						}
+					}
+					return false;
+				});
+				return mis.First();
+			}            /// <summary>
             /// Getter implementation. See DynamicPropertyMetaObject.
             /// </summary>
             /// <param name="binder"></param>

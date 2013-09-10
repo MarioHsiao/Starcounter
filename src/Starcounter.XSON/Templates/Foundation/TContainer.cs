@@ -22,14 +22,9 @@ namespace Starcounter.Templates {
     /// use alternate schemas.
     /// </remarks>
     public abstract partial class TContainer : TValue {
-
-
         public override bool IsPrimitive {
             get { return false; }
         }
-
-
-
 
         /// <summary>
         /// <see cref="Sealed"/>
@@ -58,14 +53,10 @@ namespace Starcounter.Templates {
             }
         }
 
-
-
         /// <summary>
         /// Represents the contained properties (TObj) or the single contained type for typed arrays (TArr).
         /// </summary>
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
-
     }
-
 }
