@@ -244,12 +244,24 @@ namespace Starcounter.Hosting {
         private void ExecuteEntryPoint() {
             if (assembly_ != null) {
                 var entrypoint = assembly_.EntryPoint;
-                if (entrypoint.GetParameters().Length == 0) {
-                    entrypoint.Invoke(null, null);
-                } else {
-                    var arguments = this.EntrypointArguments ?? new string[] { };
-                    entrypoint.Invoke(null, new object[] { arguments });
+
+                try {
+                    if (entrypoint.GetParameters().Length == 0) {
+                        entrypoint.Invoke(null, null);
+                    } else {
+                        var arguments = this.EntrypointArguments ?? new string[] { };
+                        entrypoint.Invoke(null, new object[] { arguments });
+                    }
+                } catch (TargetInvocationException te) {
+                    var entrypointException = te.GetBaseException();
+                    if (entrypointException == null) throw;
+
+                    throw ErrorCode.ToException(
+                        Error.SCERRFAILINGENTRYPOINT, 
+                        entrypointException, 
+                        string.Format("Message: \"{0}\". Entrypoint assembly: \"{1}\"", entrypointException.Message, assembly_.FullName));
                 }
+
                 OnEntryPointExecuted();
             }
         }
