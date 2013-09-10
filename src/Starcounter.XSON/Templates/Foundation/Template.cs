@@ -21,6 +21,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract partial class Template : IReadOnlyTree
     {
+
         /// <summary>
         /// The _ class name
         /// </summary>
@@ -39,6 +40,8 @@ namespace Starcounter.Templates {
                 _Dynamic = value;
             }
         }
+
+        public bool IsArray { get; set; }
 
 
         private bool _Dynamic = false;

@@ -138,7 +138,7 @@ namespace Starcounter {
                     else {
                         var p = template.Properties[t];
                         if (p is TContainer) {
-                            var c = ((Container)_Values[t]);
+                            var c = ((Container)this[t]);
                             if (c != null) {
                                 c.LogValueChangesWithDatabase(session);
                             }
@@ -151,10 +151,10 @@ namespace Starcounter {
                                 var j = this as Json;
                                 if (((TValue)p).UseBinding(j.DataAsBindable)) {
                                     var val = j.GetBound((TValue)p);
-                                    if (!val.Equals(_Values[t])) {
+                                    if ( val != _Values[t] ) {
                                         _Values[t] = val;
                                         Session.UpdateValue(j, (TValue)template.Properties[t]);
-                                    }
+                                    }   
                                 }
                             }
                         }
