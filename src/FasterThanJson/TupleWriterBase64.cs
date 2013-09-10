@@ -192,12 +192,59 @@ namespace Starcounter.Internal
          Base32Int.WriteBase32x1(n, (IntPtr) AtEnd);
 #endif
 #if BASE64
-         Base64Int.WriteBase64x1(n, (IntPtr)AtEnd);
+          Base64Int.WriteBase64x1(n, AtEnd);
 #endif
 #if BASE256
          (*AtEnd) = (byte) n;
 #endif
          HaveWritten(1);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      private unsafe uint Write(String value, bool fast) {
+          uint len = 1;
+          if (value == null)
+              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
+          else if (value.Length > 0) {
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag meaning if only flag is written then null
+              fixed (char* pStr = value) {
+                  int expectedLength;
+                  if (fast)
+                      expectedLength = value.Length * 3;
+                  else
+                      expectedLength = SessionBlobProxy.Utf8Encode.GetByteCount(pStr, value.Length, true);
+                  // Write the string to the end of this tuple.
+                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
+              }
+          } else
+              len = 0;
+          HaveWritten(len);
+          return len;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      private unsafe bool WriteFirst(String value) {
+          uint len = 1;
+          if (value == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else if (value.Length > 0)
+              return false;
+          else 
+              len = 0;
+          HaveWritten(len);
+          return true;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      private unsafe uint WriteRest(String value, int expectedLength) {
+          Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
+          uint len = 1;
+          fixed (char* pStr = value) {
+              // Write the string to the end of this tuple.
+              len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
+          }
+          HaveWritten(len);
+          return len;
       }
 
       /// <summary>
@@ -213,18 +260,26 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(string str)
       {
+#if false
+          Write(str, true);
+#else
+          if (!WriteFirst(str))
+              WriteRest(str, str.Length * 3);
+#endif
+#if false
          uint len;
 
          fixed (char* pStr = str)
          {
             // Write the string to the end of this tuple.
-            len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, 1000, true); // TODO! CHANGE MAX LENGTH
+             len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, str.Length * 3, true); // TODO! CHANGE MAX LENGTH
             //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
          }
 
          HaveWritten(len);
          //  if (needed > StreamWriteLargestOffsetElementSize)
          //     StreamWriteLargestOffsetElementSize = needed;
+#endif
       }
 
       /// <summary>
@@ -238,7 +293,7 @@ namespace Starcounter.Internal
          uint len = Base32Int.Write((IntPtr) AtEnd, n);
 #endif
 #if BASE64
-         uint len = Base64Int.Write((IntPtr)AtEnd, n);
+         uint len = Base64Int.Write(AtEnd, n);
 #endif
 #if BASE256
          uint len = Base256Int.Write((IntPtr)AtEnd, n);
@@ -249,9 +304,8 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte[] value) {
 #if BASE64
-          fixed (byte* valuePtr = value) {
-              Write(valuePtr, (uint)value.Length);
-          }
+          uint len = Base64Binary.Write(AtEnd, value);
+          HaveWritten(len);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
 #endif
@@ -260,7 +314,7 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte* value, uint length) {
 #if BASE64
-          uint len = Base64Binary.Write((IntPtr)AtEnd, value, length);
+          uint len = Base64Binary.Write(AtEnd, value, length);
           HaveWritten(len);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
@@ -268,11 +322,15 @@ namespace Starcounter.Internal
       }
 
       public static uint MeasureNeededSize(String str) {
-          uint expectedLen = 0;
+          if (str == null)
+              return 1; // null flag
+          if (str.Length == 0)
+              return 0;
+          uint expectedLen;
           fixed (char* pStr = str) {
               expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
           }
-          return expectedLen;
+          return expectedLen + 1; // + null flag
       }
 
       public static uint MeasureNeededSize(ulong n) {
@@ -326,7 +384,23 @@ namespace Starcounter.Internal
       public void WriteSafe(String str) {
           uint size = MeasureNeededSize(str);
           ValidateLength(size);
-          Write(str);
+#if false
+          uint len = Write(str, false);
+         Debug.Assert(len == size);
+#else
+          if (!WriteFirst(str)) {
+              uint len = WriteRest(str, (int)size - 1);
+              Debug.Assert(len == size);
+          }
+#endif
+#if false
+          fixed (char* pStr = str) {
+              // Write the string to the end of this tuple.
+              len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, (int)size, true); // TODO! CHANGE MAX LENGTH
+              //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
+          }
+          HaveWritten(len);
+#endif
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
@@ -340,9 +414,15 @@ namespace Starcounter.Internal
       }
 
       public unsafe void WriteSafe(byte[] b) {
-          fixed (byte* bPtr = b) {
-              WriteSafe(bPtr, (uint)b.Length);
-          }
+          uint size = 0;
+          if (b == null)
+              size = 1;
+          else
+          size = MeasureNeededSizeByteArray((uint)b.Length);
+          ValidateLength(size);
+          Write(b);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= size;
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -350,15 +430,14 @@ namespace Starcounter.Internal
       /// this is done automatically, but when you have written data using the nested tuple, you need to call the HaveWritten method manually.</summary>
       /// <param name="len">The number of bytes that you have written in the nested tuple. This value is returned when you call the <see cref="SealTuple">SealTuple Method</see> method.</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void HaveWritten(uint len)
-      {
-         byte* oldAtOffsetEnd = AtOffsetEnd;
-         ValueOffset = ValueOffset + len;
-         AtEnd += len;
-     
-         AtOffsetEnd += OffsetElementSize;
+      public unsafe void HaveWritten(uint len) {
+          byte* oldAtOffsetEnd = AtOffsetEnd;
+          ValueOffset = ValueOffset + len;
+          AtEnd += len;
 
-         // Write the offset of the *next* value at the end of the offset list
+          AtOffsetEnd += OffsetElementSize;
+
+          // Write the offset of the *next* value at the end of the offset list
 #if BASE32
 Retry:
          switch (OffsetElementSize)
@@ -434,24 +513,22 @@ Retry:
          }
 #endif
 #if BASE64
-         if (OffsetElementSize < Base64Int.MeasureNeededSize(ValueOffset)) {
-             Grow(ValueOffset);
-             oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
-         }
-         switch (OffsetElementSize) {
-            case 1: Base64Int.WriteBase64x1(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               break;
-            case 2: Base64Int.WriteBase64x2(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               break;
-            case 3: Base64Int.WriteBase64x3(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               break;
-            case 4: Base64Int.WriteBase64x4(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               break;
-            case 5: Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               break;
-            default:
-               throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
-         }
+          if (OffsetElementSize < Base64Int.MeasureNeededSize(ValueOffset)) {
+              Grow(ValueOffset);
+              oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
+          }
+          if (OffsetElementSize == 2)
+              Base64Int.WriteBase64x2(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 1)
+              Base64Int.WriteBase64x1(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 3)
+              Base64Int.WriteBase64x3(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 4)
+              Base64Int.WriteBase64x4(ValueOffset, oldAtOffsetEnd);
+          else if (OffsetElementSize == 5)
+              Base64Int.WriteBase64x5(ValueOffset, oldAtOffsetEnd);
+          else
+              throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
 
 #endif
 #if BASE256
@@ -486,8 +563,8 @@ Retry:
 #endif
       }
 
-      public unsafe delegate UInt64 ReadBase64(IntPtr ptr);
-      public unsafe delegate void WriteBase64(UInt64 value, IntPtr ptr);
+      public unsafe delegate UInt64 ReadBase64(byte* ptr);
+      public unsafe delegate void WriteBase64(UInt64 value, byte* ptr);
 
        /// <summary>
        /// Calculates for how many bytes the values should be moved to the right.
@@ -567,8 +644,8 @@ Retry:
               ulong offsetsValue;
               offsets -= oesBefore;
               newOffsets -= oesAfter;
-              offsetsValue = read((IntPtr)offsets);
-              write(offsetsValue, (IntPtr)newOffsets);
+              offsetsValue = read(offsets);
+              write(offsetsValue, newOffsets);
           }
 #if BASE256
          *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple

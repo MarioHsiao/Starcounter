@@ -30,9 +30,14 @@ namespace FasterThanJson.Tests {
             foreach (uint valueCount in NrElements) {
                 ulong[] inputUInts = new ulong[valueCount];
                 uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
-                for (uint i = 0; i < valueCount; i++) {
-                    inputUInts[i] = RandomValues.RandomULong(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[i]);
+                uint valCounter = 0;
+                for (; valCounter < valueCount * 2 / 3; valCounter++) {
+                    inputUInts[valCounter] = RandomValues.RandomUInt(rnd);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[valCounter]);
+                }
+                for (; valCounter < valueCount; valCounter++) {
+                    inputUInts[valCounter] = RandomValues.RandomULong(rnd);
+                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[valCounter]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -51,7 +56,7 @@ namespace FasterThanJson.Tests {
                     timer.Stop();
                     Console.WriteLine("Writing tuple of " + valueCount + " UINTs took " +
                         timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
-                        (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+                        (Decimal)(timer.ElapsedMilliseconds * 1000* 100 / nrIter) / 100 + " mcs per tuple write.");
 
                     timer.Reset();
                     timer.Start();

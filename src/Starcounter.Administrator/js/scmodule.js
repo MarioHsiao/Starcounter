@@ -1549,6 +1549,11 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
                     $scope.console += evt.data.replace(/\r\n/g, "<br>");
                 }
 
+                if ($scope.console.length > 8000) {
+                    $scope.console = $scope.console.substr($scope.console.length-8000);
+                }
+
+
                 $scope.$apply();
                 $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
             };

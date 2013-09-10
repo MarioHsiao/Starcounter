@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using Starcounter;
 using System.Diagnostics;
-using Starcounter.LucentObjects;
 using System.IO;
 using Starcounter.TestFramework;
 
