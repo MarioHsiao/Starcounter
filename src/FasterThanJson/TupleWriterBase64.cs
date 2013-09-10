@@ -236,7 +236,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      private unsafe uint WriteRest(String value, int expectedLength) {
+      private unsafe void WriteRest(String value, int expectedLength) {
           Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
           uint len = 1;
           fixed (char* pStr = value) {
@@ -244,7 +244,6 @@ namespace Starcounter.Internal
               len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
           }
           HaveWritten(len);
-          return len;
       }
 
       /// <summary>
@@ -361,7 +360,7 @@ namespace Starcounter.Internal
       /// Checks if string value fits the tuple and writes it
       /// </summary>
       /// <param name="value">String to write</param>
-      private void ValidateLength(uint expectedLen) {
+      private uint ValidateLength(uint expectedLen) {
           if (TupleMaxLength == 0)
               throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
           if (ValuesWrittenSoFar() == ValueCount)
@@ -371,11 +370,12 @@ namespace Starcounter.Internal
               expectedLen += MoveValuesRightSize(neededOffsetSize);
           if (expectedLen > AvailableSize)
               throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+          return expectedLen;
       }
 
       public void WriteSafe(ulong n) {
           uint size = MeasureNeededSize(n);
-          ValidateLength(size);
+          size = ValidateLength(size);
           Write(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
@@ -383,15 +383,13 @@ namespace Starcounter.Internal
 
       public void WriteSafe(String str) {
           uint size = MeasureNeededSize(str);
-          ValidateLength(size);
+          size = ValidateLength(size);
 #if false
           uint len = Write(str, false);
          Debug.Assert(len == size);
 #else
-          if (!WriteFirst(str)) {
-              uint len = WriteRest(str, (int)size - 1);
-              Debug.Assert(len == size);
-          }
+          if (!WriteFirst(str))
+               WriteRest(str, (int)size - 1);
 #endif
 #if false
           fixed (char* pStr = str) {
@@ -407,7 +405,7 @@ namespace Starcounter.Internal
 
       public unsafe void WriteSafe(byte* b, uint length) {
           uint size = MeasureNeededSizeByteArray(length);
-          ValidateLength(size);
+          size = ValidateLength(size);
           Write(b, length);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
@@ -419,7 +417,7 @@ namespace Starcounter.Internal
               size = 1;
           else
           size = MeasureNeededSizeByteArray((uint)b.Length);
-          ValidateLength(size);
+          size = ValidateLength(size);
           Write(b);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
