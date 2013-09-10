@@ -67,14 +67,14 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
 		}
 
-		[Test]
-		public static void TestFTJCodegenSerializer() {
-			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
-			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), true);
-			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
-			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
-			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
-		}
+		//[Test]
+		//public static void TestFTJCodegenSerializer() {
+		//	RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
+		//	RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), true);
+		//	RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
+		//	RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
+		//	RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+		//}
 
 		[Test]
 		public static void TestStandardSerializer() {
