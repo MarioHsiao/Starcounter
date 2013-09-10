@@ -49,7 +49,7 @@ namespace Starcounter.Internal
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        throw new Exception(); // TODO:
+                        throw ErrorCode.ToException(Error.SCERRUNEXPDBMETADATAMAPPING, "Column "+columnName+" cannot be found in ColumnDefs.");
                     }
                 }
             }

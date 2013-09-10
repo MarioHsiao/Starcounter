@@ -263,7 +263,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         Debug.Assert(expectedNodeId == nodeId);
         Debug.Assert(2 == OffsetTuppleLength);
         TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
-        tuple.SetTupleLength(enumerators.AvaiableSize);
+        tuple.SetTupleLength(enumerators.AvailableSize);
         // Static data for validation
         tuple.WriteSafe((byte)NodeType);
         tuple.WriteSafe(nodeId);
