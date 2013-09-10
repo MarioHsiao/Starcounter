@@ -294,12 +294,18 @@ namespace StarcounterInternal.Hosting
             // (We can only handle one package at a time or we can not
             // evaluate if a type definition has already been loaded.)
 
-            package.WaitUntilProcessed();
-            package.Dispose();
+            try {
+                var result = package.WaitUntilProcessed();
+                package.Dispose();
+                if (result != 0) {
+                    throw ErrorCode.ToException(result);
+                }
 
-            OnPackageProcessed();
+                OnPackageProcessed();
 
-            stopwatch_ = null;
+            } finally {
+                stopwatch_ = null;
+            }
         }
 
         private static void OnLoaderStarted() { Trace("Loader started."); }

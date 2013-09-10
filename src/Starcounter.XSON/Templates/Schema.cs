@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal;
@@ -15,13 +16,13 @@ using Starcounter.Internal.XSON.DeserializerCompiler;
 using Starcounter.Internal.XSON;
 using System.Collections;
 using TJson = Starcounter.Templates.TObject;
+using Module = Modules.Starcounter_XSON_JsonByExample;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
     public partial class TObject : TContainer {
-
         public override Type MetadataType {
             get { return typeof(ObjMetadata<TObject, Json>); }
         }
@@ -135,6 +136,38 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal override object Wrap(object value) {
+            if (value is IBindable) {
+                return Wrap<Json>(value);
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Returns a value as a JSON value.
+        /// </summary>
+        /// <typeparam name="ReturnType"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal ReturnType Wrap<ReturnType>(object value) where ReturnType : Json {
+            if (value is ReturnType)
+                return (ReturnType)value;
+            var json = (Json)CreateInstance();
+            json.Data = value;
+            if (!(json is ReturnType)) {
+                throw new Exception(
+                    String.Format("Cannot convert {0} to {1}",
+                        json, typeof(ReturnType)
+                    ));
+            }
+            return (ReturnType)json;
+        }
+
+        /// <summary>
         /// Creates a new property (template) with the specified name and type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -226,6 +259,9 @@ namespace Starcounter.Templates {
 //            }
             if (typeof(Json).IsAssignableFrom(type)) {
                 return this.Add<TJson>(name);
+            }
+            if ((typeof(IEnumerable).IsAssignableFrom(type))) {
+                return this.Add<TObjArr>(name);
             }
             throw new Exception(String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties", name, type.Name));
         }
@@ -323,5 +359,96 @@ namespace Starcounter.Templates {
             }
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <returns></returns>
+		public override string ToJson(Json json) {
+			byte[] buffer;
+			int count = ToJsonUtf8(json, out buffer);
+			return Encoding.UTF8.GetString(buffer, 0, count);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <returns></returns>
+		public override byte[] ToJsonUtf8(Json json) {
+			byte[] buffer;
+			byte[] sizedBuffer;
+			int count = ToJsonUtf8(json, out buffer);
+			sizedBuffer = new byte[count];
+			Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
+			return sizedBuffer;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="buffer"></param>
+		/// <returns></returns>
+		public override int ToJsonUtf8(Json json, out byte[] buffer) {
+			return JsonSerializer.Serialize(json, out buffer);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="buffer"></param>
+		/// <returns></returns>
+		public override int ToFasterThanJson(Json json, out byte[] buffer) {
+			return FTJSerializer.Serialize(json, out buffer);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="jsonStr"></param>
+		public override void PopulateFromJson(Json json, string jsonStr) {
+			byte[] buffer = Encoding.UTF8.GetBytes(jsonStr);
+			PopulateFromJson(json, buffer, buffer.Length);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="srcPtr"></param>
+		/// <param name="srcSize"></param>
+		/// <returns></returns>
+		public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
+			return JsonSerializer.Populate(json, srcPtr, srcSize);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="src"></param>
+		/// <param name="srcSize"></param>
+		/// <returns></returns>
+		public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
+			unsafe {
+				fixed (byte* p = src) {
+					return PopulateFromJson(json, (IntPtr)p, srcSize);
+				}
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="srcPtr"></param>
+		/// <param name="srcSize"></param>
+		/// <returns></returns>
+		public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
+			return FTJSerializer.Populate(json, srcPtr, srcSize);
+		}
     }
 }
