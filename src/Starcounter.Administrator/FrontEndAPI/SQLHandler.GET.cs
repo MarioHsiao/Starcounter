@@ -9,14 +9,10 @@ using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
-
         public static void SQL_GET(ushort port) {
-
             Handle.POST("/api/admin/databases/{?}/sql", (string name, Request req) => {
                 lock (LOCK) {
-
                     try {
-
                         DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
 
                         string bodyData = req.Body;   // Retrieve the sql command in the body
@@ -36,24 +32,16 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             errorJson.code = (int)response.StatusCode;
                             errorJson.helpLink = null;
 
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)response.StatusCode, null, errorJson.ToString()) };
-
+                            var errResponse = Response.FromStatusCode(response.StatusCode);
+ 							errResponse.Content = errorJson.ToString();
+							return errResponse;
                         }
-
                     }
                     catch (Exception e) {
                         return RestUtils.CreateErrorResponse(e);
                     }
                 }
-
             });
-
-
-
-
-
-
         }
-
     }
 }

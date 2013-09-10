@@ -119,7 +119,8 @@ namespace Starcounter.Internal {
                 }
 
                 return new Response() {
-                    Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(json.ToJsonUtf8())
+					Content = json.ToJsonUtf8(),
+					ContentType = "application/json;charset=UTF-8"
                 };
             });
 
@@ -138,10 +139,16 @@ namespace Starcounter.Internal {
                     return root;
                 }
                 catch (NotSupportedException nex) {
-                    return new Response() { Uncompressed = jp::HttpPatchBuilder.Create415Response(nex.Message) };
+					var response = new Response();
+					response.StatusCode = 415;
+					response.Content = nex.Message;
+                    return response;
                 }
                 catch (Exception ex) {
-                    return new Response() { Uncompressed = jp::HttpPatchBuilder.Create400Response(ex.Message) };
+					var response = new Response();
+					response.StatusCode = 400;
+					response.Content = ex.Message;
+					return response;
                 }
             });
         }

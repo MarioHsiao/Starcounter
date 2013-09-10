@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using NUnit.Framework;
+using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 
 namespace Starcounter.Internal.Tests {
@@ -80,7 +81,7 @@ namespace Starcounter.Internal.Tests {
          byte[] ret = null;
          byte[] content = new byte[] { (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o' };
          for (int i = 0; i < repeats; i++) {
-            ret = HttpResponseBuilder.CreateResponse(HttpResponseBuilder.Ok200_Content, content, 0, (uint)content.Length);
+			 (new Response() { Content = content, ContentLength = content.Length }).ConstructFromFields();
          }
          sw.Stop();
          Console.WriteLine(Encoding.UTF8.GetString(ret, 0, ret.Length));
