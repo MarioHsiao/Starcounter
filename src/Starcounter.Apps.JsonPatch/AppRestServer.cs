@@ -77,7 +77,7 @@ namespace Starcounter.Internal.Web {
 				// Logging the exception to server log.
 				LogSources.Hosting.LogException(ex);
 				var errResp = Response.FromStatusCode(500);
-				errResp.Content = GetExceptionString(ex);
+				errResp.Body = GetExceptionString(ex);
 				errResp.ContentType = "text/plain";
 				errResp.ConstructFromFields();
 				return errResp;
@@ -177,7 +177,7 @@ namespace Starcounter.Internal.Web {
 							// Logging the exception to server log.
 							LogSources.Hosting.LogException(exc);
 							result = Response.FromStatusCode(500);
-							result.Content = GetExceptionString(exc);
+							result.Body = GetExceptionString(exc);
 							result.ContentType = "text/plain";
 						}
 						result.ConstructFromFields();

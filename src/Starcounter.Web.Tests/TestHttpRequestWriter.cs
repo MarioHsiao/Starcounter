@@ -81,7 +81,7 @@ namespace Starcounter.Internal.Tests {
          byte[] ret = null;
          byte[] content = new byte[] { (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o' };
          for (int i = 0; i < repeats; i++) {
-			 (new Response() { Content = content, ContentLength = content.Length }).ConstructFromFields();
+			 (new Response() { BodyBytes = content, ContentLength = content.Length }).ConstructFromFields();
          }
          sw.Stop();
          Console.WriteLine(Encoding.UTF8.GetString(ret, 0, ret.Length));
