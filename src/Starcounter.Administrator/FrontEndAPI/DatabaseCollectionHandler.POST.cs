@@ -123,6 +123,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
 							var newResponse = Response.FromStatusCode((int)HttpStatusCode.OK);
 							newResponse.Content = resultJson.ToString();
+							newResponse.ContentType = "application/json";
 							return newResponse;
                             
                             //database.Configuration.Save();
