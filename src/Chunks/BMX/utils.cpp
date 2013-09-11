@@ -70,7 +70,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     }
     while (cur_chunk_index != shared_memory_chunk::link_terminator);
 
-    // Returning all linked chunks to private/shared pool.
+    // Returning all linked chunks (except first one) to private/shared pool.
     shared_memory_chunk* first_smc = ((shared_memory_chunk*) first_chunk_data);
     err_code = cm_release_linked_shared_memory_chunks(first_smc->get_link());
     if (err_code)
