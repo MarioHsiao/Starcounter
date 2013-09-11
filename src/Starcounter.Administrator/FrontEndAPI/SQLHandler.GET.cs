@@ -34,6 +34,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             var errResponse = Response.FromStatusCode(response.StatusCode);
  							errResponse.Content = errorJson.ToString();
+							errResponse.ContentType = "application/json";
 							return errResponse;
                         }
                     }
