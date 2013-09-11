@@ -13,8 +13,17 @@ using PostSharp.Sdk.Extensibility.Tasks;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
-    /// Class ScEnhanceThreadingTask
+    /// A task that is responsible for the transformation of calls to
+    /// a few System.Thread methods, like Thread.Sleep, to adapt user
+    /// code to the cooperative scheduler.
     /// </summary>
+    /// <remarks>
+    /// This code is currently not called during weaving, since it is
+    /// kind of out-of-date. If we must reintroduce it, we have to move
+    /// the code that is weaved into the user code - i.e. the InterceptThread
+    /// class - to the Starcounter assembly, since it will otherwise result
+    /// in a reference to the weaver executable when weaved and recompiled.
+    /// </remarks>
     public sealed class ScEnhanceThreadingTask : Task {
         /// <summary>
         /// Executes this instance.
