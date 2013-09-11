@@ -104,7 +104,7 @@ namespace Starcounter.Internal
        /// <summary>
        /// The available size left (in bytes)
        /// </summary>
-      public uint AvaiableSize;
+      public uint AvailableSize;
 
        /// <summary>
        /// Method
@@ -126,7 +126,7 @@ namespace Starcounter.Internal
 #endif
           ValueOffset = 0;
           ValueCount = valueCount;
-          AvaiableSize = 0;
+          AvailableSize = 0;
           TupleMaxLength = 0;
       }
 
@@ -151,8 +151,8 @@ namespace Starcounter.Internal
           if (AtEnd - AtStart >= length)
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Too small length of the tuple");
           TupleMaxLength = length;
-          AvaiableSize = length;
-          AvaiableSize -= (uint)(AtEnd - AtStart);
+          AvailableSize = length;
+          AvailableSize -= (uint)(AtEnd - AtStart);
       }
 
       /// <summary>
@@ -368,7 +368,7 @@ namespace Starcounter.Internal
           uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
           if (OffsetElementSize < neededOffsetSize)
               expectedLen += MoveValuesRightSize(neededOffsetSize);
-          if (expectedLen > AvaiableSize)
+          if (expectedLen > AvailableSize)
               throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
           return expectedLen;
       }
@@ -378,7 +378,7 @@ namespace Starcounter.Internal
           size = ValidateLength(size);
           Write(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       public void WriteSafe(String str) {
@@ -400,7 +400,7 @@ namespace Starcounter.Internal
           HaveWritten(len);
 #endif
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       public unsafe void WriteSafe(byte* b, uint length) {
@@ -408,7 +408,7 @@ namespace Starcounter.Internal
           size = ValidateLength(size);
           Write(b, length);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       public unsafe void WriteSafe(byte[] b) {
@@ -420,7 +420,7 @@ namespace Starcounter.Internal
           size = ValidateLength(size);
           Write(b);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
