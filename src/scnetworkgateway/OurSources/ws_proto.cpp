@@ -13,22 +13,22 @@ namespace network {
 
 // When decoded, is 16 bytes in length.
 const char *kSecWebSocketKey = "Sec-WebSocket-Key";
-const int32_t kSecWebSocketKeyLen = strlen(kSecWebSocketKey);
+const int32_t kSecWebSocketKeyLen = static_cast<int32_t> (strlen(kSecWebSocketKey));
 
 // Server response security field.
 const char *kSecWebSocketAccept = "Sec-WebSocket-Accept";
-const int32_t kSecWebSocketAcceptLen = strlen(kSecWebSocketAccept);
+const int32_t kSecWebSocketAcceptLen = static_cast<int32_t> (strlen(kSecWebSocketAccept));
 
 // Should be 13.
 const char *kSecWebSocketVersion = "Sec-WebSocket-Version";
-const int32_t kSecWebSocketVersionLen = strlen(kSecWebSocketVersion);
+const int32_t kSecWebSocketVersionLen = static_cast<int32_t> (strlen(kSecWebSocketVersion));
 
 // Which protocols the client would like to speak.
 const char *kSecWebSocketProtocol = "Sec-WebSocket-Protocol";
-const int32_t kSecWebSocketProtocolLen = strlen(kSecWebSocketProtocol);
+const int32_t kSecWebSocketProtocolLen = static_cast<int32_t> (strlen(kSecWebSocketProtocol));
 
 const char *kWsGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-const int32_t kWsGuidLen = strlen(kWsGuid);
+const int32_t kWsGuidLen = static_cast<int32_t> (strlen(kWsGuid));
 
 // The server MUST close the connection upon receiving a frame that is not masked.
 // A server MUST NOT mask any frames that it sends to the client. 
@@ -40,13 +40,13 @@ const char *kWsHsResponseStaticPart =
     "Connection: Upgrade\r\n"
     "Server: SC\r\n";
 
-const int32_t kWsHsResponseStaticPartLen = strlen(kWsHsResponseStaticPart);
+const int32_t kWsHsResponseStaticPartLen = static_cast<int32_t> (strlen(kWsHsResponseStaticPart));
 
 const char* SecWebSocketAccept = "Sec-WebSocket-Accept: ";
-const int32_t SecWebSocketAcceptLen = strlen(SecWebSocketAccept);
+const int32_t SecWebSocketAcceptLen = static_cast<int32_t> (strlen(SecWebSocketAccept));
 
 const char* SecWebSocketProtocol = "Sec-WebSocket-Protocol: ";
-const int32_t SecWebSocketProtocolLen = strlen(SecWebSocketProtocol);
+const int32_t SecWebSocketProtocolLen = static_cast<int32_t> (strlen(SecWebSocketProtocol));
 
 const char *kWsBadProto =
     "HTTP/1.1 400 Bad Request\r\n"
@@ -55,13 +55,11 @@ const char *kWsBadProto =
     "Pragma: no-cache\r\n"
     "\r\n";
 
-const int32_t kWsBadProtoLen = strlen(kWsBadProto);
+const int32_t kWsBadProtoLen = static_cast<int32_t> (strlen(kWsBadProto));
 
 // Unmasks frame and pushes it to database.
 uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
-    uint32_t err_code;
-
     uint8_t* payload = sd->get_data_blob() + frame_info_.payload_data_blob_offset_;
 
     switch (frame_info_.opcode_)
@@ -73,17 +71,17 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             UnMaskAllChunks(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
 
             // Setting user data length and pointer.
-            sd->set_user_data_written_bytes(frame_info_.payload_len_);
+            sd->set_user_data_written_bytes(static_cast<uint32_t>(frame_info_.payload_len_));
 
             // Setting request offsets.
             HttpRequest* req = sd->get_http_ws_proto()->get_http_request();
-            req->request_len_bytes_ = frame_info_.payload_len_;
-            req->request_offset_ = payload - (uint8_t*)sd;
+            req->request_len_bytes_ = static_cast<uint32_t> (frame_info_.payload_len_);
+            req->request_offset_ = static_cast<uint32_t> (payload - (uint8_t*)sd);
             req->content_len_bytes_ = req->request_len_bytes_;
             req->content_offset_ = req->request_offset_;
 
             // Determining user data offset.
-            uint32_t user_data_offset = payload - (uint8_t *) sd;
+            uint32_t user_data_offset = static_cast<uint32_t> (payload - (uint8_t *) sd);
             if ((payload - sd->get_data_blob()) < WS_NEEDED_USER_DATA_OFFSET)
                 user_data_offset += WS_NEEDED_USER_DATA_OFFSET;
 
@@ -107,7 +105,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             sd->set_disconnect_after_send_flag(true);
 
             // Prepare buffer to send outside.
-            sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+            sd->get_accum_buf()->PrepareForSend(payload, static_cast<ULONG>(payload_len));
 
             // Sending data.
             return gw->Send(sd);
@@ -123,7 +121,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, payload_len);
 
             // Prepare buffer to send outside.
-            sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+            sd->get_accum_buf()->PrepareForSend(payload, static_cast<ULONG>(payload_len));
 
             // Sending data.
             return gw->Send(sd);
@@ -150,7 +148,7 @@ uint32_t WsProto::ProcessWsDataToDb(
     uint32_t err_code = 0;
 
     // Obtaining saved user handler id.
-    user_handler_id = sd->get_saved_user_handler_id();
+    user_handler_id = sd->GetSavedUserHandlerId();
     GW_ASSERT_DEBUG(bmx::BMX_INVALID_HANDLER_INFO != user_handler_id);
 
     SocketDataChunk* sd_push_to_db = NULL;
@@ -196,7 +194,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* payload = sd->get_data_blob() + frame_info_.payload_data_blob_offset_;
 
         // Calculating number of bytes processed.
-        int32_t header_len = payload - cur_data_ptr;
+        int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
         num_processed_bytes += header_len;
 
         // Continue accumulating data.
@@ -206,7 +204,7 @@ uint32_t WsProto::ProcessWsDataToDb(
             sd->set_accumulating_flag(true);
 
             // Setting the desired number of bytes to accumulate.
-            sd->get_accum_buf()->StartAccumulation(header_len + frame_info_.payload_len_, header_len + num_accum_bytes - num_processed_bytes);
+            sd->get_accum_buf()->StartAccumulation(static_cast<ULONG>(header_len + frame_info_.payload_len_), header_len + num_accum_bytes - num_processed_bytes);
 
             // Trying to continue accumulation.
             bool is_accumulated;
@@ -235,7 +233,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         }
 
         // Payload size has been checked, so we can add payload as processed.
-        num_processed_bytes += frame_info_.payload_len_;
+        num_processed_bytes += static_cast<uint32_t>(frame_info_.payload_len_);
 
 #ifdef GW_WEBSOCKET_DIAG
         GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
@@ -300,7 +298,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, payload_len);
 
     // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+    sd->get_accum_buf()->PrepareForSend(payload, static_cast<ULONG>(payload_len));
 
     // Checking if multiple chunks involved.
     if (sd->get_num_chunks() > 1)
@@ -327,8 +325,8 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
 
     // Generating handshake response.
     char handshake_resp_temp[128];
-    strncpy(handshake_resp_temp, client_key_, client_key_len_);
-    strncpy(handshake_resp_temp + client_key_len_, kWsGuid, kWsGuidLen);
+    strncpy_s(handshake_resp_temp, 128, client_key_, _TRUNCATE);
+    strncpy_s(handshake_resp_temp + client_key_len_, 128 - client_key_len_, kWsGuid, _TRUNCATE);
 
     // Generating SHA1 into temp buffer.
     char* sha1_begin = handshake_resp_temp + client_key_len_ + kWsGuidLen;
@@ -338,8 +336,8 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     char* base64_begin = sha1_begin + 20;
     base64_encodestate b64;
     base64_init_encodestate(&b64);
-    uint8_t base64_len = base64_encode_block(sha1_begin, 20, base64_begin, &b64);
-    base64_len += base64_encode_blockend(base64_begin + base64_len, &b64) - 1;
+    uint8_t base64_len = static_cast<uint8_t>(base64_encode_block(sha1_begin, 20, base64_begin, &b64));
+    base64_len += static_cast<uint8_t>(base64_encode_blockend(base64_begin + base64_len, &b64) - 1);
 
     // Pointing to the beginning of the data.
     uint8_t* resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
@@ -365,10 +363,10 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
 
     // Setting WebSocket handshake flag.
-    sd->set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+    sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
 
     // Setting fixed handler id.
-    sd->set_saved_user_handler_id(user_handler_id);
+    sd->SetSavedUserHandlerId(user_handler_id);
 
     // TODO: Check the strategy about creating session.
 #if 0
@@ -453,7 +451,7 @@ void WsProto::MaskUnMask(
 void WsProto::UnMaskAllChunks(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    const int32_t payload_len_bytes,
+    const uint64_t payload_len_bytes,
     const uint64_t mask,
     uint8_t* payload)
 {
@@ -462,7 +460,7 @@ void WsProto::UnMaskAllChunks(
     core::chunk_index cur_chunk_index;
     int32_t chunk_bytes_left = sd->GetNumRemainingDataBytesInChunk(payload);
     if (payload_len_bytes < chunk_bytes_left)
-        chunk_bytes_left = payload_len_bytes;
+        chunk_bytes_left = static_cast<int32_t>(payload_len_bytes);
 
     int8_t num_remaining_bytes = 0;
     int32_t total_processed_len_bytes = 0;
@@ -474,7 +472,7 @@ void WsProto::UnMaskAllChunks(
         MaskUnMask(payload, chunk_bytes_left, mask_8bytes, num_remaining_bytes);
         total_processed_len_bytes += chunk_bytes_left;
 
-        int32_t num_payload_bytes_left = payload_len_bytes - total_processed_len_bytes;
+        int32_t num_payload_bytes_left = static_cast<int32_t>(payload_len_bytes - total_processed_len_bytes);
 
         if (0 == num_payload_bytes_left)
             break;
@@ -494,20 +492,20 @@ void WsProto::UnMaskAllChunks(
     }
 }
 
-#define swap64(y) (((uint64_t)ntohl(y)) << 32 | ntohl(y >> 32))
+#define swap64(y) ((static_cast<uint64_t>(ntohl(static_cast<uint32_t>(y))) << 32) | ntohl(static_cast<uint32_t>(y >> 32)))
 
 // Parses WebSockets frame info.
 uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit)
 {
     // Getting final fragment bit.
-    frame_info_.is_final_ = (*data & 0x80);
+    frame_info_.is_final_ = ((*data & 0x80) != 0);
 
     // Getting operation code.
     frame_info_.opcode_ = (*data & 0x0F);
 
     // Getting mask flag.
     data++;
-    frame_info_.is_masked_ = (*data & 0x80);
+    frame_info_.is_masked_ = ((*data & 0x80) != 0);
 
     // From RFC: The server MUST close the connection upon receiving a frame that is not masked.
     // if (!frame_info_.is_masked_)
@@ -554,7 +552,7 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
     if (data < limit)
         frame_info_.is_complete_ = true;
     
-    frame_info_.payload_data_blob_offset_ = data - sd->get_data_blob();
+    frame_info_.payload_data_blob_offset_ = static_cast<uint32_t> (data - sd->get_data_blob());
 
     return 0;
 }
@@ -621,13 +619,13 @@ uint8_t *WsProto::WritePayload(
     // Writing payload length.
     if (payload_len < 126)
     {
-        *p = payload_len;
+        *p = static_cast<uint8_t>(payload_len);
         p++;
     }
     else if (payload_len <= 0xFFFF)
     {
         *p = 126;
-        (*(uint16_t *)(p + 1)) = htons(payload_len);
+        (*(uint16_t *)(p + 1)) = htons(static_cast<uint16_t>(payload_len));
         p += 3;
     }
     else
@@ -641,7 +639,7 @@ uint8_t *WsProto::WritePayload(
     if (masking)
     {
         // Create some random mask for use.
-        uint32_t mask = gw->get_random()->uint64();
+        uint32_t mask = static_cast<uint32_t>(gw->get_random()->uint64());
 
         // Writing mask.
         *(uint32_t *)p = mask;

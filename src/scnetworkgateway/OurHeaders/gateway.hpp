@@ -41,6 +41,9 @@
 #include "utilities.hpp"
 #include "profiler.hpp"
 
+#pragma warning(pop)
+#pragma warning(pop)
+
 namespace starcounter {
 namespace network {
 
@@ -103,20 +106,14 @@ typedef uint64_t ip_info_type;
 #define SCERRGWSOCKETCLOSEDBYPEER 12347
 #define SCERRGWFAILEDWSASEND 12349
 #define SCERRGWDISCONNECTAFTERSENDFLAG 12350
-#define SCERRGWWEBSOCKETOPCODECLOSE 12351
 #define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
-#define SCERRGWWEBSOCKETPINGOPCODE 12353
 #define SCERRGWWEBSOCKETNOMASK 12354
 #define SCERRGWMAXPORTHANDLERS 12355
 #define SCERRGWWRONGHANDLERTYPE 12357
 #define SCERRGWHANDLERNOTFOUND 12358
 #define SCERRGWPORTNOTHANDLED 12359
-#define SCERRGWSOCKETDATAWRONGDATABASE 12361
 #define SCERRGWNONHTTPPROTOCOL 12362
 #define SCERRGWHTTPTOOMANYHEADERS 12364
-#define SCERRGWHTTPWRONGSESSIONINDEXFORMAT 12366
-#define SCERRGWHTTPWRONGSESSIONSALTFORMAT 12367
-#define SCERRGWHTTPWRONGSESSION 12368
 #define SCERRGWBMXCHUNKWRONGFORMAT 12369
 #define SCERRGWHTTPNONWEBSOCKETSUPGRADE 12370
 #define SCERRGWHTTPWRONGWEBSOCKETSVERSION 12371
@@ -133,31 +130,27 @@ typedef uint64_t ip_info_type;
 #define SCERRGWWORKERISDEAD 12382
 #define SCERRGWDATABASEMONITORISDEAD 12383
 #define SCERRGWINCORRECTBYTESSEND 12384
-#define SCERRGWSOCKETNOTCONNECTED 12385
 #define SCERRGWCONNECTEXFAILED 12387
 #define SCERRGWACCEPTEXFAILED 12388
 #define SCERRGWWORKERROUTINEFAILED 12390
 #define SCERRGWMAXHANDLERSREACHED 12391
-#define SCERRGWWRONGHANDLERINSLOT 12392
 #define SCERRGWPORTPROCESSFAILED 12393
 #define SCERRGWCANTRELEASETOSHAREDPOOL 12394
 #define SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION 12395
 #define SCERRGWWRONGMAXIDLESESSIONLIFETIME 12396
 #define SCERRGWWRONGDATABASEINDEX 12397
-#define SCERRJUSTRELEASEDSOCKETDATA 12398
 #define SCERRGWCHANNELSEVENTSTHREADISDEAD 12399
 #define SCERRGWSESSIONSCLEANUPTHREADISDEAD 12400
 #define SCERRGWGATEWAYLOGGINGTHREADISDEAD 12401
 #define SCERRGWSOMETHREADDIED 12402
 #define SCERRGWOPERATIONONWRONGSOCKET 12403
+#define SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING 12407
 #define SCERRGWTESTTIMEOUT 12404
 #define SCERRGWTESTFAILED 12405
 #define SCERRGWTESTFINISHED 12406
-#define SCERRGWHTTPCOOKIEISMISSING 12407
 #define SCERRGWFAILEDTOBINDPORT 12409
 #define SCERRGWFAILEDTOATTACHSOCKETTOIOCP 12410
 #define SCERRGWFAILEDTOLISTENONSOCKET 12411
-#define SCERRGWWEBSOCKETSPAYLOADTOOBIG 12412
 #define SCERRGWIPISNOTONWHITELIST 12413
 
 // Maximum number of ports the gateway operates with.
@@ -265,7 +258,7 @@ const int32_t MAX_WORKER_THREADS = 32;
 const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
 
 // Maximum port handle integer.
-const int32_t MAX_SOCKET_HANDLE = 10000000;
+const int32_t MAX_POSSIBLE_CONNECTIONS = 10000000;
 
 // Maximum number of test echoes.
 const int32_t MAX_TEST_ECHOES = 50000000;
@@ -514,7 +507,7 @@ public:
         num_entries_ = 0;
     }
 
-    uint32_t get_num_entries()
+    int32_t get_num_entries()
     {
         return num_entries_;
     }
@@ -690,7 +683,7 @@ public:
     // Moves data in accumulative buffer to top.
     uint8_t* MoveDataToTopIfTooLittleSpace(uint8_t* cur_data_ptr, int32_t needed_space_bytes)
     {
-        int32_t num_bytes_left = orig_buf_len_bytes_ - (cur_data_ptr - orig_buf_ptr_);
+        int32_t num_bytes_left = static_cast<int32_t> ((orig_buf_len_bytes_ - (cur_data_ptr - orig_buf_ptr_)));
 
         if (num_bytes_left > needed_space_bytes)
             return cur_data_ptr;
@@ -733,7 +726,7 @@ public:
         }
         else
         {
-            int32_t remaining = desired_accum_bytes_ - accum_len_bytes_;
+            ULONG remaining = desired_accum_bytes_ - accum_len_bytes_;
             if (buf_len_bytes_ > remaining)
                 buf_len_bytes_ = remaining;
         }
@@ -748,7 +741,7 @@ public:
     // Get buffer length.
     ULONG GetNumLeftBytes(uint8_t* cur_ptr)
     {
-        return orig_buf_ptr_ + orig_buf_len_bytes_ - cur_ptr;
+        return static_cast<ULONG> (orig_buf_ptr_ + orig_buf_len_bytes_ - cur_ptr);
     }
 
     // Getting desired accumulating bytes.
@@ -797,7 +790,7 @@ public:
         desired_accum_bytes_ = total_desired_bytes;
         accum_len_bytes_ = num_already_accumulated;
         ContinueReceive();
-        int32_t remaining = total_desired_bytes - num_already_accumulated;
+        ULONG remaining = total_desired_bytes - num_already_accumulated;
         if (buf_len_bytes_ > remaining)
             buf_len_bytes_ = remaining;
     }
@@ -890,10 +883,10 @@ struct ScSessionStruct
     {
         GW_ASSERT(MixedCodeConstants::SESSION_STRING_LEN_CHARS == len_bytes);
 
-        scheduler_id_ = hex_string_to_uint64(str_in, 2);
-        linear_index_ = hex_string_to_uint64(str_in + 2, 6);
-        random_salt_ = hex_string_to_uint64(str_in + 8, 16);
-        reserved_ = hex_string_to_uint64(str_in + 24, 8);
+        scheduler_id_ = static_cast<scheduler_id_type> (hex_string_to_uint64(str_in, 2));
+        linear_index_ = static_cast<session_index_type> (hex_string_to_uint64(str_in + 2, 6));
+        random_salt_ = static_cast<random_salt_type> (hex_string_to_uint64(str_in + 8, 16));
+        reserved_ = static_cast<session_index_type> (hex_string_to_uint64(str_in + 24, 8));
     }
 
     // Compare socket stamps of two sessions.
@@ -915,6 +908,9 @@ struct ScSessionStruct
 // Structure that facilitates the socket.
 _declspec(align(128)) struct ScSocketInfoStruct
 {
+    // Entry to lock-free free list.
+    SLIST_ENTRY free_socket_indexes_entry_;
+
     // Main session structure attached to this socket.
     ScSessionStruct session_;
 
@@ -927,8 +923,7 @@ _declspec(align(128)) struct ScSocketInfoStruct
     // Client IP information.
     ip_info_type client_ip_info_;
 
-    // Active socket flag.
-    uint8_t active_socket_flag_;
+    uint8_t unused0_;
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
@@ -943,8 +938,15 @@ _declspec(align(128)) struct ScSocketInfoStruct
     SOCKET socket_;
 
     uint64_t unused3_;
-    uint64_t unused4_;
-    uint64_t unused5_;
+
+    // Determined handler id.
+    BMX_HANDLER_TYPE saved_user_handler_id_;
+
+    // Proxy socket identifier.
+    session_index_type proxy_socket_info_index_;
+
+    // This socket info index.
+    uint32_t socket_info_index_;
 
     ScSocketInfoStruct()
     {
@@ -964,8 +966,9 @@ _declspec(align(128)) struct ScSocketInfoStruct
         port_index_ = INVALID_PORT_INDEX;
         ResetTimestamp();
         unique_socket_id_ = INVALID_SESSION_SALT;
-        active_socket_flag_ = false;
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
+        socket_ = INVALID_SOCKET;
+        saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
     }
 };
 
@@ -1100,16 +1103,9 @@ public:
     // Active database constructor.
     ActiveDatabase();
 
-    // Returns unique number for this database.
-    uint64_t get_unique_num()
-    {
-        return unique_num_unsafe_;
-    }
-
     // Initializes this active database slot.
     void Init(std::string db_name, uint64_t unique_num, int32_t db_index);
 };
-
 
 // Represents an active server port.
 class HandlersList;
@@ -1336,16 +1332,14 @@ class Gateway
     // The size of the array to hold the server name and active databases updated event name,
     // including terminating null. The format is:
     // "Local\<server_name>_ipc_monitor_active_databases_updated_event"
-    static const std::size_t active_databases_updated_event_name_size
-        = core::server_name_size -1 /* null */ +sizeof("Local\\") -1 /* null */ 
-        +sizeof(ACTIVE_DATABASES_UPDATED_EVENT);
+    static const std::size_t active_databases_updated_event_name_size = 256;
 
     ////////////////////////
     // SETTINGS
     ////////////////////////
 
     // Maximum total number of sockets aka connections.
-    int32_t setting_max_connections_;
+    uint32_t setting_max_connections_;
 
     // Starcounter server type upper case.
     std::string setting_sc_server_type_upper_;
@@ -1474,7 +1468,7 @@ class Gateway
     ScSocketInfoStruct* all_sockets_infos_unsafe_;
 
     // Free socket indexes.
-    session_index_type* free_socket_indexes_unsafe_;
+    PSLIST_HEADER free_socket_indexes_unsafe_;
 
     // Number of active sockets.
     volatile int64_t num_active_sockets_;
@@ -1599,6 +1593,29 @@ class Gateway
 
 public:
 
+    // Gets free socket index.
+    session_index_type ObtainFreeSocketIndex(SOCKET s, int32_t port_index)
+    {
+        PSLIST_ENTRY free_socket_index_entry = InterlockedPopEntrySList(free_socket_indexes_unsafe_);
+        GW_ASSERT(free_socket_index_entry);
+        
+        // NOTE: Socket info has the same address as socket index entry.
+        ScSocketInfoStruct* si = (ScSocketInfoStruct*) free_socket_index_entry;
+
+        // Resetting the socket structure.
+        si->Reset();
+
+        // Marking socket as alive.
+        si->socket_ = s;
+
+        CreateUniqueSocketId(si->socket_info_index_, port_index, 0);
+
+        return si->socket_info_index_;
+    }
+
+    // Releases used socket index.
+    void ReleaseSocketIndex(GatewayWorker* gw, session_index_type index);
+
     // Checks if IP is on white list.
     bool CheckIpForWhiteList(ip_info_type ip)
     {
@@ -1657,37 +1674,102 @@ public:
     }
 
     // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId(SOCKET s, random_salt_type unique_socket_id)
+    bool CompareUniqueSocketId(session_index_type index, random_salt_type unique_socket_id)
     {
-        GW_ASSERT(s < setting_max_connections_);
+        GW_ASSERT(index < setting_max_connections_);
 
-        return (all_sockets_infos_unsafe_[s].unique_socket_id_ == unique_socket_id);
+        return (all_sockets_infos_unsafe_[index].unique_socket_id_ == unique_socket_id);
+    }
+
+    MixedCodeConstants::NetworkProtocolType GetTypeOfNetworkProtocol(session_index_type index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        return (MixedCodeConstants::NetworkProtocolType) all_sockets_infos_unsafe_[index].type_of_network_protocol_;
     }
 
     // Setting client IP address info.
-    void SetClientIpInfo(SOCKET s, ip_info_type origin_ip_info)
+    void SetSavedUserHandlerId(session_index_type index, BMX_HANDLER_TYPE saved_user_handler_id)
     {
-        GW_ASSERT(s < setting_max_connections_);
+        GW_ASSERT(index < setting_max_connections_);
 
-        all_sockets_infos_unsafe_[s].client_ip_info_ = origin_ip_info;
+        all_sockets_infos_unsafe_[index].saved_user_handler_id_ = saved_user_handler_id;
     }
 
     // Getting client IP address info.
-    ip_info_type GetClientIpInfo(SOCKET s)
+    BMX_HANDLER_TYPE GetSavedUserHandlerId(session_index_type index)
     {
-        GW_ASSERT(s < setting_max_connections_);
+        GW_ASSERT(index < setting_max_connections_);
 
-        return all_sockets_infos_unsafe_[s].client_ip_info_;
+        return all_sockets_infos_unsafe_[index].saved_user_handler_id_;
+    }
+
+    // Getting client IP address info.
+    ip_info_type GetClientIpInfo(session_index_type index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[index].client_ip_info_;
+    }
+
+    // Setting client IP address info.
+    void SetClientIpInfo(session_index_type index, ip_info_type ip_info)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[index].client_ip_info_ = ip_info;
+    }
+
+    // Getting socket id.
+    int32_t GetPortIndex(session_index_type index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[index].port_index_;
+    }
+
+    // Getting socket id.
+    SOCKET GetSocket(session_index_type index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[index].socket_;
+    }
+
+    // Checks for proxy socket.
+    bool HasProxySocket(session_index_type index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        return INVALID_SESSION_INDEX != all_sockets_infos_unsafe_[index].proxy_socket_info_index_;
+    }
+
+    // Getting proxy socket index.
+    session_index_type GetProxySocketIndex(session_index_type index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[index].proxy_socket_info_index_;
+    }
+
+    // Getting proxy socket id.
+    void SetProxySocket(session_index_type index, session_index_type proxy_socket_index)
+    {
+        GW_ASSERT(index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[index].proxy_socket_info_index_ = proxy_socket_index;
     }
 
     // Setting new unique socket number.
-    random_salt_type CreateUniqueSocketId(SOCKET s, int32_t port_index, scheduler_id_type scheduler_id)
+    random_salt_type CreateUniqueSocketId(session_index_type index, int32_t port_index, scheduler_id_type scheduler_id)
     {
+        GW_ASSERT(index < setting_max_connections_);
+
         random_salt_type unique_id = get_unique_socket_id();
 
-        all_sockets_infos_unsafe_[s].unique_socket_id_ = unique_id;
-        all_sockets_infos_unsafe_[s].port_index_ = port_index;
-        all_sockets_infos_unsafe_[s].session_.scheduler_id_ = scheduler_id;
+        all_sockets_infos_unsafe_[index].unique_socket_id_ = unique_id;
+        all_sockets_infos_unsafe_[index].port_index_ = port_index;
+        all_sockets_infos_unsafe_[index].session_.scheduler_id_ = scheduler_id;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << s << ":" << unique_id << GW_ENDL;
@@ -1697,9 +1779,9 @@ public:
     }
 
     // Getting unique socket number.
-    random_salt_type GetUniqueSocketId(SOCKET s)
+    random_salt_type GetUniqueSocketId(session_index_type index)
     {
-        return all_sockets_infos_unsafe_[s].unique_socket_id_;
+        return all_sockets_infos_unsafe_[index].unique_socket_id_;
     }
 
     // Unique linear socket id.
@@ -1740,9 +1822,9 @@ public:
     int64_t NumberUsedSocketsPerDatabase(int32_t db_index);
 
     // Last bind port number.
-    int64_t get_last_bind_port_num()
+    uint16_t get_last_bind_port_num()
     {
-        return last_bind_port_num_unsafe_;
+        return static_cast<uint16_t>(last_bind_port_num_unsafe_);
     }
 
     // Last bind interface number.
@@ -2042,10 +2124,7 @@ public:
     }
 
     // Cleans up all collected inactive sockets.
-    uint32_t CleanupInactiveSockets(GatewayWorker* gw);
-
-    // Disconnects arbitrary socket.
-    void DisconnectSocket(GatewayWorker* gw, SOCKET sock);
+    uint32_t CleanupInactiveSocketsOnWorkerZero();
 
     // Updates current global timer value on given socket.
     void UpdateSocketTimeStamp(session_index_type index)
@@ -2109,7 +2188,7 @@ public:
     }
 
     // Getting maximum number of connections.
-    int32_t setting_max_connections()
+    uint32_t setting_max_connections()
     {
         return setting_max_connections_;
     }
@@ -2121,30 +2200,6 @@ public:
     HANDLE get_worker_thread_handle(int32_t worker_id)
     {
         return worker_thread_handles_[worker_id];
-    }
-
-    // Getting state of the socket.
-    bool ShouldSocketBeDeleted(SOCKET s)
-    {
-        GW_ASSERT(s < setting_max_connections_);
-
-        return !all_sockets_infos_unsafe_[s].active_socket_flag_;
-    }
-
-    // Deletes specific socket.
-    void MarkSocketDelete(SOCKET s)
-    {
-        GW_ASSERT(s < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[s].active_socket_flag_ = false;
-    }
-
-    // Makes specific socket available.
-    void MarkSocketAlive(SOCKET s)
-    {
-        GW_ASSERT(s < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[s].active_socket_flag_ = true;
     }
 
     // Getting gateway handlers.
@@ -2409,14 +2464,14 @@ public:
     }
 
     // Gets socket info data by index.
-    ScSocketInfoStruct GetGlobalSocketInfoCopy(session_index_type index)
+    ScSocketInfoStruct GetGlobalSocketInfoCopy(session_index_type socket_index)
     {
         // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == index)
+        if (INVALID_SESSION_INDEX == socket_index)
             return ScSocketInfoStruct();
 
         // Fetching the session by index.
-        return all_sockets_infos_unsafe_[index];
+        return all_sockets_infos_unsafe_[socket_index];
     }
 
     // Gets session data by index.

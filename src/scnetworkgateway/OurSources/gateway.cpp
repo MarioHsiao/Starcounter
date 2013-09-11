@@ -71,7 +71,7 @@ CoutSafe::~CoutSafe()
 #ifdef GW_LOGGING_ON
 
     std::string str = ss_.str();
-    g_gateway.get_gw_log_writer()->WriteToLog(str.c_str(), str.length());
+    g_gateway.get_gw_log_writer()->WriteToLog(str.c_str(), static_cast<int32_t>(str.length()));
 
 #endif
 }
@@ -362,13 +362,14 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 
         cmd_setting_num_workers_ = _wtoi(argv[4]);
         
-        wcstombs(temp, argv[5], 128);
+        size_t num_written;
+        wcstombs_s(&num_written, temp, 128, argv[5], _TRUNCATE);
         cmd_setting_mode_ = GetGatewayTestingMode(temp);
         cmd_setting_num_connections_to_master_ = _wtoi(argv[6]);
         cmd_setting_num_echoes_to_master_ = _wtoi(argv[7]);
         cmd_setting_max_test_time_seconds_ = _wtoi(argv[8]);
 
-        wcstombs(temp, argv[9], 128);
+        wcstombs_s(&num_written, temp, 128, argv[9], _TRUNCATE);
         cmd_setting_stats_name_ = std::string(temp);
     }
 #endif
@@ -379,7 +380,8 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
         return err_code;
 
     // Converting Starcounter server type to narrow char.
-    wcstombs(temp, argv[1], 128);
+    size_t conv_chars;
+    wcstombs_s(&conv_chars, temp, 128, argv[1], _TRUNCATE);
 
     // Copying other fields.
     setting_sc_server_type_upper_ = temp;
@@ -763,7 +765,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             reverse_proxies_[n].server_port_ = atoi(proxy_node->first_node("ServerPort")->value());
             reverse_proxies_[n].gw_proxy_port_ = atoi(proxy_node->first_node("GatewayProxyPort")->value());
             reverse_proxies_[n].service_uri_ = proxy_node->first_node("ServiceUri")->value();
-            reverse_proxies_[n].service_uri_len_ = reverse_proxies_[n].service_uri_.length();
+            reverse_proxies_[n].service_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].service_uri_.length());
 
             // Loading proxied servers.
             sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
@@ -818,19 +820,23 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
     // Allocating data for sockets infos.
     all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
-    free_socket_indexes_unsafe_ = new session_index_type[setting_max_connections_];
+    free_socket_indexes_unsafe_ = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    GW_ASSERT(free_socket_indexes_unsafe_);
+    InitializeSListHead(free_socket_indexes_unsafe_);
+
     sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
     num_active_sockets_ = 0;
     num_sockets_to_cleanup_unsafe_ = 0;
 
     // Cleaning all socket infos and setting indexes.
-    for (int32_t i = 0; i < setting_max_connections_; i++)
+    for (int32_t i = setting_max_connections_ - 1; i >= 0; i--)
     {
-        // Filling up indexes linearly.
-        free_socket_indexes_unsafe_[i] = i;
-
         // Resetting all sockets infos.
         all_sockets_infos_unsafe_[i].Reset();
+        all_sockets_infos_unsafe_[i].socket_info_index_ = i;
+
+        // Pushing to free indexes list.
+        InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_));
     }
 
     delete [] config_contents;
@@ -901,6 +907,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     {
         PrintLastError(true);
         closesocket(sock);
+        sock = INVALID_SOCKET;
 
         GW_COUT << "Wrong IOCP returned when adding reference." << GW_ENDL;
         return SCERRGWFAILEDTOATTACHSOCKETTOIOCP;
@@ -926,6 +933,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     {
         PrintLastError(true);
         closesocket(sock);
+        sock = INVALID_SOCKET;
        
         GW_LOG_ERROR << L"Failed to bind server port: " << port_num << L". Please check that port is not occupied by any software." << GW_WENDL;
         return SCERRGWFAILEDTOBINDPORT;
@@ -936,6 +944,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     {
         PrintLastError(true);
         closesocket(sock);
+        sock = INVALID_SOCKET;
 
         GW_COUT << "Error listening on server socket." << GW_ENDL;
         return SCERRGWFAILEDTOLISTENONSOCKET;
@@ -985,7 +994,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 	std::size_t work_event_index = 0;
 	
     // Setting checking events for each worker.
-	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
+	for (int32_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
     {
 		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetWorkerDb(db_index);
 		core::shared_interface* db_shared_int = db_int->get_shared_int();
@@ -1023,7 +1032,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 // Checks for new/existing databases and updates corresponding shared memory structures.
 uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_databases)
 {
-    int32_t server_name_len = setting_sc_server_type_upper_.length();
+    int32_t server_name_len = static_cast<int32_t> (setting_sc_server_type_upper_.length());
 
     // Enabling database down tracking flag.
     for (int32_t i = 0; i < num_dbs_slots_; i++)
@@ -1373,7 +1382,7 @@ void ActiveDatabase::Init(
 
     // Name of the database shared memory segment.
     char seq_num_str[16];
-    itoa(db_shm_params->get_sequence_number(), seq_num_str, 10);
+    _itoa_s(db_shm_params->get_sequence_number(), seq_num_str, 16, 10);
     shm_seg_name_ = std::string(DATABASE_NAME_PREFIX) + "_" +
         g_gateway.setting_sc_server_type_upper() + "_" +
         StringToUpperCopy(db_name_) + "_" +
@@ -1458,7 +1467,9 @@ void ActiveDatabase::CloseSocketData()
     were_sockets_closed_ = true;
 
     // Checking if just marking for deletion.
-    for (SOCKET s = 0; s < g_gateway.setting_max_connections(); s++)
+    for (session_index_type socket_index = 0;
+        socket_index < g_gateway.setting_max_connections();
+        socket_index++)
     {
         bool needs_deletion = false;
 
@@ -1467,31 +1478,20 @@ void ActiveDatabase::CloseSocketData()
         {
             WorkerDbInterface* worker_db = g_gateway.get_worker(w)->GetWorkerDb(db_index_);
 
-            if (worker_db->IsActiveSocket(s))
+            if (worker_db->IsActiveSocket(socket_index))
             {
                 needs_deletion = true;
-                worker_db->UntrackSocket(s);
+                worker_db->UntrackSocket(socket_index);
             }
         }
 
         // Checking if socket is active.
         if (needs_deletion)
         {
-            // Marking deleted socket.
-            g_gateway.MarkSocketDelete(s);
-
             // NOTE: Can't kill the session here, because it can be used by other databases.
 
             // NOTE: Closing socket which will results in stop of all pending operations on that socket.
-            if (closesocket(s))
-            {
-#ifdef GW_WARNINGS_DIAG
-                GW_COUT << "closesocket() failed." << GW_ENDL;
-                PrintLastError();
-#endif
-            }
-
-            //GW_COUT << "closesocket: " << s << GW_ENDL;
+            g_gateway.get_worker(0)->AddSocketToDisconnectListUnsafe(socket_index);
         }
     }
 }
@@ -1562,31 +1562,31 @@ uint32_t Gateway::Init()
 
     // Obtaining function pointers (AcceptEx, ConnectEx, DisconnectEx).
     uint32_t temp;
-    SOCKET tempSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-    if (tempSocket == INVALID_SOCKET)
+    SOCKET temp_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+    if (temp_socket == INVALID_SOCKET)
     {
         GW_COUT << "WSASocket() failed." << GW_ENDL;
         return PrintLastError();
     }
 
-    if (WSAIoctl(tempSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &AcceptExGuid, sizeof(AcceptExGuid), &AcceptExFunc, sizeof(AcceptExFunc), (LPDWORD)&temp, NULL, NULL))
+    if (WSAIoctl(temp_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &AcceptExGuid, sizeof(AcceptExGuid), &AcceptExFunc, sizeof(AcceptExFunc), (LPDWORD)&temp, NULL, NULL))
     {
         GW_COUT << "Failed WSAIoctl(AcceptEx)." << GW_ENDL;
         return PrintLastError();
     }
 
-    if (WSAIoctl(tempSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &ConnectExGuid, sizeof(ConnectExGuid), &ConnectExFunc, sizeof(ConnectExFunc), (LPDWORD)&temp, NULL, NULL))
+    if (WSAIoctl(temp_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &ConnectExGuid, sizeof(ConnectExGuid), &ConnectExFunc, sizeof(ConnectExFunc), (LPDWORD)&temp, NULL, NULL))
     {
         GW_COUT << "Failed WSAIoctl(ConnectEx)." << GW_ENDL;
         return PrintLastError();
     }
 
-    if (WSAIoctl(tempSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &DisconnectExGuid, sizeof(DisconnectExGuid), &DisconnectExFunc, sizeof(DisconnectExFunc), (LPDWORD)&temp, NULL, NULL))
+    if (WSAIoctl(temp_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &DisconnectExGuid, sizeof(DisconnectExGuid), &DisconnectExFunc, sizeof(DisconnectExFunc), (LPDWORD)&temp, NULL, NULL))
     {
         GW_COUT << "Failed WSAIoctl(DisconnectEx)." << GW_ENDL;
         return PrintLastError();
     }
-    closesocket(tempSocket);
+    closesocket(temp_socket);
 
     // Global HTTP init.
     HttpGlobalInit();
@@ -1676,8 +1676,11 @@ uint32_t Gateway::Init()
     // Indicating begin of new logging session.
     time_t raw_time;
     time(&raw_time);
-    tm *timeinfo = localtime(&raw_time);
-    GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << GW_ENDL;
+    tm timeinfo;
+    localtime_s(&timeinfo, &raw_time);
+    char temp_time_str[32];
+    asctime_s(temp_time_str, 32, &timeinfo);
+    GW_PRINT_GLOBAL << "New logging session: " << temp_time_str << GW_ENDL;
 
     return 0;
 }
@@ -1766,7 +1769,7 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
     int32_t total_response_bytes = kHttpStatsHeaderLength;
 
     // Getting number of written bytes to the stream.
-    int32_t all_stats_bytes = all_stats_stream.tellp();
+    int32_t all_stats_bytes = static_cast<int32_t> (all_stats_stream.tellp());
     total_response_bytes += all_stats_bytes;
 
     // Checking for not too big statistics.
@@ -2028,9 +2031,8 @@ uint32_t Gateway::OpenActiveDatabasesUpdatedEvent()
 
     wchar_t w_active_databases_updated_event_name[active_databases_updated_event_name_size];
 
-    /// TODO: Fix insecure
-    if ((length = mbstowcs(w_active_databases_updated_event_name,
-        active_databases_updated_event_name, core::segment_name_size)) < 0) {
+    if ((mbstowcs_s(&length, w_active_databases_updated_event_name, active_databases_updated_event_name_size,
+        active_databases_updated_event_name, _TRUNCATE)) != 0) {
             // Failed to convert active_databases_updated_event_name to multi-byte string.
             return SCERRCONVERTACTIVEDBUPDATEDEVMBS;
     }
@@ -2249,28 +2251,9 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
-// Disconnects arbitrary socket.
-void Gateway::DisconnectSocket(GatewayWorker* gw, SOCKET sock)
-{
-    // Getting existing socket info copy.
-    ScSocketInfoStruct global_socket_info_copy = GetGlobalSocketInfoCopy(sock);
-
-    // Creating new socket data and setting required parameters.
-    SocketDataChunk* sd;
-    gw->CreateSocketData(sock, global_socket_info_copy.port_index_, 0, sd);
-
-    sd->AssignSession(global_socket_info_copy.session_);
-    sd->set_socket_trigger_disconnect_flag(true);
-    sd->set_unique_socket_id(global_socket_info_copy.unique_socket_id_);
-    
-    gw->DisconnectAndReleaseChunk(sd);
-}
-
 // Cleans up all collected inactive sockets.
-uint32_t Gateway::CleanupInactiveSockets(GatewayWorker* gw)
+uint32_t Gateway::CleanupInactiveSocketsOnWorkerZero()
 {
-    uint32_t err_code;
-
     EnterCriticalSection(&cs_sockets_cleanup_);
 
     // Going through all collected inactive sockets.
@@ -2294,8 +2277,8 @@ uint32_t Gateway::CleanupInactiveSockets(GatewayWorker* gw)
             GW_COUT << "Disconnecting inactive socket " << sockets_to_cleanup_unsafe_[i] << "." << GW_ENDL;
 #endif
 
-            // Triggering special light disconnect to reuse the socket.
-            DisconnectSocket(gw, sockets_to_cleanup_unsafe_[i]);
+            // Adding socket to disconnect queue.
+            g_gateway.get_worker(0)->AddSocketToDisconnectListUnsafe(sockets_to_cleanup_unsafe_[i]);
         }
 
         // Inactive socket was successfully cleaned up.
@@ -2323,7 +2306,7 @@ uint32_t Gateway::CollectInactiveSockets()
     int32_t num_inactive = 0;
 
     // TODO: Optimize scanning range.
-    for (int32_t i = 0; i < setting_max_connections_; i++)
+    for (uint32_t i = 0; i < setting_max_connections_; i++)
     {
         // Checking if socket touch time is older than inactive socket timeout.
         if ((all_sockets_infos_unsafe_[i].socket_timestamp_) &&
@@ -2971,7 +2954,9 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
     LeaveCriticalSection(&cs_test_finished_);
 
     // Checking if we are on the build server.
-    char* envvar_str = std::getenv("SC_RUNNING_ON_BUILD_SERVER");
+    char* envvar_str;
+    size_t num_written;
+    _dupenv_s(&envvar_str, &num_written, "SC_RUNNING_ON_BUILD_SERVER");
     bool is_on_build_server = false;
     if (envvar_str)
     {
@@ -2993,7 +2978,7 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;
 
         // Reporting statistics to build output and build statistics file.
-        ReportStatistics(setting_stats_name_.c_str(), ops_per_second);
+        ReportStatistics(setting_stats_name_.c_str(), static_cast<double> (ops_per_second));
 
         if (is_on_build_server)
             ShutdownGateway(gw, 0);
@@ -3020,13 +3005,13 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
 
     // Creating root URI matching function name.
     char root_function_name[32];
-    sprintf(root_function_name, "MatchUriForPort%d", port_uris->get_port_number());
+    sprintf_s(root_function_name, 32, "MatchUriForPort%d", port_uris->get_port_number());
 
     // Calling managed function.
     uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(
         root_function_name,
         &uris_managed.front(),
-        uris_managed.size());
+        static_cast<uint32_t>(uris_managed.size()));
 
     // Checking that code generation always succeeds.
     GW_ASSERT(0 == err_code);
@@ -3237,6 +3222,15 @@ end:
 	return err_code;
 }
 
+// Releases used socket index.
+void Gateway::ReleaseSocketIndex(GatewayWorker* gw, session_index_type index)
+{
+    gw->PushToReusableAcceptSockets(all_sockets_infos_unsafe_[index].socket_);
+
+    // Pushing to free indexes list.
+    InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[index].free_socket_indexes_entry_));
+}
+
 // Closes Starcounter log.
 void Gateway::CloseStarcounterLog()
 {
@@ -3316,9 +3310,9 @@ void Gateway::InitTestHttpEchoRequests()
 
     for (int32_t i = 0; i < kNumTestHttpEchoRequests; i++)
     {
-        http_tests_information_[i].method_and_uri_info_len = strlen(http_tests_information_[i].method_and_uri_info);
-        http_tests_information_[i].http_request_len = strlen(http_tests_information_[i].http_request_str);
-        http_tests_information_[i].http_request_insert_point = strstr(http_tests_information_[i].http_request_str, "@") - http_tests_information_[i].http_request_str;
+        http_tests_information_[i].method_and_uri_info_len = static_cast<int32_t> (strlen(http_tests_information_[i].method_and_uri_info));
+        http_tests_information_[i].http_request_len = static_cast<int32_t> (strlen(http_tests_information_[i].http_request_str));
+        http_tests_information_[i].http_request_insert_point = static_cast<int32_t> (strstr(http_tests_information_[i].http_request_str, "@") - http_tests_information_[i].http_request_str);
     }
 }
 
