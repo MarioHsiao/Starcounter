@@ -38,7 +38,7 @@ class WorkerDbInterface
     int32_t worker_id_;
 
     // Open socket handles.
-    std::bitset<MAX_SOCKET_HANDLE> active_sockets_bitset_;
+    std::bitset<MAX_POSSIBLE_CONNECTIONS> active_sockets_bitset_;
 
     // Number of used sockets.
     int64_t num_used_sockets_;
@@ -47,19 +47,17 @@ class WorkerDbInterface
     int64_t num_used_chunks_;
 
     // Number of active schedulers.
-    uint32_t num_schedulers_;
+    int32_t num_schedulers_;
 
     // Current scheduler id.
-    uint32_t cur_scheduler_id_;
+    int32_t cur_scheduler_id_;
 
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireChunksFromSharedPool(int32_t num_chunks)
     {
-        core::chunk_index current_chunk_index;
-
         // Acquire chunks from the shared chunk pool to this worker private chunk pool.
-        int32_t num_acquired_chunks = shared_int_.acquire_from_shared_to_private(
-            private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000);
+        int32_t num_acquired_chunks = static_cast<int32_t> (shared_int_.acquire_from_shared_to_private(
+            private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
 
         // Checking that number of acquired chunks is correct.
         if (num_acquired_chunks != num_chunks)
@@ -140,17 +138,17 @@ public:
     }
 
     // Tracks certain socket.
-    void TrackSocket(SOCKET s)
+    void TrackSocket(session_index_type index)
     {
         num_used_sockets_++;
-        active_sockets_bitset_[s] = true;
+        active_sockets_bitset_[index] = true;
     }
 
     // Untracks certain socket.
-    void UntrackSocket(SOCKET s)
+    void UntrackSocket(session_index_type index)
     {
         num_used_sockets_--;
-        active_sockets_bitset_[s] = false;
+        active_sockets_bitset_[index] = false;
     }
 
     // Getting number of used sockets.
@@ -160,9 +158,9 @@ public:
     }
 
     // Gets certain socket state.
-    bool IsActiveSocket(SOCKET s)
+    bool IsActiveSocket(session_index_type index)
     {
-        return active_sockets_bitset_[s];
+        return active_sockets_bitset_[index];
     }
 
     // Sends session destroyed message.
@@ -209,7 +207,7 @@ public:
         }
 
         // Setting all sockets as inactive.
-        for (int32_t i = 0; i < MAX_SOCKET_HANDLE; i++)
+        for (int32_t i = 0; i < MAX_POSSIBLE_CONNECTIONS; i++)
             active_sockets_bitset_[i] = false;
     }
 

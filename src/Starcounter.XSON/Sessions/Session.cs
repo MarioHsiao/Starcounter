@@ -194,19 +194,18 @@ namespace Starcounter {
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
-        public void Push(String data)
+        public void Push(String data, Boolean isText = true)
         {
-            Push(Encoding.UTF8.GetBytes(data));
+            Push(Encoding.UTF8.GetBytes(data), isText);
         }
 
         /// <summary>
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
-        public void Push(Byte[] data)
+        public void Push(Byte[] data, Boolean isText = false)
         {
-            Request req = bmx.GenerateNewRequest(
-                InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
+            Request req = bmx.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
 
             req.SendResponse(data, 0, data.Length);
         }
