@@ -2,6 +2,7 @@
 using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management.Representations.JSON;
 using StarcounterInternal.Hosting;
+using System;
 
 namespace Starcounter.Bootstrap.Management {
     /// <summary>
@@ -38,7 +39,17 @@ namespace Starcounter.Bootstrap.Management {
                 userArgs[i] = exe.Arguments[i].dummy;
             }
 
-            Loader.ExecApp(schedulerHandle, exe.Path, null, exe.WorkingDirectory, userArgs, !exe.RunEntrypointAsynchronous);
+            try {
+                Loader.ExecApp(schedulerHandle, exe.Path, null, exe.WorkingDirectory, userArgs, !exe.RunEntrypointAsynchronous);
+            } catch (Exception e) {
+                uint error;
+                if (!ErrorCode.TryGetCode(e, out error)) {
+                    error = Error.SCERRUNSPECIFIED;
+                }
+                var detail = CodeHostHandler.JSON.CreateError(error, e.Message, ErrorCode.ToHelpLink(error));
+                return CodeHostHandler.JSON.CreateResponse(detail.ToString(), 500);
+            }
+
             return 204;
         }
     }
