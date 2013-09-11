@@ -95,8 +95,6 @@
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\AnonymousTypeAdapter.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\AnonymousTypePropertyAttribute.cs" />
     <Compile Include="Starcounter.Internal.Weaver\AttachedInstructionWriter.cs" />
     <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\AssemblySpecificationEmit.cs" />
     <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\TypeSpecificationEmit.cs" />
@@ -137,7 +135,9 @@
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScAnalyzeOnly.psproj" />
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScIgnore.psproj" />
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScRuntime.psplugin" />
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj" />
+    <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj">
+      <SubType>Designer</SubType>
+    </RuntimeFile>
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScWeaveBootstrap.psproj" />
   </ItemGroup>
   <ItemGroup>
