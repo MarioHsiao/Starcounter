@@ -16,8 +16,8 @@ namespace network {
 uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
 {
     // Release chunks from this worker threads private chunk pool to the shared chunk pool.
-    int32_t released_chunks_num = shared_int_.release_from_private_to_shared(
-        private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000);
+    int32_t released_chunks_num = static_cast<int32_t> (shared_int_.release_from_private_to_shared(
+        private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
 
     // Checking that number of released chunks is correct.
     if (released_chunks_num != num_chunks)
@@ -106,7 +106,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             sd->AttachToDatabase(db_index_);
 
             // Checking for socket data correctness.
-            GW_ASSERT(sd->get_socket() < g_gateway.setting_max_connections());
+            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
 
             // Setting chunk index because of possible cloned chunks.
             sd->set_chunk_index(cur_chunk_index);
@@ -146,7 +146,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             ChangeNumUsedChunks(sd->get_num_chunks());
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "Popping chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
+            GW_PRINT_WORKER << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
             // NOTE: We always override the global session with active session received from database.
@@ -315,7 +315,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: " << sd->get_socket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Returning chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -341,7 +341,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
     // we need to release them to the shared chunk pool.
     if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
     {
-        uint32_t err_code = ReleaseToSharedChunkPool(private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL);
+        uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL));
 
         // NOTE: The error can happen when for example the database is already dead
         // but for the future with centralized chunk pool this should never happen!
@@ -357,7 +357,7 @@ void WorkerDbInterface::ReturnAllPrivateChunksToSharedPool()
     // Checking if there are any chunks in private pool.
     if (private_chunk_pool_.size() > 0)
     {
-        uint32_t err_code = ReleaseToSharedChunkPool(private_chunk_pool_.size());
+        uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size()));
 
         // NOTE: The error can happen when for example the database is already dead
         // but for the future with centralized chunk pool this should never happen!
@@ -374,18 +374,8 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << GW_ENDL;
+    GW_PRINT_WORKER << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << GW_ENDL;
 #endif
-
-    // Checking if chunk belongs to this database.
-    ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
-    if ((current_db->get_unique_num()) != sd->get_db_unique_seq_num())
-    {
-#ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Socket data does not belong to this database." << GW_ENDL;
-#endif
-        return SCERRGWSOCKETDATAWRONGDATABASE;
-    }
 
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = sd->get_scheduler_id();
@@ -524,7 +514,7 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     request->write(err_code_num);
 
     // Writing error string.
-    request->write_wstring(err_msg, wcslen(err_msg));
+    request->write_wstring(err_msg, static_cast<uint32_t> (wcslen(err_msg)));
 
     // Pushing the chunk.
     PushLinkedChunksToDb(new_chunk_index, 1, sched_id);
@@ -583,7 +573,7 @@ WorkerDbInterface::WorkerDbInterface(
         g_gateway.get_gateway_owner_id());
 
     // Allocating channels.
-    num_schedulers_ = shared_int_.common_scheduler_interface().number_of_active_schedulers();
+    num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
     channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
@@ -597,9 +587,9 @@ WorkerDbInterface::WorkerDbInterface(
 #endif
 
     // Acquiring unique channel for each scheduler.
-    for (std::size_t s = 0; s < num_schedulers_; ++s)
+    for (int32_t s = 0; s < num_schedulers_; ++s)
     {
-        bool channel_acquired = shared_int_.acquire_channel(&channels_[s], s);
+        bool channel_acquired = shared_int_.acquire_channel(&channels_[s], static_cast<core::scheduler_number> (s));
         GW_ASSERT(true == channel_acquired);
 
 #ifdef GW_DATABASES_DIAG
