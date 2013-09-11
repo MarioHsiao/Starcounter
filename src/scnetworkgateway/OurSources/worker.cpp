@@ -552,7 +552,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         uint32_t err_code = sd->ContinueAccumulation(this, &is_accumulated);
         if (err_code)
         {
-            sd->set_accumulating_flag(false);
+            sd->reset_accumulating_flag();
 
             return err_code;
         }
@@ -575,7 +575,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         }
         else
         {
-            sd->set_accumulating_flag(false);
+            sd->reset_accumulating_flag();
         }
     }
 
@@ -730,6 +730,9 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Resetting buffer information.
     sd->ResetAccumBuffer();
+
+    // Resetting safe flags.
+    sd->ResetSafeFlags();
 
     // Checking if socket data is for receiving.
     if (sd->get_socket_representer_flag())

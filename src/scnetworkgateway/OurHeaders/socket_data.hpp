@@ -101,6 +101,14 @@ class SocketDataChunk
 
 public:
 
+    // Resets safe flags.
+    void ResetSafeFlags()
+    {
+        reset_accumulating_flag();
+        reset_to_database_direction_flag();
+        reset_complete_header_flag();
+    }
+
 #ifdef GW_LOOPED_TEST_MODE
 
     // Pushing given sd to network emulation queue.
@@ -323,13 +331,13 @@ public:
     }
 
     // Setting accumulating flag.
-    void set_accumulating_flag(bool value)
+    void set_accumulating_flag()
     {
         flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
     // ReSetting accumulating flag.
-    void reset_accumulating_flag(bool value)
+    void reset_accumulating_flag()
     {
         flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
@@ -344,6 +352,12 @@ public:
     void set_disconnect_after_send_flag()
     {
         flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    // ReSetting disconnect after send flag.
+    void reset_disconnect_after_send_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
     // Getting disconnect socket flag.
@@ -362,6 +376,12 @@ public:
     void set_complete_header_flag()
     {
         flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
+    }
+
+    // ReSetting complete header flag.
+    void reset_complete_header_flag()
+    {
+        flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting scheduler id.

@@ -65,7 +65,7 @@ uint32_t PortAggregator(
         if (num_processed_bytes + as.size_bytes_ > num_accum_bytes)
         {
             // Enabling accumulative state.
-            sd->set_accumulating_flag(true);
+            sd->set_accumulating_flag();
 
             // Setting the desired number of bytes to accumulate.
             sd->get_accum_buf()->StartAccumulation(static_cast<ULONG>(AggregationStructSizeBytes + as.size_bytes_),

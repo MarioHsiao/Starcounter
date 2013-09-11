@@ -722,7 +722,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         AccumBuffer* accum_buf = sd->get_accum_buf();
 
         // Checking if we are in fill-up mode.
-        if (sd->get_accumulating_flag())
+        if (sd->get_complete_header_flag())
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
@@ -861,7 +861,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     }
 
                     // Enabling accumulative state.
-                    sd->set_accumulating_flag(true);
+                    sd->set_accumulating_flag();
 
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->StartAccumulation(
@@ -883,6 +883,9 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             }
 
 ALL_DATA_ACCUMULATED:
+
+            // We don't need complete header flag anymore.
+            sd->reset_complete_header_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             g_gateway.IncrementNumProcessedHttpRequests();
@@ -997,7 +1000,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
     if (g_gateway.setting_is_master())
     {
         // Checking if we are in fill-up mode.
-        if (sd->get_accumulating_flag())
+        if (sd->get_complete_header_flag())
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
@@ -1157,6 +1160,9 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             }
 
 ALL_DATA_ACCUMULATED:
+
+            // We don't need complete header flag anymore.
+            sd->reset_complete_header_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             g_gateway.IncrementNumProcessedHttpRequests();
