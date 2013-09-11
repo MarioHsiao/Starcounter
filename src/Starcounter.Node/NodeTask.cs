@@ -150,6 +150,10 @@ namespace Starcounter {
                 // Calling end read to indicate finished read operation.
                 Int32 recievedBytes = SocketObj.EndReceive(ar);
 
+                // Checking if remote host has closed the connection.
+                if (0 == recievedBytes)
+                    throw new Exception("Remote host closed the connection.");
+
                 // Process the bytes here.
                 if (Resp == null)
                 {
@@ -215,6 +219,8 @@ namespace Starcounter {
             {
                 // Calling end write to indicate finished write operation.
                 Int32 numBytesSent = SocketObj.EndSend(ar);
+
+                // Checking for correct number of bytes sent.
                 if (numBytesSent != RequestBytes.Length)
                 {
                     CallUserDelegateOnFailure(new Exception("Socket has sent wrong amount of data!"));
