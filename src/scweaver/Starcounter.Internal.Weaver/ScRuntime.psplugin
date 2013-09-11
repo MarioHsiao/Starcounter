@@ -40,9 +40,16 @@
   </TaskType>
   -->
   
+  <!--
+  PSA 11/9 2013: Since the transformation of thread-related calls are not really
+  doing anything at the moment, I'm, excluding this task as a whole. If we should
+  reintroduce it, we must move the weaved target code - i.e. the InterceptThread class
+  - to the Starcounter assembly, since we'll otherwise will weave in a dependency to
+  the weaver executable (scweaver.exe) from user code.
   <TaskType Name="ScEnhanceThreadingTask"
             Phase="Transform"
             Implementation="Starcounter.Internal.Weaver.ScEnhanceThreadingTask, scweaver">
     <Dependency TaskType="ScTransform" Required="false" />
   </TaskType>
+  -->
 </PlugIn>
