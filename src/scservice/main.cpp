@@ -421,7 +421,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	gateway_cmd = (wchar_t *)malloc(str_size_bytes);
 	if (!gateway_cmd) goto err_nomem;
 
-	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, server_dir, server_logs_dir);
+	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, gateway_cfg_path, server_logs_dir);
 
 #ifdef START_PROLOG
 

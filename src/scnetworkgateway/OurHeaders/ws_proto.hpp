@@ -45,10 +45,10 @@ class WsProtoFrameInfo
     friend class SocketDataChunk;
 
     // Payload offset in sd data blob.
-    uint64_t payload_data_blob_offset_;
+    uint32_t payload_data_blob_offset_;
 
     // Payload length in bytes.
-    int64_t payload_len_;
+    uint64_t payload_len_;
 
     // Masking value.
     uint64_t mask_;
@@ -133,7 +133,7 @@ public:
         uint64_t mask,
         int8_t& num_remaining_bytes);
 
-    void UnMaskAllChunks(GatewayWorker* gw, SocketDataChunkRef sd, int32_t payloadLen, uint64_t mask, uint8_t* data);
+    void UnMaskAllChunks(GatewayWorker* gw, SocketDataChunkRef sd, uint64_t payloadLen, uint64_t mask, uint8_t* data);
 
     uint8_t *WritePayload(GatewayWorker* gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t* payload, uint64_t& payload_len);
 

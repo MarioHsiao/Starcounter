@@ -201,7 +201,15 @@ namespace Starcounter.Advanced
         /// </summary>
         Boolean customFields_;
 
+        /// <summary>
+        /// Status code.
+        /// </summary>
         UInt16 statusCode_;
+
+        /// <summary>
+        /// Indicates that response is sealed and can't be modified.
+        /// </summary>
+        Boolean readOnly_;
 
         /// <summary>
         /// HTTP response status code.
@@ -217,7 +225,7 @@ namespace Starcounter.Advanced
                         if (null == http_response_struct_)
                             throw new ArgumentException("HTTP response not initialized.");
 
-                        statusCode_ = http_response_struct_->status_code_;
+                        return http_response_struct_->status_code_;
                     }
                 }
 
@@ -226,6 +234,9 @@ namespace Starcounter.Advanced
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 statusCode_ = value;
             }
@@ -240,9 +251,6 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (customFields_)
-                    return statusDescription_;
-
                 if (null == statusDescription_)
                 {
                     unsafe
@@ -250,7 +258,7 @@ namespace Starcounter.Advanced
                         if (null == http_response_struct_)
                             throw new ArgumentException("HTTP response not initialized.");
 
-                        statusDescription_ = http_response_struct_->GetStatusDescription();
+                        return http_response_struct_->GetStatusDescription();
                     }
                 }
 
@@ -259,6 +267,9 @@ namespace Starcounter.Advanced
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 statusDescription_ = value;
             }
@@ -274,13 +285,16 @@ namespace Starcounter.Advanced
             get
             {
                 if (null == contentType_)
-                    contentType_ = this["Content-Type"];
+                    return this["Content-Type"];
 
                 return contentType_;
             }
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 contentType_ = value;
             }
@@ -296,13 +310,16 @@ namespace Starcounter.Advanced
             get
             {
                 if (null == contentEncoding_)
-                    contentEncoding_ = this["Content-Encoding"];
+                    return this["Content-Encoding"];
 
                 return contentEncoding_;
             }
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 contentEncoding_ = value;
             }
@@ -317,25 +334,25 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (customFields_) {
-                    if (null == bodyString_) {
-                        if (null != bodyBytes_) {
-                            bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
-                        } else {
-                            bodyString_ = null;
-                        }
+                if (customFields_)
+                {
+                    if (null == bodyString_)
+                    {
+                        if (null != bodyBytes_)
+                            return Encoding.UTF8.GetString(bodyBytes_);
                     }
 
                     return bodyString_;
                 }
 
-                bodyString_ = GetBodyStringUtf8_Slow();
-
-                return bodyString_;
+                return GetBodyStringUtf8_Slow();
             }
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 bodyString_ = value;
             }
@@ -402,7 +419,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Body string.
         /// </summary>
-        public Object Content
+        internal Object Content
         {
             get
             {
@@ -412,14 +429,17 @@ namespace Starcounter.Advanced
                 if (null != bodyBytes_)
                     return bodyBytes_;
 
-                if (null == bodyString_)
-                    bodyString_ = GetBodyStringUtf8_Slow();
+                if (null != bodyString_)
+                    return bodyString_;
 
-                return bodyString_;
+                return GetBodyStringUtf8_Slow();
             }
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 if (value is String) {
                     bodyString_ = (String) value;
                 } else if (value is Byte[]) {
@@ -443,14 +463,25 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (null == bodyBytes_)
-                    bodyBytes_ = GetBodyBytes_Slow();
+                if (customFields_)
+                {
+                    if (null == bodyBytes_)
+                    {
+                        if (null != bodyString_)
+                            return Encoding.UTF8.GetBytes(bodyString_);
+                    }
 
-                return bodyBytes_;
+                    return bodyBytes_;
+                }
+
+                return GetBodyBytes_Slow();
             }
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 bodyBytes_ = value;
             }
@@ -471,6 +502,7 @@ namespace Starcounter.Advanced
             statusDescription_ = null;
             statusCode_ = 0;
             AppsSession = null;
+            _Hypermedia = null;
         }
 
         private IHypermedia _Hypermedia;
@@ -492,6 +524,9 @@ namespace Starcounter.Advanced
                 return _Hypermedia;
             }
             set {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 _Hypermedia = value;
             }
@@ -519,6 +554,9 @@ namespace Starcounter.Advanced
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 headersString_ = value;
             }
@@ -534,13 +572,16 @@ namespace Starcounter.Advanced
             get
             {
                 if (null == setCookiesString_)
-                    setCookiesString_ = this["Set-Cookie"];
+                    return this["Set-Cookie"];
 
                 return setCookiesString_;
             }
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 customFields_ = true;
                 setCookiesString_ = value;
             }
@@ -674,6 +715,7 @@ namespace Starcounter.Advanced
             }
 
             customFields_ = false;
+            readOnly_ = true;
         }
 
         /// <summary>
@@ -728,6 +770,9 @@ namespace Starcounter.Advanced
             }
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
                 UncompressedBodyLength_ = value;
             }
         }
@@ -991,6 +1036,9 @@ namespace Starcounter.Advanced
                 // NOTE: No internal sessions support.
                 session_ = null;
 
+                // This response can't be modified anymore.
+                readOnly_ = true;
+
                 //protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
             }
         }
@@ -1198,7 +1246,7 @@ namespace Starcounter.Advanced
                     if (null == headersString_)
                         throw new ArgumentException("Headers field is not set.");
 
-                    return (UInt32)headersString_.Length;
+                    return (UInt32) headersString_.Length;
                 }
 
                 if (null == http_response_struct_)

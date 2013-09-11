@@ -287,7 +287,7 @@ namespace Starcounter {
         {
             Boolean tried_reconnect = false;
 
-        RECONNECT:
+RECONNECT:
 
             // Checking if we are connected.
             if (null == SocketObj)

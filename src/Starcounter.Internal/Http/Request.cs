@@ -73,6 +73,10 @@ namespace Starcounter.Advanced {
             set { port_number_ = value; }
         }
 
+        /// <summary>
+        /// Indicates that response is sealed and can't be modified.
+        /// </summary>
+        Boolean readOnly_;
 
         /// Returns the single most preferred mime type according to the Accept header of the request amongst a 
         /// set of common mime types. If the mime type is not in the enum of known common mime types, the
@@ -305,6 +309,9 @@ namespace Starcounter.Advanced {
 
                     throw ErrorCode.ToException(err_code);
                 }
+
+                // This request can't be modified anymore.
+                readOnly_ = true;
             }
         }
 
@@ -489,6 +496,9 @@ namespace Starcounter.Advanced {
         /// </summary>
         Byte[] customBytes_;
 
+        /// <summary>
+        /// Content type.
+        /// </summary>
         String contentType_;
 
         /// <summary>
@@ -506,6 +516,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 contentType_ = value;
             }
@@ -528,6 +541,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 contentEncoding_ = value;
             }
@@ -569,6 +585,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 bodyString_ = value;
             }
@@ -591,6 +610,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 bodyBytes_ = value;
             }
@@ -627,6 +649,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 headersString_ = value;
             }
@@ -649,6 +674,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 cookieString_ = value;
             }
@@ -668,6 +696,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 methodString_ = value;
             }
@@ -708,6 +739,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 uriString_ = value;
             }
@@ -727,6 +761,9 @@ namespace Starcounter.Advanced {
 
             set
             {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+
                 customFields_ = true;
                 hostNameString_ = value;
             }
@@ -742,6 +779,7 @@ namespace Starcounter.Advanced {
             cookieString_ = null;
             headersString_ = null;
             bodyString_ = null;
+            bodyBytes_ = null;
             contentType_ = null;
             contentEncoding_ = null;
             hostNameString_ = null;
@@ -797,6 +835,7 @@ namespace Starcounter.Advanced {
             // Finally setting the request bytes.
             customBytes_ = Encoding.UTF8.GetBytes(str);
             customFields_ = false;
+            readOnly_ = true;
         }
 
         /// <summary>
@@ -1336,19 +1375,8 @@ namespace Starcounter.Advanced {
                 // Checking that session exists.
                 if (null != s)
                 {
-                    s.socket_num_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_NUMBER);
+                    s.socket_index_num_ = *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
                     s.socket_unique_id_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
-                    s.port_index_ = *(Int32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PORT_INDEX);
-
-                    switch (protocol_type_)
-                    {
-                        case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                            break;
-
-                        case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
-                            s.ws_opcode_ = *(Byte*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE);
-                            break;
-                    }
                 }
             }
         }
