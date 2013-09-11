@@ -120,7 +120,7 @@ namespace Starcounter.Internal {
 
                 return new Response() {
 					Content = json.ToJsonUtf8(),
-					ContentType = "application/json;charset=UTF-8"
+					ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
                 };
             });
 

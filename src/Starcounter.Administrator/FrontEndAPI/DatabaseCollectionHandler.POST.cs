@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -121,11 +122,8 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             }
 
-							var newResponse = Response.FromStatusCode((int)HttpStatusCode.OK);
-							newResponse.Content = resultJson.ToString();
-							newResponse.ContentType = "application/json";
-							return newResponse;
-                            
+							return RESTUtility.JSON.CreateResponse(resultJson.ToString());
+							
                             //database.Configuration.Save();
                             //resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
 
@@ -159,9 +157,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
                             String validationErrors = response.Body;
-							var newResponse = Response.FromStatusCode((int)HttpStatusCode.Forbidden);
-							newResponse.Content = validationErrors;
-							return newResponse;
+							return RESTUtility.JSON.CreateResponse(validationErrors.ToString(), (int)HttpStatusCode.Forbidden);
                         }
                         else {
                             // TODO

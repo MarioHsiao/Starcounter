@@ -5,6 +5,7 @@ using Starcounter.Internal.Web;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 namespace Starcounter.Bootstrap.Management {
     /// <summary>
     /// Implements the code host functionality behind the code host "Host"
@@ -25,10 +26,14 @@ namespace Starcounter.Bootstrap.Management {
             /// <param name="headers">Optional headers.</param>
             /// <returns>A response to be sent back to the client.</returns>
             public static Response CreateResponse(
-                string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
-                return new Response() {
-                    Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent)
-                };
+                string jsonContent, int status = (int)HttpStatusCode.OK /*, Dictionary<string, string> headers = null*/) {
+					var response = Response.FromStatusCode(status);
+					response.ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json);
+					response.Content = jsonContent;
+					return response;
+				//return new Response() {
+				//	Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent)
+				//};
             }
 
             /// <summary>
