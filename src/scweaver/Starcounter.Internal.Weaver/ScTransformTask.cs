@@ -223,7 +223,7 @@ namespace Starcounter.Internal.Weaver {
             _module = this.Project.Module;
             analysisTask = ScAnalysisTask.GetTask(this.Project);
 
-            _starcounterAssemblyReference = FindStarcounterAssembly();
+            _starcounterAssemblyReference = ScAnalysisTask.FindStarcounterAssemblyReference(_module);
             if (_starcounterAssemblyReference == null) {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
@@ -355,28 +355,6 @@ namespace Starcounter.Internal.Weaver {
 
             _objectProxyEmitter = new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods);
             _equalityEmitter = new ImplementsEquality(_module, _writer);
-        }
-
-        /// <summary>
-        /// Searching for the Starcounter assembly reference from the current modules references.
-        /// </summary>
-        /// <returns>The assembly reference, or null if not found.</returns>
-        private AssemblyRefDeclaration FindStarcounterAssembly() {
-            AssemblyRefDeclaration scAssemblyRef = null;
-            StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
-            String assFailedStr;
-
-            foreach (AssemblyRefDeclaration assemblyRef in _module.AssemblyRefs) {
-                if (String.Equals(assemblyRef.Name, "Starcounter", strComp)) {
-                    if (scAssemblyRef != null) {
-                        assFailedStr = "Assembly {0} has more than one reference to Starcounter.dll";
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, (String.Format(assFailedStr, _module.Name)));
-                    }
-                    scAssemblyRef = assemblyRef;
-                }
-            }
-
-            return scAssemblyRef;
         }
 
         private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
