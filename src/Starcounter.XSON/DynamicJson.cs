@@ -434,7 +434,7 @@ namespace Codeplex.Data
         public static implicit operator Response(DynamicJson dynJson) {
             var response = new Response() {
 				ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json),
-				Content = dynJson.ToString()
+				Body = dynJson.ToString()
             };
             return response;
         }

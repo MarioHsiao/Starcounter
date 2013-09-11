@@ -29,7 +29,7 @@ namespace Starcounter.Bootstrap.Management {
                 string jsonContent, int status = (int)HttpStatusCode.OK /*, Dictionary<string, string> headers = null*/) {
 					var response = Response.FromStatusCode(status);
 					response.ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json);
-					response.Content = jsonContent;
+					response.Body = jsonContent;
 					return response;
 				//return new Response() {
 				//	Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent)

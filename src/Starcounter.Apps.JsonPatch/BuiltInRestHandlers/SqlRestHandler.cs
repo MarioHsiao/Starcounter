@@ -119,7 +119,7 @@ namespace Starcounter.Internal {
                 }
 
                 return new Response() {
-					Content = json.ToJsonUtf8(),
+					BodyBytes = json.ToJsonUtf8(),
 					ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
                 };
             });
@@ -141,13 +141,13 @@ namespace Starcounter.Internal {
                 catch (NotSupportedException nex) {
 					var response = new Response();
 					response.StatusCode = 415;
-					response.Content = nex.Message;
+					response.Body = nex.Message;
                     return response;
                 }
                 catch (Exception ex) {
 					var response = new Response();
 					response.StatusCode = 400;
-					response.Content = ex.Message;
+					response.Body = ex.Message;
 					return response;
                 }
             });
