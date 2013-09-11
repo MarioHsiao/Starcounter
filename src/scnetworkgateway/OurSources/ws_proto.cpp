@@ -102,7 +102,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload, payload_len);
 
             // Sending resource not found and closing the connection.
-            sd->set_disconnect_after_send_flag(true);
+            sd->set_disconnect_after_send_flag();
 
             // Prepare buffer to send outside.
             sd->get_accum_buf()->PrepareForSend(payload, static_cast<ULONG>(payload_len));
@@ -273,20 +273,21 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Handled successfully.
     *is_handled = true;
 
-    // Checking if we want to disconnect.
-    if (sd->get_disconnect_flag())
+    // Checking if we want to disconnect the socket.
+    if (sd->get_disconnect_socket_flag())
     {
-        // NOTE: Socket must be closed.
-        sd->set_socket_representer_flag(true);
+        sd->set_socket_trigger_disconnect_flag();
 
-        gw->DisconnectAndReleaseChunk(sd);
-
-        return 0;
+        return SCERRGWDISCONNECTFLAG;
     }
 
     // Checking if this socket data is for send only.
     if (sd->get_socket_just_send_flag())
+    {
+        sd->reset_socket_just_send_flag();
+
         goto JUST_SEND_SOCKET_DATA;
+    }
 
     // Getting user data.
     uint8_t* payload = sd->UserDataBuffer();

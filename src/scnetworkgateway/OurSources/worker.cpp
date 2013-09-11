@@ -517,10 +517,10 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
             return err_code;
 
         // Setting proxy mode.
-        sd_receive_clone_->set_proxied_server_socket_flag(true);
+        sd_receive_clone_->set_proxied_server_socket_flag();
 
         // Since we are sending this socket data to client.
-        sd->set_proxied_server_socket_flag(false);
+        sd->reset_proxied_server_socket_flag();
 
         // Finished receiving from proxied server,
         // now sending to the original user.
@@ -609,15 +609,18 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
+    // Checking if aggregation is involved.
+    //if (sd->IsAggregated())
+    {
+        // TODO:
+    }
+
     // Start sending on socket.
 #ifdef GW_PROFILER_ON
     profiler_.Start("Send()", 2);
 #endif
 
     uint32_t num_bytes, err_code;
-
-    // Removing just send flag.
-    sd->set_socket_just_send_flag(false);
 
     // Checking if we have one or multiple chunks to send.
     if (1 == sd->get_num_chunks())
@@ -663,7 +666,8 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     {
         // Finish send operation.
         err_code = FinishSend(sd, num_bytes);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
     }
 
     return 0;
@@ -675,6 +679,14 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishSend: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
+
+    // Checking disconnect state.
+    if (sd->get_disconnect_after_send_flag())
+    {
+        sd->set_socket_trigger_disconnect_flag();
+
+        return SCERRGWDISCONNECTAFTERSENDFLAG;
+    }
 
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
@@ -704,10 +716,6 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Increasing number of sends.
     worker_stats_sent_num_++;
-
-    // Checking disconnect state.
-    if (sd->get_disconnect_after_send_flag())
-        return SCERRGWDISCONNECTAFTERSENDFLAG;
 
     // We have to return attached chunks.
     if (1 != sd->get_num_chunks())
@@ -781,7 +789,7 @@ void GatewayWorker::DisconnectSocket(session_index_type socket_index)
     CreateSocketData(socket_index, 0, temp_sd);
 
     temp_sd->AssignSession(global_socket_info_copy.session_);
-    temp_sd->set_socket_trigger_disconnect_flag(true);
+    temp_sd->set_socket_trigger_disconnect_flag();
     temp_sd->set_unique_socket_id(global_socket_info_copy.unique_socket_id_);
 
     DisconnectAndReleaseChunk(temp_sd);
@@ -923,7 +931,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     if (sd->get_socket_diag_active_conn_flag())
     {
         ChangeNumActiveConnections(sd->GetPortIndex(), -1);
-        sd->set_socket_diag_active_conn_flag(false);
+        sd->reset_socket_diag_active_conn_flag();
     }
 #endif
 
@@ -1077,14 +1085,14 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
 #endif
 
     // Since we are proxying this instance represents the socket.
-    sd->set_socket_representer_flag(true);
+    sd->set_socket_representer_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Changing active connections number.
     ChangeNumActiveConnections(sd->GetPortIndex(), 1);
 
-    sd->set_socket_diag_active_conn_flag(true);
+    sd->set_socket_diag_active_conn_flag();
 
     sd->set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
 
@@ -1231,14 +1239,14 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     }
 
     // This socket data is socket representation.
-    sd->set_socket_representer_flag(true);
+    sd->set_socket_representer_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Changing active connections number.
     ChangeNumActiveConnections(sd->GetPortIndex(), 1);
 
-    sd->set_socket_diag_active_conn_flag(true);
+    sd->set_socket_diag_active_conn_flag();
 
     sd->set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
 
@@ -1701,7 +1709,7 @@ uint32_t GatewayWorker::CloneChunkForAnotherDatabase(
     }
 
     // Returning old chunk to its pool.
-    old_sd->set_socket_diag_active_conn_flag(false);
+    old_sd->reset_socket_diag_active_conn_flag();
     worker_dbs_[old_sd->get_db_index()]->ReturnSocketDataChunksToPool(this, old_sd);
 
     return 0;

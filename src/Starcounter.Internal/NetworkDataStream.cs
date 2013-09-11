@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using HttpStructs;
 using Starcounter.Internal;
 using System.Diagnostics;
+using Starcounter.Advanced;
 
 namespace Starcounter
 {
@@ -155,7 +156,7 @@ namespace Starcounter
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length_bytes">The length in bytes.</param>
-        public void SendResponse(UInt64[] buffer, Int32 offset, Int32 length_bytes)
+        public void SendResponse(UInt64[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
@@ -163,7 +164,7 @@ namespace Starcounter
 
             fixed (UInt64* p = buffer)
             {
-                SendResponseBufferInternal((Byte*)p, offset, length_bytes);
+                SendResponseBufferInternal((Byte*)p, offset, length_bytes, conn_flags);
             }
         }
 
@@ -173,7 +174,7 @@ namespace Starcounter
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length_bytes">The length in bytes.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes)
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
@@ -181,7 +182,7 @@ namespace Starcounter
 
             fixed (Byte* p = buffer)
             {
-                SendResponseBufferInternal(p, offset, length_bytes);
+                SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
             }
         }
 
@@ -191,11 +192,11 @@ namespace Starcounter
         /// <param name="p">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length_bytes">The length in bytes.</param>
-        unsafe void SendResponseBufferInternal(Byte* p, Int32 offset, Int32 length_bytes)
+        unsafe void SendResponseBufferInternal(Byte* p, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
             // Processing user data and sending it to gateway.
             UInt32 cur_chunk_index = chunk_index_;
-            UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length_bytes, &cur_chunk_index, unmanaged_chunk_);
+            UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length_bytes, &cur_chunk_index, unmanaged_chunk_, (UInt32)conn_flags);
             chunk_index_ = cur_chunk_index;
 
             // Checking if any error occurred.

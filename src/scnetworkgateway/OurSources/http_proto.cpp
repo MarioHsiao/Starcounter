@@ -284,7 +284,7 @@ inline int HttpWsProto::OnHeadersComplete(http_parser* p)
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Setting complete header flag.
-    http->sd_ref_->set_complete_header_flag(true);
+    http->sd_ref_->set_complete_header_flag();
     
     // Setting headers length (skipping 4 bytes for \r\n\r\n).
     http->http_request_.headers_len_bytes_ = p->nread - 4 - http->http_request_.headers_len_bytes_;
@@ -607,7 +607,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             if (sd->get_proxied_server_socket_flag())
             {
                 // Set the unknown proxied protocol here.
-                sd->set_unknown_proxied_proto_flag(true);
+                sd->set_unknown_proxied_proto_flag();
 
                 // Just running proxy processing.
                 return GatewayHttpWsReverseProxy(gw, sd, handler_index, is_handled);
@@ -668,15 +668,13 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         if (matched_index < 0)
         {
             // Sending resource not found and closing the connection.
-            sd->set_disconnect_after_send_flag(true);
+            sd->set_disconnect_after_send_flag();
 
             // Creating 404 message.
             char stack_temp_mem[512];
             int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_and_uri, method_and_uri_len);
 
-            err_code = gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
-            if (err_code)
-                return err_code;
+            return gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
         }
 
         // Getting matched URI index.
@@ -852,7 +850,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                         *is_handled = true;
 
                         // Setting disconnect after send flag.
-                        sd->set_disconnect_after_send_flag(true);
+                        sd->set_disconnect_after_send_flag();
 
 #ifdef GW_WARNINGS_DIAG
                         GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
@@ -960,14 +958,12 @@ ALL_DATA_ACCUMULATED:
         // Handled successfully.
         *is_handled = true;
 
-        // Checking if we want to disconnect.
-        if (sd->get_disconnect_flag())
+        // Checking if we want to disconnect the socket.
+        if (sd->get_disconnect_socket_flag())
         {
-            // NOTE: Socket must be closed.
-            sd->set_socket_representer_flag(true);
+            sd->set_socket_trigger_disconnect_flag();
 
-            gw->DisconnectAndReleaseChunk(sd);
-            return 0;
+            return SCERRGWDISCONNECTFLAG;
         }
 
         // Prepare buffer to send outside.
@@ -1304,7 +1300,7 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
         sd->ExchangeToProxySocket();
 
         // Enabling proxy mode.
-        sd->set_proxied_server_socket_flag(true);
+        sd->set_proxied_server_socket_flag();
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareForSend();
@@ -1333,10 +1329,10 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
         gw->get_sd_receive_clone()->SetProxySocket(sd->get_socket_info_index());
 
         // Re-enabling socket representer flag.
-        sd->set_socket_representer_flag(true);
+        sd->set_socket_representer_flag();
 
         // Setting proxy mode.
-        sd->set_proxied_server_socket_flag(true);
+        sd->set_proxied_server_socket_flag();
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareForSend();

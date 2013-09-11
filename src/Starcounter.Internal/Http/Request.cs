@@ -976,9 +976,9 @@ namespace Starcounter.Advanced {
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
-            unsafe { data_stream_.SendResponse(buffer, offset, length); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags); }
         }
 
         /// <summary>
