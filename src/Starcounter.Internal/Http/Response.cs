@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Starcounter.Advanced
 {
@@ -587,10 +588,163 @@ namespace Starcounter.Advanced
             }
         }
 
+		/// <summary>
+		/// Constructs Response from fields that are set.
+		/// </summary>
+		public void ConstructFromFields() {
+			// Checking if we have a custom response.
+			if (!customFields_)
+				return;
+
+			Debugger.Launch();
+
+			byte[] bytes = bodyBytes_;
+			if (_Hypermedia != null) {
+				var mimetype = http_request_.PreferredMimeType;
+				try {
+					bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+				} catch (UnsupportedMimeTypeException exc) {
+					throw new Exception(
+						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
+				}
+
+				if (bytes == null) {
+					// The preferred requested mime type was not supported, try to see if there are
+					// other options.
+					IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
+					secondaryChoices.MoveNext(); // The first one is already accounted for
+					while (bytes == null && secondaryChoices.MoveNext()) {
+						mimetype = secondaryChoices.Current;
+						bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					}
+					if (bytes == null) {
+						// None of the requested mime types were supported.
+						// We will have to respond with a "Not Acceptable" message.
+						statusCode_ = 406;
+					} else {
+						contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+					}
+				}
+				// We have our precious bytes. Let's wrap them up in a response.
+			}
+
+			// TODO:
+			// Check content and make sure the whole message fits (headers + content)
+			byte[] buffer = new byte[512];
+			ResponseWriter writer;
+
+			unsafe {
+				fixed (byte* p = buffer) {
+					writer = new ResponseWriter(p);
+
+					writer.Write(ResponseWriter.Http11);
+
+					if (statusCode_ > 0) {
+						writer.Write(statusCode_);
+						writer.Write(' ');
+						
+						// Checking if Status Description is set.
+						if (null != statusDescription_)
+							writer.Write(statusDescription_);
+						else 
+							writer.Write("OK");
+
+						writer.Write(ResponseWriter.CRLF);
+					} else {
+						// Checking if Status Description is set.
+						if (null != statusDescription_) {
+							writer.Write(200);
+							writer.Write(' ');
+							writer.Write(statusDescription_);
+						} else
+							writer.Write("200 OK");
+						writer.Write(ResponseWriter.CRLF);
+					}
+
+					writer.Write(ResponseWriter.ServerSc);
+					writer.Write(ResponseWriter.NoCache);
+
+					if (null != headersString_)
+						writer.Write(headersString_);
+
+					if (null != contentType_) {
+						writer.Write(ResponseWriter.ContentTypeStart);
+						writer.Write(contentType_);
+						writer.Write(ResponseWriter.CRLF);
+					}
+
+					if (null != contentEncoding_) {
+						writer.Write(ResponseWriter.ContentEncodingStart);
+						writer.Write(contentEncoding_);
+						writer.Write(ResponseWriter.CRLF);	
+					}
+
+					if (null != setCookiesString_) {
+						writer.Write(ResponseWriter.SetCookieStart);
+						writer.Write(setCookiesString_);
+
+						if (null != AppsSession) {
+							writer.Write(ResponseWriter.SetCookieLocationMiddle);
+							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							writer.Write(AppsSession.ToAsciiString());
+							writer.Write(ResponseWriter.setCookiePathEnd);
+						}
+						writer.Write(ResponseWriter.CRLF);
+					} else {
+						if (null != AppsSession) {
+//							pbuf += ResponseBits.Write(pbuf, ResponseBits.SetCookieStart);
+//							pbuf += ResponseBits.Write(pbuf, ResponseBits.SetCookieLocationMiddle);
+
+							// TODO:
+							// Why no semicolon?
+							writer.Write("Set-Cookie: Location=");
+							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							writer.Write(AppsSession.ToAsciiString());
+							writer.Write(ResponseWriter.setCookiePathEnd);
+							writer.Write(ResponseWriter.CRLF);	
+						}
+					}
+
+					if (null != bodyString_) {
+						if (null != bytes)
+							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
+
+						writer.Write(ResponseWriter.ContentLengthStart);
+						writer.Write(bodyString_.Length);
+						writer.Write(ResponseWriter.CRLFCRLF);	
+
+						// Adding the body.
+						writer.Write(bodyString_);
+					} else if (null != bytes) {
+						writer.Write(ResponseWriter.ContentLengthStart);
+						writer.Write(bytes.Length);
+						writer.Write(ResponseWriter.CRLFCRLF);
+						writer.Write(bytes);
+					} else {
+						writer.Write(ResponseWriter.ContentLengthStart);
+						writer.Write(0);
+						writer.Write(ResponseWriter.CRLFCRLF);
+					}
+
+					// TODO: 
+					// We should be able to set the size so we don't have to do an extra copy here.
+
+					// Finally setting the uncompressed bytes.
+					byte[] sizedBuffer = new byte[writer.Written];
+					Marshal.Copy((IntPtr)p, sizedBuffer, 0, writer.Written);
+					Uncompressed = sizedBuffer;
+				}
+			}
+
+			customFields_ = false;
+			readOnly_ = true;
+		}
+
         /// <summary>
         /// Constructs Response from fields that are set.
         /// </summary>
-        public void ConstructFromFields()
+        public void ConstructFromFields_Slow()
         {
             // Checking if we have a custom response.
             if (!customFields_)
@@ -630,7 +784,7 @@ namespace Starcounter.Advanced
             }
 
             String str = "HTTP/1.1 ";
-            
+
             if (statusCode_ > 0)
             {
                 str += statusCode_;
