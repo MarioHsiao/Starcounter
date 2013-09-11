@@ -1139,7 +1139,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                     }
 
                     // Enabling accumulative state.
-                    sd->set_accumulating_flag(true);
+                    sd->set_accumulating_flag();
 
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->StartAccumulation(
