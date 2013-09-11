@@ -6,6 +6,7 @@ using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal.Web;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -32,10 +33,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             errorJson.code = (int)response.StatusCode;
                             errorJson.helpLink = null;
 
-                            var errResponse = Response.FromStatusCode(response.StatusCode);
- 							errResponse.Content = errorJson.ToString();
-							errResponse.ContentType = "application/json";
-							return errResponse;
+							return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)response.StatusCode);
                         }
                     }
                     catch (Exception e) {

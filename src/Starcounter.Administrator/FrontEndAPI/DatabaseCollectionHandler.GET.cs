@@ -7,6 +7,7 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -31,7 +32,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             errorJson.code = (int)HttpStatusCode.NotFound;
                             errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
 
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+							return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)HttpStatusCode.NotFound);
                         }
                         else {
                         }
@@ -55,9 +56,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         };
 
                         // collationFile
-
-                        return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
-
+						return RESTUtility.JSON.CreateResponse(resultJson.ToString());
                     }
                     catch (Exception e) {
                         return RestUtils.CreateErrorResponse(e);
