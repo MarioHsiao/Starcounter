@@ -379,23 +379,6 @@ namespace Starcounter.Internal.Weaver {
             return scAssemblyRef;
         }
 
-        /// <summary>
-        /// Finds the type of the starcounter.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>IType.</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        private IType FindStarcounterType(Type type) {
-            if (_starcounterAssemblyReference == null) {
-                throw new InvalidOperationException();
-            }
-
-            return (IType)_starcounterAssemblyReference.FindType(
-                type.FullName,
-                BindingOptions.RequireGenericDefinition
-                );
-        }
-
         private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
             var done = false;
             if (_objectProxyEmitter.ShouldImplementOn(typeDef)) {
