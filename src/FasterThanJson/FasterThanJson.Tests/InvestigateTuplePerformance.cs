@@ -7,7 +7,7 @@ using Starcounter.TestFramework;
 namespace FasterThanJson.Tests {
     [TestFixture]
     public class InvestigateTuplePerformance {
-        static int nrIterations = 1000000;
+        static int nrIterations = 100000;
         void Print(Stopwatch timer, string name, int nrIter) {
             Console.WriteLine(nrIter + " " + name + " took " + timer.ElapsedMilliseconds +
                 " ms, i.e., " + timer.ElapsedMilliseconds * 1000000 / nrIter + " ns per iteration or " +
@@ -331,8 +331,11 @@ namespace FasterThanJson.Tests {
         [Test]
         [Category("LongRunning")]
         public unsafe void RunAllTests() {
-            if (TestLogger.IsRunningOnBuildServer())
-                nrIterations = nrIterations* 10;
+            //if (TestLogger.IsRunningOnBuildServer())
+            //    nrIterations = nrIterations* 10;
+#if DEBUG
+            nrIterations = nrIterations / 10;
+#endif
             Console.WriteLine("------------ Unsigned Integers ----------------");
             BenchmarkTupleULongScale();
             BenchmarkTupleUIntScale();
@@ -346,6 +349,9 @@ namespace FasterThanJson.Tests {
             Console.WriteLine("------------ Strings ----------------");
             BenchmarkTupleString1Scale();
             BenchmarkTupleString10Scale();
+            Console.WriteLine("------------ Byte arrays ----------------");
+            BenchmarkTupleByte1Scale();
+            BenchmarkTupleByte10Scale();
         }
     }
 }
