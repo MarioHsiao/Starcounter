@@ -21,6 +21,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Starcounter;
 
 namespace Codeplex.Data
 {
@@ -432,7 +433,7 @@ namespace Codeplex.Data
 
         public static implicit operator Response(DynamicJson dynJson) {
             var response = new Response() {
-				ContentType = "application/json;charset=UTF-8",
+				ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json),
 				Content = dynJson.ToString()
             };
             return response;

@@ -86,7 +86,6 @@
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Http\HttpRequestWriter.cs" />
-    <Compile Include="Http\HttpResponseBuilder.cs" />
     <Compile Include="Http\ResponseExtensions.cs" />
     <Compile Include="Interfaces\ILogSource.cs" />
     <Compile Include="Interfaces\IReadOnlyITree.cs" />
