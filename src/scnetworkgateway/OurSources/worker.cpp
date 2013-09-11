@@ -1999,7 +1999,7 @@ RELEASE_CHUNK:
                 GW_ASSERT(db != NULL);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                sd->set_socket_diag_active_conn_flag(false);
+                sd->reset_socket_diag_active_conn_flag();
 #endif
 
                 // Returning chunks to pool.
