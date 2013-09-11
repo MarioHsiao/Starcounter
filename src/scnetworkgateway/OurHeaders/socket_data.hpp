@@ -13,15 +13,14 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
     SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
     SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
-    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
+    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
     SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
     SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
     SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
-    SOCKET_DATA_FLAGS_AGGREGATED = 512,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 1024,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2048,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 4096
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048
 };
 
 // Socket data chunk.
@@ -202,12 +201,15 @@ public:
     }
 
     // Setting to database direction flag.
-    void set_to_database_direction_flag(bool value)
+    void set_to_database_direction_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+        flags_ |= SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+    }
+
+    // ReSetting to database direction flag.
+    void reset_to_database_direction_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
     // Getting socket just send flag.
@@ -217,12 +219,9 @@ public:
     }
 
     // Setting socket just send flag.
-    void set_socket_just_send_flag(bool value)
+    void reset_socket_just_send_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_JUST_SEND;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_JUST_SEND;
+        flags_ &= ~SOCKET_DATA_FLAGS_JUST_SEND;
     }
 
     // Getting socket representer flag.
@@ -232,12 +231,17 @@ public:
     }
 
     // Setting socket representer flag.
-    void set_socket_representer_flag(bool value)
+    void set_socket_representer_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+        GW_ASSERT(false == get_socket_trigger_disconnect_flag());
+
+        flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+    }
+
+    // Resetting socket representer flag.
+    void reset_socket_representer_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
 
     // Getting socket trigger disconnect flag.
@@ -247,12 +251,13 @@ public:
     }
 
     // Setting socket trigger disconnect flag.
-    void set_socket_trigger_disconnect_flag(bool value)
+    void set_socket_trigger_disconnect_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+        // Do nothing if already a socket representer.
+        if (get_socket_representer_flag())
+            return;
+
+        flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -263,13 +268,16 @@ public:
         return (flags_ & SOCKET_DATA_FLAGS_ACTIVE_CONN) != 0;
     }
 
-    // Getting socket diagnostics active connection flag.
-    void set_socket_diag_active_conn_flag(bool value)
+    // Setting socket diagnostics active connection flag.
+    void set_socket_diag_active_conn_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_ACTIVE_CONN;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_ACTIVE_CONN;
+        flags_ |= SOCKET_DATA_FLAGS_ACTIVE_CONN;
+    }
+
+    // ReSetting socket diagnostics active connection flag.
+    void reset_socket_diag_active_conn_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_ACTIVE_CONN;
     }
 
 #endif
@@ -283,12 +291,15 @@ public:
     }
 
     // Setting proxying flag.
-    void set_proxied_server_socket_flag(bool value)
+    void set_proxied_server_socket_flag()
     {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
+        flags_ |= HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
+    }
+
+    // ReSetting proxying flag.
+    void reset_proxied_server_socket_flag()
+    {
+        flags_ &= ~HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
     }
 
     // Getting proxying unknown protocol flag.
@@ -298,12 +309,9 @@ public:
     }
 
     // Setting proxying unknown protocol flag.
-    void set_unknown_proxied_proto_flag(bool value)
+    void set_unknown_proxied_proto_flag()
     {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
+        flags_ |= HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
     }
 
 #endif
@@ -317,10 +325,13 @@ public:
     // Setting accumulating flag.
     void set_accumulating_flag(bool value)
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+        flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+    }
+
+    // ReSetting accumulating flag.
+    void reset_accumulating_flag(bool value)
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
     // Getting disconnect after send flag.
@@ -330,27 +341,15 @@ public:
     }
 
     // Setting disconnect after send flag.
-    void set_disconnect_after_send_flag(bool value)
+    void set_disconnect_after_send_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
-    // Getting disconnect flag.
-    bool get_disconnect_flag()
+    // Getting disconnect socket flag.
+    bool get_disconnect_socket_flag()
     {
         return (flags_ & SOCKET_DATA_FLAGS_JUST_DISCONNECT) != 0;
-    }
-
-    // Setting disconnect flag.
-    void set_disconnect_flag(bool value)
-    {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_JUST_DISCONNECT;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_JUST_DISCONNECT;
     }
 
     // Getting complete header flag.
@@ -360,12 +359,9 @@ public:
     }
 
     // Setting complete header flag.
-    void set_complete_header_flag(bool value)
+    void set_complete_header_flag()
     {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
+        flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting scheduler id.
@@ -416,6 +412,12 @@ public:
         type_of_network_protocol_ = proto_type;
 
         g_gateway.SetConnectionType(socket_info_index_, proto_type);
+    }
+
+    // Checks if this socket is aggregated.
+    bool IsAggregated()
+    {
+        return g_gateway.IsAggregationPort(socket_info_index_);
     }
 
     // Getting saved user handler id.
@@ -879,14 +881,14 @@ public:
     void PrepareToDb()
     {
         // Setting database data direction flag.
-        set_to_database_direction_flag(true);
+        set_to_database_direction_flag();
     }
 
     // Puts socket data from database.
     void PrepareFromDb()
     {
         // Removing database data direction flag.
-        set_to_database_direction_flag(false);
+        reset_to_database_direction_flag();
     }
 
     // Clones existing socket data chunk.

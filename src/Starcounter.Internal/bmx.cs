@@ -168,7 +168,8 @@ namespace Starcounter.Internal
             Byte* buf,
             UInt32 buf_len_bytes,
             UInt32* chunk_index,
-            Byte* chunk_memory
+            Byte* chunk_memory,
+            UInt32 conn_flags
         );
 
         /// <summary>
