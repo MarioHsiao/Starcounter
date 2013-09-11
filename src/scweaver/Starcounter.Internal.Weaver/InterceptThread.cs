@@ -13,6 +13,11 @@ namespace Starcounter.Internal.Weaver {
     /// <summary>
     /// Class InterceptThread
     /// </summary>
+    /// <remarks>
+    /// If we reintroduce weaving of Systtem.Thread calls in user code, we
+    /// must move this class to the Starcounter assembly. For more information,
+    /// see the remarks in the ScEnhanceThreadingTask class summary.
+    /// </remarks>
     internal static class InterceptThread {
 
         /// <summary>
