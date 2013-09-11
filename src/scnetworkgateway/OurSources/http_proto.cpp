@@ -1125,7 +1125,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                         *is_handled = true;
 
                         // Setting disconnect after send flag.
-                        sd->set_disconnect_after_send_flag(true);
+                        sd->set_disconnect_after_send_flag();
 
 #ifdef GW_WARNINGS_DIAG
                         GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
