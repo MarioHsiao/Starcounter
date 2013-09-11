@@ -169,7 +169,7 @@ namespace Starcounter.Administrator.API.Utilities {
             var body = string.Format("{{ \"Allow\": \"{0}\" }}", allows);
 			var response = Response.FromStatusCode(405);
 			response.Body = body;
-			response.Headers = "Allow=" + allows + Constants.CRLF;
+			response.Headers = "Allow: " + allows + Constants.CRLF;
 
             var methodsToRegisterFor = new List<string>();
             foreach (var verb in verbs) {
@@ -210,7 +210,7 @@ namespace Starcounter.Administrator.API.Utilities {
 		private static string FormatHeaders(Dictionary<string, string> headers) {
 			string headerStr = "";
 			foreach (string key in headers.Keys) {
-				headerStr += key + "=" + headers[key] + Constants.CRLF;
+				headerStr += key + ": " + headers[key] + Constants.CRLF;
 			}
 			return headerStr;
 		}
