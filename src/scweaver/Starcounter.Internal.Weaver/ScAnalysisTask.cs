@@ -935,7 +935,7 @@ namespace Starcounter.Internal.Weaver {
 
             ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
             databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
-            
+
             databaseClass.SetTypeDefinition(typeDef);
             
             DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
@@ -1013,10 +1013,15 @@ namespace Starcounter.Internal.Weaver {
                 field.Name, 
                 field.FieldType
                 );
+            if (!ValidateDiscoveredDatabaseField(databaseClass, field)) {
+                return;
+            }
 
-            // A field in a database class cannot be of the same name as a field in any parent class.
+            // A field in a database class cannot be of the same name as any attribute in any
+            // parent class.
             if (databaseClass.BaseClass != null && databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
                 ScMessageSource.Write(SeverityType.Error, "SCDCV06", new object[] { field.DeclaringType, field.Name });
+                return;
             }
 
             var databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
@@ -1046,6 +1051,71 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
+        }
+
+        /// <summary>
+        /// Validates the declared <paramref name="field"/> in the specified
+        /// <paramref name="databaseClass"/> to see if it violates any constraits.
+        /// Emits relevant errors if it does.
+        /// </summary>
+        /// <param name="databaseClass">The database class that declares the given
+        /// field.</param>
+        /// <param name="field">The field to validate.</param>
+        private bool ValidateDiscoveredDatabaseField(DatabaseClass databaseClass, FieldDefDeclaration field) {
+            var success = true;
+            var cursor = databaseClass;
+            while (cursor != null) {
+                foreach (var item in cursor.Attributes) {
+                    if (item.AttributeKind == DatabaseAttributeKind.Field) {
+                        if (item.Name.Equals(field.Name, StringComparison.InvariantCultureIgnoreCase)) {
+                            var detail = string.Format("Field {0} in class {1}, field {2} in class {3}.",
+                                field.Name,
+                                databaseClass.Name,
+                                item.Name,
+                                cursor.Name);
+                            ScMessageSource.WriteError(
+                                MessageLocation.Of(field),
+                                Error.SCERRFIELDSDIFFERINCASEONLY,
+                                detail);
+                            success = false;
+                        }
+                    }
+                }
+
+                cursor = cursor.BaseClass;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Validates the declared <paramref name="property"/> in the specified
+        /// <paramref name="databaseClass"/> to see if it violates any constraits.
+        /// Emits relevant errors if it does.
+        /// </summary>
+        /// <param name="databaseClass">The database class that declares the given
+        /// property.</param>
+        /// <param name="property">The property to validate.</param>
+        private void ValidateDiscoveredDatabaseProperty2(DatabaseClass databaseClass, PropertyDeclaration property) {
+            var cursor = databaseClass;
+            while (cursor != null) {
+                foreach (var item in cursor.Attributes) {
+                    if (item.AttributeKind == DatabaseAttributeKind.Field && item.IsPublicRead) {
+                        if (item.Name.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)) {
+                            var detail = string.Format("Property {0} in class {1}, field {2} in class {3}.",
+                                property.Name,
+                                databaseClass.Name,
+                                item.Name,
+                                cursor.Name);
+                            ScMessageSource.WriteError(
+                                MessageLocation.Of(property),
+                                Error.SCERRPROPERTYNAMEEQUALSFIELD,
+                                detail);
+                        }
+                    }
+                }
+
+                cursor = cursor.BaseClass;
+            }
         }
 
         /// <summary>
