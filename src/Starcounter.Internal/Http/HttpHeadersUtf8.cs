@@ -9,7 +9,8 @@ namespace Starcounter.Internal {
 	internal static class HttpHeadersUtf8 {
 		internal readonly static byte[] Http11;
 		internal readonly static byte[] ServerSc;
-		internal readonly static byte[] NoCache;
+		internal readonly static byte[] CacheControlNoCache;
+		internal readonly static byte[] CacheControlStart;
 		internal readonly static byte[] ContentTypeStart;
 		internal readonly static byte[] ContentEncodingStart;
 		internal readonly static byte[] ContentLengthStart;
@@ -23,7 +24,8 @@ namespace Starcounter.Internal {
 		static HttpHeadersUtf8() {
 			Http11 = Encoding.UTF8.GetBytes("HTTP/1.1 ");
 			ServerSc = Encoding.UTF8.GetBytes("Server: SC" + Constants.CRLF);
-			NoCache = Encoding.UTF8.GetBytes("Cache-Control: no-cache" + Constants.CRLF);
+			CacheControlNoCache = Encoding.UTF8.GetBytes("Cache-Control: no-cache" + Constants.CRLF);
+			CacheControlStart = Encoding.UTF8.GetBytes("Cache-Control: ");
 			ContentTypeStart = Encoding.UTF8.GetBytes("Content-Type: ");
 			ContentEncodingStart = Encoding.UTF8.GetBytes("Content-Encoding: ");
 			ContentLengthStart = Encoding.UTF8.GetBytes("Content-Length: ");
@@ -33,9 +35,10 @@ namespace Starcounter.Internal {
 			CRLF = Encoding.UTF8.GetBytes(Constants.CRLF);
 			CRLFCRLF = Encoding.UTF8.GetBytes(Constants.CRLFCRLF);
 
-			TotalByteSize = Http11.Length 
-							+ ServerSc.Length 
-							+ NoCache.Length 
+			TotalByteSize = Http11.Length
+							+ ServerSc.Length
+							+ CacheControlNoCache.Length
+							+ CacheControlStart.Length
 							+ ContentTypeStart.Length 
 							+ ContentEncodingStart.Length 
 							+ ContentLengthStart.Length 
