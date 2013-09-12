@@ -120,6 +120,11 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_FLAGS_JUST_SEND = 64;
 
         /// <summary>
+        /// Disconnect after send flag.
+        /// </summary>
+        public const int SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16;
+
+        /// <summary>
         /// Just disconnect flag.
         /// </summary>
         public const int SOCKET_DATA_FLAGS_DISCONNECT = 128;

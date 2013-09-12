@@ -70,7 +70,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     }
     while (cur_chunk_index != shared_memory_chunk::link_terminator);
 
-    // Returning all linked chunks to private/shared pool.
+    // Returning all linked chunks (except first one) to private/shared pool.
     shared_memory_chunk* first_smc = ((shared_memory_chunk*) first_chunk_data);
     err_code = cm_release_linked_shared_memory_chunks(first_smc->get_link());
     if (err_code)
@@ -379,16 +379,16 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint8_t* buf,
     uint32_t buf_len_bytes,
     starcounter::core::chunk_index* src_chunk_index,
-    uint8_t* src_chunk_buf
+    uint8_t* src_chunk_buf,
+    uint32_t conn_flags
     )
 {
     // Points to user data offset in chunk.
     uint32_t chunk_user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA) +
         starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
 
-    // Checking if socket data should be disconnected.
-    if (0 == buf_len_bytes)
-        (*(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT;
+    // Adding connection flags.
+    (*(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= conn_flags;
 
     uint32_t remaining_bytes_in_orig_chunk = (starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
 

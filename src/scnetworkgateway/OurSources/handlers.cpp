@@ -152,6 +152,10 @@ uint32_t HandlersTable::RegisterPortHandler(
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock);
+
+        // Checking if its an aggregation port.
+        if (port_num == g_gateway.setting_aggregation_port())
+            server_port->set_aggregation_flag();
     }
 
     // Checking if port contains handlers from this database.

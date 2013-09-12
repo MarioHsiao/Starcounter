@@ -36,7 +36,7 @@ void SocketDataChunk::Init(
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
     flags_ = 0;
-    set_to_database_direction_flag(true);
+    set_to_database_direction_flag();
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
@@ -55,7 +55,7 @@ void SocketDataChunk::Reset()
 {
     flags_ = 0;
 
-    set_to_database_direction_flag(true);
+    set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
@@ -138,23 +138,26 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     GW_ERR_CHECK(err_code);
 
     // Since another socket is going to be attached.
-    set_socket_representer_flag(false);
+    reset_socket_representer_flag();
 
     // Copying session completely.
     sd_clone->session_ = session_;
 
-    sd_clone->set_to_database_direction_flag(true);
+    sd_clone->set_to_database_direction_flag();
     sd_clone->SetTypeOfNetworkProtocol(get_type_of_network_protocol());
     sd_clone->set_unique_socket_id(unique_socket_id_);
     sd_clone->set_socket_info_index(socket_info_index_);
 
     // This socket becomes attached.
-    sd_clone->set_socket_representer_flag(true);
+    sd_clone->set_socket_representer_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     bool active_conn = get_socket_diag_active_conn_flag();
-    set_socket_diag_active_conn_flag(false);
-    sd_clone->set_socket_diag_active_conn_flag(active_conn);
+    reset_socket_diag_active_conn_flag();
+    if (active_conn)
+        sd_clone->set_socket_diag_active_conn_flag();
+    else
+        sd_clone->reset_socket_diag_active_conn_flag();
 #endif
 
     // Setting the clone for the next iteration.
@@ -201,8 +204,8 @@ uint32_t SocketDataChunk::CloneToPush(
     (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((*new_sd)->get_data_blob(), get_accum_buf());
 
     // This socket becomes unattached.
-    (*new_sd)->set_socket_representer_flag(false);
-    (*new_sd)->set_socket_diag_active_conn_flag(false);
+    (*new_sd)->reset_socket_representer_flag();
+    (*new_sd)->reset_socket_diag_active_conn_flag();
 
     return 0;
 }
