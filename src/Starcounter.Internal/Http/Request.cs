@@ -787,10 +787,119 @@ namespace Starcounter.Advanced {
             methodString_ = null;
         }
 
+		private int EstimateNeededSize() {
+			int strMult = 2;
+			int size = HttpHeadersUtf8.TotalByteSize;
+
+			size += methodString_.Length * strMult;
+			size += uriString_.Length * strMult;
+			size += hostNameString_.Length * strMult;
+			
+			if (null != headersString_)
+				size += headersString_.Length * strMult;
+
+			if (null != contentType_)
+				size += contentType_.Length * strMult;
+
+			if (null != contentEncoding_)
+				size += contentEncoding_.Length * strMult;
+
+			if (null != cookieString_)
+				size += cookieString_.Length * strMult;
+
+			if (null != bodyString_)
+				size += bodyString_.Length * strMult;
+			else if (null != bodyBytes_) 
+				size += bodyBytes_.Length;
+
+			return size;
+		}
+
+		/// <summary>
+		/// Constructs Response from fields that are set.
+		/// </summary>
+		public void ConstructFromFields() {
+			byte[] buf;
+			Utf8Writer writer;
+
+			// Checking if we have a custom response.
+			if (!customFields_)
+				return;
+
+			if (null == uriString_)
+				throw new ArgumentException("Relative URI should be set when creating custom Request.");
+
+			if (null == hostNameString_)
+				throw new ArgumentException("Host name should be set when creating custom Request.");
+
+			if (null == methodString_)
+				methodString_ = "GET";
+
+			buf = new byte[EstimateNeededSize()];
+			unsafe {
+				fixed (byte* p = buf) {
+					writer = new Utf8Writer(p);
+
+					writer.Write(methodString_);
+					writer.Write(' ');
+					writer.Write(uriString_);
+					writer.Write(" HTTP/1.1"); // TODO: Change to static bytearray header.
+					writer.Write(HttpHeadersUtf8.CRLF);
+
+					writer.Write("Host: "); // TODO: Change to static bytearray header.
+					writer.Write(hostNameString_);
+					writer.Write(HttpHeadersUtf8.CRLF);
+
+					if (null != headersString_)
+						writer.Write(headersString_);
+
+					if (null != contentType_) {
+						writer.Write(HttpHeadersUtf8.ContentTypeStart);
+						writer.Write(contentType_);
+						writer.Write(HttpHeadersUtf8.CRLF);
+					}
+
+					if (null != contentEncoding_) {
+						writer.Write(HttpHeadersUtf8.ContentEncodingStart);
+						writer.Write(contentEncoding_);
+						writer.Write(HttpHeadersUtf8.CRLF);
+					}
+
+					if (null != cookieString_) {
+						writer.Write("Cookie: "); // TODO: Change to static bytearray header.
+						writer.Write(cookieString_);
+						writer.Write(HttpHeadersUtf8.CRLF);
+					}
+
+					if (null != bodyString_) {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write(writer.GetByteCount(bodyString_));
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
+						writer.Write(bodyString_);
+					} else if (null != bodyBytes_) {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write(bodyBytes_.Length);
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
+						writer.Write(bodyBytes_);
+					}
+
+					// TODO: 
+					// We should be able to set the size so we don't have to do an extra copy here.
+					byte[] sizedBuffer = new byte[writer.Written];
+					Marshal.Copy((IntPtr)p, sizedBuffer, 0, writer.Written);
+
+					// Finally setting the request bytes.
+					customBytes_ = sizedBuffer;
+				}
+			}
+			customFields_ = false;
+			readOnly_ = true;
+		}
+
         /// <summary>
         /// Constructs Response from fields that are set.
         /// </summary>
-        public void ConstructFromFields()
+        public void ConstructFromFields_Slow()
         {
             // Checking if we have a custom response.
             if (!customFields_)
