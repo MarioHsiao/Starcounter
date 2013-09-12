@@ -592,11 +592,12 @@ namespace Starcounter.Advanced
 		/// Constructs Response from fields that are set.
 		/// </summary>
 		public void ConstructFromFields() {
+			byte[] buf;
+			Utf8Writer writer;
+
 			// Checking if we have a custom response.
 			if (!customFields_)
 				return;
-
-			Debugger.Launch();
 
 			byte[] bytes = bodyBytes_;
 			if (_Hypermedia != null) {
@@ -629,16 +630,12 @@ namespace Starcounter.Advanced
 				// We have our precious bytes. Let's wrap them up in a response.
 			}
 
-			// TODO:
-			// Check content and make sure the whole message fits (headers + content)
-			byte[] buffer = new byte[512];
-			ResponseWriter writer;
-
+			buf = new byte[EstimateNeededSize(bytes)];
+			
 			unsafe {
-				fixed (byte* p = buffer) {
-					writer = new ResponseWriter(p);
-
-					writer.Write(ResponseWriter.Http11);
+				fixed (byte* p = buf) {
+					writer = new Utf8Writer(p);
+					writer.Write(HttpHeadersUtf8.Http11);
 
 					if (statusCode_ > 0) {
 						writer.Write(statusCode_);
@@ -650,7 +647,7 @@ namespace Starcounter.Advanced
 						else 
 							writer.Write("OK");
 
-						writer.Write(ResponseWriter.CRLF);
+						writer.Write(HttpHeadersUtf8.CRLF);
 					} else {
 						// Checking if Status Description is set.
 						if (null != statusDescription_) {
@@ -659,50 +656,45 @@ namespace Starcounter.Advanced
 							writer.Write(statusDescription_);
 						} else
 							writer.Write("200 OK");
-						writer.Write(ResponseWriter.CRLF);
+						writer.Write(HttpHeadersUtf8.CRLF);
 					}
 
-					writer.Write(ResponseWriter.ServerSc);
-					writer.Write(ResponseWriter.NoCache);
+					writer.Write(HttpHeadersUtf8.ServerSc);
+					writer.Write(HttpHeadersUtf8.NoCache);
 
 					if (null != headersString_)
 						writer.Write(headersString_);
 
 					if (null != contentType_) {
-						writer.Write(ResponseWriter.ContentTypeStart);
+						writer.Write(HttpHeadersUtf8.ContentTypeStart);
 						writer.Write(contentType_);
-						writer.Write(ResponseWriter.CRLF);
+						writer.Write(HttpHeadersUtf8.CRLF);
 					}
 
 					if (null != contentEncoding_) {
-						writer.Write(ResponseWriter.ContentEncodingStart);
+						writer.Write(HttpHeadersUtf8.ContentEncodingStart);
 						writer.Write(contentEncoding_);
-						writer.Write(ResponseWriter.CRLF);	
+						writer.Write(HttpHeadersUtf8.CRLF);	
 					}
 
 					if (null != setCookiesString_) {
-						writer.Write(ResponseWriter.SetCookieStart);
+						writer.Write(HttpHeadersUtf8.SetCookieStart);
 						writer.Write(setCookiesString_);
 
 						if (null != AppsSession) {
-							writer.Write(ResponseWriter.SetCookieLocationMiddle);
+							writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
 							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
 							writer.Write(AppsSession.ToAsciiString());
-							writer.Write(ResponseWriter.setCookiePathEnd);
+							writer.Write(HttpHeadersUtf8.setCookiePathEnd);
 						}
-						writer.Write(ResponseWriter.CRLF);
+						writer.Write(HttpHeadersUtf8.CRLF);
 					} else {
 						if (null != AppsSession) {
-//							pbuf += ResponseBits.Write(pbuf, ResponseBits.SetCookieStart);
-//							pbuf += ResponseBits.Write(pbuf, ResponseBits.SetCookieLocationMiddle);
-
-							// TODO:
-							// Why no semicolon?
 							writer.Write("Set-Cookie: Location=");
 							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
 							writer.Write(AppsSession.ToAsciiString());
-							writer.Write(ResponseWriter.setCookiePathEnd);
-							writer.Write(ResponseWriter.CRLF);	
+							writer.Write(HttpHeadersUtf8.setCookiePathEnd);
+							writer.Write(HttpHeadersUtf8.CRLF);	
 						}
 					}
 
@@ -710,21 +702,21 @@ namespace Starcounter.Advanced
 						if (null != bytes)
 							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
 
-						writer.Write(ResponseWriter.ContentLengthStart);
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
 						writer.Write(bodyString_.Length);
-						writer.Write(ResponseWriter.CRLFCRLF);	
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);	
 
 						// Adding the body.
 						writer.Write(bodyString_);
 					} else if (null != bytes) {
-						writer.Write(ResponseWriter.ContentLengthStart);
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
 						writer.Write(bytes.Length);
-						writer.Write(ResponseWriter.CRLFCRLF);
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 						writer.Write(bytes);
 					} else {
-						writer.Write(ResponseWriter.ContentLengthStart);
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
 						writer.Write(0);
-						writer.Write(ResponseWriter.CRLFCRLF);
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 					}
 
 					// TODO: 
@@ -739,6 +731,33 @@ namespace Starcounter.Advanced
 
 			customFields_ = false;
 			readOnly_ = true;
+		}
+
+		private int EstimateNeededSize(byte[] bytes) {
+			// The sizes of the strings here is not accurate. We are mainly interested in making sure
+			// that we will never have a buffer overrun so we take the length of the strings * 2.
+			int strSizeMultiplier = 2;
+			int size;
+
+			size = HttpHeadersUtf8.TotalByteSize;
+
+			if (statusDescription_ != null)
+				size += statusDescription_.Length * strSizeMultiplier;
+			if (null != headersString_)
+				size += headersString_.Length * strSizeMultiplier;
+			if (null != contentType_)
+				size += contentType_.Length * strSizeMultiplier;
+			if (null != contentEncoding_)
+				size += contentEncoding_.Length * strSizeMultiplier;
+			if (null != AppsSession) {
+				size += ScSessionClass.DataLocationUriPrefixEscaped.Length * strSizeMultiplier;
+				size += AppsSession.ToAsciiString().Length;
+			}
+			if (null != bodyString_)
+				size += bodyString_.Length * strSizeMultiplier;
+			else if (null != bytes)
+				size += bytes.Length;
+			return size;
 		}
 
         /// <summary>
