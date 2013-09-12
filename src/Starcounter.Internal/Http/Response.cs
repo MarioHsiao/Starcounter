@@ -560,7 +560,7 @@ namespace Starcounter.Advanced
             customFields_ = false;
 
             setCookiesString_ = null;
-            headersString_ = null;
+            customHeaderFields_ = null;
             bodyString_ = null;
             contentType_ = null;
             contentEncoding_ = null;
@@ -594,36 +594,6 @@ namespace Starcounter.Advanced
 
                 customFields_ = true;
                 _Hypermedia = value;
-            }
-        }
-
-        String headersString_;
-
-        /// <summary>
-        /// Headers string.
-        /// </summary>
-        public String Headers
-        {
-            get
-            {
-                if (customFields_)
-                {
-                    if (null == headersString_)
-                        throw new ArgumentException("Headers field is not set.");
-
-                    return headersString_;
-                }
-
-                throw new ArgumentException("Headers field is not set.");
-            }
-
-            set
-            {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP response can't be modified.");
-
-                customFields_ = true;
-                headersString_ = value;
             }
         }
 
@@ -734,8 +704,15 @@ namespace Starcounter.Advanced
 					} else
 						writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
-					if (null != headersString_)
-						writer.Write(headersString_);
+                    if (null != customHeaderFields_) {
+
+                        foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                            writer.Write(h.Key);
+                            writer.Write(": ");
+                            writer.Write(h.Value);
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        }
+                    }
 
 					if (null != contentType_) {
 						writer.Write(HttpHeadersUtf8.ContentTypeStart);
@@ -810,8 +787,13 @@ namespace Starcounter.Advanced
 
 			if (statusDescription_ != null)
 				size += statusDescription_.Length * strSizeMultiplier;
-			if (null != headersString_)
-				size += headersString_.Length * strSizeMultiplier;
+
+            if (null != customHeaderFields_) {
+                foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                    size += (h.Key.Length + 2 + h.Value.Length + 2) * strSizeMultiplier;
+                }
+            }
+
 			if (null != cacheControl_)
 				size += cacheControl_.Length * strSizeMultiplier;
 			if (null != contentType_)
@@ -900,8 +882,15 @@ namespace Starcounter.Advanced
 			} else
 				str += "Cache-Control: no-cache" + StarcounterConstants.NetworkConstants.CRLF;
 
-            if (null != headersString_)
-                str += headersString_;
+            if (null != customHeaderFields_) {
+
+                foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                    str += h.Key;
+                    str += ": ";
+                    str += h.Value;
+                    str += StarcounterConstants.NetworkConstants.CRLF;
+                }
+            }
 
             if (null != contentType_)
                 str += "Content-Type: " + contentType_ + StarcounterConstants.NetworkConstants.CRLF;
@@ -1428,7 +1417,6 @@ namespace Starcounter.Advanced
             Console.WriteLine(message);
         }
 
-
         /// <summary>
         /// The needs script injection_
         /// </summary>
@@ -1501,6 +1489,23 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Headers string.
+        /// </summary>
+        public String Headers
+        {
+            get
+            {
+                unsafe
+                {
+                    if (null == http_response_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
+
+                    return http_response_struct_->GetHeadersStringUtf8_Slow();
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the raw headers length.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -1509,14 +1514,6 @@ namespace Starcounter.Advanced
         {
             unsafe
             {
-                if (customFields_)
-                {
-                    if (null == headersString_)
-                        throw new ArgumentException("Headers field is not set.");
-
-                    return (UInt32) headersString_.Length;
-                }
-
                 if (null == http_response_struct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
@@ -1743,6 +1740,20 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Dictionary of simple user custom headers.
+        /// </summary>
+        Dictionary<String, String> customHeaderFields_;
+
+        /// <summary>
+        /// Setting headers dictionary.
+        /// </summary>
+        /// <param name="headersDict"></param>
+        public void SetHeadersDictionary(Dictionary<String, String> headersDict)
+        {
+            customHeaderFields_ = headersDict;
+        }
+
+        /// <summary>
         /// Gets the <see cref="String" /> with the specified name.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -1751,9 +1762,16 @@ namespace Starcounter.Advanced
         {
             get
             {
-                // TODO: Implement for internal responses.
-                if (customFields_)
+                if (customFields_) {
+
+                    if (null == customHeaderFields_)
+                        throw new ArgumentException("HTTP response custom fields are not initialized.");
+
+                    if (customHeaderFields_.ContainsKey(name))
+                        return customHeaderFields_[name];
+
                     return null;
+                }
 
                 unsafe
                 {
@@ -1762,6 +1780,19 @@ namespace Starcounter.Advanced
 
                     return http_response_struct_->GetHeaderValue(name);
                 }
+            }
+
+            set
+            {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
+                customFields_ = true;
+
+                if (null == customHeaderFields_)
+                    customHeaderFields_ = new Dictionary<String, String>();
+
+                customHeaderFields_.Add(name, value);
             }
         }
 

@@ -72,7 +72,7 @@ namespace Starcounter.Internal.Tests {
 			response.Body = json;
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response.Headers = "somespecialheader: myvalue\r\n";
+			response["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 			AssertConstructedResponsesAreEqual(response);
 
@@ -80,7 +80,7 @@ namespace Starcounter.Internal.Tests {
 			response.BodyBytes = Encoding.UTF8.GetBytes(json);
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response.Headers = "somespecialheader: myvalue\r\n";
+			response["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 			AssertConstructedResponsesAreEqual(response);
 		}
@@ -170,7 +170,7 @@ namespace Starcounter.Internal.Tests {
 			response.Body = json;
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response.Headers = "somespecialheader: myvalue\r\n";
+			response["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 			RunResponseBenchmark(response, repeats);
 
@@ -179,7 +179,7 @@ namespace Starcounter.Internal.Tests {
 			response.BodyBytes = Encoding.UTF8.GetBytes(json);
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response.Headers = "somespecialheader: myvalue\r\n";
+			response["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 			RunResponseBenchmark(response, repeats);
 		}

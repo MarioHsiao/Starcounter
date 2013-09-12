@@ -171,7 +171,7 @@ namespace Starcounter.Internal.Web {
                         // Checking if session is incorrect.
 						if (exc is HandlersManagement.IncorrectSessionException) {
 							result = Response.FromStatusCode(400);
-							result.Headers = "Connection: close" + StarcounterConstants.NetworkConstants.CRLF;
+							result["Connection"] = "close";
 						} else {
 
 							// Logging the exception to server log.
@@ -279,7 +279,7 @@ namespace Starcounter.Internal.Web {
             }
 
 			var badReq = Response.FromStatusCode(400);
-			badReq.Headers = "Connection: close" + StarcounterConstants.NetworkConstants.CRLF;
+			badReq["Connection"] = "close";
 			badReq.ConstructFromFields();
 			return badReq.Uncompressed;
         }
