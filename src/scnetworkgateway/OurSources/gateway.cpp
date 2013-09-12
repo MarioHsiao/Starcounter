@@ -616,8 +616,6 @@ ServerPort::~ServerPort()
 // Loads configuration settings from provided XML file.
 uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 {
-    uint32_t err_code;
-
     // Opening file stream.
     std::ifstream config_file_stream;
     config_file_stream.open(configFilePath);
@@ -664,8 +662,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     // Getting inactive socket timeout.
     setting_inactive_socket_timeout_seconds_ = atoi(rootElem->first_node("InactiveConnectionTimeout")->value());
 
-    // Getting gateway statistics port.
+    // Getting gateway statistics port number.
     setting_gw_stats_port_ = (uint16_t)atoi(rootElem->first_node("GatewayStatisticsPort")->value());
+
+    // Getting aggreation port number.
+    setting_aggregation_port_ = (uint16_t)atoi(rootElem->first_node("AggregationPort")->value());
 
     // Just enforcing minimum socket timeout multiplier.
     if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
@@ -784,39 +785,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
 
 #endif
-
-    // Predefined ports constants.
-    PortType portTypes[NUM_PREDEFINED_PORT_TYPES] = { HTTP_PORT, HTTPS_PORT, WEBSOCKETS_PORT, GENSOCKETS_PORT, AGGREGATION_PORT };
-    std::string portNames[NUM_PREDEFINED_PORT_TYPES] = { "HttpPort", "HttpsPort", "WebSocketsPort", "GenSocketsPort", "AggregationPort" };
-    GENERIC_HANDLER_CALLBACK portHandlerTypes[NUM_PREDEFINED_PORT_TYPES] = { AppsUriProcessData, HttpsProcessData, AppsUriProcessData, AppsPortProcessData, AppsPortProcessData };
-    uint16_t portNumbers[NUM_PREDEFINED_PORT_TYPES] = { 80, 443, 80, 123, 12345 };
-    uint32_t userDataOffsetsInBlob[NUM_PREDEFINED_PORT_TYPES] = { HTTP_BLOB_USER_DATA_OFFSET, HTTPS_BLOB_USER_DATA_OFFSET, WS_NEEDED_USER_DATA_OFFSET, RAW_BLOB_USER_DATA_OFFSET, AGGR_BLOB_USER_DATA_OFFSET };
-
-    // Going through all ports.
-    for (int32_t i = 0; i < NUM_PREDEFINED_PORT_TYPES; i++)
-    {
-        portNumbers[i] = atoi(rootElem->first_node(portNames[i].c_str())->value());
-        if (portNumbers[i] <= 0)
-            continue;
-
-        GW_COUT << portNames[i] << ": " << portNumbers[i] << GW_ENDL;
-
-        // Checking if several protocols are on the same port.
-        int32_t samePortIndex = INVALID_PORT_INDEX;
-        for (int32_t k = 0; k < i; k++)
-        {
-            if ((portNumbers[i] > 0) && (portNumbers[i] == portNumbers[k]))
-            {
-                samePortIndex = k;
-                break;
-            }
-        }
-
-        // Creating a new port entry.
-        BMX_HANDLER_INDEX_TYPE new_handler_index;
-        err_code = g_gateway.get_gw_handlers()->RegisterPortHandler(NULL, portNumbers[i], 0, portHandlerTypes[i], -1, new_handler_index);
-        GW_ERR_CHECK(err_code);
-    }
 
     // Allocating data for sockets infos.
     all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
@@ -963,7 +931,8 @@ uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
         uint32_t err_code = gw_workers_[i].CreateNewConnections(how_many, port_index, db_index);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
     }
 
     return 0;
@@ -1302,6 +1271,26 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
                     return err_code;
                 }
+
+                /*if (0 != setting_aggregation_port_)
+                {
+                    // Registering port handler for aggregation.
+                    err_code = AddPortHandler(
+                        &gw_workers_[0],
+                        gw_handlers_,
+                        setting_aggregation_port_,
+                        bmx::BMX_INVALID_HANDLER_INFO,
+                        empty_db_index,
+                        PortAggregator);
+
+                    if (err_code)
+                    {
+                        // Leaving global lock.
+                        LeaveGlobalLock();
+
+                        return err_code;
+                    }
+                }*/
             }
 
 #endif

@@ -213,6 +213,41 @@ namespace Starcounter.Advanced
         Boolean readOnly_;
 
         /// <summary>
+        /// Special connection flags.
+        /// </summary>
+        public enum ConnectionFlags
+        {
+            NoSpecialFlags = 0,
+            DisconnectAfterSend = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
+            DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT
+        }
+
+        /// <summary>
+        /// Connection flags.
+        /// </summary>
+        ConnectionFlags connectionFlags_ = ConnectionFlags.NoSpecialFlags;
+
+        /// <summary>
+        /// Indicates if corresponding connection should be shut down.
+        /// </summary>
+        public ConnectionFlags ConnFlags
+        {
+            get
+            {
+                return connectionFlags_;
+            }
+
+            set
+            {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
+                customFields_ = true;
+                connectionFlags_ = value;
+            }
+        }
+
+        /// <summary>
         /// HTTP response status code.
         /// </summary>
         public UInt16 StatusCode
@@ -1555,7 +1590,7 @@ namespace Starcounter.Advanced
         /// <param name="length">The length.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
         {
-            unsafe { data_stream_.SendResponse(buffer, offset, length); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connectionFlags_); }
         }
 
         /// <summary>
