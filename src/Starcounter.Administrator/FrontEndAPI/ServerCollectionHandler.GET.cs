@@ -7,6 +7,7 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -33,8 +34,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             version = CurrentVersion.Version
                         };
 
-                        return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
-
+						return RESTUtility.JSON.CreateResponse(resultJson.ToString());
                     }
                     catch (Exception e) {
                         return RestUtils.CreateErrorResponse(e);

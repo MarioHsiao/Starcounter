@@ -100,7 +100,7 @@ namespace Starcounter.Internal
         /// Sc_wait_for_bmx_readies this instance.
         /// </summary>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static void sc_wait_for_bmx_ready();
+        public extern static UInt32 sc_wait_for_bmx_ready(UInt32 max_time_to_wait_ms);
 
         /// <summary>
         /// Sc_bmx_read_from_chunks the specified chunk_index.
@@ -168,7 +168,8 @@ namespace Starcounter.Internal
             Byte* buf,
             UInt32 buf_len_bytes,
             UInt32* chunk_index,
-            Byte* chunk_memory
+            Byte* chunk_memory,
+            UInt32 conn_flags
         );
 
         /// <summary>

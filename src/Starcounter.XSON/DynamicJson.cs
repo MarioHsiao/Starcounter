@@ -1,5 +1,5 @@
 ﻿using Starcounter.Advanced;
-using Starcounter.Internal.Web;
+
 /*--------------------------------------------------------------------------
 * DynamicJson
 * ver 1.2.0.0 (May. 21th, 2010)
@@ -21,6 +21,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Starcounter;
 
 namespace Codeplex.Data
 {
@@ -432,7 +433,8 @@ namespace Codeplex.Data
 
         public static implicit operator Response(DynamicJson dynJson) {
             var response = new Response() {
-                Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
+				ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json),
+				Body = dynJson.ToString()
             };
             return response;
         }

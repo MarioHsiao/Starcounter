@@ -16,13 +16,6 @@
   <BindingIP>10.0.0.5</BindingIP>
   -->
 
-  <!-- Standard services ports -->
-  <HttpPort>0</HttpPort>
-  <HttpsPort>0</HttpsPort>
-  <WebSocketsPort>0</WebSocketsPort>
-  <GenSocketsPort>0</GenSocketsPort>
-  <AggregationPort>0</AggregationPort>
-  
   <!-- Number of worker threads -->
   <WorkersNumber>1</WorkersNumber>
   
@@ -34,6 +27,9 @@
 
   <!-- Gateway global statistics port -->
   <GatewayStatisticsPort>12345</GatewayStatisticsPort>
+
+  <!-- Gateway traffic aggregation port -->
+  <AggregationPort>23456</AggregationPort>
   
   <!-- Information on reverse proxies if any. -->
   <!--

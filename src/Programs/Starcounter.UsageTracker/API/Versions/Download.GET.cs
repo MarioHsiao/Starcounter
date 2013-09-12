@@ -3,7 +3,6 @@ using Starcounter;
 using Starcounter.Advanced;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using Codeplex.Data;
-using Starcounter.Internal.Web;
 using System.Net;
 using StarcounterApplicationWebSocket.VersionHandler;
 using System.IO;

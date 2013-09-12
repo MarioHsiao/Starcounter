@@ -125,6 +125,9 @@
     <ClCompile Include="OurSources\urimatch_codegen.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
+    <ClCompile Include="aggregation.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="scripts\scnetworkgateway.xml">
