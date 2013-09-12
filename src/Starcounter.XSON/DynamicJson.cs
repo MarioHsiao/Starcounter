@@ -1,5 +1,5 @@
 ﻿using Starcounter.Advanced;
-using Starcounter.Internal.Web;
+
 /*--------------------------------------------------------------------------
 * DynamicJson
 * ver 1.2.0.0 (May. 21th, 2010)
