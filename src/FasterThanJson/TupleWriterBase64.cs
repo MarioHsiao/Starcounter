@@ -216,14 +216,13 @@ namespace Starcounter.Internal
           uint len = 1;
           if (str == null)
               Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
-          else if (str.Length > 0) {
+          else {
               Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
               fixed (char* pStr = str) {
                   // Write the string to the end of this tuple.
                   len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, str.Length * 3, true);
               }
-          } else
-              len = 0;
+          }
           HaveWritten(len);
       }
 
@@ -269,13 +268,11 @@ namespace Starcounter.Internal
       public static uint MeasureNeededSize(String str) {
           if (str == null)
               return 1; // null flag
-          if (str.Length == 0)
-              return 0;
-          uint expectedLen;
+          uint expectedLen = 1; // null flag
           fixed (char* pStr = str) {
-              expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
+              expectedLen += (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
           }
-          return expectedLen + 1; // + null flag
+          return expectedLen; 
       }
 
       public static uint MeasureNeededSize(ulong n) {
@@ -333,14 +330,13 @@ namespace Starcounter.Internal
           uint len = 1;
           if (str == null)
               Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
-          else if (str.Length > 0) {
+          else {
               Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
               fixed (char* pStr = str) {
                   // Write the string to the end of this tuple.
                   len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, (int)size - 1, true);
               }
-          } else
-              len = 0;
+          }
           Debug.Assert(len == size);
           HaveWritten(len);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);

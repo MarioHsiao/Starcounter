@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 using NUnit.Framework;
 using Starcounter.Internal;
 using Starcounter.TestFramework;
@@ -328,6 +329,111 @@ namespace FasterThanJson.Tests {
             }
         }
 
+        //[Test]
+        public static unsafe void BenchmarkNewTupleReader() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[10]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    TupleReaderBase64 tuple = new TupleReaderBase64(buffer, 2);
+                }
+                timer.Stop();
+            }
+            Print(timer, "TupleReader creates", nrIter);
+        }
+
+        static unsafe void AllocateBuffer(int size) {
+            char* buffer = stackalloc char[size];
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkBufferAllocation() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            for (int i = 0; i < nrIter; i++) {
+                AllocateBuffer(10);
+            }
+            timer.Stop();
+            Print(timer, "String buffer allocation", nrIter);
+        }
+
+        static Encoder Utf8Encode = new UTF8Encoding(false, true).GetEncoder();
+        static Decoder Utf8Decode = new UTF8Encoding(false, true).GetDecoder();
+
+        //[Test]
+        public static unsafe void BenchmarkGetBytes() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* start = new byte[20]) {
+                String str = "Just text.";
+                fixed (char* pStr = str) {
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        int len = Utf8Encode.GetBytes(pStr, 10, start, 20, true); ;
+                    }
+                    timer.Stop();
+                }
+            }
+            Print(timer, "Get bytes", nrIter);
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkGetChars() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            char* buffer = stackalloc char[11];
+            fixed (byte* start = new byte[20]) {
+                String str = "Just text.";
+                fixed (char* pStr = str) {
+                    int len = Utf8Encode.GetBytes(pStr, 10, start, 20, true); ;
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        Utf8Decode.GetChars(start, len, buffer, 10, true);
+                    }
+                    timer.Stop();
+                }
+            }
+            Print(timer, "Get chars", nrIter);
+        }
+
+
+        //[Test]
+        public static unsafe void BenchmarkNewString() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            //char* buffer = stackalloc char[11];
+            //buffer = "Just text.";
+            String str = "Just text.";
+            fixed (char* buffer = str.ToCharArray()) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    str = new String(buffer, 0, 10);
+                }
+                timer.Stop();
+            }
+            Print(timer, "New String", nrIter);
+        }
+
+        static unsafe void NewStringFromBufferAlloc(int size) {
+            char* buffer = stackalloc char[size + 1];
+            String str = new String(buffer, 0, size);
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkNewStringBufferAlloc() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            for (int i = 0; i < nrIter; i++) {
+                NewStringFromBufferAlloc(10);
+            }
+            timer.Stop();
+            Print(timer, "New String with buffer allocation", nrIter);
+        }
+
+
         [Test]
         [Category("LongRunning")]
         public static unsafe void RunAllTests() {
@@ -349,6 +455,12 @@ namespace FasterThanJson.Tests {
             Console.WriteLine("------------ Strings ----------------");
             BenchmarkTupleString1Scale();
             BenchmarkTupleString10Scale();
+            BenchmarkGetBytes();
+            BenchmarkNewStringBufferAlloc();
+            BenchmarkGetChars();
+            BenchmarkNewString();
+            BenchmarkBufferAllocation();
+            BenchmarkNewTupleReader();
             Console.WriteLine("------------ Byte arrays ----------------");
             BenchmarkTupleByte1Scale();
             BenchmarkTupleByte10Scale();
