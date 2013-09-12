@@ -91,6 +91,11 @@ namespace Starcounter.Advanced
         /// </summary>
         private byte[] uncompressed_response_ = null;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		private int uncompressedResponseLength_ = -1;
+
         /// <summary>
         /// The _ compressed
         /// </summary>
@@ -785,13 +790,9 @@ namespace Starcounter.Advanced
 						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 					}
 
-					// TODO: 
-					// We should be able to set the size so we don't have to do an extra copy here.
-
 					// Finally setting the uncompressed bytes.
-					byte[] sizedBuffer = new byte[writer.Written];
-					Marshal.Copy((IntPtr)p, sizedBuffer, 0, writer.Written);
-					Uncompressed = sizedBuffer;
+					uncompressed_response_ = buf;
+					uncompressedResponseLength_ = writer.Written;
 				}
 			}
 
@@ -1034,8 +1035,30 @@ namespace Starcounter.Advanced
             set
             {
                 uncompressed_response_ = value;
+				if (value != null)
+					uncompressedResponseLength_ = value.Length;
+				else
+					uncompressedResponseLength_ = -1;
             }
         }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public Int32 UncompressedLength {
+			get { return uncompressedResponseLength_; }
+			set {
+				if (uncompressed_response_ == null)
+					throw new ArgumentException("No response defined!");
+
+				if (value > uncompressed_response_.Length) {
+					throw new ArgumentOutOfRangeException(
+						"value", 
+						"Cannot set the length of the response to be larger than the actual response.");
+				}
+				uncompressedResponseLength_ = value;
+			}
+		}
 
         /// <summary>
         /// Getting full response length.
@@ -1047,7 +1070,7 @@ namespace Starcounter.Advanced
                 if (customFields_)
                 {
                     if (uncompressed_response_ != null)
-                        return uncompressed_response_.Length;
+                        return uncompressedResponseLength_;
 
                     throw new ArgumentException("No response defined!");
                 }
@@ -1191,6 +1214,7 @@ namespace Starcounter.Advanced
         public void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
         {
             uncompressed_response_ = response_buf;
+			uncompressedResponseLength_ = response_buf.Length;
 
             mem_stream_ = mem_stream;
 
@@ -1222,7 +1246,7 @@ namespace Starcounter.Advanced
         public void ParseResponseFromUncompressed()
         {
             if (uncompressed_response_ != null)
-                TryParseResponse(uncompressed_response_, 0, uncompressed_response_.Length, true);
+                TryParseResponse(uncompressed_response_, 0, uncompressedResponseLength_, true);
         }
 
         /// <summary>
