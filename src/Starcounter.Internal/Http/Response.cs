@@ -1765,7 +1765,7 @@ namespace Starcounter.Advanced
                 if (customFields_) {
 
                     if (null == customHeaderFields_)
-                        throw new ArgumentException("HTTP response custom fields are not initialized.");
+                        throw new ArgumentException("HTTP response custom headers are not set.");
 
                     if (customHeaderFields_.ContainsKey(name))
                         return customHeaderFields_[name];
