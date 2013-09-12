@@ -17,6 +17,7 @@ using Starcounter;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Metadata;
+using System.Threading;
 
 namespace StarcounterInternal.Hosting
 {
@@ -298,6 +299,14 @@ namespace StarcounterInternal.Hosting
                 var result = package.WaitUntilProcessed();
                 package.Dispose();
                 if (result != 0) {
+                    // The package didn't process successfully, which
+                    // currently means that the thread processing it should
+                    // assure the process is shut down with the failure
+                    // being logged.
+                    //   Our strategy is therefore to await this to happen.
+                    // If it doesnt in some time, we raise an exception our
+                    // self, which will bring the process down instead.
+                    Thread.Sleep(2000);
                     throw ErrorCode.ToException(result);
                 }
 

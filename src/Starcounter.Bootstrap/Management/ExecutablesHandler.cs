@@ -38,16 +38,17 @@ namespace Starcounter.Bootstrap.Management {
             for (int i = 0; i < exe.Arguments.Count; i++) {
                 userArgs[i] = exe.Arguments[i].dummy;
             }
-
+            
+            // Ask the loader to execute the given executable.
+            // If this fails, the process can't really survive since
+            // we have no way to clean up the loaded domain from the
+            // failing code.
+            //   Eventually, we will have a strategy to restart the
+            // host without the now failing executable.
             try {
                 Loader.ExecApp(schedulerHandle, exe.Path, null, exe.WorkingDirectory, userArgs, !exe.RunEntrypointAsynchronous);
             } catch (Exception e) {
-                uint error;
-                if (!ErrorCode.TryGetCode(e, out error)) {
-                    error = Error.SCERRUNSPECIFIED;
-                }
-                var detail = CodeHostHandler.JSON.CreateError(error, e.Message, ErrorCode.ToHelpLink(error));
-                return CodeHostHandler.JSON.CreateResponse(detail.ToString(), 500);
+                if (!ExceptionManager.HandleUnhandledException(e)) throw;
             }
 
             return 204;
