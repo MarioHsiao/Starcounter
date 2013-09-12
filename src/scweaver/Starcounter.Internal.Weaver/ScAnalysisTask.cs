@@ -1088,37 +1088,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Validates the declared <paramref name="property"/> in the specified
-        /// <paramref name="databaseClass"/> to see if it violates any constraits.
-        /// Emits relevant errors if it does.
-        /// </summary>
-        /// <param name="databaseClass">The database class that declares the given
-        /// property.</param>
-        /// <param name="property">The property to validate.</param>
-        private void ValidateDiscoveredDatabaseProperty2(DatabaseClass databaseClass, PropertyDeclaration property) {
-            var cursor = databaseClass;
-            while (cursor != null) {
-                foreach (var item in cursor.Attributes) {
-                    if (item.AttributeKind == DatabaseAttributeKind.Field && item.IsPublicRead) {
-                        if (item.Name.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)) {
-                            var detail = string.Format("Property {0} in class {1}, field {2} in class {3}.",
-                                property.Name,
-                                databaseClass.Name,
-                                item.Name,
-                                cursor.Name);
-                            ScMessageSource.WriteError(
-                                MessageLocation.Of(property),
-                                Error.SCERRPROPERTYNAMEEQUALSFIELD,
-                                detail);
-                        }
-                    }
-                }
-
-                cursor = cursor.BaseClass;
-            }
-        }
-
-        /// <summary>
         /// Go through all detected and recorded synonym declarations and materialize
         /// the target, by fetching the attribute using the target name.
         /// </summary>
@@ -1183,9 +1152,11 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
         /// <param name="property">Property to be inspected.</param>
         private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
-            ValidateDiscoveredDatabaseProperty(databaseClass, property);
-            var transient = property.CustomAttributes.Contains(this._transientAttributeType);
+            if (!ValidateDiscoveredDatabaseProperty(databaseClass, property)) {
+                return;
+            }
 
+            var transient = property.CustomAttributes.Contains(this._transientAttributeType);
             if (transient) {
                 // The property is marked transient. Find the corresponding backing field
                 // in the same class. If not found, the attribute is not on an
@@ -1223,7 +1194,8 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseClass">The database class that declares the given
         /// property.</param>
         /// <param name="property">The property to validate.</param>
-        private void ValidateDiscoveredDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
+        private bool ValidateDiscoveredDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
+            var success = true;
             var cursor = databaseClass;
             while (cursor != null) {
                 foreach (var item in cursor.Attributes) {
@@ -1238,12 +1210,14 @@ namespace Starcounter.Internal.Weaver {
                                 MessageLocation.Of(property),
                                 Error.SCERRPROPERTYNAMEEQUALSFIELD,
                                 detail);
+                            success = false;
                         }
                     }
                 }
 
                 cursor = cursor.BaseClass;
             }
+            return success;
         }
 
         /// <summary>
