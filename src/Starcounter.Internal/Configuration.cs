@@ -24,7 +24,7 @@ namespace Starcounter {
             public bool DisableAllCaching {
                 get {
                     // TODO!
-                    return true;
+                    return false;
                 }
                 set {
                     throw new NotImplementedException();

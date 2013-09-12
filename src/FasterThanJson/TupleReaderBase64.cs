@@ -208,16 +208,15 @@ namespace Starcounter.Internal
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString(int valueLength, byte* start) {
-          Debug.Assert(valueLength >= 0);
-          if (valueLength > 1) {
+          Debug.Assert(valueLength > 0);
+          String str;
+          if (Base64Int.ReadBase64x1(start) == 0) {
               char* buffer = stackalloc char[(int)valueLength];
               int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
-              return new String(buffer, 0, stringLen);
-          }
-          if (valueLength == 0)
-              return "";
-          // if (valueLength == 1)
-          return null;
+              str = new String(buffer, 0, stringLen);
+          } else
+              str = null;
+          return str;
       }
 
       /// <summary>
