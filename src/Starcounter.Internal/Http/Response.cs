@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Starcounter.Advanced
 {
@@ -210,6 +211,41 @@ namespace Starcounter.Advanced
         /// Indicates that response is sealed and can't be modified.
         /// </summary>
         Boolean readOnly_;
+
+        /// <summary>
+        /// Special connection flags.
+        /// </summary>
+        public enum ConnectionFlags
+        {
+            NoSpecialFlags = 0,
+            DisconnectAfterSend = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
+            DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT
+        }
+
+        /// <summary>
+        /// Connection flags.
+        /// </summary>
+        ConnectionFlags connectionFlags_ = ConnectionFlags.NoSpecialFlags;
+
+        /// <summary>
+        /// Indicates if corresponding connection should be shut down.
+        /// </summary>
+        public ConnectionFlags ConnFlags
+        {
+            get
+            {
+                return connectionFlags_;
+            }
+
+            set
+            {
+                if (readOnly_)
+                    throw new ArgumentException("Incoming HTTP response can't be modified.");
+
+                customFields_ = true;
+                connectionFlags_ = value;
+            }
+        }
 
         /// <summary>
         /// HTTP response status code.
@@ -487,6 +523,14 @@ namespace Starcounter.Advanced
             }
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		internal void SetCustomFieldsFlag() {
+			customFields_ = true;
+			readOnly_ = false;
+		}
+
         /// <summary>
         /// Resets all custom fields.
         /// </summary>
@@ -587,10 +631,181 @@ namespace Starcounter.Advanced
             }
         }
 
+		/// <summary>
+		/// Constructs Response from fields that are set.
+		/// </summary>
+		public void ConstructFromFields() {
+			byte[] buf;
+			Utf8Writer writer;
+
+			// Checking if we have a custom response.
+			if (!customFields_)
+				return;
+
+			byte[] bytes = bodyBytes_;
+			if (_Hypermedia != null) {
+				var mimetype = http_request_.PreferredMimeType;
+				try {
+					bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+				} catch (UnsupportedMimeTypeException exc) {
+					throw new Exception(
+						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
+				}
+
+				if (bytes == null) {
+					// The preferred requested mime type was not supported, try to see if there are
+					// other options.
+					IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
+					secondaryChoices.MoveNext(); // The first one is already accounted for
+					while (bytes == null && secondaryChoices.MoveNext()) {
+						mimetype = secondaryChoices.Current;
+						bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					}
+					if (bytes == null) {
+						// None of the requested mime types were supported.
+						// We will have to respond with a "Not Acceptable" message.
+						statusCode_ = 406;
+					} else {
+						contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+					}
+				}
+				// We have our precious bytes. Let's wrap them up in a response.
+			}
+
+			buf = new byte[EstimateNeededSize(bytes)];
+			
+			unsafe {
+				fixed (byte* p = buf) {
+					writer = new Utf8Writer(p);
+					writer.Write(HttpHeadersUtf8.Http11);
+
+					if (statusCode_ > 0) {
+						writer.Write(statusCode_);
+						writer.Write(' ');
+						
+						// Checking if Status Description is set.
+						if (null != statusDescription_)
+							writer.Write(statusDescription_);
+						else 
+							writer.Write("OK");
+
+						writer.Write(HttpHeadersUtf8.CRLF);
+					} else {
+						// Checking if Status Description is set.
+						if (null != statusDescription_) {
+							writer.Write(200);
+							writer.Write(' ');
+							writer.Write(statusDescription_);
+						} else
+							writer.Write("200 OK");
+						writer.Write(HttpHeadersUtf8.CRLF);
+					}
+
+					writer.Write(HttpHeadersUtf8.ServerSc);
+					writer.Write(HttpHeadersUtf8.NoCache);
+
+					if (null != headersString_)
+						writer.Write(headersString_);
+
+					if (null != contentType_) {
+						writer.Write(HttpHeadersUtf8.ContentTypeStart);
+						writer.Write(contentType_);
+						writer.Write(HttpHeadersUtf8.CRLF);
+					}
+
+					if (null != contentEncoding_) {
+						writer.Write(HttpHeadersUtf8.ContentEncodingStart);
+						writer.Write(contentEncoding_);
+						writer.Write(HttpHeadersUtf8.CRLF);	
+					}
+
+					if (null != setCookiesString_) {
+						writer.Write(HttpHeadersUtf8.SetCookieStart);
+						writer.Write(setCookiesString_);
+
+						if (null != AppsSession) {
+							writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
+							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							writer.Write(AppsSession.ToAsciiString());
+							writer.Write(HttpHeadersUtf8.setCookiePathEnd);
+						}
+						writer.Write(HttpHeadersUtf8.CRLF);
+					} else {
+						if (null != AppsSession) {
+							writer.Write("Set-Cookie: Location=");
+							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							writer.Write(AppsSession.ToAsciiString());
+							writer.Write(HttpHeadersUtf8.setCookiePathEnd);
+							writer.Write(HttpHeadersUtf8.CRLF);	
+						}
+					}
+
+					if (null != bodyString_) {
+						if (null != bytes)
+							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
+
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write(writer.GetByteCount(bodyString_));
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);	
+
+						writer.Write(bodyString_);
+					} else if (null != bytes) {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write(bytes.Length);
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
+						writer.Write(bytes);
+					} else {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write('0');
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
+					}
+
+					// TODO: 
+					// We should be able to set the size so we don't have to do an extra copy here.
+
+					// Finally setting the uncompressed bytes.
+					byte[] sizedBuffer = new byte[writer.Written];
+					Marshal.Copy((IntPtr)p, sizedBuffer, 0, writer.Written);
+					Uncompressed = sizedBuffer;
+				}
+			}
+
+			customFields_ = false;
+			readOnly_ = true;
+		}
+
+		private int EstimateNeededSize(byte[] bytes) {
+			// The sizes of the strings here is not accurate. We are mainly interested in making sure
+			// that we will never have a buffer overrun so we take the length of the strings * 2.
+			int strSizeMultiplier = 2;
+			int size;
+
+			size = HttpHeadersUtf8.TotalByteSize;
+
+			if (statusDescription_ != null)
+				size += statusDescription_.Length * strSizeMultiplier;
+			if (null != headersString_)
+				size += headersString_.Length * strSizeMultiplier;
+			if (null != contentType_)
+				size += contentType_.Length * strSizeMultiplier;
+			if (null != contentEncoding_)
+				size += contentEncoding_.Length * strSizeMultiplier;
+			if (null != AppsSession) {
+				size += ScSessionClass.DataLocationUriPrefixEscaped.Length * strSizeMultiplier;
+				size += AppsSession.ToAsciiString().Length;
+			}
+			if (null != bodyString_)
+				size += bodyString_.Length * strSizeMultiplier;
+			else if (null != bytes)
+				size += bytes.Length;
+			return size;
+		}
+
         /// <summary>
         /// Constructs Response from fields that are set.
         /// </summary>
-        public void ConstructFromFields()
+        public void ConstructFromFields_Slow()
         {
             // Checking if we have a custom response.
             if (!customFields_)
@@ -630,7 +845,7 @@ namespace Starcounter.Advanced
             }
 
             String str = "HTTP/1.1 ";
-            
+
             if (statusCode_ > 0)
             {
                 str += statusCode_;
@@ -1375,7 +1590,7 @@ namespace Starcounter.Advanced
         /// <param name="length">The length.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
         {
-            unsafe { data_stream_.SendResponse(buffer, offset, length); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connectionFlags_); }
         }
 
         /// <summary>

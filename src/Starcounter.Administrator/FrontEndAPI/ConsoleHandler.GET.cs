@@ -6,6 +6,7 @@ using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal.Web;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -33,12 +34,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             errorJson.code = (int)HttpStatusCode.NotFound;
                             errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_" + response.StatusCode; // TODO
 
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+							return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)HttpStatusCode.NotFound);
                         }
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
                             // Success
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, response.Body) };
+							return RESTUtility.JSON.CreateResponse(response.Body);
                         }
                         else {
                             // Error
@@ -51,9 +52,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             }
                             errorJson.code = (int)response.StatusCode;
                             errorJson.helpLink = null;
-
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)response.StatusCode, null, errorJson.ToString()) };
-
+							return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)response.StatusCode);
                         }
 
                     }
