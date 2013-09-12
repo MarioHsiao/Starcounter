@@ -44,14 +44,16 @@ namespace Starcounter.Internal.Tests {
 			var sw = new Stopwatch();
 			sw.Start();
 			byte[] ret = null;
+			int retSize = -1;
 			byte[] content = new byte[] { (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o' };
 			for (int i = 0; i < repeats; i++) {
 				response = new Response() { BodyBytes = content, ContentLength = content.Length };
 				response.ConstructFromFields();
 				ret = response.Uncompressed;
+				retSize = response.UncompressedLength;
 			}
 			sw.Stop();
-			Console.WriteLine(Encoding.UTF8.GetString(ret, 0, ret.Length));
+			Console.WriteLine(Encoding.UTF8.GetString(ret, 0, retSize));
 			Console.WriteLine(String.Format("Ran {0} times in {1} ms", repeats, sw.ElapsedMilliseconds));
 		}
 
@@ -115,13 +117,23 @@ namespace Starcounter.Internal.Tests {
 		private static void AssertConstructedResponsesAreEqual(Response response) {
 			byte[] arr1;
 			byte[] arr2;
+			int arr1Size;
+			int arr2Size;
 
 			response.ConstructFromFields_Slow();
 			arr1 = response.Uncompressed;
+			arr1Size = response.UncompressedLength;
+
 			response.SetCustomFieldsFlag();
 			response.ConstructFromFields();
 			arr2 = response.Uncompressed;
-			Assert.AreEqual(arr1, arr2);
+			arr2Size = response.UncompressedLength;
+
+			Assert.AreEqual(arr1Size, arr2Size);
+
+			for (int i = 0; i < arr1Size; i++) {
+				Assert.AreEqual(arr1[i], arr2[i], "Arrays differ at position " + i);
+			}
 		}
 
 		private static void AssertConstructedRequestsAreEqual(Request request) {
