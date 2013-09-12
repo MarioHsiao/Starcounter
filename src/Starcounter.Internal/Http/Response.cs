@@ -336,6 +336,22 @@ namespace Starcounter.Advanced
             }
         }
 
+		String cacheControl_;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public String CacheControl {
+			get { return cacheControl_; }
+			set {
+				if (readOnly_)
+					throw new ArgumentException("Incoming HTTP response can't be modified.");
+
+				customFields_ = true;
+				cacheControl_ = value;
+			}
+		}
+
         String contentEncoding_;
 
         /// <summary>
@@ -703,7 +719,15 @@ namespace Starcounter.Advanced
 					}
 
 					writer.Write(HttpHeadersUtf8.ServerSc);
-					writer.Write(HttpHeadersUtf8.NoCache);
+
+					// TODO:
+					// What should the default cachecontrol be?
+					if (null != cacheControl_) {
+						writer.Write(HttpHeadersUtf8.CacheControlStart);
+						writer.Write(cacheControl_);
+						writer.Write(HttpHeadersUtf8.CRLF);
+					} else
+						writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
 					if (null != headersString_)
 						writer.Write(headersString_);
@@ -787,6 +811,8 @@ namespace Starcounter.Advanced
 				size += statusDescription_.Length * strSizeMultiplier;
 			if (null != headersString_)
 				size += headersString_.Length * strSizeMultiplier;
+			if (null != cacheControl_)
+				size += cacheControl_.Length * strSizeMultiplier;
 			if (null != contentType_)
 				size += contentType_.Length * strSizeMultiplier;
 			if (null != contentEncoding_)
@@ -868,7 +894,10 @@ namespace Starcounter.Advanced
 
             str += "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
 
-            str += "Cache-Control: no-cache" + StarcounterConstants.NetworkConstants.CRLF;
+			if (null != cacheControl_) {
+				str += "Cache-Control: " + cacheControl_ + StarcounterConstants.NetworkConstants.CRLF;
+			} else
+				str += "Cache-Control: no-cache" + StarcounterConstants.NetworkConstants.CRLF;
 
             if (null != headersString_)
                 str += headersString_;
