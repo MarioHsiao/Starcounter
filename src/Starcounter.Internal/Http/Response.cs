@@ -703,10 +703,9 @@ namespace Starcounter.Advanced
 							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
 
 						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(bodyString_.Length);
+						writer.Write(writer.GetByteCount(bodyString_));
 						writer.Write(HttpHeadersUtf8.CRLFCRLF);	
 
-						// Adding the body.
 						writer.Write(bodyString_);
 					} else if (null != bytes) {
 						writer.Write(HttpHeadersUtf8.ContentLengthStart);

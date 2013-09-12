@@ -52,6 +52,12 @@ namespace Starcounter.Internal {
 			pbuf += written;
 		}
 
+		public int GetByteCount(string value) {
+			fixed (char* pval = value) {
+				return  utf8Encoder.GetByteCount(pval, value.Length, false);
+			}
+		}
+
 		// Copied from FasterThanJson.MemcpyUtil
 		private unsafe static void Memcpy16fwd(byte* dest, byte* src, uint len) {
 			if (len >= 16) {
