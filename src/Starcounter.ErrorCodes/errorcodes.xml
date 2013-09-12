@@ -3086,6 +3086,9 @@
         The user code entrypoint method raised an exception.
       </message>
     </code>
+    <code hex="0104" severity="Error" name="ScErrTransactionClosed">
+      <message>An operation failed because transaction has been closed.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
