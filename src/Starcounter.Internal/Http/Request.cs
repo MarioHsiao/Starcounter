@@ -769,6 +769,20 @@ namespace Starcounter.Advanced {
             }
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		internal byte[] CustomBytes {
+			get { return customBytes_; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		internal void SetCustomFieldsFlag() {
+			customFields_ = true;
+		}
+
         /// <summary>
         /// Resets all custom fields.
         /// </summary>
@@ -881,6 +895,10 @@ namespace Starcounter.Advanced {
 						writer.Write(bodyBytes_.Length);
 						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 						writer.Write(bodyBytes_);
+					} else {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write('0');
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 					}
 
 					// TODO: 
@@ -915,7 +933,7 @@ namespace Starcounter.Advanced {
                 methodString_ = "GET";
 
             String str = methodString_ + " " + uriString_ + " HTTP/1.1" + StarcounterConstants.NetworkConstants.CRLF;
-            str += "Host:" + hostNameString_ + StarcounterConstants.NetworkConstants.CRLF;
+            str += "Host: " + hostNameString_ + StarcounterConstants.NetworkConstants.CRLF;
 
             if (null != headersString_)
                 str += headersString_;
@@ -929,17 +947,18 @@ namespace Starcounter.Advanced {
             if (null != cookieString_)
                 str += "Cookie: " + cookieString_ + StarcounterConstants.NetworkConstants.CRLF;
 
-            Int32 contentLength = 0;
-
-            if (null != bodyString_)
-                contentLength = bodyString_.Length;
-
-            str += "Content-Length: " + contentLength + StarcounterConstants.NetworkConstants.CRLF;
-
-            str += StarcounterConstants.NetworkConstants.CRLF;
-
-            if (null != bodyString_)
-                str += bodyString_;
+			if (null != bodyString_) {
+				str += "Content-Length: " + bodyString_.Length + StarcounterConstants.NetworkConstants.CRLF;
+				str += StarcounterConstants.NetworkConstants.CRLF;
+				str += bodyString_;
+			} else if (null != bodyBytes_) {
+				str += "Content-Length: " + bodyBytes_.Length + StarcounterConstants.NetworkConstants.CRLF;
+				str += StarcounterConstants.NetworkConstants.CRLF;
+				str += Encoding.UTF8.GetString(bodyBytes_);
+			} else {
+				str += "Content-Length: 0" + StarcounterConstants.NetworkConstants.CRLF;
+				str += StarcounterConstants.NetworkConstants.CRLF;
+			}
 
             // Finally setting the request bytes.
             customBytes_ = Encoding.UTF8.GetBytes(str);
