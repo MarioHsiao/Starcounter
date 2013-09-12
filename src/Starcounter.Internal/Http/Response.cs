@@ -488,6 +488,14 @@ namespace Starcounter.Advanced
             }
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		internal void SetCustomFieldsFlag() {
+			customFields_ = true;
+			readOnly_ = false;
+		}
+
         /// <summary>
         /// Resets all custom fields.
         /// </summary>
@@ -714,7 +722,7 @@ namespace Starcounter.Advanced
 						writer.Write(bytes);
 					} else {
 						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(0);
+						writer.Write('0');
 						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 					}
 

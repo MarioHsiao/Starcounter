@@ -34,57 +34,21 @@ namespace Starcounter.Internal.Tests {
 			uri = Encoding.UTF8.GetBytes(str);
 		}
 
-		///// <summary>
-		///// Benchmarks the create put URI.
-		///// </summary>
-		//[Test]
-		//public static void BenchmarkCreatePutUri() {
-		//	int repeats = 1;
-		//	var buffer = new byte[100000];
-		//	var sw = new Stopwatch();
-		//	sw.Start();
-		//	uint len = 0;
-		//	for (int i = 0; i < repeats; i++) {
-		//		len = HttpRequestWriter.WriteRequest(buffer, 0, HttpRequestWriter.PUT, uri, uri.Length, HttpRequestWriter.PUT, 0, 3);
-		//	}
-		//	sw.Stop();
-		//	Console.WriteLine(Encoding.UTF8.GetString(buffer, 0, (int)len));
-		//	Console.WriteLine(String.Format("Ran {0} times in {1} ms", repeats, sw.ElapsedMilliseconds));
-		//}
-
-		///// <summary>
-		///// Benchmarks the create get URI.
-		///// </summary>
-		//[Test]
-		//public static void BenchmarkCreateGetUri() {
-		//	int repeats = 10;
-		//	var buffer = new byte[10000000];
-		//	var sw = new Stopwatch();
-		//	sw.Start();
-		//	uint len = 0;
-		//	uint offset = 0;
-		//	for (int i = 0; i < repeats; i++) {
-		//		len = HttpRequestWriter.WriteRequest(buffer, offset, HttpRequestWriter.GET, uri, uri.Length, null, 0, 0);
-		//		offset += len;
-		//	}
-		//	sw.Stop();
-		//	Console.WriteLine(Encoding.UTF8.GetString(buffer, 0, (int)len));
-		//	Console.WriteLine(String.Format("Ran {0} times in {1} ms", repeats, sw.ElapsedMilliseconds));
-		//}
-
-
 		/// <summary>
 		/// Benchmarks the ok200_with_content.
 		/// </summary>
 		[Test]
 		public static void BenchmarkOk200_with_content() {
 			int repeats = 1;
+			Response response;
 			var sw = new Stopwatch();
 			sw.Start();
 			byte[] ret = null;
 			byte[] content = new byte[] { (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o' };
 			for (int i = 0; i < repeats; i++) {
-				(new Response() { BodyBytes = content, ContentLength = content.Length }).ConstructFromFields();
+				response = new Response() { BodyBytes = content, ContentLength = content.Length };
+				response.ConstructFromFields();
+				ret = response.Uncompressed;
 			}
 			sw.Stop();
 			Console.WriteLine(Encoding.UTF8.GetString(ret, 0, ret.Length));
@@ -92,24 +56,88 @@ namespace Starcounter.Internal.Tests {
 		}
 
 		[Test]
-		public static void TestResponseFastConstructFromFields() {
-			Response slowResponse = Response.FromStatusCode(200);
-			Response fastResponse = Response.FromStatusCode(200);
+		public static void TestResponseConstructFromFields() {
+			string json = File.ReadAllText("simple.json");
 
-			slowResponse.ConstructFromFields_Slow();
-			fastResponse.ConstructFromFields();
+			Response response = Response.FromStatusCode(200);
+			AssertConstructedResponsesAreEqual(response);
 
-			Assert.AreEqual(slowResponse.Uncompressed, fastResponse.Uncompressed);
+			response = Response.FromStatusCode((int)HttpStatusCode.InternalServerError);
+			response.Body = "Some exception message describing the error.";
+			AssertConstructedResponsesAreEqual(response);
 
-			slowResponse = Response.FromStatusCode((int)HttpStatusCode.InternalServerError);
-			slowResponse.Body = "Some exception message describing the error.";
-			fastResponse = Response.FromStatusCode((int)HttpStatusCode.InternalServerError);
-			fastResponse.Body = "Some exception message describing the error.";
+			response = Response.FromStatusCode(200);
+			response.Body = json;
+			response.ContentType = "application/json";
+			response.ContentEncoding = "utf8";
+			response.Headers = "somespecialheader: myvalue\r\n";
+			response.StatusDescription = " My special status";
+			AssertConstructedResponsesAreEqual(response);
 
-			Assert.AreEqual(slowResponse.Uncompressed, fastResponse.Uncompressed);
+			response = Response.FromStatusCode(404);
+			response.BodyBytes = Encoding.UTF8.GetBytes(json);
+			response.ContentType = "application/json";
+			response.ContentEncoding = "utf8";
+			response.Headers = "somespecialheader: myvalue\r\n";
+			response.StatusDescription = " My special status";
+			AssertConstructedResponsesAreEqual(response);
 		}
 
 		[Test]
+		public static void TestRequestConstructFromFields() {
+			string json = File.ReadAllText("simple.json");
+
+			Request request = new Request();
+			request.Uri = "/test";
+			request.HostName = "127.0.0.1:8080";
+			AssertConstructedRequestsAreEqual(request);
+
+			request = new Request();
+			request.Method = "PUT";
+			request.Uri = "/MyJson";
+			request.HostName = "192.168.8.1";
+			request.ContentType = "application/json";
+			request.Body = json;
+			AssertConstructedRequestsAreEqual(request);
+
+			request = new Request();
+			request.Method = "PUT";
+			request.Uri = "/MyJson";
+			request.HostName = "192.168.8.1";
+			request.ContentType = "application/json";
+			request.ContentEncoding = "utf8";
+			request.Cookie = "dfsafeHYWERGSfswefw";
+			request.Headers = "somespecialheader: myvalue\r\n";
+			request.BodyBytes = Encoding.UTF8.GetBytes(json);
+			AssertConstructedRequestsAreEqual(request);
+		}
+
+		private static void AssertConstructedResponsesAreEqual(Response response) {
+			byte[] arr1;
+			byte[] arr2;
+
+			response.ConstructFromFields_Slow();
+			arr1 = response.Uncompressed;
+			response.SetCustomFieldsFlag();
+			response.ConstructFromFields();
+			arr2 = response.Uncompressed;
+			Assert.AreEqual(arr1, arr2);
+		}
+
+		private static void AssertConstructedRequestsAreEqual(Request request) {
+			byte[] arr1;
+			byte[] arr2;
+
+			request.ConstructFromFields_Slow();
+			arr1 = request.CustomBytes;
+			request.SetCustomFieldsFlag();
+			request.ConstructFromFields();
+			arr2 = request.CustomBytes;
+			Assert.AreEqual(arr1, arr2);
+		}
+
+		[Test]
+		[Category("LongRunning")]
 		public static void BenchmarkResponseConstructFromFields() {
 			int repeats = 1000000;
 			Response response;
@@ -133,6 +161,15 @@ namespace Starcounter.Internal.Tests {
 			response.Headers = "somespecialheader: myvalue\r\n";
 			response.StatusDescription = " My special status";
 			RunResponseBenchmark(response, repeats);
+
+			Console.WriteLine("200 with more fields and BodyBytes set, repeats: " + repeats);
+			response = Response.FromStatusCode(200);
+			response.BodyBytes = Encoding.UTF8.GetBytes(json);
+			response.ContentType = "application/json";
+			response.ContentEncoding = "utf8";
+			response.Headers = "somespecialheader: myvalue\r\n";
+			response.StatusDescription = " My special status";
+			RunResponseBenchmark(response, repeats);
 		}
 
 		private static void RunResponseBenchmark(Response response, int repeats) {
@@ -142,17 +179,17 @@ namespace Starcounter.Internal.Tests {
 			start = DateTime.Now;
 			for (int i = 0; i < repeats; i++) {
 				response.ConstructFromFields();
+				response.SetCustomFieldsFlag();
 			}
 			stop = DateTime.Now;
-
 			Console.Write((stop - start).TotalMilliseconds + "    ");
 
 			start = DateTime.Now;
 			for (int i = 0; i < repeats; i++) {
 				response.ConstructFromFields_Slow();
+				response.SetCustomFieldsFlag();
 			}
 			stop = DateTime.Now;
-
 			Console.WriteLine((stop - start).TotalMilliseconds);
 		}
 	}
