@@ -398,6 +398,21 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_NODE_TESTS:
                 {
+                    Handle.GET(8080, "/headers", (Request req) =>
+                    {
+                        Response r = new Response()
+                        {
+                            Body = "Closing connection",
+                            ConnFlags = Response.ConnectionFlags.DisconnectAfterSend
+                        };
+
+                        r["MyHeader1"] = "Haha!";
+                        r["MyHeader2"] = "Xaha!";
+
+                        return r;
+                    });
+
+
                     Handle.GET(8080, "/shutdown", (Request req) =>
                     {
                         return new Response()

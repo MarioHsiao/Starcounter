@@ -40,8 +40,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     string fileName = Path.GetFileName(latestBuild.File);
 
-                    return new Response() { BodyBytes = fileBytes, Headers = "Content-Disposition: attachment; filename=\"" + fileName + "\"\r\n", StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    Response r = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    r["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
 
+                    return r;
                 }
                 catch (Exception e) {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
@@ -82,8 +84,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     string fileName = Path.GetFileName(latestBuild.File);
 
-                    return new Response() { BodyBytes = fileBytes, Headers = "Content-Disposition: attachment; filename=\"" + fileName + "\"\r\n", StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    Response r = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    r["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
 
+                    return r;
                 }
                 catch (Exception e) {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
@@ -95,7 +99,9 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             // This link is given to ppl that wanted a direct download link wihtout a key.
             // NOTE: deprecated, it's replaces by the /beta link
             Handle.GET(port, "/hiddenarea/latest", (Request request) => {
-                return new Response() { Headers = "Location: /beta\r\n", StatusCode = (ushort)System.Net.HttpStatusCode.MovedPermanently };
+                Response r = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.MovedPermanently };
+                r["Location"] = "/beta";
+                return r;
             });
 
         }
