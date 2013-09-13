@@ -455,31 +455,28 @@ namespace Starcounter.Internal
       /// <returns>UInt64.</returns>
       /// <exception cref="System.Exception">Illegal size</exception>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe UInt64 Read(int size, byte* ptr)
-      {
-         switch (size)
-         {
-            case 1:
-               return ReadBase64x1(ptr);
-            case 2:
-               return ReadBase64x2(ptr);
-            case 3:
-               return ReadBase64x3(ptr);
-            case 4:
-               return ReadBase64x4(ptr);
-            case 5:
-               return ReadBase64x5(ptr);
-            case 6:
-               return ReadBase64x6(ptr);
-            case 11:
-               return ReadBase64x11(ptr);
-            default:
-               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, "+size+", in UInt64 read of FasterThanJson.");
-           
-         }
-		 //var c = (Base64x5*)ptr;
-		 //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
-		 //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
+      public static unsafe UInt64 Read(int size, byte* ptr) {
+          ulong val;
+          if (size == 1)
+              val = ReadBase64x1(ptr);
+          else if (size == 2)
+              val = ReadBase64x2(ptr);
+          else if (size == 3)
+              val = ReadBase64x3(ptr);
+          else if (size == 4)
+              val = ReadBase64x4(ptr);
+          else if (size == 5)
+              val = ReadBase64x5(ptr);
+          else if (size == 6)
+              val = ReadBase64x6(ptr);
+          else if (size == 11)
+              val = ReadBase64x11(ptr);
+          else
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
+          return val;
+          //var c = (Base64x5*)ptr;
+          //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
+          //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
       /// <summary>
