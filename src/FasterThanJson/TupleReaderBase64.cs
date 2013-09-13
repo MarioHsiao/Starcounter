@@ -172,6 +172,20 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long ReadInt() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong uval = Base64Int.Read(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          long ret = (long)(uval >> 1);
+          if ((uval & 0x00000001) == 1)
+              ret = -ret - 1;
+          return ret;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe ulong ReadUInt(int index) {
 #if BASE64
           byte* valuePos;

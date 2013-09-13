@@ -38,10 +38,12 @@ namespace IndexQueryTest.InheritedIndex {
 
     public class Teacher : Employee {
         public String Qualification;
+        public String NickName { get { return Name; } set { Name = value; } }
     }
 
     public class Professor : Teacher {
         public String Subject;
+        public String GetName { get { return NickName; } }
     }
 
 }
