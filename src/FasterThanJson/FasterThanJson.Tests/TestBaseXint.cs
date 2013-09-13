@@ -2,8 +2,9 @@
 using NUnit.Framework;
 using System;
 using System.Text;
+using Starcounter.Internal;
 
-namespace Starcounter.Internal
+namespace FasterThanJson.Tests
 {
    /// <summary>
    /// Tests that reading and writing Base32, Base64 and Base256 values works as expected

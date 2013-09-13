@@ -433,6 +433,74 @@ namespace FasterThanJson.Tests {
             Print(timer, "New String with buffer allocation", nrIter);
         }
 
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkWriteBase64x1() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    Base64Int.WriteBase64x1(32, buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(32, Base64Int.ReadBase64x1(buffer));
+            }
+            Print(timer, "Write Int Base64x1", nrIter);
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkReadBase64x1() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                Base64Int.WriteBase64x1(32, buffer);
+                ulong res = 0;
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    res = Base64Int.ReadBase64x1(buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(32, res);
+            }
+            Print(timer, "Read Int Base64x1", nrIter);
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkWriteBase64x2() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    Base64Int.WriteBase64x2(100, buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(100, Base64Int.ReadBase64x2(buffer));
+            }
+            Print(timer, "Write Int Base64x2", nrIter);
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkReadBase64x2() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                Base64Int.WriteBase64x2(100, buffer);
+                ulong res = 0;
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    res = Base64Int.ReadBase64x2(buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(100, res);
+            }
+            Print(timer, "Read Int Base64x2", nrIter);
+        }
+
 
         [Test]
         [Category("LongRunning")]
