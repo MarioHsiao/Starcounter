@@ -158,7 +158,7 @@ namespace Starcounter.Internal
 #if BASE64
          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
          len -= (int)ValueOffset;
-         var ret = Base64Int.Read(len, AtEnd);
+         ulong ret = Base64Int.Read(len, AtEnd);
 #endif
 #if BASE256
          int len = (int)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
