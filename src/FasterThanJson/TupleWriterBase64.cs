@@ -245,6 +245,22 @@ namespace Starcounter.Internal
          HaveWritten(len);
       }
 
+      /// <summary>
+      /// Writes an unsigned integer value to the tuple
+      /// </summary>
+      /// <param name="n">The value to write</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void Write(long n) {
+          ulong val;
+          if (n >= 0)
+              val = ((ulong)n << 1);
+          else
+              val = ((ulong)(-(n + 1)) << 1) + 1;
+          Debug.Assert(((val & 0x00000001) == 1 ? -(long)(val >> 1) - 1 : (long)(val >> 1)) == n);
+          uint len = Base64Int.Write(AtEnd, val);
+          HaveWritten(len);
+      }
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte[] value) {
 #if BASE64

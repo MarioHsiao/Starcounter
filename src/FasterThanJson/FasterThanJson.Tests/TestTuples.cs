@@ -192,13 +192,13 @@ namespace FasterThanJson.Tests
           // similar to offsetkey with one node
           fixed (byte* start = new byte[1024]) {
               var top = new TupleWriterBase64(start, 3, 2);
-              top.Write(1234);
+              top.Write((ulong)1234);
               var s = new TupleWriterBase64(top.AtEnd, 2, 2);
-              s.Write(41083);
+              s.Write((ulong)41083);
               s.Write("Static data");
               top.HaveWritten(s.SealTuple());
               var d = new TupleWriterBase64(top.AtEnd, 3, 2);
-              d.Write(2);
+              d.Write((ulong)2);
               d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
               var nested = new TupleWriterBase64(d.AtEnd, 2, 1);
               nested.Write("dynamic " + 4);
@@ -246,6 +246,18 @@ namespace FasterThanJson.Tests
               Assert.AreEqual("", tupleReader.ReadString());
               String nullString = tupleReader.ReadString();
               Assert.AreEqual(null, nullString);
+          }
+      }
+
+      [Test]
+      public static unsafe void TestSignedInt() {
+          fixed (byte* start = new byte[25]) {
+              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 2, 1);
+              tupleWriter.Write(Int64.MaxValue);
+              tupleWriter.Write(Int64.MinValue);
+              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 2);
+              Assert.AreEqual(Int64.MaxValue, tupleReader.ReadInt());
+              Assert.AreEqual(Int64.MinValue, tupleReader.ReadInt());
           }
       }
    }

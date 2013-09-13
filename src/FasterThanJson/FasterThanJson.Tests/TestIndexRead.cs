@@ -10,16 +10,16 @@ namespace FasterThanJson.Tests {
         public unsafe void UIntSimpleTest() {
             fixed (byte* start = new byte[1024]) {
                 TupleWriterBase64 writeArray = new TupleWriterBase64(start, 10, 1);
-                writeArray.Write(0);
-                writeArray.Write(UInt32.MaxValue);
-                writeArray.Write(UInt32.MinValue);
-                writeArray.Write(255);
-                writeArray.Write(16500);
-                writeArray.Write(65500);
-                writeArray.Write(7);
-                writeArray.Write(255 * 255);
-                writeArray.Write(13);
-                writeArray.Write(66001);
+                writeArray.Write((ulong)0);
+                writeArray.Write((ulong)UInt32.MaxValue);
+                writeArray.Write((ulong)UInt32.MinValue);
+                writeArray.Write((ulong)255);
+                writeArray.Write((ulong)16500);
+                writeArray.Write((ulong)65500);
+                writeArray.Write((ulong)7);
+                writeArray.Write((ulong)(255 * 255));
+                writeArray.Write((ulong)13);
+                writeArray.Write((ulong)66001);
                 writeArray.SealTuple();
 
                 TupleReaderBase64 readArray = new TupleReaderBase64(start, 10);
@@ -111,7 +111,7 @@ namespace FasterThanJson.Tests {
             fixed (byte* start = new byte[1024]) {
                 TupleWriterBase64 writeArray = new TupleWriterBase64(start, 100, 1);
                 for (int i = 0; i < 100; i++)
-                    writeArray.Write(16000);
+                    writeArray.Write((ulong)16000);
                 writeArray.SealTuple();
                 TupleReaderBase64 readArray = new TupleReaderBase64(start, 100);
                 for (int i = 0; i < 100; i++)
