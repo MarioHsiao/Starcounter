@@ -68,7 +68,7 @@ namespace Starcounter.Administrator.API.Utilities {
 				var response = Response.FromStatusCode(status);
 				response.Body = jsonContent;
 				if (headers != null) {
-					response.Headers = FormatHeaders(headers);
+					response.SetHeadersDictionary(headers);
 				}
 				return response;
             }
@@ -169,7 +169,7 @@ namespace Starcounter.Administrator.API.Utilities {
             var body = string.Format("{{ \"Allow\": \"{0}\" }}", allows);
 			var response = Response.FromStatusCode(405);
 			response.Body = body;
-			response.Headers = "Allow: " + allows + Constants.CRLF;
+			response["Allow"] = allows;
 
             var methodsToRegisterFor = new List<string>();
             foreach (var verb in verbs) {
@@ -206,14 +206,6 @@ namespace Starcounter.Administrator.API.Utilities {
             expectations = expect;
             return expect.Equals("202-accepted", System.StringComparison.InvariantCultureIgnoreCase);
         }
-
-		private static string FormatHeaders(Dictionary<string, string> headers) {
-			string headerStr = "";
-			foreach (string key in headers.Keys) {
-				headerStr += key + ": " + headers[key] + Constants.CRLF;
-			}
-			return headerStr;
-		}
 
         static void Register0(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, Response response) {
             Func<Response> return405 = () => {

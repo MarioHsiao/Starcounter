@@ -41,7 +41,8 @@ namespace Starcounter {
         internal Json GetCachedJsonNode(String uri)
         {
             Json obj;
-            if (!JsonNodeCacheDict.TryGetValue(uri, out obj))
+
+            if ((JsonNodeCacheDict == null) || (!JsonNodeCacheDict.TryGetValue(uri, out obj)))
                 return null;
 
             Debug.Assert(null != obj);
