@@ -63,9 +63,14 @@ void CloseStarcounterLog()
 // Write critical into log.
 void LogWriteCritical(const wchar_t* msg)
 {
-	uint32_t err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
+	uint32_t err_code;
 
-	_SC_ASSERT(0 == err_code);
+	if (msg)
+	{
+		err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
+
+		_SC_ASSERT(0 == err_code);
+	}
 
 	err_code = sccorelog_flush_to_logs(g_sc_log_handle_);
 
