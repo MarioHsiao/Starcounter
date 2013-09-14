@@ -3250,18 +3250,22 @@ void Gateway::LogWriteNotice(const wchar_t* msg)
 
 void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 {
+	// NOTE:
+	// No asserts in critical log handler. Assertion fails calls critical log
+	// handler to log.
+
     uint32_t err_code;
 	
 	if (msg)
 	{
 	    err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, log_type, 0, msg);
 	
-	    GW_ASSERT(0 == err_code);
+	    //GW_ASSERT(0 == err_code);
 	}
 
     err_code = sccorelog_flush_to_logs(sc_log_handle_);
 
-    GW_ASSERT(0 == err_code);
+    //GW_ASSERT(0 == err_code);
 }
 
 #ifdef GW_TESTING_MODE
