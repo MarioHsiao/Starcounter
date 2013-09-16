@@ -315,7 +315,7 @@ internal abstract class ExecutionEnumerator
                 TupleWriterBase64 root = new TupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE);
                 root.SetTupleLength((uint)tempBuffer.Length);
                 // General validation data
-                root.WriteSafe(nodesNum); // Saving number of enumerators
+                root.WriteSafeULong(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
                 TupleWriterBase64 enumerators = new TupleWriterBase64(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
                 enumerators.SetTupleLength(root.AvailableSize);

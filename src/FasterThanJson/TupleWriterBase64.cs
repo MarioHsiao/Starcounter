@@ -211,7 +211,7 @@ namespace Starcounter.Internal
       /// </remarks>
       ///
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(string str)
+      public unsafe void WriteString(string str)
       {
           uint len = 1;
           if (str == null)
@@ -231,7 +231,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="n">The value to write</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(ulong n)
+      public unsafe void WriteULong(ulong n)
       {
 #if BASE32
          uint len = Base32Int.Write((IntPtr) AtEnd, n);
@@ -250,7 +250,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="n">The value to write</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(long n) {
+      public unsafe void WriteLong(long n) {
           ulong val;
           if (n >= 0)
               val = ((ulong)n << 1);
@@ -262,7 +262,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(byte[] value) {
+      public unsafe void WriteByteArray(byte[] value) {
 #if BASE64
           uint len = Base64Binary.Write(AtEnd, value);
           HaveWritten(len);
@@ -281,7 +281,7 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public static uint MeasureNeededSize(String str) {
+      public static uint MeasureNeededSizeString(String str) {
           if (str == null)
               return 1; // null flag
           uint expectedLen = 1; // null flag
@@ -291,7 +291,7 @@ namespace Starcounter.Internal
           return expectedLen; 
       }
 
-      public static uint MeasureNeededSize(ulong n) {
+      public static uint MeasureNeededSizeULong(ulong n) {
 #if BASE64
           return Base64Int.MeasureNeededSize(n);
 #else
@@ -299,7 +299,7 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public static uint MeasureNeededSize(long n) {
+      public static uint MeasureNeededSizeLong(long n) {
           if (n >= 0)
               return Base64Int.MeasureNeededSize(((ulong)n << 1));
           return Base64Int.MeasureNeededSize(((ulong)(-(n + 1)) << 1) + 1);
@@ -338,24 +338,24 @@ namespace Starcounter.Internal
           return expectedLen;
       }
 
-      public void WriteSafe(ulong n) {
-          uint size = MeasureNeededSize(n);
+      public void WriteSafeULong(ulong n) {
+          uint size = MeasureNeededSizeULong(n);
           size = ValidateLength(size);
-          Write(n);
+          WriteULong(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
 
-      public void WriteSafe(long n) {
-          uint size = MeasureNeededSize(n);
+      public void WriteSafeLong(long n) {
+          uint size = MeasureNeededSizeLong(n);
           size = ValidateLength(size);
-          Write(n);
+          WriteLong(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
 
-      public void WriteSafe(String str) {
-          uint size = MeasureNeededSize(str);
+      public void WriteSafeString(String str) {
+          uint size = MeasureNeededSizeString(str);
           uint writeSize = ValidateLength(size);
           uint len = 1;
           if (str == null)
@@ -373,7 +373,7 @@ namespace Starcounter.Internal
           AvailableSize -= writeSize;
       }
 
-      public unsafe void WriteSafe(byte* b, uint length) {
+      public unsafe void WriteSafeByteArray(byte* b, uint length) {
           uint size = MeasureNeededSizeByteArray(length);
           size = ValidateLength(size);
           Write(b, length);
@@ -381,14 +381,14 @@ namespace Starcounter.Internal
           AvailableSize -= size;
       }
 
-      public unsafe void WriteSafe(byte[] b) {
+      public unsafe void WriteSafeByteArray(byte[] b) {
           uint size = 0;
           if (b == null)
               size = 1;
           else
           size = MeasureNeededSizeByteArray((uint)b.Length);
           size = ValidateLength(size);
-          Write(b);
+          WriteByteArray(b);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
