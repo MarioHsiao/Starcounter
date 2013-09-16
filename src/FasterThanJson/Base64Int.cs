@@ -300,6 +300,44 @@ namespace Starcounter.Internal
          return 11;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe uint MeasureNeededSizeNullable(UInt64? value) {
+          if (value == null)
+              return 1;
+          if (value <= 0x1F) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //    c->b4 = b64e[(value & 0x3F)]; // Everything fits in a byte
+              return 1;
+          } else if (value <= 0x7FF) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //     c->b3 = b64e[(value & 0xFC0) >> 06];
+              //     c->b4 = b64e[(value & 0x3F)];
+              return 2;
+          } else if (value <= 0x1FFFF) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //     c->b2 = b64e[(value & 0x3F000) >> 12];
+              //     c->b3 = b64e[(value & 0xFC0) >> 06];
+              //     c->b4 = b64e[(value & 0x3F)];
+              return 3;
+          } else if (value <= 0x7FFFFF) {
+              //   c->b0 = 0x30; // Set leading bytes to '0'
+              //   c->b1 = b64e[(value & 0xFC0000) >> 18];
+              //   c->b2 = b64e[(value & 0x3F000) >> 12];
+              //   c->b3 = b64e[(value & 0xFC0) >> 06];
+              //   c->b4 = b64e[(value & 0x3F)];
+              return 4;
+          } else if (value <= 0x1FFFFFFF) {
+              //      c->b0 = b64e[(value & 0x3F000000) >> 24];
+              //      c->b1 = b64e[(value & 0xFC0000) >> 18];
+              //      c->b2 = b64e[(value & 0x3F000) >> 12];
+              //      c->b3 = b64e[(value & 0xFC0) >> 06];
+              //      c->b4 = b64e[(value & 0x3F)];
+              return 5;
+          } else if (value <= 0x7FFFFFFFF)
+              return 6;
+          return 11;
+      }
+
       /// <summary>
       /// Writes the base64x1.
       /// </summary>

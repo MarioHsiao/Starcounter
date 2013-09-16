@@ -245,6 +245,12 @@ namespace Starcounter.Internal
          HaveWritten(len);
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteULongNullable(ulong? n) {
+          uint len = Base64Int.WriteNullable(AtEnd, n);
+          HaveWritten(len);
+      }
+
       /// <summary>
       /// Writes a signed integer value to the tuple
       /// </summary>
