@@ -938,20 +938,6 @@ namespace Starcounter.Internal.Weaver {
             databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
 
             databaseClass.SetTypeDefinition(typeDef);
-            
-            DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
-            if (existingDatabaseClass != null) {
-                StringBuilder existingClassName = new StringBuilder();
-                existingDatabaseClass.GetTypeDefinition().WriteReflectionName(existingClassName,
-                        ReflectionNameOptions.UseAssemblyName);
-                StringBuilder newClassName = new StringBuilder();
-                typeDef.WriteReflectionName(newClassName, ReflectionNameOptions.UseAssemblyName);
-                ScMessageSource.Write(SeverityType.Error, "SCDCV07",
-                    new object[] { typeDef.GetReflectionName(), newClassName, existingClassName }
-                    );
-                return null;
-            }
-
             this._databaseAssembly.DatabaseClasses.Add(databaseClass);
             this._discoverDatabaseClassCache.Add(typeDef, databaseClass);
 
