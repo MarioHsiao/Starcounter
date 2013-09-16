@@ -234,8 +234,6 @@ namespace Starcounter.InstallerWPF.Pages
 
                            );
 
-                //Thread.Sleep(5000);
-                //                ((Configuration)state).RunInstallerEngine(null, ConstantsBank.ScRemoveIniName);
             }
             catch (Exception installException)
             {
@@ -245,9 +243,9 @@ namespace Starcounter.InstallerWPF.Pages
                     {
                         Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.PartialUninstallation, false);
                         this.OnError(installException);
-                        return;
                     }
                 ));
+                return;
             }
 
             // Installation succeeded.
