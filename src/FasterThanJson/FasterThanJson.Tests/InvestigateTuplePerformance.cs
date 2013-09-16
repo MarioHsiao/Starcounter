@@ -12,7 +12,7 @@ namespace FasterThanJson.Tests {
         static void Print(Stopwatch timer, string name, int nrIter) {
             Console.WriteLine(nrIter + " " + name + " took " + timer.ElapsedMilliseconds +
                 " ms, i.e., " + timer.ElapsedMilliseconds * 1000000 / nrIter + " ns per iteration or " +
-                (long)nrIter / timer.ElapsedMilliseconds * 1000 + " tps.");
+                (long)nrIter / (timer.ElapsedMilliseconds == 0?1:timer.ElapsedMilliseconds) * 1000 + " tps.");
             timer.Reset();
         }
 
