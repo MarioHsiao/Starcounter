@@ -67,7 +67,7 @@ namespace FasterThanJson.Tests {
                 timer.Start();
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 2, 2);
-                    tuple.Write(value);
+                    tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -84,7 +84,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 10, 2);
                     for (int j = 0; j < 10; j++)
-                        tuple.Write(value);
+                        tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -101,7 +101,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 10, 2);
                     for (int j = 0; j < 10; j++)
-                        tuple.Write(value);
+                        tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -118,7 +118,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 10, 1);
                     for (int j = 0; j < 10; j++)
-                        tuple.Write(value);
+                        tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -140,7 +140,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteULong(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " UInt writes", nrIter);
@@ -174,7 +174,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteULong(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " ULong writes", nrIter);
@@ -208,7 +208,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteLong(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " Int writes", nrIter);
@@ -242,7 +242,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteLong(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " Int writes", nrIter);
@@ -276,7 +276,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteString(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 1-letter String writes", nrIter);
@@ -310,7 +310,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteString(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 10-letters String writes", nrIter);
@@ -344,7 +344,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteByteArray(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 1-byte array writes", nrIter);
@@ -378,7 +378,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteByteArray(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 10-bytes array writes", nrIter);

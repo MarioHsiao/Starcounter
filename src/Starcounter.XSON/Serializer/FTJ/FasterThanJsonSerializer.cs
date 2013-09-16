@@ -94,7 +94,7 @@ restart:
 									goto restart;
 
 								arrWriter = new TupleWriterBase64(writer.AtEnd, 2);
-								arrWriter.Write((ulong)arr.Count);
+								arrWriter.WriteULong((ulong)arr.Count);
 
 								itemWriter = new TupleWriterBase64(arrWriter.AtEnd, (uint)arr.Count);
 
@@ -128,26 +128,26 @@ restart:
 									goto restart;
 
 								bool b = obj.Get((TBool)tProperty);
-								if (b) writer.Write(1);
-								else writer.Write(0);
+								if (b) writer.WriteULong(1);
+								else writer.WriteULong(0);
 							} else if (tProperty is TDecimal) {
 								valueAsStr = obj.Get((TDecimal)tProperty).ToString("0.0###########################", CultureInfo.InvariantCulture);
 								valueSize = valueAsStr.Length;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
-								writer.Write(valueAsStr);
+								writer.WriteString(valueAsStr);
 							} else if (tProperty is TDouble) {
 								valueAsStr = obj.Get((TDouble)tProperty).ToString("0.0###########################", CultureInfo.InvariantCulture);
 								valueSize = valueAsStr.Length;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
-								writer.Write(valueAsStr);
+								writer.WriteString(valueAsStr);
 							} else if (tProperty is TLong) {
 								valueAsUL = (ulong)obj.Get((TLong)tProperty);
 								valueSize = MAX_INT_SIZE;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
-								writer.Write(valueAsUL);
+								writer.WriteULong(valueAsUL);
 							} else if (tProperty is TString) {
 								valueAsStr = obj.Get((TString)tProperty);
 								if (valueAsStr == null)
@@ -155,7 +155,7 @@ restart:
 								valueSize = valueAsStr.Length;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
-								writer.Write(valueAsStr);
+								writer.WriteString(valueAsStr);
 							} else if (tProperty is TTrigger) {
 								throw new NotImplementedException("null values are not yet supported");
 //								valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);

@@ -33,11 +33,11 @@ namespace FasterThanJson.Tests {
                 uint valCounter = 0;
                 for (; valCounter < valueCount * 2 / 3; valCounter++) {
                     inputUInts[valCounter] = RandomValues.RandomUInt(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[valCounter]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSizeULong(inputUInts[valCounter]);
                 }
                 for (; valCounter < valueCount; valCounter++) {
                     inputUInts[valCounter] = RandomValues.RandomULong(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputUInts[valCounter]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSizeULong(inputUInts[valCounter]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -51,7 +51,7 @@ namespace FasterThanJson.Tests {
                     for (uint i = 0; i < nrIter; i++) {
                         TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
-                            writer.Write(inputUInts[j]);
+                            writer.WriteULong(inputUInts[j]);
                     }
                     timer.Stop();
                     Console.WriteLine("Writing tuple of " + valueCount + " UINTs took " +
@@ -86,7 +86,7 @@ namespace FasterThanJson.Tests {
                 uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputStrings[i] = RandomValues.RandomString(rnd, strignLength);
-                    tupleLength += TupleWriterBase64.MeasureNeededSize(inputStrings[i]);
+                    tupleLength += TupleWriterBase64.MeasureNeededSizeString(inputStrings[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -99,7 +99,7 @@ namespace FasterThanJson.Tests {
                     for (uint i = 0; i < nrIter; i++) {
                         TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
-                            writer.Write(inputStrings[j]);
+                            writer.WriteString(inputStrings[j]);
                     }
                     timer.Stop();
                     Console.WriteLine("Writing tuple of " + valueCount + " " + 
@@ -150,7 +150,7 @@ namespace FasterThanJson.Tests {
                     for (uint i = 0; i < nrIter; i++) {
                         TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
                         for (uint j = 0; j < valueCount; j++)
-                            writer.Write(inputByteArrays[j]);
+                            writer.WriteByteArray(inputByteArrays[j]);
                     }
                     timer.Stop();
                     Console.WriteLine("Writing tuple of " + valueCount + " " +

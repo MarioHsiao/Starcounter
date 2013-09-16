@@ -35,8 +35,8 @@ namespace FasterThanJson.Tests
          
          var t = new TupleWriterBase64(root.AtEnd, 3, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
-         t.Write("Joachim");
-         t.Write("Wester");
+         t.WriteString("Joachim");
+         t.WriteString("Wester");
 
          root.HaveWritten(t.SealTuple());
          root.SealTuple();
@@ -119,15 +119,15 @@ namespace FasterThanJson.Tests
           var root = new TupleWriterBase64(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
           var first = new TupleWriterBase64(root.AtEnd, 4, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
-          first.Write("Joachim");
-          first.Write("Wester");
+          first.WriteString("Joachim");
+          first.WriteString("Wester");
           var nested = new TupleWriterBase64(first.AtEnd, 2, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
-          nested.Write(1234);
-          nested.Write("070-2424472");
+          nested.WriteULong(1234);
+          nested.WriteString("070-2424472");
 
           first.HaveWritten(nested.SealTuple());
-          first.Write("Stockholm");
+          first.WriteString("Stockholm");
 
           root.HaveWritten(first.SealTuple());
           root.SealTuple();
@@ -146,17 +146,17 @@ namespace FasterThanJson.Tests
           // similar to offsetkey with one node
           fixed (byte* start = new byte[1024]) {
               var top = new TupleWriterBase64(start, 3, 2);
-              top.Write(1234);
+              top.WriteULong(1234);
               var s = new TupleWriterBase64(top.AtEnd, 2, 2);
-              s.Write(41083);
-              s.Write("Static data");
+              s.WriteULong(41083);
+              s.WriteString("Static data");
               top.HaveWritten(s.SealTuple());
               var d = new TupleWriterBase64(s.AtEnd, 3, 2);
-              d.Write(2);
-              d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
+              d.WriteULong(2);
+              d.WriteByteArray(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
               var nested = new TupleWriterBase64(d.AtEnd, 2, 1);
-              nested.Write("dynamic " + 4);
-              nested.Write(new byte[] {3, 2, 255, 255, 0, 0, 0, 53, 123});
+              nested.WriteString("dynamic " + 4);
+              nested.WriteByteArray(new byte[] {3, 2, 255, 255, 0, 0, 0, 53, 123});
               d.HaveWritten(nested.SealTuple());
               top.HaveWritten(d.SealTuple());
               top.SealTuple();
@@ -192,18 +192,18 @@ namespace FasterThanJson.Tests
           // similar to offsetkey with one node
           fixed (byte* start = new byte[1024]) {
               var top = new TupleWriterBase64(start, 3, 2);
-              top.Write((ulong)1234);
+              top.WriteULong(1234);
               var s = new TupleWriterBase64(top.AtEnd, 2, 2);
-              s.Write((ulong)41083);
-              s.Write("Static data");
+              s.WriteULong(41083);
+              s.WriteString("Static data");
               top.HaveWritten(s.SealTuple());
               var d = new TupleWriterBase64(top.AtEnd, 3, 2);
-              d.Write((ulong)2);
-              d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
+              d.WriteULong(2);
+              d.WriteByteArray(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
               var nested = new TupleWriterBase64(d.AtEnd, 3, 1);
-              nested.Write("dynamic " + 4);
-              nested.Write(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 });
-              nested.Write(-1235);
+              nested.WriteString("dynamic " + 4);
+              nested.WriteByteArray(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 });
+              nested.WriteLong(-1235);
               d.HaveWritten(nested.SealTuple());
               top.HaveWritten(d.SealTuple());
               top.SealTuple();
@@ -239,9 +239,9 @@ namespace FasterThanJson.Tests
       public static unsafe void TestNullValues() {
           fixed (byte* start = new byte[10]) {
               TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 3, 1);
-              tupleWriter.Write((byte[])null);
-              tupleWriter.Write("");
-              tupleWriter.Write((String)null);
+              tupleWriter.WriteByteArray((byte[])null);
+              tupleWriter.WriteString("");
+              tupleWriter.WriteString((String)null);
               TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 3);
               byte[] nullByteArray = tupleReader.ReadByteArray();
               Assert.AreEqual(null, nullByteArray);
@@ -255,8 +255,8 @@ namespace FasterThanJson.Tests
       public static unsafe void TestSignedInt() {
           fixed (byte* start = new byte[25]) {
               TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 2, 1);
-              tupleWriter.Write(Int64.MaxValue);
-              tupleWriter.Write(Int64.MinValue);
+              tupleWriter.WriteLong(Int64.MaxValue);
+              tupleWriter.WriteLong(Int64.MinValue);
               TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 2);
               Assert.AreEqual(Int64.MaxValue, tupleReader.ReadLong());
               Assert.AreEqual(Int64.MinValue, tupleReader.ReadLong());

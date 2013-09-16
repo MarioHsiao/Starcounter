@@ -15,7 +15,7 @@ namespace FasterThanJson.Tests {
                byte[] buffer = new byte[600];
                fixed (byte* start = buffer) {
                    TupleWriterBase64 writeTuple = new TupleWriterBase64(start, 1, 2);
-                   writeTuple.Write(test);
+                   writeTuple.WriteByteArray(test);
                    writeTuple.SealTuple();
 
                    TupleReaderBase64 readTuple = new TupleReaderBase64(start, 1);
@@ -23,7 +23,7 @@ namespace FasterThanJson.Tests {
                }
                fixed (byte* start = buffer) {
                    TupleWriterBase64 writeTuple = new TupleWriterBase64(start, 1, 5);
-                   writeTuple.Write(test);
+                   writeTuple.WriteByteArray(test);
                    writeTuple.SealTuple();
 
                    TupleReaderBase64 readTuple = new TupleReaderBase64(start, 1);
