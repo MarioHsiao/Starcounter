@@ -63,7 +63,7 @@ namespace FasterThanJson.Tests {
                     for (uint i = 0; i < nrIter; i++) {
                         TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
                         for (uint j = 0; j < valueCount; j++)
-                            reader.ReadUInt();
+                            reader.ReadULong();
                     }
                     timer.Stop();
                     Console.WriteLine("Reading tuple of " + valueCount + " UINTs took " +
@@ -71,7 +71,7 @@ namespace FasterThanJson.Tests {
                         (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
                     TupleReaderBase64 validationReader = new TupleReaderBase64(start, valueCount);
                     for (uint j = 0; j < valueCount; j++)
-                        Assert.AreEqual(inputUInts[j], validationReader.ReadUInt());
+                        Assert.AreEqual(inputUInts[j], validationReader.ReadULong());
                 }
             }
         }

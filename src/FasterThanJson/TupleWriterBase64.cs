@@ -246,7 +246,7 @@ namespace Starcounter.Internal
       }
 
       /// <summary>
-      /// Writes an unsigned integer value to the tuple
+      /// Writes a signed integer value to the tuple
       /// </summary>
       /// <param name="n">The value to write</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5

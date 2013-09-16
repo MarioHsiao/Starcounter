@@ -146,12 +146,12 @@ namespace FasterThanJson.Tests {
                     Print(timer, "TupleWriter creates and " + valueCount + " UInt writes", nrIter);
                     TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
                     for (int j = 0; j < valueCount; j++)
-                        Assert.AreEqual(value, reader.ReadUInt());
+                        Assert.AreEqual(value, reader.ReadULong());
                     timer.Start();
                     for (int i = 0; i < nrIter; i++) {
                         TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.ReadUInt();
+                            tuple.ReadULong();
                     }
                     timer.Stop();
                     Print(timer, "TupleReader creates and " + valueCount + " UInt reads", nrIter);
@@ -180,12 +180,12 @@ namespace FasterThanJson.Tests {
                     Print(timer, "TupleWriter creates and " + valueCount + " ULong writes", nrIter);
                     TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
                     for (int j = 0; j < valueCount; j++)
-                        Assert.AreEqual(value, reader.ReadUInt());
+                        Assert.AreEqual(value, reader.ReadULong());
                     timer.Start();
                     for (int i = 0; i < nrIter; i++) {
                         TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.ReadUInt();
+                            tuple.ReadULong();
                     }
                     timer.Stop();
                     Print(timer, "TupleReader creates and " + valueCount + " ULong reads", nrIter);
@@ -214,12 +214,12 @@ namespace FasterThanJson.Tests {
                     Print(timer, "TupleWriter creates and " + valueCount + " Int writes", nrIter);
                     TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
                     for (int j = 0; j < valueCount; j++)
-                        Assert.AreEqual(value, reader.ReadInt());
+                        Assert.AreEqual(value, reader.ReadLong());
                     timer.Start();
                     for (int i = 0; i < nrIter; i++) {
                         TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.ReadInt();
+                            tuple.ReadLong();
                     }
                     timer.Stop();
                     Print(timer, "TupleReader creates and " + valueCount + " Int reads", nrIter);
@@ -248,12 +248,12 @@ namespace FasterThanJson.Tests {
                     Print(timer, "TupleWriter creates and " + valueCount + " Int writes", nrIter);
                     TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
                     for (int j = 0; j < valueCount; j++)
-                        Assert.AreEqual(value, reader.ReadInt());
+                        Assert.AreEqual(value, reader.ReadLong());
                     timer.Start();
                     for (int i = 0; i < nrIter; i++) {
                         TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.ReadInt();
+                            tuple.ReadLong();
                     }
                     timer.Stop();
                     Print(timer, "TupleReader creates and " + valueCount + " Int reads", nrIter);

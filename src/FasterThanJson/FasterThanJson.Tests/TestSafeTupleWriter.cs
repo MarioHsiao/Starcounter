@@ -101,12 +101,12 @@ namespace FasterThanJson.Tests {
                 writer.SealTuple();
 
                 TupleReaderBase64 reader = new TupleReaderBase64(start, 4);
-                Assert.AreEqual(45, reader.ReadUInt(0));
-                Assert.AreEqual(256, reader.ReadUInt(1));
-                Assert.AreEqual(0, reader.ReadUInt(2));
-                Assert.AreEqual(23, reader.ReadUInt(3));
+                Assert.AreEqual(45, reader.ReadULong(0));
+                Assert.AreEqual(256, reader.ReadULong(1));
+                Assert.AreEqual(0, reader.ReadULong(2));
+                Assert.AreEqual(23, reader.ReadULong(3));
                 try {
-                    Assert.AreEqual(1, reader.ReadUInt(4));
+                    Assert.AreEqual(1, reader.ReadULong(4));
                 } catch (Exception e) {
                     Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
                     wasException = true;
@@ -145,12 +145,12 @@ namespace FasterThanJson.Tests {
                 writer.SealTuple();
 
                 TupleReaderBase64 reader = new TupleReaderBase64(start, 4);
-                Assert.AreEqual(25, reader.ReadInt(0));
-                Assert.AreEqual(-256, reader.ReadInt(1));
-                Assert.AreEqual(0, reader.ReadInt(2));
-                Assert.AreEqual(-23, reader.ReadInt(3));
+                Assert.AreEqual(25, reader.ReadLong(0));
+                Assert.AreEqual(-256, reader.ReadLong(1));
+                Assert.AreEqual(0, reader.ReadLong(2));
+                Assert.AreEqual(-23, reader.ReadLong(3));
                 try {
-                    Assert.AreEqual(1, reader.ReadInt(4));
+                    Assert.AreEqual(1, reader.ReadLong(4));
                 } catch (Exception e) {
                     Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
                     wasException = true;
@@ -250,9 +250,9 @@ namespace FasterThanJson.Tests {
                 writer.SealTuple();
 
                 TupleReaderBase64 reader = new TupleReaderBase64(start, 3);
-                Assert.AreEqual(64 * 64 * 64 * 64 * 64, reader.ReadUInt(1));
-                Assert.AreEqual(63, reader.ReadUInt(2));
-                Assert.AreEqual(64 * 64 * 64 * 64 * 64 - 1 + 64 * 64 * 64 * 64 * 64, reader.ReadUInt(0));
+                Assert.AreEqual(64 * 64 * 64 * 64 * 64, reader.ReadULong(1));
+                Assert.AreEqual(63, reader.ReadULong(2));
+                Assert.AreEqual(64 * 64 * 64 * 64 * 64 - 1 + 64 * 64 * 64 * 64 * 64, reader.ReadULong(0));
             }
         }
     }

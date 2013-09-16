@@ -149,7 +149,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe ulong ReadUInt() {
+      public unsafe ulong ReadULong() {
 #if BASE32
          int len = (int)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
          len -= (int)ValueOffset;
@@ -172,25 +172,25 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe long ConvertInt(ulong uval) {
+      public unsafe long ConvertLong(ulong uval) {
           long ret = (long)(uval >> 1);
           if ((uval & 0x00000001) == 1)
               ret = -ret - 1;
           return ret;
       }
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe long ReadInt() {
+      public unsafe long ReadLong() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= (int)ValueOffset;
           ulong uval = Base64Int.Read(len, AtEnd);
           ValueOffset += (uint)len;
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
-          return ConvertInt(uval);
+          return ConvertLong(uval);
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe ulong ReadUInt(int index) {
+      public unsafe ulong ReadULong(int index) {
 #if BASE64
           byte* valuePos;
           int valueLength;
@@ -204,7 +204,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe long ReadInt(int index) {
+      public unsafe long ReadLong(int index) {
 #if BASE64
           byte* valuePos;
           int valueLength;
@@ -214,7 +214,7 @@ namespace Starcounter.Internal
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-          return ConvertInt(ret);
+          return ConvertLong(ret);
       }
 
       /// <summary>
