@@ -172,6 +172,17 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe ulong? ReadULongNullable() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong? ret = Base64Int.ReadNullable(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          return ret;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe long ConvertLong(ulong uval) {
           long ret = (long)(uval >> 1);
           if ((uval & 0x00000001) == 1)
