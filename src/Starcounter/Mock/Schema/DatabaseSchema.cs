@@ -4,10 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Sc.Server.Weaver.Schema
 {
@@ -19,7 +19,7 @@ public class DatabaseSchema
 {
     private readonly DatabaseAssemblyCollection assemblies;
 
-    readonly Dictionary<String, DatabaseClass> databaseClassesByName = new Dictionary<String, DatabaseClass>();
+    readonly Dictionary<String, DatabaseClass> databaseClassesByName = new Dictionary<String, DatabaseClass>(StringComparer.InvariantCultureIgnoreCase);
     readonly Dictionary<String, DatabaseClass> databaseClassesByShortname = new Dictionary<String, DatabaseClass>();
     readonly Dictionary<String, List<DatabaseIndex>> indexByDatabaseClassName = new Dictionary<String, List<DatabaseIndex>>();
 
@@ -84,17 +84,42 @@ public class DatabaseSchema
 		index = shortName.LastIndexOf('.');
 
         shortName = shortName.Substring(index + 1);
-        if (this.databaseClassesByShortname.ContainsKey(shortName))
-		{
-			// Ambiguous type names. Replace value with null.
-            this.databaseClassesByShortname[shortName] = null;
-		}
-		else
-		{
+        try {
             this.databaseClassesByShortname.Add(shortName, databaseClass);
-		}
+        } catch (ArgumentException) {
+            // Ambiguous type names. Replace value with null.
+            //
+            // Note 16/9 2013: This design attempts to assure that
+            // classes that clash by their short name is not indexed
+            // by such, and hence the SQL engine will force the full
+            // name to be used. To have such clashes are allowed, but
+            // disables the ability to query using a short name.
+            //
+            // However, the design here is quite poor if I'm not
+            // mistaken. It seems to work fine if two classes have
+            // a short name that clash, but if a third class comes
+            // along, it will be indexed, won't it?
+            this.databaseClassesByShortname[shortName] = null;
+        }
 
-        this.databaseClassesByName.Add(databaseClass.Name, databaseClass);
+        try {
+            this.databaseClassesByName.Add(databaseClass.Name, databaseClass);
+        } catch (ArgumentException) {
+            // Database classes with equal full names are not supported
+            // at all, as opposed to classes that clash on their short name
+            // only. The comparison done is and should be case-insensitive,
+            // since we'll utilize the full-name as the unique identifier
+            // in SQL and SQL itself is case-insensitive.
+            var duplicate = databaseClassesByName[databaseClass.Name];
+            throw ErrorCode.ToException(
+                Error.SCERRTYPENAMEDUPLICATE,
+                string.Format("Class \"{0}\" in assembly \"{1}\" clash with class \"{2}\" in assembly \"{3}\".",
+                duplicate.Name,
+                duplicate.Assembly.Name,
+                databaseClass.Name,
+                databaseClass.Assembly.Name
+                ));
+        }
     }
 
     /// <summary>
