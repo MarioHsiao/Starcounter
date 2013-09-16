@@ -194,6 +194,7 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.ResourceDirectory), "Sets the default directory for static resources.");
             if (extended) {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.WaitForEntrypoint), "Runs the entrypoint fully before returning.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.Async), "Returns before the entrypoint has finished.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
