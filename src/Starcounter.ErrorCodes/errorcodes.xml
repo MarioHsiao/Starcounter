@@ -3086,13 +3086,16 @@
         The user code entrypoint method raised an exception.
       </message>
     </code>
-    <code hex="0104" severity="Error" name="ScErrFieldsDifferInCaseOnly">
+    <code hex="0104" severity="Error" name="ScErrTransactionClosed">
+      <message>An operation failed because transaction has been closed.</message>
+    </code>
+    <code hex="0105" severity="Error" name="ScErrFieldsDifferInCaseOnly">
       <message>
         A field in a database class can not have the same name as a another
         field in the same class, or in a base class, not even if they differ
         in casing.
       </message>
-    </code>
+    </code>  
   </facility>
   
   <!-- Session error codes. -->

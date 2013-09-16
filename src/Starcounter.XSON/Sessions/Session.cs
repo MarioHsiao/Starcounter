@@ -41,7 +41,8 @@ namespace Starcounter {
         internal Json GetCachedJsonNode(String uri)
         {
             Json obj;
-            if (!JsonNodeCacheDict.TryGetValue(uri, out obj))
+
+            if ((JsonNodeCacheDict == null) || (!JsonNodeCacheDict.TryGetValue(uri, out obj)))
                 return null;
 
             Debug.Assert(null != obj);
@@ -194,20 +195,20 @@ namespace Starcounter {
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
-        public void Push(String data, Boolean isText = true)
+        public void Push(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
-            Push(Encoding.UTF8.GetBytes(data), isText);
+            Push(Encoding.UTF8.GetBytes(data), isText, connFlags);
         }
 
         /// <summary>
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
-        public void Push(Byte[] data, Boolean isText = false)
+        public void Push(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
             Request req = bmx.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
 
-            req.SendResponse(data, 0, data.Length);
+            req.SendResponse(data, 0, data.Length, connFlags);
         }
 
         /// <summary>
