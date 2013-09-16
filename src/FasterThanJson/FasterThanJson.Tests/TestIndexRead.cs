@@ -23,16 +23,16 @@ namespace FasterThanJson.Tests {
                 writeArray.SealTuple();
 
                 TupleReaderBase64 readArray = new TupleReaderBase64(start, 10);
-                Assert.AreEqual(16500, readArray.ReadUInt(4));
-                Assert.AreEqual(65500, readArray.ReadUInt(5));
-                Assert.AreEqual(UInt32.MaxValue, readArray.ReadUInt(1));
-                Assert.AreEqual(255 * 255, readArray.ReadUInt(7));
-                Assert.AreEqual(UInt32.MinValue, readArray.ReadUInt(2));
-                Assert.AreEqual(255, readArray.ReadUInt(3));
-                Assert.AreEqual(0, readArray.ReadUInt(0));
-                Assert.AreEqual(66001, readArray.ReadUInt(9));
-                Assert.AreEqual(7, readArray.ReadUInt(6));
-                Assert.AreEqual(13, readArray.ReadUInt(8));
+                Assert.AreEqual(16500, readArray.ReadULong(4));
+                Assert.AreEqual(65500, readArray.ReadULong(5));
+                Assert.AreEqual(UInt32.MaxValue, readArray.ReadULong(1));
+                Assert.AreEqual(255 * 255, readArray.ReadULong(7));
+                Assert.AreEqual(UInt32.MinValue, readArray.ReadULong(2));
+                Assert.AreEqual(255, readArray.ReadULong(3));
+                Assert.AreEqual(0, readArray.ReadULong(0));
+                Assert.AreEqual(66001, readArray.ReadULong(9));
+                Assert.AreEqual(7, readArray.ReadULong(6));
+                Assert.AreEqual(13, readArray.ReadULong(8));
             }
         }
 
@@ -115,7 +115,7 @@ namespace FasterThanJson.Tests {
                 writeArray.SealTuple();
                 TupleReaderBase64 readArray = new TupleReaderBase64(start, 100);
                 for (int i = 0; i < 100; i++)
-                    Assert.AreEqual(16000, readArray.ReadUInt(i));
+                    Assert.AreEqual(16000, readArray.ReadULong(i));
             }
         }
 
@@ -176,7 +176,7 @@ namespace FasterThanJson.Tests {
                     for (int j = 0; j < nrValues; j++) {
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
-                                Assert.AreEqual(uintValues[j], arrayReader.ReadUInt(j));
+                                Assert.AreEqual(uintValues[j], arrayReader.ReadULong(j));
                                 break;
                             case (int)ValueTypes.STRING:
                                 Assert.AreEqual(stringValues[j], arrayReader.ReadString(j));
@@ -185,13 +185,13 @@ namespace FasterThanJson.Tests {
                                 Assert.AreEqual(binaryValues[j], arrayReader.ReadByteArray(j));
                                 break;
                             case (int)ValueTypes.ULONG:
-                                Assert.AreEqual(ulongValues[j], arrayReader.ReadUInt(j));
+                                Assert.AreEqual(ulongValues[j], arrayReader.ReadULong(j));
                                 break;
                             case (int)ValueTypes.INT:
-                                Assert.AreEqual(intValues[j], arrayReader.ReadInt(j));
+                                Assert.AreEqual(intValues[j], arrayReader.ReadLong(j));
                                 break;
                             case (int)ValueTypes.LONG:
-                                Assert.AreEqual(longValues[j], arrayReader.ReadInt(j));
+                                Assert.AreEqual(longValues[j], arrayReader.ReadLong(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

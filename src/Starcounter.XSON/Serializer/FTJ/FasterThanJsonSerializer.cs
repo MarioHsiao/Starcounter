@@ -193,7 +193,7 @@ restart:
 
 					try {
 						if (tProperty is TBool) {
-							ulong v = reader.ReadUInt();
+							ulong v = reader.ReadULong();
 							if (v == 1) obj.Set((TBool)tProperty, true);
 							else obj.Set((TBool)tProperty, false);
 						} else if (tProperty is TDecimal) {
@@ -203,7 +203,7 @@ restart:
 							valueAsStr = reader.ReadString();
 							obj.Set((TDouble)tProperty, Double.Parse(valueAsStr, CultureInfo.InvariantCulture));
 						} else if (tProperty is TLong) {
-							obj.Set((TLong)tProperty, (long)reader.ReadUInt());
+							obj.Set((TLong)tProperty, (long)reader.ReadULong());
 						} else if (tProperty is TString) {
 							obj.Set((TString)tProperty, reader.ReadString());
 						} else if (tProperty is TObject) {
@@ -214,7 +214,7 @@ restart:
 							arr = obj.Get((TObjArr)tProperty);
 
 							var arrReader = new TupleReaderBase64(reader.AtEnd, 2);
-							int arrItemCount = (int)arrReader.ReadUInt();
+							int arrItemCount = (int)arrReader.ReadULong();
 
 							var itemReader = new TupleReaderBase64(arrReader.AtEnd, (uint)arrItemCount);
 							

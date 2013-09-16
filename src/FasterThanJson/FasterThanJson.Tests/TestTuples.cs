@@ -101,7 +101,7 @@ namespace FasterThanJson.Tests
          string lastName = first.ReadString();
          var nested = new TupleReaderBase64(first.AtEnd, 2); // Allocated on the stack. Will be fast.
          //nested.Skip();
-                  UInt64 phone = nested.ReadUInt();
+                  UInt64 phone = nested.ReadULong();
          //        UInt32 phone = 1234;
          string mobile = nested.ReadString();
          first.Skip();
@@ -162,13 +162,13 @@ namespace FasterThanJson.Tests
               top.SealTuple();
 
               var topReader = new TupleReaderBase64(start, 3);
-              Assert.AreEqual(1234, topReader.ReadUInt());
+              Assert.AreEqual(1234, topReader.ReadULong());
               var sReader = new TupleReaderBase64(topReader.AtEnd, 2);
-              Assert.AreEqual(41083, sReader.ReadUInt());
+              Assert.AreEqual(41083, sReader.ReadULong());
               Assert.AreEqual("Static data", sReader.ReadString());
               topReader.Skip();
               var dReader = new TupleReaderBase64(topReader.AtEnd, 3);
-              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(2, dReader.ReadULong());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
               var nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
@@ -178,7 +178,7 @@ namespace FasterThanJson.Tests
               topReader.Skip();
               topReader.Skip();
               dReader = new TupleReaderBase64(topReader.AtEnd, 3);
-              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(2, dReader.ReadULong());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
               nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
@@ -209,29 +209,29 @@ namespace FasterThanJson.Tests
               top.SealTuple();
 
               var topReader = new TupleReaderBase64(start, 3);
-              Assert.AreEqual(1234, topReader.ReadUInt());
+              Assert.AreEqual(1234, topReader.ReadULong());
               var sReader = new TupleReaderBase64(topReader.AtEnd, 2);
-              Assert.AreEqual(41083, sReader.ReadUInt());
+              Assert.AreEqual(41083, sReader.ReadULong());
               Assert.AreEqual("Static data", sReader.ReadString());
               topReader.Skip();
               var dReader = new TupleReaderBase64(topReader.AtEnd, 3);
-              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(2, dReader.ReadULong());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
               var nestedReader = new TupleReaderBase64(dReader.AtEnd, 3);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
-              Assert.AreEqual(-1235, nestedReader.ReadInt());
+              Assert.AreEqual(-1235, nestedReader.ReadLong());
 
               topReader = new TupleReaderBase64(start, 3);
               topReader.Skip();
               topReader.Skip();
               dReader = new TupleReaderBase64(topReader.AtEnd, 3);
-              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(2, dReader.ReadULong());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
               nestedReader = new TupleReaderBase64(dReader.AtEnd, 3);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
-              Assert.AreEqual(-1235, nestedReader.ReadInt());
+              Assert.AreEqual(-1235, nestedReader.ReadLong());
           }
       }
 
@@ -258,8 +258,8 @@ namespace FasterThanJson.Tests
               tupleWriter.Write(Int64.MaxValue);
               tupleWriter.Write(Int64.MinValue);
               TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 2);
-              Assert.AreEqual(Int64.MaxValue, tupleReader.ReadInt());
-              Assert.AreEqual(Int64.MinValue, tupleReader.ReadInt());
+              Assert.AreEqual(Int64.MaxValue, tupleReader.ReadLong());
+              Assert.AreEqual(Int64.MinValue, tupleReader.ReadLong());
           }
       }
    }

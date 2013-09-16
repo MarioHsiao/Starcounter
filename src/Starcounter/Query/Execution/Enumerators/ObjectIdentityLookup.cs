@@ -262,7 +262,7 @@ namespace Starcounter.Query.Execution {
                             if (obj == null) // Moving out from offset key on first MoveNext
                                 return false;
                             // Check if current object matches stored in the recreation key
-                            if (currectObjectId == recreationKey.ReadUInt(2))
+                            if (currectObjectId == recreationKey.ReadULong(2))
                                 isAtRecreatedKey = true;
                             else {
                                 isAtRecreatedKey = false;
