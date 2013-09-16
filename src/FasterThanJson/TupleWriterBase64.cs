@@ -299,6 +299,12 @@ namespace Starcounter.Internal
 #endif
       }
 
+      public static uint MeasureNeededSize(long n) {
+          if (n >= 0)
+              return Base64Int.MeasureNeededSize(((ulong)n << 1));
+          return Base64Int.MeasureNeededSize(((ulong)(-(n + 1)) << 1) + 1);
+      }
+
       public static uint MeasureNeededSizeByteArray(uint length) {
 #if BASE64
           return Base64Binary.MeasureNeededSizeToEncode(length);
@@ -333,6 +339,14 @@ namespace Starcounter.Internal
       }
 
       public void WriteSafe(ulong n) {
+          uint size = MeasureNeededSize(n);
+          size = ValidateLength(size);
+          Write(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
+      }
+
+      public void WriteSafe(long n) {
           uint size = MeasureNeededSize(n);
           size = ValidateLength(size);
           Write(n);

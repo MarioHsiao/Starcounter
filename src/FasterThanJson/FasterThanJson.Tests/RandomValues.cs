@@ -8,7 +8,9 @@ namespace FasterThanJson.Tests {
         UINT,
         STRING,
         BINARY,
-        ULONG
+        ULONG,
+        INT,
+        LONG
     }
 
     public static class RandomValues {
@@ -24,6 +26,21 @@ namespace FasterThanJson.Tests {
             Trace.Assert(genVal >= UInt64.MinValue && genVal <= UInt64.MaxValue);
             return genVal;
         }
+
+        public static Int32 RandomInt(Random rnd) {
+            Int32 genValue = rnd.Next(Int32.MinValue, Int32.MaxValue);
+            return genValue;
+        }
+
+        public static Int64 RandomLong(Random rnd) {
+            UInt64 genVal = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
+            Trace.Assert(genVal >= UInt64.MinValue && genVal <= UInt64.MaxValue);
+            if (genVal > Int64.MaxValue)
+                return (Int64)(genVal - Int64.MaxValue - 1);
+            else
+                return (Int64)genVal - Int64.MaxValue - 1;
+        }
+
 
         public static String RandomString(Random rnd) {
             int length = rnd.Next(0, 200);

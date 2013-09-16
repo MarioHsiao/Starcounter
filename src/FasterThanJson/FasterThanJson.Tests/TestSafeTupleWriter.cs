@@ -77,21 +77,21 @@ namespace FasterThanJson.Tests {
             fixed (byte* start = buffer) {
                 TupleWriterBase64 writer = new TupleWriterBase64(start, 4, 1);
                 writer.SetTupleLength((uint)buffer.Length);
-                writer.WriteSafe((uint)45);
-                writer.WriteSafe(256);
+                writer.WriteSafe((ulong)45);
+                writer.WriteSafe((ulong)256);
                 Boolean wasException = false;
                 try {
-                    writer.WriteSafe(64 * 64 + 1);
+                    writer.WriteSafe((ulong)64 * 64 + 1);
                 } catch (Exception e) {
                     Assert.AreEqual(Error.SCERRTUPLEVALUETOOBIG, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
                     wasException = true;
                 }
                 Assert.True(wasException);
                 wasException = false;
-                writer.WriteSafe(0);
-                writer.WriteSafe(23);
+                writer.WriteSafe((ulong)0);
+                writer.WriteSafe((ulong)23);
                 try {
-                    writer.WriteSafe(1);
+                    writer.WriteSafe((ulong)1);
                 } catch (Exception e) {
                     Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
                     wasException = true;
@@ -107,6 +107,50 @@ namespace FasterThanJson.Tests {
                 Assert.AreEqual(23, reader.ReadUInt(3));
                 try {
                     Assert.AreEqual(1, reader.ReadUInt(4));
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+            }
+        }
+
+        [Test]
+        public unsafe void TestSafeIntWriter() {
+            byte[] buffer = new byte[10];
+            fixed (byte* start = buffer) {
+                TupleWriterBase64 writer = new TupleWriterBase64(start, 4, 1);
+                writer.SetTupleLength((uint)buffer.Length);
+                writer.WriteSafe(25);
+                writer.WriteSafe(-256);
+                Boolean wasException = false;
+                try {
+                    writer.WriteSafe(-64 * 64 - 1);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEVALUETOOBIG, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                writer.WriteSafe(0);
+                writer.WriteSafe(-23);
+                try {
+                    writer.WriteSafe(1);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                writer.SealTuple();
+
+                TupleReaderBase64 reader = new TupleReaderBase64(start, 4);
+                Assert.AreEqual(25, reader.ReadInt(0));
+                Assert.AreEqual(-256, reader.ReadInt(1));
+                Assert.AreEqual(0, reader.ReadInt(2));
+                Assert.AreEqual(-23, reader.ReadInt(3));
+                try {
+                    Assert.AreEqual(1, reader.ReadInt(4));
                 } catch (Exception e) {
                     Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
                     wasException = true;
@@ -200,9 +244,9 @@ namespace FasterThanJson.Tests {
                 TupleWriterBase64 writer = new TupleWriterBase64(start, 3, 2);
                 writer.SetTupleLength(20);
                 // Too big value
-                writer.WriteSafe(64 * 64 * 64 * 64 * 64 -1 + 64 * 64 * 64 * 64 * 64);
-                writer.WriteSafe(64 * 64 * 64 * 64 * 64);
-                writer.WriteSafe(63);
+                writer.WriteSafe((ulong)64 * 64 * 64 * 64 * 64 -1 + 64 * 64 * 64 * 64 * 64);
+                writer.WriteSafe((ulong)64 * 64 * 64 * 64 * 64);
+                writer.WriteSafe((ulong)63);
                 writer.SealTuple();
 
                 TupleReaderBase64 reader = new TupleReaderBase64(start, 3);

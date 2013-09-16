@@ -172,6 +172,13 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long ConvertInt(ulong uval) {
+          long ret = (long)(uval >> 1);
+          if ((uval & 0x00000001) == 1)
+              ret = -ret - 1;
+          return ret;
+      }
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe long ReadInt() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= (int)ValueOffset;
@@ -179,10 +186,7 @@ namespace Starcounter.Internal
           ValueOffset += (uint)len;
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
-          long ret = (long)(uval >> 1);
-          if ((uval & 0x00000001) == 1)
-              ret = -ret - 1;
-          return ret;
+          return ConvertInt(uval);
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
@@ -192,11 +196,25 @@ namespace Starcounter.Internal
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
-          var ret = Base64Int.Read(valueLength, valuePos);
+          ulong ret = Base64Int.Read(valueLength, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
           return ret;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long ReadInt(int index) {
+#if BASE64
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          // Read the value at the position with the length
+          ulong ret = Base64Int.Read(valueLength, valuePos);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+#endif
+          return ConvertInt(ret);
       }
 
       /// <summary>
