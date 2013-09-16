@@ -212,7 +212,10 @@ namespace StarcounterInternal.Bootstrap
             // Waiting until BMX component is ready.
             if (!configuration.NoNetworkGateway)
             {
-                bmx.sc_wait_for_bmx_ready();
+                UInt32 errCode = bmx.sc_wait_for_bmx_ready(40000);
+                if (errCode != 0)
+                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, "sc_wait_for_bmx_ready didn't finish within given time interval.");
+
                 OnNetworkGatewayConnected();
             }
 

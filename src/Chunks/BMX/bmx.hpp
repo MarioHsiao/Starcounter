@@ -507,9 +507,6 @@ namespace bmx
         // Current unique number.
         BMX_HANDLER_UNIQUE_NUM_TYPE unique_handler_num_;
 
-        // Indicates that push is now possible.
-        volatile bool push_ready_;
-
     public:
 
         // Gets specific registered handler.
@@ -518,23 +515,8 @@ namespace bmx
             return registered_handlers_ + handler_id;
         }
 
-        // Gets the number of registered push channels.
-        uint32_t get_num_registered_push_channels()
-        {
-            return num_registered_push_channels_;
-        }
-
-        // Push is now ready.
-        void set_push_ready()
-        {
-            push_ready_ = true;
-        }
-
-        // Push is now ready.
-        bool get_push_ready()
-        {
-            return push_ready_;
-        }
+        // Is push to gateway already possible?
+        bool is_push_ready();
 
         // Clones current BMX data.
         BmxData* Clone()
@@ -544,7 +526,6 @@ namespace bmx
 
             new_copy->max_num_entries_ = max_num_entries_;
             new_copy->num_registered_push_channels_ = num_registered_push_channels_;
-            new_copy->push_ready_ = push_ready_;
             new_copy->unique_handler_num_ = unique_handler_num_;
 
             // Note: for non-linear HandlersList structure, need to copy element by element.
@@ -615,7 +596,6 @@ namespace bmx
             max_num_entries_ = 0;
             unique_handler_num_ = 0;
             num_registered_push_channels_ = 0;
-            push_ready_ = false;
         }
 
         // Destructor.
@@ -663,7 +643,7 @@ namespace bmx
 }; // namespace starcounter
 
 // Waits for BMX manager to be ready.
-EXTERN_C void __stdcall sc_wait_for_bmx_ready();
+EXTERN_C uint32_t __stdcall sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms);
 
 // Handles all incoming chunks.
 EXTERN_C uint32_t __stdcall sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);

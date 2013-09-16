@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 using NUnit.Framework;
 using Starcounter.Internal;
 using Starcounter.TestFramework;
 
 namespace FasterThanJson.Tests {
     [TestFixture]
-    public class InvestigateTuplePerformance {
+    public static class InvestigateTuplePerformance {
         static int nrIterations = 100000;
-        void Print(Stopwatch timer, string name, int nrIter) {
+        static void Print(Stopwatch timer, string name, int nrIter) {
             Console.WriteLine(nrIter + " " + name + " took " + timer.ElapsedMilliseconds +
                 " ms, i.e., " + timer.ElapsedMilliseconds * 1000000 / nrIter + " ns per iteration or " +
                 (long)nrIter / timer.ElapsedMilliseconds * 1000 + " tps.");
@@ -16,7 +17,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkUInt() {
+        public static unsafe void BenchmarkUInt() {
             uint value = 2341;
             int nrIter = nrIterations*10;
             Stopwatch timer = new Stopwatch();
@@ -30,7 +31,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkULong() {
+        public static unsafe void BenchmarkULong() {
             ulong value = UInt64.MaxValue;
             int nrIter = nrIterations * 10;
             Stopwatch timer = new Stopwatch();
@@ -44,7 +45,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkNewTupleWriter() {
+        public static unsafe void BenchmarkNewTupleWriter() {
             int nrIter = nrIterations * 10;
             Stopwatch timer = new Stopwatch();
             fixed (byte* buffer = new byte[10]) {
@@ -58,7 +59,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleWriterUInt() {
+        public static unsafe void BenchmarkTupleWriterUInt() {
             int nrIter = nrIterations * 10;
             uint value = 2341;
             Stopwatch timer = new Stopwatch();
@@ -74,7 +75,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleWriter10UInt() {
+        public static unsafe void BenchmarkTupleWriter10UInt() {
             uint value = 2341;
             int nrIter = nrIterations;
             Stopwatch timer = new Stopwatch();
@@ -91,7 +92,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleWriter10ULong() {
+        public static unsafe void BenchmarkTupleWriter10ULong() {
             ulong value = UInt64.MaxValue;
             int nrIter = nrIterations;
             Stopwatch timer = new Stopwatch();
@@ -108,7 +109,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleWriter10ULongGrow() {
+        public static unsafe void BenchmarkTupleWriter10ULongGrow() {
             ulong value = UInt64.MaxValue;
             int nrIter = nrIterations;
             Stopwatch timer = new Stopwatch();
@@ -125,7 +126,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleUIntScale() {
+        public static unsafe void BenchmarkTupleUIntScale() {
             uint value = 2341;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
@@ -159,7 +160,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleULongScale() {
+        public static unsafe void BenchmarkTupleULongScale() {
             ulong value = UInt64.MaxValue;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
@@ -193,7 +194,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleString1Scale() {
+        public static unsafe void BenchmarkTupleString1Scale() {
             string value = "a";
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
@@ -227,7 +228,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleString10Scale() {
+        public static unsafe void BenchmarkTupleString10Scale() {
             string value = "Just text.";
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
@@ -261,7 +262,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleByte1Scale() {
+        public static unsafe void BenchmarkTupleByte1Scale() {
             byte[] value = new byte[1] { 12 };
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
@@ -295,7 +296,7 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
-        public unsafe void BenchmarkTupleByte10Scale() {
+        public static unsafe void BenchmarkTupleByte10Scale() {
             byte[] value = new byte[10] { 12, 255, 0, 124, 4, 0, 32, 43, 255, 231 };
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
@@ -328,9 +329,114 @@ namespace FasterThanJson.Tests {
             }
         }
 
+        //[Test]
+        public static unsafe void BenchmarkNewTupleReader() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[10]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    TupleReaderBase64 tuple = new TupleReaderBase64(buffer, 2);
+                }
+                timer.Stop();
+            }
+            Print(timer, "TupleReader creates", nrIter);
+        }
+
+        static unsafe void AllocateBuffer(int size) {
+            char* buffer = stackalloc char[size];
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkBufferAllocation() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            for (int i = 0; i < nrIter; i++) {
+                AllocateBuffer(10);
+            }
+            timer.Stop();
+            Print(timer, "String buffer allocation", nrIter);
+        }
+
+        static Encoder Utf8Encode = new UTF8Encoding(false, true).GetEncoder();
+        static Decoder Utf8Decode = new UTF8Encoding(false, true).GetDecoder();
+
+        //[Test]
+        public static unsafe void BenchmarkGetBytes() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* start = new byte[20]) {
+                String str = "Just text.";
+                fixed (char* pStr = str) {
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        int len = Utf8Encode.GetBytes(pStr, 10, start, 20, true); ;
+                    }
+                    timer.Stop();
+                }
+            }
+            Print(timer, "Get bytes", nrIter);
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkGetChars() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            char* buffer = stackalloc char[11];
+            fixed (byte* start = new byte[20]) {
+                String str = "Just text.";
+                fixed (char* pStr = str) {
+                    int len = Utf8Encode.GetBytes(pStr, 10, start, 20, true); ;
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        Utf8Decode.GetChars(start, len, buffer, 10, true);
+                    }
+                    timer.Stop();
+                }
+            }
+            Print(timer, "Get chars", nrIter);
+        }
+
+
+        //[Test]
+        public static unsafe void BenchmarkNewString() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            //char* buffer = stackalloc char[11];
+            //buffer = "Just text.";
+            String str = "Just text.";
+            fixed (char* buffer = str.ToCharArray()) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    str = new String(buffer, 0, 10);
+                }
+                timer.Stop();
+            }
+            Print(timer, "New String", nrIter);
+        }
+
+        static unsafe void NewStringFromBufferAlloc(int size) {
+            char* buffer = stackalloc char[size + 1];
+            String str = new String(buffer, 0, size);
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkNewStringBufferAlloc() {
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            for (int i = 0; i < nrIter; i++) {
+                NewStringFromBufferAlloc(10);
+            }
+            timer.Stop();
+            Print(timer, "New String with buffer allocation", nrIter);
+        }
+
+
         [Test]
         [Category("LongRunning")]
-        public unsafe void RunAllTests() {
+        public static unsafe void RunAllTests() {
             //if (TestLogger.IsRunningOnBuildServer())
             //    nrIterations = nrIterations* 10;
 #if DEBUG
@@ -349,6 +455,12 @@ namespace FasterThanJson.Tests {
             Console.WriteLine("------------ Strings ----------------");
             BenchmarkTupleString1Scale();
             BenchmarkTupleString10Scale();
+            BenchmarkGetBytes();
+            BenchmarkNewStringBufferAlloc();
+            BenchmarkGetChars();
+            BenchmarkNewString();
+            BenchmarkBufferAllocation();
+            BenchmarkNewTupleReader();
             Console.WriteLine("------------ Byte arrays ----------------");
             BenchmarkTupleByte1Scale();
             BenchmarkTupleByte10Scale();

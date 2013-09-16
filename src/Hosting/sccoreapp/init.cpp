@@ -74,7 +74,12 @@ void __critical_log_handler(void *c, const wchar_t *message)
 	uint64_t hlogs = (uint64_t)__hlogs;
 	if (hlogs)
 	{
-		sccorelog_kernel_write_to_logs(hlogs, SC_ENTRY_CRITICAL, 0, message);
+		if (message)
+		{
+			sccorelog_kernel_write_to_logs(
+				hlogs, SC_ENTRY_CRITICAL, 0, message
+				);
+		}
 		sccorelog_flush_to_logs(hlogs);
 	}
 }
