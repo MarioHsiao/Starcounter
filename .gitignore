@@ -41,6 +41,8 @@ src/BuildSystem/Documentation/PublicDoc/scripts
 src/BuildSystem/Documentation/PublicDoc/images
 src/BuildSystem/Documentation/PublicDoc/dotnetimages
 
+src/BuildSystem/Documentation/Public/build
+
 *.ncrunchsolution
 
 src/Starcounter.SqlParser/Parser/gram.c
