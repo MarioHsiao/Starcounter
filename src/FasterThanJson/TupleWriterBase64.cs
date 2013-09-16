@@ -305,6 +305,14 @@ namespace Starcounter.Internal
 #endif
       }
 
+      public static uint MeasureNeededSizeNullableULong(ulong? n) {
+#if BASE64
+          return Base64Int.MeasureNeededSizeNullable(n);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
       public static uint MeasureNeededSizeLong(long n) {
           if (n >= 0)
               return Base64Int.MeasureNeededSize(((ulong)n << 1));
