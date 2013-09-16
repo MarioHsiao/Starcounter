@@ -121,8 +121,7 @@ restart:
 							posInArray = -1;
 						} else {
 							string valueAsStr;
-							ulong valueAsUL;
-
+							
 							if (tProperty is TBool) {
 								if (buf.Length < (writer.Length + 1))
 									goto restart;
@@ -143,11 +142,10 @@ restart:
 									goto restart;
 								writer.WriteString(valueAsStr);
 							} else if (tProperty is TLong) {
-								valueAsUL = (ulong)obj.Get((TLong)tProperty);
 								valueSize = MAX_INT_SIZE;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
-								writer.WriteULong(valueAsUL);
+								writer.WriteLong(obj.Get((TLong)tProperty));
 							} else if (tProperty is TString) {
 								valueAsStr = obj.Get((TString)tProperty);
 								if (valueAsStr == null)
@@ -203,7 +201,7 @@ restart:
 							valueAsStr = reader.ReadString();
 							obj.Set((TDouble)tProperty, Double.Parse(valueAsStr, CultureInfo.InvariantCulture));
 						} else if (tProperty is TLong) {
-							obj.Set((TLong)tProperty, (long)reader.ReadULong());
+							obj.Set((TLong)tProperty, reader.ReadLong());
 						} else if (tProperty is TString) {
 							obj.Set((TString)tProperty, reader.ReadString());
 						} else if (tProperty is TObject) {
