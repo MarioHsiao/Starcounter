@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c" />
+    <ClCompile Include="OurSources\aggregation.cpp" />
     <ClCompile Include="OurSources\echo_processors.cpp" />
     <ClCompile Include="OurSources\gateway.cpp" />
     <ClCompile Include="OurSources\http_proto.cpp" />
@@ -115,7 +116,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <WarningLevel>Level2</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -130,7 +131,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <WarningLevel>Level2</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>GW_LOG_TO_CONSOLE;GW_LOOPED_TEST_MODE;GW_LIMITED_ECHO_TEST;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -147,7 +148,7 @@
       <BrowseInformation>false</BrowseInformation>
       <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <WarningLevel>Level2</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>

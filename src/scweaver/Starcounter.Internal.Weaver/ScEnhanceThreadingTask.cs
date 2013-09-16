@@ -13,35 +13,24 @@ using PostSharp.Sdk.Extensibility.Tasks;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
-    /// Class ScEnhanceThreadingTask
+    /// A task that is responsible for the transformation of calls to
+    /// a few System.Thread methods, like Thread.Sleep, to adapt user
+    /// code to the cooperative scheduler.
     /// </summary>
+    /// <remarks>
+    /// This code is currently not called during weaving, since it is
+    /// kind of out-of-date. If we must reintroduce it, we have to move
+    /// the code that is weaved into the user code - i.e. the InterceptThread
+    /// class - to the Starcounter assembly, since it will otherwise result
+    /// in a reference to the weaver executable when weaved and recompiled.
+    /// </remarks>
     public sealed class ScEnhanceThreadingTask : Task {
         /// <summary>
         /// Executes this instance.
         /// </summary>
         /// <returns>Boolean.</returns>
         public override Boolean Execute() {
-            ScAnalysisTask analysisTask;
-            ModuleDeclaration module;
-            WeaverTransformationKind transformation;
-
-            // Consult the weaver transformation kind established by the preceeding
-            // analysis task to see if we need to execute this task.
-
-            analysisTask = ScAnalysisTask.GetTask(this.Project);
-            transformation = analysisTask.GetTransformationKind();
-
-            if (!WeaverUtilities.IsTargetingDatabase(transformation)) {
-                // The weaver of the current assembly/module runs with another
-                // target than the database. We don't need to do any transformation
-                // of threading calls.
-
-                return true;
-            }
-
-            // Execute the logic of this task.
-
-            module = Project.Module;
+            var module = Project.Module;
             Thread_Priority(module);
             Thread_SleepA(module);
             Thread_SleepB(module);

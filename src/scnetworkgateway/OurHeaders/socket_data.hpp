@@ -12,9 +12,8 @@ enum SOCKET_DATA_FLAGS
 {
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
     SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
-    SOCKET_DATA_FLAGS_NEW_SESSION = 4,
     SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
-    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
+    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
     SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
     SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
@@ -39,27 +38,15 @@ class SocketDataChunk
     // 8 bytes aligned data.
     /////////////////////////
 
-    // Unique sequence number for the database.
-    uint64_t db_unique_seq_num_;
-
-    // Socket to which this data belongs.
-    SOCKET sock_;
-
     // Unique number for socket.
     random_salt_type unique_socket_id_;
-
-    // Proxy socket information.
-    SOCKET proxy_sock_;
-
-    // Determined handler id.
-    BMX_HANDLER_TYPE saved_user_handler_id_;
-
-    // Origin IP information.
-    ip_info_type origin_ip_info_;
 
     /////////////////////////
     // 4 bytes aligned data.
     /////////////////////////
+
+    // Socket identifier.
+    session_index_type socket_info_index_;
 
     // Offset in bytes from the beginning of the socket data to place
     // where user data should be written.
@@ -83,20 +70,17 @@ class SocketDataChunk
     // Socket data flags.
     uint32_t flags_;
 
-    // Port handlers index.
-    int32_t port_index_;
-
-    // Index into databases array.
-    int32_t db_index_;
-
     /////////////////////////
     // 1 bytes aligned data.
     /////////////////////////
 
+    // Index into databases array.
+    uint8_t db_index_;
+
     // Current type of network operation.
     uint8_t type_of_network_oper_;
 
-    // Type of protocol.
+    // Type of network protocol.
     uint8_t type_of_network_protocol_;
 
     /////////////////////////
@@ -116,6 +100,14 @@ class SocketDataChunk
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
 
 public:
+
+    // Resets safe flags.
+    void ResetSafeFlags()
+    {
+        reset_accumulating_flag();
+        reset_to_database_direction_flag();
+        reset_complete_header_flag();
+    }
 
 #ifdef GW_LOOPED_TEST_MODE
 
@@ -144,19 +136,15 @@ public:
         GW_ASSERT(((uint8_t*)&session_.random_salt_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
         GW_ASSERT(((uint8_t*)&session_.reserved_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RESERVED_INDEX);
 
-        GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
-
         GW_ASSERT((accept_or_params_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
-
-        GW_ASSERT(((uint8_t*)&origin_ip_info_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_CLIENT_IP);
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
         GW_ASSERT(((uint8_t*)&flags_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS);
 
-        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
+        GW_ASSERT(((uint8_t*)&type_of_network_protocol_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE);
 
-        GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
 
@@ -168,105 +156,17 @@ public:
 
         GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
 
-        GW_ASSERT(((uint8_t*)&type_of_network_protocol_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE);
-
-        GW_ASSERT(((uint8_t*)&sock_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_NUMBER);
-
         GW_ASSERT(((uint8_t*)&unique_socket_id_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
-        GW_ASSERT(((uint8_t*)&port_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PORT_INDEX);
+        GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
 
         return 0;
     }
 
+    // Sets unique socket id.
     void set_unique_socket_id(random_salt_type unique_socket_id)
     {
         unique_socket_id_ = unique_socket_id;
-    }
-
-    // Setting new unique socket number.
-    void CreateUniqueSocketId(scheduler_id_type scheduler_id)
-    {
-        session_.scheduler_id_ = scheduler_id;
-        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_, port_index_, session_.scheduler_id_);
-    }
-
-    // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId()
-    {
-        return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
-    }
-
-    // Setting client IP on this socket.
-    void SetSocketClientIpInfo()
-    {
-        return g_gateway.SetClientIpInfo(sock_, origin_ip_info_);
-    }
-
-    // Sets session if socket is correct.
-    void SetGlobalSessionIfEmpty()
-    {
-        // Checking unique socket id and session.
-        if (CompareUniqueSocketId() && (!g_gateway.IsGlobalSessionActive(sock_)))
-            g_gateway.SetGlobalSessionCopy(sock_, session_);
-    }
-
-    // Forcedly sets session if socket is correct.
-    void ForceSetGlobalSessionIfEmpty()
-    {
-        // Checking unique socket id and session.
-        if (session_.IsActive() && CompareUniqueSocketId())
-            g_gateway.SetGlobalSessionCopy(sock_, session_);
-    }
-
-    // Updates connection timestamp if socket is correct.
-    void UpdateConnectionTimeStamp()
-    {
-        // Checking unique socket id and session.
-        if (CompareUniqueSocketId())
-            g_gateway.UpdateSocketTimeStamp(sock_);
-    }
-
-    // Sets connection type if socket is correct.
-    void SetConnectionType(MixedCodeConstants::NetworkProtocolType proto_type)
-    {
-        // Checking unique socket id and session.
-        if (CompareUniqueSocketId())
-            g_gateway.SetConnectionType(sock_, proto_type);
-    }
-
-    // Sets session if socket is correct.
-    void SetSdSessionIfEmpty()
-    {
-        // Checking unique socket id and session.
-        if ((!session_.IsActive()) && (g_gateway.IsGlobalSessionActive(sock_)))
-            session_ = g_gateway.GetGlobalSessionCopy(sock_);
-    }
-
-    // Deletes global session.
-    void DeleteGlobalSessionOnDisconnect()
-    {
-        // Checking unique socket id and session.
-        //if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
-            g_gateway.DeleteGlobalSession(sock_);
-    }
-
-    // Checks if global session data is active.
-    bool CompareGlobalSessionSalt()
-    {
-        return g_gateway.CompareGlobalSessionSalt(sock_, session_.random_salt_);
-    }
-
-    // Origin IP information.
-    ip_info_type get_origin_ip_info()
-    {
-        return origin_ip_info_;
-    }
-
-    // Sets origin IP information.
-    void set_origin_ip_info(ip_info_type origin_ip_info)
-    {
-        origin_ip_info_ = origin_ip_info;
     }
 
     // Deletes global session and sends message to database to delete session there.
@@ -274,18 +174,12 @@ public:
 
     // Clone current socket data to another database.
     uint32_t CloneToAnotherDatabase(
-        GatewayWorker*gw,
+        GatewayWorker* gw,
         int32_t new_db_index,
         SocketDataChunk** new_sd);
 
     // Returns all linked chunks except the main one.
     uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
-
-    // Setting user handler id.
-    void set_saved_user_handler_id(BMX_HANDLER_TYPE saved_user_handler_id)
-    {
-        saved_user_handler_id_ = saved_user_handler_id;
-    }
 
     // Getting type of network protocol.
     MixedCodeConstants::NetworkProtocolType get_type_of_network_protocol()
@@ -299,26 +193,13 @@ public:
         return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
     }
 
-    // Setting type of network protocol.
-    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType proto_type)
-    {
-        type_of_network_protocol_ = proto_type;
-        SetConnectionType(proto_type);
-    }
-
-    // Getting saved user handler id.
-    BMX_HANDLER_TYPE get_saved_user_handler_id()
-    {
-        return saved_user_handler_id_;
-    }
-
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
     // Chunk data offset.
     uint32_t GetAccumBufferDataOffsetInChunk()
     {
-        return accum_buf_.get_orig_buf_ptr() - (uint8_t*)get_smc();
+        return static_cast<uint32_t> (accum_buf_.get_orig_buf_ptr() - (uint8_t*)get_smc());
     }
 
     // Getting to database direction flag.
@@ -328,57 +209,63 @@ public:
     }
 
     // Setting to database direction flag.
-    void set_to_database_direction_flag(bool value)
+    void set_to_database_direction_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+        flags_ |= SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+    }
+
+    // ReSetting to database direction flag.
+    void reset_to_database_direction_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
     // Getting socket just send flag.
     bool get_socket_just_send_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_JUST_SEND;
+        return (flags_ & SOCKET_DATA_FLAGS_JUST_SEND) != 0;
     }
 
     // Setting socket just send flag.
-    void set_socket_just_send_flag(bool value)
+    void reset_socket_just_send_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_JUST_SEND;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_JUST_SEND;
+        flags_ &= ~SOCKET_DATA_FLAGS_JUST_SEND;
     }
 
     // Getting socket representer flag.
     bool get_socket_representer_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+        return (flags_ & SOCKET_DATA_FLAGS_SOCKET_REPRESENTER) != 0;
     }
 
     // Setting socket representer flag.
-    void set_socket_representer_flag(bool value)
+    void set_socket_representer_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+        GW_ASSERT(false == get_socket_trigger_disconnect_flag());
+
+        flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+    }
+
+    // Resetting socket representer flag.
+    void reset_socket_representer_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
 
     // Getting socket trigger disconnect flag.
     bool get_socket_trigger_disconnect_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+        return (flags_ & SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT) != 0;
     }
 
     // Setting socket trigger disconnect flag.
-    void set_socket_trigger_disconnect_flag(bool value)
+    void set_socket_trigger_disconnect_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+        // Do nothing if already a socket representer.
+        if (get_socket_representer_flag())
+            return;
+
+        flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -386,16 +273,19 @@ public:
     // Getting socket diagnostics active connection flag.
     bool get_socket_diag_active_conn_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_ACTIVE_CONN;
+        return (flags_ & SOCKET_DATA_FLAGS_ACTIVE_CONN) != 0;
     }
 
-    // Getting socket diagnostics active connection flag.
-    void set_socket_diag_active_conn_flag(bool value)
+    // Setting socket diagnostics active connection flag.
+    void set_socket_diag_active_conn_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_ACTIVE_CONN;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_ACTIVE_CONN;
+        flags_ |= SOCKET_DATA_FLAGS_ACTIVE_CONN;
+    }
+
+    // ReSetting socket diagnostics active connection flag.
+    void reset_socket_diag_active_conn_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_ACTIVE_CONN;
     }
 
 #endif
@@ -405,31 +295,31 @@ public:
     // Getting proxying flag.
     bool get_proxied_server_socket_flag()
     {
-        return flags_ & HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
+        return (flags_ & HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET) != 0;
     }
 
     // Setting proxying flag.
-    void set_proxied_server_socket_flag(bool value)
+    void set_proxied_server_socket_flag()
     {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
+        flags_ |= HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
+    }
+
+    // ReSetting proxying flag.
+    void reset_proxied_server_socket_flag()
+    {
+        flags_ &= ~HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
     }
 
     // Getting proxying unknown protocol flag.
     bool get_unknown_proxied_proto_flag()
     {
-        return flags_ & HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
+        return (flags_ & HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO) != 0;
     }
 
     // Setting proxying unknown protocol flag.
-    void set_unknown_proxied_proto_flag(bool value)
+    void set_unknown_proxied_proto_flag()
     {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
+        flags_ |= HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
     }
 
 #endif
@@ -437,76 +327,61 @@ public:
     // Getting accumulating flag.
     bool get_accumulating_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+        return (flags_ & SOCKET_DATA_FLAGS_ACCUMULATING_STATE) != 0;
     }
 
     // Setting accumulating flag.
-    void set_accumulating_flag(bool value)
+    void set_accumulating_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+        flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+    }
+
+    // ReSetting accumulating flag.
+    void reset_accumulating_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
     // Getting disconnect after send flag.
     bool get_disconnect_after_send_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        return (flags_ & SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND) != 0;
     }
 
     // Setting disconnect after send flag.
-    void set_disconnect_after_send_flag(bool value)
+    void set_disconnect_after_send_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
-    // Getting disconnect flag.
-    bool get_disconnect_flag()
+    // ReSetting disconnect after send flag.
+    void reset_disconnect_after_send_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_JUST_DISCONNECT;
+        flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
-    // Setting disconnect flag.
-    void set_disconnect_flag(bool value)
+    // Getting disconnect socket flag.
+    bool get_disconnect_socket_flag()
     {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_JUST_DISCONNECT;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_JUST_DISCONNECT;
-    }
-
-    // Getting new session flag.
-    bool get_new_session_flag()
-    {
-        return flags_ & SOCKET_DATA_FLAGS_NEW_SESSION;
-    }
-
-    // Setting new session flag.
-    void set_new_session_flag(bool value)
-    {
-        if (value)
-            flags_ |= SOCKET_DATA_FLAGS_NEW_SESSION;
-        else
-            flags_ &= ~SOCKET_DATA_FLAGS_NEW_SESSION;
+        return (flags_ & SOCKET_DATA_FLAGS_JUST_DISCONNECT) != 0;
     }
 
     // Getting complete header flag.
     bool get_complete_header_flag()
     {
-        return flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER;
+        return (flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER) != 0;
     }
 
     // Setting complete header flag.
-    void set_complete_header_flag(bool value)
+    void set_complete_header_flag()
     {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
+        flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
+    }
+
+    // ReSetting complete header flag.
+    void reset_complete_header_flag()
+    {
+        flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting scheduler id.
@@ -545,28 +420,144 @@ public:
         return unique_socket_id_;
     }
 
+    // Checking if unique socket number is correct.
+    bool CompareUniqueSocketId()
+    {
+        return g_gateway.CompareUniqueSocketId(socket_info_index_, unique_socket_id_);
+    }
+
+    // Setting type of network protocol.
+    void SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType proto_type)
+    {
+        type_of_network_protocol_ = proto_type;
+
+        g_gateway.SetConnectionType(socket_info_index_, proto_type);
+    }
+
+    // Checks if this socket is aggregated.
+    bool IsAggregated()
+    {
+        return g_gateway.IsAggregationPort(socket_info_index_);
+    }
+
+    // Getting saved user handler id.
+    BMX_HANDLER_TYPE GetSavedUserHandlerId()
+    {
+        return g_gateway.GetSavedUserHandlerId(socket_info_index_);
+    }
+
+    // Setting user handler id.
+    void SetSavedUserHandlerId(BMX_HANDLER_TYPE saved_user_handler_id)
+    {
+        g_gateway.SetSavedUserHandlerId(socket_info_index_, saved_user_handler_id);
+    }
+
+    // Setting new unique socket number.
+    void CreateUniqueSocketId(scheduler_id_type scheduler_id)
+    {
+        session_.scheduler_id_ = scheduler_id;
+        unique_socket_id_ = g_gateway.CreateUniqueSocketId(socket_info_index_, GetPortIndex(), session_.scheduler_id_);
+    }
+
+    // Sets session if socket is correct.
+    void SetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (!g_gateway.IsGlobalSessionActive(socket_info_index_))
+            g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
+    }
+
+    // Forcedly sets session if socket is correct.
+    void ForceSetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (session_.IsActive())
+            g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
+    }
+
+    // Updates connection timestamp if socket is correct.
+    void UpdateConnectionTimeStamp()
+    {
+        g_gateway.UpdateSocketTimeStamp(socket_info_index_);
+    }
+
+    // Sets session if socket is correct.
+    void SetSdSessionIfEmpty()
+    {
+        if ((!session_.IsActive()) && (g_gateway.IsGlobalSessionActive(socket_info_index_)))
+            session_ = g_gateway.GetGlobalSessionCopy(socket_info_index_);
+    }
+
+    // Releases socket info index.
+    void ReleaseSocketIndex(GatewayWorker* gw)
+    {
+        g_gateway.ReleaseSocketIndex(gw, socket_info_index_);
+    }
+
+    // Deletes global session.
+    void DeleteGlobalSessionOnDisconnect()
+    {
+        g_gateway.DeleteGlobalSession(socket_info_index_);
+    }
+
+    // Checks if global session data is active.
+    bool CompareGlobalSessionSalt()
+    {
+        return g_gateway.CompareGlobalSessionSalt(socket_info_index_, session_.random_salt_);
+    }
+
+    // Origin IP information.
+    ip_info_type GetClientIpInfo()
+    {
+        return g_gateway.GetClientIpInfo(socket_info_index_);
+    }
+
+    // Sets origin IP information.
+    void SetClientIpInfo(ip_info_type origin_ip_info)
+    {
+        g_gateway.SetClientIpInfo(socket_info_index_, origin_ip_info);
+    }
+
+    // Returns port index.
+    int32_t GetPortIndex()
+    {
+        return g_gateway.GetPortIndex(socket_info_index_);
+    }
+
     // Returns socket.
-    SOCKET get_socket()
+    SOCKET GetSocket()
     {
-        return sock_;
+        return g_gateway.GetSocket(socket_info_index_);
     }
 
-    // Sets socket.
-    void set_socket(SOCKET sock)
+    // Returns true if has proxy socket.
+    bool HasProxySocket()
     {
-        sock_ = sock;
+        return g_gateway.HasProxySocket(socket_info_index_);
     }
 
-    // Returns proxy socket.
-    SOCKET get_proxy_socket()
+    // Returns proxy socket index.
+    session_index_type GetProxySocketIndex()
     {
-        return proxy_sock_;
+        return g_gateway.GetProxySocketIndex(socket_info_index_);
     }
 
     // Sets proxy socket.
-    void set_proxy_socket(SOCKET sock)
+    void SetProxySocket(session_index_type proxy_socket_index)
     {
-        proxy_sock_ = sock;
+        g_gateway.SetProxySocket(socket_info_index_, proxy_socket_index);
+    }
+
+    // Returns socket info index.
+    session_index_type get_socket_info_index()
+    {
+        return socket_info_index_;
+    }
+
+    // Sets socket info index.
+    void set_socket_info_index(session_index_type socket_info_index)
+    {
+        socket_info_index_ = socket_info_index;
     }
 
     // Returns SMC representing this chunk.
@@ -608,7 +599,7 @@ public:
     // Gets number of data bytes left in chunk.
     int32_t GetNumRemainingDataBytesInChunk(uint8_t* payload)
     {
-        return SOCKET_DATA_BLOB_SIZE_BYTES - (payload - data_blob_);
+        return static_cast<int32_t> (SOCKET_DATA_BLOB_SIZE_BYTES - (payload - data_blob_));
     }
 
     // Returns number of used chunks.
@@ -649,7 +640,7 @@ public:
     // Current type of network operation.
     SocketOperType get_type_of_network_oper()
     {
-        return (SocketOperType)type_of_network_oper_;
+        return (SocketOperType) type_of_network_oper_;
     }
 
     // Current type of network operation.
@@ -693,12 +684,6 @@ public:
         return user_data_written_bytes_;
     }
 
-    // Gets index of the server port.
-    int32_t get_port_index()
-    {
-        return port_index_;
-    }
-
     // Data buffer chunk.
     AccumBuffer* get_accum_buf()
     {
@@ -721,44 +706,31 @@ public:
     }
 
     // Index into databases array.
-    uint16_t get_db_index()
+    uint8_t get_db_index()
     {
         return db_index_;
     }
 
     // Index into databases array.
-    void set_db_index(uint16_t db_index)
+    void set_db_index(uint8_t db_index)
     {
         db_index_ = db_index;
-    }
-
-    // Unique database sequence number.
-    uint64_t get_db_unique_seq_num()
-    {
-        return db_unique_seq_num_;
-    }
-
-    // Setting unique sequence number.
-    void set_db_unique_seq_num(uint64_t seq_num)
-    {
-        db_unique_seq_num_ = seq_num;
     }
 
     // Exchanges sockets during proxying.
     void ExchangeToProxySocket()
     {
+        session_index_type proxy_socket_info_index = GetProxySocketIndex();
+
         // Getting corresponding proxy socket id.
-        random_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_sock_);
+        random_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_socket_info_index);
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Exchanging sockets: " << sock_ << "<->" << proxy_sock_ << " and ids " <<
+        GW_COUT << "Exchanging sockets: " << socket_ << "<->" << proxy_socket_ << " and ids " <<
             unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
 #endif
 
-        // Switching places with current and proxy socket.
-        SOCKET tmp_sock = sock_;
-        sock_ = proxy_sock_;
-        proxy_sock_ = tmp_sock;
+        socket_info_index_ = proxy_socket_info_index;
 
         // Setting unique socket id.
         unique_socket_id_ = proxy_unique_socket_id;
@@ -767,22 +739,17 @@ public:
     // Attaching to certain database.
     void AttachToDatabase(int32_t db_index)
     {
-        db_unique_seq_num_ = g_gateway.GetDatabase(db_index)->get_unique_num();
         db_index_ = db_index;
     }
 
     // Initialization.
     void Init(
-        SOCKET sock,
-        int32_t port_index,
+        session_index_type socket_info_index,
         int32_t db_index,
         core::chunk_index chunk_index);
 
     // Resetting socket.
     void Reset();
-
-    // Checking that database and corresponding port handler exists.
-    bool ForceSocketDataValidity(GatewayWorker* gw);
 
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
@@ -793,7 +760,7 @@ public:
     // Resets user data offset.
     void ResetUserDataOffset()
     {
-        user_data_offset_in_socket_data_ = data_blob_ - (uint8_t*)this;
+        user_data_offset_in_socket_data_ = static_cast<uint32_t> (data_blob_ - (uint8_t*)this);
 
         max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
@@ -801,7 +768,8 @@ public:
     // Start receiving on socket.
     uint32_t ReceiveSingleChunk(GatewayWorker *gw, uint32_t *num_bytes)
     {
-        type_of_network_oper_ = RECEIVE_SOCKET_OPER;
+        set_type_of_network_oper(RECEIVE_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -811,13 +779,14 @@ public:
 
 
         DWORD flags = 0;
-        return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+        return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
 
     // Start receiving on socket using multiple chunks.
     uint32_t ReceiveMultipleChunks(GatewayWorker *gw, core::shared_interface* shared_int, uint32_t* num_bytes)
     {
-        type_of_network_oper_ = RECEIVE_SOCKET_OPER;
+        set_type_of_network_oper(RECEIVE_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -827,13 +796,14 @@ public:
 
         // NOTE: Need to subtract two chunks from being included in receive.
         DWORD flags = 0;
-        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+        return WSARecv(GetSocket(), (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
 
     // Start sending on socket.
     uint32_t SendSingleChunk(GatewayWorker* gw, uint32_t *numBytes)
     {
-        type_of_network_oper_ = SEND_SOCKET_OPER;
+        set_type_of_network_oper(SEND_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -841,13 +811,14 @@ public:
         return WSA_IO_PENDING;
 #endif
 
-        return WSASend(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+        return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start sending on socket.
     uint32_t SendMultipleChunks(GatewayWorker* gw, core::shared_interface* shared_int, uint32_t *numBytes)
     {
-        type_of_network_oper_ = SEND_SOCKET_OPER;
+        set_type_of_network_oper(SEND_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -856,13 +827,14 @@ public:
 #endif
 
         // NOTE: Need to subtract one chunks from being included in send.
-        return WSASend(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+        return WSASend(GetSocket(), (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
     // Start accepting on socket.
     uint32_t Accept(GatewayWorker* gw)
     {
-        type_of_network_oper_ = ACCEPT_SOCKET_OPER;
+        set_type_of_network_oper(ACCEPT_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -872,8 +844,8 @@ public:
 
         // Running Windows API AcceptEx function.
         return AcceptExFunc(
-            g_gateway.get_server_port(port_index_)->get_listening_sock(),
-            sock_,
+            g_gateway.get_server_port(GetPortIndex())->get_listening_sock(),
+            GetSocket(),
             accept_or_params_data_,
             0,
             SOCKADDR_SIZE_EXT,
@@ -885,10 +857,10 @@ public:
     // Setting SO_UPDATE_ACCEPT_CONTEXT.
     uint32_t SetAcceptSocketOptions()
     {
-        SOCKET listening_sock = g_gateway.get_server_port(port_index_)->get_listening_sock();
+        SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
 
 #ifndef GW_LOOPED_TEST_MODE
-        if (setsockopt(sock_, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
+        if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
             return SCERRGWACCEPTEXFAILED;
 #endif
 
@@ -898,7 +870,8 @@ public:
     // Start connecting on socket.
     uint32_t Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
     {
-        type_of_network_oper_ = CONNECT_SOCKET_OPER;
+        set_type_of_network_oper(CONNECT_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -906,13 +879,14 @@ public:
         return FALSE;
 #endif
 
-        return ConnectExFunc(sock_, (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
+        return ConnectExFunc(GetSocket(), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
     }
 
     // Start disconnecting socket.
     uint32_t Disconnect(GatewayWorker *gw)
     {
-        type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
+        set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
+
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -920,21 +894,21 @@ public:
         return FALSE;
 #endif
 
-        return DisconnectExFunc(sock_, &ovl_, TF_REUSE_SOCKET, 0);
+        return DisconnectExFunc(GetSocket(), &ovl_, TF_REUSE_SOCKET, 0);
     }
 
     // Puts socket data to database.
     void PrepareToDb()
     {
         // Setting database data direction flag.
-        set_to_database_direction_flag(true);
+        set_to_database_direction_flag();
     }
 
     // Puts socket data from database.
     void PrepareFromDb()
     {
         // Removing database data direction flag.
-        set_to_database_direction_flag(false);
+        reset_to_database_direction_flag();
     }
 
     // Clones existing socket data chunk.

@@ -8,7 +8,7 @@ namespace FasterThanJson.Tests {
     public class TestSafeTupleWriter {
         [Test]
         public unsafe void TestSafeStringWriter() {
-            byte[] buffer = new byte[100];
+            byte[] buffer = new byte[104];
             fixed (byte* start = buffer) {
                 TupleWriterBase64 writer = new TupleWriterBase64(start, 5, 1);
 

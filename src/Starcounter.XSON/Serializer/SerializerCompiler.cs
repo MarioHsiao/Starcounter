@@ -1,16 +1,11 @@
-﻿
-
-using Mono.CSharp;
+﻿using Mono.CSharp;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using System;
 
-
-namespace Starcounter.Internal.XSON.DeserializerCompiler {
-    
+namespace Starcounter.Internal.XSON.DeserializerCompiler {    
     internal class SerializerCompiler {
-
         private static SerializerCompiler _The;
         private static object Lock = new Object();
 
@@ -26,7 +21,7 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             }
         }
 
-        public TypedJsonSerializer CreateTypedJsonSerializer( Template jsonTemplate) {
+        public TypedJsonSerializer CreateStandardJsonSerializer( Template jsonTemplate) {
             AstNamespace node;
             string fullTypeName;
 
@@ -39,6 +34,21 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             string code = node.GenerateCsSourceCode();
             return GenerateJsonSerializer(code, fullTypeName);
         }
+
+		public TypedJsonSerializer CreateFTJSerializer(Template jsonTemplate) {
+			throw new NotImplementedException("TODO!");
+			//AstNamespace node;
+			//string fullTypeName;
+
+			//if (jsonTemplate == null)
+			//	throw new ArgumentNullException();
+
+			//node = AstTreeGenerator.BuildAstTree(jsonTemplate);
+			//fullTypeName = node.Namespace + "." + ((AstJsonSerializerClass)node.Children[0]).ClassName;
+
+			//string code = node.GenerateCsSourceCode();
+			//return GenerateJsonSerializer(code, fullTypeName);
+		}
 
         /// <summary>
         /// 
@@ -65,43 +75,3 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
 
     }
 }
-
-/*
-/////////
-
-        /// <summary>
-        /// Initializes XSON code generation module.
-        /// </summary>
-        internal static void InitializeXSON() {
-
-            if (xsonInitialized_)
-                return;
-
-            lock (lockObject_) {
-
-                if (xsonInitialized_)
-                    return;
-
-                Obj.Factory = new TypedJsonFactory();
-
-                xsonInitialized_ = true;
-            }
-        }
-
-
-/////
-
-    public sealed class Initializer {
-
-        /// <summary>
-        /// Locks initialization.
-        /// </summary>
-        static Object lockObject_ = new Object();
-
-        /// <summary>
-        /// Indicates if XSON is initialized.
-        /// </summary>
-        static Boolean xsonInitialized_;
-
-    }
-*/

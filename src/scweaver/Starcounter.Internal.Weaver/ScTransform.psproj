@@ -53,8 +53,12 @@
       http://www.starcounter.com/forum/showthread.php?1419-Some-thoughts-and-questions-about-weaver-related-features-in-Green
     <ScConnectionBoundObject /> 
     -->
+    
+    <!--Weaving of threading related code is currently disabled. See
+    comments in the task and in the plugin-file.
     <ScEnhanceThreadingTask />
-
+    -->
+    
     <!-- 
     Now we compile the weaved code into a binary form, writing the file to
     the cache. Compiling is done using a standard PostSharp task.

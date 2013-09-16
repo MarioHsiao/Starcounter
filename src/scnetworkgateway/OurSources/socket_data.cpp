@@ -13,19 +13,14 @@ namespace network {
 
 // Initialization.
 void SocketDataChunk::Init(
-    SOCKET sock,
-    int32_t port_index,
+    session_index_type socket_info_index,
     int32_t db_index,
     core::chunk_index chunk_index)
 {
-    sock_ = sock;
-    proxy_sock_ = INVALID_SOCKET;
+    socket_info_index_ = INVALID_SESSION_INDEX;
 
     // Obtaining corresponding port handler.
-    ServerPort* server_port = g_gateway.get_server_port(port_index);
-    port_index_ = port_index;
     db_index_ = db_index;
-    db_unique_seq_num_ = g_gateway.GetDatabase(db_index_)->get_unique_num();
 
     // Resets data buffer offset.
     ResetUserDataOffset();
@@ -33,18 +28,18 @@ void SocketDataChunk::Init(
     // Calculating maximum size of user data.
     max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES;
     user_data_written_bytes_ = 0;
-    saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
-
+    socket_info_index_ = socket_info_index;
+    
     session_.Reset();
 
     chunk_index_ = chunk_index;
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
     flags_ = 0;
-    set_to_database_direction_flag(true);
+    set_to_database_direction_flag();
 
-    type_of_network_oper_ = UNKNOWN_SOCKET_OPER;
-    type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
+    set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
+    SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
     num_chunks_ = 1;
 
@@ -60,14 +55,10 @@ void SocketDataChunk::Reset()
 {
     flags_ = 0;
 
-    set_to_database_direction_flag(true);
+    set_to_database_direction_flag();
 
-    proxy_sock_ = INVALID_SOCKET;
-
-    type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
-    type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
-
-    saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
+    set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
+    SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
     // Clearing attached session.
     //g_gateway.ClearSession(sessionIndex);
@@ -143,38 +134,38 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
         return 0;
 
     SocketDataChunk* sd_clone = NULL;
-    uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, sd_clone);
+    uint32_t err_code = gw->CreateSocketData(socket_info_index_, db_index_, sd_clone);
     GW_ERR_CHECK(err_code);
 
     // Since another socket is going to be attached.
-    set_socket_representer_flag(false);
+    reset_socket_representer_flag();
 
     // Copying session completely.
     sd_clone->session_ = session_;
 
-    sd_clone->set_to_database_direction_flag(true);
-    sd_clone->set_type_of_network_protocol(get_type_of_network_protocol());
-    sd_clone->set_db_unique_seq_num(db_unique_seq_num_);
+    sd_clone->set_to_database_direction_flag();
+    sd_clone->SetTypeOfNetworkProtocol(get_type_of_network_protocol());
     sd_clone->set_unique_socket_id(unique_socket_id_);
-    sd_clone->set_proxy_socket(proxy_sock_);
-    sd_clone->set_saved_user_handler_id(saved_user_handler_id_);
-    sd_clone->set_origin_ip_info(origin_ip_info_);
+    sd_clone->set_socket_info_index(socket_info_index_);
 
     // This socket becomes attached.
-    sd_clone->set_socket_representer_flag(true);
+    sd_clone->set_socket_representer_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     bool active_conn = get_socket_diag_active_conn_flag();
-    set_socket_diag_active_conn_flag(false);
-    sd_clone->set_socket_diag_active_conn_flag(active_conn);
+    reset_socket_diag_active_conn_flag();
+    if (active_conn)
+        sd_clone->set_socket_diag_active_conn_flag();
+    else
+        sd_clone->reset_socket_diag_active_conn_flag();
 #endif
 
     // Setting the clone for the next iteration.
     gw->SetReceiveClone(sd_clone);
 
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "Cloned socket " << sock_ << ":" << unique_socket_id_ << ":" << chunk_index_ << " to " <<
-        sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
+    GW_COUT << "Cloned socket " << socket_ << ":" << unique_socket_id_ << ":" << chunk_index_ << " to socket index " <<
+        sd_clone->get_socket_info_index() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
 #endif
 
     return 0;
@@ -213,8 +204,8 @@ uint32_t SocketDataChunk::CloneToPush(
     (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((*new_sd)->get_data_blob(), get_accum_buf());
 
     // This socket becomes unattached.
-    (*new_sd)->set_socket_representer_flag(false);
-    (*new_sd)->set_socket_diag_active_conn_flag(false);
+    (*new_sd)->reset_socket_representer_flag();
+    (*new_sd)->reset_socket_diag_active_conn_flag();
 
     return 0;
 }
@@ -383,79 +374,13 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
     return 0;
 }
 
-// Checking that database and corresponding port handler exists.
-bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
-{
-    // Checking if socket should be deleted.
-    if (g_gateway.ShouldSocketBeDeleted(sock_))
-        goto CORRECT_STATISTICS_AND_RELEASE_CHUNK;
-
-    // Checking the database.
-    ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
-
-    // Checking that attached database is correct.
-    if ((active_db != NULL) && (db_unique_seq_num_ == active_db->get_unique_num()))
-        return true;
-
-CORRECT_STATISTICS_AND_RELEASE_CHUNK:
-
-#ifdef GW_SOCKET_DIAG
-    GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << GW_ENDL;
-#endif
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
-    // Correcting statistics based on operations.
-    switch (type_of_network_oper_)
-    {
-        case ACCEPT_SOCKET_OPER:
-        {
-            gw->ChangeNumAcceptingSockets(port_index_, -1);
-            break;
-        }
-
-        case CONNECT_SOCKET_OPER:
-        {
-            break;
-        }
-
-        case SEND_SOCKET_OPER:
-        {
-            // Do nothing.
-            break;
-        }
-
-        case DISCONNECT_SOCKET_OPER:
-        case RECEIVE_SOCKET_OPER:
-        {
-            if (get_socket_diag_active_conn_flag())
-            {
-                gw->ChangeNumActiveConnections(port_index_, -1);
-                set_socket_diag_active_conn_flag(false);
-            }
-            break;
-        }
-
-        // Unknown operation.
-    default:
-        {
-            // NOTE: This situation should never happen.
-            GW_ASSERT(false);
-        }
-    }
-
-#endif
-
-    return false;
-}
-
 // Deletes global session and sends message to database to delete session there.
 uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
 {
     // Verifying that session is correct and sending delete session to database.
     if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
     {
-        ScSessionStruct s = g_gateway.GetGlobalSessionCopy(sock_);
+        ScSessionStruct s = g_gateway.GetGlobalSessionCopy(socket_info_index_);
         return (gw->GetWorkerDb(db_index_)->PushSessionDestroy(s.linear_index_, s.random_salt_, s.scheduler_id_));
     }
 

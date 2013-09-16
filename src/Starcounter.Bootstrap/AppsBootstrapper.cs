@@ -173,7 +173,7 @@ namespace Starcounter.Internal {
             Response response = AppServer_.HandleRequest(request);
 
             if (response != null)
-                request.SendResponse(response.Uncompressed, 0, response.Uncompressed.Length);
+                request.SendResponse(response.Uncompressed, 0, response.UncompressedLength, response.ConnFlags);
 
             request.Destroy();
 

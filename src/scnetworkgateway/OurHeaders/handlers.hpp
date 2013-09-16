@@ -307,7 +307,7 @@ public:
 class HandlersTable
 {
     // Total registered handlers.
-    BMX_HANDLER_TYPE max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE max_num_entries_;
 
     // All registered handlers.
     HandlersList registered_handlers_[bmx::MAX_TOTAL_NUMBER_OF_HANDLERS];
@@ -317,7 +317,7 @@ public:
     // Find port handler id.
     BMX_HANDLER_INDEX_TYPE FindPortHandlerIndex(uint16_t port_num)
     {
-        for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
+        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
         {
             if (!registered_handlers_[i].IsEmpty())
             {
@@ -362,7 +362,7 @@ public:
     {
         int32_t longest_matched_uri = 0;
 
-        for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
+        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
         {
             if (!registered_handlers_[i].IsEmpty())
             {

@@ -49,7 +49,7 @@ namespace Starcounter.Internal
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        throw new Exception(); // TODO:
+                        throw ErrorCode.ToException(Error.SCERRUNEXPDBMETADATAMAPPING, "Column "+columnName+" cannot be found in ColumnDefs.");
                     }
                 }
             }
@@ -159,33 +159,39 @@ namespace Starcounter.Internal
                 DatabaseEntityClass databaseEntityClass;
                 DatabaseArrayType databaseArrayType;
 
-                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
-                    type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
-                } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
-                    type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
-                } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
-                    type = DbTypeCode.Object;
-                    targetTypeName = databaseEntityClass.Name;
-                } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
-                    type = DbTypeCode.String;
-                } else {
-                    if (!databaseAttribute.IsPersistent) continue;
+                try {
+                    if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
+                        type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
+                    } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
+                        type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
+                    } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
+                        type = DbTypeCode.Object;
+                        targetTypeName = databaseEntityClass.Name;
+                    } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
+                        type = DbTypeCode.String;
+                    } else {
+                        if (!databaseAttribute.IsPersistent) continue;
 
-                    // This type is not supported (but theres no way code will
-                    // ever reach here unless theres some internal error). We
-                    // just  raise an internal exception indicating the field
-                    // and that this condition was experienced (indicating an
-                    // internal bug).
-
-                    var errorMessage = ErrorCode.ToMessage(
-                        Error.SCERRUNSPECIFIED,
+                        // This type is not supported (but theres no way code will
+                        // ever reach here unless theres some internal error). We
+                        // just  raise an internal exception indicating the field
+                        // and that this condition was experienced (indicating an
+                        // internal bug).
+                        // 
+                        // In comment to the above: appearently, the code in the
+                        // weaver is not up-to-date with the latest changes done in
+                        // the code host. So let's provide an informative exception
+                        // here anyway, helping our users to help themselves.
+                        throw new NotSupportedException();
+                    }
+                } catch (NotSupportedException) {
+                    throw ErrorCode.ToException(
+                        Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
                         string.Format(
-                            "The attribute type of attribute {0}.{1} was found invalid.",
-                            databaseAttribute.DeclaringClass.Name,
-                            databaseAttribute.Name
-                            )
-                        );
-                    throw new Exception(errorMessage);
+                        "The attribute type of attribute {0}.{1} was found invalid.",
+                        databaseAttribute.DeclaringClass.Name,
+                        databaseAttribute.Name
+                        ));
                 }
 
                 var isNullable = databaseAttribute.IsNullable;
@@ -204,10 +210,10 @@ namespace Starcounter.Internal
                 }
 
                 switch (databaseAttribute.AttributeKind) {
-                    case DatabaseAttributeKind.PersistentField:
+                    case DatabaseAttributeKind.Field:
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
-                                databaseAttribute.Name,
+                                DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(databaseAttribute.Name),
                                 type,
                                 isNullable,
                                 subClass
@@ -227,7 +233,7 @@ namespace Starcounter.Internal
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;
-                    case DatabaseAttributeKind.NotPersistentProperty:
+                    case DatabaseAttributeKind.Property:
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
                                 databaseAttribute.Name,
@@ -238,8 +244,8 @@ namespace Starcounter.Internal
 
                             string columnName = null;
                             var backingField = databaseAttribute.BackingField;
-                            if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
-                                columnName = backingField.Name;
+                            if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.Field) {
+                                columnName = DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(backingField.Name);
                             }
                             propertyDef.ColumnName = columnName;
                             AddProperty(propertyDef, propertyDefs);

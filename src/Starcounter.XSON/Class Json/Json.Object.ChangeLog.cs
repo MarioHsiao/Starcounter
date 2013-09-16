@@ -33,11 +33,19 @@ namespace Starcounter {
                 var json = (Json)this;
                 for (int t = 0; t < _Values.Count; t++) {
                     var property = tjson.Properties[t];
-                    if (property is TValue && (property as TValue).UseBinding(json.DataAsBindable)) {
-                        _Values[t] = json.GetBound(property as TValue);
+                    if (property is TValue) {
+                        var tval = property as TValue;
+                        if (!tval.IsArray && tval.UseBinding(json.DataAsBindable)) {
+                            _Values[t] = json.GetBound(tval);
+                        }
                     }
-                    else if (property is TContainer) {
-                        ((Container)_Values[t]).CheckpointChangeLog();
+                    if (_Values[t] is Container) {
+                        (_Values[t] as Container).CheckpointChangeLog();
+                    }
+                    else {
+                        if (property is TObject) {
+                            (property.Wrap(_Values[t]) as Json).CheckpointChangeLog();
+                        }
                     }
                     _Values.CheckpointAt(t);
                 }
@@ -82,6 +90,8 @@ namespace Starcounter {
 //                (e as Json).LogValueChangesWithDatabase(session);
 //            }
  //           if (_Dirty) {
+
+
             var property = Template as TValue;
                 for (int t = 0; t < _Values.Count; t++) {
                     if (_Values.WasReplacedAt(t)) {
