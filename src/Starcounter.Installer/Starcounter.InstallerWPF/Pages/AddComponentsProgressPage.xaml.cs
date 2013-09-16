@@ -217,9 +217,9 @@ namespace Starcounter.InstallerWPF.Pages
                     {
                         Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.PartialInstallation, false);
                         OnError(installException);
-                        return;
                     }
                 ));
+                return;
             }
 
             this._dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate
