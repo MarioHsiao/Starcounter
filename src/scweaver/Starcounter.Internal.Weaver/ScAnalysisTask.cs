@@ -471,6 +471,7 @@ namespace Starcounter.Internal.Weaver {
 
                 ValidateCustomAttributeUsage();
                 ConvertIndirectSynonymsToDirectSynonyms();
+                ConvertPropertyBackingFieldsFromSynonymToTarget();
 
                 // If there was some error, return at this point.
                 if (Messenger.Current.ErrorCount > 0) {
@@ -1103,6 +1104,17 @@ namespace Starcounter.Internal.Weaver {
                     targetAttribute = targetAttribute.SynonymousTo;
                 }
                 databaseAttribute.SynonymousTo = targetAttribute;
+            }
+        }
+
+        private void ConvertPropertyBackingFieldsFromSynonymToTarget() {
+            foreach (var databaseClass in _dbClassesInCurrentModule.Values) {
+                foreach (var candidate in databaseClass.Attributes) {
+                    var backingField = candidate.BackingField; 
+                    if (backingField != null && backingField.SynonymousTo != null) {
+                        candidate.BackingField = backingField.SynonymousTo;
+                    }
+                }
             }
         }
 
