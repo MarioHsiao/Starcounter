@@ -66,7 +66,7 @@ namespace Starcounter.Internal {
         /// <summary>
         /// The owner of this list.
         /// </summary>
-        private Container parent;
+        private Container Json;
 
         /// <summary>
         /// </summary>
@@ -76,7 +76,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="parent"></param>
         internal QuickTuple(Container parent,int vc) {
-            this.parent = parent;
+            this.Json = parent;
             
             if (parent.IsArray)
                 list = new List<Json>();
@@ -112,11 +112,11 @@ namespace Starcounter.Internal {
                     _ReplacedFlag[index] = true;
                 }
 
-                if (parent.IsArray) {
-                    (parent as Arr)._CallHasChanged(parent.Template as TObjArr, index);
+                if (Json.IsArray) {
+                    (Json as Arr)._CallHasChanged(Json.Template as TObjArr, index);
                 }
                 else {
-                    (parent as Json)._CallHasChanged(parent.Template as TValue);
+                    (Json as Json)._CallHasChanged(Json.Template as TValue);
                 }
 
                 list[index] = value;
@@ -187,6 +187,8 @@ namespace Starcounter.Internal {
         /// <exception cref="System.NotImplementedException"></exception>
         public void Clear() {
             list.Clear();
+            (this.Json.Parent as Json).MarkAsReplaced(this.Json.Template);
+            //this._BrandNew = true;
             _ReplacedFlag.Clear();
         }
 

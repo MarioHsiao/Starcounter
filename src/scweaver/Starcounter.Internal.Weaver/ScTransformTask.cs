@@ -6,8 +6,6 @@
 
 using PostSharp.Extensibility;
 using PostSharp.Sdk.CodeModel;
-using PostSharp.Sdk.CodeModel.Binding;
-using PostSharp.Sdk.CodeModel.SerializationTypes;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
@@ -18,7 +16,6 @@ using Starcounter.Hosting;
 using Starcounter.Internal.Weaver.BackingCode;
 using Starcounter.Internal.Weaver.BackingInfrastructure;
 using Starcounter.Internal.Weaver.IObjectViewImpl;
-using Starcounter.LucentObjects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -65,11 +62,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private readonly List<IMethodLevelAdvice> _methodAdvices;
         /// <summary>
-        /// The _weaved lucent accessor advices
-        /// </summary>
-        private readonly List<ReimplementWeavedLucentAccessorAdvice> _weavedLucentAccessorAdvices;
-
-        /// <summary>
         /// The _cast helper
         /// </summary>
         private CastHelper _castHelper;
@@ -77,22 +69,22 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB state method provider
         /// </summary>
         private DbStateMethodProvider _dbStateMethodProvider;
-        /// <summary>
-        /// The _adapter get property method
-        /// </summary>
-        private IMethod _adapterGetPropertyMethod;
-        /// <summary>
-        /// The _adapter resolve index method
-        /// </summary>
-        private IMethod _adapterResolveIndexMethod;
+        ///// <summary>
+        ///// The _adapter get property method
+        ///// </summary>
+        //private IMethod _adapterGetPropertyMethod;
+        ///// <summary>
+        ///// The _adapter resolve index method
+        ///// </summary>
+        //private IMethod _adapterResolveIndexMethod;
         /// <summary>
         /// The _object constructor
         /// </summary>
         private IMethod _objectConstructor;
-        /// <summary>
-        /// The _obj view prop index attr constructor
-        /// </summary>
-        private IMethod _objViewPropIndexAttrConstructor;
+        ///// <summary>
+        ///// The _obj view prop index attr constructor
+        ///// </summary>
+        //private IMethod _objViewPropIndexAttrConstructor;
         /// <summary>
         /// The _uninitialized constructor signature
         /// </summary>
@@ -126,10 +118,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private WeavingHelper _weavingHelper;
         /// <summary>
-        /// The _weave for IPC
-        /// </summary>
-        private bool _weaveForIPC;
-        /// <summary>
         /// The _starcounter assembly reference
         /// </summary>
         private AssemblyRefDeclaration _starcounterAssemblyReference;
@@ -145,7 +133,6 @@ namespace Starcounter.Internal.Weaver {
             _writer = new InstructionWriter();
             _fieldAdvices = new List<InsteadOfFieldAccessAdvice>();
             _methodAdvices = new List<IMethodLevelAdvice>();
-            _weavedLucentAccessorAdvices = new List<ReimplementWeavedLucentAccessorAdvice>();
         }
 
         /// <summary>
@@ -232,12 +219,11 @@ namespace Starcounter.Internal.Weaver {
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
             TypeRefDeclaration typeRef;
-            IMethod weavedAssemblyAttributeCtor;
-
+            
             _module = this.Project.Module;
             analysisTask = ScAnalysisTask.GetTask(this.Project);
 
-            _starcounterAssemblyReference = FindStarcounterAssembly();
+            _starcounterAssemblyReference = ScAnalysisTask.FindStarcounterAssemblyReference(_module);
             if (_starcounterAssemblyReference == null) {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
@@ -246,70 +232,9 @@ namespace Starcounter.Internal.Weaver {
                 return true;
             }
 
-            // Check if the transformation kind has been established to be None,
-            // meaning we need not to transform at all.
-
-            if (analysisTask.TransformationKind == WeaverTransformationKind.None) {
-                ScMessageSource.Write(
-                    SeverityType.Info,
-                    "SCINF04",
-                    new Object[] { _module.Name }
-                    );
-
-                // Disable all upcoming tasks in this project, since we don't
-                // need to do anything with this assembly
-
-                this.Project.Tasks["ScTransactionScope"].Disabled = true;
-
-                // "Connection bound objects" is currently not enabled. See the
-                // P4 changelist for this commenting to see some more information
-                // on the reason and status of this.
-                // this.Project.Tasks["ScConnectionBoundObject"].Disabled = true;
-
-                this.Project.Tasks["ScEnhanceThreadingTask"].Disabled = true;
-                this.Project.Tasks["Compile"].Disabled = true;
-
-                return true;
-            }
-
-            // Some kind of transformation is needed. Lets continue.
-            //
-            // If it isn't tagged as pre-weaved, we should either weave it normally, or we
-            // should weave it for external use.
-
-            _weaveForIPC = analysisTask.TransformationKind == WeaverTransformationKind.UserCodeToIPC;
-
-            // Do initialization needed for all kinds of transformation.
-            // User code weavers requires extra initialization, invoked
-            // further down.
-
-            InitializeForAllTransformationKinds();
-
-            // If the assembly indicates it has already been weaved, we assume we are in
-            // the context of the database, with the mission to readapt it.
-
-            if (analysisTask.TransformationKind == WeaverTransformationKind.IPCToDatabase) {
-                return ExecuteOnIPCWeavedAssembly(analysisTask);
-            }
-
-            //
-            // We will weave it. Make sure we redirect it first and then mark it
-            // as weaved for IPC if it's such a context we are weaving for.
-
             ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
-
-            // Initialize extra for user code weavers.
-
-            InitializeForUserCodeWeavers();
-
-            if (_weaveForIPC) {
-                weavedAssemblyAttributeCtor = _module.FindMethod(
-                    typeof(AssemblyWeavedForIPCAttribute).GetConstructor(Type.EmptyTypes),
-                    BindingOptions.Default
-                    );
-                _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
-            }
-
+            Initialize();
+            
             var assemblySpecification = new AssemblySpecificationEmit(_module);
             TypeSpecificationEmit typeSpecification = null;
 
@@ -384,16 +309,6 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
 
-            // Enhance anonymous types
-
-            typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeDef);
-            while (typeEnumerator.MoveNext()) {
-                typeDef = (TypeDefDeclaration)typeEnumerator.Current;
-                if (IsAnonymousType(typeDef)) {
-                    EnhanceAnonymousType(typeDef);
-                }
-            }
-
             // We have to index usages a second time, because we have changed method implementations.
 
 #pragma warning disable 612
@@ -403,89 +318,17 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Executes the on IPC weaved assembly.
-        /// </summary>
-        /// <param name="analysisTask">The analysis task.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        private bool ExecuteOnIPCWeavedAssembly(ScAnalysisTask analysisTask) {
-            TypeDefDeclaration typeDef;
-            string attributeIndexVariableName;
-            FieldDefDeclaration attributeIndexField;
-            RemoveTask removeTask;
-            IType weavedAssemblyAttributeType;
-            CustomAttributeDeclaration weavedAttribute;
-
-            weavedAssemblyAttributeType = FindStarcounterType(typeof(AssemblyWeavedForIPCAttribute));
-            weavedAttribute =
-                _module.AssemblyManifest.CustomAttributes.GetOneByType(weavedAssemblyAttributeType);
-
-            removeTask = RemoveTask.GetTask(this.Project);
-            removeTask.MarkForRemoval(weavedAttribute);
-
-            foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
-                ScTransformTrace.Instance.WriteLine("Retransforming {0}.", dbc);
-
-                typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-
-                // Iterate each attribute. It will reference the IPC-weaved property.
-                // Get it and get getter and, possibly, setter.
-
-                foreach (DatabaseAttribute dba in dbc.Attributes) {
-                    if (dba.IsField && dba.IsPersistent) {
-                        // Reimplement pre-weaved accessors
-
-                        PropertyDeclaration prop = dba.GetPropertyDefinition();
-                        _weavedLucentAccessorAdvices.Add(new ReimplementWeavedLucentAccessorAdvice(_dbStateMethodProvider, prop, dba.Index));
-
-                        // Remove the corresponding static attribute index field
-
-                        attributeIndexVariableName = WeaverNamingConventions.MakeAttributeIndexVariableName(prop.Name);
-                        attributeIndexField = typeDef.Fields.GetByName(attributeIndexVariableName);
-
-                        removeTask.MarkForRemoval(attributeIndexField);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Initializes for all transformation kinds.
-        /// </summary>
-        private void InitializeForAllTransformationKinds() {
-            string dynamicLibDir;
-
-            // Only consider using the dynamic / code generated library if we are
-            // weaving inside the database, not when weaving targetting an IPC-ish
-            // context.
-
-            dynamicLibDir = _weaveForIPC
-                ? null
-                : Project.Properties["ScDynamicLibInputDir"];
-
-            var val = Project.Properties["UseStateRedirect"];
-            bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
-
-            _dbStateMethodProvider = new DbStateMethodProvider(_module, dynamicLibDir, useRedirect);
-            _castHelper = new CastHelper(_module);
-        }
-
-        /// <summary>
-        /// Initializes for user code weavers.
-        /// </summary>
-        private void InitializeForUserCodeWeavers() {
-            this.Initialize();
-        }
-
-        /// <summary>
         /// Initializes and sets all fields needed for user code weavers.
         /// </summary>
         private new void Initialize() {
-            ConstructorInfo cstrInfo;
             IntrinsicTypeSignature voidTypeSign;
             ITypeSignature[] uninitTypeSignArr;
-            Type type;
+            
+            var val = Project.Properties["UseStateRedirect"];
+            bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
+
+            _dbStateMethodProvider = new DbStateMethodProvider(_module, null, useRedirect);
+            _castHelper = new CastHelper(_module);
 
             voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
             
@@ -507,369 +350,11 @@ namespace Starcounter.Internal.Weaver {
             
             _objectConstructor = _module.FindMethod(
                 typeof(Object).GetConstructor(Type.EmptyTypes), BindingOptions.Default);
-            
-            type = typeof(AnonymousTypePropertyAttribute);
-            cstrInfo = type.GetConstructor(new[] { typeof(int) });
-            _objViewPropIndexAttrConstructor = _module.FindMethod(cstrInfo, BindingOptions.Default);
-
-            type = typeof(AnonymousTypeAdapter);
-            _adapterGetPropertyMethod = _module.FindMethod(type.GetMethod("GetProperty"), BindingOptions.Default);
-            _adapterResolveIndexMethod = _module.FindMethod(type.GetMethod("ResolveIndex"), BindingOptions.Default);
 
             _weavingHelper = new WeavingHelper(_module);
 
             _objectProxyEmitter = new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods);
             _equalityEmitter = new ImplementsEquality(_module, _writer);
-        }
-
-        /// <summary>
-        /// Searching for the Starcounter assembly reference from the current modules references.
-        /// </summary>
-        /// <returns>The assembly reference, or null if not found.</returns>
-        private AssemblyRefDeclaration FindStarcounterAssembly() {
-            AssemblyRefDeclaration scAssemblyRef = null;
-            StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
-            String assFailedStr;
-
-            foreach (AssemblyRefDeclaration assemblyRef in _module.AssemblyRefs) {
-                if (String.Equals(assemblyRef.Name, "Starcounter", strComp)) {
-                    if (scAssemblyRef != null) {
-                        assFailedStr = "Assembly {0} has more than one reference to Starcounter.dll";
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, (String.Format(assFailedStr, _module.Name)));
-                    }
-                    scAssemblyRef = assemblyRef;
-                }
-            }
-
-            return scAssemblyRef;
-        }
-
-        /// <summary>
-        /// Finds the type of the starcounter.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>IType.</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        private IType FindStarcounterType(Type type) {
-            if (_starcounterAssemblyReference == null) {
-                throw new InvalidOperationException();
-            }
-
-            return (IType)_starcounterAssemblyReference.FindType(
-                type.FullName,
-                BindingOptions.RequireGenericDefinition
-                );
-        }
-
-        /// <summary>
-        /// Enhances the type of the anonymous.
-        /// </summary>
-        /// <param name="typeDef">The type def.</param>
-        private void EnhanceAnonymousType(TypeDefDeclaration typeDef) {
-            // TODO: This method really needs to be refactored and broken down into 
-            // smaller pieces. As it is now it's really hard to get an overview of all the code.
-
-            Boolean getValueFromNullable;
-            Boolean requiresCast;
-            CustomAttributeDeclaration attribute;
-            FieldDefDeclaration adapterField;
-            FieldDefDeclaration objectViewField;
-            GenericParameterTypeSignature gptTypeSign;
-            GenericTypeInstanceTypeSignature genericInstance;
-            IField adapterFieldRef;
-            IField objectViewFieldRef;
-            IMethod method;
-            IMethod nullableGetValueMethod;
-            INamedType namedType;
-            Int32 index;
-            InstructionSequence instructionSequence;
-            InstructionSequence oldFirstSequence;
-            IntrinsicTypeSignature databaseValueIntrinsicType;
-            IntrinsicTypeSignature voidTypeSign;
-            InstructionBlock rootInstrBlock;
-            ITypeSignature databaseValueType;
-            ITypeSignature targetValueType;
-            MethodDefDeclaration constructorDef;
-            MethodDefDeclaration getterMethodDef;
-            MethodDefDeclaration getObjectViewMethod;
-            MethodInfo getMethodInfo;
-            MethodSignature methodSign;
-            ParameterDeclaration paramDecl;
-            SerializedValue serializedValue;
-            String methodName;
-            Type anonymousType;
-            TypeSpecDeclaration sourceValueType;
-
-            voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-
-            // Create new  fields.
-            objectViewField = new FieldDefDeclaration() {
-                Name = "objectView",
-                Attributes = FieldAttributes.Private | FieldAttributes.InitOnly,
-                FieldType = _module.Cache.GetType(typeof(IObjectView))
-            };
-            typeDef.Fields.Add(objectViewField);
-#pragma warning disable 618
-            objectViewFieldRef = GenericHelper.GetFieldCanonicalGenericInstance(objectViewField);
-#pragma warning restore 618
-
-            adapterField = new FieldDefDeclaration() {
-                Name = "adapter",
-                Attributes =
-                FieldAttributes.Private | FieldAttributes.InitOnly,
-                FieldType =
-                this._module.Cache.GetType(typeof(AnonymousTypeAdapter))
-            };
-            typeDef.Fields.Add(adapterField);
-#pragma warning disable 618
-            adapterFieldRef = GenericHelper.GetFieldCanonicalGenericInstance(adapterField);
-#pragma warning restore 618
-
-            // Create a new constructor.
-            constructorDef = new MethodDefDeclaration() {
-                Name = ".ctor",
-                Attributes = MethodAttributes.Public
-                                | MethodAttributes.SpecialName
-                                | MethodAttributes.RTSpecialName,
-                CallingConvention = CallingConvention.HasThis
-            };
-            typeDef.Methods.Add(constructorDef);
-
-            paramDecl = new ParameterDeclaration(0, "objectView", objectViewFieldRef.FieldType);
-            constructorDef.Parameters.Add(paramDecl);
-            paramDecl = new ParameterDeclaration(1, "adapter", adapterFieldRef.FieldType);
-            constructorDef.Parameters.Add(paramDecl);
-            paramDecl = new ParameterDeclaration(-1, null, voidTypeSign);
-            paramDecl.Attributes = ParameterAttributes.Retval;
-            constructorDef.ReturnParameter = paramDecl;
-            constructorDef.MethodBody.RootInstructionBlock
-                        = constructorDef.MethodBody.CreateInstructionBlock();
-
-            instructionSequence = constructorDef.MethodBody.CreateInstructionSequence();
-            constructorDef.MethodBody.RootInstructionBlock.AddInstructionSequence(instructionSequence,
-                                                                                  NodePosition.After,
-                                                                                  null);
-            _writer.AttachInstructionSequence(instructionSequence);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstructionMethod(OpCodeNumber.Call, this._objectConstructor);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_1);
-            _writer.EmitInstructionField(OpCodeNumber.Stfld, objectViewFieldRef);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_2);
-            _writer.EmitInstructionField(OpCodeNumber.Stfld, adapterFieldRef);
-            _writer.EmitInstruction(OpCodeNumber.Ret);
-            _writer.DetachInstructionSequence();
-
-            // Enhance every property setter.
-            index = 0;
-            foreach (PropertyDeclaration property in typeDef.Properties) {
-                if (property.Members.Contains(MethodSemantics.Getter)) {
-                    // Add a custom attribute with the index.
-
-                    serializedValue = IntrinsicSerializationType.CreateValue(_module, index);
-                    attribute = new CustomAttributeDeclaration(_objViewPropIndexAttrConstructor);
-                    attribute.ConstructorArguments.Add(new MemberValuePair(MemberKind.Parameter,
-                                                                           0,
-                                                                           "0",
-                                                                           serializedValue));
-                    property.CustomAttributes.Add(attribute);
-
-                    // Enhance the property getter
-                    getterMethodDef = property.Members.GetBySemantic(MethodSemantics.Getter).Method;
-
-                    // Get the first sequence.
-                    oldFirstSequence =
-                        getterMethodDef.MethodBody.RootInstructionBlock.FindFirstInstructionSequence();
-
-                    // Put a new sequence before the first sequence.
-                    instructionSequence = getterMethodDef.MethodBody.CreateInstructionSequence();
-                    oldFirstSequence.ParentInstructionBlock.AddInstructionSequence(instructionSequence,
-                                                                                   NodePosition.Before,
-                                                                                   oldFirstSequence);
-                    _writer.AttachInstructionSequence(instructionSequence);
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                    _writer.EmitBranchingInstruction(OpCodeNumber.Brfalse, oldFirstSequence);
-
-                    // Determine the value type.
-                    targetValueType = getterMethodDef.ReturnParameter.ParameterType;
-                    requiresCast = false;
-                    genericInstance = targetValueType.GetNakedType(TypeNakingOptions.None)
-                                                        as GenericTypeInstanceTypeSignature;
-                    if (genericInstance != null) {
-                        if (TypeComparer.GetInstance().Equals(genericInstance.GenericDefinition,
-                                                              _nullableType)) {
-                            databaseValueType = genericInstance.GenericArguments[0];
-                            getValueFromNullable = true;
-                        } else {
-                            databaseValueType = genericInstance;
-                            getValueFromNullable = false;
-                        }
-                    } else {
-                        databaseValueType = targetValueType;
-                        getValueFromNullable = false;
-                    }
-
-                    databaseValueIntrinsicType = databaseValueType as IntrinsicTypeSignature;
-                    if (databaseValueIntrinsicType != null) {
-                        switch (databaseValueIntrinsicType.IntrinsicType) {
-                            case IntrinsicType.Boolean:
-                            case IntrinsicType.Byte:
-                            case IntrinsicType.Double:
-                            case IntrinsicType.Int16:
-                            case IntrinsicType.Int32:
-                            case IntrinsicType.Int64:
-                            case IntrinsicType.SByte:
-                            case IntrinsicType.Single:
-                            case IntrinsicType.String:
-                            case IntrinsicType.UInt16:
-                            case IntrinsicType.UInt32:
-                            case IntrinsicType.UInt64:
-                                methodName = "Get"
-                                             + databaseValueIntrinsicType.IntrinsicType.ToString();
-                                break;
-                            default:
-                                methodName = null;
-                                break;
-                        }
-                    } else {
-                        namedType = databaseValueType as INamedType;
-                        if (namedType != null) {
-                            switch (namedType.Name) {
-                                case "System.Decimal":
-                                    methodName = "GetDecimal";
-                                    break;
-                                case "System.DateTime":
-                                    methodName = "GetDateTime";
-                                    break;
-                                case "Starcounter.Binary":
-                                    methodName = "GetBinary";
-                                    break;
-                                default:
-                                    methodName = null;
-                                    break;
-                            }
-                        } else {
-                            methodName = null;
-                        }
-
-                        // If the type implements IObjectView, we use IObjectView.GetObject
-                        if (methodName == null && databaseValueType.IsAssignableTo(_objectViewType)) {
-                            methodName = "GetObject";
-                            requiresCast = true;
-                        }
-                    }
-
-                    if (methodName != null) {
-                        method = _module.FindMethod(typeof(IObjectView).GetMethod(methodName),
-                                                         BindingOptions.Default);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, adapterFieldRef);
-                        _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, index);
-                        _writer.EmitInstructionMethod(OpCodeNumber.Call, _adapterResolveIndexMethod);
-                        _writer.EmitInstructionMethod(OpCodeNumber.Callvirt, method);
-
-                        // If the source is a nullable and the target is not
-                        // we should get the value out of the nullable.
-                        if (getValueFromNullable) {
-                            genericInstance
-                                = new GenericTypeInstanceTypeSignature(_nullableType,
-                                                                       new[] { databaseValueType });
-                            sourceValueType = _module.TypeSpecs.GetBySignature(genericInstance);
-
-                            gptTypeSign = GenericParameterTypeSignature.GetInstance(
-                                                                            _module,
-                                                                            0,
-                                                                            GenericParameterKind.Type
-                                                                        );
-                            methodSign = new MethodSignature(_module,
-                                                             CallingConvention.HasThis,
-                                                             gptTypeSign,
-                                                             null,
-                                                             0);
-                            nullableGetValueMethod
-                                = sourceValueType.MethodRefs.GetMethod(
-                                                                "get_Value",
-                                                                methodSign,
-                                                                BindingOptions.Default
-                                                             );
-                            _writer.EmitInstructionMethod(OpCodeNumber.Call, nullableGetValueMethod);
-                        }
-
-                        if (requiresCast) {
-                            _writer.EmitInstructionType(OpCodeNumber.Castclass, targetValueType);
-                        }
-                    } else {
-                        // We cannot find, at build-time, a way to get the property from the object 
-                        // view and to convert it into what we need. We will give the runtime a chance 
-                        // to do it.
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, adapterFieldRef);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                        _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, index);
-                        _weavingHelper.GetRuntimeType(databaseValueType, _writer);
-                        _writer.EmitInstructionMethod(OpCodeNumber.Call, _adapterGetPropertyMethod);
-#pragma warning disable 618
-                        _weavingHelper.FromObject(targetValueType, _writer);
-#pragma warning restore 618
-                    }
-                    _writer.EmitInstruction(OpCodeNumber.Ret);
-                    _writer.DetachInstructionSequence();
-
-                    index++;
-                }
-            }
-
-            // Implement the IAnonymousState interface.
-            anonymousType = typeof(IAnonymousType);
-            typeDef.InterfaceImplementations.Add(
-                                                _module.FindType(anonymousType,
-                                                                 BindingOptions.Default)
-                                             );
-
-            getObjectViewMethod = new MethodDefDeclaration() {
-                Name = "IAnonymousType.get_UnderlyingObject",
-                Attributes = MethodAttributes.Virtual
-                                | MethodAttributes.Private
-                                | MethodAttributes.ReuseSlot,
-                CallingConvention = CallingConvention.HasThis
-            };
-            typeDef.Methods.Add(getObjectViewMethod);
-
-            paramDecl = new ParameterDeclaration(-1, null, this._objectViewType);
-            paramDecl.Attributes = ParameterAttributes.Retval;
-            getObjectViewMethod.ReturnParameter = paramDecl;
-
-            getMethodInfo = anonymousType.GetProperty("UnderlyingObject").GetGetMethod();
-            getObjectViewMethod.InterfaceImplementations.Add(
-                                                            _module.FindMethod(getMethodInfo,
-                                                            BindingOptions.Default)
-                                                        );
-
-            rootInstrBlock = getObjectViewMethod.MethodBody.CreateInstructionBlock();
-            getObjectViewMethod.MethodBody.RootInstructionBlock = rootInstrBlock;
-            instructionSequence = getObjectViewMethod.MethodBody.CreateInstructionSequence();
-            rootInstrBlock.AddInstructionSequence(instructionSequence, NodePosition.After, null);
-            _writer.AttachInstructionSequence(instructionSequence);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-            _writer.EmitInstruction(OpCodeNumber.Ret);
-            _writer.DetachInstructionSequence();
-        }
-
-        /// <summary>
-        /// Determines whether [is anonymous type] [the specified type def].
-        /// </summary>
-        /// <param name="typeDef">The type def.</param>
-        private static Boolean IsAnonymousType(TypeDefDeclaration typeDef) {
-            return typeDef.Name.StartsWith("<>f__AnonymousType")
-                    || typeDef.Name.StartsWith("VB$AnonymousType");
         }
 
         private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
@@ -910,22 +395,6 @@ namespace Starcounter.Internal.Weaver {
                                                 metaSingleton);
             }
 
-            foreach (ReimplementWeavedLucentAccessorAdvice advice in _weavedLucentAccessorAdvices) {
-                codeWeaver.AddMethodLevelAdvice(
-                    advice,
-                    new Singleton<MethodDefDeclaration>(advice.AccessorProperty.Getter),
-                    JoinPointKinds.InsteadOfGetField | JoinPointKinds.InsteadOfCall,
-                    null);
-
-                if (advice.AccessorProperty.Setter != null) {
-                    codeWeaver.AddMethodLevelAdvice(
-                        advice,
-                        new Singleton<MethodDefDeclaration>(advice.AccessorProperty.Setter),
-                        JoinPointKinds.InsteadOfGetField | JoinPointKinds.InsteadOfCall,
-                        null);
-                }
-            }
-
             foreach (IMethodLevelAdvice advice in _methodAdvices) {
                 codeWeaver.AddMethodLevelAdvice(advice,
                                                 advice.TargetMethods,
@@ -933,20 +402,15 @@ namespace Starcounter.Internal.Weaver {
                                                 advice.Operands);
             }
 
-            // If a initializer has been defined, make sure we attach an advice that will
-            // implement it.
+            DatabaseClassInitCallMethodAdvice pcia = new DatabaseClassInitCallMethodAdvice();
 
-            if (_weaveForIPC) {
-                DatabaseClassInitCallMethodAdvice pcia = new DatabaseClassInitCallMethodAdvice();
-
-                foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
-                    var typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-                    codeWeaver.AddTypeLevelAdvice(
-                        pcia,
-                        JoinPointKinds.BeforeStaticConstructor,
-                        new Singleton<TypeDefDeclaration>(typeDef)
-                        );
-                }
+            foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
+                var typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
+                codeWeaver.AddTypeLevelAdvice(
+                    pcia,
+                    JoinPointKinds.BeforeStaticConstructor,
+                    new Singleton<TypeDefDeclaration>(typeDef)
+                    );
             }
         }
 
@@ -982,12 +446,6 @@ namespace Starcounter.Internal.Weaver {
             MethodSemanticDeclaration setSemantic;
             ParameterDeclaration valueParameter;
             PropertyDeclaration property;
-
-            // Since we currently support just a single weaving mechanism,
-            // I'll try cleaning this method up a bit. One of the things is
-            // to remove alternative implementation for different weaving
-            // targets.
-            Trace.Assert(_weaveForIPC);
  
             ScTransformTrace.Instance.WriteLine("Generating accessors for {0}.", databaseAttribute);
 

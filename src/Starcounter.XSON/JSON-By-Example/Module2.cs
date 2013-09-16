@@ -15,6 +15,11 @@ namespace Modules {
     /// Represents this module
     /// </summary>
     public static class Starcounter_XSON_JsonByExample {
+		private static Dictionary<string, uint> jsonSerializerIndexes = new Dictionary<string, uint>();
+		private static List<TypedJsonSerializer> jsonSerializers = new List<TypedJsonSerializer>();
+
+		internal static uint StandardJsonSerializerId;
+		internal static uint FTJSerializerId;
 
         /// <summary>
         /// Contains all dependency injections into this module
@@ -23,6 +28,43 @@ namespace Modules {
             //            internal static ;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public static uint GetJsonSerializerId(string name) {
+			uint id;
+			if (!jsonSerializerIndexes.TryGetValue(name, out id))
+				throw new Exception("No typed json serializer with name '" + name + "' was found.");
+			return id;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="serializerId"></param>
+		/// <returns></returns>
+		public static TypedJsonSerializer GetJsonSerializer(uint serializerId) {
+			if (serializerId >= jsonSerializers.Count)
+				throw new Exception("Invalid serializerId.");
+			return jsonSerializers[(int)serializerId];
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="serializer"></param>
+		/// <returns></returns>
+		public static uint RegisterJsonSerializer(string name, TypedJsonSerializer serializer) {
+			if (jsonSerializerIndexes.ContainsKey(name))
+				throw new Exception("An serializer with the same name is already registered.");
+			uint id = (uint)jsonSerializers.Count;
+			jsonSerializers.Add(serializer);
+			jsonSerializerIndexes.Add(name, id);
+			return id;
+		}
 
         /// <summary>
         /// By default, Starcounter creates
@@ -31,11 +73,15 @@ namespace Modules {
         /// </summary>
         public static Dictionary<string, IXsonTemplateMarkupReader> MarkupReaders = new Dictionary<string, IXsonTemplateMarkupReader>();
 
+		/// <summary>
+		/// 
+		/// </summary>
         public static void Initialize() {
             MarkupReaders.Add("json", new JsonByExampleTemplateReader());
+
+			StandardJsonSerializerId = RegisterJsonSerializer("json", new StandardJsonSerializer());
+			FTJSerializerId =  RegisterJsonSerializer("ftj", new FasterThanJsonSerializer());
         }
-
-
 
         /// <summary>
         /// Creates a json template based on the input json.

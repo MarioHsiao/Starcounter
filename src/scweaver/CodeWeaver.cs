@@ -79,14 +79,6 @@ namespace Weaver {
         /// </summary>
         public bool RunWeaver { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating if weaving/transformation of
-        /// assemblies should prepare them for IPC usage. Defaults to true.
-        /// If set to false, assemblies will instead be weaved as they
-        /// would be by the hosted database weaver.
-        /// </summary>
-        public bool WeaveForIPC { get; set; }
-
         public bool UseStateRedirect { get; set; }
 
         /// <summary>
@@ -184,7 +176,6 @@ namespace Weaver {
             this.OutputDirectory = outputDirectory;
             this.CacheDirectory = cacheDirectory;
             this.RunWeaver = true;
-            this.WeaveForIPC = true;
             this.WeaveBootstrapperCode = false;
             this.DisableWeaverCache = false;
             this.AssemblyFile = file;
@@ -344,19 +335,6 @@ namespace Weaver {
             Stream stream;
             String licenseKey;
             uint errorCode;
-
-            // Make sure that if we are not told to run the weaver, we never have
-            // the WeaveForIPC flag set either.
-            if (!RunWeaver && WeaveForIPC)
-                WeaveForIPC = false;
-
-            // Right now, we don't support IPC/Lucent Objects weaving and we will
-            // never utilize this setting ourself. But to be sure we don't have it
-            // accidentaly set, let's refuse going further if it's set.
-            if (!WeaveForIPC) {
-                Program.ReportProgramError(Error.SCERRUNSPECIFIED, "Currently, weaving with IPC must be set.");
-                return false;
-            }
 
             // Initialize the PostSharp license manager
 
@@ -675,7 +653,6 @@ namespace Weaver {
                 weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.PreventOverwriteAssemblyNames = false;
-                parameters.Properties["WeaveForIPC"] = this.WeaveForIPC ? bool.TrueString : bool.FalseString;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
                 parameters.Properties["ScOutputDirectory"] = this.OutputDirectory;
                 parameters.Properties["UseStateRedirect"] = this.UseStateRedirect ? bool.TrueString : bool.FalseString;

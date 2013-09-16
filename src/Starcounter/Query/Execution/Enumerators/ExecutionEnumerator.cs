@@ -318,7 +318,7 @@ internal abstract class ExecutionEnumerator
                 root.WriteSafe(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
                 TupleWriterBase64 enumerators = new TupleWriterBase64(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
-                enumerators.SetTupleLength(root.AvaiableSize);
+                enumerators.SetTupleLength(root.AvailableSize);
                 if (execEnum.SaveEnumerator(ref enumerators, 0) == -1)
                     return null;
                 //execEnum.SaveEnumerator(recreationKey, 0, true);

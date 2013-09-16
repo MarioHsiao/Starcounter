@@ -3076,6 +3076,19 @@
     <code hex="0101" severity="Error" name="ScErrCantLoadTransLogWriterLib">
       <message>Transaction log writer client library could not be loaded.</message>
     </code>
+    <code hex="0102" severity="Error" name="ScErrIllegalTransientTarget">
+      <message>
+        The Transient attribute is not applicable to the target code construct.
+      </message>
+    </code>
+    <code hex="0103" severity="Error" name="ScErrFailingEntrypoint">
+      <message>
+        The user code entrypoint method raised an exception.
+      </message>
+    </code>
+    <code hex="0104" severity="Error" name="ScErrTransactionClosed">
+      <message>An operation failed because transaction has been closed.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3343,6 +3356,9 @@
     </code>
     <code hex="0049" severity="Error" name="ScErrUnexpEnumeratorDispose">
       <message>Unexpected error during enumerator dispose.</message>
+    </code>
+    <code hex="004A" severity="Error" name="ScErrUnexpDbMetadataMapping">
+      <message>Unexpected error during mapping different meta-data, which represent database classes and properties.</message>
     </code>
  </facility>
 

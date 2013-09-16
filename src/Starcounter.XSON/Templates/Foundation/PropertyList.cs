@@ -90,14 +90,14 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        internal bool IsExposed(Template template) {
+        public bool IsExposed(Template template) {
             return exposedPropertyLookup.ContainsKey(template.TemplateName);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal List<Template> ExposedProperties {
+        public List<Template> ExposedProperties {
             get { return exposedProperties; }
         }
 

@@ -85,8 +85,7 @@
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
-    <Compile Include="Http\HttpRequestWriter.cs" />
-    <Compile Include="Http\HttpResponseBuilder.cs" />
+    <Compile Include="Http\HttpHeadersUtf8.cs" />
     <Compile Include="Http\ResponseExtensions.cs" />
     <Compile Include="Interfaces\ILogSource.cs" />
     <Compile Include="Interfaces\IReadOnlyITree.cs" />
@@ -96,7 +95,6 @@
     <Compile Include="Http\Request.cs" />
     <Compile Include="Http\Response.Construction.cs" />
     <Compile Include="Http\Response.cs" />
-    <Compile Include="Http\Response.Fixed.cs" />
     <Compile Include="Interfaces\IDb.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
-
+using Constants = Starcounter.Internal.StarcounterConstants.NetworkConstants;
 
 namespace Starcounter.Administrator.API.Utilities {
     /// <summary>
@@ -64,10 +64,13 @@ namespace Starcounter.Administrator.API.Utilities {
             /// <param name="headers">Optional headers.</param>
             /// <returns>A response to be sent back to the client.</returns>
             public static Response CreateResponse(
-                string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
-                return new Response() {
-                    Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent)
-                };
+					string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
+				var response = Response.FromStatusCode(status);
+				response.Body = jsonContent;
+				if (headers != null) {
+					response.SetHeadersDictionary(headers);
+				}
+				return response;
             }
 
             /// <summary>
@@ -160,16 +163,13 @@ namespace Starcounter.Administrator.API.Utilities {
             }
             allows = allows.TrimStart().TrimEnd(',');
 
-            var headers = new Dictionary<string, string>();
-            headers.Add("Allow", allows);
-
             // Seems to be something in the response builder that don't produce an
             // accurate response if we give it no content. Let's duplicate what we
             // allow in the body until fixed. Use JSON format.
             var body = string.Format("{{ \"Allow\": \"{0}\" }}", allows);
-            var response = new Response {
-                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(405, headers, body)
-            };
+			var response = Response.FromStatusCode(405);
+			response.Body = body;
+			response["Allow"] = allows;
 
             var methodsToRegisterFor = new List<string>();
             foreach (var verb in verbs) {

@@ -39,6 +39,8 @@ namespace Starcounter.Internal
       /// </summary>
       public byte* AtOffsetEnd;
 
+	   // TODO: 
+	   // Should be renamed to Current.
       /// <summary>
       /// Pointer to the end of the tuple
       /// </summary>
@@ -204,6 +206,19 @@ namespace Starcounter.Internal
          ValueOffset += len;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe string ReadString(int valueLength, byte* start) {
+          Debug.Assert(valueLength > 0);
+          String str;
+          if (Base64Int.ReadBase64x1(start) == 0) {
+              char* buffer = stackalloc char[(int)valueLength];
+              int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
+              str = new String(buffer, 0, stringLen);
+          } else
+              str = null;
+          return str;
+      }
+
       /// <summary>
       /// Reads the next string from the tuple
       /// </summary>
@@ -221,12 +236,10 @@ namespace Starcounter.Internal
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
          valueLength -= ValueOffset;
-         char* buffer = stackalloc char[(int)valueLength];
-         int stringLen = SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)valueLength, buffer, (int)valueLength, true);
-         var str = new String(buffer, 0, stringLen);
-         AtOffsetEnd += OffsetElementSize;
+         String str = ReadString((int)valueLength, AtEnd);
          AtEnd += valueLength;
          ValueOffset += valueLength;
+         AtOffsetEnd += OffsetElementSize;
          return str;
       }
 
@@ -239,10 +252,7 @@ namespace Starcounter.Internal
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-          char* buffer = stackalloc char[valueLength];
-          int strLen = SessionBlobProxy.Utf8Decode.GetChars(valuePos, valueLength, buffer, 8192, true);
-          //Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
-          var str = new String(buffer, 0, strLen);
+          String str = ReadString(valueLength, valuePos);
           return str;
       }
 

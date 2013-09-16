@@ -9,7 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 //using System.Linq;
-using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Sc.Query.Execution;
 using System.ComponentModel;

@@ -104,7 +104,7 @@ namespace Starcounter.Internal
        /// <summary>
        /// The available size left (in bytes)
        /// </summary>
-      public uint AvaiableSize;
+      public uint AvailableSize;
 
        /// <summary>
        /// Method
@@ -126,7 +126,7 @@ namespace Starcounter.Internal
 #endif
           ValueOffset = 0;
           ValueCount = valueCount;
-          AvaiableSize = 0;
+          AvailableSize = 0;
           TupleMaxLength = 0;
       }
 
@@ -151,8 +151,8 @@ namespace Starcounter.Internal
           if (AtEnd - AtStart >= length)
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Too small length of the tuple");
           TupleMaxLength = length;
-          AvaiableSize = length;
-          AvaiableSize -= (uint)(AtEnd - AtStart);
+          AvailableSize = length;
+          AvailableSize -= (uint)(AtEnd - AtStart);
       }
 
       /// <summary>
@@ -213,18 +213,17 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(string str)
       {
-         uint len;
-
-         fixed (char* pStr = str)
-         {
-            // Write the string to the end of this tuple.
-             len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, str.Length * 3, true); // TODO! CHANGE MAX LENGTH
-            //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
-         }
-
-         HaveWritten(len);
-         //  if (needed > StreamWriteLargestOffsetElementSize)
-         //     StreamWriteLargestOffsetElementSize = needed;
+          uint len = 1;
+          if (str == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else {
+              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
+              fixed (char* pStr = str) {
+                  // Write the string to the end of this tuple.
+                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, str.Length * 3, true);
+              }
+          }
+          HaveWritten(len);
       }
 
       /// <summary>
@@ -267,11 +266,13 @@ namespace Starcounter.Internal
       }
 
       public static uint MeasureNeededSize(String str) {
-          uint expectedLen = 0;
+          if (str == null)
+              return 1; // null flag
+          uint expectedLen = 1; // null flag
           fixed (char* pStr = str) {
-              expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
+              expectedLen += (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
           }
-          return expectedLen;
+          return expectedLen; 
       }
 
       public static uint MeasureNeededSize(ulong n) {
@@ -302,7 +303,7 @@ namespace Starcounter.Internal
       /// Checks if string value fits the tuple and writes it
       /// </summary>
       /// <param name="value">String to write</param>
-      private void ValidateLength(uint expectedLen) {
+      private uint ValidateLength(uint expectedLen) {
           if (TupleMaxLength == 0)
               throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
           if (ValuesWrittenSoFar() == ValueCount)
@@ -310,38 +311,44 @@ namespace Starcounter.Internal
           uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
           if (OffsetElementSize < neededOffsetSize)
               expectedLen += MoveValuesRightSize(neededOffsetSize);
-          if (expectedLen > AvaiableSize)
+          if (expectedLen > AvailableSize)
               throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+          return expectedLen;
       }
 
       public void WriteSafe(ulong n) {
           uint size = MeasureNeededSize(n);
-          ValidateLength(size);
+          size = ValidateLength(size);
           Write(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       public void WriteSafe(String str) {
           uint size = MeasureNeededSize(str);
-          ValidateLength(size);
-          uint len;
-          fixed (char* pStr = str) {
-              // Write the string to the end of this tuple.
-              len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, (int)size, true); // TODO! CHANGE MAX LENGTH
-              //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
+          uint writeSize = ValidateLength(size);
+          uint len = 1;
+          if (str == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else {
+              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
+              fixed (char* pStr = str) {
+                  // Write the string to the end of this tuple.
+                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, (int)size - 1, true);
+              }
           }
+          Debug.Assert(len == size);
           HaveWritten(len);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= writeSize;
       }
 
       public unsafe void WriteSafe(byte* b, uint length) {
           uint size = MeasureNeededSizeByteArray(length);
-          ValidateLength(size);
+          size = ValidateLength(size);
           Write(b, length);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       public unsafe void WriteSafe(byte[] b) {
@@ -350,10 +357,10 @@ namespace Starcounter.Internal
               size = 1;
           else
           size = MeasureNeededSizeByteArray((uint)b.Length);
-          ValidateLength(size);
+          size = ValidateLength(size);
           Write(b);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= size;
+          AvailableSize -= size;
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5

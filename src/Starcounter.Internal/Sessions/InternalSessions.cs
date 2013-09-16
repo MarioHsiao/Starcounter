@@ -207,16 +207,10 @@ namespace HttpStructs
         public ScSessionStruct session_struct_;
 
         // Socket number.
-        public UInt64 socket_num_;
+        public UInt32 socket_index_num_;
 
         // Unique socket id for the gateway.
         public UInt64 socket_unique_id_;
-
-        // Port index.
-        public Int32 port_index_;
-
-        // WebSockets opcode.
-        public Byte ws_opcode_;
 
         // Last active time tick.
         public UInt64 LastActiveTimeTick { get; set; }

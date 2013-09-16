@@ -9,7 +9,7 @@ using namespace starcounter::core;
 uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 {
     // Checking if we are ready to push.
-    if (!bmx_data->get_push_ready())
+    if (!bmx_data->is_push_ready())
         return 0;
 
     starcounter::core::chunk_index chunk_index;
@@ -46,7 +46,7 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 {
     // Checking if we are ready to push.
-    if (!bmx_data->get_push_ready())
+    if (!bmx_data->is_push_ready())
         return 0;
 
     starcounter::core::chunk_index chunk_index;
@@ -83,7 +83,7 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
 {
     // Checking if we are ready to push.
-    if (!bmx_data->get_push_ready())
+    if (!bmx_data->is_push_ready())
         return 0;
 
     starcounter::core::chunk_index chunk_index;
@@ -538,6 +538,13 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* 
 // Number of schedulers.
 static uint8_t g_schedulers_count = 0;
 
+// Is push to gateway already possible?
+bool BmxData::is_push_ready()
+{
+    return (g_schedulers_count > 0) &&
+        (num_registered_push_channels_ >= g_schedulers_count);
+}
+
 // Registers push channel and send the response.
 uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
@@ -551,22 +558,18 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
     if (err_code)
         return err_code;
 
-    // Increasing number of registered push channels.
-    InterlockedIncrement(&num_registered_push_channels_);
-
     // Getting number of schedulers if needed.
     if (!g_schedulers_count)
         cm3_get_cpuc(NULL, &g_schedulers_count);
-
-    // Checking if all push channels are registered.
-    if (get_num_registered_push_channels() >= g_schedulers_count)
-        set_push_ready();
 
     response_chunk_part *response = smc->get_response_chunk();
     response->reset_offset();
 
     // Writing response on push channel registration.
     response->write(BMX_REGISTER_PUSH_CHANNEL_RESPONSE);
+
+    // Increasing number of registered push channels.
+    InterlockedIncrement(&num_registered_push_channels_);
 
     // Now the chunk is ready to be sent.
     err_code = cm_send_to_client(task_info->chunk_index);
@@ -872,7 +875,7 @@ uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t sess
 uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
 {
     // Checking if we are ready to push.
-    if (!get_push_ready())
+    if (!is_push_ready())
         return 0;
 
     starcounter::core::chunk_index chunk_index;
