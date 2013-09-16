@@ -200,9 +200,10 @@ namespace FasterThanJson.Tests
               var d = new TupleWriterBase64(top.AtEnd, 3, 2);
               d.Write((ulong)2);
               d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
-              var nested = new TupleWriterBase64(d.AtEnd, 2, 1);
+              var nested = new TupleWriterBase64(d.AtEnd, 3, 1);
               nested.Write("dynamic " + 4);
               nested.Write(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 });
+              nested.Write(-1235);
               d.HaveWritten(nested.SealTuple());
               top.HaveWritten(d.SealTuple());
               top.SealTuple();
@@ -216,9 +217,10 @@ namespace FasterThanJson.Tests
               var dReader = new TupleReaderBase64(topReader.AtEnd, 3);
               Assert.AreEqual(2, dReader.ReadUInt());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
-              var nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
+              var nestedReader = new TupleReaderBase64(dReader.AtEnd, 3);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
+              Assert.AreEqual(-1235, nestedReader.ReadInt());
 
               topReader = new TupleReaderBase64(start, 3);
               topReader.Skip();
@@ -226,10 +228,10 @@ namespace FasterThanJson.Tests
               dReader = new TupleReaderBase64(topReader.AtEnd, 3);
               Assert.AreEqual(2, dReader.ReadUInt());
               Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
-              nestedReader = new TupleReaderBase64(dReader.AtEnd, 2);
+              nestedReader = new TupleReaderBase64(dReader.AtEnd, 3);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
-
+              Assert.AreEqual(-1235, nestedReader.ReadInt());
           }
       }
 

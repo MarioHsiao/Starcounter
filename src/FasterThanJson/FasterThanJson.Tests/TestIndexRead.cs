@@ -127,16 +127,18 @@ namespace FasterThanJson.Tests {
             for (int i = 0; i < nrIterations; i++) {
                 uint nrValues = (uint)writeRnd.Next(1, 100);
                 int[] valueTypes = new Int32[nrValues];
-                uint[] uintValues = new uint[nrValues];
+                ulong[] uintValues = new ulong[nrValues];
                 String[] stringValues = new String[nrValues];
                 byte[][] binaryValues = new byte[nrValues][];
                 ulong[] ulongValues = new ulong[nrValues];
+                long[] intValues = new long[nrValues];
+                long[] longValues = new long[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     TupleWriterBase64 arrayWriter = new TupleWriterBase64(start, nrValues, 2);
                     arrayWriter.SetTupleLength((uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        valueTypes[j] = writeRnd.Next(1, 5);
+                        valueTypes[j] = writeRnd.Next(1, 7);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
@@ -153,6 +155,14 @@ namespace FasterThanJson.Tests {
                             case (int)ValueTypes.ULONG:
                                 ulongValues[j] = RandomValues.RandomULong(writeRnd);
                                 arrayWriter.WriteSafe(ulongValues[j]);
+                                break;
+                            case (int)ValueTypes.INT:
+                                intValues[j] = RandomValues.RandomInt(writeRnd);
+                                arrayWriter.WriteSafe(intValues[j]);
+                                break;
+                            case (int)ValueTypes.LONG:
+                                longValues[j] = RandomValues.RandomLong(writeRnd);
+                                arrayWriter.WriteSafe(longValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
@@ -176,6 +186,12 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.ULONG:
                                 Assert.AreEqual(ulongValues[j], arrayReader.ReadUInt(j));
+                                break;
+                            case (int)ValueTypes.INT:
+                                Assert.AreEqual(intValues[j], arrayReader.ReadInt(j));
+                                break;
+                            case (int)ValueTypes.LONG:
+                                Assert.AreEqual(longValues[j], arrayReader.ReadInt(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
