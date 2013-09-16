@@ -245,6 +245,12 @@ namespace Starcounter.Internal
          HaveWritten(len);
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteULongNullable(ulong? n) {
+          uint len = Base64Int.WriteNullable(AtEnd, n);
+          HaveWritten(len);
+      }
+
       /// <summary>
       /// Writes a signed integer value to the tuple
       /// </summary>
@@ -294,6 +300,14 @@ namespace Starcounter.Internal
       public static uint MeasureNeededSizeULong(ulong n) {
 #if BASE64
           return Base64Int.MeasureNeededSize(n);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
+      public static uint MeasureNeededSizeNullableULong(ulong? n) {
+#if BASE64
+          return Base64Int.MeasureNeededSizeNullable(n);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
 #endif
