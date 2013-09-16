@@ -90,6 +90,13 @@ namespace Starcounter.CLI {
             /// client to turn on verbose output.
             /// </summary>
             public const string Verbose = "verbose";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// client to return as soon as the executable has been passed
+            /// to the host, not awaiting the full entrypoint of the
+            /// executable to return.
+            /// </summary>
+            public const string Async = "async";
         }
 
         /// <summary>
