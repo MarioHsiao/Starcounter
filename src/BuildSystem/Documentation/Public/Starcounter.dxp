@@ -750,7 +750,7 @@
         <IsOtherHeadContentEnabled>false</IsOtherHeadContentEnabled>
         <OtherHeadContent></OtherHeadContent>
       </OtherFiles>
-      <OutputDirectory>..\..\..\..\docs</OutputDirectory>
+      <OutputDirectory>..\..\..\..\docs\public</OutputDirectory>
     </ProjectProfile>
   </ProjectProfiles>
   <HelpContextIDHeaderFile></HelpContextIDHeaderFile>
