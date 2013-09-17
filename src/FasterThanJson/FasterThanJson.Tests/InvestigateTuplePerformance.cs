@@ -261,7 +261,7 @@ namespace FasterThanJson.Tests {
             }
         }
 
-        [Test]
+        //[Test]
         public static unsafe void BenchmarkTupleNullableUIntScale() {
             uint? value = 2341;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -295,7 +295,7 @@ namespace FasterThanJson.Tests {
             }
         }
 
-        [Test]
+        //[Test]
         public static unsafe void BenchmarkTupleNullableULongScale() {
             ulong? value = UInt64.MaxValue;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -658,9 +658,12 @@ namespace FasterThanJson.Tests {
             Console.WriteLine("------------ Signed Integers ----------------");
             BenchmarkTupleLongScale();
             BenchmarkTupleIntScale();
+            Console.WriteLine("------------ Nullable unsigned Integers ----------------");
+            BenchmarkTupleNullableULongScale();
+            BenchmarkTupleNullableUIntScale();
             Console.WriteLine("------------ Strings ----------------");
-            BenchmarkTupleString1Scale();
             BenchmarkTupleString10Scale();
+            BenchmarkTupleString1Scale();
             BenchmarkGetBytes();
             BenchmarkNewStringBufferAlloc();
             BenchmarkGetChars();
@@ -668,8 +671,8 @@ namespace FasterThanJson.Tests {
             BenchmarkBufferAllocation();
             BenchmarkNewTupleReader();
             Console.WriteLine("------------ Byte arrays ----------------");
-            BenchmarkTupleByte1Scale();
             BenchmarkTupleByte10Scale();
+            BenchmarkTupleByte1Scale();
         }
     }
 }
