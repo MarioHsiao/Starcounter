@@ -21,6 +21,15 @@ namespace Starcounter {
 
     public partial class Json {
 
+        /// <summary>
+        /// You can assign a result set from a SQL query operation directly to 
+        /// a JSON array property.
+        /// <example>
+        /// myJson.Items = Db.SQL("SELECT i FROM Items i");
+        /// </example>
+        /// </summary>
+        /// <param name="res">The SQL result set</param>
+        /// <returns></returns>
         public static implicit operator Json(Rows res) {
             return new Json(res);
         }
@@ -30,6 +39,11 @@ namespace Starcounter {
             Parent = parent;
         }
 
+        /// <summary>
+        /// Creates a Json array bound to a enumerable data source such as
+        /// for example a SQL query result.
+        /// </summary>
+        /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
             _data = result;
             _PendingEnumeration = true;
