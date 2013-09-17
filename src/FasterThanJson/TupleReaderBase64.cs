@@ -171,7 +171,6 @@ namespace Starcounter.Internal
          return ret;
       }
 
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe ulong? ReadULongNullable() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= (int)ValueOffset;
@@ -189,6 +188,7 @@ namespace Starcounter.Internal
               ret = -ret - 1;
           return ret;
       }
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe long ReadLong() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
@@ -207,11 +207,26 @@ namespace Starcounter.Internal
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
+          if (valueLength < 1 || valueLength > 6 && valueLength < 11 || valueLength > 11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + valueLength + ", in UInt64 read of FasterThanJson.");
           ulong ret = Base64Int.Read(valueLength, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
           return ret;
+      }
+
+      public unsafe long? ReadLongNullable() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong? uval = Base64Int.ReadNullable(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          if (uval == null)
+              return null;
+          else
+              return ConvertLong((ulong)uval);
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
@@ -221,6 +236,8 @@ namespace Starcounter.Internal
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
+          if (valueLength < 1 || valueLength >6 && valueLength<11 || valueLength>11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + valueLength + ", in Int64 read of FasterThanJson.");
           ulong ret = Base64Int.Read(valueLength, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
