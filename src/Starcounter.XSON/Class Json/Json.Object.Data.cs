@@ -146,6 +146,20 @@ namespace Starcounter {
         }
 
 		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="template"></param>
+		/// <param name="value"></param>
+		internal void SetBound(TObjArr template, IEnumerable value) {
+			IBindable data = DataAsBindable;
+			if (data == null)
+				return;
+			var binding = (DataValueBinding<IEnumerable>)template.dataBinding;
+			if (binding.HasSetBinding())
+				binding.Set(data, value);
+		}
+
+		/// <summary>
 		/// Gets the bound value from the dataobject.
 		/// </summary>
 		/// <remarks>

@@ -150,7 +150,10 @@ namespace Starcounter.Templates {
         }
 
         internal override void SetBoundValueAsObject(Json obj, object value) {
-			obj.SetBound(this, value);
+			// TODO:
+			// Check this. What do we set as bound value on an array? The IEnumerable?
+			// or is the value we get the array itself?
+			obj.SetBound(this, value as IEnumerable);
         }
 
         public override object CreateInstance(Json parent) {
