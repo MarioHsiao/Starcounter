@@ -484,11 +484,11 @@ namespace Starcounter.Internal
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe uint WriteNullable(byte* buffer, UInt64? valueN) {
-          var c = (Base64x5*)buffer;
           if (valueN == null) {
               WriteBase64x1(1, buffer);
               return 1;
           }
+          var c = (Base64x5*)buffer;
           UInt64 value = (UInt64)valueN;
           if ((value & 0xFFFFFFFFFFFFFFE0) == 0) {// 11 111111 111111 111111 111111 100000 (NOTE: groups of SIX bits)
               WriteBase64x1(value<<1, buffer);
