@@ -10,6 +10,7 @@ using Starcounter.CommandLine;
 namespace Starcounter.VisualStudio.Projects {
     using ProjectConfiguration = StarcounterProjectConfiguration;
     using ConfigurationProperty = StarcounterProjectConfiguration.PropertyNames;
+    using Starcounter.Internal;
 
     /// <summary>
     /// Maintains the subset of configuration that is interesting to
@@ -98,7 +99,10 @@ namespace Starcounter.VisualStudio.Projects {
 
             var targetAssembly = cfg.GetPropertyValue(ConfigurationProperty.AssemblyPath);
             if (string.IsNullOrEmpty(targetAssembly) || !File.Exists(targetAssembly)) {
-                throw new FileNotFoundException("Unable to find assembly to run.", targetAssembly);
+                targetAssembly = targetAssembly ?? string.Empty;
+                var path = string.Format("Path: {0}", targetAssembly);
+                throw ErrorCode.ToException(
+                    Error.SCERRBINARYNOTFOUNDWHENDEBUG, path, (s, e) => { return new FileNotFoundException(s, e); });
             }
             this.AssemblyPath = targetAssembly;
 

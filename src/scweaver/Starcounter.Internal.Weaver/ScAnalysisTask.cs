@@ -1213,16 +1213,18 @@ namespace Starcounter.Internal.Weaver {
                     }
                     if (item.AttributeKind == DatabaseAttributeKind.Property && item.IsPublicRead) {
                         if (item.Name.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)) {
-                            var detail = string.Format("Property {0} in class {1}, property {2} in class {3}.",
-                                property.Name,
-                                databaseClass.Name,
-                                item.Name,
-                                cursor.Name);
-                            ScMessageSource.WriteError(
-                                MessageLocation.Of(property),
-                                Error.SCERRPROPERTYDIFFERINCASEONLY,
-                                detail);
-                            success = false;
+                            if (!item.Name.Equals(property.Name)) {
+                                var detail = string.Format("Property {0} in class {1}, property {2} in class {3}.",
+                                    property.Name,
+                                    databaseClass.Name,
+                                    item.Name,
+                                    cursor.Name);
+                                ScMessageSource.WriteError(
+                                    MessageLocation.Of(property),
+                                    Error.SCERRPROPERTYDIFFERINCASEONLY,
+                                    detail);
+                                success = false;
+                            }
                         }
                     }
                 }
