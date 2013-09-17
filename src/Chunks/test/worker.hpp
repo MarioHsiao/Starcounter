@@ -189,14 +189,6 @@ public:
 		return channel_[i];
 	}
 	
-	//chunk_pool<chunk_index>& get_chunk_pool() {
-	//	return chunk_pool_;
-	//}
-	
-	uint64_t& acquired_chunks() {
-		return acquired_chunks_;
-	}
-	
     /// Return number of pushed items.
     /**
      * @return Number of pushed items.
@@ -218,23 +210,29 @@ public:
 	
 	typedef chunk_pool_list<chunk_type::link_type> chunk_pool_list_type;
 
-	/// Get reference to chunk_pool(n) where n is the channel number.
+	/// Get reference to get_chunk_pool_list(n), where n is the scheduler number.
 	/**
-	 * @return A reference to chunk_pool(n).
+	 * @return A reference to get_chunk_pool_list(n).
 	 */
-	chunk_pool_list_type& get_chunk_pool_list(channel_number n) {
+	chunk_pool_list_type& get_chunk_pool_list(scheduler_number n) {
 		return chunk_pool_list_[n];
 	}
 	
-#if 0
-	/// Get const reference to chunk_pool(n) where n is the channel number.
+	/// Get const reference to get_chunk_pool_list(n), where n is the scheduler number.
 	/**
-	 * @return A const reference to chunk_pool(n).
+	 * @return A const reference to get_chunk_pool_list(n).
 	 */
-	const chunk_pool_list& get_chunk_pool_queue(channel_number n) const {
-		return chunk_pool_queue_[n];
+	const chunk_pool_list_type& get_chunk_pool_list(scheduler_number n) const {
+		return chunk_pool_list_[n];
 	}
-#endif
+	
+	/// Get reference to acquired_chunks(n), where n is the scheduler number.
+	/**
+	 * @return A const reference to get_chunk_pool_list(n).
+	 */
+	//uint64_t& acquired_chunks(scheduler_number n) {
+	//	return acquired_chunks_;
+	//}
 	
 public:
 	// chunk_pool_list is not thread safe. The list is based on linking chunks
@@ -357,9 +355,7 @@ private:
 	// rather than at the end, to avoid always touching the last cache line in the
 	// chunk. TODO: Issue #993.
 	chunk_pool_list_type chunk_pool_list_[max_number_of_schedulers];
-
-	//starcounter::core::chunk_pool<chunk_index> chunk_pool_; // OLD CHUNK POOL TO BE REPLACED!
-
+    
 	thread thread_;
 	thread::native_handle_type thread_handle_;
 	boost::mutex mutex_;

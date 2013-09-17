@@ -44,7 +44,7 @@ void worker::start() {
 	chunk_type* chunk_ptr = &shared().chunk(0);
 
 	for (channel_number i = 0; i < channels; ++i) {
-		//get_chunk_pool_list(i).set_chunk_ptr(chunk_ptr);
+		get_chunk_pool_list(i).set_chunk_ptr(chunk_ptr);
 	}
 
 	if (!shared().acquire_client_number()) {
@@ -120,14 +120,16 @@ try {
 		
 		for (std::size_t n = 0; n < worker->num_channels(); ++n) {
 			size_t channel_num = worker->channel(n);
-			
+
 			// Reference used as shorthand.
 			channel_type& the_channel
 			= worker->shared().channel(channel_num);
 			
+			scheduler_number scheduler_num = the_channel.get_scheduler_number();
+
 			// Reference used as shorthand.
 			chunk_pool_list_type& chunk_pool_list_for_this_scheduler
-			= worker->get_chunk_pool_list(channel_num);
+			= worker->get_chunk_pool_list(scheduler_num);
 			
 			// Try to acquire chunk(s) for the request message from private
 			// chunk pool.
@@ -183,8 +185,8 @@ try {
 				if (worker->acquired_chunks() < worker::max_chunks) {
 					// Try to acquire a bunch of chunks from the shared chunk
 					// pool to the private chunk pool.
-					worker->acquired_chunks() += worker->shared()
-					.acquire_from_shared_chunk_pool(worker->get_chunk_pool_list(0 /* SCHEDULER (= CHANNEL in the future) NUMBER GOES HERE */),
+					worker->acquired_chunks() += worker->shared().acquire_from_shared_chunk_pool
+					(worker->get_chunk_pool_list(the_channel.get_scheduler_number()),
 					a_bunch_of_chunks, &worker->shared().client_interface(),
 					1000 /* milliseconds timeout */);
 					
@@ -199,9 +201,9 @@ try {
 						shared_memory_chunk* smc = static_cast
 						<shared_memory_chunk*>(&worker->shared().chunk
 						(request_message));
-							
+						
 						sc_bmx_construct_ping(0, smc);
-							
+						
 						if (the_channel.in_overflow().empty()) {
 							if (the_channel.in.try_push_front
 							(request_message)) {
@@ -212,11 +214,11 @@ try {
 								the_channel.scheduler()->notify
 								(worker->shared().scheduler_work_event
 								(the_channel.get_scheduler_number()));
-									
+								
 								++pushed_to_channels[n];
 								++worker->pushed_; // Used for statistics.
 								worked = true;
-									
+								
 								// Continue with the next channel.
 								continue;
 							}
@@ -228,7 +230,7 @@ try {
 								// request message production is preserved.
 								the_channel.in_overflow().push_back
 								(request_message);
-									
+								
 								// Continue with the next channel.
 								continue; // next channel
 							}
@@ -282,7 +284,7 @@ scan_channel_out_buffers:
 			//scan_out_buffers = 0;
 			for (std::size_t n = 0; n < worker->num_channels(); ++n) {
 				size_t channel_num = worker->channel(n);
-
+				
 				// Reference used as shorthand.
 				channel_type& the_channel
 				= worker->shared().channel(channel_num);
@@ -322,7 +324,7 @@ scan_channel_out_buffers:
 					
 					// Release the response chunk.
 					chunk_pool_list_for_this_scheduler.push_front(response_message);
-
+					
 #if 0 // CANCEL OUT THIS CODE FOR NOW IN ORDER TO COMPILE!
 					if (worker->get_chunk_pool().size() <= max_chunks) { /// <-- Now what? Wrong approarch. . .
 						continue;
@@ -346,7 +348,7 @@ scan_channel_out_buffers:
 #endif
 				}
 			}
-
+			
 			scanned_channel_out_buffers = true;
 		//} // Slow down scanning of out buffers
 		
@@ -415,7 +417,7 @@ scan_channel_out_buffers:
 						
 						std::cout << "worker[" << worker->id() << "]: timeout; not waiting" << std::endl;
 					}
-
+					
 					scanned_channel_out_buffers = false;
 				}
 				else {
