@@ -88,7 +88,7 @@ restart:
 							} else
 								goto restart;
 						} else if (tProperty is TObjArr) {
-							Arr arr = obj.Get((TObjArr)tProperty);
+							Json arr = obj.Get((TObjArr)tProperty);
 							if (posInArray == -1) {
 								if (MAX_INT_SIZE > (buf.Length - writer.Length))
 									goto restart;
@@ -103,7 +103,7 @@ restart:
 
 							for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
 								if (childObjArr == null) {
-									valueSize = ((TContainer)arr[arrPos].Template).ToFasterThanJson(arr[arrPos], out childObjArr);
+									valueSize = ((TContainer)(arr[arrPos] as Json).Template).ToFasterThanJson((arr[arrPos] as Json), out childObjArr);
 									if (valueSize == -1)
 										goto restart;
 
@@ -180,7 +180,7 @@ restart:
 				int valueCount = exposedProperties.Count;
 				var reader = new TupleReaderBase64((byte*)src, (uint)valueCount);
 
-				Arr arr;
+				Json arr;
 				Json childObj;
 				TObject tObj = (TObject)obj.Template;
 				Template tProperty;

@@ -49,7 +49,7 @@ public partial class TestMessage {
                     ClassName = "ASubAppApp";
                     IsInnerApp = Add<TBool>("IsInnerApp");
                 }
-                public override object CreateInstance(Container parent) { return new ASubAppApp(this) { Parent = (TestMessage.ChildApp)parent }; }
+                public override object CreateInstance(Json parent) { return new ASubAppApp(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public TBool IsInnerApp;
             }
             public class ASubAppAppMetadata : ObjMetadata {
@@ -84,7 +84,7 @@ public partial class TestMessage {
                         ClassName = "ASubListApp";
                         Huh = Add<TString>("Huh");
                     }
-                    public override object CreateInstance(Container parent) { return new ASubListApp(this) { Parent = (Arr<TestMessage.ChildApp.ASubApp2App.ASubListApp>)parent }; }
+                    public override object CreateInstance(Json parent) { return new ASubListApp(this) { Parent = (Arr<TestMessage.ChildApp.ASubApp2App.ASubListApp>)parent }; }
                     public TString Huh;
                 }
                 public class ASubListAppMetadata : ObjMetadata {
@@ -104,7 +104,7 @@ public partial class TestMessage {
                     ASubList = Add<TArr<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.TASubListApp>>("ASubList");
                     ASubList.App = TestMessage.ChildApp.ASubApp2App.ASubListApp.DefaultTemplate;
                 }
-                public override object CreateInstance(Container parent) { return new ASubApp2App(this) { Parent = (TestMessage.ChildApp)parent }; }
+                public override object CreateInstance(Json parent) { return new ASubApp2App(this) { Parent = (TestMessage.ChildApp)parent }; }
                 public TBool IsInnerApp;
                 public TArr<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.TASubListApp> ASubList;
             }
@@ -127,7 +127,7 @@ public partial class TestMessage {
                 ASubApp = Add<TestMessage.ChildApp.ASubAppApp.TASubAppApp>("ASubApp");
                 ASubApp2 = Add<TestMessage.ChildApp.ASubApp2App.TASubApp2App>("ASubApp2");
             }
-            public override object CreateInstance(Container parent) { return new ChildApp(this) { Parent = (TestMessage)parent }; }
+            public override object CreateInstance(Json parent) { return new ChildApp(this) { Parent = (TestMessage)parent }; }
             public TString ChildName;
             public TestMessage.ChildApp.ASubAppApp.TASubAppApp ASubApp;
             public TestMessage.ChildApp.ASubApp2App.TASubApp2App ASubApp2;
@@ -161,7 +161,7 @@ public partial class TestMessage {
                 AValue = Add<TString>("AValue");
                 ANumber = Add<TLong>("ANumber");
             }
-            public override object CreateInstance(Container parent) { return new AListApp(this) { Parent = (Arr<TestMessage.AListApp>)parent }; }
+            public override object CreateInstance(Json parent) { return new AListApp(this) { Parent = (Arr<TestMessage.AListApp>)parent }; }
             public TString AValue;
             public TLong ANumber;
         }
@@ -191,7 +191,7 @@ public partial class TestMessage {
             ADouble = Add<TDouble>("ADouble");
             UserLink = Add<TString>("UserLink");
         }
-        public override object CreateInstance(Container parent) { return new TestMessage(this) { Parent = parent }; }
+        public override object CreateInstance(Json parent) { return new TestMessage(this) { Parent = parent }; }
         public TLong UserId;
         public TString Username;
         public TString Password;

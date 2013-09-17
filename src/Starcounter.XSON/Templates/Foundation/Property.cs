@@ -185,6 +185,5 @@ namespace Starcounter {
 
 
 
-        public bool IsArray { get; set; }
     }
 }

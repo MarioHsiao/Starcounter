@@ -67,7 +67,7 @@ namespace Starcounter {
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
         public string CreateJsonPatch( bool flushLog ) {
 
-            if (_Data._Values._BrandNew) {
+            if (_Data._BrandNew) {
                 // Just return the whole thing as a change to the root
                 //GenerateChangeLog(); // Needed to update bound dirty check values.
                 this.CheckpointChangeLog();

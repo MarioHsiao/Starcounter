@@ -10,7 +10,7 @@ using System;
 using System.Text;
 namespace Starcounter {
 
-    public partial class Container {
+    public partial class Json {
 
         internal void WriteToDebugString(StringBuilder sb, int indentation) {
             if (IsArray) {
@@ -27,7 +27,8 @@ namespace Starcounter {
             sb.Append("[");
             indentation += 3;
             int t = 0;
-            foreach (var e in _Values) {
+            var values = list;
+            foreach (var e in values) {
                 if (t > 0) {
                     sb.AppendLine(",");
                     sb.Append(' ', indentation);
@@ -77,19 +78,28 @@ namespace Starcounter {
                 sb.Append("{}");
                 return;
             }
+
+            if (Session != null && Parent != null) {
+                var index = Parent.IndexOf(this);
+                if (Parent._ReplacedFlag[index]) {
+                    sb.Append("(set)");
+                }
+            }
+
+
             sb.AppendLine("{");
 
 
             i += 3;
             int t = 0;
-            var vals = Values;
+            var vals = list;
             foreach (var v in vals) {
                 if (t > 0) {
                     sb.AppendLine(",");
                 }
                 sb.Append(' ', i);
-                if (v is Container) {
-                    (v as Container).WriteToDebugString(sb, i);
+                if (v is Json) {
+                    (v as Json).WriteToDebugString(sb, i);
                 }
                 else {
                     var prop = template.Properties[t];
@@ -98,8 +108,8 @@ namespace Starcounter {
                     sb.Append("\":");
                     if (prop is TValue && ((TValue)prop).Bind != null) {
                         var tv = (TValue)prop;
-                        if ((this as Json).Get(tv) != _Values[t]) {
-                            var dbgVal = _Values[t];
+                        if ((this as Json).Get(tv) != _list[t]) {
+                            var dbgVal = _list[t];
                             if (dbgVal == null)
                                 dbgVal = "notsent";
                             sb.Append("(db old=" + dbgVal + ")");
@@ -108,11 +118,11 @@ namespace Starcounter {
                             sb.Append("(db)");
                         }
                     }
-                    if (_Values.WasReplacedAt(t)) {
+                    if (WasReplacedAt(t)) {
                         if (prop is TContainer) {
                             // The "d" is already anotated for Containers.
                             // Let's just make sure that the dirty flag was the same
-                            var obj = (Container)(this as Json).Get((TValue)prop);
+                            var obj = (Json)(this as Json).Get((TValue)prop);
                             if (!obj._Dirty) {
                                 throw new Exception("Missmach in dirty flags");
                             }
@@ -149,7 +159,7 @@ namespace Starcounter {
             if (this is Json && ((Json)this).Data != null) {
                 sb.Append("(db)");
             }
-            if (Values == null || _Values._BrandNew) {
+            if (list == null || _BrandNew) {
                 sb.Append("(new)");
             }
             if (_Dirty) {

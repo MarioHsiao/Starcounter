@@ -28,7 +28,7 @@ namespace Starcounter.Internal {
                 case MimeType.Unspecified:*/ {
                         resultingMimeType = MimeType.Application_Json;
 
-                        Container r = (Container)before;
+                        Json r = (Json)before;
                         while (r.Parent != null)
                             r = r.Parent;
                         var root = (Json)r;

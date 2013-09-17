@@ -9,13 +9,132 @@ using System;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using System.Text;
+using System.Collections;
 namespace Starcounter {
 
     /// <summary>
     /// Base class for App and AppList instances.
     /// </summary>
-    public abstract partial class Container : StarcounterBase
+    public partial class Json : StarcounterBase
     {
+
+        public object this[int index] {
+            get {
+                if (this.IsArray) {
+                    return _GetAt(index);
+                }
+                else {
+                    var json = this as Json;
+                    var property = (TValue)((TObject)Template).Properties[index];
+                    if (property.UseBinding(json.DataAsBindable)) {
+                        object ret;
+                        ret = json.GetBound(property);
+                        if (property is TObject) {
+                            var newJson = (Json)property.CreateInstance(this);
+                            newJson.AttachData((IBindable)ret);
+                            _SetAt(property.TemplateIndex, newJson);
+                            return newJson;
+                        }
+                        else if (property is TObjArr) {
+                            var newJson = (Json)property.CreateInstance(this);
+                            newJson.Data = (IEnumerable)ret;
+                            _SetAt(property.TemplateIndex, newJson);
+                            return newJson;
+                        }
+                        return ret;
+                    }
+                    else {
+                        return _GetAt(property.TemplateIndex);
+                    }
+                }
+            }
+            set {
+
+
+
+
+                if (IsArray) {
+                    // We need to update the cached index array
+                    var thisj = this as Json;
+                    var j = value as Json;
+                    if (j != null) {
+                        j.Parent = this;
+                        j._cacheIndexInArr = index;
+                    }
+                    var oldValue = (Json)_list[index];
+                    if (oldValue != null) {
+                        oldValue.SetParent(null);
+                        oldValue._cacheIndexInArr = -1;
+                    }
+                }
+                else {
+                    var property = (TValue)((TObject)Template).Properties[index];
+                    this._OnSetProperty(property,value);
+                }
+                list[index] = value;
+
+                if (!_BrandNew) {
+                    MarkAsReplaced(index);
+                }
+
+                if (IsArray) {
+                    (this as Json)._CallHasChanged(this.Template as TObjArr, index);
+                }
+                else {
+                    (this as Json)._CallHasChanged(this.Template as TValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        private void _OnSetProperty(TValue property, object value) {
+            var thisj = this as Json;
+
+
+            if (property.UseBinding(thisj.DataAsBindable)) {
+                if (property is TObject) {
+                    thisj.SetBound(property, (value as Json).Data);
+                }
+                else {
+                    thisj.SetBound(property, value);
+                }
+            }
+
+            if (property is TObjArr) {
+                var valuearr = (Json)value;
+                var oldValue = (Json)_list[property.TemplateIndex];
+                if (oldValue != null) {
+                    oldValue.InternalClear();
+                    //                oldValue.Clear();
+                    oldValue.SetParent(null);
+                }
+
+                valuearr.Array_InitializeAfterImplicitConversion(thisj, (TObjArr)property);
+            }
+
+            if (property is TObject) {
+                var j = (Json)value;
+                // We need to update the cached index array
+                if (j != null) {
+                    j.Parent = this;
+
+
+                    j._cacheIndexInArr = property.TemplateIndex;
+                }
+                var vals = list;
+                var i = property.TemplateIndex;
+                var oldValue = (Json)vals[i];
+                if (oldValue != null) {
+                    oldValue.SetParent(null);
+                    oldValue._cacheIndexInArr = -1;
+                }
+            }
+        }
+
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
         /// </summary>
@@ -140,26 +259,26 @@ namespace Starcounter {
         //    //child._parent = this;
         //}
 
-        public virtual void HasAddedElement(TObjArr property, int elementIndex) {
+        public virtual void ChildArrayHasAddedAnElement(TObjArr property, int elementIndex) {
         }
 
-        public virtual void HasRemovedElement(TObjArr property, int elementIndex) {
+        public virtual void ChildArrayHasRemovedAnElement(TObjArr property, int elementIndex) {
         }
 
-        public virtual void HasReplacedElement(TObjArr property, int elementIndex) {
+        public virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
         }
 
         /// <summary>
         /// The _parent
         /// </summary>
-        internal Container _parent;
+        internal Json _parent;
 
         /// <summary>
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
         /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
-        public Container Parent {
+        public Json Parent {
             get {
                 return _parent;
             }
@@ -175,7 +294,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="value"></param>
-        internal void SetParent(Container value) {
+        internal void SetParent(Json value) {
             if (value == null) {
                 if (_parent != null) {
                     _parent.HasRemovedChild(this);
@@ -190,7 +309,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The name of the property</param>
         /// <param name="child">The old value of the property</param>
-        private void HasRemovedChild( Container child ) {
+        private void HasRemovedChild( Json child ) {
             // This Obj or Arr has been removed from its parent and should be deleted from the
             // URI cache.
             //
@@ -260,39 +379,39 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Fills the index path.
+        /// In order to support Json pointers (TODO REF), this method is called
+        /// recursively to fill in a list of relative pointers from the root to
+        /// a given node in the Json like tree (the Obj/Arr tree).
         /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="pos">The pos.</param>
-        internal virtual void FillIndexPath(Int32[] path, Int32 pos)
-        {
-            path[pos] = Template.TemplateIndex;
-            Parent.FillIndexPath(path, pos - 1);
+        /// <param name="path">The patharray to fill</param>
+        /// <param name="pos">The position to fill</param>
+        internal void FillIndexPath(Int32[] path, Int32 pos) {
+            if (IsArray) {
+                path[pos] = Template.TemplateIndex;
+                Parent.FillIndexPath(path, pos - 1);
+            }
+            else {
+                if (Parent != null) {
+                    if (Parent.IsArray) {
+                        if (_cacheIndexInArr == -1) {
+                            _cacheIndexInArr = Parent.IndexOf(this);
+                        }
+                        path[pos] = _cacheIndexInArr;
+                    }
+                    else {
+                        // We use the cacheIndexInArr to keep track of obj that is set
+                        // in the parent as an untyped object since the template here is not
+                        // the template in the parent (which we want).
+                        if (_cacheIndexInArr != -1)
+                            path[pos] = _cacheIndexInArr;
+                        else
+                            path[pos] = Template.TemplateIndex;
+                    }
+                    Parent.FillIndexPath(path, pos - 1);
+                }
+            }
         }
 
-		/// 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public abstract byte[] ToJsonUtf8();
-
-		/// <summary>
-		/// Serializes this object and sets the out parameter to the buffer containing 
-		/// the UTF8 encoded characters. Returns the size used in the buffer.
-		/// </summary>
-		/// <remarks>
-		/// The actual returned buffer might be larger than the amount used.
-		/// </remarks>
-		/// <param name="buf"></param>
-		/// <returns></returns>
-		public abstract int ToJsonUtf8(out byte[] buffer);
-
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public abstract string ToJson();
     }
 }
+

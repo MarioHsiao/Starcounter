@@ -12,14 +12,14 @@ using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     partial class Json {
+
         /// <summary>
         /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
         /// underlying bound object. This is common in database applications where Json messages
         /// or view models (Puppets) are often associated with database objects. I.e. a person form might
         /// reflect a person database object (Entity).
         /// </summary>
-        private IBindable _data;
-
+        internal IBindable _data;
 
         /// <summary>
         /// 
@@ -38,19 +38,29 @@ namespace Starcounter {
         /// <value>The bound data object (often a database Entity)</value>
         public object Data {
             get {
-                return _data;
+                if (IsArray) {
+                    return notEnumeratedResult;
+                }
+                else {
+                    return _data;
+                }
             }
             set {
                 if (IsArray) {
-                    throw new NotImplementedException();
+                    notEnumeratedResult = (IEnumerable)value;
+                    this.Array_InitializeAfterImplicitConversion((Json)this.Parent, (TObjArr)this.Template);
                 }
                 else {
                     if (Template == null) {
-                        this.CreateDynamicTemplate(); // If there is no template, we'll create a template
+                        (this as Json).CreateDynamicTemplate(); // If there is no template, we'll create a template
                     }
-                    InternalSetData((IBindable)value, (TObject)Template);
+                    InternalSetData((IBindable)value, (TObject)Template, false);
                 }
             }
+        }
+
+        internal void AttachData(IBindable data) {
+            InternalSetData(data, (TObject)Template, true);
         }
 
 
@@ -89,19 +99,34 @@ namespace Starcounter {
 
 		internal object GetBound(TValue template) {
             IBindable data = DataAsBindable;
-			if (data == null)
+            var thisj = AssertIsObject();
+            if (data == null)
 				return null;
 			
-			return template.GetBoundValueAsObject(this);
+			return template.GetBoundValueAsObject(thisj);
 		}
 
 		internal void SetBound(TValue template, object value) {
+            var thisj = AssertIsObject();
             IBindable data = DataAsBindable;
 			if (data == null)
 				return;
 
-			template.SetBoundValueAsObject(this, value);
+			template.SetBoundValueAsObject(thisj, value);
 		}
+
+        /// <summary>
+        /// For public API functions that does not operate on templates, this
+        /// method should be used instead of a simple type cast to provide a 
+        /// better error message for the developer.
+        /// </summary>
+        /// <returns>This as a Json object</returns>
+        private Json AssertIsObject() {
+            if (IsArray) {
+                throw new Exception("You cannot use named properties on array Json objects");
+            }
+            return this as Json;
+        }
 
 		/// <summary>
 		/// Gets the bound value from the dataobject.
@@ -158,12 +183,12 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data, TObject template ) {
+        protected virtual void InternalSetData(IBindable data, TObject template, bool readOperation ) {
             this._data = data;
 
 			if (template.Bound != Bound.No) {
 				var parent = ((Json)this.Parent);
-				if (parent != null && template.UseBinding(parent.DataAsBindable)) {
+				if (!readOperation && parent != null && template.UseBinding(parent.DataAsBindable)) {
 					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
 				}
 			}
@@ -184,7 +209,8 @@ namespace Starcounter {
 						if (child.UseBinding(DataAsBindable))
 							Refresh(child);
 					} else {
-						var arr = (Arr)Get(child);
+                        var thisj = AssertIsObject();
+						var arr = (Json)thisj.Get(child);
 						arr.Clear();
 					}
                 }
