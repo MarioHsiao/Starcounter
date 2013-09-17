@@ -4249,6 +4249,12 @@
         Visual Studio activity log for additional information.
       </message>
     </code>
+    <code hex="0011" severity="Error" name="ScErrBinaryNotFoundWhenDebug">
+      <message>
+        Could not find the executable file to run. Is the project configured
+        to build?
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
