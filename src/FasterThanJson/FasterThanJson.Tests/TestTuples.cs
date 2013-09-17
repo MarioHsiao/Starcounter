@@ -237,17 +237,21 @@ namespace FasterThanJson.Tests
 
       [Test]
       public static unsafe void TestNullValues() {
-          fixed (byte* start = new byte[10]) {
-              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 3, 1);
-              tupleWriter.WriteByteArray((byte[])null);
+          fixed (byte* start = new byte[11]) {
+              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 5, 1);
+              tupleWriter.WriteByteArray(null);
               tupleWriter.WriteString("");
-              tupleWriter.WriteString((String)null);
-              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 3);
+              tupleWriter.WriteString(null);
+              tupleWriter.WriteLongNullable(null);
+              tupleWriter.WriteULongNullable(null);
+              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 5);
               byte[] nullByteArray = tupleReader.ReadByteArray();
               Assert.AreEqual(null, nullByteArray);
               Assert.AreEqual("", tupleReader.ReadString());
               String nullString = tupleReader.ReadString();
               Assert.AreEqual(null, nullString);
+              Assert.AreEqual(null, tupleReader.ReadLongNullable());
+              Assert.AreEqual(null, tupleReader.ReadULongNullable());
           }
       }
 
@@ -260,6 +264,24 @@ namespace FasterThanJson.Tests
               TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 2);
               Assert.AreEqual(Int64.MaxValue, tupleReader.ReadLong());
               Assert.AreEqual(Int64.MinValue, tupleReader.ReadLong());
+          }
+      }
+
+      [Test]
+      public static unsafe void TestSignedIntNullable() {
+          fixed (byte* start = new byte[31]) {
+              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 5, 1);
+              tupleWriter.WriteLongNullable(Int64.MaxValue);
+              tupleWriter.WriteLongNullable(Int64.MinValue);
+              tupleWriter.WriteLongNullable(0);
+              tupleWriter.WriteLongNullable(-1);
+              tupleWriter.WriteLongNullable(1);
+              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 5);
+              Assert.AreEqual(Int64.MaxValue, tupleReader.ReadLongNullable());
+              Assert.AreEqual(Int64.MinValue, tupleReader.ReadLongNullable());
+              Assert.AreEqual(0, tupleReader.ReadLongNullable());
+              Assert.AreEqual(-1, tupleReader.ReadLongNullable());
+              Assert.AreEqual(1, tupleReader.ReadLongNullable());
           }
       }
    }
