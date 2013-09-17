@@ -195,7 +195,7 @@ namespace FasterThanJson.Tests {
 
         //[Test]
         public static unsafe void BenchmarkTupleIntScale() {
-            int value = 2341;
+            int value = 1341;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
             Assert.AreEqual(valueCounts.Length, nrIters.Length);
