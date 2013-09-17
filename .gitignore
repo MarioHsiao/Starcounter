@@ -56,3 +56,4 @@ src/Samples/NetworkIoTest/image.png
 #nCover
 *.sln.DotSettings
 
+docs/
