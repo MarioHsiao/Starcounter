@@ -10,7 +10,11 @@ namespace FasterThanJson.Tests {
         BINARY,
         ULONG,
         INT,
-        LONG
+        LONG,
+        UINTNULL,
+        ULONGNULL,
+        INTNULL,
+        LONGNULL
     }
 
     public static class RandomValues {
