@@ -186,6 +186,60 @@ namespace FasterThanJson.Tests {
 
         [Test]
         [Category("LongRunning")]
+        public unsafe void BenchmarkNullableInt() {
+            Random rnd = new Random(1);
+            Stopwatch timer = new Stopwatch();
+            foreach (uint valueCount in NrElements) {
+                long?[] inputInts = new long?[valueCount];
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
+                uint valCounter = 0;
+                for (; valCounter < valueCount * 2 / 3; valCounter++) {
+                    inputInts[valCounter] = RandomValues.RandomNullableInt(rnd);
+                    tupleLength += TupleWriterBase64.MeasureNeededSizeNullableLong(inputInts[valCounter]);
+                }
+                for (; valCounter < valueCount; valCounter++) {
+                    inputInts[valCounter] = RandomValues.RandomNullableLong(rnd);
+                    tupleLength += TupleWriterBase64.MeasureNeededSizeNullableLong(inputInts[valCounter]);
+                }
+                uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
+                tupleLength += valueCount * offsetSize;
+                fixed (byte* start = new byte[tupleLength]) {
+                    uint nrIter = NrIterations / valueCount;
+                    if (TestLogger.IsRunningOnBuildServer())
+                        nrIter *= 10;
+
+                    timer.Reset();
+                    timer.Start();
+                    for (uint i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
+                        for (uint j = 0; j < valueCount; j++)
+                            writer.WriteLongNullable(inputInts[j]);
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Writing tuple of " + valueCount + " UINTs took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 1000 * 100 / nrIter) / 100 + " mcs per tuple write.");
+
+                    timer.Reset();
+                    timer.Start();
+                    for (uint i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
+                        for (uint j = 0; j < valueCount; j++)
+                            reader.ReadLongNullable();
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Reading tuple of " + valueCount + " UINTs took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple write.");
+                    TupleReaderBase64 validationReader = new TupleReaderBase64(start, valueCount);
+                    for (uint j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputInts[j], validationReader.ReadLongNullable());
+                }
+            }
+        }
+
+        [Test]
+        [Category("LongRunning")]
         public unsafe void BenchmarkString() {
             Random rnd = new Random(1);
             Stopwatch timer = new Stopwatch();

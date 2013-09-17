@@ -549,7 +549,6 @@ namespace Starcounter.Internal
           //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64? ReadNullable(int size, byte* ptr) {
           ulong? val;
           if (size == 1) {
