@@ -99,7 +99,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
-		public override object CreateInstance(Container parent) {
+		public override object CreateInstance(Json parent) {
 			if (_JsonType != null) {
 				var msg = (Json)Activator.CreateInstance(_JsonType);
 				msg.Template = this;
@@ -133,38 +133,6 @@ namespace Starcounter.Templates {
                 if (!string.IsNullOrEmpty(value))
 					BindChildren = Bound.Yes;
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal override object Wrap(object value) {
-            if (value is IBindable) {
-                return Wrap<Json>(value);
-            }
-            return value;
-        }
-
-        /// <summary>
-        /// Returns a value as a JSON value.
-        /// </summary>
-        /// <typeparam name="ReturnType"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal ReturnType Wrap<ReturnType>(object value) where ReturnType : Json {
-            if (value is ReturnType)
-                return (ReturnType)value;
-            var json = (Json)CreateInstance();
-            json.Data = value;
-            if (!(json is ReturnType)) {
-                throw new Exception(
-                    String.Format("Cannot convert {0} to {1}",
-                        json, typeof(ReturnType)
-                    ));
-            }
-            return (ReturnType)json;
         }
 
         /// <summary>

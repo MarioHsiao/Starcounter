@@ -1,39 +1,16 @@
-﻿
-using Starcounter.Advanced;
+﻿using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
 using System.Collections;
+
 namespace Starcounter {
-    partial class Arr {
+
+    partial class Json {
+
         /// <summary>
         /// 
         /// </summary>
         internal IEnumerable notEnumeratedResult = null;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="result"></param>
-        protected Arr(IEnumerable result) {
-            notEnumeratedResult = result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="res"></param>
-        /// <returns></returns>
-        public static implicit operator Arr(Rows res) {
-            return new Arr(res);
-        }
-
-        public override void HasAddedElement(TObjArr property, int elementIndex) {
-        }
-
-        public override void HasRemovedElement(TObjArr property, int elementIndex) {
-        }
-
-
 
         /// <summary>
         /// Initializes this Arr and sets the template and parent if not already done.
@@ -44,7 +21,7 @@ namespace Starcounter {
         /// <remarks>
         /// This method can be called several times, the initialization only occurs once.
         /// </remarks>
-        internal void InitializeAfterImplicitConversion(Json parent, TObjArr template) {
+        internal void Array_InitializeAfterImplicitConversion(Json parent, TObjArr template) {
             Json newApp;
 
             if (Template == null) {
@@ -69,9 +46,7 @@ namespace Starcounter {
                 }
                 notEnumeratedResult = null;
             }
-
             parent._CallHasChanged(template);
-
         }
     }
 }

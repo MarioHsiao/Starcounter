@@ -12,20 +12,47 @@ using Starcounter.Advanced.XSON;
 using System.Collections.Generic;
 using System.Collections;
 using System.Diagnostics;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
 
     public partial class Json {
 
+
+        public object this[string key] {
+            get {
+                var template = (TObject)this.Template;
+                var prop = template.Properties[key];
+                if (prop == null) {
+                    return null;
+                }
+                return this[prop.TemplateIndex];
+            }
+            set {
+                var template = (TObject)this.Template;
+                var prop = template.Properties[key];
+                if (prop == null) {
+                    Type type;
+                    if (value == null) {
+                        type = typeof(Json);
+                    }
+                    else {
+                        type = value.GetType();
+                    }
+                    template.OnSetUndefinedProperty(key, type);
+                    this[key] = value;
+                    return;
+                }
+                this[prop.TemplateIndex] = value;
+            }
+        }
+
         public object Get(TValue property) {
-            object ret;
-            if (property.UseBinding(DataAsBindable)) {
-                ret = GetBound(property);
-            }
-            else {
-                ret = Values[property.TemplateIndex];
-            }
-            return property.Wrap(ret); // Wrap makes sure that object data is returned as a JSON object
+            return this[property.TemplateIndex];
+        }
+
+        internal object Wrap(object ret, TValue property) {
+            return ret;
         }
 
         /// <summary>
@@ -35,14 +62,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public TVal Get<TVal>(Property<TVal> property) {
-            object ret;
-            if (property.UseBinding(DataAsBindable)) {
-                ret = GetBound(property);
-            }
-            else {
-                ret = Values[property.TemplateIndex];
-            }
-            return (TVal)property.Wrap(ret);
+            return (TVal)Get((TValue)property);
         }
 
         /// <summary>
@@ -52,12 +72,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set<TVal>(Property<TVal> property, TVal value) {
-            if (property.UseBinding(DataAsBindable)) {
-                SetBound(property, value);
-                this._CallHasChanged(property);
-                return;
-            }
-            Values[property.TemplateIndex] = value;
+            this[property.TemplateIndex] = value;
         }
 
         /// <summary>
@@ -66,7 +81,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         internal void _CallHasChanged(TValue property) {
             if (Session != null) {
-                if (!_Values._BrandNew) {
+                if (!_BrandNew) {
                    // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
                     this.Dirtyfy();
                 }
@@ -209,14 +224,7 @@ namespace Starcounter {
         /// <returns></returns>
         public JsonType Get<JsonType>(TObject property)
             where JsonType : Json, new() {
-            object ret;
-            if (property.UseBinding(DataAsBindable)) {
-                ret = GetBound(property);
-            }
-            else {
-                ret = Values[property.TemplateIndex];
-            }
-            return property.Wrap<JsonType>(ret);
+                return (JsonType)this[property.TemplateIndex];
         }
         
         /// <summary>
@@ -234,27 +242,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObject property, Json value) {
-			if (value != null) {
-				value.Parent = this;
-
-				if (property.UseBinding(DataAsBindable))
-					SetBound(property, value.Data);
-
-				value._cacheIndexInArr = property.TemplateIndex;
-			}
-#if QUICKTUPLE
-            var vals = Values;
-            var i = property.TemplateIndex;
-            var oldValue = (Json)vals[i];
-            if (oldValue != null) {
-                oldValue.SetParent(null);
-				oldValue._cacheIndexInArr = -1;
-            }
-            vals[i] = value;
-#else
-            throw new NotImplementedException();
-#endif
-            //this._CallHasChanged(property);
+            this[property.TemplateIndex] = value;
         }
 
         /// <summary>
@@ -263,17 +251,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObject property, IBindable value) {
-            if (property.UseBinding(DataAsBindable))
-                SetBound(property, value);
-
-#if QUICKTUPLE
-            Json app = (Json)property.CreateInstance(this);
-            app.Data = value;
-            Values[property.TemplateIndex] = app;
-#else
-            throw new NotImplementedException();
-#endif
-            //this._CallHasChanged(property);
+            this[property.TemplateIndex] = value;
         }
 
         /// <summary>
@@ -284,11 +262,7 @@ namespace Starcounter {
         public Arr<ElementType> Get<ElementType>(TArray<ElementType> property) 
             where ElementType : Json, new()
         {
-#if QUICKTUPLE
-            return (Arr<ElementType>)Values[property.TemplateIndex];
-#else
-            throw new NotImplementedException();
-#endif
+            return (Arr<ElementType>)this[property.TemplateIndex];
         }
 
 
@@ -297,12 +271,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Arr Get( TObjArr property) {
-#if QUICKTUPLE
-            return (Arr)Values[property.TemplateIndex];
-#else
-            throw new NotImplementedException();
-#endif
+        public Json Get( TObjArr property) {
+            return (Json)this[property.TemplateIndex];
         }
 
         /// <summary>
@@ -310,24 +280,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(TObjArr property, Arr value) {
-            if (value != null)
-                value.Parent = this;
-            var i = property.TemplateIndex;
-            var vals = Values;
-            var oldValue = (Arr)vals[i]; //this.Get(property);
-            if (oldValue != null) {
-                oldValue.InternalClear();
-//                oldValue.Clear();
-                oldValue.SetParent(null); 
-            }
-
-            value.InitializeAfterImplicitConversion(this, property);
-#if QUICKTUPLE
-            vals[i] = value;
-#else
-            throw new NotImplementedException();
-#endif
+        public void Set(TObjArr property, Json value) {
+            this[property.TemplateIndex] = value;
         }
         
         /// <summary>
@@ -336,11 +290,11 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="data"></param>
         public void Set(TObjArr property, IEnumerable data) {
-            var current = (Arr)Values[property.TemplateIndex];
+            var current = (Json)list[property.TemplateIndex];
             if (current != null) {
                 current.Clear();
                 current.notEnumeratedResult = data;
-                current.InitializeAfterImplicitConversion(this, property);
+                current.Array_InitializeAfterImplicitConversion(this, property);
             }
         }
 
@@ -352,13 +306,13 @@ namespace Starcounter {
         /// <param name="data"></param>
         public void Set<T>(TObjArr property, Rows<object> data) where T : Json, new() {
             Arr<T> newList;
-            var vals = Values;
+            var vals = list;
             var current = (Arr<T>)vals[property.TemplateIndex];
             if (current != null)
                 current.Clear();
 
             newList = data;
-            newList.InitializeAfterImplicitConversion(this, property);
+            newList.Array_InitializeAfterImplicitConversion(this, property);
 
             vals[property.TemplateIndex] = newList;
         }
@@ -370,11 +324,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public Arr<T> Get<T>(TObjArr property) where T : Json, new() {
-#if QUICKTUPLE
-            return (Arr<T>)(Values[property.TemplateIndex]);
-#else
-            throw new NotImplementedException();
-#endif
+            return (Arr<T>)(this[property.TemplateIndex]);
         }
 
         /// <summary>
@@ -384,13 +334,7 @@ namespace Starcounter {
         /// <param name="templ"></param>
         /// <param name="data"></param>
         public void Set<T>(TObjArr templ, Arr<T> data) where T : Json, new() {
-            var vals = Values;
-            var current = (Arr<T>)vals[templ.TemplateIndex];
-            if (current != null)
-                current.Clear();
-
-            data.InitializeAfterImplicitConversion(this, templ);
-            vals[templ.TemplateIndex] = data;
+            this[templ.TemplateIndex] = data;
         }
 
         /// <summary>
@@ -401,7 +345,7 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Action Get(TTrigger property) {
 #if QUICKTUPLE
-            return (Action)Values[property.TemplateIndex];
+            return (Action)this[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif
@@ -414,11 +358,56 @@ namespace Starcounter {
         /// <param name="value">The value.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Set(TTrigger property, Action value) {
-#if QUICKTUPLE
-            Values[property.TemplateIndex] = value;
-#else
-            throw new NotImplementedException();
-#endif
+            this[property.TemplateIndex] = value;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        internal void _CallHasAddedElement(int index, Json item) {
+            var tarr = (TObjArr)this.Template;
+            if (Session != null) {
+                if (ArrayAddsAndDeletes == null) {
+                    ArrayAddsAndDeletes = new List<Change>();
+                }
+                ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tarr, index));
+                Dirtyfy();
+            }
+            Parent.ChildArrayHasAddedAnElement(tarr, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        internal void _CallHasRemovedElement(int index) {
+            var tarr = (TObjArr)this.Template;
+            if (Session != null) {
+                if (ArrayAddsAndDeletes == null) {
+                    ArrayAddsAndDeletes = new List<Change>();
+                }
+                ArrayAddsAndDeletes.Remove(Change.Add((Json)this.Parent, tarr, index));
+                Dirtyfy();
+            }
+            Parent.ChildArrayHasRemovedAnElement(tarr, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        internal void _CallHasChanged(TObjArr property, int index) {
+            if (Session != null) {
+                if (!_BrandNew) {
+                    //                    (_Values[index] as Json)._Dirty = true;
+                    this.Dirtyfy();
+                }
+            }
+            this.Parent.ChildArrayHasReplacedAnElement(property, index);
         }
     }
 }

@@ -78,7 +78,7 @@ namespace Starcounter.Internal {
       /// </summary>
       /// <typeparam name="T"></typeparam>
       /// <param name="appList">The app list.</param>
-      public void Write<T>(Arr appList) where T : Json {
+      public void Write<T>(Json appList) where T : Json {
       }
 
       /// <summary>

@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance(Container parent) {
+        public override object CreateInstance(Json parent) {
             return new Arr<OT>((Json)parent, this);
         }
 
@@ -153,8 +153,8 @@ namespace Starcounter.Templates {
 			obj.SetBound(this, value);
         }
 
-        public override object CreateInstance(Container parent) {
-            return new Arr((Json)parent, this);
+        public override object CreateInstance(Json parent) {
+            return new Json((Json)parent, this);
 		}
 
 		public override string ToJson(Json json) {
