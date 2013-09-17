@@ -8,11 +8,6 @@ namespace Starcounter {
     partial class Json {
 
         /// <summary>
-        /// 
-        /// </summary>
-        internal IEnumerable notEnumeratedResult = null;
-
-        /// <summary>
         /// Initializes this Arr and sets the template and parent if not already done.
         /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
         /// </summary>
@@ -29,7 +24,8 @@ namespace Starcounter {
                 Parent = parent;
             }
 
-            if (notEnumeratedResult != null) {
+            if (_PendingEnumeration) {
+                var notEnumeratedResult = (IEnumerable)_data;
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is IBindable) {
                         newApp = (Json)template.ElementType.CreateInstance(this);
@@ -44,7 +40,7 @@ namespace Starcounter {
                             "Cannot add a {0} to a Json array",entity.GetType().Name));
                     }
                 }
-                notEnumeratedResult = null;
+                _PendingEnumeration = false;
             }
             parent._CallHasChanged(template);
         }

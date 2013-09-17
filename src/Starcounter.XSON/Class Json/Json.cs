@@ -85,15 +85,6 @@ namespace Starcounter {
             //    XSON.CodeGeneration.Initializer.InitializeXSON();
         }
 
-        /// <summary>
-        /// Transaction applied to this node.
-        /// </summary>
-        private ITransaction _transaction;
-
-        /// <summary>
-        /// Cache element index if the parent of this Obj is an array (Arr).
-        /// </summary>
-        internal int _cacheIndexInArr;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
@@ -177,11 +168,6 @@ namespace Starcounter {
         //            get { return (Schema)base.Template; }
         //            set { base.Template = value; }
         //        }
-
-        /// <summary>
-        /// Implementation field used to cache the Metadata property.
-        /// </summary>
-        private ObjMetadata<TObject, Json> _Metadata = null;
 
         /// <summary>
         /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).

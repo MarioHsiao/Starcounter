@@ -134,18 +134,7 @@ namespace Starcounter {
                 }
             }
         }
-
-        /// <summary>
-        /// Json objects can be stored on the server between requests as session data.
-        /// </summary>
-        internal Session _Session;
          
-        /// <summary>
-        /// Tells if any property value has changed on this container (if it is an object) or
-        /// any of its children or grandchildren (recursivly). If this flag is true, there can be
-        /// no changes to the JSON tree (but there can be changes to bound data objects).
-        /// </summary>
-        internal bool _Dirty = false;
 
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
@@ -167,11 +156,6 @@ namespace Starcounter {
             if (Parent != null)
                 Parent.Dirtyfy();
         }
-
-        /// <summary>
-        /// The _ template
-        /// </summary>
-        internal Template _Template;
 
         /// <summary>
         /// The schema element of this app instance
@@ -268,10 +252,6 @@ namespace Starcounter {
         public virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
         }
 
-        /// <summary>
-        /// The _parent
-        /// </summary>
-        internal Json _parent;
 
         /// <summary>
         /// Gets or sets the parent.
@@ -317,10 +297,6 @@ namespace Starcounter {
             //
         }
 
-        /// <summary>
-        /// Contains the depth of this Container. Used when creating the indexpath.
-        /// </summary>
-        private Int32 _cachePathDepth = -1;
 
         /// <summary>
         /// Returns the depth of this Container.

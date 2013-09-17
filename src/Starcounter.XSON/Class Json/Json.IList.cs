@@ -71,19 +71,6 @@ namespace Starcounter {
             }
         }
 
-        private bool __BrandNew_ = true;
-
-        /// <summary>
-        /// The naive implementation keeps track of the changed values
-        /// generate the JSON-Patch document
-        /// </summary>
-        protected List<bool> _ReplacedFlag;
-
-        /// <summary>
-        /// </summary>
-        private IList _list;
-
-
         /// <summary>
         /// Use this property to access the values internally
         /// </summary>

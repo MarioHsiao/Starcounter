@@ -31,7 +31,8 @@ namespace Starcounter {
         }
 
         protected Json(IEnumerable result) {
-            notEnumeratedResult = result;
+            _data = result;
+            _PendingEnumeration = true;
         }
 
 

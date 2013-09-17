@@ -60,6 +60,7 @@
     <Compile Include="Class Json\Json.Array2.cs" />
     <Compile Include="Class Json\Json.IList.cs" />
     <Compile Include="Class Json\Json.cs" />
+    <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\Json.Transaction.cs" />
     <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstFail.cs" />
     <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstJSConstructor.cs" />
