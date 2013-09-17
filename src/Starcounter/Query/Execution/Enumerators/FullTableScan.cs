@@ -646,8 +646,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
         tuple.SetTupleLength(enumerators.AvailableSize);
         // Static data for validation
-        tuple.WriteSafe((byte)NodeType);
-        tuple.WriteSafe(nodeId);
+        tuple.WriteSafeULong((byte)NodeType);
+        tuple.WriteSafeULong(nodeId);
 
         Byte* createdKey = GetRecreationKeyFromKernel();
         // Checking if it was last object.
@@ -655,7 +655,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             return -1;
         // Copying the recreation key.
         UInt16 bytesWritten = *((UInt16*)createdKey);
-        tuple.WriteSafe(createdKey, bytesWritten);
+        tuple.WriteSafeByteArray(createdKey, bytesWritten);
         enumerators.HaveWritten(tuple.SealTuple());
         return (short)(expectedNodeId + 1);
     }

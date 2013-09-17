@@ -1,12 +1,9 @@
-﻿
-using Starcounter.Internal.REST;
-using Starcounter.Internal.Web;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Text;
+using Starcounter.Internal.REST;
+
 namespace Starcounter.Advanced {
     public sealed partial class Response {
-
         /// <summary>
         /// Creates a response from an HTTP status code
         /// as defined in section
@@ -27,7 +24,8 @@ namespace Starcounter.Advanced {
                 responseReasonPhrase = HttpStatusCodeAndReason.ReasonNotAvailable;
             }
             response = new Response() {
-               Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(statusCode, responseReasonPhrase)
+				StatusCode = (ushort)statusCode,
+				StatusDescription = responseReasonPhrase
             };
             return response;
         }
@@ -56,14 +54,10 @@ namespace Starcounter.Advanced {
 
         public static implicit operator Response(HttpStatusCodeAndReason codeAndReason) {
             var response = new Response() {
-                Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(
-                codeAndReason.StatusCode,
-                codeAndReason.ReasonPhrase)
+				StatusCode = (ushort)codeAndReason.StatusCode,
+				StatusDescription = codeAndReason.ReasonPhrase
             };
             return response;
         }
-
-
-
     }
 }

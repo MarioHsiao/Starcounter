@@ -340,7 +340,7 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Arr list = mainApp.Get((TObjArr)current);
+                    Json list = mainApp.Get((TObjArr)current);
                     current = list[index];
                 }
                 else {
@@ -366,7 +366,7 @@ namespace Starcounter.Internal.JsonPatch {
                     current = t;
                 }
 
-                if (current is Json) {
+                if (current is Json && !(current as Json).IsArray) {
                     mainApp = current as Json;
                 }
                 else if (current is TObject) {

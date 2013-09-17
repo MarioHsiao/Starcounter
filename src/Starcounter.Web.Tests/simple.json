@@ -1,0 +1,16 @@
+﻿{
+   "Kid": {
+      "Grandkid":""
+   },
+   "Page":{},
+   "PlayerId": 123,
+   "Stats": 123.235,
+   "FullName$": "Joachim Wester",
+   "Accounts":[
+      {
+         "AccountId": 555,
+         "AccountType$": 1,
+         "Balance": 100000000.00
+      }
+   ]
+}

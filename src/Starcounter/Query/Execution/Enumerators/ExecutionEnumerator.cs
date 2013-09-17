@@ -315,7 +315,7 @@ internal abstract class ExecutionEnumerator
                 TupleWriterBase64 root = new TupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE);
                 root.SetTupleLength((uint)tempBuffer.Length);
                 // General validation data
-                root.WriteSafe(nodesNum); // Saving number of enumerators
+                root.WriteSafeULong(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
                 TupleWriterBase64 enumerators = new TupleWriterBase64(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
                 enumerators.SetTupleLength(root.AvailableSize);
@@ -340,7 +340,7 @@ internal abstract class ExecutionEnumerator
     protected unsafe TupleReaderBase64 ValidateNodeAndReturnOffsetReader(byte* key, byte tupleLength) {
         TupleReaderBase64 root = new TupleReaderBase64(key, (uint)(OffsetRootHeaderLength + 1));
         Debug.Assert(OffsetRootHeaderLength == 1);
-        byte nodesNum = (byte)root.ReadUInt();
+        byte nodesNum = (byte)root.ReadULong();
         if (TopNode && nodesNum != (nodeId+1))
             throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected number of nodes in execution plan. Actual number of nodes is " +
                 (nodeId + 1) + ", while the offset key contains " + nodesNum + " nodes.");
@@ -348,11 +348,11 @@ internal abstract class ExecutionEnumerator
         for (int i = 0; i < nodeId; i++)
             enumerators.Skip();
         TupleReaderBase64 thisEnumerator = new TupleReaderBase64(enumerators.AtEnd, tupleLength);
-        EnumeratorNodeType keyNodeType = (EnumeratorNodeType)thisEnumerator.ReadUInt(0);
+        EnumeratorNodeType keyNodeType = (EnumeratorNodeType)thisEnumerator.ReadULong(0);
         if (keyNodeType != NodeType)
             throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Current node type " +
                 NodeType.ToString() + ", while the offset key contains node type " + (keyNodeType).ToString() + ".");
-        Debug.Assert(thisEnumerator.ReadUInt(1) == nodeId);
+        Debug.Assert(thisEnumerator.ReadULong(1) == nodeId);
         return thisEnumerator;
     }
 

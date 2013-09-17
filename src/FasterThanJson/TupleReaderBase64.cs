@@ -149,7 +149,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe ulong ReadUInt() {
+      public unsafe ulong ReadULong() {
 #if BASE32
          int len = (int)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
          len -= (int)ValueOffset;
@@ -158,7 +158,7 @@ namespace Starcounter.Internal
 #if BASE64
          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
          len -= (int)ValueOffset;
-         var ret = Base64Int.Read(len, AtEnd);
+         ulong ret = Base64Int.Read(len, AtEnd);
 #endif
 #if BASE256
          int len = (int)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
@@ -172,17 +172,60 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe ulong ReadUInt(int index) {
+      public unsafe ulong? ReadULongNullable() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong? ret = Base64Int.ReadNullable(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          return ret;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long ConvertLong(ulong uval) {
+          long ret = (long)(uval >> 1);
+          if ((uval & 0x00000001) == 1)
+              ret = -ret - 1;
+          return ret;
+      }
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long ReadLong() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong uval = Base64Int.Read(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          return ConvertLong(uval);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe ulong ReadULong(int index) {
 #if BASE64
           byte* valuePos;
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
-          var ret = Base64Int.Read(valueLength, valuePos);
+          ulong ret = Base64Int.Read(valueLength, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
           return ret;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long ReadLong(int index) {
+#if BASE64
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          // Read the value at the position with the length
+          ulong ret = Base64Int.Read(valueLength, valuePos);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+#endif
+          return ConvertLong(ret);
       }
 
       /// <summary>
@@ -208,16 +251,15 @@ namespace Starcounter.Internal
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString(int valueLength, byte* start) {
-          Debug.Assert(valueLength >= 0);
-          if (valueLength > 1) {
+          Debug.Assert(valueLength > 0);
+          String str;
+          if (Base64Int.ReadBase64x1(start) == 0) {
               char* buffer = stackalloc char[(int)valueLength];
               int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
-              return new String(buffer, 0, stringLen);
-          }
-          if (valueLength == 0)
-              return "";
-          // if (valueLength == 1)
-          return null;
+              str = new String(buffer, 0, stringLen);
+          } else
+              str = null;
+          return str;
       }
 
       /// <summary>

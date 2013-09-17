@@ -87,7 +87,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// User data offset in chunk.
         /// </summary>
-        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 136;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 100;
 
         /// <summary>
         /// Max user data offset in chunk.
@@ -107,7 +107,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Socket flags.
         /// </summary>
-        public const int CHUNK_OFFSET_SOCKET_FLAGS = 160;
+        public const int CHUNK_OFFSET_SOCKET_FLAGS = 124;
 
         /// <summary>
         /// Client IP offset in socket data.
@@ -120,6 +120,11 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_FLAGS_JUST_SEND = 64;
 
         /// <summary>
+        /// Disconnect after send flag.
+        /// </summary>
+        public const int SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16;
+
+        /// <summary>
         /// Just disconnect flag.
         /// </summary>
         public const int SOCKET_DATA_FLAGS_DISCONNECT = 128;
@@ -127,27 +132,22 @@ namespace Starcounter.Internal
         /// <summary>
         /// Type of network operation.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 141;
+        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 98;
 
         /// <summary>
         /// Socket number.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_SOCKET_NUMBER = 64;
+        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 64;
 
         /// <summary>
         /// Socket number.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 72;
+        public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 56;
 
         /// <summary>
-        /// Port index.
+        /// WebSocket opcode offset.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PORT_INDEX = 132;
-
-        /// <summary>
-        /// WebSockets frame opcode.
-        /// </summary>
-        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 593;
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 553;
 
         /// <summary>
         /// Invalid chunk index.
@@ -162,22 +162,22 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offset in bytes for the session.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 632;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 592;
 
         /// <summary>
         /// Offset of data blob in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_BLOB = 696;
+        public const int SOCKET_DATA_OFFSET_BLOB = 656;
 
         /// <summary>
         /// HTTP request offset in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 216;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 176;
 
         /// <summary>
         /// Number of chunks offset in gateway.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 124;
+        public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 88;
 
         /// <summary>
         /// Maximum number of URI callback parameters.
@@ -202,7 +202,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Number of clone bytes in socket data.
         /// </summary>
-        public const int SOCKET_DATA_NUM_CLONE_BYTES = 144;
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 104;
 
         /// <summary>
         /// Number of clone bytes in chunk.

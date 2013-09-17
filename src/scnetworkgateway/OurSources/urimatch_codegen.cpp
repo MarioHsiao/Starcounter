@@ -131,10 +131,10 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
 
             // Starting compiler process.
             PROCESS_INFORMATION pi;
-            bool br = CreateProcess(NULL, (LPWSTR)compiler_cmd.c_str(), NULL, NULL,
+            BOOL br = CreateProcess(NULL, (LPWSTR)compiler_cmd.c_str(), NULL, NULL,
                 TRUE, CREATE_NO_WINDOW, NULL, out_dir.c_str(), &si, &pi);
 
-            GW_ASSERT(true == br);
+            GW_ASSERT(TRUE == br);
 
             DWORD err_code = WaitForSingleObject(pi.hProcess, INFINITE);
             GW_ASSERT(err_code == WAIT_OBJECT_0);
@@ -147,7 +147,8 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             CloseHandle(pi.hThread);
             CloseHandle(comp_output_file);
 
-            GW_ASSERT(true == br);
+            GW_ASSERT(TRUE == br);
+
             if (0 != err_code)
             {
                 // Opening file stream.
@@ -159,7 +160,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 std::stringstream str_stream;
                 str_stream << compiler_output_file_stream.rdbuf();
                 std::string tmp_str = str_stream.str();
-                uint32_t num_chars = tmp_str.size();
+                uint32_t num_chars = static_cast<uint32_t> (tmp_str.size());
 
                 // COnverting char to wchar_t basically.
                 wchar_t* wcstring = new wchar_t[num_chars + 1];

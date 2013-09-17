@@ -100,7 +100,7 @@ namespace Starcounter.Internal
         /// Sc_wait_for_bmx_readies this instance.
         /// </summary>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static void sc_wait_for_bmx_ready();
+        public extern static UInt32 sc_wait_for_bmx_ready(UInt32 max_time_to_wait_ms);
 
         /// <summary>
         /// Sc_bmx_read_from_chunks the specified chunk_index.
@@ -168,7 +168,8 @@ namespace Starcounter.Internal
             Byte* buf,
             UInt32 buf_len_bytes,
             UInt32* chunk_index,
-            Byte* chunk_memory
+            Byte* chunk_memory,
+            UInt32 conn_flags
         );
 
         /// <summary>
@@ -252,7 +253,8 @@ namespace Starcounter.Internal
         /// </summary>
         public unsafe static Request GenerateNewRequest(
             ScSessionClass session,
-            MixedCodeConstants.NetworkProtocolType protocol_type)
+            MixedCodeConstants.NetworkProtocolType protocol_type,
+            Boolean isText)
         {
             UInt32 new_chunk_index;
             Byte* new_chunk_mem;
@@ -269,18 +271,21 @@ namespace Starcounter.Internal
 
             (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte)protocol_type;
             (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NUM_CHUNKS)) = 1;
 
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_NUMBER)) = session.socket_num_;
+            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = session.socket_index_num_;
             (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = session.socket_unique_id_;
-            (*(Int32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_PORT_INDEX)) = session.port_index_;
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = session.ws_opcode_;
 
             (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB + 16;
 
             (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_MAX_USER_DATA_BYTES)) = MixedCodeConstants.SOCKET_DATA_BLOB_SIZE_BYTES;
+
+            // Checking if we have text or binary WebSocket frame.
+            if (isText)
+                (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = 1;
+            else
+                (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = 2;
 
             // Obtaining Request structure.
             Request new_req = new Request(

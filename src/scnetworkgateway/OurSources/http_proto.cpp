@@ -18,14 +18,14 @@ const char* const kHttpGatewayPongResponse =
     "\r\n"
     "Pong!";
 
-const int32_t kHttpGatewayPongResponseLength = strlen(kHttpGatewayPongResponse);
+const int32_t kHttpGatewayPongResponseLength = static_cast<int32_t> (strlen(kHttpGatewayPongResponse));
 
 const char* const kHttpServiceUnavailable =
     "HTTP/1.1 503 Service Unavailable\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
-const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable);
+const int32_t kHttpServiceUnavailableLength = static_cast<int32_t> (strlen(kHttpServiceUnavailable));
 
 const char* const kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
@@ -34,31 +34,31 @@ const char* const kHttpTooBigUpload =
     "\r\n"
     "Maximum supported HTTP request content size is 32 Mb!";
 
-const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload);
+const int32_t kHttpTooBigUploadLength = static_cast<int32_t> (strlen(kHttpTooBigUpload));
 
 const char* const kHttpNoContent =
     "HTTP/1.1 204 No Content\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
-const int32_t kHttpNoContentLength = strlen(kHttpNoContent);
+const int32_t kHttpNoContentLength = static_cast<int32_t> (strlen(kHttpNoContent));
 
 const char* const kHttpBadRequest =
     "HTTP/1.1 400 Bad Request\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
-const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest);
+const int32_t kHttpBadRequestLength = static_cast<int32_t> (strlen(kHttpBadRequest));
 
 const char* const kHttpNotFoundPrefix =
     "HTTP/1.1 404 Not Found\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
     "Content-Length: ";
 
-const int32_t kHttpNotFoundPrefixLength = strlen(kHttpNotFoundPrefix);
+const int32_t kHttpNotFoundPrefixLength = static_cast<int32_t> (strlen(kHttpNotFoundPrefix));
 
 const char* const kHttpNotFoundMessage = "URI not found: ";
-const int32_t kHttpNotFoundMessageLength = strlen(kHttpNotFoundMessage);
+const int32_t kHttpNotFoundMessageLength = static_cast<int32_t> (strlen(kHttpNotFoundMessage));
 
 // Constructs HTTP 404 response.
 inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_bytes, const char* uri, const int32_t uri_len)
@@ -71,11 +71,11 @@ inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_byte
         content_len = kHttpNotFoundMessageLength;
 
     char cont_len_string[16];
-    itoa(content_len, cont_len_string, 10);
+    _itoa_s(content_len, cont_len_string, 16, 10);
 
     int32_t offset = 0;
     offset = InjectData(dest, offset, kHttpNotFoundPrefix, kHttpNotFoundPrefixLength);
-    offset = InjectData(dest, offset, cont_len_string, strlen(cont_len_string));
+    offset = InjectData(dest, offset, cont_len_string, static_cast<int32_t>(strlen(cont_len_string)));
     offset = InjectData(dest, offset, "\r\n\r\n", 4);
     offset = InjectData(dest, offset, kHttpNotFoundMessage, kHttpNotFoundMessageLength);
 
@@ -284,7 +284,7 @@ inline int HttpWsProto::OnHeadersComplete(http_parser* p)
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Setting complete header flag.
-    http->sd_ref_->set_complete_header_flag(true);
+    http->sd_ref_->set_complete_header_flag();
     
     // Setting headers length (skipping 4 bytes for \r\n\r\n).
     http->http_request_.headers_len_bytes_ = p->nread - 4 - http->http_request_.headers_len_bytes_;
@@ -314,8 +314,8 @@ inline int HttpWsProto::OnUri(http_parser* p, const char *at, size_t length)
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Setting the reference to URI.
-    http->http_request_.uri_offset_ = at - (char *)(http->sd_ref_);
-    http->http_request_.uri_len_bytes_ = length;
+    http->http_request_.uri_offset_ = static_cast<uint32_t>(at - (char *)(http->sd_ref_));
+    http->http_request_.uri_len_bytes_ = static_cast<uint32_t>(length);
 
     return 0;
 }
@@ -335,14 +335,14 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
     http->last_field_ = DetermineField(at, length);
 
     // Saving header offset.
-    http->http_request_.header_offsets_[http->http_request_.num_headers_] = at - (char*)http->sd_ref_;
-    http->http_request_.header_len_bytes_[http->http_request_.num_headers_] = length;
+    http->http_request_.header_offsets_[http->http_request_.num_headers_] = static_cast<uint32_t>(at - (char*)http->sd_ref_);
+    http->http_request_.header_len_bytes_[http->http_request_.num_headers_] = static_cast<uint32_t>(length);
 
     // Setting headers beginning.
     if (!http->http_request_.headers_offset_)
     {
-        http->http_request_.headers_len_bytes_ = p->nread - length - 1;
-        http->http_request_.headers_offset_ = at - (char*)http->sd_ref_;
+        http->http_request_.headers_len_bytes_ = static_cast<uint32_t>(p->nread - length - 1);
+        http->http_request_.headers_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
     }
 
     return 0;
@@ -355,7 +355,7 @@ inline void HttpWsProto::ProcessSessionString(SocketDataChunk* sd, const char* s
     sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
 
     // Setting the session offset.
-    http_request_.session_string_offset_ = session_id_start - (char*)sd;
+    http_request_.session_string_offset_ = static_cast<uint32_t>(session_id_start - (char*)sd);
     http_request_.session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
 
     // Checking if we have session related socket.
@@ -388,8 +388,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Saving header length.
-    http->http_request_.header_value_offsets_[http->http_request_.num_headers_] = at - (char*)http->sd_ref_;
-    http->http_request_.header_value_len_bytes_[http->http_request_.num_headers_] = length;
+    http->http_request_.header_value_offsets_[http->http_request_.num_headers_] = static_cast<uint32_t>(at - (char*)http->sd_ref_);
+    http->http_request_.header_value_len_bytes_[http->http_request_.num_headers_] = static_cast<uint32_t>(length);
 
     // Increasing number of saved headers.
     http->http_request_.num_headers_++;
@@ -406,8 +406,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case COOKIE_FIELD:
         {
             // Setting needed HttpRequest fields.
-            http->http_request_.cookies_offset_ = at - (char*)http->sd_ref_;
-            http->http_request_.cookies_len_bytes_ = length;
+            http->http_request_.cookies_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
+            http->http_request_.cookies_len_bytes_ = static_cast<uint32_t>(length);
 
             break;
         }
@@ -455,8 +455,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case ACCEPT_FIELD:
         {
-            http->http_request_.accept_value_offset_ = at - (char*)http->sd_ref_;
-            http->http_request_.accept_value_len_bytes_ = length;
+            http->http_request_.accept_value_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
+            http->http_request_.accept_value_len_bytes_ = static_cast<uint32_t>(length);
 
             break;
         }
@@ -473,7 +473,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case WS_KEY_FIELD:
         {
             GW_ASSERT_DEBUG(24 == length);
-            http->ws_proto_.SetClientKey((char *)at, length);
+            http->ws_proto_.SetClientKey((char *)at, static_cast<int32_t>(length));
             break;
         }
 
@@ -482,7 +482,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             if (length > 32)
                 return SCERRGWHTTPINCORRECTDATA;
 
-            http->ws_proto_.SetSubProtocol((char *)at, length);
+            http->ws_proto_.SetSubProtocol((char *)at, static_cast<int32_t>(length));
             break;
         }
 
@@ -515,10 +515,10 @@ inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
 
     // Setting content parameters.
     if (http->http_request_.content_len_bytes_ < 0)
-        http->http_request_.content_len_bytes_ = length;
+        http->http_request_.content_len_bytes_ = static_cast<uint32_t>(length);
 
     // Setting content data offset.
-    http->http_request_.content_offset_ = at - (char*)http->sd_ref_;
+    http->http_request_.content_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
 
     return 0;
 }
@@ -562,7 +562,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         {
             // Running determined handler now.
 
-            ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
+            ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
             RegisteredUris* reg_uris = server_port->get_registered_uris();
 
             return reg_uris->GetEntryByIndex(matched_uri_index_)->RunHandlers(gw, sd, is_handled);
@@ -607,7 +607,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             if (sd->get_proxied_server_socket_flag())
             {
                 // Set the unknown proxied protocol here.
-                sd->set_unknown_proxied_proto_flag(true);
+                sd->set_unknown_proxied_proto_flag();
 
                 // Just running proxy processing.
                 return GatewayHttpWsReverseProxy(gw, sd, handler_index, is_handled);
@@ -630,7 +630,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Now we have method and URI and ready to search specific URI handler.
 
         // Getting the corresponding port number.
-        ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
+        ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
         uint16_t port_num = server_port->get_port_number();
         RegisteredUris* port_uris = server_port->get_registered_uris();
 
@@ -668,15 +668,13 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         if (matched_index < 0)
         {
             // Sending resource not found and closing the connection.
-            sd->set_disconnect_after_send_flag(true);
+            sd->set_disconnect_after_send_flag();
 
             // Creating 404 message.
             char stack_temp_mem[512];
             int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_and_uri, method_and_uri_len);
 
-            err_code = gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
-            if (err_code)
-                return err_code;
+            return gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
         }
 
         // Getting matched URI index.
@@ -724,7 +722,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         AccumBuffer* accum_buf = sd->get_accum_buf();
 
         // Checking if we are in fill-up mode.
-        if (sd->get_accumulating_flag())
+        if (sd->get_complete_header_flag())
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
@@ -831,13 +829,13 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
+                uint32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
                 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = SOCKET_DATA_OFFSET_BLOB + bytes_parsed;
+                    http_request_.content_offset_ = static_cast<uint32_t>(SOCKET_DATA_OFFSET_BLOB + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -852,7 +850,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                         *is_handled = true;
 
                         // Setting disconnect after send flag.
-                        sd->set_disconnect_after_send_flag(true);
+                        sd->set_disconnect_after_send_flag();
 
 #ifdef GW_WARNINGS_DIAG
                         GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
@@ -863,7 +861,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     }
 
                     // Enabling accumulative state.
-                    sd->set_accumulating_flag(true);
+                    sd->set_accumulating_flag();
 
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->StartAccumulation(
@@ -885,6 +883,9 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             }
 
 ALL_DATA_ACCUMULATED:
+
+            // We don't need complete header flag anymore.
+            sd->reset_complete_header_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             g_gateway.IncrementNumProcessedHttpRequests();
@@ -911,8 +912,9 @@ ALL_DATA_ACCUMULATED:
                     sd->ResetUserDataOffset();
 
                     // Push chunk to corresponding channel/scheduler.
-                    // TODO: Deal with situation when not able to push.
-                    gw->PushSocketDataToDb(sd, handler_id);
+                    err_code = gw->PushSocketDataToDb(sd, handler_id);
+                    if (err_code)
+                        return err_code;
 
                     break;
                 }
@@ -959,14 +961,12 @@ ALL_DATA_ACCUMULATED:
         // Handled successfully.
         *is_handled = true;
 
-        // Checking if we want to disconnect.
-        if (sd->get_disconnect_flag())
+        // Checking if we want to disconnect the socket.
+        if (sd->get_disconnect_socket_flag())
         {
-            // NOTE: Socket must be closed.
-            sd->set_socket_representer_flag(true);
+            sd->set_socket_trigger_disconnect_flag();
 
-            gw->DisconnectAndReleaseChunk(sd);
-            return 0;
+            return SCERRGWDISCONNECTFLAG;
         }
 
         // Prepare buffer to send outside.
@@ -1000,7 +1000,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
     if (g_gateway.setting_is_master())
     {
         // Checking if we are in fill-up mode.
-        if (sd->get_accumulating_flag())
+        if (sd->get_complete_header_flag())
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
@@ -1113,13 +1113,13 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = SOCKET_DATA_OFFSET_BLOB + bytes_parsed;
+                    http_request_.content_offset_ = static_cast<uint32_t> (SOCKET_DATA_OFFSET_BLOB + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
 
                 // Checking if we need to continue receiving the content.
-                if (http_request_.content_len_bytes_ > num_content_bytes_received)
+                if (http_request_.content_len_bytes_ > static_cast<uint32_t>(num_content_bytes_received))
                 {
                     // Checking for maximum supported HTTP request content size.
                     if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
@@ -1128,7 +1128,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                         *is_handled = true;
 
                         // Setting disconnect after send flag.
-                        sd->set_disconnect_after_send_flag(true);
+                        sd->set_disconnect_after_send_flag();
 
 #ifdef GW_WARNINGS_DIAG
                         GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
@@ -1139,7 +1139,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                     }
 
                     // Enabling accumulative state.
-                    sd->set_accumulating_flag(true);
+                    sd->set_accumulating_flag();
 
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->StartAccumulation(
@@ -1160,6 +1160,9 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             }
 
 ALL_DATA_ACCUMULATED:
+
+            // We don't need complete header flag anymore.
+            sd->reset_complete_header_flag();
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
             g_gateway.IncrementNumProcessedHttpRequests();
@@ -1291,7 +1294,7 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     *is_handled = true;
 
     // Checking if already in proxy mode.
-    if (sd->get_proxy_socket() != INVALID_SOCKET)
+    if (sd->HasProxySocket())
     {
         // Posting cloning receive for client.
         err_code = sd->CloneToReceive(gw);
@@ -1303,7 +1306,7 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
         sd->ExchangeToProxySocket();
 
         // Enabling proxy mode.
-        sd->set_proxied_server_socket_flag(true);
+        sd->set_proxied_server_socket_flag();
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareForSend();
@@ -1324,18 +1327,18 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
             return err_code;
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Created proxy socket: " << gw->get_sd_receive_clone()->get_socket() << ":" << gw->get_sd_receive_clone()->get_chunk_index() <<
-            " -> " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
+        GW_COUT << "Created proxy socket index: " << gw->get_sd_receive_clone()->get_socket_info_index() << ":" << gw->get_sd_receive_clone()->get_chunk_index() <<
+            " -> socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
         // Setting client proxy socket.
-        gw->get_sd_receive_clone()->set_proxy_socket(sd->get_socket());
+        gw->get_sd_receive_clone()->SetProxySocket(sd->get_socket_info_index());
 
         // Re-enabling socket representer flag.
-        sd->set_socket_representer_flag(true);
+        sd->set_socket_representer_flag();
 
         // Setting proxy mode.
-        sd->set_proxied_server_socket_flag(true);
+        sd->set_proxied_server_socket_flag();
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareForSend();

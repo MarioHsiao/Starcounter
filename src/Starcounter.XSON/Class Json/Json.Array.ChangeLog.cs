@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Starcounter {
-    partial class Arr {
+    partial class Json {
 
 
 //        internal override void CheckpointChangeLog() {

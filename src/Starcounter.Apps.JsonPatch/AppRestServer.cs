@@ -62,7 +62,7 @@ namespace Starcounter.Internal.Web {
                 }
 
                 if (response.Hypermedia is Json) {
-                    Container r = (Container)response.Hypermedia;
+                    Json r = (Json)response.Hypermedia;
                     while (r.Parent != null) {
                         r = r.Parent;
                     }
@@ -76,14 +76,16 @@ namespace Starcounter.Internal.Web {
             catch (Exception ex) {
 				// Logging the exception to server log.
 				LogSources.Hosting.LogException(ex);
-				return new Response() {
-					Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(500, null, GetExceptionString(ex), null, "text/plain")
-				};
+				var errResp = Response.FromStatusCode(500);
+				errResp.Body = GetExceptionString(ex);
+				errResp.ContentType = "text/plain";
+				errResp.ConstructFromFields();
+				return errResp;
             }
         }
 
 //        private Obj GetJsonRoot(Obj json) {
-//            Container current = json;
+//            Json current = json;
 //            while (current.Parent != null) {
 //                current = current.Parent;
 //            }
@@ -167,14 +169,19 @@ namespace Starcounter.Internal.Web {
                     catch (Exception exc)
                     {
                         // Checking if session is incorrect.
-                        if (exc is HandlersManagement.IncorrectSessionException)
-                            return new Response() { Uncompressed = HttpResponseBuilder.BadRequest400 };
+						if (exc is HandlersManagement.IncorrectSessionException) {
+							result = Response.FromStatusCode(400);
+							result["Connection"] = "close";
+						} else {
 
-                        // Logging the exception to server log.
-                        LogSources.Hosting.LogException(exc);
-						return new Response() {
-							Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(500, null, GetExceptionString(exc), null, "text/plain")
-						};
+							// Logging the exception to server log.
+							LogSources.Hosting.LogException(exc);
+							result = Response.FromStatusCode(500);
+							result.Body = GetExceptionString(exc);
+							result.ContentType = "text/plain";
+						}
+						result.ConstructFromFields();
+						return result;
                     }
                     finally
                     {
@@ -271,7 +278,10 @@ namespace Starcounter.Internal.Web {
                 return original;
             }
 
-            return HttpResponseBuilder.BadRequest400;
+			var badReq = Response.FromStatusCode(400);
+			badReq["Connection"] = "close";
+			badReq.ConstructFromFields();
+			return badReq.Uncompressed;
         }
 
         /// <summary>

@@ -6,8 +6,6 @@
 
 using PostSharp.Extensibility;
 using PostSharp.Sdk.CodeModel;
-using PostSharp.Sdk.CodeModel.Binding;
-using PostSharp.Sdk.CodeModel.SerializationTypes;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
@@ -71,22 +69,22 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB state method provider
         /// </summary>
         private DbStateMethodProvider _dbStateMethodProvider;
-        /// <summary>
-        /// The _adapter get property method
-        /// </summary>
-        private IMethod _adapterGetPropertyMethod;
-        /// <summary>
-        /// The _adapter resolve index method
-        /// </summary>
-        private IMethod _adapterResolveIndexMethod;
+        ///// <summary>
+        ///// The _adapter get property method
+        ///// </summary>
+        //private IMethod _adapterGetPropertyMethod;
+        ///// <summary>
+        ///// The _adapter resolve index method
+        ///// </summary>
+        //private IMethod _adapterResolveIndexMethod;
         /// <summary>
         /// The _object constructor
         /// </summary>
         private IMethod _objectConstructor;
-        /// <summary>
-        /// The _obj view prop index attr constructor
-        /// </summary>
-        private IMethod _objViewPropIndexAttrConstructor;
+        ///// <summary>
+        ///// The _obj view prop index attr constructor
+        ///// </summary>
+        //private IMethod _objViewPropIndexAttrConstructor;
         /// <summary>
         /// The _uninitialized constructor signature
         /// </summary>
@@ -221,12 +219,11 @@ namespace Starcounter.Internal.Weaver {
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
             TypeRefDeclaration typeRef;
-            IMethod weavedAssemblyAttributeCtor;
-
+            
             _module = this.Project.Module;
             analysisTask = ScAnalysisTask.GetTask(this.Project);
 
-            _starcounterAssemblyReference = FindStarcounterAssembly();
+            _starcounterAssemblyReference = ScAnalysisTask.FindStarcounterAssemblyReference(_module);
             if (_starcounterAssemblyReference == null) {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
@@ -237,12 +234,6 @@ namespace Starcounter.Internal.Weaver {
 
             ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
             Initialize();
-
-            weavedAssemblyAttributeCtor = _module.FindMethod(
-                typeof(AssemblyWeavedForIPCAttribute).GetConstructor(Type.EmptyTypes),
-                BindingOptions.Default
-                );
-            _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
             
             var assemblySpecification = new AssemblySpecificationEmit(_module);
             TypeSpecificationEmit typeSpecification = null;
@@ -318,16 +309,6 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
 
-            // Enhance anonymous types
-
-            typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeDef);
-            while (typeEnumerator.MoveNext()) {
-                typeDef = (TypeDefDeclaration)typeEnumerator.Current;
-                if (IsAnonymousType(typeDef)) {
-                    EnhanceAnonymousType(typeDef);
-                }
-            }
-
             // We have to index usages a second time, because we have changed method implementations.
 
 #pragma warning disable 612
@@ -340,10 +321,8 @@ namespace Starcounter.Internal.Weaver {
         /// Initializes and sets all fields needed for user code weavers.
         /// </summary>
         private new void Initialize() {
-            ConstructorInfo cstrInfo;
             IntrinsicTypeSignature voidTypeSign;
             ITypeSignature[] uninitTypeSignArr;
-            Type type;
             
             var val = Project.Properties["UseStateRedirect"];
             bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
@@ -371,369 +350,11 @@ namespace Starcounter.Internal.Weaver {
             
             _objectConstructor = _module.FindMethod(
                 typeof(Object).GetConstructor(Type.EmptyTypes), BindingOptions.Default);
-            
-            type = typeof(AnonymousTypePropertyAttribute);
-            cstrInfo = type.GetConstructor(new[] { typeof(int) });
-            _objViewPropIndexAttrConstructor = _module.FindMethod(cstrInfo, BindingOptions.Default);
-
-            type = typeof(AnonymousTypeAdapter);
-            _adapterGetPropertyMethod = _module.FindMethod(type.GetMethod("GetProperty"), BindingOptions.Default);
-            _adapterResolveIndexMethod = _module.FindMethod(type.GetMethod("ResolveIndex"), BindingOptions.Default);
 
             _weavingHelper = new WeavingHelper(_module);
 
             _objectProxyEmitter = new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods);
             _equalityEmitter = new ImplementsEquality(_module, _writer);
-        }
-
-        /// <summary>
-        /// Searching for the Starcounter assembly reference from the current modules references.
-        /// </summary>
-        /// <returns>The assembly reference, or null if not found.</returns>
-        private AssemblyRefDeclaration FindStarcounterAssembly() {
-            AssemblyRefDeclaration scAssemblyRef = null;
-            StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
-            String assFailedStr;
-
-            foreach (AssemblyRefDeclaration assemblyRef in _module.AssemblyRefs) {
-                if (String.Equals(assemblyRef.Name, "Starcounter", strComp)) {
-                    if (scAssemblyRef != null) {
-                        assFailedStr = "Assembly {0} has more than one reference to Starcounter.dll";
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, (String.Format(assFailedStr, _module.Name)));
-                    }
-                    scAssemblyRef = assemblyRef;
-                }
-            }
-
-            return scAssemblyRef;
-        }
-
-        /// <summary>
-        /// Finds the type of the starcounter.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>IType.</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        private IType FindStarcounterType(Type type) {
-            if (_starcounterAssemblyReference == null) {
-                throw new InvalidOperationException();
-            }
-
-            return (IType)_starcounterAssemblyReference.FindType(
-                type.FullName,
-                BindingOptions.RequireGenericDefinition
-                );
-        }
-
-        /// <summary>
-        /// Enhances the type of the anonymous.
-        /// </summary>
-        /// <param name="typeDef">The type def.</param>
-        private void EnhanceAnonymousType(TypeDefDeclaration typeDef) {
-            // TODO: This method really needs to be refactored and broken down into 
-            // smaller pieces. As it is now it's really hard to get an overview of all the code.
-
-            Boolean getValueFromNullable;
-            Boolean requiresCast;
-            CustomAttributeDeclaration attribute;
-            FieldDefDeclaration adapterField;
-            FieldDefDeclaration objectViewField;
-            GenericParameterTypeSignature gptTypeSign;
-            GenericTypeInstanceTypeSignature genericInstance;
-            IField adapterFieldRef;
-            IField objectViewFieldRef;
-            IMethod method;
-            IMethod nullableGetValueMethod;
-            INamedType namedType;
-            Int32 index;
-            InstructionSequence instructionSequence;
-            InstructionSequence oldFirstSequence;
-            IntrinsicTypeSignature databaseValueIntrinsicType;
-            IntrinsicTypeSignature voidTypeSign;
-            InstructionBlock rootInstrBlock;
-            ITypeSignature databaseValueType;
-            ITypeSignature targetValueType;
-            MethodDefDeclaration constructorDef;
-            MethodDefDeclaration getterMethodDef;
-            MethodDefDeclaration getObjectViewMethod;
-            MethodInfo getMethodInfo;
-            MethodSignature methodSign;
-            ParameterDeclaration paramDecl;
-            SerializedValue serializedValue;
-            String methodName;
-            Type anonymousType;
-            TypeSpecDeclaration sourceValueType;
-
-            voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-
-            // Create new  fields.
-            objectViewField = new FieldDefDeclaration() {
-                Name = "objectView",
-                Attributes = FieldAttributes.Private | FieldAttributes.InitOnly,
-                FieldType = _module.Cache.GetType(typeof(IObjectView))
-            };
-            typeDef.Fields.Add(objectViewField);
-#pragma warning disable 618
-            objectViewFieldRef = GenericHelper.GetFieldCanonicalGenericInstance(objectViewField);
-#pragma warning restore 618
-
-            adapterField = new FieldDefDeclaration() {
-                Name = "adapter",
-                Attributes =
-                FieldAttributes.Private | FieldAttributes.InitOnly,
-                FieldType =
-                this._module.Cache.GetType(typeof(AnonymousTypeAdapter))
-            };
-            typeDef.Fields.Add(adapterField);
-#pragma warning disable 618
-            adapterFieldRef = GenericHelper.GetFieldCanonicalGenericInstance(adapterField);
-#pragma warning restore 618
-
-            // Create a new constructor.
-            constructorDef = new MethodDefDeclaration() {
-                Name = ".ctor",
-                Attributes = MethodAttributes.Public
-                                | MethodAttributes.SpecialName
-                                | MethodAttributes.RTSpecialName,
-                CallingConvention = CallingConvention.HasThis
-            };
-            typeDef.Methods.Add(constructorDef);
-
-            paramDecl = new ParameterDeclaration(0, "objectView", objectViewFieldRef.FieldType);
-            constructorDef.Parameters.Add(paramDecl);
-            paramDecl = new ParameterDeclaration(1, "adapter", adapterFieldRef.FieldType);
-            constructorDef.Parameters.Add(paramDecl);
-            paramDecl = new ParameterDeclaration(-1, null, voidTypeSign);
-            paramDecl.Attributes = ParameterAttributes.Retval;
-            constructorDef.ReturnParameter = paramDecl;
-            constructorDef.MethodBody.RootInstructionBlock
-                        = constructorDef.MethodBody.CreateInstructionBlock();
-
-            instructionSequence = constructorDef.MethodBody.CreateInstructionSequence();
-            constructorDef.MethodBody.RootInstructionBlock.AddInstructionSequence(instructionSequence,
-                                                                                  NodePosition.After,
-                                                                                  null);
-            _writer.AttachInstructionSequence(instructionSequence);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstructionMethod(OpCodeNumber.Call, this._objectConstructor);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_1);
-            _writer.EmitInstructionField(OpCodeNumber.Stfld, objectViewFieldRef);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_2);
-            _writer.EmitInstructionField(OpCodeNumber.Stfld, adapterFieldRef);
-            _writer.EmitInstruction(OpCodeNumber.Ret);
-            _writer.DetachInstructionSequence();
-
-            // Enhance every property setter.
-            index = 0;
-            foreach (PropertyDeclaration property in typeDef.Properties) {
-                if (property.Members.Contains(MethodSemantics.Getter)) {
-                    // Add a custom attribute with the index.
-
-                    serializedValue = IntrinsicSerializationType.CreateValue(_module, index);
-                    attribute = new CustomAttributeDeclaration(_objViewPropIndexAttrConstructor);
-                    attribute.ConstructorArguments.Add(new MemberValuePair(MemberKind.Parameter,
-                                                                           0,
-                                                                           "0",
-                                                                           serializedValue));
-                    property.CustomAttributes.Add(attribute);
-
-                    // Enhance the property getter
-                    getterMethodDef = property.Members.GetBySemantic(MethodSemantics.Getter).Method;
-
-                    // Get the first sequence.
-                    oldFirstSequence =
-                        getterMethodDef.MethodBody.RootInstructionBlock.FindFirstInstructionSequence();
-
-                    // Put a new sequence before the first sequence.
-                    instructionSequence = getterMethodDef.MethodBody.CreateInstructionSequence();
-                    oldFirstSequence.ParentInstructionBlock.AddInstructionSequence(instructionSequence,
-                                                                                   NodePosition.Before,
-                                                                                   oldFirstSequence);
-                    _writer.AttachInstructionSequence(instructionSequence);
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                    _writer.EmitBranchingInstruction(OpCodeNumber.Brfalse, oldFirstSequence);
-
-                    // Determine the value type.
-                    targetValueType = getterMethodDef.ReturnParameter.ParameterType;
-                    requiresCast = false;
-                    genericInstance = targetValueType.GetNakedType(TypeNakingOptions.None)
-                                                        as GenericTypeInstanceTypeSignature;
-                    if (genericInstance != null) {
-                        if (TypeComparer.GetInstance().Equals(genericInstance.GenericDefinition,
-                                                              _nullableType)) {
-                            databaseValueType = genericInstance.GenericArguments[0];
-                            getValueFromNullable = true;
-                        } else {
-                            databaseValueType = genericInstance;
-                            getValueFromNullable = false;
-                        }
-                    } else {
-                        databaseValueType = targetValueType;
-                        getValueFromNullable = false;
-                    }
-
-                    databaseValueIntrinsicType = databaseValueType as IntrinsicTypeSignature;
-                    if (databaseValueIntrinsicType != null) {
-                        switch (databaseValueIntrinsicType.IntrinsicType) {
-                            case IntrinsicType.Boolean:
-                            case IntrinsicType.Byte:
-                            case IntrinsicType.Double:
-                            case IntrinsicType.Int16:
-                            case IntrinsicType.Int32:
-                            case IntrinsicType.Int64:
-                            case IntrinsicType.SByte:
-                            case IntrinsicType.Single:
-                            case IntrinsicType.String:
-                            case IntrinsicType.UInt16:
-                            case IntrinsicType.UInt32:
-                            case IntrinsicType.UInt64:
-                                methodName = "Get"
-                                             + databaseValueIntrinsicType.IntrinsicType.ToString();
-                                break;
-                            default:
-                                methodName = null;
-                                break;
-                        }
-                    } else {
-                        namedType = databaseValueType as INamedType;
-                        if (namedType != null) {
-                            switch (namedType.Name) {
-                                case "System.Decimal":
-                                    methodName = "GetDecimal";
-                                    break;
-                                case "System.DateTime":
-                                    methodName = "GetDateTime";
-                                    break;
-                                case "Starcounter.Binary":
-                                    methodName = "GetBinary";
-                                    break;
-                                default:
-                                    methodName = null;
-                                    break;
-                            }
-                        } else {
-                            methodName = null;
-                        }
-
-                        // If the type implements IObjectView, we use IObjectView.GetObject
-                        if (methodName == null && databaseValueType.IsAssignableTo(_objectViewType)) {
-                            methodName = "GetObject";
-                            requiresCast = true;
-                        }
-                    }
-
-                    if (methodName != null) {
-                        method = _module.FindMethod(typeof(IObjectView).GetMethod(methodName),
-                                                         BindingOptions.Default);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, adapterFieldRef);
-                        _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, index);
-                        _writer.EmitInstructionMethod(OpCodeNumber.Call, _adapterResolveIndexMethod);
-                        _writer.EmitInstructionMethod(OpCodeNumber.Callvirt, method);
-
-                        // If the source is a nullable and the target is not
-                        // we should get the value out of the nullable.
-                        if (getValueFromNullable) {
-                            genericInstance
-                                = new GenericTypeInstanceTypeSignature(_nullableType,
-                                                                       new[] { databaseValueType });
-                            sourceValueType = _module.TypeSpecs.GetBySignature(genericInstance);
-
-                            gptTypeSign = GenericParameterTypeSignature.GetInstance(
-                                                                            _module,
-                                                                            0,
-                                                                            GenericParameterKind.Type
-                                                                        );
-                            methodSign = new MethodSignature(_module,
-                                                             CallingConvention.HasThis,
-                                                             gptTypeSign,
-                                                             null,
-                                                             0);
-                            nullableGetValueMethod
-                                = sourceValueType.MethodRefs.GetMethod(
-                                                                "get_Value",
-                                                                methodSign,
-                                                                BindingOptions.Default
-                                                             );
-                            _writer.EmitInstructionMethod(OpCodeNumber.Call, nullableGetValueMethod);
-                        }
-
-                        if (requiresCast) {
-                            _writer.EmitInstructionType(OpCodeNumber.Castclass, targetValueType);
-                        }
-                    } else {
-                        // We cannot find, at build-time, a way to get the property from the object 
-                        // view and to convert it into what we need. We will give the runtime a chance 
-                        // to do it.
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, adapterFieldRef);
-                        _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                        _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-                        _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, index);
-                        _weavingHelper.GetRuntimeType(databaseValueType, _writer);
-                        _writer.EmitInstructionMethod(OpCodeNumber.Call, _adapterGetPropertyMethod);
-#pragma warning disable 618
-                        _weavingHelper.FromObject(targetValueType, _writer);
-#pragma warning restore 618
-                    }
-                    _writer.EmitInstruction(OpCodeNumber.Ret);
-                    _writer.DetachInstructionSequence();
-
-                    index++;
-                }
-            }
-
-            // Implement the IAnonymousState interface.
-            anonymousType = typeof(IAnonymousType);
-            typeDef.InterfaceImplementations.Add(
-                                                _module.FindType(anonymousType,
-                                                                 BindingOptions.Default)
-                                             );
-
-            getObjectViewMethod = new MethodDefDeclaration() {
-                Name = "IAnonymousType.get_UnderlyingObject",
-                Attributes = MethodAttributes.Virtual
-                                | MethodAttributes.Private
-                                | MethodAttributes.ReuseSlot,
-                CallingConvention = CallingConvention.HasThis
-            };
-            typeDef.Methods.Add(getObjectViewMethod);
-
-            paramDecl = new ParameterDeclaration(-1, null, this._objectViewType);
-            paramDecl.Attributes = ParameterAttributes.Retval;
-            getObjectViewMethod.ReturnParameter = paramDecl;
-
-            getMethodInfo = anonymousType.GetProperty("UnderlyingObject").GetGetMethod();
-            getObjectViewMethod.InterfaceImplementations.Add(
-                                                            _module.FindMethod(getMethodInfo,
-                                                            BindingOptions.Default)
-                                                        );
-
-            rootInstrBlock = getObjectViewMethod.MethodBody.CreateInstructionBlock();
-            getObjectViewMethod.MethodBody.RootInstructionBlock = rootInstrBlock;
-            instructionSequence = getObjectViewMethod.MethodBody.CreateInstructionSequence();
-            rootInstrBlock.AddInstructionSequence(instructionSequence, NodePosition.After, null);
-            _writer.AttachInstructionSequence(instructionSequence);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstructionField(OpCodeNumber.Ldfld, objectViewFieldRef);
-            _writer.EmitInstruction(OpCodeNumber.Ret);
-            _writer.DetachInstructionSequence();
-        }
-
-        /// <summary>
-        /// Determines whether [is anonymous type] [the specified type def].
-        /// </summary>
-        /// <param name="typeDef">The type def.</param>
-        private static Boolean IsAnonymousType(TypeDefDeclaration typeDef) {
-            return typeDef.Name.StartsWith("<>f__AnonymousType")
-                    || typeDef.Name.StartsWith("VB$AnonymousType");
         }
 
         private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
