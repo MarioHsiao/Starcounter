@@ -262,6 +262,20 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
+        public static unsafe void BenchmarkNullableUInt() {
+            uint? value = 2341;
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[10]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++)
+                    Base64Int.WriteNullable(buffer, value);
+                timer.Stop();
+            }
+            Print(timer, "UInt writes", nrIter);
+        }
+
+        //[Test]
         public static unsafe void BenchmarkTupleNullableUIntScale() {
             uint? value = 2341;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -661,6 +675,7 @@ namespace FasterThanJson.Tests {
             Console.WriteLine("------------ Nullable unsigned Integers ----------------");
             BenchmarkTupleNullableULongScale();
             BenchmarkTupleNullableUIntScale();
+            BenchmarkNullableUInt();
             Console.WriteLine("------------ Strings ----------------");
             BenchmarkTupleString10Scale();
             BenchmarkTupleString1Scale();

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Starcounter.Internal
@@ -53,6 +54,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="c">The c.</param>
       /// <returns>System.Int32.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe int ReadBase16x1(Base16x1* c)
       {
          return (c->b0 & 0x0F);

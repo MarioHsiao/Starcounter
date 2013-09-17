@@ -525,6 +525,7 @@ namespace Starcounter.Internal
       /// <exception cref="System.Exception">Illegal size</exception>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 Read(int size, byte* ptr) {
+          Debug.Assert(size >= 1 && size <= 6 || size == 11);
           ulong val;
           if (size == 1)
               val = ReadBase64x1(ptr);
@@ -538,10 +539,10 @@ namespace Starcounter.Internal
               val = ReadBase64x5(ptr);
           else if (size == 6)
               val = ReadBase64x6(ptr);
-          else if (size == 11)
+          else //if (size == 11)
               val = ReadBase64x11(ptr);
-          else
-              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
+          //else
+          //    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
           return val;
           //var c = (Base64x5*)ptr;
           //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
