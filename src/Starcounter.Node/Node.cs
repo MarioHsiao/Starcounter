@@ -691,7 +691,7 @@ namespace Starcounter
             if (origReq != null)
             {
                 Response respOnResp = HandleResponse_(origReq, userResp);
-                origReq.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
+                origReq.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength, respOnResp.ConnFlags);
             }
         }
 

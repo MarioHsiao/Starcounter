@@ -281,16 +281,19 @@ namespace Starcounter.Internal.Test
 
             Handle.GET("/response1", () =>
             {
-                return new Response()
+                Response r = new Response()
                 {
                     StatusCode = 404,
                     StatusDescription = "Not Found",
                     ContentType = "text/html",
                     ContentEncoding = "gzip",
-                    Headers = "Allow: GET, HEAD\r\n",
                     SetCookie = "MyCookie1=123; MyCookie2=456",
                     Body = "response1"
                 };
+
+                r["Allow"] = "GET, HEAD";
+
+                return r;
             });
 
             Response resp = localNode.GET("/response1", null, null);
@@ -303,14 +306,20 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(9 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue("response1" == resp.Body);
+            Assert.IsTrue(resp["Allow"] == "GET, HEAD");
 
             Handle.GET("/response2", () =>
             {
-                return new Response()
+                Response r = new Response()
                 {
                     StatusCode = 203,
                     StatusDescription = "Non-Authoritative Information",
                 };
+
+                r["MySuperHeader"] = "Haha!";
+                r["MyAnotherSuperHeader"] = "Hahaha!";
+
+                return r;
             });
 
             resp = localNode.GET("/response2", null, null);
@@ -323,6 +332,8 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(0 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue(null == resp.Body);
+            Assert.IsTrue(resp["MySuperHeader"] == "Haha!");
+            Assert.IsTrue(resp["MyAnotherSuperHeader"] == "Hahaha!");
 
             Handle.GET("/response3", () =>
             {

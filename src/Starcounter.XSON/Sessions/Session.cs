@@ -41,7 +41,8 @@ namespace Starcounter {
         internal Json GetCachedJsonNode(String uri)
         {
             Json obj;
-            if (!JsonNodeCacheDict.TryGetValue(uri, out obj))
+
+            if ((JsonNodeCacheDict == null) || (!JsonNodeCacheDict.TryGetValue(uri, out obj)))
                 return null;
 
             Debug.Assert(null != obj);
@@ -194,21 +195,20 @@ namespace Starcounter {
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
-        public void Push(String data)
+        public void Push(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
-            Push(Encoding.UTF8.GetBytes(data));
+            Push(Encoding.UTF8.GetBytes(data), isText, connFlags);
         }
 
         /// <summary>
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
-        public void Push(Byte[] data)
+        public void Push(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
-            Request req = bmx.GenerateNewRequest(
-                InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
+            Request req = bmx.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
 
-            req.SendResponse(data, 0, data.Length);
+            req.SendResponse(data, 0, data.Length, connFlags);
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace Starcounter {
                 if (child is TObject) {
                     DisposeJsonRecursively(json.Get((TObject)child));
                 } else if (child is TObjArr) {
-                    Arr listing = json.Get((TObjArr)child);
+                    Json listing = json.Get((TObjArr)child);
                     foreach (Json listApp in listing) {
                         DisposeJsonRecursively(listApp);
                     }

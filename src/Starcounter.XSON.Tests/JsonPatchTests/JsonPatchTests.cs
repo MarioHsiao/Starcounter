@@ -260,7 +260,6 @@ Assert.AreEqual(facit, result );
             var start = ((Json)j).DebugString;
 
             Assert.AreEqual("", json.ToJson()); // The data is not bound so the JSON should still be an empty object
-            Assert.IsTrue(json._Values == null);
 
             var t = new TJson();
             var fname = t.Add<TString>("FirstName"); // TODO! By default, properties are automatically bound my matching property names
@@ -270,7 +269,7 @@ Assert.AreEqual(facit, result );
             j.Template = t;
             j.Data = p;
 
-            Assert.IsTrue(json._Values._BrandNew);
+            Assert.IsTrue(json._BrandNew);
             Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
 
             Session.Current.CreateJsonPatch(true); // Flush

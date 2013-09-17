@@ -200,52 +200,6 @@ namespace Starcounter.Internal
          HaveWritten(1);
       }
 
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      private unsafe uint Write(String value, bool fast) {
-          uint len = 1;
-          if (value == null)
-              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
-          else if (value.Length > 0) {
-              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag meaning if only flag is written then null
-              fixed (char* pStr = value) {
-                  int expectedLength;
-                  if (fast)
-                      expectedLength = value.Length * 3;
-                  else
-                      expectedLength = SessionBlobProxy.Utf8Encode.GetByteCount(pStr, value.Length, true);
-                  // Write the string to the end of this tuple.
-                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
-              }
-          } else
-              len = 0;
-          HaveWritten(len);
-          return len;
-      }
-
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      private unsafe bool WriteFirst(String value) {
-          uint len = 1;
-          if (value == null)
-              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
-          else if (value.Length > 0)
-              return false;
-          else 
-              len = 0;
-          HaveWritten(len);
-          return true;
-      }
-
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      private unsafe void WriteRest(String value, int expectedLength) {
-          Base64Int.WriteBase64x1(0, AtEnd); // Write null flag meaning if only flag is written then null
-          uint len = 1;
-          fixed (char* pStr = value) {
-              // Write the string to the end of this tuple.
-              len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, value.Length, AtEnd + 1, expectedLength, true);
-          }
-          HaveWritten(len);
-      }
-
       /// <summary>
       /// Appends a new value after the last value in this tuple
       /// </summary>
@@ -257,28 +211,19 @@ namespace Starcounter.Internal
       /// </remarks>
       ///
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(string str)
+      public unsafe void WriteString(string str)
       {
-#if false
-          Write(str, true);
-#else
-          if (!WriteFirst(str))
-              WriteRest(str, str.Length * 3);
-#endif
-#if false
-         uint len;
-
-         fixed (char* pStr = str)
-         {
-            // Write the string to the end of this tuple.
-             len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, str.Length * 3, true); // TODO! CHANGE MAX LENGTH
-            //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
-         }
-
-         HaveWritten(len);
-         //  if (needed > StreamWriteLargestOffsetElementSize)
-         //     StreamWriteLargestOffsetElementSize = needed;
-#endif
+          uint len = 1;
+          if (str == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else {
+              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
+              fixed (char* pStr = str) {
+                  // Write the string to the end of this tuple.
+                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, str.Length * 3, true);
+              }
+          }
+          HaveWritten(len);
       }
 
       /// <summary>
@@ -286,7 +231,7 @@ namespace Starcounter.Internal
       /// </summary>
       /// <param name="n">The value to write</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(ulong n)
+      public unsafe void WriteULong(ulong n)
       {
 #if BASE32
          uint len = Base32Int.Write((IntPtr) AtEnd, n);
@@ -301,7 +246,29 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(byte[] value) {
+      public unsafe void WriteULongNullable(ulong? n) {
+          uint len = Base64Int.WriteNullable(AtEnd, n);
+          HaveWritten(len);
+      }
+
+      /// <summary>
+      /// Writes a signed integer value to the tuple
+      /// </summary>
+      /// <param name="n">The value to write</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteLong(long n) {
+          ulong val;
+          if (n >= 0)
+              val = ((ulong)n << 1);
+          else
+              val = ((ulong)(-(n + 1)) << 1) + 1;
+          Debug.Assert(((val & 0x00000001) == 1 ? -(long)(val >> 1) - 1 : (long)(val >> 1)) == n);
+          uint len = Base64Int.Write(AtEnd, val);
+          HaveWritten(len);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteByteArray(byte[] value) {
 #if BASE64
           uint len = Base64Binary.Write(AtEnd, value);
           HaveWritten(len);
@@ -320,24 +287,36 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public static uint MeasureNeededSize(String str) {
+      public static uint MeasureNeededSizeString(String str) {
           if (str == null)
               return 1; // null flag
-          if (str.Length == 0)
-              return 0;
-          uint expectedLen;
+          uint expectedLen = 1; // null flag
           fixed (char* pStr = str) {
-              expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
+              expectedLen += (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
           }
-          return expectedLen + 1; // + null flag
+          return expectedLen; 
       }
 
-      public static uint MeasureNeededSize(ulong n) {
+      public static uint MeasureNeededSizeULong(ulong n) {
 #if BASE64
           return Base64Int.MeasureNeededSize(n);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
 #endif
+      }
+
+      public static uint MeasureNeededSizeNullableULong(ulong? n) {
+#if BASE64
+          return Base64Int.MeasureNeededSizeNullable(n);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
+      public static uint MeasureNeededSizeLong(long n) {
+          if (n >= 0)
+              return Base64Int.MeasureNeededSize(((ulong)n << 1));
+          return Base64Int.MeasureNeededSize(((ulong)(-(n + 1)) << 1) + 1);
       }
 
       public static uint MeasureNeededSizeByteArray(uint length) {
@@ -373,37 +352,42 @@ namespace Starcounter.Internal
           return expectedLen;
       }
 
-      public void WriteSafe(ulong n) {
-          uint size = MeasureNeededSize(n);
+      public void WriteSafeULong(ulong n) {
+          uint size = MeasureNeededSizeULong(n);
           size = ValidateLength(size);
-          Write(n);
+          WriteULong(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
 
-      public void WriteSafe(String str) {
-          uint size = MeasureNeededSize(str);
+      public void WriteSafeLong(long n) {
+          uint size = MeasureNeededSizeLong(n);
           size = ValidateLength(size);
-#if false
-          uint len = Write(str, false);
-         Debug.Assert(len == size);
-#else
-          if (!WriteFirst(str))
-               WriteRest(str, (int)size - 1);
-#endif
-#if false
-          fixed (char* pStr = str) {
-              // Write the string to the end of this tuple.
-              len = (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd, (int)size, true); // TODO! CHANGE MAX LENGTH
-              //  Intrinsics.MemCpy(buffer, pStr, (uint)str.Length); 
+          WriteLong(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
+      }
+
+      public void WriteSafeString(String str) {
+          uint size = MeasureNeededSizeString(str);
+          uint writeSize = ValidateLength(size);
+          uint len = 1;
+          if (str == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else {
+              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
+              fixed (char* pStr = str) {
+                  // Write the string to the end of this tuple.
+                  len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, (int)size - 1, true);
+              }
           }
+          Debug.Assert(len == size);
           HaveWritten(len);
-#endif
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvailableSize -= size;
+          AvailableSize -= writeSize;
       }
 
-      public unsafe void WriteSafe(byte* b, uint length) {
+      public unsafe void WriteSafeByteArray(byte* b, uint length) {
           uint size = MeasureNeededSizeByteArray(length);
           size = ValidateLength(size);
           Write(b, length);
@@ -411,14 +395,14 @@ namespace Starcounter.Internal
           AvailableSize -= size;
       }
 
-      public unsafe void WriteSafe(byte[] b) {
+      public unsafe void WriteSafeByteArray(byte[] b) {
           uint size = 0;
           if (b == null)
               size = 1;
           else
           size = MeasureNeededSizeByteArray((uint)b.Length);
           size = ValidateLength(size);
-          Write(b);
+          WriteByteArray(b);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Dynamic;using System.Linq.Expressions;using System.Reflection;using System.Linq;#if CLIENTusing Starcounter.Client.Template;namespace Starcounter.Client {#elseusing Starcounter.Templates;using System.Diagnostics;
+using System.Dynamic;using System.Linq.Expressions;using System.Reflection;using System.Linq;using Starcounter.Templates;using System.Diagnostics;
 using System.Collections;
-using Starcounter.Internal.XSON;namespace Starcounter {#endif
-    public partial class Json : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
+using Starcounter.Internal.XSON;namespace Starcounter {        public partial class Json : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
         /// <summary>
         /// Provides late bound (dynamic) access to Json properties defined
         /// in the Template of the Json object. Also supports data binding 

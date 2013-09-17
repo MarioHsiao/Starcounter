@@ -191,6 +191,7 @@ namespace Starcounter.SqlParser.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public static void MultithreadedTest() {
             String[] queries =
             {

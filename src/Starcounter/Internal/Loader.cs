@@ -159,33 +159,39 @@ namespace Starcounter.Internal
                 DatabaseEntityClass databaseEntityClass;
                 DatabaseArrayType databaseArrayType;
 
-                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
-                    type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
-                } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
-                    type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
-                } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
-                    type = DbTypeCode.Object;
-                    targetTypeName = databaseEntityClass.Name;
-                } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
-                    type = DbTypeCode.String;
-                } else {
-                    if (!databaseAttribute.IsPersistent) continue;
+                try {
+                    if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
+                        type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
+                    } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
+                        type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
+                    } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
+                        type = DbTypeCode.Object;
+                        targetTypeName = databaseEntityClass.Name;
+                    } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
+                        type = DbTypeCode.String;
+                    } else {
+                        if (!databaseAttribute.IsPersistent) continue;
 
-                    // This type is not supported (but theres no way code will
-                    // ever reach here unless theres some internal error). We
-                    // just  raise an internal exception indicating the field
-                    // and that this condition was experienced (indicating an
-                    // internal bug).
-
-                    var errorMessage = ErrorCode.ToMessage(
-                        Error.SCERRUNSPECIFIED,
+                        // This type is not supported (but theres no way code will
+                        // ever reach here unless theres some internal error). We
+                        // just  raise an internal exception indicating the field
+                        // and that this condition was experienced (indicating an
+                        // internal bug).
+                        // 
+                        // In comment to the above: appearently, the code in the
+                        // weaver is not up-to-date with the latest changes done in
+                        // the code host. So let's provide an informative exception
+                        // here anyway, helping our users to help themselves.
+                        throw new NotSupportedException();
+                    }
+                } catch (NotSupportedException) {
+                    throw ErrorCode.ToException(
+                        Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
                         string.Format(
-                            "The attribute type of attribute {0}.{1} was found invalid.",
-                            databaseAttribute.DeclaringClass.Name,
-                            databaseAttribute.Name
-                            )
-                        );
-                    throw new Exception(errorMessage);
+                        "The attribute type of attribute {0}.{1} was found invalid.",
+                        databaseAttribute.DeclaringClass.Name,
+                        databaseAttribute.Name
+                        ));
                 }
 
                 var isNullable = databaseAttribute.IsNullable;

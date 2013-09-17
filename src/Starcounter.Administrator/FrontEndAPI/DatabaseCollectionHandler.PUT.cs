@@ -6,6 +6,7 @@ using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal.Web;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -36,8 +37,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                 errorJson.message = string.Format("Could not find the {0} database", name);
                                 errorJson.code = (int)HttpStatusCode.NotFound;
                                 errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
-
-                                return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+								return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)HttpStatusCode.NotFound);
                             }
                             else {
 
@@ -96,7 +96,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                     errorJson.code = (int)HttpStatusCode.NotFound;
                                     errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
 
-                                    return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+									return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)HttpStatusCode.NotFound);
                                 }
                                 else {
 
@@ -110,29 +110,18 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                         sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
                                     };
 
-                                    return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
+									return RESTUtility.JSON.CreateResponse(resultJson.ToString());
                                 }
-
                             }
-
-
-
-
-
-
-
-
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
                             String validationErrors = response.Body;
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
+							return RESTUtility.JSON.CreateResponse(validationErrors, (int)HttpStatusCode.Forbidden);
                         }
                         else {
                             // TODO
                             throw new Exception("Validation error...");
                         }
-
-
                     }
                     catch (Exception e) {
                         return RestUtils.CreateErrorResponse(e);

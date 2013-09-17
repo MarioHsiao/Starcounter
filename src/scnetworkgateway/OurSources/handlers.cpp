@@ -137,8 +137,6 @@ uint32_t HandlersTable::RegisterPortHandler(
     if (out_handler_index == max_num_entries_)
         max_num_entries_++;
 
-PROCESS_SERVER_PORT:
-
     // Checking if there is a corresponding server port created.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
 
@@ -154,6 +152,10 @@ PROCESS_SERVER_PORT:
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock);
+
+        // Checking if its an aggregation port.
+        if (port_num == g_gateway.setting_aggregation_port())
+            server_port->set_aggregation_flag();
     }
 
     // Checking if port contains handlers from this database.
@@ -279,8 +281,6 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     // New handler added.
     if (out_handler_index == max_num_entries_)
         max_num_entries_++;
-
-PROCESS_SERVER_PORT:
 
     // Checking if there is a corresponding server port created.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
@@ -437,8 +437,6 @@ uint32_t HandlersTable::RegisterUriHandler(
     if (out_handler_index == max_num_entries_)
         max_num_entries_++;
 
-PROCESS_SERVER_PORT:
-
     // Checking if there is a corresponding server port created.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
 
@@ -547,7 +545,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     HandlersTable* handlers_table = g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers();
 
     // Getting the corresponding port number.
-    uint16_t port_num = g_gateway.get_server_port(sd->get_port_index())->get_port_number();
+    uint16_t port_num = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
 
     // Searching for the user code handler id.
     handler_index = g_gateway.get_gw_handlers()->FindPortHandlerIndex(port_num);
@@ -582,8 +580,9 @@ uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDL
         sd->ResetUserDataOffset();
 
         // Push chunk to corresponding channel/scheduler.
-        // TODO: Deal with situation when not able to push.
-        gw->PushSocketDataToDb(sd, user_handler_id);
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+        if (err_code)
+            return err_code;
 
         // Setting handled flag.
         *is_handled = true;
