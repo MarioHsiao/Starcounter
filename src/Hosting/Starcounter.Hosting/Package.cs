@@ -267,12 +267,12 @@ namespace Starcounter.Hosting {
                         entrypoint.Invoke(null, new object[] { arguments });
                     }
                 } catch (TargetInvocationException te) {
-                    var entrypointException = te.GetBaseException();
+                    var entrypointException = te.InnerException;
                     if (entrypointException == null) throw;
 
                     throw ErrorCode.ToException(
                         Error.SCERRFAILINGENTRYPOINT, 
-                        entrypointException, 
+                        te,
                         string.Format("Message: \"{0}\". Entrypoint assembly: \"{1}\"", entrypointException.Message, assembly_.FullName));
                 }
 
