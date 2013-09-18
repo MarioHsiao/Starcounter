@@ -10,6 +10,7 @@ using System;
 using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
 using System.Runtime.CompilerServices;
+using System.Collections;
 
 namespace Starcounter {
     /// <summary>
@@ -51,7 +52,7 @@ namespace Starcounter {
     /// A Json object can be data bound to a database object such as its bound properties
     /// merely reflect the values of the database objects.
     /// </remarks>
-    public partial class Json {
+    public partial class Json : StarcounterBase {
 
         /// <summary>
         /// Base classes to be derived by Json-by-example classes.
@@ -85,15 +86,6 @@ namespace Starcounter {
             //    XSON.CodeGeneration.Initializer.InitializeXSON();
         }
 
-        /// <summary>
-        /// Transaction applied to this node.
-        /// </summary>
-        private ITransaction _transaction;
-
-        /// <summary>
-        /// Cache element index if the parent of this Obj is an array (Arr).
-        /// </summary>
-        internal int _cacheIndexInArr;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
@@ -107,6 +99,158 @@ namespace Starcounter {
                 Template = GetDefaultTemplate();
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        private void _OnSetProperty(TValue property, object value) {
+            var thisj = this as Json;
+
+
+            if (property.UseBinding(thisj.DataAsBindable)) {
+                if (property is TObject) {
+                    thisj.SetBound(property, (value as Json).Data);
+                }
+                else {
+                    thisj.SetBound(property, value);
+                }
+            }
+
+            if (property is TObjArr) {
+                var valuearr = (Json)value;
+                var oldValue = (Json)_list[property.TemplateIndex];
+                if (oldValue != null) {
+                    oldValue.InternalClear();
+                    //                oldValue.Clear();
+                    oldValue.SetParent(null);
+                }
+
+                valuearr.Array_InitializeAfterImplicitConversion(thisj, (TObjArr)property);
+            }
+
+            if (property is TObject) {
+                var j = (Json)value;
+                // We need to update the cached index array
+                if (j != null) {
+                    j.Parent = this;
+
+
+                    j._cacheIndexInArr = property.TemplateIndex;
+                }
+                var vals = list;
+                var i = property.TemplateIndex;
+                var oldValue = (Json)vals[i];
+                if (oldValue != null) {
+                    oldValue.SetParent(null);
+                    oldValue._cacheIndexInArr = -1;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Json objects can be stored on the server between requests as session data.
+        /// </summary>
+        public Session Session {
+            get {
+                if (_Session == null && Parent != null) {
+                    return Parent.Session;
+                }
+                return _Session;
+            }
+        }
+
+        /// <summary>
+        /// The schema element of this app instance
+        /// </summary>
+        /// <value>The template.</value>
+        /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
+        public Template Template {
+            set {
+                //if (_Template != null) {
+                //    throw new Exception("Template is already set for App. Cannot change template once it is set");
+                //}
+                _Template = (TContainer)value;
+
+                if (_Template is TObject && ((TObject)_Template).IsDynamic) {
+                    TObject t = (TObject)_Template;
+                    if (t.SingleInstance != null && t.SingleInstance != this) {
+                        throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})", value, this));
+                    }
+                    ((TObject)_Template).SingleInstance = (Json)this;
+                }
+                else if (_Template == null) {
+                    return;
+                }
+                else {
+                    _Template.Sealed = true;
+                }
+#if QUICKTUPLE
+                _InitializeValues();
+#endif
+                //         if (this is App) {
+                //             ((App)this).CallInit();
+                //         }
+                //              this.Init();
+            }
+            get {
+                return _Template;
+            }
+        }
+
+
+        /// <summary>
+        /// Inits this instance.
+        /// </summary>
+        //protected virtual void Init() {
+        //}
+
+
+
+        /// <summary>
+        /// Used to generate change logs for all pending property changes in this object and
+        /// and its children and grandchidren (recursivly) including changes to bound data
+        /// objects.
+        /// </summary>
+        /// <param name="session">The session (for faster access)</param>
+
+
+        ///// <summary>
+        ///// Called when [set parent].
+        ///// </summary>
+        ///// <param name="child">The child.</param>
+        //internal virtual void OnSetParent(Container child) {
+        //    //child._parent = this;
+        //}
+
+        public virtual void ChildArrayHasAddedAnElement(TObjArr property, int elementIndex) {
+        }
+
+        public virtual void ChildArrayHasRemovedAnElement(TObjArr property, int elementIndex) {
+        }
+
+        public virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
+        }
+
+
+
+
+
+        /// <summary>
+        /// Called when a Obj or Arr property value has been removed from its parent.
+        /// </summary>
+        /// <param name="property">The name of the property</param>
+        /// <param name="child">The old value of the property</param>
+        private void HasRemovedChild(Json child) {
+            // This Obj or Arr has been removed from its parent and should be deleted from the
+            // URI cache.
+            //
+            // TheCache.RemoveEntry( child );
+            //
+        }
+
 
         /// <summary>
         /// Returns True if current Obj is within the given tree.
@@ -179,11 +323,6 @@ namespace Starcounter {
         //        }
 
         /// <summary>
-        /// Implementation field used to cache the Metadata property.
-        /// </summary>
-        private ObjMetadata<TObject, Json> _Metadata = null;
-
-        /// <summary>
         /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).
         /// The changes only affect this instance.
         /// If you which to change properties for the template, use the Template property instead.
@@ -197,6 +336,64 @@ namespace Starcounter {
             }
         }
 
+
+
+        /// <summary>
+        /// Gets or sets the parent.
+        /// </summary>
+        /// <value>The parent.</value>
+        /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
+        public Json Parent {
+            get {
+                return _parent;
+            }
+            set {
+                if (_parent != null && _parent != value) {
+                    throw new Exception("Cannot change parent of objects in Typed JSON trees");
+                }
+                SetParent(value);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        internal void SetParent(Json value) {
+            if (value == null) {
+                if (_parent != null) {
+                    _parent.HasRemovedChild(this);
+                }
+            }
+            _parent = value;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsArray {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template is TObjArr;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsPrimitive {
+            get {
+                if (Template == null) {
+                    return false;
+                }
+                return Template.IsPrimitive;
+            }
+        }
+
         //		/// <summary>
         //		/// If set true and a ChangeLog is set on the current thread, all 
         //		/// changes done to this Obj will be logged.
@@ -205,6 +402,77 @@ namespace Starcounter {
 
         //        public virtual void ProcessInput<V>(TValue<V> template, V value) {
         //        }
+
+
+        public object this[int index] {
+            get {
+                if (this.IsArray) {
+                    return _GetAt(index);
+                }
+                else {
+                    var json = this as Json;
+                    var property = (TValue)((TObject)Template).Properties[index];
+                    if (property.UseBinding(json.DataAsBindable)) {
+                        object ret;
+                        ret = json.GetBound(property);
+                        if (property is TObject) {
+                            var newJson = (Json)property.CreateInstance(this);
+                            newJson.AttachData((IBindable)ret);
+                            _SetAt(property.TemplateIndex, newJson);
+                            return newJson;
+                        }
+                        else if (property is TObjArr) {
+                            var newJson = (Json)property.CreateInstance(this);
+                            newJson.Data = (IEnumerable)ret;
+                            _SetAt(property.TemplateIndex, newJson);
+                            return newJson;
+                        }
+                        return ret;
+                    }
+                    else {
+                        return _GetAt(property.TemplateIndex);
+                    }
+                }
+            }
+            set {
+
+
+
+
+                if (IsArray) {
+                    // We need to update the cached index array
+                    var thisj = this as Json;
+                    var j = value as Json;
+                    if (j != null) {
+                        j.Parent = this;
+                        j._cacheIndexInArr = index;
+                    }
+                    var oldValue = (Json)_list[index];
+                    if (oldValue != null) {
+                        oldValue.SetParent(null);
+                        oldValue._cacheIndexInArr = -1;
+                    }
+                }
+                else {
+                    var property = (TValue)((TObject)Template).Properties[index];
+                    this._OnSetProperty(property, value);
+                }
+                list[index] = value;
+
+                if (!_BrandNew) {
+                    MarkAsReplaced(index);
+                }
+
+                if (IsArray) {
+                    (this as Json)._CallHasChanged(this.Template as TObjArr, index);
+                }
+                else {
+                    (this as Json)._CallHasChanged(this.Template as TValue);
+                }
+            }
+        }
+
+
 
 
     }

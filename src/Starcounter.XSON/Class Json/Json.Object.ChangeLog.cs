@@ -11,6 +11,15 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
+        internal void Dirtyfy() {
+            _Dirty = true;
+            if (Parent != null)
+                Parent.Dirtyfy();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         internal void CheckpointChangeLog() {
             _BrandNew = false;
             this.ArrayAddsAndDeletes = null;
