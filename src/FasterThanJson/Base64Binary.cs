@@ -60,6 +60,9 @@ namespace Starcounter.Internal {
         }
 
         public static unsafe uint Read(uint size, byte* ptr, byte* value) {
+            if (size == 1)
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, 
+                    "Byte array to read is null, which cannot be written.");
             uint quarNr = size >> 2;
             uint reminder = size - (quarNr << 2);
             Debug.Assert(reminder != 1);
@@ -92,6 +95,11 @@ namespace Starcounter.Internal {
             Debug.Assert(reminder != 1);
             Debug.Assert(value + MeasureNeededSizeToDecode(size) == writing);
             return (uint)(writing - value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public static unsafe bool IsNull(uint size, byte* ptr) {
+            return size == 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
