@@ -37,6 +37,7 @@ namespace Weaver {
                 uint errorCode;
                 if (!ErrorCode.TryGetCode(e, out errorCode)) {
                     errorCode = Error.SCERRUNHANDLEDWEAVEREXCEPTION;
+                    e = ErrorCode.ToException(Error.SCERRUNHANDLEDWEAVEREXCEPTION, e);
                 }
                 Program.ReportProgramError(errorCode, e.ToString());
 
