@@ -8,6 +8,8 @@ namespace Starcounter {
     partial class Json {
 
 
+
+
 //        internal override void CheckpointChangeLog() {
 //            _Dirty = false;
 //            _Values._BrandNew = false;
