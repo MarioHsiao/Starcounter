@@ -49,18 +49,19 @@ namespace Starcounter.Internal {
             return writtenLength;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public static unsafe uint Write(byte* buffer, Byte[] value) {
             if (value == null) {
                 Base64Int.WriteBase64x1(0, buffer);
                 return 1;
-            }
-            fixed (byte* valuePtr = value)
-                return Write(buffer, valuePtr, (uint)value.Length);
+            } else
+                fixed (byte* valuePtr = value)
+                    return Write(buffer, valuePtr, (uint)value.Length);
         }
 
         public static unsafe uint Read(uint size, byte* ptr, byte* value) {
-            uint quarNr = size / 4;
-            uint reminder = size % 4;
+            uint quarNr = size >> 2;
+            uint reminder = size - (quarNr << 2);
             Debug.Assert(reminder != 1);
             byte* writing = value;
             for (uint i = 0; i < quarNr; i++) {
@@ -94,7 +95,6 @@ namespace Starcounter.Internal {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-
         public static unsafe byte[] Read(uint size, byte* ptr) {
             byte[] value;
             if (size != 1) {
