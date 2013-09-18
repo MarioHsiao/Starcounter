@@ -78,6 +78,7 @@
     <Compile Include="Serializer\Codegen\AstTree\AstJsonProperty.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstSerializeFunction.cs" />
     <Compile Include="Serializer\Codegen\FTJCsharpGenerator.cs" />
+    <Compile Include="Serializer\Codegen\FTJDomGenerator.cs" />
     <Compile Include="Serializer\Codegen\ParseTree\ParseNode.cs" />
     <Compile Include="Serializer\Codegen\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="Serializer\Codegen\ParseTree\TemplateMetadata.cs" />
