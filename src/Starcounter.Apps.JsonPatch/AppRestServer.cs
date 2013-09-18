@@ -62,7 +62,7 @@ namespace Starcounter.Internal.Web {
                 }
 
                 if (response.Hypermedia is Json) {
-                    Container r = (Container)response.Hypermedia;
+                    Json r = (Json)response.Hypermedia;
                     while (r.Parent != null) {
                         r = r.Parent;
                     }
@@ -85,7 +85,7 @@ namespace Starcounter.Internal.Web {
         }
 
 //        private Obj GetJsonRoot(Obj json) {
-//            Container current = json;
+//            Json current = json;
 //            while (current.Parent != null) {
 //                current = current.Parent;
 //            }

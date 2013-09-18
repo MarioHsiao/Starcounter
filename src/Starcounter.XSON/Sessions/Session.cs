@@ -343,7 +343,7 @@ namespace Starcounter {
                 if (child is TObject) {
                     DisposeJsonRecursively(json.Get((TObject)child));
                 } else if (child is TObjArr) {
-                    Arr listing = json.Get((TObjArr)child);
+                    Json listing = json.Get((TObjArr)child);
                     foreach (Json listApp in listing) {
                         DisposeJsonRecursively(listApp);
                     }

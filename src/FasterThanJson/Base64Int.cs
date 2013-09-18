@@ -11,6 +11,7 @@
 
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 //using NUnit.Framework;
@@ -299,6 +300,44 @@ namespace Starcounter.Internal
          return 11;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe uint MeasureNeededSizeNullable(UInt64? value) {
+          if (value == null)
+              return 1;
+          if (value <= 0x1F) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //    c->b4 = b64e[(value & 0x3F)]; // Everything fits in a byte
+              return 1;
+          } else if (value <= 0x7FF) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //     c->b3 = b64e[(value & 0xFC0) >> 06];
+              //     c->b4 = b64e[(value & 0x3F)];
+              return 2;
+          } else if (value <= 0x1FFFF) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //     c->b2 = b64e[(value & 0x3F000) >> 12];
+              //     c->b3 = b64e[(value & 0xFC0) >> 06];
+              //     c->b4 = b64e[(value & 0x3F)];
+              return 3;
+          } else if (value <= 0x7FFFFF) {
+              //   c->b0 = 0x30; // Set leading bytes to '0'
+              //   c->b1 = b64e[(value & 0xFC0000) >> 18];
+              //   c->b2 = b64e[(value & 0x3F000) >> 12];
+              //   c->b3 = b64e[(value & 0xFC0) >> 06];
+              //   c->b4 = b64e[(value & 0x3F)];
+              return 4;
+          } else if (value <= 0x1FFFFFFF) {
+              //      c->b0 = b64e[(value & 0x3F000000) >> 24];
+              //      c->b1 = b64e[(value & 0xFC0000) >> 18];
+              //      c->b2 = b64e[(value & 0x3F000) >> 12];
+              //      c->b3 = b64e[(value & 0xFC0) >> 06];
+              //      c->b4 = b64e[(value & 0x3F)];
+              return 5;
+          } else if (value <= 0x7FFFFFFFF)
+              return 6;
+          return 11;
+      }
+
       /// <summary>
       /// Writes the base64x1.
       /// </summary>
@@ -410,7 +449,6 @@ namespace Starcounter.Internal
       }
 
 
-
       /// <summary>
       /// Writes the specified buffer.
       /// </summary>
@@ -444,6 +482,37 @@ namespace Starcounter.Internal
          return 11;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe uint WriteNullable(byte* buffer, UInt64? valueN) {
+          if (valueN == null) {
+              WriteBase64x1(1, buffer);
+              return 1;
+          }
+          var c = (Base64x5*)buffer;
+          UInt64 value = (UInt64)valueN;
+          if ((value & 0xFFFFFFFFFFFFFFE0) == 0) {// 11 111111 111111 111111 111111 100000 (NOTE: groups of SIX bits)
+              WriteBase64x1(value<<1, buffer);
+              return 1;
+          } else if ((value & 0xFFFFFFFFFFFFF800) == 0) {// 11 111111 111111 111111 100000 000000 (NOTE: groups of SIX bits)
+              WriteBase64x2(value, buffer);
+              return 2;
+          } else if ((value & (0xFFFFFFFFFFFE0000)) == 0) {// 11 111111 111111 000000 000000 000000 (NOTE: groups of SIX bits)
+              WriteBase64x3(value, buffer);
+              return 3;
+          } else if ((value & (0xFFFFFFFFFF800000)) == 0) {// 11 111111 000000 000000 000000 000000 (NOTE: groups of SIX bits)
+              WriteBase64x4(value, buffer);
+              return 4;
+          } else if ((value & (0xFFFFFFFFE0000000)) == 0) { // 11 100000 000000 000000 000000 000000 (NOTE: groups of SIX bits) 
+              WriteBase64x5(value, buffer);
+              return 5;
+          } else if ((value & (0xFFFFFFF800000000)) == 0) {
+              WriteBase64x6(value, buffer);
+              return 6;
+          }
+          WriteBase64x11(value, buffer);
+          return 11;
+      }
+
 
 
 
@@ -455,34 +524,62 @@ namespace Starcounter.Internal
       /// <returns>UInt64.</returns>
       /// <exception cref="System.Exception">Illegal size</exception>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe UInt64 Read(int size, byte* ptr)
-      {
-         switch (size)
-         {
-            case 1:
-               return ReadBase64x1(ptr);
-            case 2:
-               return ReadBase64x2(ptr);
-            case 3:
-               return ReadBase64x3(ptr);
-            case 4:
-               return ReadBase64x4(ptr);
-            case 5:
-               return ReadBase64x5(ptr);
-            case 6:
-               return ReadBase64x6(ptr);
-            case 11:
-               return ReadBase64x11(ptr);
-            default:
-               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, "+size+", in UInt64 read of FasterThanJson.");
-           
-         }
-		 //var c = (Base64x5*)ptr;
-		 //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
-		 //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
+      public static unsafe UInt64 Read(int size, byte* ptr) {
+          Debug.Assert(size >= 1 && size <= 6 || size == 11);
+          ulong val;
+          if (size == 1)
+              val = ReadBase64x1(ptr);
+          else if (size == 2)
+              val = ReadBase64x2(ptr);
+          else if (size == 3)
+              val = ReadBase64x3(ptr);
+          else if (size == 4)
+              val = ReadBase64x4(ptr);
+          else if (size == 5)
+              val = ReadBase64x5(ptr);
+          else if (size == 6)
+              val = ReadBase64x6(ptr);
+          else //if (size == 11)
+              val = ReadBase64x11(ptr);
+          //else
+          //    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
+          return val;
+          //var c = (Base64x5*)ptr;
+          //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
+          //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
-      /// <summary>
+      public static unsafe UInt64? ReadNullable(int size, byte* ptr) {
+          ulong? val;
+          if (size == 1) {
+              val = ReadBase64x1(ptr);
+              if (val == 1)
+                  val = null;
+              else {
+                  Debug.Assert((val & 0x0001) == 0);
+                  val = val >> 1;
+              }
+          }  else if (size == 2)
+              val = ReadBase64x2(ptr);
+          else if (size == 3)
+              val = ReadBase64x3(ptr);
+          else if (size == 4)
+              val = ReadBase64x4(ptr);
+          else if (size == 5)
+              val = ReadBase64x5(ptr);
+          else if (size == 6)
+              val = ReadBase64x6(ptr);
+          else if (size == 11)
+              val = ReadBase64x11(ptr);
+          else
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
+          return val;
+          //var c = (Base64x5*)ptr;
+          //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
+          //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
+      }
+
+       /// <summary>
       /// Reads the base64x1.
       /// </summary>
       /// <param name="ptr">The PTR.</param>

@@ -11,7 +11,7 @@ namespace Starcounter {
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Arr<T> : Arr where T : Json, new() {
+    public class Arr<T> : Json where T : Json, new() {
 
         /// <summary>
         /// 
@@ -39,14 +39,6 @@ namespace Starcounter {
             : base(parent, templ) {
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public new T Current {
-            get {
-                return (T)base.Current;
-            }
-        }
 
         /// <summary>
         /// 
@@ -98,24 +90,6 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="item"></param>
-        public override void Add(Json item) {
-            var typedListTemplate = ((TObjArr)Template).ElementType;
-            if (typedListTemplate != null) {
-                //                var t = allowedTemplate.GetType();
-                if (item.Template != typedListTemplate) {
-                    throw new Exception(
-                        String.Format("Cannot add item with template {0} as the array is expecting another template of type {1}",
-                                item.Template.GetType().Name,
-                                typedListTemplate.GetType().Name));
-                }
-            }
-            base.Add(item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public T Add(IBindable data) {
@@ -134,13 +108,13 @@ namespace Starcounter {
         public new T this[int index] {
             get {
 #if QUICKTUPLE
-                return (T)_Values[index];
+                return (T)list[index];
 #else
             throw new NotImplementedException();
 #endif
             }
             set {
-                _Values[index] = value;
+                list[index] = value;
                 var s = Session;
                 if (Session != null) {
                     if (ArrayAddsAndDeletes == null) {

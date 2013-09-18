@@ -194,7 +194,7 @@ namespace Starcounter.CLI {
             exe = new Executable();
             exe.Path = exePath;
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
-            exe.IsTool = args.ContainsFlag(Option.WaitForEntrypoint);
+            exe.IsTool = !args.ContainsFlag(Option.Async);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
                     exe.Arguments.Add().dummy = arg;
