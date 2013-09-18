@@ -399,8 +399,8 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
         tuple.SetTupleLength(enumerators.AvailableSize);
         // Static data for validation
-        tuple.WriteSafe((byte)NodeType);
-        tuple.WriteSafe(nodeId);
+        tuple.WriteSafeULong((byte)NodeType);
+        tuple.WriteSafeULong(nodeId);
         enumerators.HaveWritten(tuple.SealTuple());
         return (short)(expectedNodeId + 1);
     }

@@ -12,7 +12,7 @@ namespace FasterThanJson.Tests {
         static void Print(Stopwatch timer, string name, int nrIter) {
             Console.WriteLine(nrIter + " " + name + " took " + timer.ElapsedMilliseconds +
                 " ms, i.e., " + timer.ElapsedMilliseconds * 1000000 / nrIter + " ns per iteration or " +
-                (long)nrIter / timer.ElapsedMilliseconds * 1000 + " tps.");
+                (long)nrIter / (timer.ElapsedMilliseconds == 0?1:timer.ElapsedMilliseconds) * 1000 + " tps.");
             timer.Reset();
         }
 
@@ -67,7 +67,7 @@ namespace FasterThanJson.Tests {
                 timer.Start();
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 2, 2);
-                    tuple.Write(value);
+                    tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -84,7 +84,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 10, 2);
                     for (int j = 0; j < 10; j++)
-                        tuple.Write(value);
+                        tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -101,7 +101,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 10, 2);
                     for (int j = 0; j < 10; j++)
-                        tuple.Write(value);
+                        tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -118,7 +118,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < nrIter; i++) {
                     TupleWriterBase64 tuple = new TupleWriterBase64(buffer, 10, 1);
                     for (int j = 0; j < 10; j++)
-                        tuple.Write(value);
+                        tuple.WriteULong(value);
                 }
                 timer.Stop();
             }
@@ -127,7 +127,7 @@ namespace FasterThanJson.Tests {
 
         //[Test]
         public static unsafe void BenchmarkTupleUIntScale() {
-            uint value = 2341;
+            ulong value = 2341;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
             int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
             Assert.AreEqual(valueCounts.Length, nrIters.Length);
@@ -140,18 +140,18 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteULong(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " UInt writes", nrIter);
                     TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
                     for (int j = 0; j < valueCount; j++)
-                        Assert.AreEqual(value, reader.ReadUInt());
+                        Assert.AreEqual(value, reader.ReadULong());
                     timer.Start();
                     for (int i = 0; i < nrIter; i++) {
                         TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.ReadUInt();
+                            tuple.ReadULong();
                     }
                     timer.Stop();
                     Print(timer, "TupleReader creates and " + valueCount + " UInt reads", nrIter);
@@ -174,21 +174,239 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteULong(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " ULong writes", nrIter);
                     TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
                     for (int j = 0; j < valueCount; j++)
-                        Assert.AreEqual(value, reader.ReadUInt());
+                        Assert.AreEqual(value, reader.ReadULong());
                     timer.Start();
                     for (int i = 0; i < nrIter; i++) {
                         TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.ReadUInt();
+                            tuple.ReadULong();
                     }
                     timer.Stop();
                     Print(timer, "TupleReader creates and " + valueCount + " ULong reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleIntScale() {
+            int value = 1341;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[100]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteLong(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Int writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadLong());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadLong();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Int reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleLongScale() {
+            long value = Int64.MinValue;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[300]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteLong(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Long writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadLong());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadLong();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Long reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkNullableUInt() {
+            uint? value = 2341;
+            int nrIter = nrIterations * 10;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[10]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++)
+                    Base64Int.WriteNullable(buffer, value);
+                timer.Stop();
+            }
+            Print(timer, "UInt writes", nrIter);
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleNullableUIntScale() {
+            uint? value = 2341;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[100]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteULongNullable(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Nullable UInt writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadULongNullable());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadULongNullable();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Nullable UInt reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleNullableULongScale() {
+            ulong? value = UInt64.MaxValue;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[300]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteULongNullable(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Nullable ULong writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadULongNullable());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadULongNullable();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Nullable ULong reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleNullableIntScale() {
+            int? value = 1341;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[100]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteLongNullable(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Nullable Int writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadLongNullable());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadLongNullable();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Nullable Int reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleNullableLongScale() {
+            long? value = Int64.MinValue;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[300]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteLongNullable(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Nullable Long writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadLongNullable());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadLongNullable();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Nullable Long reads", nrIter);
                 }
             }
         }
@@ -208,7 +426,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteString(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 1-letter String writes", nrIter);
@@ -242,7 +460,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteString(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 10-letters String writes", nrIter);
@@ -276,7 +494,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteByteArray(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 1-byte array writes", nrIter);
@@ -310,7 +528,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.Write(value);
+                            tuple.WriteByteArray(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " 10-bytes array writes", nrIter);
@@ -433,6 +651,73 @@ namespace FasterThanJson.Tests {
             Print(timer, "New String with buffer allocation", nrIter);
         }
 
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkWriteBase64x1() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    Base64Int.WriteBase64x1(32, buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(32, Base64Int.ReadBase64x1(buffer));
+            }
+            Print(timer, "Write Int Base64x1", nrIter);
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkReadBase64x1() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                Base64Int.WriteBase64x1(32, buffer);
+                ulong res = 0;
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    res = Base64Int.ReadBase64x1(buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(32, res);
+            }
+            Print(timer, "Read Int Base64x1", nrIter);
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkWriteBase64x2() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    Base64Int.WriteBase64x2(100, buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(100, Base64Int.ReadBase64x2(buffer));
+            }
+            Print(timer, "Write Int Base64x2", nrIter);
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public static unsafe void BenchmarkReadBase64x2() {
+            int nrIter = nrIterations * 100;
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[1]) {
+                Base64Int.WriteBase64x2(100, buffer);
+                ulong res = 0;
+                timer.Start();
+                for (int i = 0; i < nrIter; i++) {
+                    res = Base64Int.ReadBase64x2(buffer);
+                }
+                timer.Stop();
+                Assert.AreEqual(100, res);
+            }
+            Print(timer, "Read Int Base64x2", nrIter);
+        }
 
         [Test]
         [Category("LongRunning")]
@@ -452,9 +737,19 @@ namespace FasterThanJson.Tests {
             BenchmarkNewTupleWriter();
             BenchmarkULong();
             BenchmarkUInt();
+            Console.WriteLine("------------ Signed Integers ----------------");
+            BenchmarkTupleLongScale();
+            BenchmarkTupleIntScale();
+            Console.WriteLine("------------ Nullable unsigned Integers ----------------");
+            BenchmarkTupleNullableULongScale();
+            BenchmarkTupleNullableUIntScale();
+            BenchmarkNullableUInt();
+            Console.WriteLine("------------ Nullable signed Integers ----------------");
+            BenchmarkTupleNullableLongScale();
+            BenchmarkTupleNullableIntScale();
             Console.WriteLine("------------ Strings ----------------");
-            BenchmarkTupleString1Scale();
             BenchmarkTupleString10Scale();
+            BenchmarkTupleString1Scale();
             BenchmarkGetBytes();
             BenchmarkNewStringBufferAlloc();
             BenchmarkGetChars();
@@ -462,8 +757,8 @@ namespace FasterThanJson.Tests {
             BenchmarkBufferAllocation();
             BenchmarkNewTupleReader();
             Console.WriteLine("------------ Byte arrays ----------------");
-            BenchmarkTupleByte1Scale();
             BenchmarkTupleByte10Scale();
+            BenchmarkTupleByte1Scale();
         }
     }
 }

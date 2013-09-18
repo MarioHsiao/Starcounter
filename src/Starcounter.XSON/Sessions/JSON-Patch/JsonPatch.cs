@@ -120,8 +120,8 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (patchType != REMOVE) {
                 sb.Append(",\"value\":");
-				if (value is Container) {
-					var oo = (Container)value;
+				if (value is Json) {
+					var oo = (Json)value;
 					sb.Append(oo.ToJson());
 				} else {
                     sb.Append(JsonConvert.SerializeObject(value));
@@ -139,10 +139,10 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="nearestApp">The nearest app.</param>
         private static void IndexPathToString(StringBuilder sb, Template from, Json nearestApp) {
             Json app;
-            Container parent;
+            Json parent;
             Boolean nextIndexIsPositionInList;
             Int32[] path;
-            Arr list;
+            Json list;
             TObjArr listProp;
             Template template;
 
@@ -158,8 +158,8 @@ namespace Starcounter.Internal.JsonPatch {
             for (Int32 i = 0; i < path.Length; i++) {
                 if (nextIndexIsPositionInList) {
                     nextIndexIsPositionInList = false;
-                    list = (Arr)app.Get(listProp);
-                    app = list[path[i]];
+                    list = (Json)app.Get(listProp);
+                    app = (Json)list[path[i]];
                     sb.Append('/');
                     sb.Append(path[i]);
                 } else {

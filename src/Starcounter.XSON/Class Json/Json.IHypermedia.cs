@@ -7,7 +7,7 @@ using System;
 using System.Text;
 
 namespace Starcounter {
-    public partial class Json {
+    public partial class Json : IHypermedia {
 
 
 
@@ -78,7 +78,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="mimeType"></param>
         /// <param name="resultingMimeType"></param>

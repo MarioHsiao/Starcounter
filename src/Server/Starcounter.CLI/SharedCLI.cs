@@ -81,15 +81,16 @@ namespace Starcounter.CLI {
             public const string NoAutoCreateDb = "noautocreate";
             /// <summary>
             /// Gets the option name of the parameter that instructs the
-            /// client not to return until the full entrypoint of the
-            /// executable has finished.
-            /// </summary>
-            public const string WaitForEntrypoint = "wait";
-            /// <summary>
-            /// Gets the option name of the parameter that instructs the
             /// client to turn on verbose output.
             /// </summary>
             public const string Verbose = "verbose";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// client to return as soon as the executable has been passed
+            /// to the host, not awaiting the full entrypoint of the
+            /// executable to return.
+            /// </summary>
+            public const string Async = "async";
         }
 
         /// <summary>
@@ -185,8 +186,8 @@ namespace Starcounter.CLI {
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
             definition.DefineFlag(
-                Option.WaitForEntrypoint,
-                "Waits for the entrypoint to execute fully before returning."
+                Option.Async,
+                "Specifies that starting should be considered completed without waiting for the entrypoint."
                 );
             definition.DefineFlag(
                 Option.Verbose,

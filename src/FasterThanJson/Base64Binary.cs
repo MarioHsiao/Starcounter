@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,8 +12,9 @@ namespace Starcounter.Internal {
             return 4 * (length / 3) + ((length % 3 == 0) ? 0 : length % 3 + 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public static unsafe uint MeasureNeededSizeToDecode(UInt32 length) {
-            return 3 * (length / 4) + (length % 4 == 0 ? 0 : length % 4 - 1);
+            return 3 * (length >> 2) + ((length & 0x00000003) == 0 ? 0 : (length & 0x00000003) - 1);
         }
         
         public static unsafe uint Write(byte* buffer, Byte* value, UInt32 length) {
@@ -91,14 +93,19 @@ namespace Starcounter.Internal {
             return (uint)(writing - value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+
         public static unsafe byte[] Read(uint size, byte* ptr) {
-            if (size == 1)
-                return null;
-            uint length = MeasureNeededSizeToDecode(size);
-            byte[] value = new byte[length];
-            fixed (byte* valuePtr = value) {
-                Read(size, ptr, valuePtr);
+            byte[] value;
+            if (size != 1) {
+                uint length = MeasureNeededSizeToDecode(size);
+                value = new byte[length];
+                fixed (byte* valuePtr = value) {
+                    Read(size, ptr, valuePtr);
+                }
             }
+            else
+                value = null;
             return value;
         }
     }
