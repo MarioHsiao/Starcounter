@@ -78,7 +78,7 @@ namespace Starcounter.Templates {
 			if (createStd)
 				codegenStandardSerializer = SerializerCompiler.The.CreateStandardJsonSerializer((TObject)this);
 			else
-				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer(this);
+				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer((TObject)this);
 			codeGenStarted = false;
 		}
 

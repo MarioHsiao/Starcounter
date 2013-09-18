@@ -69,14 +69,14 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
 		}
 
-		//[Test]
-		//public static void TestFTJCodegenSerializer() {
-		//	RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
-		//	RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), true);
-		//	RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
-		//	RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
-		//	RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
-		//}
+		[Test]
+		public static void TestFTJCodegenSerializer() {
+			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
+			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), true);
+			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
+			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
+			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+		}
 
 		[Test]
 		public static void TestStandardSerializer() {
@@ -104,14 +104,16 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			Json original;
 			Json newJson;
 
-			TJson.UseCodegeneratedSerializer = useCodegen;
-			TJson.DontCreateSerializerInBackground = true;
-
+			TJson.UseCodegeneratedSerializer = false;
+			
 			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), jsonStr);
 			original = (Json)tObj.CreateInstance();
 
 			// using standard json serializer to populate object with values.
 			original.PopulateFromJson(jsonStr);
+
+			TJson.UseCodegeneratedSerializer = useCodegen;
+			TJson.DontCreateSerializerInBackground = true;
 
 			serializedSize = tObj.ToFasterThanJson(original, out ftj);
 
@@ -408,7 +410,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         }
 
         [Test]
-        public static void GenerateSerializationParseTreeOverview() {
+        public static void GenerateStdSerializationParseTreeOverview() {
             TJson objTemplate;
             objTemplate = CreateJsonTemplateFromFile("person.json");
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
@@ -425,6 +427,15 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         }
 
 		[Test]
+		public static void GenerateFTJSerializationAstTreeOverview() {
+			TJson objTemplate;
+			objTemplate = CreateJsonTemplateFromFile("person.json");
+
+			FTJDomGenerator domGenerator = new FTJDomGenerator(objTemplate);
+			Console.WriteLine(domGenerator.GenerateDomTree().ToString(true));
+		}
+
+		[Test]
 		public static void GenerateStdSerializationCsCode() {
 			TJson objTemplate;
 
@@ -432,6 +443,17 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			objTemplate.ClassName = "PreGenerated";
 
 			StdCSharpGenerator generator = new StdCSharpGenerator(new StdDomGenerator(objTemplate));
+			Console.WriteLine(generator.GenerateCode());
+		}
+
+		[Test]
+		public static void GenerateFTJSerializationCsCode() {
+			TJson objTemplate;
+
+			objTemplate = CreateJsonTemplateFromFile("supersimple.json");
+			objTemplate.ClassName = "PreGenerated";
+
+			FTJCSharpGenerator generator = new FTJCSharpGenerator(new FTJDomGenerator(objTemplate));
 			Console.WriteLine(generator.GenerateCode());
 		}
 
