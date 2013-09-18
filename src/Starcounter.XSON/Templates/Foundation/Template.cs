@@ -21,6 +21,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract partial class Template : IReadOnlyTree
     {
+
         /// <summary>
         /// The _ class name
         /// </summary>
@@ -39,6 +40,8 @@ namespace Starcounter.Templates {
                 _Dynamic = value;
             }
         }
+
+        public bool IsArray { get; set; }
 
 
         private bool _Dynamic = false;
@@ -145,10 +148,6 @@ namespace Starcounter.Templates {
             set {
                 throw new Exception("You are not allowed to set the InstanceType of a " + this.GetType().Name + "." );
             }
-        }
-
-        internal virtual object Wrap(object value) {
-            return value;
         }
 
         /// <summary>
@@ -327,7 +326,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public object GetInstance(Container parent) {
+        public object GetInstance(Json parent) {
             return this.CreateInstance(parent);
         }
 
@@ -336,7 +335,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public virtual object CreateInstance(Container parent) {
+        public virtual object CreateInstance(Json parent) {
             return DefaultValueAsObject;
         }
 

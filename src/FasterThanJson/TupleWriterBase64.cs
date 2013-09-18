@@ -245,19 +245,39 @@ namespace Starcounter.Internal
          HaveWritten(len);
       }
 
-      /// <summary>
-      /// Writes a signed integer value to the tuple
-      /// </summary>
-      /// <param name="n">The value to write</param>
+      public unsafe void WriteULongNullable(ulong? n) {
+          uint len = Base64Int.WriteNullable(AtEnd, n);
+          HaveWritten(len);
+      }
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void WriteLong(long n) {
+      unsafe ulong ConvertFromLong(long n) {
           ulong val;
           if (n >= 0)
               val = ((ulong)n << 1);
           else
               val = ((ulong)(-(n + 1)) << 1) + 1;
           Debug.Assert(((val & 0x00000001) == 1 ? -(long)(val >> 1) - 1 : (long)(val >> 1)) == n);
-          uint len = Base64Int.Write(AtEnd, val);
+          return val;
+      }
+      /// <summary>
+      /// Writes a signed integer value to the tuple
+      /// </summary>
+      /// <param name="n">The value to write</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteLong(long n) {
+          uint len = Base64Int.Write(AtEnd, ConvertFromLong(n));
+          HaveWritten(len);
+      }
+
+      public unsafe void WriteLongNullable(long? n) {
+          uint len;
+          if (n == null) {
+              Base64Int.WriteBase64x1(1, AtEnd);
+              len = 1;
+          } else {
+              len = Base64Int.WriteNullable(AtEnd, ConvertFromLong((long)n));
+          }
           HaveWritten(len);
       }
 
@@ -299,10 +319,27 @@ namespace Starcounter.Internal
 #endif
       }
 
+      public static uint MeasureNeededSizeNullableULong(ulong? n) {
+#if BASE64
+          return Base64Int.MeasureNeededSizeNullable(n);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
       public static uint MeasureNeededSizeLong(long n) {
           if (n >= 0)
-              return Base64Int.MeasureNeededSize(((ulong)n << 1));
+              return Base64Int.MeasureNeededSize((ulong)n << 1);
           return Base64Int.MeasureNeededSize(((ulong)(-(n + 1)) << 1) + 1);
+      }
+
+      public static uint MeasureNeededSizeNullableLong(long? n) {
+          if (n == null)
+              return 1;
+          if (n >= 0)
+              return Base64Int.MeasureNeededSizeNullable((ulong)n << 1);
+          else
+              return Base64Int.MeasureNeededSizeNullable(((ulong)(-(n + 1)) << 1) + 1);
       }
 
       public static uint MeasureNeededSizeByteArray(uint length) {
@@ -350,6 +387,22 @@ namespace Starcounter.Internal
           uint size = MeasureNeededSizeLong(n);
           size = ValidateLength(size);
           WriteLong(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
+      }
+
+      public void WriteSafeULongNullable(ulong? n) {
+          uint size = MeasureNeededSizeNullableULong(n);
+          size = ValidateLength(size);
+          WriteULongNullable(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
+      }
+
+      public void WriteSafeLongNullable(long? n) {
+          uint size = MeasureNeededSizeNullableLong(n);
+          size = ValidateLength(size);
+          WriteLongNullable(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }

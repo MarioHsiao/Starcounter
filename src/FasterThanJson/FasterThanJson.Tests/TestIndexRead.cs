@@ -125,7 +125,7 @@ namespace FasterThanJson.Tests {
             int nrIterations = 10000;
             Random writeRnd = new Random(1);
             for (int i = 0; i < nrIterations; i++) {
-                uint nrValues = (uint)writeRnd.Next(1, 100);
+                uint nrValues = (uint)writeRnd.Next(1, 400);
                 int[] valueTypes = new Int32[nrValues];
                 uint[] uintValues = new uint[nrValues];
                 String[] stringValues = new String[nrValues];
@@ -133,12 +133,16 @@ namespace FasterThanJson.Tests {
                 ulong[] ulongValues = new ulong[nrValues];
                 int[] intValues = new int[nrValues];
                 long[] longValues = new long[nrValues];
+                uint?[] uintNullValues = new uint?[nrValues];
+                ulong?[] ulongNullValues = new ulong?[nrValues];
+                int?[] intNullValues = new int?[nrValues];
+                long?[] longNullValues = new long?[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     TupleWriterBase64 arrayWriter = new TupleWriterBase64(start, nrValues, 2);
                     arrayWriter.SetTupleLength((uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        valueTypes[j] = writeRnd.Next(1, 7);
+                        valueTypes[j] = writeRnd.Next(1, 11);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
@@ -163,6 +167,22 @@ namespace FasterThanJson.Tests {
                             case (int)ValueTypes.LONG:
                                 longValues[j] = RandomValues.RandomLong(writeRnd);
                                 arrayWriter.WriteSafeLong(longValues[j]);
+                                break;
+                            case (int)ValueTypes.UINTNULL:
+                                uintNullValues[j] = RandomValues.RandomNullableUInt(writeRnd);
+                                arrayWriter.WriteSafeULongNullable(uintNullValues[j]);
+                                break;
+                            case (int)ValueTypes.ULONGNULL:
+                                ulongNullValues[j] = RandomValues.RandomNullableULong(writeRnd);
+                                arrayWriter.WriteSafeULongNullable(ulongNullValues[j]);
+                                break;
+                            case (int)ValueTypes.INTNULL:
+                                intNullValues[j] = RandomValues.RandomNullableInt(writeRnd);
+                                arrayWriter.WriteSafeLongNullable(intNullValues[j]);
+                                break;
+                            case (int)ValueTypes.LONGNULL:
+                                longNullValues[j] = RandomValues.RandomNullableLong(writeRnd);
+                                arrayWriter.WriteSafeLongNullable(longNullValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
@@ -192,6 +212,18 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.LONG:
                                 Assert.AreEqual(longValues[j], arrayReader.ReadLong(j));
+                                break;
+                            case (int)ValueTypes.UINTNULL:
+                                Assert.AreEqual(uintNullValues[j], arrayReader.ReadULongNullable(j));
+                                break;
+                            case (int)ValueTypes.ULONGNULL:
+                                Assert.AreEqual(ulongNullValues[j], arrayReader.ReadULongNullable(j));
+                                break;
+                            case (int)ValueTypes.INTNULL:
+                                Assert.AreEqual(intNullValues[j], arrayReader.ReadLongNullable(j));
+                                break;
+                            case (int)ValueTypes.LONGNULL:
+                                Assert.AreEqual(longNullValues[j], arrayReader.ReadLongNullable(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

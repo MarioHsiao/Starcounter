@@ -171,13 +171,24 @@ namespace Starcounter.Internal
          return ret;
       }
 
+      public unsafe ulong? ReadULongNullable() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong? ret = Base64Int.ReadNullable(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          return ret;
+      }
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe long ConvertLong(ulong uval) {
+      public unsafe long ConvertToLong(ulong uval) {
           long ret = (long)(uval >> 1);
           if ((uval & 0x00000001) == 1)
               ret = -ret - 1;
           return ret;
       }
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe long ReadLong() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
@@ -186,21 +197,31 @@ namespace Starcounter.Internal
           ValueOffset += (uint)len;
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
-          return ConvertLong(uval);
+          return ConvertToLong(uval);
+      }
+
+      public unsafe long? ReadLongNullable() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= (int)ValueOffset;
+          ulong? uval = Base64Int.ReadNullable(len, AtEnd);
+          ValueOffset += (uint)len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          if (uval == null)
+              return null;
+          else
+              return ConvertToLong((ulong)uval);
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe ulong ReadULong(int index) {
-#if BASE64
           byte* valuePos;
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
-          ulong ret = Base64Int.Read(valueLength, valuePos);
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-#endif
-          return ret;
+          if (valueLength < 1 || valueLength > 6 && valueLength < 11 || valueLength > 11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + valueLength + ", in UInt64 read of FasterThanJson.");
+          return Base64Int.Read(valueLength, valuePos);
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
@@ -210,11 +231,39 @@ namespace Starcounter.Internal
           int valueLength;
           GetAtPosition(index, out valuePos, out valueLength);
           // Read the value at the position with the length
+          if (valueLength < 1 || valueLength >6 && valueLength<11 || valueLength>11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + valueLength + ", in Int64 read of FasterThanJson.");
           ulong ret = Base64Int.Read(valueLength, valuePos);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-          return ConvertLong(ret);
+          return ConvertToLong(ret);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe ulong? ReadULongNullable(int index) {
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          // Read the value at the position with the length
+          if (valueLength < 1 || valueLength > 6 && valueLength < 11 || valueLength > 11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + valueLength + ", in UInt64 read of FasterThanJson.");
+          return Base64Int.ReadNullable(valueLength, valuePos);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe long? ReadLongNullable(int index) {
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          // Read the value at the position with the length
+          if (valueLength < 1 || valueLength > 6 && valueLength < 11 || valueLength > 11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + valueLength + ", in Int64 read of FasterThanJson.");
+          ulong? ret = Base64Int.ReadNullable(valueLength, valuePos);
+          if (ret == null)
+              return null;
+          else
+              return ConvertToLong((ulong)ret);
       }
 
       /// <summary>

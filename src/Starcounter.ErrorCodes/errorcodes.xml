@@ -3095,7 +3095,14 @@
         field in the same class, or in a base class, not even if they differ
         in casing.
       </message>
-    </code>  
+    </code>
+    <code hex="0106" severity="Error" name="ScErrPropertyDifferInCaseOnly">
+      <message>
+        A property in a database class can not have the same name as a another
+        property in the same class, or in a base class, not even if they differ
+        in casing.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -4240,6 +4247,12 @@
       <message>
         The debugging sequence failed with an unexpected error. Consult the
         Visual Studio activity log for additional information.
+      </message>
+    </code>
+    <code hex="0011" severity="Error" name="ScErrBinaryNotFoundWhenDebug">
+      <message>
+        Could not find the executable file to run. Is the project configured
+        to build?
       </message>
     </code>
   </facility>
