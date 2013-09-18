@@ -35,7 +35,6 @@
     <ContentFile FileName="Starcounter.Server.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Server.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.Server.Rest.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Server.Rest.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.Tracking.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Tracking.dll" DocType="DX.NET" />
-    <ContentFile FileName="Starcounter.VisualStudio.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.DeserializerCompiler.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.DeserializerCompiler.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.HtmlReader.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.HtmlReader.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.JsonByExample.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.JsonByExample.dll" DocType="DX.NET" />
@@ -827,7 +826,6 @@
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Server.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Server.Rest.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Tracking.dll" RootTypeName="" />
-    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.VisualStudio.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.DeserializerCompiler.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.HtmlReader.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.JsonByExample.dll" RootTypeName="" />
