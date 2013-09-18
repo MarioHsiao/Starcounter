@@ -1,8 +1,9 @@
 ﻿using Mono.CSharp;
 using Starcounter.Advanced.XSON;
-using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using System;
+using Starcounter.XSON.Serializer.Ast;
+using Starcounter.XSON.Serializer;
 
 namespace Starcounter.Internal.XSON.DeserializerCompiler {    
     internal class SerializerCompiler {
@@ -21,17 +22,20 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             }
         }
 
-        public TypedJsonSerializer CreateStandardJsonSerializer( Template jsonTemplate) {
-            AstNamespace node;
-            string fullTypeName;
+        public TypedJsonSerializer CreateStandardJsonSerializer(TObject jsonTemplate) {
+			StdDomGenerator domGenerator;
+			StdCSharpGenerator codeGenerator;
+			string code;
+			string fullTypeName;
 
             if (jsonTemplate == null)
                 throw new ArgumentNullException();
 
-            node = AstTreeGenerator.BuildAstTree(jsonTemplate);
-            fullTypeName = node.Namespace + "." + ((AstJsonSerializerClass)node.Children[0]).ClassName;
+			domGenerator = new StdDomGenerator(jsonTemplate);
+			codeGenerator = new StdCSharpGenerator(domGenerator);
+			code = codeGenerator.GenerateCode();
+			fullTypeName = domGenerator.DomTree.SerializerClass.FullClassName;
 
-            string code = node.GenerateCsSourceCode();
             return GenerateJsonSerializer(code, fullTypeName);
         }
 

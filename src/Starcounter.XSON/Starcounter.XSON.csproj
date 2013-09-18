@@ -63,38 +63,26 @@
     <Compile Include="Class Json\Json.JsonPointer.cs" />
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\Json.Transaction.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstFail.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstJSConstructor.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstJsonSerializerClass.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstNamespace.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstNode.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstTreeGenerator.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstUnsafe.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstCase.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstDeserializeFunction.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstFindObject.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstGotoProperty.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstGotoValue.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstParseJsonObjectArray.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstParseJsonValue.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstSwitch.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstVerifier.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\FromJson\AstWhile.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstCheckAlreadyProcessed.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstFixed.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstJsonDelimiter.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstJsonObject.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstJsonObjectArrayValue.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstJsonObjectValue.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstJsonPrimitiveValue.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstJsonProperty.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstLabel.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstRecreateBuffer.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstReturn.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\ToJson\AstSerializeFunction.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\ParseTree\ParseNode.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="Serializer\Json\Code-generated Deserializer\ParseTree\TemplateMetadata.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstBase.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstRoot.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstUnsafe.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstCase.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstDeserializeFunction.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstGotoProperty.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstGotoValue.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstSwitch.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstVerifier.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstWhile.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstJsonProperty.cs" />
+    <Compile Include="Serializer\Codegen\AstTree\AstSerializeFunction.cs" />
+    <Compile Include="Serializer\Codegen\FTJCsharpGenerator.cs" />
+    <Compile Include="Serializer\Codegen\ParseTree\ParseNode.cs" />
+    <Compile Include="Serializer\Codegen\ParseTree\ParseTreeGenerator.cs" />
+    <Compile Include="Serializer\Codegen\ParseTree\TemplateMetadata.cs" />
+    <Compile Include="Serializer\Codegen\StdCSharpGenerator.cs" />
+    <Compile Include="Serializer\Codegen\StdDomGenerator.cs" />
     <Compile Include="Serializer\SerializerCompiler.cs" />
     <Compile Include="Class Json\IBound.cs" />
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
@@ -199,6 +187,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Serializer\Codegen\AstTree\FromJson\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

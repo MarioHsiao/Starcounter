@@ -9,6 +9,8 @@ using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 using Modules;
 using TJson = Starcounter.Templates.TObject;
+using Starcounter.XSON.Serializer.Parsetree;
+using Starcounter.XSON.Serializer;
 
 
 namespace Starcounter.Internal.XSON.Serializer.Tests {
@@ -132,9 +134,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			Json original;
 			Json newJson;
 
-			TJson.UseCodegeneratedSerializer = useCodegen;
-			TJson.DontCreateSerializerInBackground = true;
-
+			TJson.UseCodegeneratedSerializer = false;
+			
 			tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), jsonStr);
 			original = (Json)tObj.CreateInstance();
 
@@ -143,6 +144,9 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 			// using standard json serializer to populate object with values.
 			original.PopulateFromJson(jsonStr);
+
+			TJson.UseCodegeneratedSerializer = useCodegen;
+			TJson.DontCreateSerializerInBackground = true;
 
 			serializedSize = tObj.ToJsonUtf8(original, out jsonArr);
 
@@ -412,11 +416,24 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         }
 
         [Test]
-        public static void GenerateSerializationAstTreeOverview() {
+        public static void GenerateStdSerializationAstTreeOverview() {
             TJson objTemplate;
             objTemplate = CreateJsonTemplateFromFile("person.json");
-            Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).ToString());
+
+			StdDomGenerator domGenerator = new StdDomGenerator(objTemplate);
+            Console.WriteLine(domGenerator.GenerateDomTree().ToString(true));
         }
+
+		[Test]
+		public static void GenerateStdSerializationCsCode() {
+			TJson objTemplate;
+
+			objTemplate = CreateJsonTemplateFromFile("supersimple.json");
+			objTemplate.ClassName = "PreGenerated";
+
+			StdCSharpGenerator generator = new StdCSharpGenerator(new StdDomGenerator(objTemplate));
+			Console.WriteLine(generator.GenerateCode());
+		}
 
         /// <summary>
         /// Creates a template from a JSON-by-example file
@@ -429,15 +446,6 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
-        }
-
-        [Test]
-        public static void GenerateSerializationCsCode() {
-            TJson objTemplate;
-
-            objTemplate = CreateJsonTemplateFromFile("supersimple.json");
-            objTemplate.ClassName = "PreGenerated";
-            Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate, false).GenerateCsSourceCode());
         }
 
 		//[Test]

@@ -8,8 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Starcounter.Internal.Application.CodeGeneration {
-
+namespace Starcounter.XSON.Serializer.Parsetree {
     /// <summary>
     /// The result of analysing template names. Used to generate source code to quickly 
     /// and efficient find the correct code to execute for  serialization/deserialization 
