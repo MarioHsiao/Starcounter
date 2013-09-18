@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Starcounter.Templates;
 using System;
 
-namespace Starcounter.Internal.Application.CodeGeneration {
+namespace Starcounter.XSON.Serializer.Parsetree {
 
     /// <summary>
     /// For fast execution, Starcounter will generate code to handle serialization/deserialization

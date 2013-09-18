@@ -8,7 +8,7 @@ using System;
 using System.Text;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.CodeGeneration {
+namespace Starcounter.XSON.Serializer.Parsetree {
     /// <summary>
     /// 
     /// </summary>
