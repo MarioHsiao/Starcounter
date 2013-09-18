@@ -301,6 +301,7 @@ namespace GenerateInstaller
                 versionFileContents += "  <Configuration>" + configuration + "</Configuration>" + Environment.NewLine;
                 versionFileContents += "  <Platform>" + platform + "</Platform>" + Environment.NewLine;
                 versionFileContents += "  <Version>" + version + "</Version>" + Environment.NewLine;
+                versionFileContents += "  <VersionDate>" + DateTime.UtcNow.ToUniversalTime().ToString("u") + "</VersionDate>" + Environment.NewLine;
                 versionFileContents += "  <Channel>" + channel + "</Channel>" + Environment.NewLine;
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 
