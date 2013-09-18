@@ -133,7 +133,7 @@ namespace Starcounter.Internal.JsonPatch {
                     if (contentArr[offset + 1] == 'a'
                         && contentArr[offset + 2] == 'l'
                         && contentArr[offset + 3] == 'u'
-                        && contentArr[offset + 3] == 'u') {
+                        && contentArr[offset + 4] == 'e') {
                         offset += 5;
                         member = JsonPatchMember.Value;
                     }
@@ -340,7 +340,7 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Arr list = mainApp.Get((TObjArr)current);
+                    Json list = mainApp.Get((TObjArr)current);
                     current = list[index];
                 }
                 else {
@@ -366,7 +366,7 @@ namespace Starcounter.Internal.JsonPatch {
                     current = t;
                 }
 
-                if (current is Json) {
+                if (current is Json && !(current as Json).IsArray) {
                     mainApp = current as Json;
                 }
                 else if (current is TObject) {

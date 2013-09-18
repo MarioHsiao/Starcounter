@@ -6,9 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
-using Starcounter.Internal.XSON;
+using Starcounter.Internal;
 using Starcounter.Templates;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter.Internal.JsonPatch {
 	/// <summary>
@@ -80,7 +82,7 @@ namespace Starcounter.Internal.JsonPatch {
 			if (property is TString) {
 				ret = change.Obj.Get((TString)property);
 			} else if (property is TObjArr) {
-				var arr = (Arr)change.Obj.Get((TObjArr)property);
+				var arr = (Json)change.Obj.Get((TObjArr)property);
 				if (change.Index != -1) {
 					ret = arr[change.Index];
 				} else {

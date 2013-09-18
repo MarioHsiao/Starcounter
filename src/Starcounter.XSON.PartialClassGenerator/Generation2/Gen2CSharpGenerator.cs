@@ -506,7 +506,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="node"></param>
         private void WriteTAppCreateInstance(AstTAppClass node) {
             StringBuilder sb = new StringBuilder();
-            sb.Append("    public override object CreateInstance(Container parent) { return new ");
+            sb.Append("    public override object CreateInstance(Json parent) { return new ");
             sb.Append(node.NValueClass.GlobalClassSpecifier);
             if (node.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(node.Template).GlobalClassSpecifier;

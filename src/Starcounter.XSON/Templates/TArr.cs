@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
-        public override object CreateInstance(Container parent) {
+        public override object CreateInstance(Json parent) {
             return new Arr<OT>((Json)parent, this);
         }
 
@@ -150,11 +150,14 @@ namespace Starcounter.Templates {
         }
 
         internal override void SetBoundValueAsObject(Json obj, object value) {
-			obj.SetBound(this, value);
+			// TODO:
+			// Check this. What do we set as bound value on an array? The IEnumerable?
+			// or is the value we get the array itself?
+			obj.SetBound(this, value as IEnumerable);
         }
 
-        public override object CreateInstance(Container parent) {
-            return new Arr((Json)parent, this);
+        public override object CreateInstance(Json parent) {
+            return new Json((Json)parent, this);
 		}
 
 		public override string ToJson(Json json) {
