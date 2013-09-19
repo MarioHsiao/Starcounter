@@ -685,7 +685,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         node_elem = root_elem->first_node("AggregationPort");
         GW_ASSERT(node_elem);
         setting_aggregation_port_ = (uint16_t)atoi(node_elem->value());
-        GW_ASSERT(setting_aggregation_port_ > 0 && setting_aggregation_port_ < 65536);
+        GW_ASSERT(setting_aggregation_port_ >= 0 && setting_aggregation_port_ < 65536);
 
         // Just enforcing minimum socket timeout multiplier.
         if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
