@@ -60,6 +60,8 @@
     <Compile Include="Class Json\Json.Array2.cs" />
     <Compile Include="Class Json\Json.IList.cs" />
     <Compile Include="Class Json\Json.cs" />
+    <Compile Include="Class Json\Json.JsonPointer.cs" />
+    <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\Json.Transaction.cs" />
     <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstFail.cs" />
     <Compile Include="Serializer\Json\Code-generated Deserializer\AstTree\AstJSConstructor.cs" />
@@ -120,7 +122,6 @@
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="JSON-By-Example\Module2.cs" />
-    <Compile Include="Class Json\Container.cs" />
     <Compile Include="Binding\DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Interfaces\IDebugInfo.cs" />

@@ -133,7 +133,7 @@ namespace Starcounter.Internal.JsonPatch {
                     if (contentArr[offset + 1] == 'a'
                         && contentArr[offset + 2] == 'l'
                         && contentArr[offset + 3] == 'u'
-                        && contentArr[offset + 3] == 'u') {
+                        && contentArr[offset + 4] == 'e') {
                         offset += 5;
                         member = JsonPatchMember.Value;
                     }

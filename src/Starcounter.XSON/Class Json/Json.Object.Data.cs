@@ -13,13 +13,6 @@ using Starcounter.Internal.XSON;
 namespace Starcounter {
     partial class Json {
 
-        /// <summary>
-        /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
-        /// underlying bound object. This is common in database applications where Json messages
-        /// or view models (Puppets) are often associated with database objects. I.e. a person form might
-        /// reflect a person database object (Entity).
-        /// </summary>
-        internal IBindable _data;
 
         /// <summary>
         /// 
@@ -38,16 +31,12 @@ namespace Starcounter {
         /// <value>The bound data object (often a database Entity)</value>
         public object Data {
             get {
-                if (IsArray) {
-                    return notEnumeratedResult;
-                }
-                else {
-                    return _data;
-                }
+                return _data;
             }
             set {
                 if (IsArray) {
-                    notEnumeratedResult = (IEnumerable)value;
+                    _PendingEnumeration = true;
+                    _data = (IEnumerable)value;
                     this.Array_InitializeAfterImplicitConversion((Json)this.Parent, (TObjArr)this.Template);
                 }
                 else {
@@ -144,6 +133,20 @@ namespace Starcounter {
 
             return ((DataValueBinding<IEnumerable>)template.dataBinding).Get(data);
         }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="template"></param>
+		/// <param name="value"></param>
+		internal void SetBound(TObjArr template, IEnumerable value) {
+			IBindable data = DataAsBindable;
+			if (data == null)
+				return;
+			var binding = (DataValueBinding<IEnumerable>)template.dataBinding;
+			if (binding.HasSetBinding())
+				binding.Set(data, value);
+		}
 
 		/// <summary>
 		/// Gets the bound value from the dataobject.

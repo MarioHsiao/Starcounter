@@ -301,6 +301,7 @@ namespace GenerateInstaller
                 versionFileContents += "  <Configuration>" + configuration + "</Configuration>" + Environment.NewLine;
                 versionFileContents += "  <Platform>" + platform + "</Platform>" + Environment.NewLine;
                 versionFileContents += "  <Version>" + version + "</Version>" + Environment.NewLine;
+                versionFileContents += "  <VersionDate>" + DateTime.UtcNow.ToUniversalTime().ToString("u") + "</VersionDate>" + Environment.NewLine;
                 versionFileContents += "  <Channel>" + channel + "</Channel>" + Environment.NewLine;
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 
@@ -363,6 +364,18 @@ namespace GenerateInstaller
                 BuildSystem.CopyFilesRecursively(
                     new DirectoryInfo(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper"),
                     new DirectoryInfo(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper"));
+
+                // Copying documentation if generated.
+                if (Directory.Exists(checkoutDir + @"\Level1\docs"))
+                {
+                    BuildSystem.CopyFilesRecursively(
+                        new DirectoryInfo(checkoutDir + @"\Level1\docs\public"),
+                        new DirectoryInfo(tempBuildDir + @"\docs\public"));
+
+                    BuildSystem.CopyFilesRecursively(
+                        new DirectoryInfo(checkoutDir + @"\Level1\docs\internal"),
+                        new DirectoryInfo(tempBuildDir + @"\docs\internal"));
+                }
 
                 // Copy all needed build tools to target directory.
                 String buildToolsBinDir = Path.Combine(checkoutDir, BuildSystem.CommonDefaultBuildToolsOutputPath);

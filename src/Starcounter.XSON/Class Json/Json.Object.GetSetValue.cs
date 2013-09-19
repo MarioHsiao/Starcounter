@@ -293,7 +293,8 @@ namespace Starcounter {
             var current = (Json)list[property.TemplateIndex];
             if (current != null) {
                 current.Clear();
-                current.notEnumeratedResult = data;
+                current._PendingEnumeration = true;
+                current._data = data;
                 current.Array_InitializeAfterImplicitConversion(this, property);
             }
         }

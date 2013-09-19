@@ -583,7 +583,7 @@ namespace Starcounter.Internal.Weaver {
                     // The target attribute should be a persistent field.
                     if (synonymTo.AttributeKind != DatabaseAttributeKind.Field) {
                         ScMessageSource.WriteError(
-                            MessageLocation.Of(databaseAttribute),
+                            MessageLocation.Unknown,
                             Error.SCERRSYNTARGETNOTPERSISTENT,
                             string.Format("{0}.{1}, synonymous to {2}.{3}", 
                             databaseAttribute.DeclaringClass.Name, 
@@ -606,7 +606,7 @@ namespace Starcounter.Internal.Weaver {
                             && fieldDef.FieldType != synonymFieldDef.FieldType)) {
                             
                             ScMessageSource.WriteError(
-                                MessageLocation.Of(databaseAttribute),
+                                MessageLocation.Unknown,
                                 Error.SCERRSYNTYPEMISMATCH,
                                 string.Format("{0}.{1}, synonymous to {2}.{3}",
                                 databaseAttribute.DeclaringClass.Name,
@@ -626,7 +626,7 @@ namespace Starcounter.Internal.Weaver {
                             // the target field may not be private.
                             if (targetVisibility == FieldAttributes.Private) {
                                 ScMessageSource.WriteError(
-                                    MessageLocation.Of(databaseAttribute),
+                                    MessageLocation.Unknown,
                                     Error.SCERRSYNVISIBILITYMISMATCH,
                                     string.Format("Field {0}.{1}, synonymous to external, private field.",
                                     databaseAttribute.DeclaringClass.Name,
@@ -639,7 +639,7 @@ namespace Starcounter.Internal.Weaver {
                             // in the correct order.
                             if ((int)fieldVisibility > (int)targetVisibility) {
                                 ScMessageSource.WriteError(
-                                    MessageLocation.Of(databaseAttribute),
+                                    MessageLocation.Unknown,
                                     Error.SCERRSYNVISIBILITYMISMATCH,
                                     string.Format("Field {0}.{1}, synonymous to {2}.{3}",
                                     databaseAttribute.DeclaringClass.Name,
@@ -656,7 +656,7 @@ namespace Starcounter.Internal.Weaver {
                                     && (fieldDef.Attributes & FieldAttributes.InitOnly) == 0) {
                                 
                                 ScMessageSource.WriteError(
-                                    MessageLocation.Of(databaseAttribute),
+                                    MessageLocation.Unknown,
                                     Error.SCERRSYNREADONLYMISMATCH,
                                     string.Format("Field {0}.{1}, synonymous to {2}.{3}",
                                     databaseAttribute.DeclaringClass.Name,
@@ -705,7 +705,7 @@ namespace Starcounter.Internal.Weaver {
 
                 if (databaseClass == null || (databaseAttribute = databaseClass.Attributes[field.Name]) == null || !databaseAttribute.IsPersistent) {
                     ScMessageSource.WriteError(
-                                MessageLocation.Of(synonymToEnumerator.Current.TargetElement),
+                                MessageLocation.Unknown,
                                 Error.SCERRUNSPECIFIED,
                                 "Illegal element for the SynonymousTo attribute");
                 }
@@ -871,7 +871,7 @@ namespace Starcounter.Internal.Weaver {
             if (databaseAttribute.AttributeType == null) {
                 if (requireSupportedType) {
                     ScMessageSource.WriteError(
-                        MessageLocation.Of(databaseAttribute),
+                        MessageLocation.Unknown,
                         Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
                         string.Format("Attribute: {0}.{1} ({2})", member.Parent, member.Name, type.GetReflectionName())
                         );
@@ -955,7 +955,7 @@ namespace Starcounter.Internal.Weaver {
             } else if (databaseClass is DatabaseEntityClass) {
                 if (!typeDef.IsPublic()) {
                     ScMessageSource.WriteError(
-                        MessageLocation.Of(typeDef), Error.SCERRENTITYCLASSNOTPUBLIC, string.Format("Class: {0}", typeDef));
+                        MessageLocation.Unknown, Error.SCERRENTITYCLASSNOTPUBLIC, string.Format("Class: {0}", typeDef));
                     return null;
                 }
             }
@@ -1061,7 +1061,7 @@ namespace Starcounter.Internal.Weaver {
                                 item.Name,
                                 cursor.Name);
                             ScMessageSource.WriteError(
-                                MessageLocation.Of(field),
+                                MessageLocation.Unknown,
                                 Error.SCERRFIELDSDIFFERINCASEONLY,
                                 detail);
                             success = false;
@@ -1092,7 +1092,7 @@ namespace Starcounter.Internal.Weaver {
                 if (targetAttribute == null) {
                     // The target field could not be found.
                     ScMessageSource.WriteError(
-                        MessageLocation.Of(databaseAttribute),
+                        MessageLocation.Unknown,
                         Error.SCERRSYNNOTARGET,
                         string.Format("Field {0}.{1}, synonymous to missing field \"{2}\".",
                         databaseAttribute.DeclaringClass.Name,
@@ -1205,7 +1205,7 @@ namespace Starcounter.Internal.Weaver {
                                 item.Name,
                                 cursor.Name);
                             ScMessageSource.WriteError(
-                                MessageLocation.Of(property),
+                                MessageLocation.Unknown,
                                 Error.SCERRPROPERTYNAMEEQUALSFIELD,
                                 detail);
                             success = false;
@@ -1220,7 +1220,7 @@ namespace Starcounter.Internal.Weaver {
                                     item.Name,
                                     cursor.Name);
                                 ScMessageSource.WriteError(
-                                    MessageLocation.Of(property),
+                                    MessageLocation.Unknown,
                                     Error.SCERRPROPERTYDIFFERINCASEONLY,
                                     detail);
                                 success = false;
