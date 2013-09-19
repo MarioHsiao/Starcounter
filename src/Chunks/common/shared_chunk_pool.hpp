@@ -254,6 +254,26 @@ public:
 	chunks_to_acquire, client_interface_type* client_interface_ptr,
 	smp::spinlock::milliseconds timeout = 10000);
 	
+	/// Clients acquire chunks to a private chunk_pool, by moving chunks from
+	/// the shared_chunk_pool to the private_chunk_pool. The chunks are marked
+	/// as owned by the client.
+	/**
+	 * @param private_chunk_pool Reference to the private_chunk_pool to which
+	 *		chunks are allocated.
+	 * @param chunks_to_acquire The number of chunks to acquire.
+	 * @param client_interface_ptr A pointer to the client_interface where the
+	 *		chunk(s) will be marked as owned by the client.
+	 * @param timeout The number of milliseconds to wait before a
+	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @return The number of acquired chunks. If the private_chunk_pool is full
+	 *		or becomes full when acquiring chunks, the acquirement process is
+	 *		stopped. This means that less than chunks_to_acquire was acquired.
+	 */
+	template<typename U>
+	std::size_t acquire(U& private_chunk_pool, std::size_t
+	chunks_to_acquire, client_interface_type* client_interface_ptr,
+	smp::spinlock::milliseconds timeout = 10000);
+
 	/// Clients release chunks from a private_chunk_pool, by moving chunks from
 	/// the private_chunk_pool to the shared_chunk_pool. The chunks are marked
 	/// as not owned by the client.
@@ -273,6 +293,25 @@ public:
 	chunks_to_release, client_interface_type* client_interface_ptr,
 	smp::spinlock::milliseconds timeout = 10000);
 	
+	/// Clients release chunks from a private_chunk_pool, by moving chunks from
+	/// the private_chunk_pool to the shared_chunk_pool. The chunks are marked
+	/// as not owned by the client.
+	/// shared_interface::release_to_shared_chunk_pool() calls this one.
+	/**
+	 * @param private_chunk_pool Reference to the private_chunk_pool from which
+	 *		chunks are released.
+	 * @param chunks_to_release The number of chunks to release.
+	 * @param client_interface_ptr A pointer to the client_interface where the
+	 *		chunk(s) will be marked as not owned by the client.
+	 * @param timeout The number of milliseconds to wait before a
+	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @return The number of released chunks.
+	 */
+	template<typename U>
+	std::size_t release(U& private_chunk_pool, std::size_t chunks_to_release,
+	client_interface_type* client_interface_ptr, smp::spinlock::milliseconds
+	timeout);
+
 	//--------------------------------------------------------------------------
 	/// Schedulers acquire chunks to a private chunk_pool, by moving chunks from
 	/// the shared_chunk_pool to the private_chunk_pool.

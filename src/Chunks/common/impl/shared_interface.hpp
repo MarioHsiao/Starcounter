@@ -245,10 +245,26 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 }
 
 template<typename U>
+inline std::size_t shared_interface::acquire_from_shared_chunk_pool(U&
+private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
+client_interface_ptr, uint32_t timeout_milliseconds) {
+	return shared_chunk_pool_->acquire(private_chunk_pool,
+	chunks_to_acquire, client_interface_ptr, timeout_milliseconds);
+}
+
+template<typename U>
 inline std::size_t shared_interface::release_from_private_to_shared(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
 client_interface_ptr, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->release_from_chunk_pool(private_chunk_pool,
+	chunks_to_release, client_interface_ptr, timeout_milliseconds);
+}
+
+template<typename U>
+inline std::size_t shared_interface::release_to_shared_chunk_pool(U&
+private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
+client_interface_ptr, uint32_t timeout_milliseconds) {
+	return shared_chunk_pool_->release(private_chunk_pool,
 	chunks_to_release, client_interface_ptr, timeout_milliseconds);
 }
 
