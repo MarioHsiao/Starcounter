@@ -1,8 +1,9 @@
 ﻿using Mono.CSharp;
 using Starcounter.Advanced.XSON;
-using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using System;
+using Starcounter.XSON.Serializer.Ast;
+using Starcounter.XSON.Serializer;
 
 namespace Starcounter.Internal.XSON.DeserializerCompiler {    
     internal class SerializerCompiler {
@@ -21,33 +22,38 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             }
         }
 
-        public TypedJsonSerializer CreateStandardJsonSerializer( Template jsonTemplate) {
-            AstNamespace node;
-            string fullTypeName;
+        public TypedJsonSerializer CreateStandardJsonSerializer(TObject jsonTemplate) {
+			StdDomGenerator domGenerator;
+			StdCSharpGenerator codeGenerator;
+			string code;
+			string fullTypeName;
 
             if (jsonTemplate == null)
                 throw new ArgumentNullException();
 
-            node = AstTreeGenerator.BuildAstTree(jsonTemplate);
-            fullTypeName = node.Namespace + "." + ((AstJsonSerializerClass)node.Children[0]).ClassName;
+			domGenerator = new StdDomGenerator(jsonTemplate);
+			codeGenerator = new StdCSharpGenerator(domGenerator);
+			code = codeGenerator.GenerateCode();
+			fullTypeName = domGenerator.DomTree.SerializerClass.FullClassName;
 
-            string code = node.GenerateCsSourceCode();
             return GenerateJsonSerializer(code, fullTypeName);
         }
 
-		public TypedJsonSerializer CreateFTJSerializer(Template jsonTemplate) {
-			throw new NotImplementedException("TODO!");
-			//AstNamespace node;
-			//string fullTypeName;
+		public TypedJsonSerializer CreateFTJSerializer(TObject jsonTemplate) {
+			FTJDomGenerator domGenerator;
+			FTJCSharpGenerator codeGenerator;
+			string code;
+			string fullTypeName;
 
-			//if (jsonTemplate == null)
-			//	throw new ArgumentNullException();
+			if (jsonTemplate == null)
+				throw new ArgumentNullException();
 
-			//node = AstTreeGenerator.BuildAstTree(jsonTemplate);
-			//fullTypeName = node.Namespace + "." + ((AstJsonSerializerClass)node.Children[0]).ClassName;
+			domGenerator = new FTJDomGenerator(jsonTemplate);
+			codeGenerator = new FTJCSharpGenerator(domGenerator);
+			code = codeGenerator.GenerateCode();
+			fullTypeName = domGenerator.DomTree.SerializerClass.FullClassName;
 
-			//string code = node.GenerateCsSourceCode();
-			//return GenerateJsonSerializer(code, fullTypeName);
+			return GenerateJsonSerializer(code, fullTypeName);
 		}
 
         /// <summary>
@@ -65,6 +71,7 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             settings.Optimize = true;
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");
+			settings.AssemblyReferences.Add("FasterThanJson.dll");
 
             var context = new CompilerContext(settings, new ConsoleReportPrinter());
             var eval = new Evaluator(context);

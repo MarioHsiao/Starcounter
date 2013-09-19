@@ -203,6 +203,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
+      <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
+      <Name>FasterThanJson</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
