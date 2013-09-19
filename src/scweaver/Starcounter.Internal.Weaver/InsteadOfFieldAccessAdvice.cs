@@ -106,16 +106,17 @@ namespace Starcounter.Internal.Weaver {
             if (context.JoinPoint.Instruction.SymbolSequencePoint != null) {
                 context.InstructionWriter.EmitSymbolSequencePoint(context.JoinPoint.Instruction.SymbolSequencePoint);
             }
+
             if (context.Method.Name == ".ctor" &&
                 ScAnalysisTask.IsInitializationBlock(block.ParentBlock) &&
                 context.JoinPoint.Instruction.OpCodeNumber == OpCodeNumber.Stfld) {
-                // 'Stfld' instruction has been found in the constructor, before
-                // the base constructor has been called. We do not support this kind of
-                // construction. The analysis task should have read the constant value and
-                // set it in the database schema so that the database kernel can initialize
-                // the object properly. What we have to do now is simply to ignore the operation.
-                context.InstructionWriter.EmitInstruction(OpCodeNumber.Pop);
-                context.InstructionWriter.EmitInstruction(OpCodeNumber.Pop);
+                // We are preventing field store instructions in the initialization
+                // block of constructors - see ValidateConstructor in ScAnalysisTask.
+                // So we should never get here any more. Let's assert we don't for a
+                // while so what haven't missed something.
+                throw new AssertionFailedException(
+                    string.Format("Detected unexpected Stfld instruction in constructor initialization block, method: {0}", context.Method.GetDisplayName()));
+
             } else {
                 switch (context.JoinPoint.Instruction.OpCodeNumber) {
                     case OpCodeNumber.Ldfld:
