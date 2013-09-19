@@ -377,12 +377,16 @@ __forceinline uint32_t __stdcall sc_bmx_send_big_buffer(
 // The entry point to send any-size user data to client.
 EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint8_t* buf,
-    uint32_t buf_len_bytes,
+    int32_t buf_len_bytes,
     starcounter::core::chunk_index* src_chunk_index,
     uint8_t* src_chunk_buf,
     uint32_t conn_flags
     )
 {
+    assert(buf_len_bytes >= 0);
+    assert(NULL != src_chunk_buf);
+    assert(shared_memory_chunk::link_terminator != *src_chunk_index);    
+
     // Points to user data offset in chunk.
     uint32_t chunk_user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA) +
         starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
@@ -390,7 +394,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     // Adding connection flags.
     (*(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= conn_flags;
 
-    uint32_t remaining_bytes_in_orig_chunk = (starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
+    int32_t remaining_bytes_in_orig_chunk = (starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
 
     // Setting non-bmx-management chunk type.
     (*(BMX_HANDLER_TYPE*)(src_chunk_buf + starcounter::core::chunk_type::bmx_protocol_begin)) = starcounter::bmx::BMX_INVALID_HANDLER_INFO;

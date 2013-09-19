@@ -64,6 +64,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
     switch (frame_info_.opcode_)
     {
+        case WS_OPCODE_CONTINUATION: // TODO: Fix full support!
         case WS_OPCODE_TEXT:
         case WS_OPCODE_BINARY:
         {
