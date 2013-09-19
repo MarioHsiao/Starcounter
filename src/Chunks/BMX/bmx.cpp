@@ -599,35 +599,6 @@ uint32_t BmxData::HandleSessionDestruction(request_chunk_part* request, TASK_INF
     return 0;
 }
 
-// Handle new session creation.
-uint32_t BmxData::HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
-{
-    uint32_t* plinear_index = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
-    uint64_t* prandom_salt = (uint64_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
-    uint32_t* preserved = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_RESERVED_INDEX);
-
-    // Calling managed function to destroy session.
-    g_create_new_apps_session_callback(task_info->scheduler_number, plinear_index, prandom_salt, preserved);
-
-    //std::cout << "Session " << apps_unique_session_index << ":" << apps_session_salt << " was created." << std::endl;
-
-    // First we need to reset chunk using request.
-    smc->get_request_chunk()->reset_offset();
-
-    bmx_handler_type* handler_id = (bmx_handler_type*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
-
-    // Setting fixed handler id in response.
-    smc->set_bmx_handler_info(*handler_id);
-
-    response_chunk_part *resp_chunk = smc->get_response_chunk();
-    resp_chunk->reset_offset();
-
-    // Now the chunk is ready to be sent back.
-    uint32_t err_code = cm_send_to_client(task_info->chunk_index);
-
-    return err_code;
-}
-
 // Handles error from gateway.
 uint32_t BmxData::HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info)
 {

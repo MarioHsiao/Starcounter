@@ -251,7 +251,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      unsafe ulong ConvertLong(long n) {
+      unsafe ulong ConvertFromLong(long n) {
           ulong val;
           if (n >= 0)
               val = ((ulong)n << 1);
@@ -266,7 +266,7 @@ namespace Starcounter.Internal
       /// <param name="n">The value to write</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void WriteLong(long n) {
-          uint len = Base64Int.Write(AtEnd, ConvertLong(n));
+          uint len = Base64Int.Write(AtEnd, ConvertFromLong(n));
           HaveWritten(len);
       }
 
@@ -276,7 +276,7 @@ namespace Starcounter.Internal
               Base64Int.WriteBase64x1(1, AtEnd);
               len = 1;
           } else {
-              len = Base64Int.WriteNullable(AtEnd, ConvertLong((long)n));
+              len = Base64Int.WriteNullable(AtEnd, ConvertFromLong((long)n));
           }
           HaveWritten(len);
       }
@@ -387,6 +387,22 @@ namespace Starcounter.Internal
           uint size = MeasureNeededSizeLong(n);
           size = ValidateLength(size);
           WriteLong(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
+      }
+
+      public void WriteSafeULongNullable(ulong? n) {
+          uint size = MeasureNeededSizeNullableULong(n);
+          size = ValidateLength(size);
+          WriteULongNullable(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
+      }
+
+      public void WriteSafeLongNullable(long? n) {
+          uint size = MeasureNeededSizeNullableLong(n);
+          size = ValidateLength(size);
+          WriteLongNullable(n);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
