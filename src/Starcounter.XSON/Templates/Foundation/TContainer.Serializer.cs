@@ -34,7 +34,7 @@ namespace Starcounter.Templates {
 							ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
 						else {
 							GenerateSerializer(false);
-							return codegenStandardSerializer;
+							return codegenFTJSerializer;
 						}
 					}
 				}
