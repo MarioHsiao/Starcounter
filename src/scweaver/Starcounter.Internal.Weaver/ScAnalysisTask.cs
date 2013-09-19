@@ -1320,9 +1320,8 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="typeDef"><see cref="TypeDefDeclaration" /> corresponding to
         /// <paramref name="databaseClass" />.</param>
         private void InspectConstructors(DatabaseClass databaseClass, TypeDefDeclaration typeDef) {
-            // Process constructors.
             foreach (MethodDefDeclaration methodDef in typeDef.Methods.GetByName(".ctor")) {
-                this.InspectConstructor(methodDef, databaseClass);
+                ValidateConstructor(methodDef, databaseClass);
             }
         }
 
@@ -1336,294 +1335,46 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Inspects the constructor.
+        /// Validates the given constructor, checking for constraint violations.
+        /// All violations found are reported as errors.
         /// </summary>
-        /// <param name="methodDef">The method def.</param>
-        /// <param name="databaseClass">The database class.</param>
-        private void InspectConstructor(MethodDefDeclaration methodDef, DatabaseClass databaseClass) {
-            ScAnalysisTrace.Instance.WriteLine("Inspecting the constructor {{{0}}}.", methodDef);
-            // Analyze the constructor. Separate the "this uninitialized" zone.
-            MethodBodyRestructurer methodBodyRestructurer = new MethodBodyRestructurer(methodDef,
-                    MethodBodyRestructurerOptions.
-                    None, this._weavingHelper);
-            methodBodyRestructurer.Restructure(_writer);
-            // Remember that this is the initialization block.
-            _initializationBlocks.AddIfAbsent(methodBodyRestructurer.InitializationBlock);
-            InstructionSequence firstSequence =
-                methodBodyRestructurer.InitializationBlock.FindFirstInstructionSequence();
-            // We do not support too complex constructors.
-            /*
-            if (methodBodyRestructurer.InitializationBlock.HasChildrenBlocks ||
-                methodBodyRestructurer.InitializationBlock.HasExceptionHandlers ||
-                methodBodyRestructurer.InitializationBlock.FirstInstructionSequence.NextSiblingSequence != null)
-            {
-                ScMessageSource.Instance.Write(SeverityType.Error, "SCDCV04",
-                                               new object[] { methodDef.DeclaringType.Name });
-                return;
-            }
-             */
-            // Read instructions sequentially and build a simple stack of instructions.
-            object thisPointerStackContent = "this";
-            object tooComplexStackContent = "too complex";
-            Stack<object> stack = new Stack<object>(methodDef.MethodBody.MaxStack);
-            InstructionReader reader = methodDef.MethodBody.CreateInstructionReader(false);
-            reader.EnterInstructionSequence(firstSequence);
-            while (reader.ReadInstruction()) {
-                switch (reader.CurrentInstruction.OpCodeNumber) {
+        /// <param name="methodDef">The constructor to validate.</param>
+        /// <param name="databaseClass">The database class that declares the constructor.</param>
+        private void ValidateConstructor(MethodDefDeclaration methodDef, DatabaseClass databaseClass) {
+            ScAnalysisTrace.Instance.WriteLine("Validating the constructor {{{0}}}.", methodDef);
 
+            var methodBodyRestructurer = new MethodBodyRestructurer(
+                methodDef,
+                MethodBodyRestructurerOptions.None,
+                this._weavingHelper
+                );
+            methodBodyRestructurer.Restructure(_writer);
+
+            _initializationBlocks.AddIfAbsent(methodBodyRestructurer.InitializationBlock);
+            var initSequence = methodBodyRestructurer.InitializationBlock.FindFirstInstructionSequence();
+            var reader = methodDef.MethodBody.CreateInstructionReader(false);
+            reader.EnterInstructionSequence(initSequence);
+
+            while (reader.ReadInstruction()) {
+                // If we find it neccessary, we could later expand
+                // this to allow storing of fields that are either
+                // transient and/or belong to another instance
+                // than the one whose constructor we are validating.
+                // Initially, let's just keep it simple though.
+                switch (reader.CurrentInstruction.OpCodeNumber) {
                     case OpCodeNumber.Stfld:
-                        // We are storing a field. Is it one of OUR fields? {
-                        object[] stackContent = stack.ToArray();
-                        if (stackContent[1] == thisPointerStackContent && stackContent[0] != null) {
-                            IField field = reader.CurrentInstruction.FieldOperand;
-                            // Now determines if it is a persistent field.
-                            DatabaseClass declaringClass =
-                                DatabaseSchema.FindDatabaseClass(
-                                    ((INamedType)field.DeclaringType).Name);
-                            if (declaringClass != null) {
-                                DatabaseAttribute databaseAttribute = declaringClass.Attributes[field.Name];
-                                if (databaseAttribute.IsPersistent) {
-                                    // This is a persistent field on the current instance.
-                                    // Determine if we can guess the initial value, or
-                                    // write an error.
-                                    if (stackContent[0] != thisPointerStackContent &&
-                                        stackContent[0] != tooComplexStackContent) {
-                                        ScAnalysisTrace.Instance.WriteLine(
-                                            "Found that the field {{{0}}} is initialized to {{{1}}}.",
-                                            databaseAttribute, stackContent[0]);
-                                        Type fieldSystemType = field.FieldType.GetSystemType(null, null);
-                                        if (fieldSystemType.IsEnum) {
-                                            databaseAttribute.InitialValue =
-                                                Enum.ToObject(fieldSystemType, stackContent[0]);
-                                        } else if (fieldSystemType.IsGenericType &&
-                                                   fieldSystemType.GetGenericTypeDefinition().FullName ==
-                                                   "System.Nullable`1") {
-                                            databaseAttribute.InitialValue =
-                                                Convert.ChangeType(stackContent[0],
-                                                                   fieldSystemType.GetGenericArguments()[0]);
-                                        } else {
-                                            databaseAttribute.InitialValue =
-                                                Convert.ChangeType(stackContent[0], fieldSystemType);
-                                        }
-                                    } else {
-                                        // The field {0}.{1} is initialized outside the constructor but has a complex value.
-                                        // Only literal intrinsic values are allowed.
-                                        ScMessageSource.Write(SeverityType.Error, "SCPFV02", new object[] { 
-                                            databaseAttribute.DeclaringClass.Name, databaseAttribute.Name
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                        stack.Pop();
-                        stack.Pop();
-                        break;
-                    case OpCodeNumber.Ldarg_0:
-                        stack.Push(thisPointerStackContent);
-                        break;
-                    case OpCodeNumber.Ldnull:
-                        stack.Push(null);
-                        break;
-                    //PI090903.
-                    //case OpCodeNumber.Ldc_I4:
-                    //case OpCodeNumber.Ldc_I4_S:
-                    //    stack.Push(reader.CurrentInstruction.Int32Operand);
-                    //    break;
-                    case OpCodeNumber.Ldc_I4:
-                        stack.Push(reader.CurrentInstruction.Int16Operand);
-                        break;
-                    case OpCodeNumber.Ldc_I4_S:
-                        stack.Push(reader.CurrentInstruction.ByteOperand);
-                        break;
-                    //
-                    case OpCodeNumber.Ldc_I4_0:
-                        stack.Push(0);
-                        break;
-                    case OpCodeNumber.Ldc_I4_1:
-                        stack.Push(1);
-                        break;
-                    case OpCodeNumber.Ldc_I4_2:
-                        stack.Push(2);
-                        break;
-                    case OpCodeNumber.Ldc_I4_3:
-                        stack.Push(3);
-                        break;
-                    case OpCodeNumber.Ldc_I4_4:
-                        stack.Push(4);
-                        break;
-                    case OpCodeNumber.Ldc_I4_5:
-                        stack.Push(5);
-                        break;
-                    case OpCodeNumber.Ldc_I4_6:
-                        stack.Push(6);
-                        break;
-                    case OpCodeNumber.Ldc_I4_7:
-                        stack.Push(7);
-                        break;
-                    case OpCodeNumber.Ldc_I4_8:
-                        stack.Push(8);
-                        break;
-                    case OpCodeNumber.Ldc_I4_M1:
-                        stack.Push(-1);
-                        break;
-                    case OpCodeNumber.Ldc_I8:
-                        stack.Push(reader.CurrentInstruction.Int64Operand);
-                        break;
-                    case OpCodeNumber.Ldc_R4:
-                        stack.Push(reader.CurrentInstruction.SingleOperand);
-                        break;
-                    case OpCodeNumber.Ldc_R8:
-                        stack.Push(reader.CurrentInstruction.DoubleOperand);
-                        break;
-                    case OpCodeNumber.Ldstr:
-                        stack.Push(reader.CurrentInstruction.StringOperand.ToString());
-                        break;
-                    case OpCodeNumber.Conv_I1:
-                    case OpCodeNumber.Conv_Ovf_I:
-                        stack.Push(Convert.ToSByte(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_I2:
-                    case OpCodeNumber.Conv_Ovf_I2:
-                        stack.Push(Convert.ToInt16(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_I4:
-                    case OpCodeNumber.Conv_Ovf_I4:
-                        stack.Push(Convert.ToInt32(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_I8:
-                    case OpCodeNumber.Conv_Ovf_I8:
-                        stack.Push(Convert.ToInt64(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_U1:
-                    case OpCodeNumber.Conv_Ovf_U1:
-                        stack.Push(Convert.ToByte(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_U2:
-                    case OpCodeNumber.Conv_Ovf_U2:
-                        stack.Push(Convert.ToUInt16(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_U4:
-                    case OpCodeNumber.Conv_Ovf_U4:
-                        stack.Push(Convert.ToUInt32(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Conv_U8:
-                    case OpCodeNumber.Conv_Ovf_U8:
-                        stack.Push(Convert.ToUInt64(stack.Pop()));
-                        break;
-                    case OpCodeNumber.Call:
-                    case OpCodeNumber.Callvirt:
-                    case OpCodeNumber.Newobj: {
-                            bool isNewObj = reader.CurrentInstruction.OpCodeNumber == OpCodeNumber.Newobj;
-                            IMethod method = reader.CurrentInstruction.MethodOperand;
-                            if (isNewObj && method.Name == ".ctor" && method.DeclaringType.IsGenericInstance &&
-                                method.DeclaringType.GetTypeDefinition().Name == "System.Nullable`1") {
-                                // This is the construction of a nullable type. We support this (no stack transition for us).
-                            } else {
-                                int argNumber = method.ParameterCount;
-                                // ReSharper disable BitwiseOperatorOnEnumWihtoutFlags
-                                if (!isNewObj && (method.CallingConvention & CallingConvention.HasThis) != 0) {
-                                    // ReSharper restore BitwiseOperatorOnEnumWihtoutFlags {
-                                    argNumber++;
-                                }
-                                for (int i = 0; i < argNumber; i++) {
-                                    stack.Pop();
-                                }
-                                if (isNewObj || !IntrinsicTypeSignature.Is(method.ReturnType, IntrinsicType.Void)) {
-                                    stack.Push(tooComplexStackContent);
-                                }
-                            }
-                        }
+                        var info = string.Empty;
+                        try {
+                            info = string.Format("Field \"{0}\"", reader.CurrentInstruction.FieldOperand.GetDisplayName());
+                        } catch { }
+                        ScMessageSource.WriteError(MessageLocation.Unknown, Error.SCERRFORBIDDENFIELDINITIALIZER, info);
                         break;
                     default:
-                        //PI090903.
-                        //if (reader.CurrentInstruction.OpCodeNumber == OpCodeNumber.Ldarg &&
-                        //    reader.CurrentInstruction.Int32Operand == 0)
-                        if ((reader.CurrentInstruction.OpCodeNumber == OpCodeNumber.Ldarg &&
-                             reader.CurrentInstruction.Int16Operand == 0) ||
-                            (reader.CurrentInstruction.OpCodeNumber == OpCodeNumber.Ldarg_S &&
-                             reader.CurrentInstruction.ByteOperand == 0))
-                            // {
-                            stack.Push(thisPointerStackContent);
                         break;
                 }
-#pragma warning disable 618
-                switch (OpCodeMap.GetFlowControl(reader.CurrentInstruction.OpCodeNumber))
-#pragma warning restore 618
-                {
-                    case FlowControl.Next:
-                    case FlowControl.Call:
-                        // We understand that.
-                        break;
-                    default:
-                        // This is too complex for our analysis.
-                        ScMessageSource.Write(
-                            SeverityType.Error, 
-                            "SCDCV04",
-                            new object[] { methodDef.DeclaringType.Name });
-                        return;
-                }
-#pragma warning disable 618
-                StackBehaviour popBehaviour =
-                    OpCodeMap.GetStackBehaviourPop(reader.CurrentInstruction.OpCodeNumber);
-#pragma warning restore 618
-#pragma warning disable 618
-                StackBehaviour pushBehaviour =
-                    OpCodeMap.GetStackBehaviourPush(reader.CurrentInstruction.OpCodeNumber);
-#pragma warning restore 618
-                switch (popBehaviour)
-                {
-                    case StackBehaviour.Pop0:
-                        break;
-                    case StackBehaviour.Pop1:
-                    case StackBehaviour.Popi:
-                    case StackBehaviour.Popref:
-                        stack.Pop();
-                        break;
-                    case StackBehaviour.Pop1_pop1:
-                    case StackBehaviour.Popi_popi:
-                    case StackBehaviour.Popi_popr4:
-                    case StackBehaviour.Popi_popr8:
-                    case StackBehaviour.Popref_pop1:
-                    case StackBehaviour.Popi_pop1:
-                    case StackBehaviour.Popi_popi8:
-                    case StackBehaviour.Popref_popi:
-                        stack.Pop();
-                        stack.Pop();
-                        break;
-                    case StackBehaviour.Popref_popi_pop1:
-                    case StackBehaviour.Popi_popi_popi:
-                    case StackBehaviour.Popref_popi_popi8:
-                    case StackBehaviour.Popref_popi_popr4:
-                    case StackBehaviour.Popref_popi_popr8:
-                    case StackBehaviour.Popref_popi_popref:
-                    case StackBehaviour.Popref_popi_popi:
-                        stack.Pop();
-                        stack.Pop();
-                        stack.Pop();
-                        break;
-                    default:
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Unexpected StackBehaviour for pop: {0}.", popBehaviour));
-                }
-                switch (pushBehaviour) {
-                    case StackBehaviour.Push0:
-                        break;
-                    case StackBehaviour.Push1:
-                    case StackBehaviour.Pushi:
-                    case StackBehaviour.Pushr4:
-                    case StackBehaviour.Pushi8:
-                    case StackBehaviour.Pushr8:
-                    case StackBehaviour.Pushref:
-                        stack.Push(tooComplexStackContent);
-                        break;
-                    case StackBehaviour.Push1_push1:
-                        stack.Push(tooComplexStackContent);
-                        stack.Push(tooComplexStackContent);
-                        break;
-                    default:
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Unexpected StackBehaviour for push: {0}.", popBehaviour));
-                }
-                break;
             }
+
+            reader.Dispose();
 
             // If we have an extension class, we have to check that the constructor
             // is empty.
@@ -1650,11 +1401,9 @@ namespace Starcounter.Internal.Weaver {
                 } else {
                     constructorEmpty = false;
                 }
+
                 if (!constructorEmpty) {
-                    ScMessageSource.Write(
-                        SeverityType.Error,
-                        "SCECV03", 
-                        new object[] { databaseClass.Name });
+                    ScMessageSource.WriteError(MessageLocation.Unknown, Error.SCERRILLEGALEXTCTORBODY, databaseClass.Name);
                 }
             }
         }
