@@ -49,7 +49,6 @@ namespace Starcounter.Internal.Web {
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponse(Request request, Response response) {
             try {
-
                 // Checking if we need to resolve static resource.
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
@@ -57,17 +56,19 @@ namespace Starcounter.Internal.Web {
                 }
 
                 // NOTE: Checking if its internal request then just returning response without modification.
-                if (request.IsInternal) {
+                if (request.IsInternal)
                     return response;
-                }
 
                 if (response.Hypermedia is Json) {
+
                     Json r = (Json)response.Hypermedia;
-                    while (r.Parent != null) {
+
+                    while (r.Parent != null)
                         r = r.Parent;
-                    }
+
                     response.Hypermedia = (Json)r;
                 }
+
                 response.Request = request;
                 response.ConstructFromFields();
 
@@ -83,14 +84,6 @@ namespace Starcounter.Internal.Web {
 				return errResp;
             }
         }
-
-//        private Obj GetJsonRoot(Obj json) {
-//            Json current = json;
-//            while (current.Parent != null) {
-//                current = current.Parent;
-//            }
-//            return (Obj)current;
-//        }
 
         /// <summary>
         /// Handles request.
@@ -215,39 +208,35 @@ namespace Starcounter.Internal.Web {
                         // Invoking original user delegate with parameters here.
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
 
-                        Response resp;
-
                         // Handling result.
                         if (result != null)
                         {
-                            Byte[] byte_result = null;
-
-//                            if (result is Byte[])
-//                                byte_result = (Byte[])result;
-//                            else if (result is String)
-//                                byte_result = Encoding.UTF8.GetBytes((String)result);
-
-                            byte_result = result.BodyBytes;
-
                             // Creating a standard Response from result.
-                            resp = new Response() { Uncompressed = byte_result };
+                            result.Uncompressed = result.BodyBytes;
+
+                            // Checking that response is created.
+                            if (null == result.Uncompressed)
+                                throw ErrorCode.ToException(Error.SCERRINCORRECTNETWORKPROTOCOLUSAGE);
                         }
                         else
                         {
-                            // Creating an error Response from result.
-                            resp = new Response() { Uncompressed = new Byte[] {} };
+                            // Simply disconnecting if response is null.
+                            result = new Response() { ConnFlags = Response.ConnectionFlags.DisconnectImmediately };
                         }
 
-                        return resp;
+                        return result;
                     }
                     finally
                     {
                         Session.End();
                     }
                 }
-            }
 
-            return null;
+                default:
+                {
+                    throw ErrorCode.ToException(Error.SCERRUNKNOWNNETWORKPROTOCOL);
+                }
+            }
         }
 
         /// <summary>
