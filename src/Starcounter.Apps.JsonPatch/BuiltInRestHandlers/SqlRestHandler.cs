@@ -17,6 +17,7 @@ using System.IO;
 using Starcounter.Query.Execution;
 using jp = Starcounter.Internal.JsonPatch;
 using System.Runtime.CompilerServices;
+using Starcounter.Templates;
 
 [assembly: InternalsVisibleTo("Starcounter.Bootstrap, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
 
@@ -56,8 +57,7 @@ namespace Starcounter.Internal {
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseNameLower);
                 Handle.POST(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sql", (Request req) => {
-                    string bodyData = req.Body;   // Retrieve the sql command in the body
-                    return ExecuteQuery(bodyData);
+                    return ExecuteQuery(req.Body);
                 });
             }
 
@@ -119,8 +119,8 @@ namespace Starcounter.Internal {
                 }
 
                 return new Response() {
-					BodyBytes = json.ToJsonUtf8(),
-					ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
+                    BodyBytes = json.ToJsonUtf8(),
+                    ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
                 };
             });
 
@@ -139,16 +139,16 @@ namespace Starcounter.Internal {
                     return root;
                 }
                 catch (NotSupportedException nex) {
-					var response = new Response();
-					response.StatusCode = 415;
-					response.Body = nex.Message;
+                    var response = new Response();
+                    response.StatusCode = 415;
+                    response.Body = nex.Message;
                     return response;
                 }
                 catch (Exception ex) {
-					var response = new Response();
-					response.StatusCode = 400;
-					response.Body = ex.Message;
-					return response;
+                    var response = new Response();
+                    response.StatusCode = 400;
+                    response.Body = ex.Message;
+                    return response;
                 }
             });
         }
@@ -256,19 +256,23 @@ namespace Starcounter.Internal {
         /// Executes the query and returns a json string of the result
         /// </summary>
         /// <param name="query"></param>
-        /// <returns>Always a Json string</returns>
-        private static string ExecuteQuery(string query) {
+        /// <returns>SqlQueryResult</returns>
+        private static SqlQueryResult ExecuteQuery(string query) {
 
             Starcounter.SqlEnumerator<object> sqle = null;
             ITypeBinding resultBinding;
             IPropertyBinding[] props;
 
-            dynamic resultJson = new DynamicJson();
-            resultJson.columns = new object[] { };
-            resultJson.rows = new object[] { };
-            resultJson.exception = null;
-            resultJson.sqlException = null;
-            resultJson.queryPlan = null;
+            SqlQueryResult results = new SqlQueryResult();
+
+            TObject rowObjectTemplate = new TObject();
+            TObjArr rowsTemplate = rowObjectTemplate.Add<TObjArr>("rows");
+            TObject rowItemTemplate = new TObject();
+            rowsTemplate.ElementType = rowItemTemplate;
+
+            results.rows = (Json)rowObjectTemplate.CreateInstance();
+
+            Json rowArr = results.rows.Get(rowsTemplate);
 
             try {
 
@@ -276,7 +280,7 @@ namespace Starcounter.Internal {
                 if (sqlResult != null) {
                     sqle = (Starcounter.SqlEnumerator<object>)sqlResult.GetEnumerator();
 
-                    resultJson.queryPlan = sqle.ToString();
+                    results.queryPlan = sqle.ToString();
 
                     #region Retrive Columns
 
@@ -288,7 +292,14 @@ namespace Starcounter.Internal {
                         props[0] = singleProjectionBinding;
 
                         singleProjectionBinding.Name = sqle.ProjectionTypeCode.ToString();
-                        resultJson.columns[0] = new { title = props[0].Name, value = props[0].Name, type = props[0].TypeCode.ToString() };
+                        //                      resultJson.columns[0] = new { title = props[0].Name, value = props[0].Name, type = props[0].TypeCode.ToString() };
+
+                        var col = results.columns.Add();
+                        col.title = props[0].Name;
+                        col.value = props[0].Name;
+                        col.type = props[0].TypeCode.ToString();
+
+                        AddProperty(rowItemTemplate, col, props[0].TypeCode);
                     }
                     else {
                         resultBinding = sqle.TypeBinding;
@@ -296,7 +307,14 @@ namespace Starcounter.Internal {
                         for (int i = 0; i < resultBinding.PropertyCount; i++) {
                             PropertyMapping pm = (PropertyMapping)resultBinding.GetPropertyBinding(i);
                             props[i] = pm;
-                            resultJson.columns[i] = new { title = pm.DisplayName, value = "_" + props[i].Name, type = props[i].TypeCode.ToString() };
+                            //                            resultJson.columns[i] = new { title = pm.DisplayName, value = "_" + props[i].Name, type = props[i].TypeCode.ToString() };
+
+                            var col = results.columns.Add();
+                            col.title = pm.DisplayName;
+                            col.value = "_" + props[i].Name;
+                            col.type = props[i].TypeCode.ToString();
+
+                            AddProperty(rowItemTemplate, col, props[i].TypeCode);
                         }
                     }
                     #endregion
@@ -306,116 +324,203 @@ namespace Starcounter.Internal {
                     while (sqle.MoveNext()) {
 
                         object row = sqle.Current;
-                        resultJson.rows[index] = new object { };
+                        var jsonRow = rowArr.Add();
 
                         if (sqle.ProjectionTypeCode != null) {
 
                             if (sqle.ProjectionTypeCode == DbTypeCode.Object && row != null) {
-                                resultJson.rows[index][props[0].Name] = DbHelper.GetObjectNo(row);
+                                jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)DbHelper.GetObjectNo(row));
                             }
                             else {
-                                resultJson.rows[index][props[0].Name] = row;
+                                #region Set Property Value
+                                if (row is Boolean) {
+                                    jsonRow.Set((TBool)rowItemTemplate.Properties[0], (bool)row);
+                                }
+                                else if (row is Byte) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is DateTime) {
+                                    jsonRow.Set((TString)rowItemTemplate.Properties[0], row.ToString());
+                                }
+                                else if (row is Decimal) {
+                                    jsonRow.Set((TDecimal)rowItemTemplate.Properties[0], (Decimal)row);
+                                }
+                                else if (row is Double) {
+                                    jsonRow.Set((TDouble)rowItemTemplate.Properties[0], (Double)row);
+                                }
+                                else if (row is Int16) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is Int32) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is Int64) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is Object) {
+                                    if (row != null) {
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)DbHelper.GetObjectNo(row));
+                                    }
+                                }
+                                else if (row is UInt16) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is UInt32) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is UInt64) {
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                }
+                                else if (row is String) {
+                                    jsonRow.Set((TString)rowItemTemplate.Properties[0], (string)row);
+                                }
+                                else {
+                                    // SByte
+                                    // Single
+                                    throw new NotImplementedException(string.Format("The handling of the Type {0} has not yet been implemented", row.GetType().ToString()));
+                                }
+                                #endregion
                             }
                         }
                         else {
 
                             IObjectView obj = (IObjectView)row;
 
-                            foreach (IPropertyBinding prop in props) {
-                                object value = null;
+                            IPropertyBinding prop;
+                            for (int pi = 0; pi < props.Length; pi++) {
+                                prop = props[pi];
+
                                 switch (prop.TypeCode) {
-                                    case DbTypeCode.Binary:
-                                        value = obj.GetBinary(prop.Index);
-                                        break;
+                                    #region GetValue
+                                    //case DbTypeCode.Binary:
+                                    //    value = obj.GetBinary(prop.Index);
+                                    //    break;
                                     case DbTypeCode.Boolean:
-                                        value = obj.GetBoolean(prop.Index);
+                                        jsonRow.Set((TBool)rowItemTemplate.Properties[pi], (bool)obj.GetBoolean(prop.Index));
                                         break;
                                     case DbTypeCode.Byte:
-                                        value = obj.GetByte(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetByte(prop.Index));
                                         break;
                                     case DbTypeCode.DateTime:
-                                        value = obj.GetDateTime(prop.Index);
+                                        jsonRow.Set((TString)rowItemTemplate.Properties[pi], obj.GetDateTime(prop.Index).ToString());
                                         break;
                                     case DbTypeCode.Decimal:
-                                        value = obj.GetDecimal(prop.Index);
+                                        jsonRow.Set((TDecimal)rowItemTemplate.Properties[pi], (Decimal)obj.GetDecimal(prop.Index));
                                         break;
                                     case DbTypeCode.Double:
-                                        value = obj.GetDouble(prop.Index);
+                                        jsonRow.Set((TDouble)rowItemTemplate.Properties[pi], (Double)obj.GetDouble(prop.Index));
                                         break;
                                     case DbTypeCode.Int16:
-                                        value = obj.GetInt16(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetInt16(prop.Index));
                                         break;
                                     case DbTypeCode.Int32:
-                                        value = obj.GetInt32(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetInt32(prop.Index));
                                         break;
                                     case DbTypeCode.Int64:
-                                        value = obj.GetInt64(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetInt64(prop.Index));
                                         break;
-                                    case DbTypeCode.LargeBinary:
-                                        value = obj.GetBinary(prop.Index);
-                                        break;
+                                    //case DbTypeCode.LargeBinary:
+                                    //    value = obj.GetBinary(prop.Index);
+                                    //    break;
                                     case DbTypeCode.Object:
 
-                                        value = obj.GetObject(prop.Index);
+                                        IObjectView value = obj.GetObject(prop.Index);
                                         if (value != null) {
-                                            value = DbHelper.GetObjectNo(value);
+                                            jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)DbHelper.GetObjectNo(value));
                                         }
                                         break;
                                     case DbTypeCode.SByte:
-                                        value = obj.GetSByte(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetSByte(prop.Index));
                                         break;
                                     case DbTypeCode.Single:
-                                        value = obj.GetSingle(prop.Index);
+                                        jsonRow.Set((TDouble)rowItemTemplate.Properties[pi], (Double)obj.GetSingle(prop.Index));
                                         break;
                                     case DbTypeCode.String:
-                                        value = obj.GetString(prop.Index);
+                                        jsonRow.Set((TString)rowItemTemplate.Properties[pi], obj.GetString(prop.Index));
                                         break;
                                     case DbTypeCode.UInt16:
-                                        value = obj.GetUInt16(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetUInt16(prop.Index));
                                         break;
                                     case DbTypeCode.UInt32:
-                                        value = obj.GetUInt32(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetUInt32(prop.Index));
                                         break;
                                     case DbTypeCode.UInt64:
-                                        value = obj.GetUInt64(prop.Index);
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetUInt64(prop.Index));
                                         break;
                                     default:
-                                        // ERROR
-                                        throw new Exception("Unknown column type");
+                                        throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", prop.TypeCode.ToString()));
+                                    #endregion
                                 }
-                                resultJson.rows[index]["_" + prop.Name] = value;
                             }
                         }
+
                         index++;
 
                     }
 
                     #endregion
                 }
-
             }
             catch (Starcounter.SqlException ee) {
 
-                resultJson.sqlException = new {
-                    beginPosition = ee.BeginPosition,
-                    endPosition = ee.EndPosition,
-                    helpLink = ee.HelpLink,
-                    message = ee.Message,
-                    query = ee.Query,
-                    scErrorCode = ee.ScErrorCode,
-                    token = ee.Token,
-                    stackTrace = ee.StackTrace
-                };
+                results.sqlException.beginPosition = ee.BeginPosition;
+                results.sqlException.endPosition = ee.EndPosition;
+                results.sqlException.helpLink = ee.HelpLink;
+                results.sqlException.message = ee.Message;
+                results.sqlException.scErrorCode = ee.ScErrorCode;
+                results.sqlException.token = ee.Token;
+                results.sqlException.stackTrace = ee.StackTrace;
+                results.hasSqlException = true;
             }
             catch (Exception e) {
-                resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+
+                results.exception.helpLink = e.HelpLink;
+                results.exception.message = e.Message;
+                results.exception.stackTrace = e.StackTrace;
+                results.hasException = true;
             }
             finally {
                 if (sqle != null)
                     sqle.Dispose();
             }
 
-            return resultJson.ToString();
+            return results;
+        }
+
+        private static void AddProperty(TObject parent, SqlQueryResult.columnsElementJson col, DbTypeCode dbTypeCode) {
+            switch (dbTypeCode) {
+                case DbTypeCode.Binary:
+                case DbTypeCode.LargeBinary:
+                    throw new NotSupportedException();
+                case DbTypeCode.Object:
+                    parent.Add<TLong>(col.value);
+                    break;
+                case DbTypeCode.Boolean:
+                    parent.Add<TBool>(col.value);
+                    break;
+                case DbTypeCode.Byte:
+                case DbTypeCode.Int16:
+                case DbTypeCode.Int32:
+                case DbTypeCode.Int64:
+                case DbTypeCode.SByte:
+                case DbTypeCode.UInt16:
+                case DbTypeCode.UInt32:
+                case DbTypeCode.UInt64:
+                    parent.Add<TLong>(col.value);
+                    break;
+
+                case DbTypeCode.DateTime:
+                case DbTypeCode.String:
+                    parent.Add<TString>(col.value);
+                    break;
+                case DbTypeCode.Decimal:
+                    parent.Add<TDecimal>(col.value);
+                    break;
+                case DbTypeCode.Double:
+                case DbTypeCode.Single:
+                    parent.Add<TDouble>(col.value);
+                    break;
+            }
         }
 
         internal class SingleProjectionBinding : IPropertyBinding {
