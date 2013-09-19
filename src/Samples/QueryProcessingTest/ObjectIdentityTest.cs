@@ -96,6 +96,17 @@ namespace QueryProcessingTest {
             a = accounts.Current;
             Trace.Assert(a.AccountId == 1);
             Trace.Assert(a.GetObjectID() == accountID);
+            a = Db.SQL<Account>("select a from account a where objectno = ?", 1230932).First;
+            Trace.Assert(a == null);
+            string idval = "23";
+            try {
+                a = Db.SQL<Account>("select a from account a where objectid = ?", idval).First;
+            } catch (System.ArgumentException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRBADARGUMENTS);
+            }
+            //a = Db.SQL<Account>("select a from account a where client = ?", "").First;
+            //a = Db.SQL<Account>("select a from account a where objectid = ?", "/asdfasdfa/asdfasdf").First;
+            //Trace.Assert(a == null);
             HelpMethods.LogEvent("Finished testing object identities");
         }
     }
