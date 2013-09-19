@@ -1257,10 +1257,10 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
     // Checking client IP address information.
     sockaddr_in client_addr = *(sockaddr_in *)(sd->get_accept_or_params_data() + sizeof(sockaddr_in) + 16);
-    sd->SetClientIpInfo(client_addr.sin_addr.S_un.S_addr);
+    sd->set_client_ip_info(client_addr.sin_addr.S_un.S_addr);
 
     // Checking if white list is on.
-    if (!g_gateway.CheckIpForWhiteList(sd->GetClientIpInfo()))
+    if (!g_gateway.CheckIpForWhiteList(sd->get_client_ip_info()))
         return SCERRGWIPISNOTONWHITELIST;
 
     // Decreasing number of accepting sockets.

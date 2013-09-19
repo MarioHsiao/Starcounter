@@ -1,7 +1,7 @@
 //
 // impl/shared_chunk_pool.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 // Implementation of class shared_chunk_pool.
@@ -257,6 +257,55 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	return acquired;
 }
 
+template<class T, class Alloc>
+template<typename U>
+inline std::size_t shared_chunk_pool<T, Alloc>::acquire(U& private_chunk_pool,
+std::size_t chunks_to_acquire, client_interface_type* client_interface_ptr,
+smp::spinlock::milliseconds timeout) {
+	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
+	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+
+	if (!lock.owns()) {
+		// The timeout_milliseconds time period has elapsed. Failed to acquire
+		// the lock, therefore no chunks could be acquired.
+		return 0;
+	}
+	
+	chunk_index current;
+	std::size_t acquired;
+	
+	for (acquired = 0; acquired < chunks_to_acquire; ++acquired) {
+		if (is_not_empty()) {
+			// The shared_chunk_pool is not empty. Get a chunk_index.
+			current = container_[--unread_];
+			
+			// If the process terminates here, this chunk is leaked and will not
+			// be recovered. It is most important to be able to recover all
+			// chunks in most cases. TODO: Fixed it later.
+			
+			// Make sure the CPU (and compiler) don't re-order instructions.
+			_mm_mfence();
+			
+			private_chunk_pool.push_front(current);
+
+			// Mark the chunk as owned by this client.
+			client_interface_ptr->set_chunk_flag(current);
+			
+			// Havning reached this point the chunk can be recovered.
+			
+			_mm_mfence(); // Remove if uneccessary.
+		}
+		else {
+			// The shared_chunk_pool is empty.
+			break;
+		}
+	}
+	
+	// Successfully acquired chunks_to_acquire number of chunks.
+	lock.unlock();
+	return acquired;
+}
+
 //------------------------------------------------------------------------------
 template<class T, class Alloc>
 template<typename U>
@@ -277,6 +326,48 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	
 	for (released = 0; released < chunks_to_release; ++released) {
 		if (private_chunk_pool.pop_back(&current)) {
+			// Mark the chunk as not owned by this client.
+			client_interface_ptr->clear_chunk_flag(current);
+			
+			// Make sure the CPU (and compiler) don't re-order instructions.
+			_mm_mfence();
+			
+			// Push the current chunk_index.
+			container_.push_front(current);
+			++unread_;
+		}
+		else {
+			// The private_chunk_pool is empty.
+			break;
+		}
+	}
+	
+	lock.unlock();
+	return released;
+}
+
+template<class T, class Alloc>
+template<typename U>
+std::size_t shared_chunk_pool<T, Alloc>::release(U& private_chunk_pool,
+std::size_t chunks_to_release, client_interface_type* client_interface_ptr,
+smp::spinlock::milliseconds timeout) {
+	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
+	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	
+	if (!lock.owns()) {
+		// The timeout_milliseconds time period has elapsed. Failed to acquire
+		// the lock, therefore no chunks could be released.
+		return 0;
+	}
+	
+	chunk_index current;
+	std::size_t released;
+	
+	for (released = 0; released < chunks_to_release; ++released) {
+		if (!private_chunk_pool.empty()) {
+			current = private_chunk_pool.front();
+			private_chunk_pool.pop_front();
+
 			// Mark the chunk as not owned by this client.
 			client_interface_ptr->clear_chunk_flag(current);
 			
