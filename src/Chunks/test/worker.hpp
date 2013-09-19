@@ -226,14 +226,6 @@ public:
 		return chunk_pool_list_[n];
 	}
 	
-	/// Get reference to acquired_chunks(n), where n is the scheduler number.
-	/**
-	 * @return A const reference to get_chunk_pool_list(n).
-	 */
-	//uint64_t& acquired_chunks(scheduler_number n) {
-	//	return acquired_chunks_;
-	//}
-	
 public:
 	// chunk_pool_list is not thread safe. The list is based on linking chunks
 	// that are stored in the the chunks themselves.
@@ -393,9 +385,6 @@ private:
 	// channel_[n], which gives the number to the channel where the message
 	// is to be sent. A blast ping message will be sent during simulation.
 	random_generator random_generator_;
-	
-	// Number of acquired chunks.
-	uint64_t acquired_chunks_;
 	
     // For statistics:
     uint64_t pushed_;
