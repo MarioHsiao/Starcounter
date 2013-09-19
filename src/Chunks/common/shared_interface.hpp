@@ -249,6 +249,26 @@ public:
 	std::size_t chunks_to_acquire, client_interface_type* client_interface_ptr,
 	uint32_t timeout_milliseconds);
 	
+	/// Acquire N (unlinked) chunks from the shared_chunk_pool to a private
+	/// chunk_pool.
+	/**
+	 * @param private_chunk_pool Reference to the private chunk_pool to which
+	 *		chunks are allocated/moved. All chunks are marked as owned by the
+	 *		calling client.
+	 * @param chunks_to_acquire The number of chunks to acquire.
+	 * @param client_interface_ptr A pointer to the client_interface where the
+	 *		chunk will be marked as owned by the client.
+	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @return The number of acquired chunks. If the private_chunk_pool is empty
+	 *		or becomes empty when acquiring chunks, the acquirement process is
+	 *		stopped and the job is half done.
+	 */
+	template<typename U>
+	std::size_t acquire_from_shared_chunk_pool(U& private_chunk_pool,
+	std::size_t chunks_to_acquire, client_interface_type* client_interface_ptr,
+	uint32_t timeout_milliseconds);
+    
 	/// Release N (unlinked) chunks from a private chunk_pool to the
 	/// shared_chunk_pool.
 	/**
@@ -266,6 +286,23 @@ public:
 	std::size_t chunks_to_release, client_interface_type* client_interface_ptr,
 	uint32_t timeout_milliseconds = 10000);
 	
+	/// Release N (unlinked) chunks from a private chunk_pool to the
+	/// shared_chunk_pool.
+	/**
+	 * @param private_chunk_pool Reference to the private chunk_pool from which
+	 *		chunks are released.
+	 * @param chunks_to_release The number of chunks to release.
+	 * @param client_interface_ptr A pointer to the client_interface where the
+	 *		chunk will be marked as not owned by the client.
+	 * @param timeout_milliseconds The number of milliseconds to wait before a
+	 *		timeout may occur while trying to lock the shared_chunk_pool.
+	 * @return The number of released chunks.
+	 */
+	template<typename U>
+	std::size_t release_to_shared_chunk_pool(U& private_chunk_pool,
+	std::size_t chunks_to_release, client_interface_type* client_interface_ptr,
+	uint32_t timeout_milliseconds = 10000);
+    
 	//--------------------------------------------------------------------------
 	/// This is for debug purpose only. It prints a list showing how the chunks
 	/// beginning with the head are linked together. TODO: remove it.
