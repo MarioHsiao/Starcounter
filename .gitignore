@@ -36,12 +36,16 @@ src/BuildSystem/Documentation/Internal/images
 src/BuildSystem/Documentation/Internal/dotnetimages
 src/BuildSystem/Documentation/Internal/stylesheets
 src/BuildSystem/Documentation/Internal/flash
+src/BuildSystem/Documentation/Internal/designtime
+src/BuildSystem/Documentation/Internal/help
 src/BuildSystem/Documentation/Public/script
 src/BuildSystem/Documentation/Public/scripts
 src/BuildSystem/Documentation/Public/images
 src/BuildSystem/Documentation/Public/dotnetimages
 src/BuildSystem/Documentation/Public/stylesheets
 src/BuildSystem/Documentation/Public/flash
+src/BuildSystem/Documentation/Public/designtime
+src/BuildSystem/Documentation/Public/help
 
 *.ncrunchsolution
 

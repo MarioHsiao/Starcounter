@@ -16,267 +16,17 @@
     <ContentFile FileName="Starcounter.Logging.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Logging.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.Node.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Node.dll" DocType="DX.NET" />
     <ContentFile FileName="Starcounter.XSON.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.XSON.dll" DocType="DX.NET" />
+    <ContentFile FileName="Starcounter.Internal.dxc" Moniker="..\..\..\..\bin\Release\Starcounter.Internal.dll" DocType="DX.NET" />
   </ContentFiles>
   <AutoDocFiles />
   <ContentFromProjectPlugin />
   <Filters>
     <ExcludedItems>
-      <ExcludedItem>Starcounter~Starcounter.GatewayHandlers</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.XNode</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Task</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.TransactionScrap</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.BindingBuilder</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.BindingHelper</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.ColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.ColumnValueTransfer+UpgradeRecord</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.BooleanColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.BinaryColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.DecimalColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.DoubleColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.Int64ColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.LargeBinaryColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.ObjectColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.SingleColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.StringColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.UInt64ColumnValueTransfer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.IndexInfo</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.TypeRepository</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.TypeBindingFlags</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Binding.TableUpgrade+RecordHandler</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.ExceptionManager</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.NewCodeGen</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.CodeGenFilterNativeInterface</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.SqlConnectivityInterface</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.sccoredb+SCCOREDB_TABLE_INFO</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.sccoredb+SCCOREDB_COLUMN_INFO</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.SqlConn_GetQueryUniqueId_Type</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.SqlConn_GetResults_Type</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Internal.SqlConn_GetInfo_Type</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Hosting.__Assert</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Metadata.SysColumn+__starcounterTypeSpecification</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Metadata.SysIndex+__starcounterTypeSpecification</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Metadata.SysTable+__starcounterTypeSpecification</ExcludedItem>
-      <ExcludedItem>Starcounter~-_namespace</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.CodeGenFilterCacheEntry</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.CodeGenFilterCacheShared</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.CodeGenFilterInstrCodes</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.CodeGenFilterNode</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.CodeGenFilterInstrArray</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.CodeGenFilterPrivate</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimePathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoubleComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoublePathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.MultiComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RandomComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ExecutionEnumerator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectIdentityLookup</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Literal</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TypeLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IsTypePredicate</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Property</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectIDProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectNoProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RowMetaObject</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RowTypeBinding</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.PropertyMapping</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Aggregation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.FullTableScan</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IndexScan</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Join</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.LikeExecEnumerator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NullObject</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ReferenceLookup</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Sort</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoubleLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonBinary</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonBoolean</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonDateTime</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonDecimal</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonDouble</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonInteger</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonNumerical</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonObject</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonString</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonUInteger</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.InPredicateString</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.LogicalLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.LogicalOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanMethod</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanMethodLiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.MyStringBuilder</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectCast</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoubleOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Path</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimePath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoublePath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoubleProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectThis</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryRangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.RangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanRangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeRangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.MaxValueObject</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalRangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectRangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringRangePoint</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerRangeValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.SetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinarySetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DecimalSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DoubleSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IntegerSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.UIntegerSetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TemporaryObject</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TemporaryProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TemporaryTypeBinding</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.Variable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BinaryVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.BooleanVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.DateTimeVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ObjectVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TypeVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.VariableArray</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ICompilable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IQueryObject</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IQueryComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ISingleComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IPathComparer</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IExecutionEnumerator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IConditionTreeNode</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IValueExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ILiteral</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ITypeExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ILogicalExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IComparison</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IPath</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IMember</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IProperty</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IStringExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IStringPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.INumericalExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IUIntegerExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IUIntegerPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IVariable</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IMethod</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDecimalExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDoubleExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IIntegerExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IBinaryExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IBooleanExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDateTimeExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IObjectExpression</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IBinaryPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IBooleanPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDateTimePathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDecimalPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDoublePathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IIntegerPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IObjectPathItem</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.INumericalOperation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ISetFunction</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IDynamicRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IStaticRange</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ComparisonOperator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.LogicalOperator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.NumericalOperator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.SetFunctionType</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.SortOrder</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.StringOperator</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.TruthValue</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.IsTypeCompare</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.JoinType</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.KeyValueFormat</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.QueryTypeCode</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.VariableTypeCode</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.QueryFlags</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.ConditionNodeType</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Execution.EnumeratorNodeType</ExcludedItem>
-      <ExcludedItem>Starcounter~Sc.Query.Execution_namespace</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.Optimization_namespace</ExcludedItem>
-      <ExcludedItem>Starcounter~se.sics.prologbeans.FastParser</ExcludedItem>
-      <ExcludedItem>Starcounter~se.sics.prologbeans.FastWriter</ExcludedItem>
-      <ExcludedItem>Starcounter~se.sics.prologbeans.PBMonitor</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.QueryPreparation</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.QueryPreparation+TypeConverterChecker`2</ExcludedItem>
-      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer_namespace</ExcludedItem>
       <ExcludedItem>Starcounter~Starcounter.Query.SQL.OptimizerInput</ExcludedItem>
       <ExcludedItem>Starcounter~Starcounter.Query.Sql.PrologManager</ExcludedItem>
       <ExcludedItem>Starcounter~Starcounter.Query.Sql.Creator</ExcludedItem>
       <ExcludedItem>Starcounter~Starcounter.Query.Sql.SqlProcessor</ExcludedItem>
       <ExcludedItem>Starcounter~Starcounter.Query.Sql.Tokenizer</ExcludedItem>
-      <ExcludedItem>Starcounter~Sc.Server.Weaver.Schema.DatabaseAttributeRef</ExcludedItem>
-      <ExcludedItem>Starcounter~Sc.Server.Weaver.Schema.DatabaseClassRef</ExcludedItem>
-      <ExcludedItem>Starcounter~Sc.Server.Weaver.Schema.DatabaseIndex</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.LogReaderImpl</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.LogReaderReverse</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.ILogReader</ExcludedItem>
@@ -322,7 +72,6 @@
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.XSON.DataValueBinding`1</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.XSON.ReflectionHelper</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.XSON.DataBindingFactory</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Starcounter.Internal.JsonPointer</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstProcessFail</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstJSConstructor</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstJsonSerializerClass</ExcludedItem>
@@ -352,7 +101,6 @@
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.TemplateMetadata</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.NodeType</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.CompareVU</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Starcounter.Internal.XSON.DeserializerCompiler_namespace</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Json+DynamicPropertyMetaObject</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Advanced.XSON.JsonReader</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.JsonPatch.HttpPatchBuilder</ExcludedItem>
@@ -361,20 +109,12 @@
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.JsonTemplate.MetaTemplate</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.JsonTemplate.MetaTemplate`2</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.JsonTemplate.ErrorHelper</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Modules.Starcounter_XSON_JsonByExample+Injections</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Codeplex.Data.DynamicJson+JsonType</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging_namespace</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.LogEntry</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.LogReader</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.ReadDirection</ExcludedItem>
       <ExcludedItem>Sc.Tools.Logging~Sc.Tools.Logging.Severity</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Modules_namespace</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Modules.Starcounter_XSON</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Modules.Starcounter_XSON_JsonByExample</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Modules.Starcounter_XSON+Injections</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Starcounter.Internal_namespace</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Starcounter.Internal.FtjWriter</ExcludedItem>
-      <ExcludedItem>Starcounter.XSON~Starcounter.Internal.ITemplateCodeGeneratorModule</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.QuickTuple</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration_namespace</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstFixed</ExcludedItem>
@@ -383,6 +123,104 @@
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstNode</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstRecreateBuffer</ExcludedItem>
       <ExcludedItem>Starcounter.XSON~Starcounter.Internal.Application.CodeGeneration.AstReturn</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Reply+Protocol</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Request+Protocol</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Reply+ReplyType</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Internal.InternalConsoleServer</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Internal.InternalNamedPipeClient</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Internal.InternalNamedPipeServer</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.ABCIPC.Internal.PipeProtocol</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.Internal.HttpHeadersUtf8</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.CommandLine.GivenOption</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.Advanced.ResponseSchedulerStore</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~Starcounter.Advanced.HttpRequestInternal</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~-_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.Internal~-PrivateImplementationDetails-{1F1C856C-25F8-4DC0-87A6-EDEEF521F6B5}+__StaticArrayInitTypeSize=16</ExcludedItem>
+      <ExcludedItem>Starcounter~-_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter~-PrivateImplementationDetails-{97AC3667-48E8-40AA-AF63-40CD41679536}+__StaticArrayInitTypeSize=20</ExcludedItem>
+      <ExcludedItem>Starcounter~A_Expr_Kind</ExcludedItem>
+      <ExcludedItem>Starcounter~GlobalQueryCache</ExcludedItem>
+      <ExcludedItem>Starcounter~InhOption</ExcludedItem>
+      <ExcludedItem>Starcounter~NodeTag</ExcludedItem>
+      <ExcludedItem>Starcounter~SetOperation</ExcludedItem>
+      <ExcludedItem>Starcounter~SortByDir</ExcludedItem>
+      <ExcludedItem>Starcounter~SortByNulls</ExcludedItem>
+      <ExcludedItem>Starcounter~Sc.Query.Execution_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter~Sc.Query.Execution.SqlDebugHelper</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.AggregationNode</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.ConditionDictionary</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.ExtentNode</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.ExtentSet</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.HintSpecification</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.IHint</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.IndexHint</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.IndexUseInfo</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.IOptimizationNode</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.JoinNode</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.JoinOrderHint</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.OptimizationTree</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.Optimizer</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.SortNode</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.Optimization.SortSpecification</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.A_Const</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.A_Expr</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.A_Indirection</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.Alias</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ColumnRef</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.Data</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.FuncCall</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.IParserTreeAnalyzer</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.LimitOffset</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.List</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ListCell</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.MapParserTree</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.Node</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ParamRef</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ParserTreeWalker</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.PrintParserTree</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.RangeSubselect</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.RangeVar</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ResTarget</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ScError</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.SelectStmt</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.SortBy</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.SQLParserAssertException</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.TypeCast</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.TypeName</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.UnmanagedParserInterface</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.Value</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.ValUnion</ExcludedItem>
+      <ExcludedItem>Starcounter~Starcounter.Query.RawParserAnalyzer.WindowDef</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.Internal.XSON.DeserializerCompiler_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.Internal.XSON.DeserializerCompiler.SerializerCompiler</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.FTJCSharpGenerator</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.FTJDomGenerator</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.StdCSharpGenerator</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.StdDomGenerator</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstBase</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstCase</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstDeserializeFunction</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstGotoProperty</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstGotoValue</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstJSConstructor</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstJsonProperty</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstJsonSerializerClass</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstRoot</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstSerializeFunction</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstSwitch</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstVerifier</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Ast.AstWhile</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Parsetree_namespace</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Parsetree.CompareVU</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Parsetree.NodeType</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Parsetree.ParseNode</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Parsetree.ParseTreeGenerator</ExcludedItem>
+      <ExcludedItem>Starcounter.XSON~Starcounter.XSON.Serializer.Parsetree.TemplateMetadata</ExcludedItem>
     </ExcludedItems>
   </Filters>
   <ComProjectPlugin />
@@ -392,6 +230,7 @@
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Logging.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Node.dll" RootTypeName="" />
     <Assembly FileName="..\..\..\..\bin\Release\Starcounter.XSON.dll" RootTypeName="" />
+    <Assembly FileName="..\..\..\..\bin\Release\Starcounter.Internal.dll" RootTypeName="" />
   </DotNetAssemblies>
   <DatabaseProjectPlugin>
     <Databases />
@@ -485,7 +324,7 @@
         <NoInheritedInLists>false</NoInheritedInLists>
         <ExcludeEditorBrowsable>true</ExcludeEditorBrowsable>
         <ExcludeBrowsableFalse>true</ExcludeBrowsableFalse>
-        <ExcludeObsolete>true</ExcludeObsolete>
+        <ExcludeObsolete>false</ExcludeObsolete>
         <ExcludeCompilerGenerated>true</ExcludeCompilerGenerated>
         <ExcludeDebuggerNonUserCode>true</ExcludeDebuggerNonUserCode>
         <GenerateXmlCommentFile>false</GenerateXmlCommentFile>
@@ -528,9 +367,9 @@
         <IncludeConstructorsOnAbstractTypes>false</IncludeConstructorsOnAbstractTypes>
         <TemplateName>2012 Style</TemplateName>
         <ExcludeAllPrivateTypes>true</ExcludeAllPrivateTypes>
-        <ExcludeAllFriendTypes>false</ExcludeAllFriendTypes>
+        <ExcludeAllFriendTypes>true</ExcludeAllFriendTypes>
         <ExcludeAllProtectedTypes>false</ExcludeAllProtectedTypes>
-        <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>
+        <ExcludeAllProtectedFriendTypes>true</ExcludeAllProtectedFriendTypes>
         <SyntaxSectionStyle>TemplateDefault</SyntaxSectionStyle>
         <IsVbSyntaxMerged>false</IsVbSyntaxMerged>
         <IncludeMemberIndexKeywords>false</IncludeMemberIndexKeywords>

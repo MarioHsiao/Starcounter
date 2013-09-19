@@ -169,9 +169,6 @@ public:
         random_salt_type random_salt,
         uint8_t scheduler_id);
 
-    // Sends session create message.
-    uint32_t PushSessionCreate(SocketDataChunkRef sd);
-
     // Sends error message.
     uint32_t PushErrorMessage(
         scheduler_id_type sched_id,

@@ -1,8 +1,4 @@
 ﻿{
    "PlayerId": 123,
-   "Name": "Arne",
-   
-   "DecValue": 3.14,
-   "DblValue": 2e3,
-   "BoolValue": true
+   "Name": "Arne"
 }

@@ -6,20 +6,18 @@
 
 using System.Text;
 using Starcounter.Templates;
+using Starcounter.XSON.Serializer.Parsetree;
 
-namespace Starcounter.Internal.Application.CodeGeneration {
-    internal class AstJsonDelimiter : AstNode {
-        internal char Delimiter { get; set; }
+namespace Starcounter.XSON.Serializer.Ast {
+    internal class AstJsonProperty : AstBase {
+        internal Template Template { get; set; }
+		internal ParseNode ParseNode { get; set; }
+		internal bool IsLast { get; set; }
 
         internal override string DebugString {
             get {
-                return "Delimiter(" + Delimiter + ")";
+                return "Property(" + Template.TemplateName + ")";
             }
-        }
-
-        internal override void GenerateCsCodeForNode() {
-            Prefix.Add("offset++;");
-            Prefix.Add("*buf++ = (byte)'" + Delimiter + "';");
         }
     }
 }

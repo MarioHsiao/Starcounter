@@ -41,6 +41,9 @@ class SocketDataChunk
     // Unique number for socket.
     random_salt_type unique_socket_id_;
 
+    // Client IP address information.
+    ip_info_type client_ip_info_;
+
     /////////////////////////
     // 4 bytes aligned data.
     /////////////////////////
@@ -144,6 +147,8 @@ public:
 
         GW_ASSERT(((uint8_t*)&type_of_network_protocol_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE);
 
+        GW_ASSERT(((uint8_t*)&client_ip_info_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_CLIENT_IP);
+
         GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
@@ -157,6 +162,8 @@ public:
         GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
 
         GW_ASSERT(((uint8_t*)&unique_socket_id_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
+
+        GW_ASSERT(((uint8_t*)&socket_info_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
 
         GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
 
@@ -506,16 +513,16 @@ public:
         return g_gateway.CompareGlobalSessionSalt(socket_info_index_, session_.random_salt_);
     }
 
-    // Origin IP information.
-    ip_info_type GetClientIpInfo()
+    // Client IP information.
+    ip_info_type get_client_ip_info()
     {
-        return g_gateway.GetClientIpInfo(socket_info_index_);
+        return client_ip_info_;
     }
 
-    // Sets origin IP information.
-    void SetClientIpInfo(ip_info_type origin_ip_info)
+    // Sets client IP information.
+    void set_client_ip_info(ip_info_type client_ip_info)
     {
-        g_gateway.SetClientIpInfo(socket_info_index_, origin_ip_info);
+        client_ip_info_ = client_ip_info;
     }
 
     // Returns port index.
