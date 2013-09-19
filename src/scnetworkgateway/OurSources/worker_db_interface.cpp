@@ -465,27 +465,6 @@ uint32_t WorkerDbInterface::PushSessionDestroy(
     return 0;
 }
 
-// Sends session create message.
-uint32_t WorkerDbInterface::PushSessionCreate(SocketDataChunkRef sd)
-{
-    // Get a reference to the chunk.
-    shared_memory_chunk *smc = sd->get_smc();
-
-    // Predefined BMX management handler.
-    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
-
-    request_chunk_part* request = smc->get_request_chunk();
-    request->reset_offset();
-
-    // Writing BMX message type.
-    request->write(bmx::BMX_SESSION_CREATE);
-
-    // Pushing the chunk.
-    PushLinkedChunksToDb(sd->get_chunk_index(), 1, sd->get_scheduler_id());
-
-    return 0;
-}
-
 // Sends error message.
 uint32_t WorkerDbInterface::PushErrorMessage(
     scheduler_id_type sched_id,
@@ -901,12 +880,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
             }
 
             case bmx::BMX_SESSION_DESTROY:
-            {
-                GW_ASSERT(false);
-                break;
-            }
-
-            case bmx::BMX_SESSION_CREATE:
             {
                 GW_ASSERT(false);
                 break;
