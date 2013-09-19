@@ -17,7 +17,7 @@ namespace Starcounter.Templates {
 		public abstract int ToFasterThanJson(Json json, out byte[] buffer);
 		public abstract int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize);
 
-		private static bool shouldUseCodegeneratedSerializer = false;
+		private static bool shouldUseCodegeneratedSerializer = true;
 		private bool codeGenStarted = false;
 		private TypedJsonSerializer codegenStandardSerializer;
 		private TypedJsonSerializer codegenFTJSerializer;
@@ -34,7 +34,7 @@ namespace Starcounter.Templates {
 							ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
 						else {
 							GenerateSerializer(false);
-							return codegenStandardSerializer;
+							return codegenFTJSerializer;
 						}
 					}
 				}
@@ -76,9 +76,9 @@ namespace Starcounter.Templates {
 			// it doesn't really matter if setting the variable in the template is synchronized 
 			// or not since if the serializer is null a fallback serializer will be used instead.
 			if (createStd)
-				codegenStandardSerializer = SerializerCompiler.The.CreateStandardJsonSerializer(this);
+				codegenStandardSerializer = SerializerCompiler.The.CreateStandardJsonSerializer((TObject)this);
 			else
-				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer(this);
+				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer((TObject)this);
 			codeGenStarted = false;
 		}
 
