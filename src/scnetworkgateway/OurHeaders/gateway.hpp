@@ -920,8 +920,7 @@ _declspec(align(128)) struct ScSocketInfoStruct
     // Unique number for socket.
     random_salt_type unique_socket_id_;
 
-    // Client IP information.
-    ip_info_type client_ip_info_;
+    uint64_t unused0_;
 
     // Some flags on socket.
     uint8_t flags_;
@@ -1747,22 +1746,6 @@ public:
         GW_ASSERT(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].saved_user_handler_id_;
-    }
-
-    // Getting client IP address info.
-    ip_info_type GetClientIpInfo(session_index_type socket_index)
-    {
-        GW_ASSERT(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].client_ip_info_;
-    }
-
-    // Setting client IP address info.
-    void SetClientIpInfo(session_index_type socket_index, ip_info_type ip_info)
-    {
-        GW_ASSERT(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].client_ip_info_ = ip_info;
     }
 
     // Getting socket id.

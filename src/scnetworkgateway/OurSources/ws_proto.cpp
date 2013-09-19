@@ -369,23 +369,6 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Setting fixed handler id.
     sd->SetSavedUserHandlerId(user_handler_id);
 
-    // TODO: Check the strategy about creating session.
-#if 0
-
-    // Setting user data information so its applied to accumulating buffer on the way back.
-    sd->set_user_data_offset_in_socket_data(resp_data_begin - (uint8_t*)sd);
-    sd->set_user_data_written_bytes(resp_bytes);
-
-    // Just sending on way back.
-    sd->set_socket_just_send_flag(true);
-
-    // Push chunk to obtain new session.
-    err_code = gw->GetWorkerDb(sd->get_db_index())->PushSessionCreate(sd);
-    if (err_code)
-        return err_code;
-
-#else
-
     // Prepare buffer to send outside.
     sd->get_accum_buf()->PrepareForSend(resp_data_begin, resp_len_bytes);
 
@@ -393,8 +376,6 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     err_code = gw->Send(sd);
     if (err_code)
         return err_code;
-
-#endif
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
