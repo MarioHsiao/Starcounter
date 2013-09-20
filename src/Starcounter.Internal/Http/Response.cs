@@ -94,7 +94,7 @@ namespace Starcounter.Advanced
 		/// <summary>
 		/// 
 		/// </summary>
-		private int uncompressedResponseLength_ = -1;
+		private int uncompressedResponseLength_ = 0;
 
         /// <summary>
         /// The _ compressed
@@ -104,22 +104,22 @@ namespace Starcounter.Advanced
         /// <summary>
         /// UncompressedBodyOffset_
         /// </summary>
-        public int UncompressedBodyOffset_ = -1;
+        public int UncompressedBodyOffset_ = 0;
 
         /// <summary>
         /// CompressedBodyOffset_
         /// </summary>
-        public int CompressedBodyOffset_ = -1;
+        public int CompressedBodyOffset_ = 0;
 
         /// <summary>
         /// UncompressedBodyLength_
         /// </summary>
-        public int UncompressedBodyLength_ = -1;
+        public int UncompressedBodyLength_ = 0;
 
         /// <summary>
         /// CompressedBodyLength_
         /// </summary>
-        public int CompressedBodyLength_ = -1;
+        public int CompressedBodyLength_ = 0;
 
         /// <summary>
         /// The uris
@@ -1027,7 +1027,7 @@ namespace Starcounter.Advanced
 				if (value != null)
 					uncompressedResponseLength_ = value.Length;
 				else
-					uncompressedResponseLength_ = -1;
+					uncompressedResponseLength_ = 0;
             }
         }
 
@@ -1164,7 +1164,7 @@ namespace Starcounter.Advanced
         public Response()
         {
 //            Retrieved = DateTime.Now.Ticks;
-            HeaderInjectionPoint = -1;
+            HeaderInjectionPoint = 0;
         }
 
 //        public long Retrieved { get; set; }
