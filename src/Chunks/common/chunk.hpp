@@ -33,22 +33,39 @@ typedef uint32_t chunk_index;
 
 typedef uint64_t bmx_handler_type;
 
-// Current chunk layout:
-// +------------------------------+
-// | 64-bit bmx_handler_type      |
-// +------------------------------+
-// | 32-bit request_size          |
-// +------------------------------+
-// | Blast2 request message(s)    |
-// +------------------------------+
-// | 32-bit response_size         |
-// +------------------------------+
-// | Blast2 response message(s)   |
-// +------------------------------+
-// | 32-bit chunk_index next_link |
-// +------------------------------+
-// | 32-bit chunk_index link      |
-// +------------------------------+
+// Chunk layout:
+// +-------------------------+
+// | 64-bit bmx_handler_type |
+// +-------------------------+
+// | 32-bit request_size     |
+// +-------------------------+
+// | Blast2 request message  |
+// +-------------------------+
+// | 32-bit response_size    |
+// +-------------------------+
+// | Blast2 response message |
+// +-------------------------+
+// | 32-bit next_link        |
+// +-------------------------+
+// | 32-bit (stream) link    |
+// +-------------------------+
+
+// New chunk layout (after task #993 is done):
+// +-------------------------+
+// | 32-bit next_link        |
+// +-------------------------+
+// | 64-bit bmx_handler_type |
+// +-------------------------+
+// | 32-bit request_size     |
+// +-------------------------+
+// | Blast2 request message  |
+// +-------------------------+
+// | 32-bit response_size    |
+// +-------------------------+
+// | Blast2 response message |
+// +-------------------------+
+// | 32-bit (stream) link    |
+// +-------------------------+
 
 template<class T, std::size_t N>
 class chunk {
@@ -66,7 +83,7 @@ public:
 	// TODO: Remove user_data in chunk.
 	typedef uint64_t user_data_type;
 	
-	// The message size is 32-bit unsigned, same for request and response size.
+	// The message size is a 32-bit unsigned int, same for request and response size.
 	typedef uint32_t message_size_type;
 	
 	typedef chunk_index link_type;
@@ -99,11 +116,11 @@ public:
 	enum {
 		// Think about padding.
 		static_header_size =
+		+bmx_handler_size
 		+sizeof(owner_id) // TODO: Not used, remove it.
 		+sizeof(user_data_type) // TODO: Not used, remove it.
-		+bmx_handler_size
-		+sizeof(message_size_type)
-		+4
+		+sizeof(message_size_type) // request_size
+		+4 // What's this?
 	};
 	
 	// data size is constant
