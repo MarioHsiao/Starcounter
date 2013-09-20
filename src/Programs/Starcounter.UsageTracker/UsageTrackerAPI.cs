@@ -16,20 +16,23 @@ namespace Starcounter.Applications.UsageTrackerApp {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="port">Backend gui port</param>
-        public static void Bootstrap(ushort port) {
+        /// <param name="incomingPort">Incomping POST/PUT port number</param>
+        /// <param name="backendPort">Backend port for GUI</param>
+        /// <param name="publicPort">Public port</param>
+        /// <param name="folder">Static resource root folder</param>
+        public static void Bootstrap(ushort incomingPort, ushort backendPort, ushort publicPort, string folder) {
 
             // Starcounter General and usage tracking
-            StarcounterCollectionHandler.Bootstrap(port);
+            StarcounterCollectionHandler.Bootstrap(incomingPort);
 
             // Installer tracking
-            InstallerCollectionHandler.Bootstrap(port);
+            InstallerCollectionHandler.Bootstrap(incomingPort);
 
 			// Error reporting
-			ErrorReportHandler.Setup_PUT(port);
+			ErrorReportHandler.Setup_PUT(incomingPort);
 
             // Version handling (Uploads and Downloads)
-            VersionHandlerApp.BootStrap(port);
+            VersionHandlerApp.BootStrap(incomingPort, backendPort, publicPort, folder);
 
         }
 

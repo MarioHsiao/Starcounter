@@ -14,6 +14,21 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
         public static void BootStrap(ushort port) {
 
+
+            // This is use to let the user navigate to /download and then be presented by downloads.html
+            Handle.GET(port, "/download", (Request request) => {
+                Response response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Redirect };
+                response["Location"] = "/download/";
+                return response;
+            });
+
+            // Show download page
+            Handle.GET(port, "/download/{?}", (string res, Request request) => {
+                Node node = new Node("127.0.0.1", port);
+                return node.GET("/downloads.html", null, null);
+            });
+
+
             // Download latest version from channel 'NightlyBuilds'
             // This link is used by www.starcounter.com
             Handle.GET(port, "/beta", (Request request) => {
@@ -22,7 +37,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     VersionBuild latestBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
                     if (latestBuild == null) {
-                        // TODO: Redirect to a information page?
                         string message = string.Format("The download is not available at the moment. Please try again later.");
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
                     }
@@ -40,10 +54,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     string fileName = Path.GetFileName(latestBuild.File);
 
-                    Response r = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
-                    r["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
+                    Response response = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    response["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
+                    return response;
 
-                    return r;
                 }
                 catch (Exception e) {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
@@ -51,8 +65,9 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             });
 
+
             // Download latest version from channel 'NightlyBuilds' with key
-            // This ise used by users how got an email with a personal download link
+            // This is used by users how got an email with a personal download link
             Handle.GET(port, "/beta/{?}", (string downloadkey, Request request) => {
 
                 try {
@@ -65,7 +80,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     VersionBuild latestBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
                     if (latestBuild == null) {
-                        // TODO: Redirect to a information page?
                         string message = string.Format("The download is not available at the moment. Please try again later.");
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
                     }
@@ -84,10 +98,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     string fileName = Path.GetFileName(latestBuild.File);
 
-                    Response r = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
-                    r["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
+                    Response response = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    response["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
+                    return response;
 
-                    return r;
                 }
                 catch (Exception e) {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
@@ -95,13 +109,57 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             });
 
+
+            // Download a version from a channel
+            Handle.GET(port, "/archive/{?}/{?}", (string channel, string version, Request request) => {
+
+                try {
+
+                    // Check if source exist for specified channel and version.
+                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", channel, version).First;
+                    if (versionSource == null) {
+                        string message = string.Format("The version {0} in channel {1} is invalid or not available.", version, channel);
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = message };
+                    }
+
+                    VersionBuild versionBuild = VersionBuild.GetAvailableBuild(channel, version);
+                    if (versionBuild == null) {
+                        string message = string.Format("The download is not available at the moment. Please try again later.");
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
+                    }
+
+                    byte[] fileBytes = File.ReadAllBytes(versionBuild.File);
+
+                    Db.Transaction(() => {
+                        versionBuild.DownloadDate = DateTime.UtcNow;
+                        versionBuild.IPAdress = request.GetClientIpAddress().ToString();
+                    });
+
+                    VersionHandlerApp.BuildkWorker.Trigger();
+
+                    LogWriter.WriteLine(string.Format("NOTICE: Sending version {0} to ip {1}", versionBuild.Version, request.GetClientIpAddress().ToString()));
+
+                    string fileName = Path.GetFileName(versionBuild.File);
+
+                    Response response = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    response["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
+                    return response;
+
+                }
+                catch (Exception e) {
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = e.ToString() };
+                }
+
+            });
+
+
             // Download latest version from channel 'NightlyBuilds'
             // This link is given to ppl that wanted a direct download link wihtout a key.
             // NOTE: deprecated, it's replaces by the /beta link
             Handle.GET(port, "/hiddenarea/latest", (Request request) => {
-                Response r = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.MovedPermanently };
-                r["Location"] = "/beta";
-                return r;
+                Response response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.MovedPermanently };
+                response["Location"] = "/beta";
+                return response;
             });
 
         }

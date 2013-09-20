@@ -30,6 +30,12 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             // Check if unpacked package source 'Settings.SourceFolder' exist in Database.Source class
             FixMissingSources();
 
+            // Check if there is any documentation that is not referenced in the database
+            FixMissingDocumentation();
+
+            // Move unmoved documentations
+            MoveMissingDocumentations();
+
             // Check if versions in 'Settings.VersionFolder' exist in Database.Version class
             CleanupBuildFolder();
 
@@ -49,13 +55,19 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             Db.Transaction(() => {
 
-                var result = Db.SlowSQL("SELECT o FROM VersionSource o");
+                var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o");
                 foreach (VersionSource source in result) {
 
                     if (!string.IsNullOrEmpty(source.PackageFile) && !File.Exists(source.PackageFile)) {
                         // Package file is missing
                         source.PackageFile = null;
                         LogWriter.WriteLine(string.Format("NOTICE: Removing missing package {0} from database.", source.Version));
+                    }
+
+                    if (!string.IsNullOrEmpty(source.DocumentationFolder) && !Directory.Exists(source.DocumentationFolder)) {
+                        // Documentation folder is missing
+                        source.DocumentationFolder = null;
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing documentation {0} from database.", source.DocumentationFolder));
                     }
 
                     if (!string.IsNullOrEmpty(source.SourceFolder) && !Directory.Exists(source.SourceFolder)) {
@@ -68,6 +80,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         // No Package file specifed and there is no sourcefolder specified
                         string version = source.Version;
                         source.Delete();
+
                         LogWriter.WriteLine(string.Format("WARNING: Source item {0} was removed from database, package and sourcefolder was not specified.", version));
                     }
                 }
@@ -134,14 +147,40 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 string[] versionSources = Directory.GetDirectories(channel);
 
                 foreach (string versionSourceFolder in versionSources) {
-                    // ..\nightlybuilds\2.0.0.0\sdflsdljfsdl
 
-                    // TODO: Dont use the version folder name for version number.
-                    DirectoryInfo versionFolder = new DirectoryInfo(versionSourceFolder);
+                    string versionInfo_version;
+                    string versionInfo_channel;
+                    string versionInfo_builderTool = string.Empty;
+                    DateTime versionInfo_versionDate;
 
-                    // TODO: Extract the version from VersionInfo.xml it's more accurat
+                    String versionInfoFile = Path.Combine(versionSourceFolder, "VersionInfo.xml");
+                    if (!File.Exists(versionInfoFile)) {
+                        LogWriter.WriteLine(string.Format("ERROR: Invalid source {0} folder. Missing VersionInfo.xml.", versionSourceFolder));
+                        continue;
+                    }
 
-                    VersionSource source = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE Version=?", versionFolder.Name).First;
+                    using (FileStream fs = File.OpenRead(versionInfoFile)) {
+                        // Read version info
+                        PackageHandler.ReadInfoVersionInfo(fs, out versionInfo_version, out versionInfo_channel, out versionInfo_versionDate);
+                        if (versionInfo_versionDate == DateTime.MinValue) {
+                            versionInfo_versionDate = File.GetCreationTimeUtc(versionInfoFile);
+                            LogWriter.WriteLine(string.Format("WARNING: The VersionDate tag is missing from VersionInfo.xml in source folder {0}. The File date will be used instead.", versionSourceFolder));
+                        }
+
+                        if (File.Exists(Path.Combine(versionSourceFolder, "GenerateInstaller.exe"))) {
+                            versionInfo_builderTool = "GenerateInstaller.exe";
+                        }
+
+                        // Validate version info
+                        bool valid = versionInfo_version != string.Empty && versionInfo_channel != string.Empty && versionInfo_builderTool != string.Empty && versionInfo_versionDate != DateTime.MinValue;
+
+                        if (valid == false) {
+                            LogWriter.WriteLine(string.Format("ERROR: Invalid VersionInfo.xml content and/or missing building tool in source {0}", versionSourceFolder));
+                            continue;
+                        }
+                    }
+
+                    VersionSource source = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Version=?", versionInfo_version).First;
                     if (source == null) {
 
                         Db.Transaction(() => {
@@ -149,15 +188,97 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             VersionSource versionSource = new VersionSource();
                             versionSource.SourceFolder = versionSourceFolder;
                             versionSource.PackageFile = null;
-                            versionSource.Channel = channelFolder.Name;
-                            versionSource.Version = versionFolder.Name;
+                            versionSource.Channel = versionInfo_channel;
+                            versionSource.Version = versionInfo_version;
                             versionSource.BuildError = false;
+                            versionSource.VersionDate = versionInfo_versionDate;
                         });
 
-                        LogWriter.WriteLine(string.Format("NOTICE: Missing source {0} was added to database.", versionFolder.Name));
+                        LogWriter.WriteLine(string.Format("NOTICE: Missing source {0} was added to database.", versionInfo_version));
                     }
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Search for moved documentations that is not registered in the database
+        /// </summary>
+        private static void FixMissingDocumentation() {
+
+            VersionHandlerSettings settings = VersionHandlerApp.Settings;
+
+            string[] docs = Directory.GetDirectories(settings.DocumentationFolder);
+            // docs = "public" "internal"
+            foreach (string doc in docs) {
+
+                string[] channels = Directory.GetDirectories(doc);
+                foreach (string channelFolder in channels) {
+
+                    string[] versions = Directory.GetDirectories(channelFolder);
+                    foreach (string versionFolder in versions) {
+
+                        // Check and see if its referenced by the database.
+                        VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.DocumentationFolder=?", versionFolder).First;
+                        if (versionSource != null) {
+                            continue;
+                        }
+
+                        LogWriter.WriteLine(string.Format("WARNING: Documentation folder {0} is missing in the database.", versionFolder));
+
+                        string channel = new DirectoryInfo(channelFolder).Name;
+                        string version = new DirectoryInfo(versionFolder).Name;
+
+                        versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", channel, version).First;
+                        if (versionSource == null) {
+
+                            try {
+                                Directory.Delete(versionFolder, true);
+                                LogWriter.WriteLine(string.Format("NOTICE: Documentation folder {0} was deleted.", versionFolder));
+                            }
+                            catch (Exception e) {
+                                LogWriter.WriteLine(string.Format("ERROR: Failed to delete unreferenced documentation folder {0}. {1}", versionFolder, e.Message));
+                            }
+                        }
+                        else {
+
+                            Db.Transaction(() => {
+                                versionSource.DocumentationFolder = versionFolder;
+                                LogWriter.WriteLine(string.Format("NOTICE: Missing documentation folder {0} was added to database.", versionFolder));
+                            });
+
+                        }
+
+
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void MoveMissingDocumentations() {
+
+            var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o");
+            foreach (VersionSource versionSource in result) {
+
+                if (!string.IsNullOrEmpty(versionSource.DocumentationFolder) && Directory.Exists(versionSource.DocumentationFolder)) {
+                    // Documentation already moved
+                    continue;
+                }
+
+                PackageHandler.MoveDocumentation(versionSource);
+
+            }
+
+
+
         }
 
         /// <summary>
@@ -232,6 +353,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         private static void CleanupBuilds() {
 
             // Remove all builds that dosent have a source and has not been downloaded
+            // TODO: o.Source is always null
             Db.Transaction(() => {
                 var result = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.Source is null AND o.HasBeenDownloaded=?", false);
                 foreach (VersionBuild build in result) {
