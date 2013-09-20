@@ -350,7 +350,7 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public static uint MeasureNeededSize(byte[] b) {
+      public static uint MeasureNeededSizeByteArray(byte[] b) {
 #if BASE64
           return MeasureNeededSizeByteArray((uint)b.Length);
 #else
