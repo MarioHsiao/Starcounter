@@ -202,11 +202,13 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     public override void SetValue(Object newValue)
     {
         if (newValue is Byte[])
-        {
             value = new Binary((Byte[])newValue);
-            return;
-        }
-        value = (Binary)newValue;
+        else if (newValue is Binary)
+            value = (Binary)newValue;
+        else
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                "Type of query variable value is expected to be Binary or Byte[], while actual type is " + 
+                newValue.GetType().ToString());
     }
 
     /// <summary>
