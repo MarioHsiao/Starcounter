@@ -30,6 +30,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             // Check if unpacked package source 'Settings.SourceFolder' exist in Database.Source class
             FixMissingSources();
 
+            // Connect VersionBuilds with missing Source property.
+            ConnectVersionBuildWithMissingSource();
+
             // Check if there is any documentation that is not referenced in the database
             FixMissingDocumentation();
 
@@ -89,6 +92,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             // TODO: Remove duplicates
 
         }
+
 
         /// <summary>
         /// Check if packages in the filesystem is registered in the database
@@ -200,6 +204,36 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void ConnectVersionBuildWithMissingSource() {
+
+            var result = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Source IS NULL");
+
+            foreach (VersionBuild versionBuild in result) {
+
+                // Find Source
+                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", versionBuild.Channel, versionBuild.Version).First;
+                if (versionSource == null) {
+                    // Version source has been removed.
+                    // The build will still exist if it has been downloaded.
+                    if (versionBuild.HasBeenDownloaded == false) {
+                        LogWriter.WriteLine(string.Format("WARNING: The build {0} has not been downloaded and the source is missing. Please restart to trigger the cleanup process.", versionBuild.File));
+                    }
+                    continue;
+                }
+
+                Db.Transaction(() => {
+                    versionBuild.Source = versionSource;
+                });
+
+
+            }
+
+
+        }
+
 
         /// <summary>
         /// Search for moved documentations that is not registered in the database
@@ -281,6 +315,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
+
         /// <summary>
         /// Cleanup build folder
         /// Downloaded files and files with no reference to database is removed
@@ -346,6 +381,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
+
         /// <summary>
         /// Remove build's that dosent have a source (we can not build more)
         /// and remove build where there is no reference to an existing file
@@ -381,6 +417,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             });
 
         }
+
 
         /// <summary>
         /// Reset builds that faild so it will try to build again

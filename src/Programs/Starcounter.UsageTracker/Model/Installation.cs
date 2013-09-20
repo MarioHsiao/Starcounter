@@ -162,11 +162,15 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
             Installation currentInstallation = Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.InstallationNo=?", installation.PreviousInstallationNo).First;
             if (currentInstallation == null) return null;
 
+            if (installation.PreviousInstallationNo == installation.InstallationNo) {
+
+            }
+
             if (currentInstallation.Serial == "000000000000000000000000") {
                 return Installation.GetPreviousNode(currentInstallation);
             }
 
-            return installation;
+            return currentInstallation;
 
             //return Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.InstallationNo=?", this.PreviousInstallationNo).First;
         }
@@ -191,30 +195,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 
                 currentInstallation = Installation.GetNextNode(currentInstallation);
 
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Get last uninstallation
-        /// </summary>
-        /// <remarks>The installation can still be installed after an uninstallation</remarks>
-        /// <param name="installation"></param>
-        /// <returns>Installation</returns>
-        public static Installation GetLastUnInstallationNode(Installation installation) {
-
-            Installation currentInstallation = Installation.GetLastNode(installation);
-
-            while (currentInstallation != null) {
-
-                if (currentInstallation.InstallerFinish != null && currentInstallation.InstallerFinish.Success == true) {
-
-                    if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
-                        return currentInstallation;
-                    }
-                }
-                currentInstallation = Installation.GetPreviousNode(currentInstallation);
             }
 
             return null;
@@ -268,22 +248,11 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
             return lastInstallation;
         }
 
-
+           
         /// <summary>
-        /// Get a list of all intallations for one machine
+        /// 
         /// </summary>
-        /// <returns>List of Installations</returns>
-        //public static List<Installation> GetAllFirstNodes() {
-
-        //    DateTime from = DateTime.Parse("2013-09-09T05:55:11.4307278");
-        //    DateTime to = DateTime.Parse("2013-09-10T02:41:05.7185352");
-
-        //    from = DateTime.MinValue;
-        //    to = DateTime.MaxValue;
-
-        //    return GetAllFirstNodes(from, to);
-        //}
-
+        /// <returns></returns>
         public static List<Installation> GetAllFirstNodes() {
 
             List<Installation> machines = new List<Installation>();
@@ -308,32 +277,30 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 
 
         /// <summary>
-        /// Checks if installation is installed
+        /// Checks if installation was installed in the datetime range
         /// </summary>
         /// <remarks>A return value of false dosent mean that the installation is not installed</remarks>
         /// <param name="installation"></param>
-        /// <returns>Tru if installation is installed</returns>
-        public static bool IsInstalled(Installation installation) {
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool WasInstalled(Installation installation, DateTime from, DateTime to) {
 
             Installation currentInstallation = Installation.GetLastNode(installation);
 
             while (currentInstallation != null) {
 
-                if (currentInstallation.InstallerFinish == null) {
-                    // Assume it has been installed
-                    return true;
-                }
-
                 if (currentInstallation.InstallerFinish != null && currentInstallation.InstallerFinish.Success == true) {
 
-                    if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
-                        return true;
-                    }
-                    else if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
-                        return false;
-                    }
-                    else {
-                        // Add/Remove components
+                    // Within date range
+                    if (currentInstallation.Date >= from && currentInstallation.Date < to) {
+
+                        if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
+                            return true;
+                        }
+                        else if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
+                            return false;
+                        }
                     }
                 }
 
@@ -344,6 +311,41 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
             return false;
         }
 
+
+        /// <summary>
+        /// Checks if installation was uninstalled in the datetime range
+        /// </summary>
+        /// <remarks>A return value of false dosent mean that the installation is not uninstalled</remarks>
+        /// <param name="installation"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool WasUnInstalled(Installation installation, DateTime from, DateTime to) {
+
+            Installation currentInstallation = Installation.GetLastNode(installation);
+
+            while (currentInstallation != null) {
+
+                if (currentInstallation.InstallerFinish != null && currentInstallation.InstallerFinish.Success == true) {
+
+                    // Within date range
+                    if (currentInstallation.Date >= from && currentInstallation.Date < to) {
+
+                        if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
+                            return true;
+                        }
+                        else if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
+                            return false;
+                        }
+                    }
+                }
+
+                currentInstallation = Installation.GetPreviousNode(currentInstallation);
+
+            }
+
+            return false;
+        }
 
     }
 
