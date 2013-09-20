@@ -103,6 +103,7 @@ namespace Starcounter.Server.Commands {
 
                     var exe = new Executable();
                     exe.Path = weavedExecutable;
+                    exe.PrimaryFile = command.ExecutablePath;
                     if (command.Arguments != null) {
                         foreach (var arg in command.Arguments) {
                             exe.Arguments.Add().dummy = arg;
