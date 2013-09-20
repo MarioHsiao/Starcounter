@@ -7,6 +7,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Net;
 
 namespace Starcounter.Advanced
 {
@@ -218,13 +219,29 @@ namespace Starcounter.Advanced
         Boolean readOnly_;
 
         /// <summary>
+        /// WebSocket close codes.
+        /// </summary>
+        public enum WebSocketCloseCodes
+        {
+            WS_CLOSE_NORMAL = 1000,
+            WS_CLOSE_GOING_DOWN = 1001,
+            WS_CLOSE_PROTOCOL_ERROR = 1002,
+            WS_CLOSE_CANT_ACCEPT_DATA = 1003,
+            WS_CLOSE_WRONG_DATA_TYPE = 1007,
+            WS_CLOSE_POLICY_VIOLATED = 1008,
+            WS_CLOSE_MESSAGE_TOO_BIG = 1009,
+            WS_CLOSE_UNEXPECTED_CONDITION = 1011
+        }
+
+        /// <summary>
         /// Special connection flags.
         /// </summary>
         public enum ConnectionFlags
         {
             NoSpecialFlags = 0,
             DisconnectAfterSend = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
-            DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT
+            DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT,
+            GracefullyCloseConnection = MixedCodeConstants.HTTP_WS_FLAGS_GRACEFULLY_CLOSE
         }
 
         /// <summary>
@@ -622,156 +639,216 @@ namespace Starcounter.Advanced
             }
         }
 
+        // Type of network protocol.
+        MixedCodeConstants.NetworkProtocolType protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
+
+        /// <summary>
+        /// Returns protocol type.
+        /// </summary>
+        public MixedCodeConstants.NetworkProtocolType ProtocolType
+        {
+            get { return protocol_type_; }
+            internal set { protocol_type_ = value; }
+        }
+
 		/// <summary>
 		/// Constructs Response from fields that are set.
 		/// </summary>
 		public void ConstructFromFields() {
-			byte[] buf;
-			Utf8Writer writer;
 
 			// Checking if we have a custom response.
 			if (!customFields_)
 				return;
 
-			byte[] bytes = bodyBytes_;
-			if (_Hypermedia != null) {
-				var mimetype = http_request_.PreferredMimeType;
-				try {
-					bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
-					contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
-				} catch (UnsupportedMimeTypeException exc) {
-					throw new Exception(
-						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
-				}
+            byte[] buf;
+            Utf8Writer writer;
 
-				if (bytes == null) {
-					// The preferred requested mime type was not supported, try to see if there are
-					// other options.
-					IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
-					secondaryChoices.MoveNext(); // The first one is already accounted for
-					while (bytes == null && secondaryChoices.MoveNext()) {
-						mimetype = secondaryChoices.Current;
-						bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
-					}
-					if (bytes == null) {
-						// None of the requested mime types were supported.
-						// We will have to respond with a "Not Acceptable" message.
-						statusCode_ = 406;
-					} else {
-						contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
-					}
-				}
-				// We have our precious bytes. Let's wrap them up in a response.
-			}
+            switch (protocol_type_) {
 
-			buf = new byte[EstimateNeededSize(bytes)];
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1: {
+
+			        byte[] bytes = bodyBytes_;
+			        if (_Hypermedia != null) {
+				        var mimetype = http_request_.PreferredMimeType;
+				        try {
+					        bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					        contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+				        } catch (UnsupportedMimeTypeException exc) {
+					        throw new Exception(
+						        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
+				        }
+
+				        if (bytes == null) {
+					        // The preferred requested mime type was not supported, try to see if there are
+					        // other options.
+					        IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
+					        secondaryChoices.MoveNext(); // The first one is already accounted for
+					        while (bytes == null && secondaryChoices.MoveNext()) {
+						        mimetype = secondaryChoices.Current;
+						        bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					        }
+					        if (bytes == null) {
+						        // None of the requested mime types were supported.
+						        // We will have to respond with a "Not Acceptable" message.
+						        statusCode_ = 406;
+					        } else {
+						        contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+					        }
+				        }
+				        // We have our precious bytes. Let's wrap them up in a response.
+			        }
+
+			        buf = new byte[EstimateNeededSize(bytes)];
 			
-			unsafe {
-				fixed (byte* p = buf) {
-					writer = new Utf8Writer(p);
-					writer.Write(HttpHeadersUtf8.Http11);
+			        unsafe {
+				        fixed (byte* p = buf) {
+                            writer = new Utf8Writer(p);
+					        writer.Write(HttpHeadersUtf8.Http11);
 
-					if (statusCode_ > 0) {
-						writer.Write(statusCode_);
-						writer.Write(' ');
+					        if (statusCode_ > 0) {
+						        writer.Write(statusCode_);
+						        writer.Write(' ');
 						
-						// Checking if Status Description is set.
-						if (null != statusDescription_)
-							writer.Write(statusDescription_);
-						else 
-							writer.Write("OK");
+						        // Checking if Status Description is set.
+						        if (null != statusDescription_)
+							        writer.Write(statusDescription_);
+						        else 
+							        writer.Write("OK");
 
-						writer.Write(HttpHeadersUtf8.CRLF);
-					} else {
-						// Checking if Status Description is set.
-						if (null != statusDescription_) {
-							writer.Write(200);
-							writer.Write(' ');
-							writer.Write(statusDescription_);
-						} else
-							writer.Write("200 OK");
-						writer.Write(HttpHeadersUtf8.CRLF);
-					}
+						        writer.Write(HttpHeadersUtf8.CRLF);
+					        } else {
+						        // Checking if Status Description is set.
+						        if (null != statusDescription_) {
+							        writer.Write(200);
+							        writer.Write(' ');
+							        writer.Write(statusDescription_);
+						        } else
+							        writer.Write("200 OK");
+						        writer.Write(HttpHeadersUtf8.CRLF);
+					        }
 
-					writer.Write(HttpHeadersUtf8.ServerSc);
+					        writer.Write(HttpHeadersUtf8.ServerSc);
 
-					// TODO:
-					// What should the default cachecontrol be?
-					if (null != cacheControl_) {
-						writer.Write(HttpHeadersUtf8.CacheControlStart);
-						writer.Write(cacheControl_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					} else
-						writer.Write(HttpHeadersUtf8.CacheControlNoCache);
+					        // TODO:
+					        // What should the default cachecontrol be?
+					        if (null != cacheControl_) {
+						        writer.Write(HttpHeadersUtf8.CacheControlStart);
+						        writer.Write(cacheControl_);
+						        writer.Write(HttpHeadersUtf8.CRLF);
+					        } else
+						        writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
-                    if (null != customHeaderFields_) {
+                            if (null != customHeaderFields_) {
 
-                        foreach (KeyValuePair<string, string> h in customHeaderFields_) {
-                            writer.Write(h.Key);
-                            writer.Write(": ");
-                            writer.Write(h.Value);
-                            writer.Write(HttpHeadersUtf8.CRLF);
+                                foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                                    writer.Write(h.Key);
+                                    writer.Write(": ");
+                                    writer.Write(h.Value);
+                                    writer.Write(HttpHeadersUtf8.CRLF);
+                                }
+                            }
+
+					        if (null != contentType_) {
+						        writer.Write(HttpHeadersUtf8.ContentTypeStart);
+						        writer.Write(contentType_);
+						        writer.Write(HttpHeadersUtf8.CRLF);
+					        }
+
+					        if (null != contentEncoding_) {
+						        writer.Write(HttpHeadersUtf8.ContentEncodingStart);
+						        writer.Write(contentEncoding_);
+						        writer.Write(HttpHeadersUtf8.CRLF);	
+					        }
+
+					        if (null != setCookiesString_) {
+						        writer.Write(HttpHeadersUtf8.SetCookieStart);
+						        writer.Write(setCookiesString_);
+
+						        if (null != AppsSession) {
+							        writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
+							        writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							        writer.Write(AppsSession.ToAsciiString());
+							        writer.Write(HttpHeadersUtf8.setCookiePathEnd);
+						        }
+						        writer.Write(HttpHeadersUtf8.CRLF);
+					        } else {
+						        if (null != AppsSession) {
+							        writer.Write("Set-Cookie: Location=");
+							        writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							        writer.Write(AppsSession.ToAsciiString());
+							        writer.Write(HttpHeadersUtf8.setCookiePathEnd);
+							        writer.Write(HttpHeadersUtf8.CRLF);	
+						        }
+					        }
+
+					        if (null != bodyString_) {
+						        if (null != bytes)
+							        throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
+
+						        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						        writer.Write(writer.GetByteCount(bodyString_));
+						        writer.Write(HttpHeadersUtf8.CRLFCRLF);	
+
+						        writer.Write(bodyString_);
+					        } else if (null != bytes) {
+						        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						        writer.Write(bytes.Length);
+						        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+						        writer.Write(bytes);
+					        } else {
+						        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						        writer.Write('0');
+						        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+					        }
+				        }
+			        }
+
+                    // Finally setting the uncompressed bytes.
+                    uncompressed_response_ = buf;
+                    uncompressedResponseLength_ = writer.Written;
+
+                    break;
+                }
+
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS: {
+
+                    buf = new byte[EstimateNeededSize(bodyBytes_)];
+
+                    Int32 written = 0;
+
+                    unsafe {
+                        fixed (byte* p = buf) {
+
+                            if (statusCode_ > 0) {
+
+                                // Setting close flag.
+                                ConnFlags = ConnectionFlags.GracefullyCloseConnection;
+
+                                // Writing error code in network order.
+                                *(Int16*)p = IPAddress.HostToNetworkOrder((Int16)statusCode_);
+                                written += 2;
+
+                                // Writing status description if any.
+                                if (null != statusDescription_) {
+                                    writer = new Utf8Writer(p + 2);
+
+                                    writer.Write(statusDescription_);
+                                    written += writer.Written;
+                                }
+                            }
                         }
-                    }
+                    };
 
-					if (null != contentType_) {
-						writer.Write(HttpHeadersUtf8.ContentTypeStart);
-						writer.Write(contentType_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					}
+                    // Finally setting the uncompressed bytes.
+                    uncompressed_response_ = buf;
+                    uncompressedResponseLength_ = written;
 
-					if (null != contentEncoding_) {
-						writer.Write(HttpHeadersUtf8.ContentEncodingStart);
-						writer.Write(contentEncoding_);
-						writer.Write(HttpHeadersUtf8.CRLF);	
-					}
+                    break;
+                }
 
-					if (null != setCookiesString_) {
-						writer.Write(HttpHeadersUtf8.SetCookieStart);
-						writer.Write(setCookiesString_);
-
-						if (null != AppsSession) {
-							writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
-							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-							writer.Write(AppsSession.ToAsciiString());
-							writer.Write(HttpHeadersUtf8.setCookiePathEnd);
-						}
-						writer.Write(HttpHeadersUtf8.CRLF);
-					} else {
-						if (null != AppsSession) {
-							writer.Write("Set-Cookie: Location=");
-							writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-							writer.Write(AppsSession.ToAsciiString());
-							writer.Write(HttpHeadersUtf8.setCookiePathEnd);
-							writer.Write(HttpHeadersUtf8.CRLF);	
-						}
-					}
-
-					if (null != bodyString_) {
-						if (null != bytes)
-							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
-
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(writer.GetByteCount(bodyString_));
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);	
-
-						writer.Write(bodyString_);
-					} else if (null != bytes) {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(bytes.Length);
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-						writer.Write(bytes);
-					} else {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write('0');
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-					}
-
-					// Finally setting the uncompressed bytes.
-					uncompressed_response_ = buf;
-					uncompressedResponseLength_ = writer.Written;
-				}
-			}
+                default:
+                    throw ErrorCode.ToException(Error.SCERRUNKNOWNNETWORKPROTOCOL);
+            }
 
 			customFields_ = false;
 			readOnly_ = true;

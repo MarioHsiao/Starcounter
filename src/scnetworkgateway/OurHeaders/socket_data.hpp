@@ -20,7 +20,8 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
     HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
     HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048,
+    HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE
 };
 
 // Socket data chunk.
@@ -365,6 +366,24 @@ public:
     void reset_disconnect_after_send_flag()
     {
         flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    // Getting gracefully close flag.
+    bool get_gracefully_close_flag()
+    {
+        return (flags_ & HTTP_WS_FLAGS_GRACEFULLY_CLOSE) != 0;
+    }
+
+    // Setting gracefully close flag.
+    void set_gracefully_close_flag()
+    {
+        flags_ |= HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+    }
+
+    // ReSetting gracefully close flag.
+    void reset_gracefully_close_flag()
+    {
+        flags_ &= ~HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
     }
 
     // Getting disconnect socket flag.
