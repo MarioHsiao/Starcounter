@@ -338,7 +338,6 @@ const int32_t HTTPS_BLOB_USER_DATA_OFFSET = 2048;
 const int32_t RAW_BLOB_USER_DATA_OFFSET = 0;
 const int32_t AGGR_BLOB_USER_DATA_OFFSET = 64;
 const int32_t SUBPORT_BLOB_USER_DATA_OFFSET = 32;
-const int32_t WS_NEEDED_USER_DATA_OFFSET = 16;
 
 // Error code type.
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code
@@ -2161,7 +2160,7 @@ public:
     }
 
     // Sets connection type on given socket.
-    void SetConnectionType(session_index_type index,
+    void SetTypeOfNetworkProtocol(session_index_type index,
         MixedCodeConstants::NetworkProtocolType proto_type)
     {
         all_sockets_infos_unsafe_[index].type_of_network_protocol_ = proto_type;
