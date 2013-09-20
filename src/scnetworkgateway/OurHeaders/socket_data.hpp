@@ -457,7 +457,7 @@ public:
     {
         type_of_network_protocol_ = proto_type;
 
-        g_gateway.SetConnectionType(socket_info_index_, proto_type);
+        g_gateway.SetTypeOfNetworkProtocol(socket_info_index_, proto_type);
     }
 
     // Checks if this socket is aggregated.
@@ -760,6 +760,15 @@ public:
 
         // Setting unique socket id.
         unique_socket_id_ = proxy_unique_socket_id;
+    }
+
+    // Initializes socket data that comes from database.
+    void PreInitSocketDataFromDb(int32_t db_index, core::chunk_index the_chunk_index)
+    {
+        db_index_ = db_index;
+        chunk_index_ = the_chunk_index;
+        num_chunks_ = 1;
+        type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
     }
 
     // Attaching to certain database.
