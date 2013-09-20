@@ -19,6 +19,11 @@ namespace QueryProcessingTest {
             RunErrorQuery("select from fro fro");
             Trace.Assert(ignored == 1);
             Trace.Assert(sqlexceptions == 1);
+            try {
+                var res = Db.SQL("select u from user u where firstname = ?", 1).First;
+            } catch (ArgumentException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRBADARGUMENTS);
+            }
             HelpMethods.LogEvent("Finished test of error messages");
         }
 

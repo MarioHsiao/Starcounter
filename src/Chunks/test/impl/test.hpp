@@ -72,12 +72,7 @@ all_popped_(0) {
         timeout_ = std::atoi(timeout_buffer);
         
         //----------------------------------------------------------------------
-		// Fourth argument: <database name>
-        // Convert it from wide character string to multibyte string.
-		char database_name_buffer[segment_name_size];
-
-        //----------------------------------------------------------------------
-        // Fifth argument: <number of schedulers to use in database>
+        // Fourth argument: <number of schedulers to use in database>
         // Convert it from wide-character string to multibyte string.
         char num_schedulers_buffer[16];
         std::wcstombs(num_schedulers_buffer, argv[4], 16 -1);
@@ -88,6 +83,11 @@ all_popped_(0) {
 		std::string database_name;
 		std::string db_shm_params_name;
 		std::vector<std::string> ipc_shm_params_name;
+
+        //----------------------------------------------------------------------
+		// Fifth argument: <database name>
+        // Convert it from wide character string to multibyte string.
+		char database_name_buffer[segment_name_size];
 
         // This loop is obsolete since the IPC test can only connect to one
         // database. But it works so I leave it as is for now, because the
@@ -120,8 +120,8 @@ all_popped_(0) {
 		"First argument: <server name>, for example \"PERSONAL\" or \"SYSTEM\".\n"
 		"Second argument: <number of worker threads>, for example \"4\".\n"
 		"Third argument: <timeout in milliseconds>, for example \"10000\".\n"
-		"Fourth argument: <database name>, for example \"myDatabase\".\n"
-		"Fifth argument: <number of schedulers>, for example \"3\".\n"
+		"Fourth argument: <number of schedulers>, for example \"3\".\n"
+		"Fifth argument: <database name>, for example \"myDatabase\".\n"
         << std::endl;
 		
 		throw test_exception(0 /* TODO: Starcounter error code. SCERRINVALIDARGUMENTSTOIPCTEST */);

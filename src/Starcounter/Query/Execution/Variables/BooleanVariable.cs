@@ -200,9 +200,13 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
     }
 
     // Throws an InvalidCastException if newValue is of an incompatible type.
-    public override void SetValue(Object newValue)
-    {
-        value = (Boolean)newValue;
+    public override void SetValue(Object newValue) {
+        if (newValue is Boolean)
+            value = (Boolean)newValue;
+        else
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+    "Type of query variable value is expected to be Boolean, while actual type is " +
+    newValue.GetType().ToString());
     }
 
     /// <summary>

@@ -169,8 +169,13 @@ namespace Starcounter.Query.Execution
         public override void SetValue(object newValue) {
             if (newValue is Type)
                 SetValue((Type)newValue);
-            else
+            else if (newValue is ITypeBinding)
                 SetValue((ITypeBinding)newValue);
+            else
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+"Type of query variable value is expected to be a type, while actual type is " +
+newValue.GetType().ToString());
+
         }
 
         /// <summary>

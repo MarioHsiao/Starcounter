@@ -635,176 +635,214 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     char* config_contents = new char[tmp_str.size() + 1];
     strcpy_s(config_contents, tmp_str.size() + 1, tmp_str.c_str());
 
-    using namespace rapidxml;
-    xml_document<> doc; // Character type defaults to char.
-    doc.parse<0>(config_contents); // 0 means default parse flags.
-
-    xml_node<> *rootElem = doc.first_node("NetworkGateway");
-
-    // Getting local interfaces.
-    xml_node<> *localIpElem = rootElem->first_node("BindingIP");
-    while(localIpElem)
+    try
     {
-        setting_local_interfaces_.push_back(localIpElem->value());
-        localIpElem = localIpElem->next_sibling("BindingIP");
-    }
+        using namespace rapidxml;
+        xml_document<> doc; // Character type defaults to char.
+        doc.parse<0>(config_contents); // 0 means default parse flags.
 
-    // Getting workers number.
-    setting_num_workers_ = atoi(rootElem->first_node("WorkersNumber")->value());
+        xml_node<> *root_elem = doc.first_node("NetworkGateway");
+        GW_ASSERT(root_elem);
+
+        // Getting local interfaces.
+        xml_node<>* node_elem = root_elem->first_node("BindingIP");
+        while(node_elem)
+        {
+            setting_local_interfaces_.push_back(node_elem->value());
+            node_elem = node_elem->next_sibling("BindingIP");
+        }
+
+        // Getting workers number.
+        node_elem = root_elem->first_node("WorkersNumber");
+        GW_ASSERT(node_elem);
+        setting_num_workers_ = atoi(node_elem->value());
+        GW_ASSERT(setting_num_workers_ > 0 && setting_num_workers_ < 16);
+
 #ifdef GW_TESTING_MODE
-    if (cmd_setting_num_workers_)
-        setting_num_workers_ = cmd_setting_num_workers_;
+        if (cmd_setting_num_workers_)
+            setting_num_workers_ = cmd_setting_num_workers_;
 #endif
 
-    // Getting maximum connection number.
-    setting_max_connections_ = atoi(rootElem->first_node("MaxConnections")->value());
+        // Getting maximum connection number.
+        node_elem = root_elem->first_node("MaxConnections");
+        GW_ASSERT(node_elem);
+        setting_max_connections_ = atoi(node_elem->value());
+        GW_ASSERT(setting_max_connections_ > 10 && setting_max_connections_ < 10000000);
 
-    // Getting inactive socket timeout.
-    setting_inactive_socket_timeout_seconds_ = atoi(rootElem->first_node("InactiveConnectionTimeout")->value());
+        // Getting inactive socket timeout.
+        node_elem = root_elem->first_node("InactiveConnectionTimeout");
+        GW_ASSERT(node_elem);
+        setting_inactive_socket_timeout_seconds_ = atoi(node_elem->value());
+        GW_ASSERT(setting_inactive_socket_timeout_seconds_ > 0 && setting_inactive_socket_timeout_seconds_ < 100000);
 
-    // Getting gateway statistics port number.
-    setting_gw_stats_port_ = (uint16_t)atoi(rootElem->first_node("GatewayStatisticsPort")->value());
+        // Getting gateway statistics port number.
+        node_elem = root_elem->first_node("GatewayStatisticsPort");
+        GW_ASSERT(node_elem);
+        setting_gw_stats_port_ = (uint16_t)atoi(node_elem->value());
+        GW_ASSERT(setting_gw_stats_port_ > 0 && setting_gw_stats_port_ < 65536);
 
-    // Getting aggreation port number.
-    setting_aggregation_port_ = (uint16_t)atoi(rootElem->first_node("AggregationPort")->value());
+        // Getting aggregation port number.
+        node_elem = root_elem->first_node("AggregationPort");
+        GW_ASSERT(node_elem);
+        setting_aggregation_port_ = (uint16_t)atoi(node_elem->value());
+        GW_ASSERT(setting_aggregation_port_ >= 0 && setting_aggregation_port_ < 65536);
 
-    // Just enforcing minimum socket timeout multiplier.
-    if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
-        return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
+        // Just enforcing minimum socket timeout multiplier.
+        if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
+            return SCERRGWWRONGMAXIDLESESSIONLIFETIME;
 
-    // Setting minimum socket life time.
-    min_inactive_socket_life_seconds_ = setting_inactive_socket_timeout_seconds_ / SOCKET_LIFETIME_MULTIPLIER;
+        // Setting minimum socket life time.
+        min_inactive_socket_life_seconds_ = setting_inactive_socket_timeout_seconds_ / SOCKET_LIFETIME_MULTIPLIER;
 
-    // Initializing global timer.
-    global_timer_unsafe_ = min_inactive_socket_life_seconds_;
+        // Initializing global timer.
+        global_timer_unsafe_ = min_inactive_socket_life_seconds_;
 
 #ifdef GW_TESTING_MODE
 
-    // Getting master node IP address.
-    setting_master_ip_ = rootElem->first_node("MasterIP")->value();
+        // Getting master node IP address.
+        node_elem = root_elem->first_node("MasterIP");
+        GW_ASSERT(node_elem);
+        setting_master_ip_ = node_elem->value();
+        
+        // Master node does not need its own IP.
+        if (setting_master_ip_ == "")
+            setting_is_master_ = true;
+        else
+            setting_is_master_ = false;
 
-    // Master node does not need its own IP.
-    if (setting_master_ip_ == "")
-        setting_is_master_ = true;
-    else
-        setting_is_master_ = false;
+        // Number of connections to establish to master.
+        node_elem = root_elem->first_node("NumConnectionsToMaster");
+        GW_ASSERT(node_elem);
+        setting_num_connections_to_master_ = atoi(node_elem->value());
 
-    // Number of connections to establish to master.
-    setting_num_connections_to_master_ = atoi(rootElem->first_node("NumConnectionsToMaster")->value());
-    if (cmd_setting_num_connections_to_master_)
-        setting_num_connections_to_master_ = cmd_setting_num_connections_to_master_;
+        if (cmd_setting_num_connections_to_master_)
+            setting_num_connections_to_master_ = cmd_setting_num_connections_to_master_;
 
-    GW_ASSERT((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
-    setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
+        GW_ASSERT((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
+        setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
 
-    // Number of echoes to send to master node from clients.
-    setting_num_echoes_to_master_ = atoi(rootElem->first_node("NumEchoesToMaster")->value());
-    if (cmd_setting_num_echoes_to_master_)
-        setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
+        // Number of echoes to send to master node from clients.
+        node_elem = root_elem->first_node("NumEchoesToMaster");
+        GW_ASSERT(node_elem);
+        setting_num_echoes_to_master_ = atoi(node_elem->value());
 
-    setting_server_test_port_ = atoi(rootElem->first_node("ServerTestPort")->value());
+        if (cmd_setting_num_echoes_to_master_)
+            setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
 
-    GW_ASSERT(setting_num_echoes_to_master_ <= MAX_TEST_ECHOES);
-    ResetEchoTests();
+        node_elem = root_elem->first_node("ServerTestPort");
+        GW_ASSERT(node_elem);
+        setting_server_test_port_ = atoi(node_elem->value());
+        GW_ASSERT(setting_server_test_port_ > 0 && setting_server_test_port_ < 65536);
 
-    // Obtaining testing mode.
-    setting_mode_ = GetGatewayTestingMode(rootElem->first_node("TestingMode")->value());
-    if (cmd_setting_mode_ != GatewayTestingMode::MODE_GATEWAY_UNKNOWN)
-        setting_mode_ = cmd_setting_mode_;
+        GW_ASSERT(setting_num_echoes_to_master_ <= MAX_TEST_ECHOES);
+        ResetEchoTests();
 
-    // Maximum running time for tests.
-    setting_max_test_time_seconds_ = atoi(rootElem->first_node("MaxTestTimeSeconds")->value());
-    if (cmd_setting_max_test_time_seconds_)
-        setting_max_test_time_seconds_ = cmd_setting_max_test_time_seconds_;
+        // Obtaining testing mode.
+        node_elem = root_elem->first_node("TestingMode");
+        GW_ASSERT(node_elem);
+        setting_mode_ = GetGatewayTestingMode(node_elem->value());
 
-    GW_ASSERT((setting_max_test_time_seconds_ % GW_MONITOR_THREAD_TIMEOUT_SECONDS) == 0);
+        if (cmd_setting_mode_ != GatewayTestingMode::MODE_GATEWAY_UNKNOWN)
+            setting_mode_ = cmd_setting_mode_;
 
-    // Loading statistics name.
-    setting_stats_name_ = rootElem->first_node("ReportStatisticsName")->value();
-    if (cmd_setting_stats_name_.length())
-        setting_stats_name_ = cmd_setting_stats_name_;
+        // Maximum running time for tests.
+        node_elem = root_elem->first_node("MaxTestTimeSeconds");
+        GW_ASSERT(node_elem);
+        setting_max_test_time_seconds_ = atoi(node_elem->value());
+        GW_ASSERT(setting_max_test_time_seconds_ > 0 && setting_max_test_time_seconds_ < 10000);
+
+        if (cmd_setting_max_test_time_seconds_)
+            setting_max_test_time_seconds_ = cmd_setting_max_test_time_seconds_;
+
+        GW_ASSERT((setting_max_test_time_seconds_ % GW_MONITOR_THREAD_TIMEOUT_SECONDS) == 0);
+
+        // Loading statistics name.
+        node_elem = root_elem->first_node("ReportStatisticsName");
+        GW_ASSERT(node_elem);
+        setting_stats_name_ = node_elem->value();
+
+        if (cmd_setting_stats_name_.length())
+            setting_stats_name_ = cmd_setting_stats_name_;
 
 #ifdef GW_LOOPED_TEST_MODE
-    switch (setting_mode_)
-    {
-        case GatewayTestingMode::MODE_GATEWAY_HTTP:
-        case GatewayTestingMode::MODE_GATEWAY_SMC_HTTP:
-        case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP:
+        switch (setting_mode_)
         {
-            looped_echo_request_creator_ = DefaultHttpEchoRequestCreator;
-            looped_echo_response_processor_ = DefaultHttpEchoResponseProcessor;
-            
-            break;
-        }
-        
-        case GatewayTestingMode::MODE_GATEWAY_RAW:
-        case GatewayTestingMode::MODE_GATEWAY_SMC_RAW:
-        case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW:
-        {
-            looped_echo_request_creator_ = DefaultRawEchoRequestCreator;
-            looped_echo_response_processor_ = DefaultRawEchoResponseProcessor;
+            case GatewayTestingMode::MODE_GATEWAY_HTTP:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_HTTP:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP:
+            {
+                looped_echo_request_creator_ = DefaultHttpEchoRequestCreator;
+                looped_echo_response_processor_ = DefaultHttpEchoResponseProcessor;
 
-            break;
+                break;
+            }
+
+            case GatewayTestingMode::MODE_GATEWAY_RAW:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_RAW:
+            case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW:
+            {
+                looped_echo_request_creator_ = DefaultRawEchoRequestCreator;
+                looped_echo_response_processor_ = DefaultRawEchoResponseProcessor;
+
+                break;
+            }
         }
-    }
 #endif
 
 #endif
 
 #ifdef GW_PROXY_MODE
 
-    // Checking if we have reverse proxies.
-    xml_node<char>* proxies_node = rootElem->first_node("ReverseProxies");
-    if (proxies_node)
-    {
-        xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
-        int32_t n = 0;
-        while (proxy_node)
+        // Checking if we have reverse proxies.
+        xml_node<char>* proxies_node = root_elem->first_node("ReverseProxies");
+        if (proxies_node)
         {
-            // Filling reverse proxy information.
-            reverse_proxies_[n].server_ip_ = proxy_node->first_node("ServerIP")->value();
-            reverse_proxies_[n].server_port_ = atoi(proxy_node->first_node("ServerPort")->value());
-            reverse_proxies_[n].gw_proxy_port_ = atoi(proxy_node->first_node("GatewayProxyPort")->value());
-            reverse_proxies_[n].service_uri_ = proxy_node->first_node("ServiceUri")->value();
-            reverse_proxies_[n].service_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].service_uri_.length());
+            xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
+            GW_ASSERT(node_elem);
 
-            // Loading proxied servers.
-            sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
-            memset(server_addr, 0, sizeof(sockaddr_in));
-            server_addr->sin_family = AF_INET;
-            server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].server_ip_.c_str());
-            server_addr->sin_port = htons(reverse_proxies_[n].server_port_);
+            int32_t n = 0;
+            while (proxy_node)
+            {
+                // Filling reverse proxy information.
+                node_elem = proxy_node->first_node("ServerIP");
+                GW_ASSERT(node_elem);
+                reverse_proxies_[n].server_ip_ = node_elem->value();
 
-            // Getting next reverse proxy information.
-            proxy_node = proxy_node->next_sibling("ReverseProxy");
+                node_elem = proxy_node->first_node("ServerPort");
+                GW_ASSERT(node_elem);
+                reverse_proxies_[n].server_port_ = atoi(node_elem->value());
+                GW_ASSERT(reverse_proxies_[n].server_port_  > 0 && reverse_proxies_[n].server_port_  < 65536);
 
-            n++;
+                node_elem = proxy_node->first_node("GatewayProxyPort");
+                GW_ASSERT(node_elem);
+                reverse_proxies_[n].gw_proxy_port_ = atoi(node_elem->value());
+                proxy_node->first_node("ServiceUri");
+
+                reverse_proxies_[n].service_uri_ = node_elem->value();
+                reverse_proxies_[n].service_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].service_uri_.length());
+
+                // Loading proxied servers.
+                sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
+                memset(server_addr, 0, sizeof(sockaddr_in));
+                server_addr->sin_family = AF_INET;
+                server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].server_ip_.c_str());
+                server_addr->sin_port = htons(reverse_proxies_[n].server_port_);
+
+                // Getting next reverse proxy information.
+                proxy_node = proxy_node->next_sibling("ReverseProxy");
+
+                n++;
+            }
+
+            num_reversed_proxies_ = n;
         }
 
-        num_reversed_proxies_ = n;
-    }
-
 #endif
-
-    // Allocating data for sockets infos.
-    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
-    free_socket_indexes_unsafe_ = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
-    GW_ASSERT(free_socket_indexes_unsafe_);
-    InitializeSListHead(free_socket_indexes_unsafe_);
-
-    sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
-    num_active_sockets_ = 0;
-    num_sockets_to_cleanup_unsafe_ = 0;
-
-    // Cleaning all socket infos and setting indexes.
-    for (int32_t i = setting_max_connections_ - 1; i >= 0; i--)
+    }
+    catch (...)
     {
-        // Resetting all sockets infos.
-        all_sockets_infos_unsafe_[i].Reset();
-        all_sockets_infos_unsafe_[i].socket_info_index_ = i;
-
-        // Pushing to free indexes list.
-        InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_));
+        GW_COUT << "Error loading gateway XML settings!" << GW_ENDL;
+        return SCERRGWCANTLOADXMLSETTINGS;
     }
 
     delete [] config_contents;
@@ -1488,6 +1526,27 @@ void ActiveDatabase::CloseSocketData()
 // Initializes WinSock, all core data structures, binds server sockets.
 uint32_t Gateway::Init()
 {
+    // Allocating data for sockets infos.
+    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
+    free_socket_indexes_unsafe_ = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    GW_ASSERT(free_socket_indexes_unsafe_);
+    InitializeSListHead(free_socket_indexes_unsafe_);
+
+    sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
+    num_active_sockets_ = 0;
+    num_sockets_to_cleanup_unsafe_ = 0;
+
+    // Cleaning all socket infos and setting indexes.
+    for (int32_t i = setting_max_connections_ - 1; i >= 0; i--)
+    {
+        // Resetting all sockets infos.
+        all_sockets_infos_unsafe_[i].Reset();
+        all_sockets_infos_unsafe_[i].socket_info_index_ = i;
+
+        // Pushing to free indexes list.
+        InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_));
+    }
+
     // Checking if already initialized.
     GW_ASSERT((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 

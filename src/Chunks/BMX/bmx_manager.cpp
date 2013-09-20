@@ -424,17 +424,6 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
             break;
         }
 
-        case BMX_SESSION_CREATE:
-        {
-            // Handling new session creation.
-            err_code = g_bmx_data->HandleSessionCreation(smc, task_info);
-
-            if (err_code)
-                return err_code;
-
-            break;
-        }
-
         default:
         {
             return SCERRUNSPECIFIED; // SCERRUNKNOWNBMXMESSAGE;

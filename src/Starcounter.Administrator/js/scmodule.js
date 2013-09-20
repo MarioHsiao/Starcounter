@@ -54,24 +54,24 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', fu
 
             // Success
             $scope.queryState.columns = response.columns;
-            $scope.queryState.rows = response.rows;
+            $scope.queryState.rows = response.rows.rows;
 
             // Make all columns readonly
             for (var i = 0; i < $scope.queryState.columns.length ; i++) {
                 $scope.queryState.columns[i].readOnly = true;
             }
 
-            if (response.queryPlan != null) {
+            if (response.queryPlan) {
                 $scope.queryState.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
                 $scope.queryState.queryPlan = $scope.queryState.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
             }
 
-            if (response.sqlException != null) {
+            if (response.hasSqlException) {
                 // Show message
                 $scope.alerts.push({ type: 'error', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
             }
 
-            if (response.exception != null) {
+            if (response.hasException) {
                 $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
             }
 

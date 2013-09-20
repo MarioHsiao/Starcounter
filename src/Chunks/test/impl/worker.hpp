@@ -23,11 +23,9 @@ worker::worker()
 shared_(),
 worker_id_(0),
 num_active_schedulers_(0),
-chunk_pool_(chunks_total_number_max),
-overflow_pool_(chunks_total_number_max),
+//chunk_pool_(chunks_total_number_max),
 num_channels_(0),
 random_generator_(0 /*seed*/),
-acquired_chunks_(0),
 pushed_(0),
 popped_(0) {}
 
@@ -42,30 +40,46 @@ void worker::start() {
 	///=========================================================================
 	/// Initialize
 	///=========================================================================
-	
 	if (!shared().acquire_client_number()) {
 		// Failed to acquire client number.
 		throw worker_exception(4000);
 	}
 	
+	chunk_type* chunk_ptr = &shared().chunk(0);
+	
+	size_t chunks_per_worker_scheduler_pair = 64;
+	//= shared().shared_chunk_pool().size() / 2 / num_active_schedulers_;
+	
+	size_t acquired_chunks = 0;
+	
 	// Acquire a channel_number for each scheduler.
-	for (scheduler_number i = 0; i < num_active_schedulers_; ++i) {
-		channel_[i] = invalid_channel_number;
+	for (scheduler_number scheduler_num = 0; scheduler_num < num_active_schedulers_; ++scheduler_num) {
+		// Try to acquire a bunch of chunks from the shared chunk
+		// pool to the private chunk pool.
+		get_chunk_pool_list(scheduler_num).set_chunk_ptr(chunk_ptr);
 
-		if (!shared().acquire_channel(&channel_[i], i /*scheduler_number*/)) {
+		acquired_chunks += shared().acquire_from_shared_chunk_pool
+		(get_chunk_pool_list(scheduler_num), chunks_per_worker_scheduler_pair,
+		&shared().client_interface(), 100 /* milliseconds timeout */);
+		
+		channel_[scheduler_num] = invalid_channel_number;
+		
+		if (!shared().acquire_channel(&channel_[scheduler_num], scheduler_num)) {
 			std::cout << " worker[" << worker_id_ << "] error: "
 			"invalid channel number." << std::endl;
 		}
-		
 		++num_channels_;
 	}
 	
 	channel_[num_channels_] = invalid_channel_number;
 	
+	std::cout << "worker[" << id() << "]: acquired " << acquired_chunks
+	<< " chunks, divided evenly over " << num_active_schedulers_
+	<< " private chunk pools." << std::endl;
+
 	///=========================================================================
 	/// Start worker thread
 	///=========================================================================
-
 	thread_.create((thread::start_routine_type) &worker::work, this); 
 	thread_handle_ = thread_.native_handle();	
 }
@@ -115,14 +129,24 @@ try {
 		///=====================================================================
 		
 		for (std::size_t n = 0; n < worker->num_channels(); ++n) {
+			size_t channel_num = worker->channel(n);
+			
 			// Reference used as shorthand.
 			channel_type& the_channel
-			= worker->shared().channel(worker->channel(n));
+			= worker->shared().channel(channel_num);
+			
+			scheduler_number scheduler_num = the_channel.get_scheduler_number();
+			
+			// Reference used as shorthand.
+			chunk_pool_list_type& chunk_pool_list_for_this_scheduler
+			= worker->get_chunk_pool_list(scheduler_num);
 			
 			// Try to acquire chunk(s) for the request message from private
 			// chunk pool.
-			if (worker->get_chunk_pool().acquire_linked_chunks(&worker->shared()
-			.chunk(0), request_message, 1) == true) {
+			if (!chunk_pool_list_for_this_scheduler.empty()) {
+				request_message = chunk_pool_list_for_this_scheduler.front();
+				chunk_pool_list_for_this_scheduler.pop_front();
+				
 				// Acquired enough chunk(s) for the request message.
 				// Construct a BMX ping and write it into the chunk.
 				shared_memory_chunk* smc = static_cast<shared_memory_chunk*>
@@ -166,72 +190,7 @@ try {
 				}
 			}
 			else {
-				// Could not acquire enough chunk(s) for the request message
-				// from private chunk pool.
-				if (worker->acquired_chunks() < worker::max_chunks) {
-					// Try to acquire a bunch of chunks from the shared chunk
-					// pool to the private chunk pool.
-					worker->acquired_chunks() += worker->shared()
-					.acquire_from_shared_to_private(worker->get_chunk_pool(),
-					a_bunch_of_chunks, &worker->shared().client_interface(),
-					1000 /* milliseconds timeout */);
-					
-					if (worker->acquired_chunks()) {
-						// The worker has some chunks. Try to acquire chunk(s)
-						// for the request message from private chunk pool.
-						if (worker->get_chunk_pool().acquire_linked_chunks
-						(&worker->shared().chunk(0), request_message, 1)
-						== true) {
-							// Acquired enough chunk(s) for the request message.
-							// Construct a BMX ping chunk.
-							shared_memory_chunk* smc = static_cast
-							<shared_memory_chunk*>(&worker->shared().chunk
-							(request_message));
-							
-							sc_bmx_construct_ping(0, smc);
-							
-							if (the_channel.in_overflow().empty()) {
-								if (the_channel.in.try_push_front
-								(request_message)) {
-									// Pushed the request message to the
-									// channel::in buffer. Notify the scheduler
-									// that the channel::in buffer might not be
-									// empty.
-									the_channel.scheduler()->notify
-									(worker->shared().scheduler_work_event
-									(the_channel.get_scheduler_number()));
-									
-									++pushed_to_channels[n];
-									++worker->pushed_; // Used for statistics.
-									worked = true;
-									
-									// Continue with the next channel.
-									continue;
-								}
-								else {
-									// Failed to push the request message to the
-									// channel::in buffer. Therefore the request
-									// message is pushed to the
-									// channel::in_overflow queue. The order of
-									// request message production is preserved.
-									the_channel.in_overflow().push_back
-									(request_message);
-									
-									// Continue with the next channel.
-									continue; // next channel
-								}
-							}
-							else {
-								// The channel::in_overflow queue is not empty.
-								// Therefore the request message is pushed to
-								// the channel::in_overflow queue, to preserve
-								// the order of request message production.
-								the_channel.in_overflow().push_back
-								(request_message);
-							}
-						}
-					}
-				}
+				// The IPC test will not attempt to acquire more chunks.
 			}
 			
 			// Try to empty the channel::in_overflow queue by moving all request
@@ -270,9 +229,17 @@ try {
 scan_channel_out_buffers:
 			//scan_out_buffers = 0;
 			for (std::size_t n = 0; n < worker->num_channels(); ++n) {
+				size_t channel_num = worker->channel(n);
+				
 				// Reference used as shorthand.
 				channel_type& the_channel
-				= worker->shared().channel(worker->channel(n));
+				= worker->shared().channel(channel_num);
+				
+				scheduler_number scheduler_num = the_channel.get_scheduler_number();
+				
+				// Reference used as shorthand.
+				chunk_pool_list_type& chunk_pool_list_for_this_scheduler
+				= worker->get_chunk_pool_list(scheduler_num);
 				
 				// Check if there is a response message and process it.
 				if (the_channel.out.try_pop_back(&response_message) == true) {
@@ -304,49 +271,31 @@ scan_channel_out_buffers:
 					}
 					
 					// Release the response chunk.
-					worker->get_chunk_pool().release_linked_chunks
-					(&worker->shared().chunk(0), response_message);
-					
-					if (worker->get_chunk_pool().size() <= max_chunks) {
-						continue;
-					}
-					else {
-						// The private chunk_pool has more chunks than allowed.
-						// Therefore the worker must try to release some chunks
-						// to the shared chunk pool.
-						std::size_t chunks_to_move
-						= worker->get_chunk_pool().size() -max_chunks;
-						
-						if (chunks_to_move < a_bunch_of_chunks) {
-							chunks_to_move = a_bunch_of_chunks;
-						}
-						
-						worker->acquired_chunks() -= worker->shared()
-						.release_from_private_to_shared
-						(worker->get_chunk_pool(), chunks_to_move,
-						&worker->shared().client_interface(), 1000);
-					}
+					chunk_pool_list_for_this_scheduler.push_front(response_message);
 				}
 			}
-
 			scanned_channel_out_buffers = true;
 		//} // Slow down scanning of out buffers
 		
+#if 0
 		/// Show some statistics
 		if ((++statistics_counter & ((1 << 24) -1)) == 0) {
-			std::cout << "worker[" << worker->id() << "]: has " << worker->get_chunk_pool().size() << " chunks, pushed "
-            << worker->pushed_ << ", popped " << worker->popped_ << std::endl;
+			std::cout << "worker[" << worker->id() << "]: pushed "
+			<< worker->pushed_ << ", popped " << worker->popped_ << std::endl;
+			
+			for (int i = 0; i < worker->num_channels(); i++) {
+				std::cout << "worker[" << worker->id() << "]: pushed to channel "
+				<< i << ": " << pushed_to_channels[i] << std::endl;
+			}
+			
+			for (int i = 0; i < worker->num_channels(); i++) {
+				std::cout << "worker[" << worker->id() << "]: popped from channel "
+				<< i << ": " << popped_from_channels[i] << std::endl;
+			}
 
-            for (int i = 0; i < worker->num_channels(); i++)
-                std::cout << "worker[" << worker->id() << "]: pushed to channel " <<
-                i << ": " << pushed_to_channels[i] << std::endl;
-
-            for (int i = 0; i < worker->num_channels(); i++)
-                std::cout << "worker[" << worker->id() << "]: popped from channel " <<
-                i << ": " << popped_from_channels[i] << std::endl;
-
-            std::cout << std::endl;
+			std::cout << std::endl;
 		}
+#endif
 		
 		// Check if this worker wait for work. Assuming not.
 		if (worked) {
@@ -379,7 +328,7 @@ scan_channel_out_buffers:
 				
 				// Must not go to sleep if have not scanned out buffers.
 				if (scanned_channel_out_buffers) {
-					std::cout << "worker[" << worker->id() << "]: has " << worker->get_chunk_pool().size() << " chunks, waits. . ." << std::endl;
+					std::cout << "worker[" << worker->id() << "]: waits. . ." << std::endl;
 					if (worker->shared().client_interface().wait_for_work
 					(worker->shared().client_work_event(), wait_for_work_milli_seconds)
 					== true) {
@@ -394,7 +343,7 @@ scan_channel_out_buffers:
 						
 						std::cout << "worker[" << worker->id() << "]: timeout; not waiting" << std::endl;
 					}
-
+					
 					scanned_channel_out_buffers = false;
 				}
 				else {
