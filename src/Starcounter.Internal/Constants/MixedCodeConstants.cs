@@ -100,6 +100,11 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_FLAGS_DISCONNECT = 128;
 
         /// <summary>
+        /// Gracefully close flag.
+        /// </summary>
+        public const int HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 4096;
+
+        /// <summary>
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;

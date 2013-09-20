@@ -296,6 +296,14 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Length of user data in bytes.
     uint64_t payload_len = sd->get_user_data_written_bytes();
 
+    // Checking if we are sending last frame.
+    if (sd->get_gracefully_close_flag())
+    {
+        sd->reset_gracefully_close_flag();
+        sd->set_disconnect_after_send_flag();
+        frame_info_.opcode_ = WS_OPCODE_CLOSE;
+    }
+
     // Place where masked data should be written.
     payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, payload_len);
 
