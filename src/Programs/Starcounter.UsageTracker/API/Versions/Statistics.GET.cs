@@ -22,7 +22,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             Handle.GET(port, "/statistics/total", (Request request) => {
 
                 //; { downloads: 12, installations:12, uninstallation:0, upgrades:0, downgrades:0, failures:0, aborted:0 }
-                //string ignoreIP = "82.99.7.10";
+
                 string channel = "NightlyBuilds";
 
                 dynamic response = new DynamicJson();
@@ -34,16 +34,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     GetMachineInstallations(channel, out installations, out uninstallations);
 
-                    //Db.SlowSQL<Int64>("SELECT * FROM InstallerFinish o, VersionBuild b WHERE o.Installation.PreviousInstallationNo < 2000 AND o.Mode = 1 AND o.Installation.Serial = b.Serial AND o.IP <> =? AND b.Channel = ?", ignoreIP, channel).First;
-
-                    // TODO: 
-
-                    //                    Int64 successInstallations = Db.SlowSQL<Int64>("SELECT count(*) FROM InstallerFinish e,versionBuild b WHERE e.installation.serial=b.Serial AND e.IP <> ? AND e.Mode=1 AND e.Success=true AND b.Channel=?", ignoreIP, channel).First;
-                    //                    Int64 uninstallation = Db.SlowSQL<Int64>("SELECT count(*) FROM InstallerFinish e,versionBuild b WHERE e.installation.serial=b.Serial AND e.IP <> ? AND e.Mode=3 AND e.Success=true AND b.Channel=?", ignoreIP, channel).First;
-
-                    //response.statistics = new object[] { };
                     response.statistics = new {
-                        totalDownloads = downloads,                     // Total downloads (user used the download link)
+                        totalDownloads = downloads,                     // Total downloads
                         installations = installations,                  // Total starcounter installations
                         uninstallation = uninstallations,               // Total starcounter uninstallations
                         successInstallations = -1,    // Total successful installations
@@ -52,14 +44,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         failures = -1,
                         aborted = -1
                     };
-
-                    //int i = 0;
-                    //foreach (VersionSource item in result) {
-                    //    response.statistics[i++] = new {
-                    //        version = item.Version,
-                    //        channel = item.Channel
-                    //    };
-                    //}
 
                     return new Response() { Body = response.ToString(), StatusCode = (ushort)System.Net.HttpStatusCode.OK };
 
@@ -95,8 +79,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             numberOfInstallations = 0;
             numberOfUnInstallations = 0;
 
-            DateTime from = DateTime.Parse("2013-09-09T05:55:11.4307278");
-            DateTime to = DateTime.Parse("2013-09-10T02:41:05.7185352");
+            DateTime from = DateTime.Parse("2013-09-02 00:00:00");
+            DateTime to = DateTime.Parse("2013-09-03 00:00:00");
 
             from = DateTime.MinValue;
             to = DateTime.MaxValue;
@@ -109,19 +93,12 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                     // Error
                 }
 
-                if (Installation.IsInstalled(installation)) {
-                    // Within date range
-                    if (installation.Date >= from && installation.Date < to) {
+                if (Installation.WasInstalled(installation, from,to)) {
                         numberOfInstallations++;
-                    }
                 }
-                else {
-                    // Not installed, check if uninstallation is within the date range
-                    Installation uninstallation = Installation.GetLastUnInstallationNode(installation);
-                    if (uninstallation != null && uninstallation.Date >= from && uninstallation.Date < to) {
-                        numberOfUnInstallations++;
-                    }
 
+                if (Installation.WasUnInstalled(installation, from, to)) {
+                    numberOfUnInstallations++;
                 }
 
             }
