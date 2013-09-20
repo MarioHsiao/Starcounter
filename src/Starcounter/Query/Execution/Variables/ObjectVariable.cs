@@ -215,7 +215,13 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
     // Throws an InvalidCastException if newValue is of an incompatible type.
     public override void SetValue(Object newValue)
     {
+        if (newValue is IObjectView)
         value = (IObjectView)newValue;
+        else
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+"Type of query variable value is expected to be IObjectView, while actual type is " +
+newValue.GetType().ToString());
+
     }
 
     /// <summary>
