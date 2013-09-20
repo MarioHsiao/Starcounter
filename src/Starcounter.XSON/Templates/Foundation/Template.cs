@@ -87,7 +87,9 @@ namespace Starcounter.Templates {
         /// <value>The type of the json.</value>
         public virtual string JsonType {
             get {
-                return InstanceType.Name;
+                if (InstanceType != null)
+                    return InstanceType.Name;
+                return null;
             }
         }
 
