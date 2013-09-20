@@ -198,7 +198,13 @@ internal class StringVariable : Variable, IVariable, IStringExpression
     // Throws an InvalidCastException if newValue is of an incompatible type.
     public override void SetValue(Object newValue)
     {
+        if (newValue is String)
         value = (String)newValue;
+        else
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+"Type of query variable value is expected to be String, while actual type is " +
+newValue.GetType().ToString());
+
     }
 
     /// <summary>

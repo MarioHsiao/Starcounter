@@ -878,7 +878,9 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
             }
 
             default:
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect SQL parameter type code: " + typeCode);
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+    "Type of query variable value is expected to be a numerical type, while actual type is " +
+    newValue.GetType().ToString());
         }
     }
 
