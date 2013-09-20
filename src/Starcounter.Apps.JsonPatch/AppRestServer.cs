@@ -210,12 +210,7 @@ namespace Starcounter.Internal.Web {
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
 
                         // Handling result.
-                        if (response != null)
-                        {
-                            // Creating a standard Response from result.
-                            response.Uncompressed = response.BodyBytes;
-                        }
-                        else
+                        if (null == response)
                         {
                             // Simply disconnecting if response is null.
                             response = new Response() { ConnFlags = Response.ConnectionFlags.DisconnectImmediately };

@@ -812,15 +812,13 @@ namespace Starcounter.Advanced
 
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS: {
 
-                    buf = new byte[EstimateNeededSize(bodyBytes_)];
+                    if (statusCode_ > 0) {
+                        unsafe {
+                            buf = new byte[EstimateNeededSize(bodyBytes_)];
 
-                    Int32 written = 0;
+                            Int32 written = 0;
 
-                    unsafe {
-                        fixed (byte* p = buf) {
-
-                            if (statusCode_ > 0) {
-
+                            fixed (byte* p = buf) {
                                 // Setting close flag.
                                 ConnFlags = ConnectionFlags.GracefullyCloseConnection;
 
@@ -836,13 +834,22 @@ namespace Starcounter.Advanced
                                     written += writer.Written;
                                 }
                             }
+
+                            // Finally setting the uncompressed bytes.
+                            uncompressed_response_ = buf;
+                            uncompressedResponseLength_ = written;
                         }
-                    };
+                    } else {
 
-                    // Finally setting the uncompressed bytes.
-                    uncompressed_response_ = buf;
-                    uncompressedResponseLength_ = written;
-
+                        if (null != bodyBytes_) {
+                            uncompressed_response_ = bodyBytes_;
+                            uncompressedResponseLength_ = uncompressed_response_.Length;
+                        } else if (null != bodyString_) {
+                            uncompressed_response_ = UTF8Encoding.UTF8.GetBytes(bodyString_);
+                            uncompressedResponseLength_ = uncompressed_response_.Length;
+                        }
+                    }
+                    
                     break;
                 }
 
