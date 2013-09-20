@@ -17,7 +17,7 @@ namespace Starcounter.Templates {
 		public abstract int ToFasterThanJson(Json json, out byte[] buffer);
 		public abstract int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize);
 
-		private static bool shouldUseCodegeneratedSerializer = true;
+		private static bool shouldUseCodegeneratedSerializer = false;
 		private bool codeGenStarted = false;
 		private TypedJsonSerializer codegenStandardSerializer;
 		private TypedJsonSerializer codegenFTJSerializer;
