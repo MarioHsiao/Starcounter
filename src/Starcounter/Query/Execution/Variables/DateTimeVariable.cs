@@ -197,7 +197,13 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
     // Throws an InvalidCastException if newValue is of an incompatible type.
     public override void SetValue(Object newValue)
     {
+        if (newValue is DateTime)
         value = (DateTime)newValue;
+        else
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+"Type of query variable value is expected to be DateTime, while actual type is " +
+newValue.GetType().ToString());
+
     }
 
     /// <summary>

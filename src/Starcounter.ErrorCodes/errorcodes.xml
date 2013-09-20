@@ -1511,6 +1511,11 @@
         acquired to hold the whole message.
       </message>
     </code>
+    <code hex="0025" severity="Error" name="ScErrIncorrectNetworkProtocolUsage">
+        <message>
+            Current network protocol is not used correctly. Please consult documentation for more details.
+        </message>
+    </code>
   </facility>
 
   <!-- Database error codes. -->
@@ -3103,6 +3108,12 @@
         in casing.
       </message>
     </code>
+    <code hex="0107" severity="Error" name="ScErrForbiddenFieldInitializer">
+      <message>
+        Initializing fields in database classes must be done inside a
+        constructor. Field initializers are not supported.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3373,6 +3384,9 @@
     </code>
     <code hex="004A" severity="Error" name="ScErrUnexpDbMetadataMapping">
       <message>Unexpected error during mapping different meta-data, which represent database classes and properties.</message>
+    </code>
+    <code hex="004B" severity="Error" name="ScErrUnknownNetworkProtocol">
+        <message>Current network protocol is unknown.</message>
     </code>
  </facility>
 

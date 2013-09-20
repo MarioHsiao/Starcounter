@@ -89,7 +89,6 @@ namespace bmx
     const uint8_t BMX_REGISTER_PUSH_CHANNEL_RESPONSE = 6;
     const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 7;
     const uint8_t BMX_SEND_ALL_HANDLERS = 8;
-    const uint8_t BMX_SESSION_CREATE = 9;
     const uint8_t BMX_SESSION_DESTROY = 10;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
@@ -541,7 +540,6 @@ namespace bmx
         uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info);
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info);
-        uint32_t HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
