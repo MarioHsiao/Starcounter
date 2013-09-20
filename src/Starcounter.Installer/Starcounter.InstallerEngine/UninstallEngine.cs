@@ -133,7 +133,7 @@ namespace Starcounter.InstallerEngine
                 Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(InstallerMain.InstallationDir));
 
                 // Checking if installer runs from the same directory as installation.
-                if (Utilities.EqualDirectories(Application.StartupPath, InstallerMain.InstallationDir))
+                if (Utilities.EqualDirectories(System.Windows.Forms.Application.StartupPath, InstallerMain.InstallationDir))
                 {
                     // Remove the directory using scheduled remove directory task.
                     Process rmdirCmd = new Process();

@@ -655,7 +655,7 @@ namespace Starcounter.InstallerEngine
 
                     // Checking if installation directory is determined, otherwise taking current executable path.
                     if (installationDir == null)
-                        installationDir = Application.StartupPath;
+                        installationDir = System.Windows.Forms.Application.StartupPath;
 
                     // Trying to load configuration settings.
                     if (setupConfigFile == null)
