@@ -78,19 +78,16 @@ namespace Starcounter.Internal {
                 *(byte*)writing = (byte)(triple & 0x000000FF);
                 writing++;
             }
-            switch (reminder) {
-                case 2:
-                    ulong single = Base64Int.ReadBase64x2(ptr);
-                    Debug.Assert((single & 0xFFFFFFFFFFFFFF00) == 0);
-                    *(byte*)writing = (byte)single;
-                    writing++;
-                    break;
-                case 3:
-                    ulong twin = Base64Int.ReadBase64x3(ptr);
-                    Debug.Assert((twin & 0xFFFFFFFFFFFF0000) == 0);
-                    *(ushort*)writing = (ushort)twin;
-                    writing += 2;
-                    break;
+            if (reminder == 2) {
+                ulong single = Base64Int.ReadBase64x2(ptr);
+                Debug.Assert((single & 0xFFFFFFFFFFFFFF00) == 0);
+                *(byte*)writing = (byte)single;
+                writing++;
+            } else if (reminder == 3) {
+                ulong twin = Base64Int.ReadBase64x3(ptr);
+                Debug.Assert((twin & 0xFFFFFFFFFFFF0000) == 0);
+                *(ushort*)writing = (ushort)twin;
+                writing += 2;
             }
             Debug.Assert(reminder != 1);
             Debug.Assert(value + MeasureNeededSizeToDecode(size) == writing);
