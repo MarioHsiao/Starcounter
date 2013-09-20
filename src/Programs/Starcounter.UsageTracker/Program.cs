@@ -42,10 +42,12 @@ namespace Starcounter.Applications.UsageTrackerApp {
                 // Bootstrap Backend GUI (system port)
                 Administrator.Bootstrap(uPort);
 
+                 // use TrackingEnvironment.StarcounterTrackerPort
+                // Bootstrap Tracking Incoming message
+                UsageTrackerAPI.Bootstrap( 8585, 8282, 80, resourceFolder);
+
             }
 
-            // Bootstrap Tracking Incoming message
-            UsageTrackerAPI.Bootstrap(8585);
         }
     }
 
