@@ -299,8 +299,7 @@ namespace Starcounter.Internal
       public unsafe int ReadString(int valueLength, byte* start, char* value) {
           Debug.Assert(valueLength > 0);
           if (Base64Int.ReadBase64x1(start) == 1)
-              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
-                    "String to read is null, which cannot be written to output.");
+              return -1;
           return SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, value, valueLength, true);
       }
 
@@ -374,10 +373,10 @@ namespace Starcounter.Internal
 
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe uint ReadByteArray(byte* value) {
+      public unsafe int ReadByteArray(byte* value) {
           uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= ValueOffset;
-          uint writtenLen = Base64Binary.Read(len, AtEnd, value);
+          int writtenLen = Base64Binary.Read(len, AtEnd, value);
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
           ValueOffset += len;
@@ -385,7 +384,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe uint ReadByteArray(byte[] value) {
+      public unsafe int ReadByteArray(byte[] value) {
           fixed (byte* valuePtr = value)
               return ReadByteArray(valuePtr);
       }
