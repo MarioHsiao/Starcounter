@@ -288,16 +288,43 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe int ReadString(int valueLength, byte* start, char* value) {
+          Debug.Assert(valueLength > 0);
+          if (Base64Int.ReadBase64x1(start) == 1)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                    "String to read is null, which cannot be written to output.");
+          return SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, value, valueLength, true);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString(int valueLength, byte* start) {
           Debug.Assert(valueLength > 0);
           String str;
           if (Base64Int.ReadBase64x1(start) == 0) {
               char* buffer = stackalloc char[(int)valueLength];
-              int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
+              int stringLen = ReadString(valueLength, start, buffer);
+              //int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
               str = new String(buffer, 0, stringLen);
           } else
               str = null;
           return str;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe int ReadString(char* value) {
+         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+         valueLength -= ValueOffset;
+         int leng = ReadString((int)valueLength, AtEnd, value);
+         AtEnd += valueLength;
+         ValueOffset += valueLength;
+         AtOffsetEnd += OffsetElementSize;
+         return leng;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe int ReadString(char[] value) {
+          fixed (char* valuePtr = value)
+              return ReadString(valuePtr);
       }
 
       /// <summary>
@@ -337,16 +364,29 @@ namespace Starcounter.Internal
           return str;
       }
 
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe byte[] ReadByteArray() {
-#if BASE64
+      public unsafe uint ReadByteArray(byte* value) {
           uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= ValueOffset;
-          //uint valueLength = Base64Binary.MeasureNeededSizeToDecode(len);
+          uint writtenLen = Base64Binary.Read(len, AtEnd, value);
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          ValueOffset += len;
+          return writtenLen;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe uint ReadByteArray(byte[] value) {
+          fixed (byte* valuePtr = value)
+              return ReadByteArray(valuePtr);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe byte[] ReadByteArray() {
+          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
           byte[] value = Base64Binary.Read(len, AtEnd);
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
-#endif
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
           ValueOffset += len;

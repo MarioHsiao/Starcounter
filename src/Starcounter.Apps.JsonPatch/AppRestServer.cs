@@ -49,7 +49,6 @@ namespace Starcounter.Internal.Web {
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponse(Request request, Response response) {
             try {
-
                 // Checking if we need to resolve static resource.
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
@@ -57,17 +56,19 @@ namespace Starcounter.Internal.Web {
                 }
 
                 // NOTE: Checking if its internal request then just returning response without modification.
-                if (request.IsInternal) {
+                if (request.IsInternal)
                     return response;
-                }
 
                 if (response.Hypermedia is Json) {
+
                     Json r = (Json)response.Hypermedia;
-                    while (r.Parent != null) {
+
+                    while (r.Parent != null)
                         r = r.Parent;
-                    }
+
                     response.Hypermedia = (Json)r;
                 }
+
                 response.Request = request;
                 response.ConstructFromFields();
 
@@ -84,21 +85,13 @@ namespace Starcounter.Internal.Web {
             }
         }
 
-//        private Obj GetJsonRoot(Obj json) {
-//            Json current = json;
-//            while (current.Parent != null) {
-//                current = current.Parent;
-//            }
-//            return (Obj)current;
-//        }
-
         /// <summary>
         /// Handles request.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public Response HandleRequest(Request request) {
-            Response result = null;
+            Response response = null;
             UInt32 errCode;
             Boolean cameWithSession = request.HasSession;
 
@@ -123,34 +116,34 @@ namespace Starcounter.Internal.Web {
                                 Session.Start(s);
 
                                 // Checking if we can reuse the cache.
-                                if (X.CheckLocalCache(request.Uri, request, null, null, out result)) {
+                                if (X.CheckLocalCache(request.Uri, request, null, null, out response)) {
 
                                     // Setting the session again.
-                                    result.AppsSession = Session.Current.InternalSession;
+                                    response.AppsSession = Session.Current.InternalSession;
 
                                     // Handling and returning the HTTP response.
-                                    result = OnResponse(request, result);
+                                    response = OnResponse(request, response);
 
-                                    return result;
+                                    return response;
                                 }
                             }
                         }
 
                         // Invoking original user delegate with parameters here.
-                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
+                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
 
                         // In case of returned JSON object within current session we need to save it
                         // for later reuse.
                         Json rootJsonObj = Session.Data;
                         Json curJsonObj = null;
-                        if (null != result) {
+                        if (null != response) {
 
                             // Setting session on result only if its original request.
                             if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
-                                result.AppsSession = Session.Current.InternalSession;
+                                response.AppsSession = Session.Current.InternalSession;
 
                             // Converting response to JSON.
-                            curJsonObj = result;
+                            curJsonObj = response;
 
                             if ((null != curJsonObj) &&
                                 (null != rootJsonObj) &&
@@ -162,26 +155,27 @@ namespace Starcounter.Internal.Web {
                         }
 
                         // Handling and returning the HTTP response.
-                        result = OnResponse(request, result);
+                        response = OnResponse(request, response);
 
-                        return result;
+                        return response;
                     }
                     catch (Exception exc)
                     {
                         // Checking if session is incorrect.
 						if (exc is HandlersManagement.IncorrectSessionException) {
-							result = Response.FromStatusCode(400);
-							result["Connection"] = "close";
+							response = Response.FromStatusCode(400);
+							response["Connection"] = "close";
 						} else {
 
 							// Logging the exception to server log.
 							LogSources.Hosting.LogException(exc);
-							result = Response.FromStatusCode(500);
-							result.Body = GetExceptionString(exc);
-							result.ContentType = "text/plain";
+							response = Response.FromStatusCode(500);
+							response.Body = GetExceptionString(exc);
+							response.ContentType = "text/plain";
 						}
-						result.ConstructFromFields();
-						return result;
+
+						response.ConstructFromFields();
+						return response;
                     }
                     finally
                     {
@@ -213,41 +207,32 @@ namespace Starcounter.Internal.Web {
                         request.UpdateSessionDetails();
 
                         // Invoking original user delegate with parameters here.
-                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
-
-                        Response resp;
+                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
 
                         // Handling result.
-                        if (result != null)
+                        if (null == response)
                         {
-                            Byte[] byte_result = null;
-
-//                            if (result is Byte[])
-//                                byte_result = (Byte[])result;
-//                            else if (result is String)
-//                                byte_result = Encoding.UTF8.GetBytes((String)result);
-
-                            byte_result = result.BodyBytes;
-
-                            // Creating a standard Response from result.
-                            resp = new Response() { Uncompressed = byte_result };
-                        }
-                        else
-                        {
-                            // Creating an error Response from result.
-                            resp = new Response() { Uncompressed = new Byte[] {} };
+                            // Simply disconnecting if response is null.
+                            response = new Response() { ConnFlags = Response.ConnectionFlags.DisconnectImmediately };
                         }
 
-                        return resp;
+                        // Handling and returning the HTTP response.
+                        response.ProtocolType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
+                        response = OnResponse(request, response);
+
+                        return response;
                     }
                     finally
                     {
                         Session.End();
                     }
                 }
-            }
 
-            return null;
+                default:
+                {
+                    throw ErrorCode.ToException(Error.SCERRUNKNOWNNETWORKPROTOCOL);
+                }
+            }
         }
 
         /// <summary>

@@ -237,14 +237,15 @@ namespace FasterThanJson.Tests
 
       [Test]
       public static unsafe void TestNullValues() {
-          fixed (byte* start = new byte[11]) {
-              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 5, 1);
+          fixed (byte* start = new byte[13]) {
+              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 6, 1);
               tupleWriter.WriteByteArray(null);
               tupleWriter.WriteString("");
-              tupleWriter.WriteString(null);
+              tupleWriter.WriteString((String)null);
               tupleWriter.WriteLongNullable(null);
               tupleWriter.WriteULongNullable(null);
-              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 5);
+              tupleWriter.WriteString("".ToCharArray());
+              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 6);
               byte[] nullByteArray = tupleReader.ReadByteArray();
               Assert.AreEqual(null, nullByteArray);
               Assert.AreEqual("", tupleReader.ReadString());
@@ -252,6 +253,9 @@ namespace FasterThanJson.Tests
               Assert.AreEqual(null, nullString);
               Assert.AreEqual(null, tupleReader.ReadLongNullable());
               Assert.AreEqual(null, tupleReader.ReadULongNullable());
+              char[] value = new char[2];
+              var len = tupleReader.ReadString(value);
+              Assert.AreEqual("".ToCharArray().Length, len);
           }
       }
 

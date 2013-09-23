@@ -64,6 +64,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
     switch (frame_info_.opcode_)
     {
+        case WS_OPCODE_CONTINUATION: // TODO: Fix full support!
         case WS_OPCODE_TEXT:
         case WS_OPCODE_BINARY:
         {
@@ -82,8 +83,8 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
             // Determining user data offset.
             uint32_t user_data_offset = static_cast<uint32_t> (payload - (uint8_t *) sd);
-            if ((payload - sd->get_data_blob()) < WS_NEEDED_USER_DATA_OFFSET)
-                user_data_offset += WS_NEEDED_USER_DATA_OFFSET;
+            if ((payload - sd->get_data_blob()) < MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE)
+                user_data_offset += MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE;
 
             //std::cout << "Pushing payload: " << req->content_len_bytes_ << std::endl;
 
@@ -182,7 +183,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         if (!frame_info_.is_complete_)
         {
             // Checking if we need to move current data up.
-            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopIfTooLittleSpace(cur_data_ptr, WS_MAX_FRAME_INFO_SIZE);
+            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopIfTooLittleSpace(cur_data_ptr, MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE);
 
             // Continue receiving.
             sd->get_accum_buf()->ContinueReceive();
@@ -294,6 +295,14 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
 
     // Length of user data in bytes.
     uint64_t payload_len = sd->get_user_data_written_bytes();
+
+    // Checking if we are sending last frame.
+    if (sd->get_gracefully_close_flag())
+    {
+        sd->reset_gracefully_close_flag();
+        sd->set_disconnect_after_send_flag();
+        frame_info_.opcode_ = WS_OPCODE_CLOSE;
+    }
 
     // Place where masked data should be written.
     payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, payload_len);
