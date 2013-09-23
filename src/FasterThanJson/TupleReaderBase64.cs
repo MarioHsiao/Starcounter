@@ -289,6 +289,7 @@ namespace Starcounter.Internal
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe int ReadString(int valueLength, byte* start, char* value) {
+          Debug.Assert(valueLength > 0);
           if (Base64Int.ReadBase64x1(start) == 1)
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
                     "String to read is null, which cannot be written to output.");
