@@ -24,6 +24,18 @@ namespace QueryProcessingTest {
             } catch (ArgumentException ex) {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRBADARGUMENTS);
             }
+            try {
+                Db.SQL("create indx asdf on account(client)");
+            } catch (SqlException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLINCORRECTSYNTAX);
+            }
+            try {
+                Db.Transaction(delegate {
+                    Db.SQL("create index indx on account (accountid)");
+                });
+            } catch (DbException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+            }
             HelpMethods.LogEvent("Finished test of error messages");
         }
 

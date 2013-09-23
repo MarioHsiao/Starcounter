@@ -100,7 +100,10 @@ namespace Starcounter
                 try {
                     if (ParseNonSelectQuery(query, values))
                         return null;
-                } catch { }
+                } catch (Exception e) {
+                    if (!(e is SqlException))
+                        throw;
+                }
                 throw;
             }
             Debug.Assert(enumerableResult != null);
