@@ -50,7 +50,22 @@ namespace Starcounter {
         /// <exception cref="ArgumentException">Thrown when the application can't
         /// be resolved based on the given assembly.</exception>
         public static Application GetApplication(Assembly assembly) {
-            throw new NotImplementedException();
+            string location = null;
+            try {
+                location = assembly.Location;
+            }
+            catch (NullReferenceException) {
+                throw new ArgumentNullException("assembly");
+            } catch (NotSupportedException nse) {
+                throw CreateArgumentExceptionWithCode(null, nse);
+            }
+
+            try {
+                return indexFileName[location];
+            } catch (KeyNotFoundException knfe) {
+                var detail = string.Format("Assembly \"{0}\" does not represent a known application.", assembly.FullName);
+                throw CreateArgumentExceptionWithCode(detail, knfe);
+            }
         }
 
         /// <summary>
@@ -123,5 +138,11 @@ namespace Starcounter {
         /// semantically comparable to <see cref="Environment.CommandLine"/>.
         /// </summary>
         public string[] Arguments { get; internal set; }
+
+        static Exception CreateArgumentExceptionWithCode(string postfix = null, Exception innerException = null) {
+            return ErrorCode.ToException(Error.SCERRAPPLICATIONCANTBERESOLVED, innerException, postfix, (msg, ex) => {
+                return new ArgumentException(msg, ex);
+            });
+        }
     }
 }
