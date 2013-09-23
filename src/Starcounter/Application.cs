@@ -1,5 +1,7 @@
 ﻿
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace Starcounter {
@@ -9,6 +11,10 @@ namespace Starcounter {
     /// to run in, a Starcounter code host.
     /// </summary>
     public sealed class Application {
+        static object monitor = new object();
+        static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
+        static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
+
         [ThreadStatic]
         internal static Application CurrentAssigned;
 
@@ -61,6 +67,29 @@ namespace Starcounter {
         /// be resolved based on the given file.</exception>
         public static Application GetApplication(string fileName) {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Assures the given <see cref="Application"/> is properly indexed,
+        /// allowing it to be later retrived from any of the supported lookup
+        /// methods.
+        /// </summary>
+        /// <param name="application">The application to index.</param>
+        internal static void Index(Application application) {
+            if (application == null) throw new ArgumentNullException("application");
+            lock (monitor) {
+                indexLoadPath.Add(application.LoadPath, application);
+
+                var fileName = Path.GetFileName(application.FileName);
+                if (indexFileName.ContainsKey(fileName)) {
+                    // If the index already contains an entry with the same
+                    // short name, the short name is ambiguous and we just
+                    // disable querying the application on short name.
+                    indexFileName[fileName] = null;
+                } else {
+                    indexFileName.Add(fileName, application);
+                }
+            }
         }
 
         /// <summary>
