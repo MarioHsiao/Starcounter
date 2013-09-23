@@ -32,7 +32,13 @@ namespace Starcounter {
         public static Application Current {
             get {
                 var current = CurrentAssigned;
-                current = current ?? GetApplication(Assembly.GetCallingAssembly());
+                try {
+                    current = current ?? GetApplication(Assembly.GetCallingAssembly());
+                } catch (ArgumentNullException ne) {
+                    throw CreateInvalidOperationExceptionWithCode(null, ne);
+                } catch (ArgumentException ae) {
+                    throw CreateInvalidOperationExceptionWithCode(null, ae);
+                }
                 return current;
             }
         }
@@ -153,6 +159,12 @@ namespace Starcounter {
         static Exception CreateArgumentExceptionWithCode(string postfix = null, Exception innerException = null) {
             return ErrorCode.ToException(Error.SCERRAPPLICATIONCANTBERESOLVED, innerException, postfix, (msg, ex) => {
                 return new ArgumentException(msg, ex);
+            });
+        }
+
+        static Exception CreateInvalidOperationExceptionWithCode(string postfix = null, Exception innerException = null) {
+            return ErrorCode.ToException(Error.SCERRAPPLICATIONCANTBERESOLVED, innerException, postfix, (msg, ex) => {
+                return new InvalidOperationException(msg, ex);
             });
         }
     }
