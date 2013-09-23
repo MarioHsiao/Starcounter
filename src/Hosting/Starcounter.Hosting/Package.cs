@@ -135,6 +135,9 @@ namespace Starcounter.Hosting {
                 WorkingDirectory = this.WorkingDirectory,
                 Arguments = this.EntrypointArguments
             };
+            if (application != null) {
+                Application.Index(application);
+            }
 
             try
             {
