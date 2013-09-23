@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using Starcounter.Internal.REST;
+using System;
 
 namespace Starcounter.Advanced {
     public sealed partial class Response {
@@ -50,6 +51,10 @@ namespace Starcounter.Advanced {
 
         public static implicit operator Response(int code) {
             return Response.FromStatusCode(code);
+        }
+
+        public static implicit operator Response(Response.WebSocketCloseCodes wsCode) {
+            return new Response() { StatusCode = (UInt16) wsCode };
         }
 
         public static implicit operator Response(HttpStatusCodeAndReason codeAndReason) {

@@ -200,7 +200,23 @@ namespace Starcounter.Internal
          HaveWritten(1);
       }
 
-      /// <summary>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteString(char[] str) {
+          uint len = 1;
+          if (str == null)
+              Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
+          else {
+              Base64Int.WriteBase64x1(0, AtEnd); // Write null flag
+              if (str.Length > 0)
+                  fixed (char* pStr = str) {
+                      // Write the string to the end of this tuple.
+                      len += (uint)SessionBlobProxy.Utf8Encode.GetBytes(pStr, str.Length, AtEnd + 1, str.Length * 3, true);
+                  }
+          }
+          HaveWritten(len);
+      }
+
+       /// <summary>
       /// Appends a new value after the last value in this tuple
       /// </summary>
       /// <param name="str">The strinng to add</param>
@@ -211,8 +227,7 @@ namespace Starcounter.Internal
       /// </remarks>
       ///
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void WriteString(string str)
-      {
+      public unsafe void WriteString(string str) {
           uint len = 1;
           if (str == null)
               Base64Int.WriteBase64x1(1, AtEnd); // Write null flag
@@ -301,6 +316,17 @@ namespace Starcounter.Internal
 #endif
       }
 
+      public static uint MeasureNeededSizeString(char[] str) {
+          if (str == null)
+              return 1; // null flag
+          uint expectedLen = 1; // null flag
+          if (str.Length > 0)
+              fixed (char* pStr = str) {
+                  expectedLen += (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
+              }
+          return expectedLen;
+      }
+
       public static uint MeasureNeededSizeString(String str) {
           if (str == null)
               return 1; // null flag
@@ -350,7 +376,7 @@ namespace Starcounter.Internal
 #endif
       }
 
-      public static uint MeasureNeededSize(byte[] b) {
+      public static uint MeasureNeededSizeByteArray(byte[] b) {
 #if BASE64
           return MeasureNeededSizeByteArray((uint)b.Length);
 #else

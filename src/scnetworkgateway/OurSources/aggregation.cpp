@@ -47,7 +47,7 @@ uint32_t PortAggregator(
         if (orig_data_ptr + num_accum_bytes - cur_data_ptr <= AggregationStructSizeBytes)
         {
             // Checking if we need to move current data up.
-            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopIfTooLittleSpace(cur_data_ptr, WS_MAX_FRAME_INFO_SIZE);
+            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopIfTooLittleSpace(cur_data_ptr, MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE);
 
             // Continue receiving.
             sd->get_accum_buf()->ContinueReceive();

@@ -28,6 +28,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
+        /// Folder where the documentation is stored
+        /// </summary>
+        public string DocumentationFolder;
+
+
+        /// <summary>
         /// Log file
         /// </summary>
         public string LogFile;
@@ -52,18 +58,36 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         static public VersionHandlerSettings GetSettings() {
 
             VersionHandlerSettings settings = Db.SlowSQL<VersionHandlerSettings>("SELECT o FROM VersionHandlerSettings o").First;
-            if (settings == null) {
-                // Create default settings
-                Db.Transaction(() => {
+
+            Db.Transaction(() => {
+                if (settings == null) {
+                    // Create default settings
                     settings = new VersionHandlerSettings();
-                    settings.UploadFolder = @"c:\versions\uploads";
-                    settings.SourceFolder = @"c:\versions\source";
-                    settings.VersionFolder = @"c:\versions\builds";
-                    settings.LogFile = @"c:\versions\versionhandler.log";
-                    settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";
                     settings.MaximumBuilds = 10;
-                });
-            }
+                }
+
+                if (string.IsNullOrEmpty(settings.UploadFolder)) {
+                    settings.UploadFolder = @"c:\versions\uploads";
+                }
+                if (string.IsNullOrEmpty(settings.SourceFolder)) {
+                    settings.SourceFolder = @"c:\versions\source";
+                }
+                if (string.IsNullOrEmpty(settings.VersionFolder)) {
+                    settings.VersionFolder = @"c:\versions\builds";
+                }
+                if (string.IsNullOrEmpty(settings.DocumentationFolder)) {
+                    settings.DocumentationFolder = @"c:\versions\docs";
+                }
+                if (string.IsNullOrEmpty(settings.LogFile)) {
+                    settings.LogFile = @"c:\versions\versionhandler.log";
+                }
+                if (string.IsNullOrEmpty(settings.CertificationFile)) {
+                    settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";
+                }
+
+
+            });
+
             return settings;
         }
 

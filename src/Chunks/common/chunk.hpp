@@ -33,25 +33,39 @@ typedef uint32_t chunk_index;
 
 typedef uint64_t bmx_handler_type;
 
-// Current chunk layout. Chunks are currently 4 KiByte:
-// +------------------------------------------------------------+ Byte 0..7 is no longer used
-// | Since 2012-03-26 the owner_id is no longer stored in the   |
-// | chunk. The owner_id is stored in client_interface instead. |
-// +------------------------------------------------------------+ Byte 8..15 is no longer used
-// | 64-bit user_data is no longer stored in the chunk.         |
-// +------------------------------------------------------------+ Byte 16..19 (shall be moved to byte 0..3)
-// | 32-bit request_size                                        |
-// +------------------------------------------------------------+ Byte 20..20 +request_size -1 (20 shall be 4)
-// | Blast2 request message(s)                                  |
-// +------------------------------------------------------------+ Byte 20 +request_size..23 +request_size
-// | 32-bit response_size                                       |
-// +------------------------------------------------------------+ Up to byte 4087
-// | Blast2 response message(s).                                |
-// +------------------------------------------------------------+ Byte 4088..4091
-// | 32-bit chunk_index next_link (-1 = link_terminator)        |
-// +------------------------------------------------------------+ Byte 4092..4095
-// | 32-bit chunk_index link (-1 = link_terminator)             |
-// +------------------------------------------------------------+
+// Chunk layout:
+// +-------------------------+
+// | 64-bit bmx_handler_type |
+// +-------------------------+
+// | 32-bit request_size     |
+// +-------------------------+
+// | Blast2 request message  |
+// +-------------------------+
+// | 32-bit response_size    |
+// +-------------------------+
+// | Blast2 response message |
+// +-------------------------+
+// | 32-bit next_link        |
+// +-------------------------+
+// | 32-bit (stream) link    |
+// +-------------------------+
+
+// New chunk layout (after task #993 is done):
+// +-------------------------+
+// | 32-bit next_link        |
+// +-------------------------+
+// | 64-bit bmx_handler_type |
+// +-------------------------+
+// | 32-bit request_size     |
+// +-------------------------+
+// | Blast2 request message  |
+// +-------------------------+
+// | 32-bit response_size    |
+// +-------------------------+
+// | Blast2 response message |
+// +-------------------------+
+// | 32-bit (stream) link    |
+// +-------------------------+
 
 template<class T, std::size_t N>
 class chunk {
@@ -65,60 +79,55 @@ public:
 	typedef std::size_t size_type;
 	typedef std::ptrdiff_t difference_type;
 	
-	// The kernel uses the user_data value for various things.
+	// The kernel used the user_data value for various things, but not any longer.
+	// TODO: Remove user_data in chunk.
 	typedef uint64_t user_data_type;
 	
-	// The message size is 32-bit unsigned, same for request and response size.
+	// The message size is a 32-bit unsigned int, same for request and response size.
 	typedef uint32_t message_size_type;
-
+	
 	typedef chunk_index link_type;
-
+	
 	enum {
 		static_size = N
 	};
-
+	
 	enum {
 		// There are two links: The link (rename it to stream_link), and the next_link.
 		// The links have no pad bytes in between.
 		// link_size represents the space required for these two links.
 		link_size = 2 * sizeof(link_type),
 		bmx_handler_size = sizeof(bmx_handler_type),
-
+		
 		// The last chunk in a stream (chain) of 1..N chunks is terminated by setting
 		// the link (stream_link) to link_terminator. Likewise, to terminate the "overflow"
 		// linked list the next_link is set to link_terminator.
 		link_terminator = -1
 	};
-
+	
 	enum {
-		// The owner_id is not stored in the chunk and byte 0-7 is not used for anything.
-		// TODO: Move everything 8 bytes closer to the beginning of the chunk.
-		// user_data_begin should be 0, bmx_protocol_begin should be 8, etc.
-		// Just make sure that all code use these constants.
-		//owner_id_begin = 0,
-		//user_data_begin = sizeof(owner_id),
-		bmx_protocol_begin = 0, //user_data_begin + sizeof(user_data_type),
+		bmx_protocol_begin = 0,
 		request_size_begin = bmx_protocol_begin +bmx_handler_size,
 		stream_link_begin = static_size -(1 * sizeof(link_type)),
 		next_link_begin = static_size -(2 * sizeof(link_type))
 	};
-
+	
 	// header size is constant
 	enum {
 		// Think about padding.
 		static_header_size =
-		+sizeof(owner_id) // to be removed later
-		+sizeof(user_data_type)
-        +bmx_handler_size
-		+sizeof(message_size_type)
-        +4
+		+bmx_handler_size
+		+sizeof(owner_id) // TODO: Not used, remove it.
+		+sizeof(user_data_type) // TODO: Not used, remove it.
+		+sizeof(message_size_type) // request_size
+		+4 // What's this?
 	};
 	
 	// data size is constant
 	enum {
 		static_data_size = static_size -static_header_size -link_size,
 	};
-
+	
 	// size is constant
 	static size_type size() {
 		return N;
@@ -127,11 +136,11 @@ public:
 	static bool empty() {
 		return false;
 	}
-
+	
 	static size_type max_size() {
 		return N;
 	}
-
+	
 	reference operator[](size_type i) {
 		return elems[i];
 	}
@@ -139,7 +148,7 @@ public:
 	const_reference operator[](size_type i) const {
 		return elems[i];
 	}
-
+	
 	/// data_size() returns the number of bytes of the chunks data area. It does
 	/// not take into consideration the amount of data in use.
 	/**
@@ -153,47 +162,6 @@ public:
 	/// Header operations (some are synchronized by using atomics, others are
 	/// synchronized enough when pushed to and popped from the in or out buffer
 	/// of a channel.)
-	
-	/// NOTE: Since the owner_id will be removed from the chunk, the header will
-	/// be changed.
-	
-#if 0 // TODO: Remove.
-	/// set_owner_id() writes an owner_id to the chunk.
-	/**
-	 * @param oid The owner_id value to write to the chunk.
-	 * @return A reference to this chunk.
-	 */
-	const chunk& set_owner_id(owner_id oid) {
-		InterlockedExchange64((__int64*)(elems +owner_id_begin), oid.get());
-		return *this;
-	}
-	
-	/// get_owner_id() returns the owner_id of the chunk.
-	/**
-	 * @return The owner_id.
-	 */
-	owner_id get_owner_id() const {
-		return *((owner_id*)(elems +owner_id_begin));
-	}
-#endif
-	
-	/// set_user_data() writes user_data value to the chunk.
-	/**
-	 * @param u The user_data value to write to the chunk.
-	 * @return A reference to this chunk.
-	 */
-	//const chunk& set_user_data(user_data_type u) {
-	//	InterlockedExchange64((__int64*)(elems +user_data_begin), u);
-	//	return *this;
-	//}
-	
-	/// get_user_data() returns the user_data value of the chunk.
-	/**
-	 * @return The owner_id.
-	 */
-	//user_data_type get_user_data() const {
-	//	return *((user_data_type*)(elems +user_data_begin));
-	//}
 	
 	/**
 	 * @param protocol The protocol value to write to the chunk.
@@ -210,16 +178,14 @@ public:
 	bmx_handler_type get_bmx_handler_info() const {
 		return *((bmx_handler_type*)(elems +bmx_protocol_begin));
 	}
-
+	
 	/// set_request_size() writes the request size value to the chunk.
 	/**
 	 * @param sz The request size value to write to the chunk.
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_request_size(message_size_type sz) {
-        // TODO: Remove if not needed.
-		//InterlockedExchange((LONG*)(elems +request_size_begin), sz);
-        *((message_size_type*)(elems +request_size_begin)) = sz;
+		*((message_size_type*)(elems +request_size_begin)) = sz;
 		return *this;
 	}
 	
@@ -239,8 +205,7 @@ public:
 	const chunk& set_link(link_type next) {
 		// No need to synchronize here because it is synchronized enough
 		// when pushed to and popped from a channels in or out buffer.
-		//InterlockedExchange((LONG*)(elems +stream_link_begin), next);
-		(*(link_type*)(elems +stream_link_begin)) = next;
+		*((link_type*)(elems +stream_link_begin)) = next;
 		return *this;
 	}
 	
@@ -259,9 +224,7 @@ public:
 	chunk& terminate_link() {
 		// No need to synchronize here because it is synchronized enough
 		// when pushed to and popped from a channels in or out buffer.
-		//InterlockedExchange((LONG*)(elems +stream_link_begin),
-		//(link_terminator);
-		(*(link_type*)(elems +stream_link_begin)) = link_terminator;
+		*((link_type*)(elems +stream_link_begin)) = link_terminator;
 		return *this;
 	}
 	
@@ -273,10 +236,7 @@ public:
 	bool is_terminated() const {
 		return *((chunk_index*)(elems +stream_link_begin)) == link_terminator;
 	}
-
-	/// NOTE: Operations on next link is done only by a scheduler so no
-	/// synchronization is needed.
-
+	
 	/// set_next() writes the next_ link value to the chunk.
 	/**
 	 * @param next The link value to write, that refers to the next chunk.
@@ -286,7 +246,7 @@ public:
 		*((chunk_index*)(elems +next_link_begin)) = next;
 		return *this;
 	}
-
+	
 	/// get_next() returns the next_link value of the chunk.
 	/**
 	 * @return The link value of the chunk.
@@ -318,7 +278,7 @@ public:
 	// and 64-bit values.
 	//
 	// Read/write sequence of N bytes (a char array), and a c-style string.
-
+	
 public:
 	// Fixed-size array of elements of type T.
 	T elems[N];
