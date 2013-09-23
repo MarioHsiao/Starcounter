@@ -2,6 +2,7 @@
 using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Xml;
@@ -48,12 +49,14 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// <param name="file"></param>
         /// <param name="version"></param>
         /// <param name="channel"></param>
+        /// <param name="sourceUTCDate"></param>
         /// <param name="builderTool"></param>
         /// <returns></returns>
-        internal static bool ReadPackageInfo(string file, out string version, out string channel, out string builderTool) {
+        internal static bool ReadPackageInfo(string file, out string version, out string channel, out DateTime sourceUTCDate, out string builderTool) {
 
             version = string.Empty;
             channel = string.Empty;
+            sourceUTCDate = DateTime.MinValue;
             builderTool = string.Empty;
 
             using (ZipArchive archive = ZipFile.OpenRead(file)) {
@@ -61,20 +64,28 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     if (entry.FullName.Equals("versioninfo.xml", StringComparison.OrdinalIgnoreCase)) {
                         Stream s = entry.Open();
 
-                        XmlDocument xmlDoc = new XmlDocument();
-                        xmlDoc.Load(s);
 
-                        XmlNodeList versionInfo = xmlDoc.GetElementsByTagName("VersionInfo");
-                        if (versionInfo != null && versionInfo.Count > 0) {
-                            XmlNodeList nodeList = versionInfo[0].SelectNodes("Version");
-                            if (nodeList != null && nodeList.Count > 0) {
-                                version = nodeList[0].InnerText;
-                            }
-                            nodeList = versionInfo[0].SelectNodes("Channel");
-                            if (nodeList != null && nodeList.Count > 0) {
-                                channel = nodeList[0].InnerText;
-                            }
+                        ReadInfoVersionInfo(s, out version, out channel, out sourceUTCDate);
+
+                        if (sourceUTCDate == DateTime.MinValue) {
+                            sourceUTCDate = entry.LastWriteTime.UtcDateTime;
+                            LogWriter.WriteLine(string.Format("WARNING: VersionDate tag is missing from VersionInfo.xml in package {0}. Using the file date as version date.", file));
                         }
+
+                        //XmlDocument xmlDoc = new XmlDocument();
+                        //xmlDoc.Load(s);
+
+                        //XmlNodeList versionInfo = xmlDoc.GetElementsByTagName("VersionInfo");
+                        //if (versionInfo != null && versionInfo.Count > 0) {
+                        //    XmlNodeList nodeList = versionInfo[0].SelectNodes("Version");
+                        //    if (nodeList != null && nodeList.Count > 0) {
+                        //        version = nodeList[0].InnerText;
+                        //    }
+                        //    nodeList = versionInfo[0].SelectNodes("Channel");
+                        //    if (nodeList != null && nodeList.Count > 0) {
+                        //        channel = nodeList[0].InnerText;
+                        //    }
+                        //}
                         s.Close();
                         s.Dispose();
                     }
@@ -85,7 +96,44 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
             }
 
-            return version != string.Empty && channel != string.Empty && builderTool != string.Empty;
+            return version != string.Empty && channel != string.Empty && builderTool != string.Empty && sourceUTCDate != DateTime.MinValue;
+        }
+
+
+        /// <summary>
+        /// Read out version information
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="version"></param>
+        /// <param name="channel"></param>
+        /// <param name="sourceUTCDate"></param>
+        internal static void ReadInfoVersionInfo(Stream s, out string version, out string channel, out DateTime sourceUTCDate) {
+
+            version = string.Empty;
+            channel = string.Empty;
+            sourceUTCDate = DateTime.MinValue;
+
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(s);
+
+            XmlNodeList versionInfo = xmlDoc.GetElementsByTagName("VersionInfo");
+            if (versionInfo != null && versionInfo.Count > 0) {
+                XmlNodeList nodeList = versionInfo[0].SelectNodes("Version");
+                if (nodeList != null && nodeList.Count > 0) {
+                    version = nodeList[0].InnerText;
+                }
+                nodeList = versionInfo[0].SelectNodes("Channel");
+                if (nodeList != null && nodeList.Count > 0) {
+                    channel = nodeList[0].InnerText;
+                }
+                nodeList = versionInfo[0].SelectNodes("VersionDate");
+                if (nodeList != null && nodeList.Count > 0) {
+                    //DateTime.TryParse(nodeList[0].InnerText, out sourceUTCDate);
+                    DateTime.TryParse(nodeList[0].InnerText, CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal, out sourceUTCDate);
+                }
+
+            }
+
         }
 
 
@@ -105,13 +153,14 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 string version = string.Empty;
                 string channel = string.Empty;
                 string builderTool = string.Empty;
+                DateTime sourceUTCDate = DateTime.MinValue;
 
                 if (!File.Exists(file)) {
                     throw new FileNotFoundException("Can not find the file", file);
                 }
 
                 // Validate the file.
-                bool result = PackageHandler.ReadPackageInfo(file, out version, out channel, out builderTool);
+                bool result = PackageHandler.ReadPackageInfo(file, out version, out channel, out sourceUTCDate, out builderTool);
 
                 if (result == false) {
                     message = "Invalid package content.";
@@ -121,6 +170,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     }
                     if (channel == string.Empty) {
                         message += message + " Missing <Channel> tag information.";
+                    }
+                    if (sourceUTCDate == DateTime.MinValue) {
+                        message += message + " Failed to read source datetime on VersionInfo.xml.";
                     }
                     if (builderTool == string.Empty) {
                         message += message + " Missing builder tool GenerateInstaller.exe";
@@ -166,6 +218,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     versionSource.Channel = channel;
                     versionSource.Version = version;
                     versionSource.BuildError = false;
+                    versionSource.VersionDate = sourceUTCDate;
                 });
 
                 LogWriter.WriteLine(string.Format("NOTICE: Package {0} was added to database.", file));
@@ -181,6 +234,74 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     LogWriter.WriteLine(string.Format("NOTICE: Package {0} was delete.", file));
                 }
                 throw e;
+            }
+
+        }
+
+        /// <summary>
+        /// Move Source documentation folder to configured destination
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>True if documentation folder was moved</returns>
+        internal static bool MoveDocumentation(VersionSource item) {
+
+            if (string.IsNullOrEmpty(item.SourceFolder)) {
+                LogWriter.WriteLine(string.Format("WARNING: The package {0} has not yet been unpacked.", item.PackageFile));
+                return false;
+            }
+
+            // Add '\docs\public' to source folder path
+            string sourceDocsFolder = Path.Combine(item.SourceFolder, "docs");
+            sourceDocsFolder = Path.Combine(sourceDocsFolder, "public");
+
+            // Source folder path example: <usersettings>\nightlybuilds\2.0.904.3
+
+            if (!Directory.Exists(sourceDocsFolder)) {
+                LogWriter.WriteLine(string.Format("WARNING: The package {0} in {1} doesn't contain the documentation folder.", item.Version, item.Channel));
+                return false;
+            }
+
+
+            // Destination documentation path
+
+            // Add 'public' 
+            string outputDocumentationFolder = Path.Combine(VersionHandlerApp.Settings.DocumentationFolder, "public");
+            // Add channel name
+            outputDocumentationFolder = Path.Combine(outputDocumentationFolder, item.Channel);
+
+            // Create directory Without the final folder otherwise Directory.Move() will complain.
+            if (!Directory.Exists(outputDocumentationFolder)) {
+                Directory.CreateDirectory(outputDocumentationFolder);
+            }
+
+            outputDocumentationFolder = Path.Combine(outputDocumentationFolder, item.Version);
+            // Example path: <usersettings>\public\nightlybuilds\2.0.904.3
+
+            if (!Directory.Exists(sourceDocsFolder) && Directory.Exists(outputDocumentationFolder)) {
+                // Doc's already moved?
+                return false;
+            }
+
+
+            if (Directory.Exists(outputDocumentationFolder)) {
+                LogWriter.WriteLine(string.Format("WARNING: Documentation folder {0} already exists.", outputDocumentationFolder));
+                return false;
+            }
+
+            try {
+                // Move documentation folder
+                Directory.Move(sourceDocsFolder, outputDocumentationFolder);
+
+                Db.Transaction(() => {
+                    item.DocumentationFolder = outputDocumentationFolder;
+                });
+
+                LogWriter.WriteLine(string.Format("NOTICE: Documentation version {0} moved to {1}.", item.Version, outputDocumentationFolder));
+                return true;
+            }
+            catch (Exception e) {
+                LogWriter.WriteLine(string.Format("ERROR: Failed to move the documentation folder {0} to {1}. {2}", sourceDocsFolder, outputDocumentationFolder, e.Message));
+                return false;
             }
 
         }

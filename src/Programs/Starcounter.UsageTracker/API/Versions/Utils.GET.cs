@@ -52,7 +52,7 @@ namespace StarcounterApplicationWebSocket.API.Versions {
 
             Handle.GET(port, "/refresh", (Request request) => {
 
-                LogWriter.WriteLine(string.Format("Refresh database."));
+                LogWriter.WriteLine(string.Format("NOTICE: Refresh environment (database and files)."));
 
                 VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
 
@@ -73,7 +73,6 @@ namespace StarcounterApplicationWebSocket.API.Versions {
             //});
 
             #region Hidden Area
-            //// TODO: Portnumber
             //Handle.GET(8585, "/hiddenarea/versions", (Request request) => {
 
             //    dynamic response = new DynamicJson();

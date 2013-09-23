@@ -5,8 +5,6 @@
 namespace starcounter {
 namespace network {
 
-const int32_t WS_MAX_FRAME_INFO_SIZE = 16;
-
 // Message types.
 enum WS_OPCODE
 {

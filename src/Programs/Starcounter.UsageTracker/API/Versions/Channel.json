@@ -1,0 +1,9 @@
+{
+	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp.API.Versions"},
+	name:"nightlybuild",
+	latestVersion:"2.0.234.2",
+	downloadUrl:"http://downloads.starcounter.com/nightlybuilds/2.0.567.3" 
+}
+
+
+

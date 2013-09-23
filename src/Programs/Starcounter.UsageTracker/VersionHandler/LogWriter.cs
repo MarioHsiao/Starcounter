@@ -43,6 +43,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
                     // This text is added only once to the file. 
                     if (!File.Exists(LogWriter.LogFile)) {
                         // Create a file to write to. 
+
+                        string directoryPath = Path.GetDirectoryName(LogWriter.LogFile);
+                        if (!Directory.Exists(directoryPath)) {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+
                         using (StreamWriter sw = File.CreateText(LogWriter.LogFile)) {
                             sw.WriteLine(timestamp + " " + text);
                         }
