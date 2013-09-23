@@ -127,15 +127,19 @@ namespace Starcounter.Hosting {
         /// </summary>
         internal void Process()
         {
-            var application = assembly_ == null 
-                ? null 
-                : new Application() {
-                FileName = this.PrimaryFilePath,
-                LoadPath = this.assembly_.Location,
-                WorkingDirectory = this.WorkingDirectory,
-                Arguments = this.EntrypointArguments
-            };
-            if (application != null) {
+            Application application = null;
+            if (this.assembly_ != null) {
+                // The assembly can be null for internal packages, like
+                // the Starcounter assembly/package.
+                if (this.EntrypointArguments == null) {
+                    this.EntrypointArguments = new string[0];
+                }
+                application = new Application() {
+                    FileName = this.PrimaryFilePath,
+                    LoadPath = this.assembly_.Location,
+                    WorkingDirectory = this.WorkingDirectory,
+                    Arguments = this.EntrypointArguments
+                };
                 Application.Index(application);
             }
 
@@ -269,7 +273,7 @@ namespace Starcounter.Hosting {
 
                 var m = entrypointType.GetMethod("STARCOUNTERGENERATED_InitializeAppsInfrastructure");
                 if (m != null) {
-                    m.Invoke(null, new object[] { this.WorkingDirectory, this.EntrypointArguments ?? new string[] { } });
+                    m.Invoke(null, new object[] { this.WorkingDirectory, this.EntrypointArguments });
                 }
             }
         }
@@ -286,7 +290,7 @@ namespace Starcounter.Hosting {
                     if (entrypoint.GetParameters().Length == 0) {
                         entrypoint.Invoke(null, null);
                     } else {
-                        var arguments = this.EntrypointArguments ?? new string[] { };
+                        var arguments = this.EntrypointArguments;
                         entrypoint.Invoke(null, new object[] { arguments });
                     }
                 } catch (TargetInvocationException te) {
