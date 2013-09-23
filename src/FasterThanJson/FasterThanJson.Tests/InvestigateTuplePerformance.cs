@@ -445,7 +445,7 @@ namespace FasterThanJson.Tests {
             }
         }
 
-        //[Test]
+        [Test]
         public static unsafe void BenchmarkTupleString10Scale() {
             string value = "Just text.";
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -517,7 +517,7 @@ namespace FasterThanJson.Tests {
             }
         }
 
-        //[Test]
+        [Test]
         public static unsafe void BenchmarkTupleCharArray10Scale() {
             char[] value = "Just text.".ToCharArray();
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
