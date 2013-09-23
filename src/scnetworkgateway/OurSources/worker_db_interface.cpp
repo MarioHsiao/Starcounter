@@ -102,18 +102,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             // Process the chunk.
             SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            // Setting the database index and sequence number.
-            sd->AttachToDatabase(db_index_);
-
             // Checking for socket data correctness.
             GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
 
-            // Setting chunk index because of possible cloned chunks.
-            sd->set_chunk_index(cur_chunk_index);
-
-            // Resetting number of chunks.
-            sd->set_num_chunks(1);
-
+            // Initializing socket data that arrived from database.
+            sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+            
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
 
             // We need to check if its a multi-chunk response.

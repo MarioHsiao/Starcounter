@@ -55,6 +55,9 @@ class GatewayWorker
     // List of sockets indexes to be disconnected.
     std::list<session_index_type> sockets_indexes_to_disconnect_;
 
+    // Avoiding false sharing.
+    uint8_t pad[64];
+
 #ifdef GW_LOOPED_TEST_MODE
     LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
     LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;

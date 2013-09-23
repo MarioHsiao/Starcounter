@@ -630,7 +630,12 @@ namespace NodeTest
 
             Double echoesPerSecond = ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds;
             TestLogger.ReportStatistics(
-                String.Format("nodetest_workers_{0}_echo_minbytes_{1}_maxbytes_{2}__echoes_per_second", settings.NumWorkers, settings.MinEchoBytes, settings.MaxEchoBytes),
+                String.Format("nodetest_{0}_workers_{1}_echo_minbytes_{2}_maxbytes_{3}__echoes_per_second",
+                    settings.ProtocolType,
+                    settings.NumWorkers,
+                    settings.MinEchoBytes,
+                    settings.MaxEchoBytes),
+
                 echoesPerSecond);
 
             Console.WriteLine("Echoes/second: " + echoesPerSecond);
