@@ -27,7 +27,7 @@ namespace Starcounter
         /// </summary>
         public static Application[] Applications {
             get {
-                throw new NotImplementedException();
+                return Application.GetAllApplications();
             }
         }
 

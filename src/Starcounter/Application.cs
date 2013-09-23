@@ -102,6 +102,18 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns a copy of all applications currently indexed.
+        /// </summary>
+        /// <returns>An array of all running, indexed applications.</returns>
+        internal static Application[] GetAllApplications() {
+            lock (monitor) {
+                var apps = new Application[indexLoadPath.Values.Count];
+                indexLoadPath.Values.CopyTo(apps, 0);
+                return apps;
+            }
+        }
+
+        /// <summary>
         /// Assures the given <see cref="Application"/> is properly indexed,
         /// allowing it to be later retrived from any of the supported lookup
         /// methods.
