@@ -78,7 +78,8 @@ namespace Starcounter.Internal
       private unsafe void GetAtPosition(int index, out byte* valuePos, out int valueLength) {
 #if BASE64
           if (index >= ValueCount)
-              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot read value since the index is out of range");
+              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot read value since the index " + 
+                  index + " is out of range for this tuple with " + ValueCount + " values.");
           int firstValue = OffsetElementSizeSize + (int)(ValueCount * OffsetElementSize);
           // Get value position
           int valueOffset;
@@ -287,17 +288,51 @@ namespace Starcounter.Internal
          ValueOffset += len;
       }
 
+      public unsafe byte* GetPosition(int index) {
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          return valuePos;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe int ReadString(int valueLength, byte* start, char* value) {
+          Debug.Assert(valueLength > 0);
+          if (Base64Int.ReadBase64x1(start) == 1)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                    "String to read is null, which cannot be written to output.");
+          return SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, value, valueLength, true);
+      }
+
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe string ReadString(int valueLength, byte* start) {
           Debug.Assert(valueLength > 0);
           String str;
           if (Base64Int.ReadBase64x1(start) == 0) {
               char* buffer = stackalloc char[(int)valueLength];
-              int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
+              int stringLen = ReadString(valueLength, start, buffer);
+              //int stringLen = SessionBlobProxy.Utf8Decode.GetChars(start + 1, valueLength - 1, buffer, valueLength, true);
               str = new String(buffer, 0, stringLen);
           } else
               str = null;
           return str;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe int ReadString(char* value) {
+         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+         valueLength -= ValueOffset;
+         int leng = ReadString((int)valueLength, AtEnd, value);
+         AtEnd += valueLength;
+         ValueOffset += valueLength;
+         AtOffsetEnd += OffsetElementSize;
+         return leng;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe int ReadString(char[] value) {
+          fixed (char* valuePtr = value)
+              return ReadString(valuePtr);
       }
 
       /// <summary>

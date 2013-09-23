@@ -432,6 +432,15 @@ namespace NetworkIoTestApp
                         return new Response() { BodyBytes = req.BodyBytes };
                     });
 
+                    Handle.GET(8080, "/ws2", (Request req) =>
+                    {
+                        return new Response()
+                        {
+                            StatusDescription = "Closing connection!",
+                            StatusCode = (UInt16)Response.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN
+                        };
+                    });
+
                     break;
                 }
 

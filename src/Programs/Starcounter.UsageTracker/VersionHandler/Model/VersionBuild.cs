@@ -118,10 +118,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// <summary>
         /// Get an available build of a specific version
         /// </summary>
+        /// <param name="channel"></param>
         /// <param name="version"></param>
         /// <returns>Unique build or null</returns>
-        internal static VersionBuild GetAvilableBuild(string version) {
-            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Version=? AND o.HasBeenDownloaded=?", version, false).First;
+        internal static VersionBuild GetAvailableBuild(string channel, string version) {
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", channel, version, false).First;
         }
 
     }

@@ -139,6 +139,8 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 if (result == true) {
                     // Success
+
+
                     try {
                         // Delete package
                         File.Delete(item.PackageFile);
@@ -152,6 +154,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         item.PackageFile = string.Empty;
                         item.SourceFolder = destination;
                     });
+
+                    // Move docs
+                    PackageHandler.MoveDocumentation(item);
 
                     bUnpacked = true;
 
