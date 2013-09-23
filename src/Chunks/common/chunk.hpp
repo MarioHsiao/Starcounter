@@ -33,39 +33,63 @@ typedef uint32_t chunk_index;
 
 typedef uint64_t bmx_handler_type;
 
-// Chunk layout:
-// +-------------------------+
-// | 64-bit bmx_handler_type |
-// +-------------------------+
-// | 32-bit request_size     |
-// +-------------------------+
-// | Blast2 request message  |
-// +-------------------------+
-// | 32-bit response_size    |
-// +-------------------------+
-// | Blast2 response message |
-// +-------------------------+
-// | 32-bit next_link        |
-// +-------------------------+
-// | 32-bit (stream) link    |
-// +-------------------------+
+// Current chunk layout:
+// +-----------------------------+ 0..7
+// | 64-bit bmx handler          |
+// +-----------------------------+ 8..11
+// | 32-bit request size         |
+// +-----------------------------+ 12..
+// | Request message. . .        |
+// +-----------------------------+
+// | 32-bit response size        |
+// +-----------------------------+
+// | Response message. . .       |
+// +-----------------------------+ 4088..4091
+// | 32-bit next link            |
+// +-----------------------------+ 4092..4095
+// | 32-bit (stream) link        |
+// +-----------------------------+ 4096
+// Next chunk. . .
 
-// New chunk layout (after task #993 is done):
-// +-------------------------+
-// | 32-bit next_link        |
-// +-------------------------+
-// | 64-bit bmx_handler_type |
-// +-------------------------+
-// | 32-bit request_size     |
-// +-------------------------+
-// | Blast2 request message  |
-// +-------------------------+
-// | 32-bit response_size    |
-// +-------------------------+
-// | Blast2 response message |
-// +-------------------------+
+
+// Chunk layout after task #993 is done:
+// +-----------------------------+ 0..3
+// | 32-bit next link            |
+// +-----------------------------+ 4..7
+// | 32-bit request size         |
+// +-----------------------------+ 8..
+// | Request message. . .        |
+// | +-------------------------+ | 8..15
+// | | 64-bit bmx handler      | |
+// | +-------------------------+ | 16
+// +-----------------------------+
+// | 32-bit response size        |
+// +-----------------------------+
+// | Response message. . .       |
+// +-----------------------------+ 4092..4095
+// | 32-bit (stream) link        |
+// +-----------------------------+ 4096
+// Next chunk. . .
+
+
+// This chunk layout shall be implemented later on, because the request can, and
+// therefore should, be overwritten with the response. There is no "request" and
+// "response" terminology - it is just called "message." The bmx handler field
+// is stored as part of the message data in the beginning.
+// +-------------------------+ 0..3
+// | 32-bit next link        |
+// +-------------------------+ 4..7
+// | 32-bit message size     |
+// +-------------------------+ 8..
+// | Message. . .            |
+// | +---------------------+ | 8..15
+// | | 64-bit bmx handler  | |
+// | +---------------------+ | 16
+// +-------------------------+ 4092
 // | 32-bit (stream) link    |
-// +-------------------------+
+// +-------------------------+ 4096
+// Next chunk. . .
+
 
 template<class T, std::size_t N>
 class chunk {
