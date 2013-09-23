@@ -88,6 +88,16 @@ namespace Starcounter.Hosting {
             set;
         }
 
+        /// <summary>
+        /// Gets or sets the full path to the primary file, used to
+        /// trigger this package to load. Note that this is normally not
+        /// the same file as the one being loaded.
+        /// </summary>
+        public string PrimaryFilePath { 
+            get; 
+            set; 
+        }
+
 		/// <summary>
         /// Initializes a new instance of the <see cref="Package" /> class.
         /// </summary>
@@ -117,6 +127,15 @@ namespace Starcounter.Hosting {
         /// </summary>
         internal void Process()
         {
+            var application = assembly_ == null 
+                ? null 
+                : new Application() {
+                FileName = this.PrimaryFilePath,
+                LoadPath = this.assembly_.Location,
+                WorkingDirectory = this.WorkingDirectory,
+                Arguments = this.EntrypointArguments
+            };
+
             try
             {
                 OnProcessingStarted();
@@ -139,7 +158,7 @@ namespace Starcounter.Hosting {
 
                 // Starting user Main() here.
                 if (execEntryPointSynchronously_)
-                    ExecuteEntryPoint();
+                    ExecuteEntryPoint(application);
 
             } catch (Exception e) {
                 uint code = 0;
@@ -158,7 +177,7 @@ namespace Starcounter.Hosting {
             }
 
             if (!execEntryPointSynchronously_)
-                ExecuteEntryPoint();
+                ExecuteEntryPoint(application);
         }
 
         /// <summary>
@@ -255,11 +274,12 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Executes the entry point.
         /// </summary>
-        private void ExecuteEntryPoint() {
+        private void ExecuteEntryPoint(Application application) {
             if (assembly_ != null) {
                 var entrypoint = assembly_.EntryPoint;
 
                 try {
+                    Application.CurrentAssigned = application;
                     if (entrypoint.GetParameters().Length == 0) {
                         entrypoint.Invoke(null, null);
                     } else {
@@ -271,9 +291,11 @@ namespace Starcounter.Hosting {
                     if (entrypointException == null) throw;
 
                     throw ErrorCode.ToException(
-                        Error.SCERRFAILINGENTRYPOINT, 
+                        Error.SCERRFAILINGENTRYPOINT,
                         te,
                         string.Format("Message: \"{0}\". Entrypoint assembly: \"{1}\"", entrypointException.Message, assembly_.FullName));
+                } finally {
+                    Application.CurrentAssigned = null;
                 }
 
                 OnEntryPointExecuted();
