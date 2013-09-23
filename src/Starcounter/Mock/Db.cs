@@ -118,6 +118,8 @@ namespace Starcounter
         }
 
         private static Boolean ParseNonSelectQuery(String query, params Object[] values) {
+            if (query.Length == 0)
+                return false;
             switch (query[0]) {
                 case 'C':
                 case 'c':
@@ -134,6 +136,8 @@ namespace Starcounter
                 case ' ':
                 case '\t':
                     query = query.TrimStart(' ', '\t');
+                    if (query.Length == 0)
+                        return false;
                     switch (query[0]) {
                         case 'C':
                         case 'c':
