@@ -61,7 +61,7 @@ namespace Starcounter {
             }
 
             try {
-                return indexFileName[location];
+                return indexLoadPath[location];
             } catch (KeyNotFoundException knfe) {
                 var detail = string.Format("Assembly \"{0}\" does not represent a known application.", assembly.FullName);
                 throw CreateArgumentExceptionWithCode(detail, knfe);
@@ -81,7 +81,18 @@ namespace Starcounter {
         /// <exception cref="ArgumentException">Thrown when the application can't
         /// be resolved based on the given file.</exception>
         public static Application GetApplication(string fileName) {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentNullException("fileName");
+            Application application;
+            var found = indexLoadPath.TryGetValue(fileName, out application);
+            if (!found) {
+                found = indexFileName.TryGetValue(fileName, out application);
+                if (!found) {
+                    throw CreateArgumentExceptionWithCode(string.Format("File \"{0}\" does not represent a known application.", fileName));
+                } else if (application == null) {
+                    throw CreateArgumentExceptionWithCode(string.Format("File name \"{0}\" is ambiguous. Specify the full name to resolve.", fileName));
+                }
+            }
+            return application;
         }
 
         /// <summary>
