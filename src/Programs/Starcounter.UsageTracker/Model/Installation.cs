@@ -3,6 +3,7 @@ using System.Collections;
 using Starcounter;
 using Starcounter.Applications.UsageTrackerApp.Model;
 using Starcounter.Applications.UsageTrackerApp.API.Starcounter;
+using System.Collections.Generic;
 
 namespace Starcounter.Applications.UsageTrackerApp.Model {
 
@@ -40,57 +41,57 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public IEnumerable Usages {
             get {
-                return Db.SlowSQL("SELECT O FROM StarcounterUsage WHERE O.Installation = {?}", this);
+                return Db.SlowSQL("SELECT o FROM StarcounterUsage o WHERE o.Installation=?", this);
             }
         }
 
         /// <summary>
         /// Installer starts
-        /// List of when the user executed the installer executable.
+        /// when the user executed the installer executable.
         /// </summary>
-        public IEnumerable InstallerStart {
+        public InstallerStart InstallerStart {
             get {
-                return Db.SlowSQL("SELECT O FROM InstallerStart WHERE O.Installation = {?}", this);
+                return Db.SlowSQL<InstallerStart>("SELECT o FROM InstallerStart o WHERE o.Installation=?", this).First;
             }
         }
 
         /// <summary>
         /// Installer Executing
-        /// List when the installer is executing, installing/Uninstalling some software
+        /// when the installer is executing, installing/Uninstalling some software
         /// </summary>
-        public IEnumerable InstallerExecuting {
+        public InstallerExecuting InstallerExecuting {
             get {
-                return Db.SlowSQL("SELECT O FROM InstallerExecuting WHERE O.Installation = {?}", this);
+                return Db.SlowSQL<InstallerExecuting>("SELECT o FROM InstallerExecuting o WHERE o.Installation=?", this).First;
             }
         }
 
         /// <summary>
         /// Installer Aborts
-        /// List of user aborts
+        /// user aborted the installer
         /// </summary>
-        public IEnumerable InstallerAbort {
+        public InstallerAbort InstallerAbort {
             get {
-                return Db.SlowSQL("SELECT O FROM InstallerAbort WHERE O.Installation = {?}", this);
+                return Db.SlowSQL<InstallerAbort>("SELECT o FROM InstallerAbort o WHERE o.Installation=?", this).First;
             }
         }
 
         /// <summary>
         /// Installer Finish
-        /// List of finished installation executes
+        /// finished installation executes
         /// </summary>
-        public IEnumerable InstallerFinish {
+        public InstallerFinish InstallerFinish {
             get {
-                return Db.SlowSQL("SELECT O FROM InstallerFinish WHERE O.Installation = {?}", this);
+                return Db.SlowSQL<InstallerFinish>("SELECT o FROM InstallerFinish o WHERE o.Installation=?", this).First;
             }
         }
 
         /// <summary>
         /// Installer End
-        /// List of when the installer end's (Process ends)
+        ///  when the installer end's (Process ends)
         /// </summary>
         public IEnumerable InstallerEnd {
             get {
-                return Db.SlowSQL("SELECT O FROM InstallerEnd WHERE O.Installation = {?}", this);
+                return Db.SlowSQL("SELECT o FROM InstallerEnd o WHERE o.Installation=?", this);
             }
         }
 
@@ -99,7 +100,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public IEnumerable StarcounterGeneral {
             get {
-                return Db.SlowSQL("SELECT O FROM StarcounterGeneral WHERE O.Installation = {?}", this);
+                return Db.SlowSQL("SELECT o FROM StarcounterGeneral o WHERE o.Installation=?", this);
             }
         }
 
@@ -132,6 +133,218 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 
             this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
             this.PreviousInstallationNo = previousInstallationNo;
+        }
+
+        /// <summary>
+        /// Get Next installation
+        /// </summary>
+        /// <returns></returns>
+        public static Installation GetNextNode(Installation installation) {
+
+            Installation currentInstallation = Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.PreviousInstallationNo=?", installation.InstallationNo).First;
+            if (currentInstallation == null) return null;
+
+            if (currentInstallation.Serial == "000000000000000000000000") {
+                return Installation.GetNextNode(currentInstallation);
+            }
+
+            return currentInstallation;
+
+            //return Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.PreviousInstallationNo=?", this.InstallationNo).First;
+        }
+
+        /// <summary>
+        /// Get Previous installation
+        /// </summary>
+        /// <returns>Installation</returns>
+        public static Installation GetPreviousNode(Installation installation) {
+
+            Installation currentInstallation = Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.InstallationNo=?", installation.PreviousInstallationNo).First;
+            if (currentInstallation == null) return null;
+
+            if (installation.PreviousInstallationNo == installation.InstallationNo) {
+
+            }
+
+            if (currentInstallation.Serial == "000000000000000000000000") {
+                return Installation.GetPreviousNode(currentInstallation);
+            }
+
+            return currentInstallation;
+
+            //return Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.InstallationNo=?", this.PreviousInstallationNo).First;
+        }
+
+        /// <summary>
+        /// Get First Installation
+        /// </summary>
+        /// <param name="installation"></param>
+        /// <returns>Installation</returns>
+        public static Installation GetFirstInstallationNode(Installation installation) {
+
+            Installation currentInstallation = Installation.GetFirstNode(installation);
+
+            while (currentInstallation != null) {
+
+                if (currentInstallation.InstallerFinish != null && currentInstallation.InstallerFinish.Success == true) {
+
+                    if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
+                        return currentInstallation;
+                    }
+                }
+
+                currentInstallation = Installation.GetNextNode(currentInstallation);
+
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get the first installation in an installation chain
+        /// </summary>
+        /// <param name="installation">Installation</param>
+        /// <returns>Installation</returns>
+        public static Installation GetFirstNode(Installation installation) {
+
+            Installation firstInstallation = null;
+
+            while (true) {
+                Installation previousIntallation = Installation.GetPreviousNode(installation);
+
+                // TODO: Prevent infinity loop
+
+                if (previousIntallation == null) {
+                    firstInstallation = installation;
+                    break;
+                }
+                installation = previousIntallation;
+            }
+
+            return firstInstallation;
+        }
+
+
+        /// <summary>
+        /// Get the first installation in an installation chain
+        /// </summary>
+        /// <param name="installation">Installation</param>
+        /// <returns>Installation</returns>
+        public static Installation GetLastNode(Installation installation) {
+
+            Installation lastInstallation = null;
+
+            while (true) {
+                Installation nextInstallation = Installation.GetNextNode(installation);
+
+                // TODO: Prevent infinity loop
+                if (nextInstallation == null) {
+                    lastInstallation = installation;
+                    break;
+                }
+                installation = nextInstallation;
+            }
+
+            return lastInstallation;
+        }
+
+           
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static List<Installation> GetAllFirstNodes() {
+
+            List<Installation> machines = new List<Installation>();
+            //var result = Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE \"Date\" >= ? AND \"Date\" < ?", from, to);
+            var result = Db.SlowSQL<Installation>("SELECT o FROM Installation o");
+
+            foreach (Installation installation in result) {
+
+                if (installation.Serial == "000000000000000000000000") {
+                    continue;
+                }
+
+                var aInstallation = Installation.GetPreviousNode(installation);
+                if (aInstallation == null) {
+                    // First time installation
+                    machines.Add(installation);
+                }
+            }
+            return machines;
+
+        }
+
+
+        /// <summary>
+        /// Checks if installation was installed in the datetime range
+        /// </summary>
+        /// <remarks>A return value of false dosent mean that the installation is not installed</remarks>
+        /// <param name="installation"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool WasInstalled(Installation installation, DateTime from, DateTime to) {
+
+            Installation currentInstallation = Installation.GetLastNode(installation);
+
+            while (currentInstallation != null) {
+
+                if (currentInstallation.InstallerFinish != null && currentInstallation.InstallerFinish.Success == true) {
+
+                    // Within date range
+                    if (currentInstallation.Date >= from && currentInstallation.Date < to) {
+
+                        if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
+                            return true;
+                        }
+                        else if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
+                            return false;
+                        }
+                    }
+                }
+
+                currentInstallation = Installation.GetPreviousNode(currentInstallation);
+
+            }
+
+            return false;
+        }
+
+
+        /// <summary>
+        /// Checks if installation was uninstalled in the datetime range
+        /// </summary>
+        /// <remarks>A return value of false dosent mean that the installation is not uninstalled</remarks>
+        /// <param name="installation"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool WasUnInstalled(Installation installation, DateTime from, DateTime to) {
+
+            Installation currentInstallation = Installation.GetLastNode(installation);
+
+            while (currentInstallation != null) {
+
+                if (currentInstallation.InstallerFinish != null && currentInstallation.InstallerFinish.Success == true) {
+
+                    // Within date range
+                    if (currentInstallation.Date >= from && currentInstallation.Date < to) {
+
+                        if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
+                            return true;
+                        }
+                        else if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
+                            return false;
+                        }
+                    }
+                }
+
+                currentInstallation = Installation.GetPreviousNode(currentInstallation);
+
+            }
+
+            return false;
         }
 
     }

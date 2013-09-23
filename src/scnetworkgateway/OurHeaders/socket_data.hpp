@@ -20,7 +20,8 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
     HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
     HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048,
+    HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE
 };
 
 // Socket data chunk.
@@ -367,6 +368,24 @@ public:
         flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
+    // Getting gracefully close flag.
+    bool get_gracefully_close_flag()
+    {
+        return (flags_ & HTTP_WS_FLAGS_GRACEFULLY_CLOSE) != 0;
+    }
+
+    // Setting gracefully close flag.
+    void set_gracefully_close_flag()
+    {
+        flags_ |= HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+    }
+
+    // ReSetting gracefully close flag.
+    void reset_gracefully_close_flag()
+    {
+        flags_ &= ~HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+    }
+
     // Getting disconnect socket flag.
     bool get_disconnect_socket_flag()
     {
@@ -438,7 +457,7 @@ public:
     {
         type_of_network_protocol_ = proto_type;
 
-        g_gateway.SetConnectionType(socket_info_index_, proto_type);
+        g_gateway.SetTypeOfNetworkProtocol(socket_info_index_, proto_type);
     }
 
     // Checks if this socket is aggregated.
@@ -741,6 +760,15 @@ public:
 
         // Setting unique socket id.
         unique_socket_id_ = proxy_unique_socket_id;
+    }
+
+    // Initializes socket data that comes from database.
+    void PreInitSocketDataFromDb(int32_t db_index, core::chunk_index the_chunk_index)
+    {
+        db_index_ = db_index;
+        chunk_index_ = the_chunk_index;
+        num_chunks_ = 1;
+        type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
     }
 
     // Attaching to certain database.

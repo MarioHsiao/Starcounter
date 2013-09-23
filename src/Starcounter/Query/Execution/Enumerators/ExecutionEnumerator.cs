@@ -345,9 +345,7 @@ internal abstract class ExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected number of nodes in execution plan. Actual number of nodes is " +
                 (nodeId + 1) + ", while the offset key contains " + nodesNum + " nodes.");
         TupleReaderBase64 enumerators = new TupleReaderBase64(root.AtEnd, nodesNum);
-        for (int i = 0; i < nodeId; i++)
-            enumerators.Skip();
-        TupleReaderBase64 thisEnumerator = new TupleReaderBase64(enumerators.AtEnd, tupleLength);
+        TupleReaderBase64 thisEnumerator = new TupleReaderBase64(enumerators.GetPosition(nodeId), tupleLength);
         EnumeratorNodeType keyNodeType = (EnumeratorNodeType)thisEnumerator.ReadULong(0);
         if (keyNodeType != NodeType)
             throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Current node type " +

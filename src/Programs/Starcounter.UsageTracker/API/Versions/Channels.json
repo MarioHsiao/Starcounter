@@ -1,0 +1,7 @@
+{
+	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp.API.Versions"},
+    "channels": [{
+		"name":"channel name",
+		"latestVersion":"2.0.234.2"
+    }]
+}

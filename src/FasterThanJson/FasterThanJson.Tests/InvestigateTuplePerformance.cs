@@ -480,6 +480,82 @@ namespace FasterThanJson.Tests {
         }
 
         //[Test]
+        public static unsafe void BenchmarkTupleCharArray1Scale() {
+            char[] value = "a".ToCharArray();
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[100]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteString(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " 1-letter char array writes", nrIter);
+                    char[] res = new char[1];
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++) {
+                        var len = reader.ReadString(res);
+                        Assert.AreEqual(value.Length, len);
+                        Assert.AreEqual(value, res);
+                    }
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadString(res);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " 1-letter char array reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
+        public static unsafe void BenchmarkTupleCharArray10Scale() {
+            char[] value = "Just text.".ToCharArray();
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[300]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteString(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " 10-letters char array writes", nrIter);
+                    char[] res = new char[10];
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++) {
+                        var len = reader.ReadString(res);
+                        Assert.AreEqual(value.Length, len);
+                        Assert.AreEqual(value, res);
+                    }
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadString(res);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " 10-letter char array reads", nrIter);
+                }
+            }
+        }
+
+        //[Test]
         public static unsafe void BenchmarkTupleByte1Scale() {
             byte[] value = new byte[1] { 12 };
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -818,6 +894,8 @@ namespace FasterThanJson.Tests {
             Console.WriteLine("------------ Strings ----------------");
             BenchmarkTupleString10Scale();
             BenchmarkTupleString1Scale();
+            BenchmarkTupleCharArray10Scale();
+            BenchmarkTupleCharArray1Scale();
             BenchmarkGetBytes();
             BenchmarkNewStringBufferAlloc();
             BenchmarkGetChars();
