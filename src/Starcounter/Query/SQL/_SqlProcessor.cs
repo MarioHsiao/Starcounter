@@ -207,7 +207,7 @@ internal static class SqlProcessor
         }
     }
 
-    internal static bool ProcessDQuery(String statement, params Object[] values)
+    internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)
     {
         List<String> tokenList = Tokenizer.Tokenize(statement);
         if (tokenList == null || tokenList.Count < 2)
@@ -232,7 +232,7 @@ internal static class SqlProcessor
             }
                 throw new SqlException("Unexpected token after DROP", tokenList[pos]);
         }
-        if (Token("$DELETE", tokenList, pos))
+        if (Token("$DELETE", tokenList, pos) && slowSQL)
         {
             pos++;
             ProcessDelete(statement, values);
