@@ -172,8 +172,8 @@ internal static class SqlProcessor
             typeBind = Bindings.GetTypeBindingInsensitive(typePath);
         } catch (DbException e) {
             if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
-                throw new SqlException("Table " + typePath + " is not found");
-            throw e;
+                throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table " + typePath + " is not found");
+            throw;
         }
         PropertyBinding propBind = null;
         //if (typeBind == null)
@@ -185,7 +185,7 @@ internal static class SqlProcessor
         {
             propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
             if (propBind == null)
-                throw new SqlException("Column " + propertyList[i] + " is not found in table " + typeBind.Name);
+                throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Column " + propertyList[i] + " is not found in table " + typeBind.Name);
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
         }
 
@@ -207,7 +207,7 @@ internal static class SqlProcessor
         }
     }
 
-    internal static bool ProcessDQuery(String statement, params Object[] values)
+    internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)
     {
         List<String> tokenList = Tokenizer.Tokenize(statement);
         if (tokenList == null || tokenList.Count < 2)
@@ -232,7 +232,7 @@ internal static class SqlProcessor
             }
                 throw new SqlException("Unexpected token after DROP", tokenList[pos]);
         }
-        if (Token("$DELETE", tokenList, pos))
+        if (Token("$DELETE", tokenList, pos) && slowSQL)
         {
             pos++;
             ProcessDelete(statement, values);
