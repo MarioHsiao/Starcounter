@@ -78,7 +78,8 @@ namespace Starcounter.Internal
       private unsafe void GetAtPosition(int index, out byte* valuePos, out int valueLength) {
 #if BASE64
           if (index >= ValueCount)
-              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot read value since the index is out of range");
+              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot read value since the index " + 
+                  index + " is out of range for this tuple with " + ValueCount + " values.");
           int firstValue = OffsetElementSizeSize + (int)(ValueCount * OffsetElementSize);
           // Get value position
           int valueOffset;
@@ -285,6 +286,13 @@ namespace Starcounter.Internal
          AtOffsetEnd += OffsetElementSize;
          AtEnd += len;
          ValueOffset += len;
+      }
+
+      public unsafe byte* GetPosition(int index) {
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          return valuePos;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
