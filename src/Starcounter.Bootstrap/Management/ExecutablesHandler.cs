@@ -46,7 +46,7 @@ namespace Starcounter.Bootstrap.Management {
             //   Eventually, we will have a strategy to restart the
             // host without the now failing executable.
             try {
-                Loader.ExecApp(schedulerHandle, exe.Path, null, exe.WorkingDirectory, userArgs, !exe.RunEntrypointAsynchronous);
+                Loader.ExecApp(schedulerHandle, exe.Path, exe.PrimaryFile, null, exe.WorkingDirectory, userArgs, !exe.RunEntrypointAsynchronous);
             } catch (Exception e) {
                 if (!ExceptionManager.HandleUnhandledException(e)) throw;
             }
