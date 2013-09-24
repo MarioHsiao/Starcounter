@@ -189,6 +189,8 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         /// <param name="hsched">The hsched.</param>
         /// <param name="filePath">The file path.</param>
+        /// <param name="primaryApplicationFile">The full path of the primary
+        /// application file.</param>
         /// <param name="workingDirectory">The logical working directory the assembly
         /// will execute in.</param>
         /// <param name="entrypointArguments">Arguments to be passed to the assembly
@@ -201,6 +203,7 @@ namespace StarcounterInternal.Hosting
         public static unsafe void ExecApp(
             void* hsched,
             string filePath,
+            string primaryApplicationFile,
             Stopwatch stopwatch = null,
             string workingDirectory = null,
             string[] entrypointArguments = null,
@@ -273,6 +276,7 @@ namespace StarcounterInternal.Hosting
                 package.WorkingDirectory = workingDirectory;
             }
             package.EntrypointArguments = entrypointArguments;
+            package.PrimaryFilePath = primaryApplicationFile;
 
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
