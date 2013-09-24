@@ -427,7 +427,7 @@ namespace Starcounter
 
             // Removing reference to current object.
             _current = null;
-            UInt32 err = sccoredb.SCIteratorFree(_handle, _verify);
+            UInt32 err = sccoredb.filter_iterator_free(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
