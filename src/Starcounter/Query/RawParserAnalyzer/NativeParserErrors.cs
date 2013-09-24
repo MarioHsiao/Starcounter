@@ -71,7 +71,8 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// </summary>
         /// <param name="node">The unknown node</param>
         internal unsafe void UnknownNode(Node* node) {
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Parsed tree contains unexpected or unsupported node "+node->type.ToString().Substring(2));
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Parsed tree contains unexpected or unsupported node "+node->type.ToString().Substring(2),
+                (m, e) => new SQLParserAssertException(m, e));
         }
 
         /// <summary>
