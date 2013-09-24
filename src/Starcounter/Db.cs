@@ -22,6 +22,16 @@ namespace Starcounter
         public static DbEnvironment Environment { get; private set; }
 
         /// <summary>
+        /// Gets the set of <see cref="Application"/>s currently running
+        /// in the <see cref="Db"/>.
+        /// </summary>
+        public static Application[] Applications {
+            get {
+                return Application.GetAllApplications();
+            }
+        }
+
+        /// <summary>
         /// Lookups the table.
         /// </summary>
         /// <param name="name">The name.</param>
