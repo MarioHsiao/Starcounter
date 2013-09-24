@@ -47,7 +47,7 @@ namespace QueryProcessingTest {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRBADARGUMENTS);
                 wasException = true;
             }
-            Trace.Assert(wasException == true);
+            Trace.Assert(wasException);
             wasException = false;
             try {
                 Db.SQL("create indx asdf on account(client)");
@@ -55,7 +55,7 @@ namespace QueryProcessingTest {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLINCORRECTSYNTAX);
                 wasException = true;
             }
-            Trace.Assert(wasException == true);
+            Trace.Assert(wasException);
             wasException = false;
             try {
                 Db.Transaction(delegate {
@@ -65,15 +65,30 @@ namespace QueryProcessingTest {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRTRANSACTIONLOCKEDONTHREAD);
                 wasException = true;
             }
-            Trace.Assert(wasException == true);
+            Trace.Assert(wasException);
             wasException = false;
             try {
                 Db.SQL("create unique index indx on account (accouintid)");
+            } catch (SqlException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME);
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            try {
+                Db.SQL("create unique index indx on acount (accountid)");
+            } catch (SqlException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME);
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            try {
+                Db.SQL("delete from account");
             } catch (SqlException) {
                 wasException = true;
             }
-            Trace.Assert(wasException == true);
-            wasException = false;
+            Trace.Assert(wasException);
         }
     }
 }

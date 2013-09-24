@@ -195,5 +195,9 @@ public class SqlException : Exception
             str.AppendLine("End position: " + EndPosition);
         return str.ToString();
     }
+
+    internal static Exception GetSqlException(uint errorCode, string messagePostfix) {
+        return ErrorCode.ToException(errorCode, messagePostfix, (m, e) => new SqlException(m));
+    }
 }
 }

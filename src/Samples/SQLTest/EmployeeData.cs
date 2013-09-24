@@ -406,7 +406,7 @@ namespace SQLTest.EmployeeDb
         /// <returns>Returns true if no exceptions happened</returns>
         public static bool DropIndexes()
         {
-            Db.SlowSQL("drop index Location_Type on SqlTest.EmployeeDb.Location");
+            Db.SQL("drop index Location_Type on SqlTest.EmployeeDb.Location");
             Db.SlowSQL("drop index Location_NType on SqlTest.EmployeeDb.Location");
             Db.SlowSQL("drop index Department_IdBinary on SqlTest.EmployeeDb.Department");
             Db.SlowSQL("drop index Employee_Department on SqlTest.EmployeeDb.Employee");
@@ -425,7 +425,7 @@ namespace SQLTest.EmployeeDb
             Db.SlowSQL("drop index SalaryEmployee_NSalaryInt32 on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_SalaryInt64 on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_NSalaryInt64 on SqlTest.EmployeeDb.SalaryEmployee");
-            Db.SlowSQL("drop index SalaryEmployee_Manager on SqlTest.EmployeeDb.SalaryEmployee");
+            Db.SQL("drop index SalaryEmployee_Manager on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_SalarySByte on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_NSalarySByte on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_LastName on SqlTest.EmployeeDb.SalaryEmployee");

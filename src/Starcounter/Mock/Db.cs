@@ -101,7 +101,7 @@ namespace Starcounter
                     if (ParseNonSelectQuery(query, values))
                         return null;
                 } catch (Exception e) {
-                    if (!(e is SqlException))
+                    if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
                         throw;
                 }
                 throw;
@@ -125,14 +125,12 @@ namespace Starcounter
                 case 'c':
                     SqlProcessor.ProcessCreateIndex(query);
                     return true;
-#if false
                 case 'D':
                 case 'd':
-                    if (SqlProcessor.ProcessDQuery(query, values))
+                    if (SqlProcessor.ProcessDQuery(false, query, values))
                         return true;
                     else
                         return false;
-#endif
                 case ' ':
                 case '\t':
                     query = query.TrimStart(' ', '\t');
@@ -143,14 +141,12 @@ namespace Starcounter
                         case 'c':
                             SqlProcessor.ProcessCreateIndex(query);
                             return true;
-#if false
                         case 'D':
                         case 'd':
-                            if (SqlProcessor.ProcessDQuery(query, values))
+                            if (SqlProcessor.ProcessDQuery(false, query, values))
                                 return true;
                             else
                                 return false;
-#endif
                         default:
                             return false;
                     }
@@ -206,7 +202,7 @@ namespace Starcounter
 
                 case 'D':
                 case 'd':
-                    if (SqlProcessor.ProcessDQuery(query, values))
+                    if (SqlProcessor.ProcessDQuery(true, query, values))
                         return null;
                     else
                         return new SqlResult<T>(transactionId, query, true, values);
@@ -227,7 +223,7 @@ namespace Starcounter
 
                         case 'D':
                         case 'd':
-                            if (SqlProcessor.ProcessDQuery(query, values))
+                            if (SqlProcessor.ProcessDQuery(true, query, values))
                                 return null;
                             else
                                 return new SqlResult<T>(transactionId, query, true, values);
