@@ -101,7 +101,7 @@ namespace Starcounter
                     if (ParseNonSelectQuery(query, values))
                         return null;
                 } catch (Exception e) {
-                    if (!(e is SqlException))
+                    if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
                         throw;
                 }
                 throw;

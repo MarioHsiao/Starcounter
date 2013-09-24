@@ -69,7 +69,16 @@ namespace QueryProcessingTest {
             wasException = false;
             try {
                 Db.SQL("create unique index indx on account (accouintid)");
-            } catch (SqlException) {
+            } catch (SqlException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME);
+                wasException = true;
+            }
+            Trace.Assert(wasException == true);
+            wasException = false;
+            try {
+                Db.SQL("create unique index indx on acount (accountid)");
+            } catch (SqlException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME);
                 wasException = true;
             }
             Trace.Assert(wasException == true);
