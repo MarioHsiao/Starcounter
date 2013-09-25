@@ -1,6 +1,11 @@
-﻿using Starcounter.Server.PublicModel.Commands;
+﻿using Starcounter.Advanced;
+using Starcounter.Bootstrap.Management;
+using Starcounter.Internal;
+using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Diagnostics;
 using System.IO;
+using Starcounter.Rest.ExtensionMethods;
 
 namespace Starcounter.Server.Commands {
 
@@ -60,13 +65,40 @@ namespace Starcounter.Server.Commands {
 
             Log.Debug("Stopping executable \"{0}\" in database \"{1}\"", app.OriginalExecutablePath, database.Name);
 
+            // Clone the set of applications before we stop the host.
+            // Remove the one we are currently stopping. Then stop the host
+            // and restart every fellow applcation.
+
+            var fellowApplications = database.Apps;
+            fellowApplications.Remove(app);
+
             var stopped = Engine.DatabaseEngine.StopCodeHostProcess(database);
             if (!stopped) {
                 throw ErrorCode.ToException(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database {0}.", database.Name));
             }
 
-            // Restart all fellow applications.
-            // TODO:
+            Process codeHost;
+            Engine.DatabaseEngine.StartCodeHostProcess(database, out codeHost);
+            Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHost, database);
+
+            if (fellowApplications.Count > 0) {
+                var node = Node.LocalhostSystemPortNode;
+                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+
+                foreach (var fellow in fellowApplications) {
+                    var exe = fellow.ToExecutable();
+
+                    Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
+                    if (exe.RunEntrypointAsynchronous) {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                    } else {
+                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                        response.FailIfNotSuccess();
+                    }
+
+                    database.Apps.Add(app);
+                }
+            }
 
             var result = Engine.CurrentPublicModel.UpdateDatabase(database);
             SetResult(result);
