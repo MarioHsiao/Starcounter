@@ -65,6 +65,22 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the current application was,
+        /// or will be, started with its entrypoint being invoked asynchronously.
+        /// </summary>
+        /// <remarks>
+        /// <para>The default is <c>false</c>. Normally, the entrypoint of any
+        /// application is run in a synchronous fashion.</para>
+        /// <para>If the application doesn't define an entrypoint - for example,
+        /// it's represented by a library or just some code file with a few
+        /// classes - this property is silently ignored.</para>
+        /// </remarks>
+        internal bool IsStartedWithAsyncEntrypoint {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Creates a snapshot of this <see cref="DatabaseApp"/> in the
         /// form of a public model <see cref="AppInfo"/>.
         /// </summary>
@@ -94,7 +110,7 @@ namespace Starcounter.Server {
                     exe.Arguments.Add().dummy = argument;
                 }
             }
-            exe.RunEntrypointAsynchronous = false;
+            exe.RunEntrypointAsynchronous = this.IsStartedWithAsyncEntrypoint;
             return exe;
         }
     }
