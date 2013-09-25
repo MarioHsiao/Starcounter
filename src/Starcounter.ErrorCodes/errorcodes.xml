@@ -3114,6 +3114,12 @@
         constructor. Field initializers are not supported.
       </message>
     </code>
+    <code hex="0108" severity="Error" name="ScErrApplicationCantBeResolved">
+      <message>
+        The application could not be resolved based on the given arguments or
+        context.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
