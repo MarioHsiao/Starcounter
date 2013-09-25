@@ -2,29 +2,13 @@
 // initialize.cpp
 // server
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
-#include <iostream> // debug
-#include <cstddef>
-#include <climits>
-#include <boost/cstdint.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/call_traits.hpp>
-#include <boost/bind.hpp> 
-#include <boost/utility.hpp>
-#include <boost/noncopyable.hpp>
-#define WIN32_LEAN_AND_MEAN
-#include <intrin.h>
-#undef WIN32_LEAN_AND_MEAN
 #include "../common/bounded_buffer.hpp"
 #include "../common/config_param.hpp"
 #include "../common/circular_buffer.hpp"
-#include "../common/bounded_buffer.hpp"
 #include "../common/chunk.hpp"
 #include "../common/shared_chunk_pool.hpp"
 #include "../common/channel.hpp"
@@ -51,64 +35,25 @@ const int _E_UNSPECIFIED = 999L;
 namespace starcounter {
 namespace core {
 
-/// TODO: The use of static to indicate "local to translation unit" is
-/// deprecated in C++. Use unnamed namespaces instead.
 shared_memory_object global_segment_shared_memory_object;
 mapped_region global_mapped_region;
 
 //typedef DWORD affinity_mask; // experimenting
 
-unsigned long initialize(
-    const char* segment_name,
-    const char* server_name,
-    std::size_t schedulers,
-    bool is_system,
-    uint32_t chunks_total_number,
-    uint8_t gateway_num_workers) try {
-
-	using namespace starcounter::core;
-
+///=============================================================================
+unsigned long initialize(const char* segment_name, const char* server_name,
+std::size_t schedulers, bool is_system, uint32_t chunks_total_number,
+uint8_t gateway_num_workers)
+try {
 	if (chunks_total_number > chunks_total_number_max) {
-		std::cout << "Warning: Setting number of chunks from the requested "
-		<< chunks_total_number << " to " << chunks_total_number_max << "." << std::endl;
-		
 		chunks_total_number = chunks_total_number_max;
 	}
+	
+	size_t grouped_channels_size = schedulers * gateway_num_workers;
 
-	//--------------------------------------------------------------------------
-	// if (strlen(segment_name) > 31) return;
-	
-	//--------------------------------------------------------------------------
-	// Set affinity but not here. main.cpp has scheduler() where the affinity
-	// for the calling thread can be set.
-	#if 0 // experimenting
-	affinity_mask process_affinity_mask[1] = {0};
-	affinity_mask system_affinity_mask[1] = {0};
-	
-	if (!GetProcessAffinityMask(GetCurrentProcess(),
-	PDWORD_PTR(process_affinity_mask), PDWORD_PTR(system_affinity_mask))) {
-		*process_affinity_mask = ~0;
-		*system_affinity_mask = ~0;
-	}
-	
-	//SetProcessAffinityMask(GetCurrentProcess(), 0x55555555UL);
-	//Sleep(1);
-	SetProcessAffinityMask(GetCurrentProcess(), 0x55555555UL);
-	Sleep(1);
-	#endif // experimenting
-	
-	/// Setting the affinity, since without it the performance is affected by
-	/// which cores the threads happen to be running on...which is not ideal.
-	/// Since it is most common now that Intel processors supporting HT have a
-	/// pair of hardware threads sharing an L1-cache, I set the affinity of the
-	/// server threads to be scheduled on even numbered cores.
-	//SetProcessAffinityMask(GetCurrentProcess(), 0x55555555UL); /// mask was 1
-	//Sleep(1);
-	
-	//--------------------------------------------------------------------------
 	// Compute the memory required for all objects in shared memory.
 	std::size_t shared_memory_segment_size =
-
+	
 	+sizeof(simple_shared_memory_manager)
 	
 	// chunk[s]
@@ -116,52 +61,55 @@ unsigned long initialize(
 	
 	// shared_chunk_pool
 	+sizeof(shared_chunk_pool_type)
-	+64 // Not aligned to 64-byte boundary
+	+CACHE_LINE_SIZE // Not aligned to CACHE_LINE_SIZE byte boundary
 	+sizeof(chunk_index) * chunks_total_number
-
+	
 	// common_scheduler_interface
 	+sizeof(common_scheduler_interface_type)
-
+	
 	// scheduler_interface[s]
 	+sizeof(scheduler_interface_type) * max_number_of_schedulers
-	+64 // Not aligned to 64-byte boundary
-
+	+CACHE_LINE_SIZE // Not aligned to CACHE_LINE_SIZE byte boundary
+	
 	// scheduler_interface[s] chunk_pool_
 	+sizeof(chunk_index) * chunks_total_number * max_number_of_schedulers
-
+	
 	// scheduler_interface[s] overflow_pool_
 	+sizeof(chunk_index) * chunks_total_number * max_number_of_schedulers
-
+	
 	// scheduler_interface[s] channel_number_
 	+sizeof(channel_number) * channels * max_number_of_schedulers // TODO: Not allocated
-
+	
 	// client_interface[s]
 	+sizeof(client_interface_type) * max_number_of_clients
-
+	
 	// common_client_interface
 	+sizeof(common_client_interface_type)
 	+sizeof(client_number) * max_number_of_clients
 	
 	// channel[s]
 	+sizeof(channel_type) * channels
-					
+	
+#if defined (IPC_GROUPED_CHANNELS)
+	// Grouped channels
+	+sizeof(channel_type) * grouped_channels_size
+#endif // defined (IPC_GROUPED_CHANNELS)
+	
 	// scheduler_task_channel[s]
 	+sizeof(scheduler_channel_type) * max_number_of_schedulers
-	+64 // Not aligned to 64-byte boundary
-
+	+CACHE_LINE_SIZE // Not aligned to CACHE_LINE_SIZE byte boundary
+	
 	// scheduler_signal_channel[s]
 	+sizeof(scheduler_channel_type) * max_number_of_schedulers
-	+64 // Not aligned to 64-byte boundary
-	;
-
-	//--------------------------------------------------------------------------
+	+CACHE_LINE_SIZE; // Not aligned to CACHE_LINE_SIZE byte boundary
 	
+	//--------------------------------------------------------------------------
 	// Create a new segment with given name and size.
 	global_segment_shared_memory_object.init_create(segment_name, 
 	shared_memory_segment_size, is_system);
 	
 	if (!global_segment_shared_memory_object.is_valid()) {
-		return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
+	    return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
 	}
 	
 	global_mapped_region.init(global_segment_shared_memory_object);
@@ -171,19 +119,21 @@ unsigned long initialize(
 	}
 	
 	simple_shared_memory_manager* psegment_manager
-	= new(global_mapped_region.get_address()) simple_shared_memory_manager;
+	= new (global_mapped_region.get_address()) simple_shared_memory_manager;
 	psegment_manager->reset(shared_memory_segment_size);
 	
 	//--------------------------------------------------------------------------
 	// Construct the chunk array in shared memory.
 	void* p = psegment_manager->create_named_block
-	(starcounter_core_shared_memory_chunks_name, sizeof(chunk_type) * chunks_total_number);
+	(starcounter_core_shared_memory_chunks_name, sizeof(chunk_type)
+    * chunks_total_number);
 	
 	chunk_type* chunk = static_cast<chunk_type*>(p);
+	
 	for (std::size_t i = 0; i < chunks_total_number; ++i) {
-		new(chunk +i) chunk_type;
+		new (chunk +i) chunk_type;
 	}
-
+	
 	//--------------------------------------------------------------------------
 	// Construct the shared_chunk_pool in shared memory.
 	
@@ -194,13 +144,13 @@ unsigned long initialize(
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_shared_chunk_pool_name,
 	sizeof(shared_chunk_pool_type));
-
-	shared_chunk_pool_type* shared_chunk_pool = new(p) shared_chunk_pool_type
+	
+	shared_chunk_pool_type* shared_chunk_pool = new (p) shared_chunk_pool_type
 	(segment_name, chunks_total_number, shared_chunk_pool_alloc_inst);
 	
 	// Initialize the shared_chunk_pool by pushing in chunk_indexes.
 	// These chunk_indexes represents free chunks.
-
+	
 	// Chunks from 0 to chunks_total_number -1 are put in the shared_chunk_pool.
 	for (chunk_index i = 0; i < chunks_total_number; ++i) {
 		shared_chunk_pool->push_front(i, 1000000 /* spin count */,
@@ -217,7 +167,7 @@ unsigned long initialize(
 	(starcounter_core_shared_memory_common_scheduler_interface_name,
 	sizeof(common_scheduler_interface_type));
 	
-	common_scheduler_interface_type* common_scheduler_interface = new(p)
+	common_scheduler_interface_type* common_scheduler_interface = new (p)
 	common_scheduler_interface_type(server_name,
 	common_scheduler_interface_alloc_inst);
 	
@@ -241,22 +191,17 @@ unsigned long initialize(
 	= (scheduler_interface_type*) p;
 	
 	for (std::size_t i = 0; i < schedulers; ++i) {
-		new(scheduler_interface +i) scheduler_interface_type(
-		channels,
-		chunks_total_number,
-		chunks_total_number,
-		scheduler_interface_alloc_inst2,
-		scheduler_interface_alloc_inst2,
-		segment_name,
-		server_name,
-		i);
+		new (scheduler_interface +i) scheduler_interface_type
+        (channels, chunks_total_number, chunks_total_number,
+		scheduler_interface_alloc_inst2, scheduler_interface_alloc_inst2,
+		segment_name, server_name, i);
 	}
-
+	
 	// Initialize the scheduler_interface by pushing in channel_number(s).
 	// These channel_number(s) represents free channels. For now, the
 	// channels are more or less evenly distributed among the schedulers.
 	for (std::size_t n = 0; n < channels; ++n) {
-		scheduler_interface[n % schedulers].insert(n, 1 /* id */,
+		scheduler_interface[n % schedulers].insert(n, 1 /* user id */,
 		smp::spinlock::milliseconds(10000));
 	}
 	
@@ -275,7 +220,7 @@ unsigned long initialize(
 	client_interface_type* client_interface = (client_interface_type*) p;
 	
 	for (std::size_t i = 0; i < max_number_of_clients; ++i) {
-		new(client_interface +i) client_interface_type
+		new (client_interface +i) client_interface_type
 		(client_interface_alloc_inst, segment_name, i);
 	}
 	
@@ -291,58 +236,84 @@ unsigned long initialize(
 	(starcounter_core_shared_memory_common_client_interface_name,
 	sizeof(common_client_interface_type));
 	
-	common_client_interface_type* common_client_interface = new(p)
+	common_client_interface_type* common_client_interface = new (p)
 	common_client_interface_type(segment_name);
 	
 	// Initialize the client_number_pool queue with client numbers.
 	for (client_number n = 0; n < max_number_of_clients; ++n) {
-		common_client_interface->insert_client_number(n, client_interface, owner_id(1));
+		common_client_interface->insert_client_number(n, client_interface,
+		owner_id(1));
 	}
 	
 	//--------------------------------------------------------------------------
 	// Construct the channel array in shared memory.
 	
 	// Initialize shared memory STL-compatible allocator.
-	const shm_alloc_for_the_channels2 channels_alloc_inst
+	const shm_alloc_for_channels channels_alloc_inst
 	(global_mapped_region.get_address());
 	
-	// Allocate the client_interface array.
+	// Allocate the channel array.
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_channels_name, sizeof(channel_type)
 	* channels);
 	
 	channel_type* channel = (channel_type*) p;
+	
 	for (std::size_t i = 0; i < channels; ++i) {
-		new(channel +i) channel_type(channel_capacity, channels_alloc_inst);
+		new (channel +i) channel_type(channel_capacity, channels_alloc_inst);
 		channel[i].out_overflow().set_chunk_ptr(chunk);
 	}
 	
+	//--------------------------------------------------------------------------
+#if defined (IPC_GROUPED_CHANNELS)
+	// Construct the grouped channel array in shared memory.
+	
 	// Initialize shared memory STL-compatible allocator.
-	const shm_alloc_for_the_channels2
-	scheduler_channels_alloc_inst(global_mapped_region.get_address());
+	const shm_alloc_for_channels grouped_channels_alloc_inst
+	(global_mapped_region.get_address());
+	
+	// Allocate the grouped_channel array.
+	p = psegment_manager->create_named_block
+	(starcounter_core_shared_memory_grouped_channels_name, sizeof(channel_type)
+	* grouped_channels_size);
+	
+	channel_type* grouped_channel = (channel_type*) p;
+	
+	for (std::size_t i = 0; i < channels; ++i) {
+		new (grouped_channel +i) channel_type(channel_capacity,
+		grouped_channels_alloc_inst);
+		
+		grouped_channel[i].out_overflow().set_chunk_ptr(chunk);
+	}
+#endif // defined (IPC_GROUPED_CHANNELS)
 	
 	//--------------------------------------------------------------------------
 	// Construct an array of scheduler_channels in shared memory.
+	
+	// Initialize shared memory STL-compatible allocator.
+	const shm_alloc_for_channels
+	scheduler_channels_alloc_inst(global_mapped_region.get_address());
+	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_scheduler_task_channels_name,
 	sizeof(scheduler_channel_type) * schedulers);
-
+	
 	scheduler_channel_type* scheduler_task_channel = (scheduler_channel_type*) p;
-
+	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_scheduler_signal_channels_name,
 	sizeof(scheduler_channel_type) * schedulers);
-
+	
 	scheduler_channel_type* scheduler_signal_channel = (scheduler_channel_type*) p;
-
+	
 	for (std::size_t i = 0; i < schedulers; ++i) {
-		new(scheduler_task_channel +i) scheduler_channel_type(channel_capacity,
+		new (scheduler_task_channel +i) scheduler_channel_type(channel_capacity,
 		scheduler_channels_alloc_inst);
-
-		new(scheduler_signal_channel +i) scheduler_channel_type(
+		
+		new (scheduler_signal_channel +i) scheduler_channel_type(
 		channel_capacity, scheduler_channels_alloc_inst);
 	}
-
+	
 	return 0;
 }
 catch (...) {

@@ -25,6 +25,9 @@ scheduler_interface_(),
 common_client_interface_(),
 client_interface_(),
 channel_(),
+#if defined (IPC_GROUPED_CHANNELS)
+grouped_channel_(),
+#endif // defined (IPC_GROUPED_CHANNELS)
 client_number_(no_client_number),
 owner_id_(0),
 pid_(0) {}
@@ -40,6 +43,9 @@ scheduler_interface_(),
 common_client_interface_(),
 client_interface_(),
 channel_(),
+#if defined (IPC_GROUPED_CHANNELS)
+grouped_channel_(),
+#endif // defined (IPC_GROUPED_CHANNELS)
 client_number_(no_client_number),
 owner_id_(oid),
 pid_(pid) {
@@ -314,6 +320,12 @@ inline channel_type& shared_interface::channel(std::size_t n) const {
 	return channel_[n];
 }
 
+#if defined (IPC_GROUPED_CHANNELS)
+inline channel_type& shared_interface::grouped_channel(std::size_t n) const {
+	return grouped_channel_[n];
+}
+#endif // defined (IPC_GROUPED_CHANNELS)
+
 inline void
 shared_interface::database_state(common_client_interface_type::state s) {
 	common_client_interface_->database_state(s);
@@ -394,6 +406,17 @@ inline void shared_interface::init() {
 		// error: could not find the channels
 		throw shared_interface_exception(SCERRFINDCHANNELS);
 	}
+
+#if defined (IPC_GROUPED_CHANNELS)
+	// Find the grouped channels.
+	grouped_channel_ = (channel_type*)
+	pm->find_named_block(starcounter_core_shared_memory_grouped_channels_name);
+	
+	if (!grouped_channel_) {
+		// error: could not find the grouped channels
+		throw shared_interface_exception(SCERRFINDCHANNELS);
+	}
+#endif // defined (IPC_GROUPED_CHANNELS)
 }
 
 inline pid_type shared_interface::get_pid() const {
