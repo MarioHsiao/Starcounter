@@ -49,6 +49,8 @@ try {
 		chunks_total_number = chunks_total_number_max;
 	}
 	
+	size_t grouped_channels_size = schedulers * gateway_num_workers;
+
 	// Compute the memory required for all objects in shared memory.
 	std::size_t shared_memory_segment_size =
 	
@@ -87,6 +89,11 @@ try {
 	
 	// channel[s]
 	+sizeof(channel_type) * channels
+	
+#if defined (IPC_GROUPED_CHANNELS)
+	// Grouped channels
+	+sizeof(channel_type) * grouped_channels_size
+#endif // defined (IPC_GROUPED_CHANNELS)
 	
 	// scheduler_task_channel[s]
 	+sizeof(scheduler_channel_type) * max_number_of_schedulers
@@ -242,10 +249,10 @@ try {
 	// Construct the channel array in shared memory.
 	
 	// Initialize shared memory STL-compatible allocator.
-	const shm_alloc_for_the_channels2 channels_alloc_inst
+	const shm_alloc_for_channels channels_alloc_inst
 	(global_mapped_region.get_address());
 	
-	// Allocate the client_interface array.
+	// Allocate the channel array.
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_channels_name, sizeof(channel_type)
 	* channels);
@@ -257,12 +264,35 @@ try {
 		channel[i].out_overflow().set_chunk_ptr(chunk);
 	}
 	
+	//--------------------------------------------------------------------------
+#if defined (IPC_GROUPED_CHANNELS)
+	// Construct the grouped channel array in shared memory.
+	
 	// Initialize shared memory STL-compatible allocator.
-	const shm_alloc_for_the_channels2
-	scheduler_channels_alloc_inst(global_mapped_region.get_address());
+	const shm_alloc_for_channels grouped_channels_alloc_inst
+	(global_mapped_region.get_address());
+	
+	// Allocate the grouped_channel array.
+	p = psegment_manager->create_named_block
+	(starcounter_core_shared_memory_grouped_channels_name, sizeof(channel_type)
+	* grouped_channels_size);
+	
+	channel_type* grouped_channel = (channel_type*) p;
+	
+	for (std::size_t i = 0; i < channels; ++i) {
+		new (grouped_channel +i) channel_type(channel_capacity,
+		grouped_channels_alloc_inst);
+		
+		grouped_channel[i].out_overflow().set_chunk_ptr(chunk);
+	}
+#endif // defined (IPC_GROUPED_CHANNELS)
 	
 	//--------------------------------------------------------------------------
 	// Construct an array of scheduler_channels in shared memory.
+	
+	// Initialize shared memory STL-compatible allocator.
+	const shm_alloc_for_channels
+	scheduler_channels_alloc_inst(global_mapped_region.get_address());
 	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_scheduler_task_channels_name,
