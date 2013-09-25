@@ -76,6 +76,13 @@ internal static class SqlProcessor
     //    throw new SqlException("Unknown statement.");
     //}
 
+    static Exception GetSqlExceptionForToken(String message, List<String> tokenList, int pos) {
+        if (pos < tokenList.Count)
+            return new SqlException(message, tokenList[pos]);
+        else
+            return new SqlException(message + " But no token is found (end of the query).");
+    }
+
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
@@ -94,7 +101,7 @@ internal static class SqlProcessor
         Int32 pos = 0;
         if (!Token("$CREATE", tokenList, pos))
         {
-            throw new SqlException("Expected word CREATE.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word CREATE.", tokenList, pos);
         }
         pos++;
         if (Token("$UNIQUE", tokenList, pos))
@@ -104,18 +111,18 @@ internal static class SqlProcessor
         }
         if (!Token("$INDEX", tokenList, pos))
         {
-            throw new SqlException("Expected word INDEX.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word INDEX.", tokenList, pos);
         }
         pos++;
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected identifier.", tokenList, pos);
         }
         String indexName = tokenList[pos];
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
-            throw new SqlException("Expected word ON.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word ON.", tokenList, pos);
         }
         pos++;
         
@@ -151,7 +158,7 @@ internal static class SqlProcessor
 
         if (!Token(")", tokenList, pos))
         {
-            throw new SqlException("Expected closing bracket ')'.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected closing bracket ')'.", tokenList, pos);
         }
         pos++;
 
@@ -278,13 +285,13 @@ internal static class SqlProcessor
         // Parse the rest of the statement and prepare variables to call kernel
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected identifier.", tokenList, pos);
         }
         String indexName = tokenList[pos];
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
-            throw new SqlException("Expected word ON.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word ON.", tokenList, pos);
         }
         pos++;
 
