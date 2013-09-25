@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Bootstrap.Management.Representations.JSON;
 using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
@@ -75,6 +76,26 @@ namespace Starcounter.Server {
                 ExecutionPath = this.ExecutionPath,
                 Key = this.Key
             };
+        }
+
+        /// <summary>
+        /// Creates an <see cref="Executable"/> instance based on the
+        /// properties of the current <see cref="DatabaseApp"/>.
+        /// </summary>
+        /// <returns>An <see cref="Executable"/> representing the same
+        /// application as the current instance.</returns>
+        internal Executable ToExecutable() {
+            var exe = new Executable();
+            exe.Path = this.ExecutionPath;
+            exe.PrimaryFile = this.OriginalExecutablePath;
+            exe.WorkingDirectory = this.WorkingDirectory;
+            if (this.Arguments != null) {
+                foreach (var argument in this.Arguments) {
+                    exe.Arguments.Add().dummy = argument;
+                }
+            }
+            exe.RunEntrypointAsynchronous = false;
+            return exe;
         }
     }
 }
