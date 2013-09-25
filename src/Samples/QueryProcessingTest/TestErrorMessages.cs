@@ -89,6 +89,14 @@ namespace QueryProcessingTest {
                 wasException = true;
             }
             Trace.Assert(wasException);
+            wasException = false;
+            try {
+                Db.SQL("drop index indx");
+            } catch (SqlException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLINCORRECTSYNTAX);
+                wasException = true;
+            }
+            Trace.Assert(wasException);
         }
     }
 }
