@@ -69,8 +69,7 @@ namespace Starcounter.Server.Commands {
             // Remove the one we are currently stopping. Then stop the host
             // and restart every fellow applcation.
 
-            var fellowApplications = database.Apps;
-            fellowApplications.Remove(app);
+            var fellowApplications = database.Apps.ToArray();
 
             var stopped = Engine.DatabaseEngine.StopCodeHostProcess(database);
             if (!stopped) {
@@ -81,23 +80,26 @@ namespace Starcounter.Server.Commands {
             Engine.DatabaseEngine.StartCodeHostProcess(database, out codeHost);
             Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHost, database);
 
-            if (fellowApplications.Count > 0) {
-                var node = Node.LocalhostSystemPortNode;
-                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+            var node = Node.LocalhostSystemPortNode;
+            var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
-                foreach (var fellow in fellowApplications) {
-                    var exe = fellow.ToExecutable();
-
-                    Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
-                    if (exe.RunEntrypointAsynchronous) {
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
-                    } else {
-                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
-                        response.FailIfNotSuccess();
-                    }
-
-                    database.Apps.Add(app);
+            foreach (var fellow in fellowApplications) {
+                if (object.ReferenceEquals(fellow, app)) {
+                    // It's the application we are stopping. Remove it.
+                    continue;
                 }
+
+                var exe = fellow.ToExecutable();
+
+                Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
+                if (exe.RunEntrypointAsynchronous) {
+                    node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                } else {
+                    var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                    response.FailIfNotSuccess();
+                }
+
+                database.Apps.Add(fellow);
             }
 
             var result = Engine.CurrentPublicModel.UpdateDatabase(database);
