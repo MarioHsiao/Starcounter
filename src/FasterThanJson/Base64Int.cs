@@ -549,6 +549,26 @@ namespace Starcounter.Internal
           //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
+       /// <summary>
+       /// Checks if the size of value to read is valid and then calls basic read function.
+       /// </summary>
+       /// <param name="size">The size of the value to read</param>
+       /// <param name="ptr">Pointer where to read</param>
+       /// <returns>The read value.</returns>
+      public static unsafe UInt64 ReadSafe(int size, byte* ptr) {
+          if (size < 1 || size > 6 && size < 11 || size > 11)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
+          else
+              return Read(size, ptr);
+      }
+
+       /// <summary>
+       /// Reads nullable unsigned long integer of the given size from the given pointer.
+       /// If size is invalid, an exception is thrown.
+       /// </summary>
+       /// <param name="size">The size of the value to read.</param>
+       /// <param name="ptr">The pointer to the place where to read.</param>
+       /// <returns>The read value.</returns>
       public static unsafe UInt64? ReadNullable(int size, byte* ptr) {
           ulong? val;
           if (size == 1) {
@@ -574,9 +594,6 @@ namespace Starcounter.Internal
           else
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
           return val;
-          //var c = (Base64x5*)ptr;
-          //return (UInt64)((b64d[c->b0] << 24) + (b64d[c->b1] << 18) +
-          //          (b64d[c->b2] << 12) + (b64d[c->b3] << 6) + b64d[c->b4]);
       }
 
        /// <summary>
