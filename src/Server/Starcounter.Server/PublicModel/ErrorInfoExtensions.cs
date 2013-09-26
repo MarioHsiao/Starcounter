@@ -16,6 +16,18 @@ namespace Starcounter.Server.PublicModel {
     /// collections in the form they are normally produced by the server.
     /// </summary>
     public static class ErrorInfoExtensions {
+        /// <summary>
+        /// Picks the most appropriate single reason error from a set of
+        /// errors, based on the server error reporting convention.
+        /// </summary>
+        /// <param name="errors">Set of errors to pick the most appropriate
+        /// one from.</param>
+        /// <returns>A single reason error.</returns>
+        public static ErrorInfo PickSingleServerError(this ErrorInfo[] errors) {
+            ErrorInfo result;
+            var found = TryGetSingleReasonErrorBasedOnServerConvention(errors, out result);
+            return found ? result : errors[0];
+        }
 
         /// <summary>
         /// Tries getting a single reason error from a given set of
