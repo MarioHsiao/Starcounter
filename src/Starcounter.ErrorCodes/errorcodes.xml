@@ -2788,7 +2788,7 @@
         <para>
           If the memory manager fails to create a memory file because it was
           unable to allocate sufficient memory from the OS then a
-          ScErrOUT_OF_MEMORY will be raised.
+          ScErrOutOfMemory will be raised.
         </para>
       </remarks>
     </code>
