@@ -1,6 +1,9 @@
 ﻿
+using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
+using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
+using System.Diagnostics;
 
 namespace Starcounter.Administrator.API.Handlers {
 
@@ -29,8 +32,39 @@ namespace Starcounter.Administrator.API.Handlers {
             if (stop.EnableWaiting) {
                 commandInfo = runtime.Wait(commandInfo);
             }
+            if (commandInfo.HasError) {
+                return ToErrorResponse(commandInfo);
+            }
 
-            return commandInfo.HasError ? 500 : 200;
+            // Just to be sure we don't forget to change this some, once
+            // we implement asynchronous requests.
+            Trace.Assert(commandInfo.IsCompleted);
+
+            return 204;
+        }
+
+        static Response ToErrorResponse(CommandInfo commandInfo) {
+            var single = commandInfo.Errors.PickSingleServerError();
+            int statusCode;
+
+            switch (single.GetErrorCode()) {
+                case Error.SCERRDATABASENOTFOUND:
+                    statusCode = 404;
+                    break;
+                case Error.SCERREXECUTABLENOTRUNNING:
+                case Error.SCERRDATABASEENGINENOTRUNNING:
+                    // Conflicts with the state expected; we map to HTTP 409.
+                    // An alternative would be to return 404 for these too.
+                    statusCode = 409;
+                    break;
+                default:
+                    statusCode = 500;
+                    break;
+            }
+
+            var msg = single.ToErrorMessage();
+            var errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+            return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), statusCode);
         }
     }
 }
