@@ -656,7 +656,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // Copying the recreation key.
         UInt16 bytesWritten = *((UInt16*)createdKey);
         tuple.WriteSafeByteArray(createdKey, bytesWritten);
-        enumerators.HaveWritten(tuple.SealTuple());
+        enumerators.HaveWrittenSafe(tuple.SealTuple());
         return (short)(expectedNodeId + 1);
     }
 

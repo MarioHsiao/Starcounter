@@ -481,7 +481,6 @@ namespace Starcounter.Internal
           byte* oldAtOffsetEnd = AtOffsetEnd;
           ValueOffset = ValueOffset + len;
           AtEnd += len;
-
           AtOffsetEnd += OffsetElementSize;
 
           // Write the offset of the *next* value at the end of the offset list
@@ -608,6 +607,18 @@ Retry:
                throw new Exception("Illegal offset element size in tuple");
          }
 #endif
+      }
+
+       /// <summary>
+       /// Writes that nested tuple was written at the current position.
+       /// Checks if writing will fit the tuple. Thus expensive.
+       /// Then moves to the end of written area in the tuple, i.e., to the place
+       /// where next value will be written.
+       /// </summary>
+       /// <param name="len">The length of written nested tuple.</param>
+      public unsafe void HaveWrittenSafe(uint len) {
+          ValidateLength(len);
+          HaveWritten(len);
       }
 
       public unsafe delegate UInt64 ReadBase64(byte* ptr);

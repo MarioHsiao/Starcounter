@@ -267,7 +267,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         // Static data for validation
         tuple.WriteSafeULong((byte)NodeType);
         tuple.WriteSafeULong(nodeId);
-        enumerators.HaveWritten(tuple.SealTuple());
+        enumerators.HaveWrittenSafe(tuple.SealTuple());
         return (short)(expectedNodeId + 1);
     }
 
