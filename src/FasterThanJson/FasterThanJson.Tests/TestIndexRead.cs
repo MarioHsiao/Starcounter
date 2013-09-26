@@ -139,50 +139,49 @@ namespace FasterThanJson.Tests {
                 long?[] longNullValues = new long?[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
-                    TupleWriterBase64 arrayWriter = new TupleWriterBase64(start, nrValues, 2);
-                    arrayWriter.SetTupleLength((uint)tupleBuffer.Length);
+                    SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, (uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
                         valueTypes[j] = writeRnd.Next(1, 11);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
-                                arrayWriter.WriteSafeULong(uintValues[j]);
+                                arrayWriter.WriteULong(uintValues[j]);
                                 break;
                             case (int)ValueTypes.STRING:
                                 stringValues[j] = RandomValues.RandomString(writeRnd);
-                                arrayWriter.WriteSafeString(stringValues[j]);
+                                arrayWriter.WriteString(stringValues[j]);
                                 break;
                             case (int)ValueTypes.BINARY:
                                 binaryValues[j] = RandomValues.RandomByteArray(writeRnd);
-                                arrayWriter.WriteSafeByteArray(binaryValues[j]);
+                                arrayWriter.WriteByteArray(binaryValues[j]);
                                 break;
                             case (int)ValueTypes.ULONG:
                                 ulongValues[j] = RandomValues.RandomULong(writeRnd);
-                                arrayWriter.WriteSafeULong(ulongValues[j]);
+                                arrayWriter.WriteULong(ulongValues[j]);
                                 break;
                             case (int)ValueTypes.INT:
                                 intValues[j] = RandomValues.RandomInt(writeRnd);
-                                arrayWriter.WriteSafeLong(intValues[j]);
+                                arrayWriter.WriteLong(intValues[j]);
                                 break;
                             case (int)ValueTypes.LONG:
                                 longValues[j] = RandomValues.RandomLong(writeRnd);
-                                arrayWriter.WriteSafeLong(longValues[j]);
+                                arrayWriter.WriteLong(longValues[j]);
                                 break;
                             case (int)ValueTypes.UINTNULL:
                                 uintNullValues[j] = RandomValues.RandomNullableUInt(writeRnd);
-                                arrayWriter.WriteSafeULongNullable(uintNullValues[j]);
+                                arrayWriter.WriteULongNullable(uintNullValues[j]);
                                 break;
                             case (int)ValueTypes.ULONGNULL:
                                 ulongNullValues[j] = RandomValues.RandomNullableULong(writeRnd);
-                                arrayWriter.WriteSafeULongNullable(ulongNullValues[j]);
+                                arrayWriter.WriteULongNullable(ulongNullValues[j]);
                                 break;
                             case (int)ValueTypes.INTNULL:
                                 intNullValues[j] = RandomValues.RandomNullableInt(writeRnd);
-                                arrayWriter.WriteSafeLongNullable(intNullValues[j]);
+                                arrayWriter.WriteLongNullable(intNullValues[j]);
                                 break;
                             case (int)ValueTypes.LONGNULL:
                                 longNullValues[j] = RandomValues.RandomNullableLong(writeRnd);
-                                arrayWriter.WriteSafeLongNullable(longNullValues[j]);
+                                arrayWriter.WriteLongNullable(longNullValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

@@ -62,6 +62,7 @@
     <Compile Include="Base64Binary.cs" />
     <Compile Include="Base64Int.cs" />
     <Compile Include="MemcpyUtil.cs" />
+    <Compile Include="SafeTupleWriterBase64.cs" />
     <Compile Include="SessionBlob.cs" />
     <Compile Include="TupleProxy.cs" />
     <Compile Include="TupleReaderBase64.cs" />

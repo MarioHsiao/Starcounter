@@ -282,17 +282,16 @@ namespace Starcounter.Query.Execution {
             return true;
         }
 
-        public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
+        public unsafe short SaveEnumerator(ref SafeTupleWriterBase64 enumerators, short expectedNodeId) {
             currentObject = null;
             Debug.Assert(expectedNodeId == nodeId);
             Debug.Assert(OffsetTuppleLength == 3);
-            TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
-            tuple.SetTupleLength(enumerators.AvailableSize);
+            SafeTupleWriterBase64 tuple = new SafeTupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE, enumerators.AvailableSize);
             // Static data for validation
-            tuple.WriteSafeULong((byte)NodeType);
-            tuple.WriteSafeULong(nodeId);
-            tuple.WriteSafeULong(currectObjectId);
-            enumerators.HaveWrittenSafe(tuple.SealTupleSafe());
+            tuple.WriteULong((byte)NodeType);
+            tuple.WriteULong(nodeId);
+            tuple.WriteULong(currectObjectId);
+            enumerators.HaveWritten(tuple.SealTuple());
             return (short)(expectedNodeId + 1);
         }
 
