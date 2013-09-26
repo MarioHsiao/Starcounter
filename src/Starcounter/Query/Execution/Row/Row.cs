@@ -849,7 +849,7 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
                 case DbTypeCode.UInt32:
                 case DbTypeCode.UInt16:
                 case DbTypeCode.Byte:
-                    return (Nullable<UInt32>)(propMap.Expression as INumericalExpression).EvaluateToUInteger(this);
+                    return (Nullable<UInt64>)(propMap.Expression as INumericalExpression).EvaluateToUInteger(this);
 
                 default:
                     throw new ArgumentException("Incorrect type " + propMap.TypeCode + " of property with index: " + index);
