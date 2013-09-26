@@ -290,7 +290,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         // Copying the recreation key.
         UInt16 bytesWritten = *((UInt16*)createdKey);
         tuple.WriteSafeByteArray(createdKey, bytesWritten);
-        enumerators.HaveWritten(tuple.SealTuple());
+        enumerators.HaveWrittenSafe(tuple.SealTupleSafe());
         return (short)(expectedNodeId + 1);
     }
 

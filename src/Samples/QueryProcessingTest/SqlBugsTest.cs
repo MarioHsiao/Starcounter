@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using Starcounter;
+using Starcounter.Binding;
 using Starcounter.Metadata;
 
 namespace QueryProcessingTest {
@@ -164,6 +165,8 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "0");
             n = ((SqlEnumerator<object>)e).PropertyBinding.Name;
             Trace.Assert(n == "0");
+            var t = ((SqlEnumerator<object>)e).PropertyBinding.TypeCode;
+            Trace.Assert(t == DbTypeCode.String);
             q = Db.SlowSQL("select userid, FirstName||' '||LastName as Name from User u where useridnr <?", 2);
             e = q.GetEnumerator();
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).DisplayName;
