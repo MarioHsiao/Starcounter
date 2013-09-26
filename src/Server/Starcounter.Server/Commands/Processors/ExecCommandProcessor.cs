@@ -6,7 +6,6 @@
 
 using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management;
-using Starcounter.Bootstrap.Management.Representations.JSON;
 using Starcounter.Internal;
 using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Server.PublicModel.Commands;
@@ -100,18 +99,16 @@ namespace Starcounter.Server.Commands {
 
                     var node = Node.LocalhostSystemPortNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-
-                    var exe = new Executable();
-                    exe.Path = weavedExecutable;
-                    exe.PrimaryFile = command.ExecutablePath;
-                    if (command.Arguments != null) {
-                        foreach (var arg in command.Arguments) {
-                            exe.Arguments.Add().dummy = arg;
-                        }
-                    }
-                    exe.RunEntrypointAsynchronous = command.RunEntrypointAsynchronous;
-                    exe.WorkingDirectory = command.WorkingDirectory;
-
+                    app = new DatabaseApp() {
+                        OriginalExecutablePath = command.ExecutablePath,
+                        WorkingDirectory = command.WorkingDirectory,
+                        Arguments = command.Arguments,
+                        ExecutionPath = weavedExecutable,
+                        Key = exeKey,
+                        IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous
+                    };
+                    var exe = app.ToExecutable();
+                    
                     if (exe.RunEntrypointAsynchronous) {
                         node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
                     } else {
@@ -123,15 +120,7 @@ namespace Starcounter.Server.Commands {
                     // The app is successfully loaded in the worker process. We should
                     // keep it referenced in the server and consider the execution of this
                     // processor a success.
-                    app = new DatabaseApp() {
-                        OriginalExecutablePath = command.ExecutablePath,
-                        WorkingDirectory = command.WorkingDirectory,
-                        Arguments = command.Arguments,
-                        ExecutionPath = weavedExecutable,
-                        Key = exeKey
-                    };
                     database.Apps.Add(app);
-
                     OnDatabaseAppRegistered();
 
                 } catch (Exception ex) {
