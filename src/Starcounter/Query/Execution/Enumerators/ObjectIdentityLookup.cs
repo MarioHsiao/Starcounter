@@ -292,7 +292,7 @@ namespace Starcounter.Query.Execution {
             tuple.WriteSafeULong((byte)NodeType);
             tuple.WriteSafeULong(nodeId);
             tuple.WriteSafeULong(currectObjectId);
-            enumerators.HaveWrittenSafe(tuple.SealTuple());
+            enumerators.HaveWrittenSafe(tuple.SealTupleSafe());
             return (short)(expectedNodeId + 1);
         }
 

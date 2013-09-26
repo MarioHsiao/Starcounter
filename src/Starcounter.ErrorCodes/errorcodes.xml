@@ -3394,6 +3394,9 @@
     <code hex="004B" severity="Error" name="ScErrUnknownNetworkProtocol">
         <message>Current network protocol is unknown.</message>
     </code>
+    <code hex="004C" severity="Error" name="ScErrTupleIncomplete">
+      <message>TupleWriter cannot safely seal tuple, since not all values were written.</message>
+    </code>
  </facility>
 
   <!-- Error codes related to query processing. -->

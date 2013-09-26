@@ -255,5 +255,70 @@ namespace FasterThanJson.Tests {
                 Assert.AreEqual(64 * 64 * 64 * 64 * 64 - 1 + 64 * 64 * 64 * 64 * 64, reader.ReadULong(0));
             }
         }
+
+        [Test]
+        public unsafe void TestSafeNestedTuple() {
+            fixed (byte* start = new byte[70]) {
+                TupleWriterBase64 writer = new TupleWriterBase64(start, 2, 1);
+                writer.SetTupleLength(70);
+                TupleWriterBase64 nested = new TupleWriterBase64(writer.AtEnd, 2, 1);
+                nested.SetTupleLength(15);
+                nested.WriteSafeULong(UInt32.MaxValue);
+                Boolean wasException = false;
+                try {
+                    nested.SetTupleLength(10);
+                } catch (ArgumentException ex) {
+                    Assert.AreEqual(Error.SCERRBADARGUMENTS, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                try {
+                    nested.SealTupleSafe();
+                } catch (Exception ex) {
+                    Assert.AreEqual(Error.SCERRTUPLEINCOMPLETE, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                nested.WriteSafeULong(UInt32.MaxValue);
+                writer.HaveWrittenSafe(nested.SealTupleSafe());
+                Assert.AreEqual(nested.TupleMaxLength, nested.SealTupleSafe());
+                Assert.AreEqual(70 - 15 - 3, writer.AvailableSize);
+                try {
+                    writer.SealTupleSafe();
+                } catch (Exception ex) {
+                    Assert.AreEqual(Error.SCERRTUPLEINCOMPLETE, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                TupleWriterBase64 anotherNested = new TupleWriterBase64(writer.AtEnd, 3, 1);
+                anotherNested.SetTupleLength(52);
+                Assert.LessOrEqual(52, writer.AvailableSize);
+                anotherNested.WriteSafeByteArray(new byte[15]); // Size 20
+                Assert.AreEqual(52 - 20 - 4, anotherNested.AvailableSize);
+                anotherNested.WriteSafeULong(UInt32.MaxValue);
+                Assert.AreEqual(52 - 20 - 4 - 6, anotherNested.AvailableSize);
+                anotherNested.WriteSafeByteArray(new byte[16]); // Size 20
+                Assert.AreEqual(0, anotherNested.AvailableSize);
+                try {
+                    writer.HaveWrittenSafe(anotherNested.SealTupleSafe());
+                } catch (Exception ex) {
+                    Assert.AreEqual(Error.SCERRTUPLEVALUETOOBIG, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                try {
+                    writer.SealTupleSafe();
+                } catch (Exception ex) {
+                    Assert.AreEqual(Error.SCERRTUPLEINCOMPLETE, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+            }
+        }
     }
 }

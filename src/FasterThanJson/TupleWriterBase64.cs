@@ -146,6 +146,9 @@ namespace Starcounter.Internal
        /// </summary>
        /// <param name="length">The length</param>
       public void SetTupleLength(uint length) {
+          if (TupleMaxLength != 0 && TupleMaxLength != length)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "The length was already set to " + 
+                  TupleMaxLength + ", while requested length is " + length);
           if (length >= Math.Pow(64, 5))
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Maximum length of a tuple cannot be bigger than 64^5.");
           if (AtEnd - AtStart >= length)
@@ -307,7 +310,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(byte* value, uint length) {
+      public unsafe void WriteByteArray(byte* value, uint length) {
 #if BASE64
           uint len = Base64Binary.Write(AtEnd, value, length);
           HaveWritten(len);
@@ -455,7 +458,7 @@ namespace Starcounter.Internal
       public unsafe void WriteSafeByteArray(byte* b, uint length) {
           uint size = MeasureNeededSizeByteArray(length);
           size = ValidateLength(size);
-          Write(b, length);
+          WriteByteArray(b, length);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvailableSize -= size;
       }
@@ -617,8 +620,10 @@ Retry:
        /// </summary>
        /// <param name="len">The length of written nested tuple.</param>
       public unsafe void HaveWrittenSafe(uint len) {
-          ValidateLength(len);
+          var size = ValidateLength(len);
           HaveWritten(len);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvailableSize -= size;
       }
 
       public unsafe delegate UInt64 ReadBase64(byte* ptr);
@@ -792,6 +797,14 @@ Retry:
          return (uint) (AtEnd - AtStart);
          //         Base64.WriteBase64x5(this.Size, &(this.Cached_Blob.Cached_Blob->RootParentOffsetArray)); // TODO! Parent might be another tuple. Write in correct place.
 #endif
+      }
+
+      public uint SealTupleSafe() {
+          var nrValues = ValuesWrittenSoFar();
+          if (ValueCount != nrValues)
+              throw ErrorCode.ToException(Error.SCERRTUPLEINCOMPLETE, nrValues +
+                  " values in the tuple with length " + ValueCount);
+          return SealTuple();
       }
 
        /// <summary>
