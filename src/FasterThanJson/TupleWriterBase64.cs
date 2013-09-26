@@ -393,9 +393,11 @@ namespace Starcounter.Internal
       /// <param name="value">String to write</param>
       private uint ValidateLength(uint expectedLen) {
           if (TupleMaxLength == 0)
-              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE, "The maximum length was not provided");
           if (ValuesWrittenSoFar() == ValueCount)
               throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot write since the index will be out of range.");
+          if (SealTuple() != TupleMaxLength - AvailableSize)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE, "Previous value was written using unsafe writer.");
           uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
           if (OffsetElementSize < neededOffsetSize)
               expectedLen += MoveValuesRightSize(neededOffsetSize);
@@ -804,7 +806,12 @@ Retry:
           if (ValueCount != nrValues)
               throw ErrorCode.ToException(Error.SCERRTUPLEINCOMPLETE, nrValues +
                   " values in the tuple with length " + ValueCount);
-          return SealTuple();
+          uint written = SealTuple();
+          if (written != TupleMaxLength - AvailableSize)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE, "Previous value was written using unsafe writer.");
+          if (written != TupleMaxLength - AvailableSize)
+              throw ErrorCode.ToException(Error.SCERRUNEXPFASTERTHANJSON);
+          return written;
       }
 
        /// <summary>
