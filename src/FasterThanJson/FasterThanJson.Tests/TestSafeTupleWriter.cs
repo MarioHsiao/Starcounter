@@ -281,9 +281,17 @@ namespace FasterThanJson.Tests {
                 }
                 Assert.True(wasException);
                 wasException = false;
-                nested.WriteSafeULong(UInt32.MaxValue);
-                writer.HaveWrittenSafe(nested.SealTupleSafe());
-                Assert.AreEqual(nested.TupleMaxLength, nested.SealTupleSafe());
+                nested.WriteULong(UInt32.MaxValue);
+                try {
+                    nested.SealTupleSafe();
+                } catch (Exception ex) {
+                    Assert.AreEqual(Error.SCERRNOTUPLEWRITESAVE, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                writer.HaveWrittenSafe(nested.SealTuple());
+                Assert.AreEqual(nested.TupleMaxLength, nested.SealTuple());
                 Assert.AreEqual(70 - 15 - 3, writer.AvailableSize);
                 try {
                     writer.SealTupleSafe();

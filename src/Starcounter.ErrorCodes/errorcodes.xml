@@ -3377,7 +3377,7 @@
       <message>An unexpected error occured in FasterThanJson library.</message>
     </code>
     <code hex="0046" severity="Error" name="ScErrNoTupleWriteSave">
-      <message>TupleWriter cannot safely write tuple, since the maximum length was not provided.</message>
+      <message>TupleWriter cannot safely write tuple.</message>
     </code>
     <code hex="0047" severity="Error" name="ScErrTupleValueTooBig">
       <message>Input value cannot fit the given tuple lenght.</message>
