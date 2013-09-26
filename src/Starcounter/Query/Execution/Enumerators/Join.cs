@@ -401,7 +401,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         // Static data for validation
         tuple.WriteSafeULong((byte)NodeType);
         tuple.WriteSafeULong(nodeId);
-        enumerators.HaveWrittenSafe(tuple.SealTuple());
+        enumerators.HaveWrittenSafe(tuple.SealTupleSafe());
         return (short)(expectedNodeId + 1);
     }
 
