@@ -415,6 +415,10 @@
     <code hex="0042" severity="Error" name="ScErrIPCMonitorCleanupWaitFailed">
       <message>The IPC monitor was not notified. Wait failed.</message>
     </code>
+    <code hex="0043" severity="Error" name="ScErrOutOfDedicatedAddressSpace">
+      <message>Operation failed because needed memory couldn't be allocated within dedicated address space</message>
+    </code>
+
   </facility>
 
   <!--
