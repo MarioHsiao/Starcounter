@@ -66,8 +66,9 @@ namespace Starcounter.Server.Commands {
             Log.Debug("Stopping executable \"{0}\" in database \"{1}\"", app.OriginalExecutablePath, database.Name);
 
             // Clone the set of applications before we stop the host.
-            // Remove the one we are currently stopping. Then stop the host
-            // and restart every fellow applcation.
+            // Then stop the host, restart the host and restart every
+            // fellow applcation. The one we are stopping, we ignore
+            // when restarting is carried out.
 
             var fellowApplications = database.Apps.ToArray();
 
@@ -85,18 +86,34 @@ namespace Starcounter.Server.Commands {
 
             foreach (var fellow in fellowApplications) {
                 if (object.ReferenceEquals(fellow, app)) {
-                    // It's the application we are stopping. Remove it.
                     continue;
                 }
 
                 var exe = fellow.ToExecutable();
 
                 Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
-                if (exe.RunEntrypointAsynchronous) {
-                    node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
-                } else {
-                    var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
-                    response.FailIfNotSuccess();
+                try {
+                    if (exe.RunEntrypointAsynchronous) {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                    } else {
+                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                        response.FailIfNotSuccess();
+                    }
+                } catch (IOException ioe) {
+                    // We catch this - and ignore it! This is a very temporary workaround,
+                    // and the result of the existence of unresolved issue 1060, which can
+                    // be read about here:
+                    // https://github.com/Starcounter/Starcounter/issues/1060
+                    //
+                    // To be sure we don't forget to address this, we log a warning when
+                    // this happens, and reference said issue.
+                    //
+                    // Remove this whole try/catch clause when that issue has been fixed.
+                    Log.LogWarning(
+                        "Ignoring IOException \"{0}\" as a temporary workaround to open issue #1060 ({1}).", 
+                        ioe.Message,
+                        "https://github.com/Starcounter/Starcounter/issues/1060"
+                        );
                 }
 
                 database.Apps.Add(fellow);
