@@ -18,6 +18,26 @@ namespace Starcounter.Internal
     {
 
         /// <summary>
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MEMORYSTATUSEX {
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
+        }
+
+        /// <summary>
+        /// </summary>
+        [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi)]
+        public unsafe static extern int GlobalMemoryStatusEx(MEMORYSTATUSEX* lpBuffer);
+
+        /// <summary>
         /// Exits the process.
         /// </summary>
         /// <param name="exitCode">The exit code.</param>

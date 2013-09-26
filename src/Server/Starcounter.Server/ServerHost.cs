@@ -38,7 +38,7 @@ namespace Starcounter.Server {
         }
 
         static unsafe ulong ConfigureMemory(ServerConfiguration configuration, void* mem128) {
-            uint slabs = (64 * 1024 * 1024) / 4096;  // 64 MB
+            uint slabs = (64 * 1024 * 1024) / 8192;  // 64 MB
             ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
             if (hmenv != 0) return hmenv;
             throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
