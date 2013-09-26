@@ -906,5 +906,8 @@ namespace Starcounter
         {
             throw new ObjectDisposedException(null);
         }
+
+        #region Extending FasterThanJson with writing and reading methods on Binary
+        #endregion
     }
 }

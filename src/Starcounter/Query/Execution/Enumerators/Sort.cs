@@ -238,7 +238,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Not supported.");
     }
 
-    public unsafe short SaveEnumerator(ref TupleWriterBase64 root, short expectedNodeId) {
+    public unsafe short SaveEnumerator(ref SafeTupleWriterBase64 root, short expectedNodeId) {
         throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Offset keys are not supported for queries with non-indexed sorting.");
     }
 

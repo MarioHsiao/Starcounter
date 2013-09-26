@@ -312,18 +312,16 @@ internal abstract class ExecutionEnumerator
                 Debug.Assert(TopNode);
                 OffsetRootHeaderLength = 1;
                 byte nodesNum = (byte)(NodeId + 1);
-                TupleWriterBase64 root = new TupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE);
-                root.SetTupleLength((uint)tempBuffer.Length);
+                SafeTupleWriterBase64 root = new SafeTupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE, (uint)tempBuffer.Length);
                 // General validation data
-                root.WriteSafeULong(nodesNum); // Saving number of enumerators
+                root.WriteULong(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
-                TupleWriterBase64 enumerators = new TupleWriterBase64(root.AtEnd, nodesNum, OFFSETELEMNETSIZE);
-                enumerators.SetTupleLength(root.AvailableSize);
+                SafeTupleWriterBase64 enumerators = new SafeTupleWriterBase64(root.AtEnd, nodesNum, OFFSETELEMNETSIZE, root.AvailableSize);
                 if (execEnum.SaveEnumerator(ref enumerators, 0) == -1)
                     return null;
                 //execEnum.SaveEnumerator(recreationKey, 0, true);
-                root.HaveWrittenSafe(enumerators.SealTupleSafe());
-                bytesWritten = root.SealTupleSafe();
+                root.HaveWritten(enumerators.SealTuple());
+                bytesWritten = root.SealTuple();
             }
         }
         // Allocating space for offset key.
