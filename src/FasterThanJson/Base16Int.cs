@@ -37,12 +37,12 @@ namespace Starcounter.Internal
       /// </summary>
       public const byte Const6 = (byte)'6';
 
-      // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       /// <summary>
       /// Writes the base16x1.
       /// </summary>
       /// <param name="value">The value.</param>
       /// <param name="c">The c.</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe void WriteBase16x1(UInt32 value, byte* c)
       {
          c[0] = (byte)(value |= 0x30);

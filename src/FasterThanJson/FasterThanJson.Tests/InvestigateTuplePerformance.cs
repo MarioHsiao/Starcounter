@@ -863,7 +863,7 @@ namespace FasterThanJson.Tests {
             Print(timer, "Read Int Base64x2", nrIter);
         }
 
-        [Test]
+        //[Test]
         public static unsafe void BenchmarkTupleBoolScale() {
             bool value = true;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -941,6 +941,8 @@ namespace FasterThanJson.Tests {
             BenchmarkTupleByte1Scale();
             BenchmarkTupleByte10IntoScale();
             BenchmarkTupleByte1IntoScale();
+            Console.WriteLine("------------ Booleans ----------------");
+            BenchmarkTupleBoolScale();
         }
     }
 }

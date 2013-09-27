@@ -173,6 +173,23 @@ namespace Starcounter.Internal {
             return MeasureNeededSizeByteArray((uint)b.Length);
         }
 
+        /// <summary>
+        /// Estimates the size of encoding the value.
+        /// </summary>
+        /// <param name="str">The Boolean value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static uint MeasureNeededSizeBoolean(Boolean val) {
+            return 1;
+        }
+
+        /// <summary>
+        /// Estimates the size of encoding the value.
+        /// </summary>
+        /// <param name="str">The Nullable Boolean value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static uint MeasureNeededSizeNullableBoolean(Boolean? val) {
+            return 1;
+        }
 
         public void WriteULong(ulong n) {
             uint size = MeasureNeededSizeULong(n);

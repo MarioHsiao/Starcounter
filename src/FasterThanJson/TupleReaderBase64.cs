@@ -342,6 +342,7 @@ namespace Starcounter.Internal
        /// Reads next value as Boolean from the tuple.
        /// </summary>
        /// <returns>The read Boolean value.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe Boolean ReadBoolean() {
           Boolean val = false;
           if (Base16Int.ReadBase16x1((Base16x1*)AtEnd) == 1)
@@ -356,6 +357,7 @@ namespace Starcounter.Internal
       /// Reads next value as Nullable Boolean from the tuple.
       /// </summary>
       /// <returns>The read Nullable Boolean value.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe Boolean? ReadBooleanNullable() {
           Boolean? val = false;
           var intVal = Base16Int.ReadBase16x1((Base16x1*)AtEnd);
