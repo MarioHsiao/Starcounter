@@ -17,6 +17,6 @@
 #define starcounter_core_shared_memory_channels_name 7
 #define starcounter_core_shared_memory_scheduler_task_channels_name 8
 #define starcounter_core_shared_memory_scheduler_signal_channels_name 9
-#define starcounter_core_shared_memory_grouped_channels_name 10
+#define starcounter_core_shared_memory_channel_interface_name 10
 
 #endif // STARCOUNTER_CORE_NAME_DEFINITIONS_HPP

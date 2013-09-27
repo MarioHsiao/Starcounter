@@ -11,6 +11,7 @@
 #include "../common/circular_buffer.hpp"
 #include "../common/chunk.hpp"
 #include "../common/shared_chunk_pool.hpp"
+#include "../common/channel_interface.hpp"
 #include "../common/channel.hpp"
 #include "../common/scheduler_channel.hpp"
 #include "../common/common_scheduler_interface.hpp"
@@ -49,7 +50,11 @@ try {
 		chunks_total_number = chunks_total_number_max;
 	}
 	
-	size_t grouped_channels_size = schedulers * gateway_num_workers;
+#if defined (IPC_GROUPED_CHANNELS)
+	size_t channels_size = schedulers * gateway_num_workers;
+#else // !defined (IPC_GROUPED_CHANNELS)
+	size_t channels_size = channels;
+#endif // defined (IPC_GROUPED_CHANNELS)
 
 	// Compute the memory required for all objects in shared memory.
 	std::size_t shared_memory_segment_size =
@@ -87,13 +92,11 @@ try {
 	+sizeof(common_client_interface_type)
 	+sizeof(client_number) * max_number_of_clients
 	
+	// channel_interface
+	+sizeof(channel_interface_type)
+
 	// channel[s]
-	+sizeof(channel_type) * channels
-	
-#if defined (IPC_GROUPED_CHANNELS)
-	// Grouped channels
-	+sizeof(channel_type) * grouped_channels_size
-#endif // defined (IPC_GROUPED_CHANNELS)
+	+sizeof(channel_type) * channels_size
 	
 	// scheduler_task_channel[s]
 	+sizeof(scheduler_channel_type) * max_number_of_schedulers
@@ -192,7 +195,7 @@ try {
 	
 	for (std::size_t i = 0; i < schedulers; ++i) {
 		new (scheduler_interface +i) scheduler_interface_type
-        (channels, chunks_total_number, chunks_total_number,
+        (channels_size, chunks_total_number, chunks_total_number,
 		scheduler_interface_alloc_inst2, scheduler_interface_alloc_inst2,
 		segment_name, server_name, i);
 	}
@@ -200,7 +203,7 @@ try {
 	// Initialize the scheduler_interface by pushing in channel_number(s).
 	// These channel_number(s) represents free channels. For now, the
 	// channels are more or less evenly distributed among the schedulers.
-	for (std::size_t n = 0; n < channels; ++n) {
+	for (std::size_t n = 0; n < channels_size; ++n) {
 		scheduler_interface[n % schedulers].insert(n, 1 /* user id */,
 		smp::spinlock::milliseconds(10000));
 	}
@@ -246,6 +249,23 @@ try {
 	}
 	
 	//--------------------------------------------------------------------------
+	// Construct the channel_interface in shared memory.
+	
+	// Initialize shared memory STL-compatible allocator.
+	const shm_alloc_for_the_channel_interface
+	channel_interface_alloc_inst(global_mapped_region.get_address());
+	
+	// Allocate the channel_interface.
+	p = psegment_manager->create_named_block
+	(starcounter_core_shared_memory_channel_interface_name,
+	sizeof(channel_interface_type));
+	
+	channel_interface_type* channel_interface = (channel_interface_type*) p;
+	
+	new (channel_interface) channel_interface_type(channel_interface_alloc_inst,
+	channels_size);
+	
+	//--------------------------------------------------------------------------
 	// Construct the channel array in shared memory.
 	
 	// Initialize shared memory STL-compatible allocator.
@@ -255,37 +275,14 @@ try {
 	// Allocate the channel array.
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_channels_name, sizeof(channel_type)
-	* channels);
+	* channels_size);
 	
 	channel_type* channel = (channel_type*) p;
 	
-	for (std::size_t i = 0; i < channels; ++i) {
+	for (std::size_t i = 0; i < channels_size; ++i) {
 		new (channel +i) channel_type(channel_capacity, channels_alloc_inst);
 		channel[i].out_overflow().set_chunk_ptr(chunk);
 	}
-	
-	//--------------------------------------------------------------------------
-#if defined (IPC_GROUPED_CHANNELS)
-	// Construct the grouped channel array in shared memory.
-	
-	// Initialize shared memory STL-compatible allocator.
-	const shm_alloc_for_channels grouped_channels_alloc_inst
-	(global_mapped_region.get_address());
-	
-	// Allocate the grouped_channel array.
-	p = psegment_manager->create_named_block
-	(starcounter_core_shared_memory_grouped_channels_name, sizeof(channel_type)
-	* grouped_channels_size);
-	
-	channel_type* grouped_channel = (channel_type*) p;
-	
-	for (std::size_t i = 0; i < channels; ++i) {
-		new (grouped_channel +i) channel_type(channel_capacity,
-		grouped_channels_alloc_inst);
-		
-		grouped_channel[i].out_overflow().set_chunk_ptr(chunk);
-	}
-#endif // defined (IPC_GROUPED_CHANNELS)
 	
 	//--------------------------------------------------------------------------
 	// Construct an array of scheduler_channels in shared memory.

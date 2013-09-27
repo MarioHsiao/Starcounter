@@ -372,15 +372,6 @@ public:
 	 */
 	channel_type& channel(std::size_t n) const;
 	
-#if defined (IPC_GROUPED_CHANNELS)
-	/// Get reference to grouped_channel[n].
-	/**
-	 * @param n The channel_number.
-	 * @return reference to grouped_channel[n].
-	 */
-	channel_type& grouped_channel(std::size_t n) const;
-#endif // defined (IPC_GROUPED_CHANNELS)
-	
 	/// Set database state. This is used by the monitor when it detects that
 	/// the database process exit without having unregistered.
 	/**
@@ -576,7 +567,6 @@ private:
 	
 	chunk_type* chunk_;
 	channel_type* channel_;
-	channel_type* grouped_channel_;
 	shared_chunk_pool_type* shared_chunk_pool_;
 	common_scheduler_interface_type* common_scheduler_interface_;
 	scheduler_interface_type* scheduler_interface_;
