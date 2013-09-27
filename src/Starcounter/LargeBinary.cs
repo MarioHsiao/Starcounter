@@ -5,8 +5,10 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using Starcounter.Internal;
 
 namespace Starcounter
 {
@@ -141,6 +143,36 @@ namespace Starcounter
             }
             return;
         }
+        
+        internal unsafe LargeBinary(ref TupleReaderBase64 tuple) {
+            int len = (int)Base64Binary.MeasureNeededSizeToDecode(tuple.GetValueLength());
+            _buffer = new Byte[len + 4];
+            _buffer[0] = (Byte)len;
+            _buffer[1] = (Byte)(len >> 8);
+            _buffer[2] = (Byte)(len >> 16);
+            _buffer[3] = (Byte)(len >> 24);
+            int written;
+            fixed (byte* start = _buffer)
+                written = tuple.ReadByteArray(start + 4);
+            Debug.Assert(written == len || written == -1);
+            if (written == -1) 
+                _buffer = null;
+        }
+
+        internal unsafe LargeBinary(ref SafeTupleReaderBase64 tuple, int index) {
+            int len = (int)Base64Binary.MeasureNeededSizeToDecode((uint)tuple.GetValueLength(index));
+            _buffer = new Byte[len + 4];
+            _buffer[0] = (Byte)len;
+            _buffer[1] = (Byte)(len >> 8);
+            _buffer[2] = (Byte)(len >> 16);
+            _buffer[3] = (Byte)(len >> 24);
+            int written;
+            fixed (byte* start = _buffer)
+                written = tuple.ReadByteArray(index, start + 4, len);
+            Debug.Assert(written == len || written == -1);
+            if (written == -1)
+                _buffer = null;
+        }
 
         /// <summary>
         /// Gets the is null.
@@ -263,6 +295,24 @@ namespace Starcounter
                 return;
             }
             throw new InvalidOperationException("Large binary is null.");
+        }
+
+        internal unsafe void WriteToTuple(ref TupleWriterBase64 tuple) {
+            if (_buffer == null)
+                tuple.WriteByteArray(null);
+            else
+                fixed (byte* start = _buffer) {
+                    tuple.WriteByteArray(start + 4, (uint)GetLength());
+                }
+        }
+
+        internal unsafe void WriteToTuple(ref SafeTupleWriterBase64 tuple) {
+            if (_buffer == null)
+                tuple.WriteByteArray(null);
+            else
+                fixed (byte* start = _buffer) {
+                    tuple.WriteByteArray(start + 4, (uint)GetLength());
+                }
         }
     }
 
