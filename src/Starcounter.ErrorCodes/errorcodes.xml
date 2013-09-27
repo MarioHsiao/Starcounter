@@ -415,6 +415,10 @@
     <code hex="0042" severity="Error" name="ScErrIPCMonitorCleanupWaitFailed">
       <message>The IPC monitor was not notified. Wait failed.</message>
     </code>
+    <code hex="0043" severity="Error" name="ScErrOutOfDedicatedAddressSpace">
+      <message>Operation failed because needed memory couldn't be allocated within dedicated address space</message>
+    </code>
+
   </facility>
 
   <!--
@@ -2788,7 +2792,7 @@
         <para>
           If the memory manager fails to create a memory file because it was
           unable to allocate sufficient memory from the OS then a
-          ScErrOUT_OF_MEMORY will be raised.
+          ScErrOutOfMemory will be raised.
         </para>
       </remarks>
     </code>
@@ -3120,6 +3124,12 @@
         context.
       </message>
     </code>
+    <code hex="0109" severity="Error" name="ScErrDatabaseMemberReservedName">
+      <message>
+        The name of a database class field or property clashed with a name
+        reserved by Starcounter.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3377,7 +3387,7 @@
       <message>An unexpected error occured in FasterThanJson library.</message>
     </code>
     <code hex="0046" severity="Error" name="ScErrNoTupleWriteSave">
-      <message>TupleWriter cannot safely write tuple, since the maximum length was not provided.</message>
+      <message>TupleWriter cannot safely write tuple.</message>
     </code>
     <code hex="0047" severity="Error" name="ScErrTupleValueTooBig">
       <message>Input value cannot fit the given tuple lenght.</message>
@@ -3393,6 +3403,9 @@
     </code>
     <code hex="004B" severity="Error" name="ScErrUnknownNetworkProtocol">
         <message>Current network protocol is unknown.</message>
+    </code>
+    <code hex="004C" severity="Error" name="ScErrTupleIncomplete">
+      <message>TupleWriter cannot safely seal tuple, since not all values were written.</message>
     </code>
  </facility>
 
@@ -4366,9 +4379,11 @@
         The datatype needs to be set as generic argument on the inheritance on the class.
       </message>
     </code>
-//    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
-//      <message> A template needs to be specified before this object can be used. </message>
-//    </code>
+<!--
+    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
+      <message> A template needs to be specified before this object can be used. </message>
+    </code>
+-->
     </facility>
     
 </error-codes>
