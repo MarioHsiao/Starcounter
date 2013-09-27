@@ -104,6 +104,31 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
+        /// Gets an array of names we reserve. If a database class member use
+        /// any of these names as a field or a property, we'll raise an error.
+        /// </summary>
+        public static string[] ReservedDatabaseClassAttributeNames = new string[] {
+            "ObjectID",
+            "ObjectNo"
+        };
+
+        /// <summary>
+        /// Gets a value that indicates if <paramref name="name"/> clash with
+        /// any reserved database class attribute name.
+        /// </summary>
+        /// <param name="name">The name to consider.</param>
+        /// <returns><c>true</c> if the name is reserved; <c>false</c> otherwise
+        /// </returns>
+        public static bool IsReservedDatabaseClassAttributeName(string name) {
+            var reserved = ReservedDatabaseClassAttributeNames;
+            foreach (var item in reserved) {
+                if (item.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Finds the <see cref="ScAnalysisTask" /> instance in a PostSharp project.
         /// </summary>
         /// <param name="project">The PostSharp project.</param>
@@ -575,6 +600,16 @@ namespace Starcounter.Internal.Weaver {
             FieldAttributes targetVisibility;
             FieldDefDeclaration fieldDef;
             FieldDefDeclaration synonymFieldDef;
+
+            if (IsReservedDatabaseClassAttributeName(databaseAttribute.Name)) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRDATABASEMEMBERRESERVEDNAME,
+                    string.Format("\"{0}\" in class {1}.",
+                    databaseAttribute.Name,
+                    databaseAttribute.DeclaringClass.Name
+                    ));
+            }
 
             if (databaseAttribute.AttributeKind == DatabaseAttributeKind.Field) {
                 if (databaseAttribute.SynonymousTo != null) {
