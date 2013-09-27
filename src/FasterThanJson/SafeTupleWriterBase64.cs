@@ -49,7 +49,8 @@ namespace Starcounter.Internal {
             if (theTuple.OffsetElementSize < neededOffsetSize)
                 expectedLen += theTuple.MoveValuesRightSize(neededOffsetSize);
             if (expectedLen > AvailableSize)
-                throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+                throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG, "The value to write requires " + 
+                    expectedLen + " bytes, while " + AvailableSize + " bytes are available.");
             return expectedLen;
         }
 

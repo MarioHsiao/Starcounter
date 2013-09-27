@@ -38,6 +38,18 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Returns length of the value at given position in the tuple.
+        /// </summary>
+        /// <param name="index">The position in the tuple</param>
+        /// <returns>The length of the value.</returns>
+        public unsafe int GetValueLength(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            return valueLength;
+        }
+
+        /// <summary>
         /// Calculates the pointer to the value at the given index in the tuple.
         /// </summary>
         /// <param name="index">The index of the value in the tuple.</param>
@@ -142,6 +154,17 @@ namespace Starcounter.Internal {
             GetAtPosition(index, out valuePos, out len);
             byte[] value = Base64Binary.Read((uint)len, valuePos);
             return value;
+        }
+
+        public unsafe int ReadByteArray(int index, byte* value, int valueMaxLength) {
+            byte* valuePos;
+            int len;
+            GetAtPosition(index, out valuePos, out len);
+            if (Base64Binary.MeasureNeededSizeToDecode((uint)len) > valueMaxLength)
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                    "Cannot read byte array value into given byte array pointer, since the value is too big. The actual value is " +
+                    len + " bytes, while " + valueMaxLength + " bytes are provided to write.");
+            return Base64Binary.Read((uint)len, valuePos, value);
         }
     }
 }
