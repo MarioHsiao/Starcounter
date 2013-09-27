@@ -339,6 +339,37 @@ namespace Starcounter.Internal
       }
 
        /// <summary>
+       /// Reads next value as Boolean from the tuple.
+       /// </summary>
+       /// <returns>The read Boolean value.</returns>
+      public unsafe Boolean ReadBoolean() {
+          Boolean val = false;
+          if (Base16Int.ReadBase16x1((Base16x1*)AtEnd) == 1)
+              val = true;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd++;
+          ValueOffset++;
+          return val;
+      }
+
+      /// <summary>
+      /// Reads next value as Nullable Boolean from the tuple.
+      /// </summary>
+      /// <returns>The read Nullable Boolean value.</returns>
+      public unsafe Boolean? ReadBooleanNullable() {
+          Boolean? val = false;
+          var intVal = Base16Int.ReadBase16x1((Base16x1*)AtEnd);
+          if (intVal == 1)
+              val = true;
+          else if (intVal == 2)
+              val = null;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd++;
+          ValueOffset++;
+          return val;
+      }
+
+      /// <summary>
        /// Returns the length of the current value to read.
        /// </summary>
        /// <returns>The length in bytes.</returns>

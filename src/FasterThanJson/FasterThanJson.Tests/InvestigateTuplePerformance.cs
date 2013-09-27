@@ -864,6 +864,40 @@ namespace FasterThanJson.Tests {
         }
 
         [Test]
+        public static unsafe void BenchmarkTupleBoolScale() {
+            bool value = true;
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[100]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteBoolean(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " Boolean writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadBoolean());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadBoolean();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " Boolean reads", nrIter);
+                }
+            }
+        }
+
+        [Test]
         [Category("LongRunning")]
         public static unsafe void RunAllTests() {
             //if (TestLogger.IsRunningOnBuildServer())
