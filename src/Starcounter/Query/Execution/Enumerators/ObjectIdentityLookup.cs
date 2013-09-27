@@ -263,7 +263,7 @@ namespace Starcounter.Query.Execution {
                         Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                         // Checking if recreation key is valid.
                         if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
-                            TupleReaderBase64 recreationKey = ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
+                            SafeTupleReaderBase64 recreationKey = ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);
                             if (obj == null) // Moving out from offset key on first MoveNext
                                 return false;
                             // Check if current object matches stored in the recreation key
