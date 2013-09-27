@@ -52,7 +52,7 @@ namespace FasterThanJson.Tests {
                 writer.WriteString("Рбфюцо[å");
                 writer.SealTuple();
 
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 5);
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 5);
                 Assert.AreEqual("abdsfklaskl;jfAKDJLKSFHA:SKFLHsadnfkalsn2354432sad", reader.ReadString(0));
                 Assert.AreEqual("1234", reader.ReadString(1));
                 Assert.AreEqual(" \" \n ", reader.ReadString(2));
@@ -89,7 +89,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
                 writer.SealTuple();
 
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 4);
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 4);
                 Assert.AreEqual(45, reader.ReadULong(0));
                 Assert.AreEqual(256, reader.ReadULong(1));
                 Assert.AreEqual(0, reader.ReadULong(2));
@@ -132,7 +132,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
                 writer.SealTuple();
 
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 4);
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 4);
                 Assert.AreEqual(25, reader.ReadLong(0));
                 Assert.AreEqual(-256, reader.ReadLong(1));
                 Assert.AreEqual(0, reader.ReadLong(2));
@@ -200,7 +200,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
                 writer.SealTuple();
 
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 8);
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 8);
                 Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, 
                     reader.ReadByteArray(0));
                 Assert.AreEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -234,7 +234,7 @@ namespace FasterThanJson.Tests {
                 writer.WriteULong(63);
                 writer.SealTuple();
 
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 3);
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 3);
                 Assert.AreEqual(64 * 64 * 64 * 64 * 64, reader.ReadULong(1));
                 Assert.AreEqual(63, reader.ReadULong(2));
                 Assert.AreEqual(64 * 64 * 64 * 64 * 64 - 1 + 64 * 64 * 64 * 64 * 64, reader.ReadULong(0));

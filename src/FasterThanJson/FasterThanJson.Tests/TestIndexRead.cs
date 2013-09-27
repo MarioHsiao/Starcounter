@@ -22,7 +22,7 @@ namespace FasterThanJson.Tests {
                 writeArray.WriteULong(66001);
                 writeArray.SealTuple();
 
-                TupleReaderBase64 readArray = new TupleReaderBase64(start, 10);
+                SafeTupleReaderBase64 readArray = new SafeTupleReaderBase64(start, 10);
                 Assert.AreEqual(16500, readArray.ReadULong(4));
                 Assert.AreEqual(65500, readArray.ReadULong(5));
                 Assert.AreEqual(UInt32.MaxValue, readArray.ReadULong(1));
@@ -48,7 +48,7 @@ namespace FasterThanJson.Tests {
                 writeArray.WriteString("AAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBcccccccccccccccccccccccccccccEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEdddddddddddddddddddddddZZZZZZZZZZZZZZZZZZZZZZ");
                 writeArray.SealTuple();
 
-                TupleReaderBase64 readArray = new TupleReaderBase64(start, 5);
+                SafeTupleReaderBase64 readArray = new SafeTupleReaderBase64(start, 5);
                 Assert.AreEqual("AAAAAA", readArray.ReadString(2));
                 Assert.AreEqual("AAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBcccccccccccccccccccccccccccccEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEdddddddddddddddddddddddZZZZZZZZZZZZZZZZZZZZZZ",
                     readArray.ReadString(4));
@@ -70,7 +70,7 @@ namespace FasterThanJson.Tests {
                 writeArray.WriteByteArray(new byte[] { 123, 7, 0, 12, 142, 255, 0, 0, 255, 2, 48, 129, 243, 23 });
                 writeArray.SealTuple();
 
-                TupleReaderBase64 readArray = new TupleReaderBase64(start, 5);
+                SafeTupleReaderBase64 readArray = new SafeTupleReaderBase64(start, 5);
                 Assert.AreEqual(new byte[] { byte.MinValue }, readArray.ReadByteArray(0));
                 Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 }, readArray.ReadByteArray(1));
                 Assert.AreEqual(new byte[] { byte.MaxValue }, readArray.ReadByteArray(2));
@@ -99,7 +99,7 @@ namespace FasterThanJson.Tests {
                 tuple.WriteByteArray(inputArray3);
                 tuple.SealTuple();
 
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 3);
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 3);
                 Assert.AreEqual(inputArray1, reader.ReadByteArray(0));
                 Assert.AreEqual(inputArray2, reader.ReadByteArray(1));
                 Assert.AreEqual(inputArray3, reader.ReadByteArray(2));
@@ -113,7 +113,7 @@ namespace FasterThanJson.Tests {
                 for (int i = 0; i < 100; i++)
                     writeArray.WriteULong(16000);
                 writeArray.SealTuple();
-                TupleReaderBase64 readArray = new TupleReaderBase64(start, 100);
+                SafeTupleReaderBase64 readArray = new SafeTupleReaderBase64(start, 100);
                 for (int i = 0; i < 100; i++)
                     Assert.AreEqual(16000, readArray.ReadULong(i));
             }
@@ -191,7 +191,7 @@ namespace FasterThanJson.Tests {
                     arrayWriter.SealTuple();
                 }
                 fixed (byte* start = tupleBuffer) {
-                    TupleReaderBase64 arrayReader = new TupleReaderBase64(start, nrValues);
+                    SafeTupleReaderBase64 arrayReader = new SafeTupleReaderBase64(start, nrValues);
                     for (int j = 0; j < nrValues; j++) {
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:

@@ -406,7 +406,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // In order to skip enumerator recreation next time.
         //triedEnumeratorRecreation = true;
         Debug.Assert(OffsetTuppleLength == 3);
-        TupleReaderBase64 thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
+        SafeTupleReaderBase64 thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
         return thisEnumTuple.ReadByteArray(2);
     }
 
