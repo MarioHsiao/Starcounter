@@ -338,6 +338,17 @@ namespace Starcounter.Internal
           return value;
       }
 
+       /// <summary>
+       /// Returns the length of the current value to read.
+       /// </summary>
+       /// <returns>The length in bytes.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe uint GetValueLength() {
+          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
+          return len;
+      }
+
       /// <summary>
       /// Gets the read byte count.
       /// </summary>
