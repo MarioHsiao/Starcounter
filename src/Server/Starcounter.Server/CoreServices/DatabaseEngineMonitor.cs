@@ -73,7 +73,7 @@ namespace Starcounter.Server {
             // database. We expect it to be one, since it's supposed to be running.
             // If there isn't, we emit a warning and reset the database state to
             // what we expect it to be (not-running).
-            int currentPID = GetProcessIdOrEmitWarning(database.CodeHostProcess, database);
+            int currentPID = GetProcessId(database.CodeHostProcess, database, log.LogWarning);
             if (currentPID == -1) {
                 ResetInternalAndPublicState(engineService, database, processExited);
                 return;
@@ -81,9 +81,9 @@ namespace Starcounter.Server {
 
             // Try fetching the PID of the process component that has triggered
             // this command by exiting. Since we can't control to 100% the state
-            // of this component, we just emit a warning if we can't access it
+            // of this component, we just emit a notice if we can't access it
             // and then let the database state be in whatever state it is.
-            int pid = GetProcessIdOrEmitWarning(processExited, database);
+            int pid = GetProcessId(processExited, database, log.LogNotice);
             if (pid == -1) {
                 engineService.SafeClose(processExited);
                 return;
@@ -117,7 +117,7 @@ namespace Starcounter.Server {
             Server.CurrentPublicModel.UpdateDatabase(database);
         }
 
-        int GetProcessIdOrEmitWarning(Process p, Database database) {
+        int GetProcessId(Process p, Database database, Action<string> logMethod = null) {
             string msg = null;
             if (p == null) {
                 msg = "Process reference not assigned";
@@ -130,7 +130,11 @@ namespace Starcounter.Server {
                 }
             }
 
-            log.LogWarning("Unable to retreive PID of code host process for engine \"{0}\". Error: {1}.", database.Name, msg);
+            if (logMethod != null) {
+                var entry = string.Format("Unable to retreive PID of code host process for engine \"{0}\". Error: {1}.", database.Name, msg);
+                logMethod(entry);
+            }
+
             return -1;
         }
     }

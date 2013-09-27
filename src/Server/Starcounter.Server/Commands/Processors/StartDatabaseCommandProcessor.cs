@@ -78,38 +78,10 @@ namespace Starcounter.Server.Commands.Processors {
             });
 
             WithinTask(Task.AwaitCodeHostOnline, (task) => {
-                // Wait until either the host comes online or until the process
-                // terminates, whichever comes first.
-                EventWaitHandle online = null;
-                var name = string.Concat(DatabaseEngine.ScCodeEvents.OnlineBaseName, database.Name.ToUpperInvariant());
-
                 try {
-                    while (!codeHostProcess.HasExited) {
-                        if (online == null) {
-                            if (!EventWaitHandle.TryOpenExisting(name, out online)) {
-                                online = null;
-                                Thread.Yield();
-                            }
-                        }
-                        
-                        if (online != null) {
-                            var ready = online.WaitOne(1000);
-                            if (ready) break;
-                        }
-
-                        codeHostProcess.Refresh();
-                    }
-
+                    Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHostProcess, database);
                 } finally {
-                    if (online != null) {
-                        online.Close();
-                    }
-                }
-
-                Engine.CurrentPublicModel.UpdateDatabase(database);
-
-                if (codeHostProcess.HasExited) {
-                    throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database);
+                    Engine.CurrentPublicModel.UpdateDatabase(database);
                 }
             });
         }

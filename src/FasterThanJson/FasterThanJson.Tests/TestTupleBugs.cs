@@ -18,7 +18,7 @@ namespace FasterThanJson.Tests {
                    writeTuple.WriteByteArray(test);
                    writeTuple.SealTuple();
 
-                   TupleReaderBase64 readTuple = new TupleReaderBase64(start, 1);
+                   SafeTupleReaderBase64 readTuple = new SafeTupleReaderBase64(start, 1);
                    Assert.AreEqual(test, readTuple.ReadByteArray(0));
                }
                fixed (byte* start = buffer) {
@@ -26,7 +26,7 @@ namespace FasterThanJson.Tests {
                    writeTuple.WriteByteArray(test);
                    writeTuple.SealTuple();
 
-                   TupleReaderBase64 readTuple = new TupleReaderBase64(start, 1);
+                   SafeTupleReaderBase64 readTuple = new SafeTupleReaderBase64(start, 1);
                    Assert.AreEqual(test, readTuple.ReadByteArray(0));
                }
            }
