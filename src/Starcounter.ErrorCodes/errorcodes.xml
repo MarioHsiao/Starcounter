@@ -415,6 +415,10 @@
     <code hex="0042" severity="Error" name="ScErrIPCMonitorCleanupWaitFailed">
       <message>The IPC monitor was not notified. Wait failed.</message>
     </code>
+    <code hex="0043" severity="Error" name="ScErrOutOfDedicatedAddressSpace">
+      <message>Operation failed because needed memory couldn't be allocated within dedicated address space</message>
+    </code>
+
   </facility>
 
   <!--
@@ -2788,7 +2792,7 @@
         <para>
           If the memory manager fails to create a memory file because it was
           unable to allocate sufficient memory from the OS then a
-          ScErrOUT_OF_MEMORY will be raised.
+          ScErrOutOfMemory will be raised.
         </para>
       </remarks>
     </code>
@@ -4369,9 +4373,11 @@
         The datatype needs to be set as generic argument on the inheritance on the class.
       </message>
     </code>
-//    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
-//      <message> A template needs to be specified before this object can be used. </message>
-//    </code>
+<!--
+    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
+      <message> A template needs to be specified before this object can be used. </message>
+    </code>
+-->
     </facility>
     
 </error-codes>
