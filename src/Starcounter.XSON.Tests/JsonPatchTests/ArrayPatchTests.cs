@@ -1,5 +1,6 @@
 ﻿
 using NUnit.Framework;
+using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
@@ -129,39 +130,42 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
         }
 
         [Test]
-        public static void AssignArrayPropertyToEnumerableOfDataObjects() {
+        public static void AssignToEnumerable() {
 
             dynamic company = new Json();
             company.Name = "Starcounter";
-            dynamic person = new Json();
-            dynamic person2 = new Json();
+            var person = new Person();
+            var person2 = new Person();
             company.Contacts = new object[] { person, person2 };
             person.FirstName = "Timothy";
             person2.FirstName = "Douglas";
 
-            Console.WriteLine("Initialize status");
-            Console.WriteLine("=================");
-            Console.WriteLine(company.DebugString);
+            Write("Initialize status",company.DebugString);
 
             Session.Data = company;
             Session.Current.CreateJsonPatch(true);
 
-            Console.WriteLine("Before status");
-            Console.WriteLine("=============");
-            Console.WriteLine(company.DebugString);
+            Write("Before status",company.DebugString);
 
-            dynamic charlie = new Json();
+            var charlie = new Person();
             charlie.FirstName = "Charlie";
             company.Contacts = new object[] { charlie };
 
-            Console.WriteLine("After status");
-            Console.WriteLine("============");
-            Console.WriteLine(company.DebugString);
+            Write("After status", company.DebugString);
+            Write("JSON-Patch 1", Session.Current.CreateJsonPatch(true));
 
-            Console.WriteLine("JSON-Patch");
-            Console.WriteLine("==========");
-            Console.WriteLine(Session.Current.CreateJsonPatch(true));
+            company.Contacts = new object[] { person, person2 };
 
+            Write("After status 2",company.DebugString);
+            Write("JSON-Patch 2",Session.Current.CreateJsonPatch(true));
+
+        }
+
+        static void Write(string title, string value) {
+            Console.WriteLine();
+            Console.WriteLine(title);
+            Console.WriteLine( new String('=', title.Length) );
+            Console.WriteLine( value );
         }
 
         [Test]
@@ -197,26 +201,39 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-
             Session.Data = j;
-
             Assert.NotNull(Session.Current);
-
-            //Session.Data.LogChanges = true;
-            //var cl = ChangeLog.CurrentOnThread = new ChangeLog();
 
             j.FirstName = "Jack";
             nicke.FirstName = "Nicke";
-            //((Json)j).LogChanges = true;
-
-            // Session.Current.LogChanges = true;
-
             j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Changes:");
             Console.WriteLine("========");
             Console.WriteLine(Session.Current.CreateJsonPatch(true));
+        }
 
+        [Test]
+        public static void AddAnElements() {
+            dynamic j = new Json();
+            dynamic nicke = new Json();
+
+            Session.Data = j;
+            Assert.NotNull(Session.Current);
+
+            j.FirstName = "Jack";
+            nicke.FirstName = "Nicke";
+            j.Friends = new List<Json>() { nicke };
+
+            Session.Current.CreateJsonPatch(true);
+            var p = j.Friends.Add();
+            p.FirstName = "Marten";
+            var p2 = j.Friends.Add();
+            p2.FirstName = "Asa";
+
+            Console.WriteLine("Changes:");
+            Console.WriteLine("========");
+            Console.WriteLine(Session.Current.CreateJsonPatch(true));
         }
     }
 }

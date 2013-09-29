@@ -191,7 +191,7 @@ namespace Starcounter.Templates {
         
 
 
-        private static readonly Dictionary<Type, Func<TObject,string,TValue>> @switch = new Dictionary<Type, Func<TObject,string,TValue>> {
+        internal static readonly Dictionary<Type, Func<TObject,string,TValue>> @switch = new Dictionary<Type, Func<TObject,string,TValue>> {
                     { typeof(byte), (TObject t, string name) => { return t.Add<TLong>(name); }},
                     { typeof(UInt16), (TObject t, string name) => { return t.Add<TLong>(name); }},
                     { typeof(Int16), (TObject t, string name) => { return t.Add<TLong>(name); }},
