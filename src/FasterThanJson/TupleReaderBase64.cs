@@ -16,7 +16,7 @@ namespace Starcounter.Internal
     /// </summary>
    public unsafe struct TupleReaderBase64
    {
-       internal const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
+       public const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
        
        /// <summary>
        /// Offset integer pointing to the end of the tuple with 0 being the beginning of the value count
@@ -68,38 +68,6 @@ namespace Starcounter.Internal
 
       }
 
-       /// <summary>
-       /// Gets pointer to and lenght of the value at the given position
-       /// </summary>
-       /// <param name="index">Position of the value in the tuple</param>
-       /// <param name="valuePos">The pointer to the value</param>
-       /// <param name="valueLength">The length of the value</param>
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      private unsafe void GetAtPosition(int index, out byte* valuePos, out int valueLength) {
-#if BASE64
-          if (index >= ValueCount)
-              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot read value since the index " + 
-                  index + " is out of range for this tuple with " + ValueCount + " values.");
-          int firstValue = OffsetElementSizeSize + (int)(ValueCount * OffsetElementSize);
-          // Get value position
-          int valueOffset;
-          if (index == 0) {
-              valueOffset = 0;
-              valuePos = AtStart + firstValue;
-          } else {
-              int offsetPos = OffsetElementSizeSize + (int)((index - 1) * OffsetElementSize);
-              byte* atOffset = AtStart + offsetPos;
-              valueOffset = (int)Base64Int.ReadSafe(OffsetElementSize, atOffset);
-              valuePos = AtStart + firstValue + valueOffset;
-          }
-          // Get value length
-          byte* nextOffsetPos = AtStart + OffsetElementSizeSize + index * OffsetElementSize;
-          int nextOffset = (int)Base64Int.ReadSafe(OffsetElementSize, nextOffsetPos);
-          valueLength = nextOffset - valueOffset;
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-#endif
-      }
 
       /// <summary>
       /// Reads an unsigned 4 bit integer
@@ -192,7 +160,7 @@ namespace Starcounter.Internal
        /// <param name="uval">The input value</param>
        /// <returns>The converted value</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
-      public unsafe long ConvertToLong(ulong uval) {
+      public static unsafe long ConvertToLong(ulong uval) {
           long ret = (long)(uval >> 1);
           if ((uval & 0x00000001) == 1)
               ret = -ret - 1;
@@ -232,70 +200,6 @@ namespace Starcounter.Internal
               return ConvertToLong((ulong)uval);
       }
 
-       /// <summary>
-       /// Reads unsigned long integer at the given position of the tuple.
-       /// The implementation cannot be used in performance critical applications,
-       /// since it checks correctness of the data.
-       /// </summary>
-       /// <param name="index">Index of the value to read in this tuple.</param>
-       /// <returns>The read value.</returns>
-      public unsafe ulong ReadULong(int index) {
-          byte* valuePos;
-          int valueLength;
-          GetAtPosition(index, out valuePos, out valueLength);
-          // Read the value at the position with the length
-          return Base64Int.ReadSafe(valueLength, valuePos);
-      }
-
-      /// <summary>
-      /// Reads signed long integer at the given position of the tuple.
-      /// The implementation cannot be used in performance critical applications,
-      /// since it checks correctness of the data.
-      /// </summary>
-      /// <param name="index">Index of the value to read in this tuple.</param>
-      /// <returns>The read value.</returns>
-      public unsafe long ReadLong(int index) {
-          byte* valuePos;
-          int valueLength;
-          GetAtPosition(index, out valuePos, out valueLength);
-          // Read the value at the position with the length
-          ulong ret = Base64Int.ReadSafe(valueLength, valuePos);
-          return ConvertToLong(ret);
-      }
-
-      /// <summary>
-      /// Reads nullable unsigned long integer at the given position of the tuple.
-      /// The implementation cannot be used in performance critical applications,
-      /// since it checks correctness of the data.
-      /// </summary>
-      /// <param name="index">Index of the value to read in this tuple.</param>
-      /// <returns>The read value.</returns>
-      public unsafe ulong? ReadULongNullable(int index) {
-          byte* valuePos;
-          int valueLength;
-          GetAtPosition(index, out valuePos, out valueLength);
-          // Read the value at the position with the length
-          return Base64Int.ReadNullable(valueLength, valuePos);
-      }
-
-      /// <summary>
-      /// Reads nullable signed long integer at the given position of the tuple.
-      /// The implementation cannot be used in performance critical applications,
-      /// since it checks correctness of the data.
-      /// </summary>
-      /// <param name="index">Index of the value to read in this tuple.</param>
-      /// <returns>The read value.</returns>
-      public unsafe long? ReadLongNullable(int index) {
-          byte* valuePos;
-          int valueLength;
-          GetAtPosition(index, out valuePos, out valueLength);
-          // Read the value at the position with the length
-          ulong? ret = Base64Int.ReadNullable(valueLength, valuePos);
-          if (ret == null)
-              return null;
-          else
-              return ConvertToLong((ulong)ret);
-      }
 
       /// <summary>
       /// Skip one value
@@ -316,18 +220,6 @@ namespace Starcounter.Internal
          AtOffsetEnd += OffsetElementSize;
          AtEnd += len;
          ValueOffset += len;
-      }
-
-       /// <summary>
-       /// Calculates the pointer to the value at the given index in the tuple.
-       /// </summary>
-       /// <param name="index">The index of the value in the tuple.</param>
-       /// <returns>The pointer.</returns>
-      public unsafe byte* GetPosition(int index) {
-          byte* valuePos;
-          int valueLength;
-          GetAtPosition(index, out valuePos, out valueLength);
-          return valuePos;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -404,25 +296,6 @@ namespace Starcounter.Internal
          return str;
       }
 
-       /// <summary>
-       /// Reads the string value at index position in the tuple.
-      /// The implementation cannot be used in performance critical applications,
-      /// since it checks correctness of the data.
-      /// </summary>
-       /// <param name="index">The value position in the tuple. </param>
-       /// <returns>The read string. </returns>
-      public unsafe string ReadString(int index) {
-#if BASE64
-          byte* valuePos;
-          int valueLength;
-          GetAtPosition(index, out valuePos, out valueLength);
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-#endif
-          String str = ReadString(valueLength, valuePos);
-          return str;
-      }
-
       /// <summary>
       /// Reads the next byte array value from the tuple into the given byte array pointer.
       /// </summary>
@@ -465,24 +338,15 @@ namespace Starcounter.Internal
           return value;
       }
 
-      /// <summary>
-      /// Reads the byte array value at index position in the tuple.
-      /// The implementation cannot be used in performance critical applications,
-      /// since it checks correctness of the data.
-      /// </summary>
-      /// <param name="index">The value position in the tuple. </param>
-      /// <returns>The read byte array. </returns>
-      public unsafe byte[] ReadByteArray(int index) {
-#if BASE64
-          byte* valuePos;
-          int len;
-          GetAtPosition(index, out valuePos, out len);
-          //uint valueLength = Base64Binary.MeasureNeededSizeToDecode((uint)len);
-          byte[] value = Base64Binary.Read((uint)len, valuePos);
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
-#endif
-          return value;
+       /// <summary>
+       /// Returns the length of the current value to read.
+       /// </summary>
+       /// <returns>The length in bytes.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe uint GetValueLength() {
+          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
+          return len;
       }
 
       /// <summary>

@@ -373,7 +373,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public unsafe short SaveEnumerator(ref TupleWriterBase64 root, short expectedNodeId) {
+    public unsafe short SaveEnumerator(ref SafeTupleWriterBase64 root, short expectedNodeId) {
         throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Offset keys are not implemented for queries with aggregates.");
     }
 

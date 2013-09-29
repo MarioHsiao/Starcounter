@@ -85,7 +85,8 @@ namespace Starcounter.Administrator.API.Handlers {
 
             // Handlers for the executable resource/abstraction
             Handle.GET<string, string, Request>(uriTemplate, OnGET);
-            RootHandler.Register405OnAllUnsupported(uriTemplate, new string[] { "GET" });
+            Handle.DELETE<string, string, Request>(uriTemplate, OnDELETE);
+            RootHandler.Register405OnAllUnsupported(uriTemplate, new string[] { "GET", "DELETE" });
         }
     }
 }

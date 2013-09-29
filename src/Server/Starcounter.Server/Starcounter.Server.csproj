@@ -83,6 +83,7 @@
     <Compile Include="Commands\CommandProcessor.cs" />
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
     <Compile Include="Commands\CommandTask.cs" />
+    <Compile Include="Commands\Processors\StopExecutableCommandProcessor.cs" />
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
     <Compile Include="CoreServices\DatabaseEngineMonitor.cs" />
     <Compile Include="CoreServices\DatabaseHostingService.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="PublicModel\CommandInfo.cs" />
     <Compile Include="PublicModel\Commands\StartDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\StopDatabaseCommand.cs" />
+    <Compile Include="PublicModel\Commands\StopExecutableCommand.cs" />
     <Compile Include="PublicModel\CommandTaskInfo.cs" />
     <Compile Include="PublicModel\DatabaseInfo.cs" />
     <Compile Include="PublicModel\EngineInfo.cs" />

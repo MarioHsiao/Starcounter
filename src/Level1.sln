@@ -130,6 +130,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\bit_operations.hpp = Chunks\common\bit_operations.hpp
 		Chunks\common\bounded_buffer.hpp = Chunks\common\bounded_buffer.hpp
 		Chunks\common\channel.hpp = Chunks\common\channel.hpp
+		Chunks\common\channel_interface.hpp = Chunks\common\channel_interface.hpp
 		Chunks\common\channel_mask.hpp = Chunks\common\channel_mask.hpp
 		Chunks\common\channel_number.hpp = Chunks\common\channel_number.hpp
 		Chunks\common\chunk.hpp = Chunks\common\chunk.hpp
