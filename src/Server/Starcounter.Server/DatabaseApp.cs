@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Bootstrap.Management.Representations.JSON;
 using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
@@ -64,6 +65,22 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the current application was,
+        /// or will be, started with its entrypoint being invoked asynchronously.
+        /// </summary>
+        /// <remarks>
+        /// <para>The default is <c>false</c>. Normally, the entrypoint of any
+        /// application is run in a synchronous fashion.</para>
+        /// <para>If the application doesn't define an entrypoint - for example,
+        /// it's represented by a library or just some code file with a few
+        /// classes - this property is silently ignored.</para>
+        /// </remarks>
+        internal bool IsStartedWithAsyncEntrypoint {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Creates a snapshot of this <see cref="DatabaseApp"/> in the
         /// form of a public model <see cref="AppInfo"/>.
         /// </summary>
@@ -75,6 +92,26 @@ namespace Starcounter.Server {
                 ExecutionPath = this.ExecutionPath,
                 Key = this.Key
             };
+        }
+
+        /// <summary>
+        /// Creates an <see cref="Executable"/> instance based on the
+        /// properties of the current <see cref="DatabaseApp"/>.
+        /// </summary>
+        /// <returns>An <see cref="Executable"/> representing the same
+        /// application as the current instance.</returns>
+        internal Executable ToExecutable() {
+            var exe = new Executable();
+            exe.Path = this.ExecutionPath;
+            exe.PrimaryFile = this.OriginalExecutablePath;
+            exe.WorkingDirectory = this.WorkingDirectory;
+            if (this.Arguments != null) {
+                foreach (var argument in this.Arguments) {
+                    exe.Arguments.Add().dummy = argument;
+                }
+            }
+            exe.RunEntrypointAsynchronous = this.IsStartedWithAsyncEntrypoint;
+            return exe;
         }
     }
 }

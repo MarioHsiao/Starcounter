@@ -291,10 +291,6 @@ namespace Starcounter {
         /// <returns></returns>
         public Response PerformSyncRequest()
         {
-            Boolean tried_reconnect = false;
-
-RECONNECT:
-
             // Checking if we are connected.
             if (null == SocketObj)
                 AttachConnection(null);
@@ -323,17 +319,7 @@ RECONNECT:
                 if (recievedBytes <= 0)
                 {
                     SocketObj = null;
-
-                    // Trying only once to reconnect.
-                    if (tried_reconnect)
-                    {
-                        throw new IOException("Remote host closed the connection.");
-                    }
-                    else
-                    {
-                        tried_reconnect = true;
-                        goto RECONNECT;
-                    }
+                    throw new IOException("Remote host closed the connection.");
                 }
 
                 if (Resp == null)

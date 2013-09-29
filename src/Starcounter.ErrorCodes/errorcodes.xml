@@ -3124,6 +3124,12 @@
         context.
       </message>
     </code>
+    <code hex="0109" severity="Error" name="ScErrDatabaseMemberReservedName">
+      <message>
+        The name of a database class field or property clashed with a name
+        reserved by Starcounter.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
