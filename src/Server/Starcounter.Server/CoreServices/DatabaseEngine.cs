@@ -327,6 +327,40 @@ namespace Starcounter.Server {
             return true;
         }
 
+        internal void WaitUntilCodeHostOnline(Process codeHostProcess, Database database) {
+            // Wait until either the host comes online or until the process
+            // terminates, whichever comes first.
+            EventWaitHandle online = null;
+            var name = string.Concat(DatabaseEngine.ScCodeEvents.OnlineBaseName, database.Name.ToUpperInvariant());
+
+            try {
+                while (!codeHostProcess.HasExited) {
+                    if (online == null) {
+                        if (!EventWaitHandle.TryOpenExisting(name, out online)) {
+                            online = null;
+                            Thread.Yield();
+                        }
+                    }
+
+                    if (online != null) {
+                        var ready = online.WaitOne(1000);
+                        if (ready) break;
+                    }
+
+                    codeHostProcess.Refresh();
+                }
+
+            } finally {
+                if (online != null) {
+                    online.Close();
+                }
+            }
+
+            if (codeHostProcess.HasExited) {
+                throw CreateCodeHostTerminated(codeHostProcess, database);
+            }
+        }
+
         internal bool StopCodeHostProcess(Database database) {
             var process = database.CodeHostProcess;
             if (process == null)

@@ -98,19 +98,15 @@ namespace Starcounter.Administrator.API.Handlers {
         }
 
         static Response ToErrorResponse(CommandInfo commandInfo) {
-            ErrorInfo single;
-
-            single = null;
-            if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
-                if (single.GetErrorCode() == Error.SCERRDATABASENOTFOUND) {
+            var single = commandInfo.Errors.PickSingleServerError();
+            switch(single.GetErrorCode()) {
+                case Error.SCERRDATABASENOTFOUND:
                     var msg = single.ToErrorMessage();
                     var errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
                     return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
-                }
+                default:
+                    break;
             }
-
-            if (single == null)
-                single = commandInfo.Errors[0];
 
             // Create a 500. Right now we do it the sloppy way, letting
             // the server craft it for us based on the exception. We should

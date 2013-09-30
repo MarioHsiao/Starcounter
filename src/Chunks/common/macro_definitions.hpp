@@ -12,6 +12,15 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+//#define IPC_GROUPED_CHANNELS
+
+#if defined (IPC_GROUPED_CHANNELS)
+#endif // defined (IPC_GROUPED_CHANNELS)
+
+#if defined (IPC_GROUPED_CHANNELS)
+#else // !defined (IPC_GROUPED_CHANNELS)
+#endif // defined (IPC_GROUPED_CHANNELS)
+
 ///********************************************************************************************
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
 /// to show the activity in shared memory between database(s) and client(s).

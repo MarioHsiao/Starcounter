@@ -395,6 +395,11 @@ namespace Starcounter.Templates {
         }
 
 
+
+        protected static bool IsSupportedType(Type pt) {
+            Func<TObject, string, TValue> dummy;
+            return (TObject.@switch.TryGetValue(pt,out dummy));
+        }
     }
 
     /// <summary>

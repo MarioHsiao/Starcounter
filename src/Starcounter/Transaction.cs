@@ -121,7 +121,7 @@ namespace Starcounter
                     );
                 if (r == 0) {
                     try {
-                        _current = new Transaction(handle, verify);
+                        _current = new Transaction(handle, verify, readOnly);
                         return _current;
                     }
                     catch (Exception) {
@@ -163,6 +163,13 @@ namespace Starcounter
         private readonly TransactionScrap _scrap;
 
         /// <summary>
+        /// Gets a value indicating if the current transaction is a
+        /// read-only transaction, i.e. a transaction where commits
+        /// are not allowed.
+        /// </summary>
+        public bool IsReadOnly { get; private set; }
+
+        /// <summary>
         /// </summary>
         public Transaction() : this(false) { }
 
@@ -173,6 +180,7 @@ namespace Starcounter
             ulong verify;
             uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
 
+            this.IsReadOnly = readOnly;
             if (readOnly)
                 flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
 
@@ -199,9 +207,10 @@ namespace Starcounter
             throw ErrorCode.ToException(r);
         }
 
-        private Transaction(ulong handle, ulong verify) {
+        private Transaction(ulong handle, ulong verify, bool readOnly) {
             _handle = handle;
             _verify = verify;
+            IsReadOnly = readOnly;
             _scrap = new TransactionScrap(handle, verify);
         }
 

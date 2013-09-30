@@ -22,7 +22,7 @@ namespace Starcounter.Internal.XSON {
         private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
         private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
-		internal static bool VerifyOrCreateBinding(TValue template, Type dataType) {
+		internal static bool VerifyOrCreateBinding(TValue template, object data) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
 			Bound bound = template.Bound;
@@ -35,6 +35,7 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			Type dataType = data.GetType();
 			// TODO: 
 			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
 			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
@@ -53,22 +54,23 @@ namespace Starcounter.Internal.XSON {
 				bindingName = template.PropertyName;
 			}
 
-			var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
-			if (pInfo != null) {
+//			var pInfo = GetMemberForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
+			var bInfo = GetBindingPath(dataType, data, bindingName, template, throwExceptionOnBindingFailure);
+			if (bInfo.Member != null) {
 				var @switch = new Dictionary<Type, Func<DataValueBinding>> {
- 					 { typeof(byte), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(UInt16), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(Int16), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(UInt32), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(Int32), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(UInt64), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(Int64), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(float), () => { return new DataValueBinding<TLong>(template, pInfo); }},
- 					 { typeof(double), () => { return new DataValueBinding<TDouble>(template, pInfo); }},
- 					 { typeof(decimal), () => { return new DataValueBinding<TDecimal>(template, pInfo); }},
- 					 { typeof(bool), () => { return new DataValueBinding<TBool>(template, pInfo); }},
- 					 { typeof(string), () => { return new DataValueBinding<TString>(template, pInfo); }}
- 					 };
+					 { typeof(byte), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(UInt16), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(Int16), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(UInt32), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(Int32), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(UInt64), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(Int64), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(float), () => { return new DataValueBinding<TLong>(template, bInfo); }},
+					 { typeof(double), () => { return new DataValueBinding<TDouble>(template, bInfo); }},
+					 { typeof(decimal), () => { return new DataValueBinding<TDecimal>(template, bInfo); }},
+					 { typeof(bool), () => { return new DataValueBinding<TBool>(template, bInfo); }},
+					 { typeof(string), () => { return new DataValueBinding<TString>(template, bInfo); }}
+					 };
 				template.dataBinding = @switch[template.InstanceType]();
 				return true;
 			} else {
@@ -83,7 +85,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding(TObjArr template, Type dataType) {
+        internal static bool VerifyOrCreateBinding(TObjArr template, object data) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
 			Bound bound = template.Bound;
@@ -96,6 +98,7 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			Type dataType = data.GetType();
 			// TODO: 
 			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
 			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
@@ -114,9 +117,9 @@ namespace Starcounter.Internal.XSON {
 				bindingName = template.PropertyName;
 			}
 
-            var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
-			if (pInfo != null) {
-				template.dataBinding = new DataValueBinding<IEnumerable>(template, pInfo);
+            var bInfo = GetBindingPath(dataType, data, bindingName, template, throwExceptionOnBindingFailure);
+			if (bInfo.Member != null) {
+				template.dataBinding = new DataValueBinding<IEnumerable>(template, bInfo);
 				return true;
 			} else {
 				template.dataBinding = new AutoValueBinding(template, dataType);
@@ -130,7 +133,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding(TObject template, Type dataType) {
+        internal static bool VerifyOrCreateBinding(TObject template, object data) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
 			Bound bound = template.Bound;
@@ -142,6 +145,8 @@ namespace Starcounter.Internal.XSON {
 				template.dataBinding = null;
 				template.invalidateBinding = false;
 			}
+
+			Type dataType = data.GetType();
 
 			// TODO: 
 			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
@@ -161,9 +166,9 @@ namespace Starcounter.Internal.XSON {
 				bindingName = template.PropertyName;
 			}
 
-            var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
-			if (pInfo != null) {
-				template.dataBinding = new DataValueBinding<IBindable>(template, pInfo);
+            var bInfo = GetBindingPath(dataType, data, bindingName, template, throwExceptionOnBindingFailure);
+			if (bInfo.Member == null) {
+				template.dataBinding = new DataValueBinding<IBindable>(template, bInfo);
 				return true;
 			} else {
 				template.dataBinding = new AutoValueBinding(template, dataType);
@@ -178,7 +183,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding<TVal>(Property<TVal> template, Type dataType) {
+        internal static bool VerifyOrCreateBinding<TVal>(Property<TVal> template, object data) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
 			Bound bound = template.Bound;
@@ -191,6 +196,7 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
+			Type dataType = data.GetType();
 			// TODO: 
 			// Rewrite this code. When Auto is set and the property is not found we don't want to search for it every time.
 			// The current implementation creates an empty binding that is only used to verify that the datatype and name is
@@ -209,9 +215,9 @@ namespace Starcounter.Internal.XSON {
 				bindingName = template.PropertyName;
 			}
 
-            var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
-			if (pInfo != null) {
-				template.dataBinding = new DataValueBinding<TVal>(template, pInfo);
+            var bInfo = GetBindingPath(dataType, data, bindingName, template, throwExceptionOnBindingFailure);
+			if (bInfo.Member != null) {
+				template.dataBinding = new DataValueBinding<TVal>(template, bInfo);
 				return true;
 			} else {
 				template.dataBinding = new AutoValueBinding(template, dataType);
@@ -228,19 +234,93 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template"></param>
 		/// <param name="throwException"></param>
         /// <returns></returns>
-        private static MemberInfo GetPropertyForBinding(Type dataType, string bindingName, Template template, bool throwException) {
-            var pInfo = ReflectionHelper.FindPropertyOrField(dataType, bindingName);
-            if (pInfo == null && throwException) {
-                throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
-                                            string.Format(propNotFound,
-                                                          GetParentClassName(template),
-                                                          template.TemplateName,
-                                                          bindingName,
-                                                          dataType.FullName
-                                           ));
-            }
-            return pInfo;
+        private static BindingInfo GetBindingPath(Type dataType, object data, string bindingName, Template template, bool throwException) {
+			int index;
+			int offset;
+			string partName;
+			Type partType;
+			BindingInfo binfo;
+			MemberInfo memberInfo = null;
+			List<MemberInfo> memberPath = null;
+			object currentValue = data;
+
+			index = bindingName.IndexOf('.');
+			if (index == -1) {
+				memberInfo = GetMemberForBinding(dataType, bindingName, template, throwException);
+			} else {
+				offset = 0;
+				partType = dataType;
+				while (offset != -1) {
+					if (memberPath == null)
+						memberPath = new List<MemberInfo>();
+
+					if (memberInfo != null)
+						memberPath.Add(memberInfo);
+
+					if (index == -1) {
+						partName = bindingName.Substring(offset);
+						offset = -1;
+					} else {
+						partName = bindingName.Substring(offset, index - offset);
+						offset = index + 1;
+						index = bindingName.IndexOf('.', offset);
+					}
+
+					memberInfo = GetMemberForBinding(partType, partName, template, throwException);
+					if (memberInfo == null) {
+						memberPath = null;
+						break;
+					}
+
+					partType = null;
+					if (memberInfo is PropertyInfo) {
+						if (currentValue != null){
+							currentValue = ((PropertyInfo)memberInfo).GetValue(currentValue);
+							if (currentValue != null)
+								partType = currentValue.GetType();
+						}
+
+						if (partType == null)
+							partType = ((PropertyInfo)memberInfo).PropertyType;
+					} else {
+						if (currentValue != null) {
+							currentValue = ((FieldInfo)memberInfo).GetValue(currentValue);
+							if (currentValue != null)
+								partType = currentValue.GetType();
+						}
+
+						if (partType == null)
+							partType = ((FieldInfo)memberInfo).FieldType;
+					}
+				}
+			}
+
+			binfo.Member = memberInfo;
+			binfo.Path = memberPath;
+            return binfo;
         }
+
+		/// <summary>
+		/// Returns the property with the specified name from the data type.
+		/// </summary>
+		/// <param name="dataType"></param>
+		/// <param name="bindingName"></param>
+		/// <param name="template"></param>
+		/// <param name="throwException"></param>
+		/// <returns></returns>
+		private static MemberInfo GetMemberForBinding(Type dataType, string bindingName, Template template, bool throwException) {
+			var pInfo = ReflectionHelper.FindPropertyOrField(dataType, bindingName);
+			if (pInfo == null && throwException) {
+				throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
+											string.Format(propNotFound,
+														  GetParentClassName(template),
+														  template.TemplateName,
+														  bindingName,
+														  dataType.FullName
+										   ));
+			}
+			return pInfo;
+		}
 
         /// <summary>
         /// Verifies that the existing binding can be used for the current datatype and template.

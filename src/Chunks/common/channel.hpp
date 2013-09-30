@@ -375,8 +375,8 @@ private:
 	) % CACHE_LINE_SIZE];
 };
 
-typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_the_channels2;
-typedef channel<chunk_index, shm_alloc_for_the_channels2> channel_type;
+typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_channels;
+typedef channel<chunk_index, shm_alloc_for_channels> channel_type;
 
 } // namespace core
 } // namespace starcounter

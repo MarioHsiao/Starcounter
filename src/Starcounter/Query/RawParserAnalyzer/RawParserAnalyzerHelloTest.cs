@@ -366,5 +366,7 @@ namespace Starcounter.Query.RawParserAnalyzer
     /// Exception class used during development to trigger that this parser cannot be used.
     /// </summary>
     internal class SQLParserAssertException : Exception {
+        public SQLParserAssertException() : base() { }
+        public SQLParserAssertException(String msg, Exception innerExc) : base(msg, innerExc) { }
     }
 }

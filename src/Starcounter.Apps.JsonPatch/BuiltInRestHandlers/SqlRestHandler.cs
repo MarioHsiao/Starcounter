@@ -327,60 +327,66 @@ namespace Starcounter.Internal {
                         var jsonRow = rowArr.Add();
 
                         if (sqle.ProjectionTypeCode != null) {
-
-                            if (sqle.ProjectionTypeCode == DbTypeCode.Object && row != null) {
-                                jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)DbHelper.GetObjectNo(row));
-                            }
-                            else {
-                                #region Set Property Value
-                                if (row is Boolean) {
+							#region GetValue
+							switch (sqle.ProjectionTypeCode) {
+                            //case DbTypeCode.Binary:
+                                //    value = obj.GetBinary(prop.Index);
+                                //    break;
+                                case DbTypeCode.Boolean:
                                     jsonRow.Set((TBool)rowItemTemplate.Properties[0], (bool)row);
-                                }
-                                else if (row is Byte) {
+                                    break;
+                                case DbTypeCode.Byte:
                                     jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is DateTime) {
-                                    jsonRow.Set((TString)rowItemTemplate.Properties[0], row.ToString());
-                                }
-                                else if (row is Decimal) {
+                                    break;
+                                case DbTypeCode.DateTime:
+                                    jsonRow.Set((TString)rowItemTemplate.Properties[0], ((DateTime)row).ToString());
+                                    break;
+                                case DbTypeCode.Decimal:
                                     jsonRow.Set((TDecimal)rowItemTemplate.Properties[0], (Decimal)row);
-                                }
-                                else if (row is Double) {
+                                    break;
+                                case DbTypeCode.Double:
                                     jsonRow.Set((TDouble)rowItemTemplate.Properties[0], (Double)row);
-                                }
-                                else if (row is Int16) {
+                                    break;
+                                case DbTypeCode.Int16:
                                     jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is Int32) {
+                                    break;
+                                case DbTypeCode.Int32:
                                     jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is Int64) {
+                                    break;
+                                case DbTypeCode.Int64:
                                     jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is Object) {
-                                    if (row != null) {
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)DbHelper.GetObjectNo(row));
+                                    break;
+                                //case DbTypeCode.LargeBinary:
+                                //    value = obj.GetBinary(prop.Index);
+                                //    break;
+                                case DbTypeCode.Object:
+                                    IObjectView value = (IObjectView)row;
+                                    if (value != null) {
+                                        jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)DbHelper.GetObjectNo(value));
                                     }
-                                }
-                                else if (row is UInt16) {
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is UInt32) {
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is UInt64) {
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
-                                }
-                                else if (row is String) {
+                                    break;
+                                case DbTypeCode.SByte:
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(sbyte)row);
+                                    break;
+                                case DbTypeCode.Single:
+                                    jsonRow.Set((TDouble)rowItemTemplate.Properties[0], (Double)(Single)row);
+                                    break;
+                                case DbTypeCode.String:
                                     jsonRow.Set((TString)rowItemTemplate.Properties[0], (string)row);
-                                }
-                                else {
-                                    // SByte
-                                    // Single
-                                    throw new NotImplementedException(string.Format("The handling of the Type {0} has not yet been implemented", row.GetType().ToString()));
-                                }
-                                #endregion
-                            }
+                                    break;
+                                case DbTypeCode.UInt16:
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(ushort)row);
+                                    break;
+                                case DbTypeCode.UInt32:
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(uint)row);
+                                    break;
+                                case DbTypeCode.UInt64:
+                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(ulong)row);
+                                    break;
+                                default:
+                                    throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", sqle.ProjectionTypeCode.ToString()));
+							}
+							#endregion
                         }
                         else {
 
@@ -453,6 +459,7 @@ namespace Starcounter.Internal {
                                 }
                             }
                         }
+				
 
                         index++;
 
