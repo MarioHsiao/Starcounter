@@ -46,8 +46,8 @@ namespace Starcounter.Internal.XSON {
         private static MethodInfo dateTimeParseInfo = typeof(DateTime).GetMethod("Parse", new Type[] { typeof(string) });
         private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
 
-		private static ParameterExpression instance = Expression.Parameter(typeof(IBindable));
-		private static ParameterExpression value = Expression.Parameter(typeof(TVal));
+		private static ParameterExpression instanceExpr = Expression.Parameter(typeof(IBindable));
+		private static ParameterExpression valueExpr = Expression.Parameter(typeof(TVal));
 
         private Func<IBindable, TVal> getBinding;
         private Action<IBindable, TVal> setBinding;
@@ -60,13 +60,13 @@ namespace Starcounter.Internal.XSON {
 		private void CompileBinding(BindingInfo bInfo) {
 			Expression expr = CreateBinding(bInfo, true);
 			if (expr != null) {
-				var lambda = Expression.Lambda<Func<IBindable, TVal>>(expr, instance);
+				var lambda = Expression.Lambda<Func<IBindable, TVal>>(expr, instanceExpr);
 				getBinding = lambda.Compile();
 			}
 
 			expr = CreateBinding(bInfo, false);
 			if (expr != null) {
-				var lambda = Expression.Lambda<Action<IBindable, TVal>>(expr, instance, value);
+				var lambda = Expression.Lambda<Action<IBindable, TVal>>(expr, instanceExpr, valueExpr);
 				setBinding = lambda.Compile();
 			}
 		}
@@ -117,11 +117,11 @@ namespace Starcounter.Internal.XSON {
 			ParameterExpression lastVar;
 			ParameterExpression[] variables;
 			Type memberType;
-
+			
 			if (bInfo.Path != null) {
 				variables = new ParameterExpression[bInfo.Path.Count];
 				callArr = new Expression[bInfo.Path.Count];
-				lastVar = instance;
+				lastVar = instanceExpr;
 
 				this.dataType = GetMemberDeclaringType(bInfo.Path[0]);
 					
@@ -166,9 +166,9 @@ namespace Starcounter.Internal.XSON {
 				this.dataType = GetMemberDeclaringType(bInfo.Member);
 
 				if (createGetBinding)
-					bindingExpr = CreateGetMemberBinding(bInfo.Member, instance, true);
+					bindingExpr = CreateGetMemberBinding(bInfo.Member, instanceExpr, true);
 				else
-					bindingExpr = CreateSetMemberBinding(bInfo.Member, instance, true);
+					bindingExpr = CreateSetMemberBinding(bInfo.Member, instanceExpr, true);
 			}
 			return bindingExpr;
 		}
@@ -268,9 +268,9 @@ namespace Starcounter.Internal.XSON {
 
             expr = Expression.Field(expr, field);
 
-            Expression setValue = value;
+            Expression setValue = valueExpr;
 			if (convertType && !valueType.Equals(typeof(TVal))) {
-                setValue = AddTypeConversionIfPossible(value, typeof(TVal), valueType);
+                setValue = AddTypeConversionIfPossible(valueExpr, typeof(TVal), valueType);
             }
             return Expression.Assign(expr, setValue);
         }
@@ -313,9 +313,9 @@ namespace Starcounter.Internal.XSON {
 			else
 				expr = variable;
 
-            Expression setValue = value;
+            Expression setValue = valueExpr;
 			if (convertType && !valueType.Equals(typeof(TVal))) {
-                setValue = AddTypeConversionIfPossible(value, typeof(TVal), valueType);
+                setValue = AddTypeConversionIfPossible(valueExpr, typeof(TVal), valueType);
             }
             return Expression.Call(expr, setMethod, setValue);
         }
