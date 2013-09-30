@@ -292,6 +292,33 @@ namespace Starcounter.Internal
 #endif
       }
 
+       /// <summary>
+       /// Adds Boolean value to the tuple.
+       /// </summary>
+       /// <param name="value">The value.</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteBoolean(Boolean value) {
+          if (value)
+              Base16Int.WriteBase16x1(1, AtEnd);
+          else
+              Base16Int.WriteBase16x1(0, AtEnd);
+          HaveWritten(1);
+      }
+
+      /// <summary>
+      /// Adds Nullable Boolean value to the tuple.
+      /// </summary>
+      /// <param name="value">The value.</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteBooleanNullable(Boolean? value) {
+          if (value == null)
+              Base16Int.WriteBase16x1(2, AtEnd);
+          else if ((bool)value)
+              Base16Int.WriteBase16x1(1, AtEnd);
+          else
+              Base16Int.WriteBase16x1(0, AtEnd);
+          HaveWritten(1);
+      }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       /// <summary>When you write a nested tuple, the parent tuple (the hosting tuple) will need to advance its write pointer. When you write a string or another primitive value,

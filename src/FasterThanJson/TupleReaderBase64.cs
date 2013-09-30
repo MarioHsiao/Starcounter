@@ -338,6 +338,62 @@ namespace Starcounter.Internal
           return value;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Boolean ReadBoolean(byte* buffer) {
+          Boolean val = false;
+          if (Base16Int.ReadBase16x1((Base16x1*)buffer) == 1)
+              val = true;
+          return val;
+      }
+
+       /// <summary>
+       /// Reads next value as Boolean from the tuple.
+       /// </summary>
+       /// <returns>The read Boolean value.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Boolean ReadBoolean() {
+          var val = ReadBoolean(AtEnd);
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd++;
+          ValueOffset++;
+          return val;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Boolean? ReadBooleanNullable(byte* buffer) {
+          Boolean? val = false;
+          var intVal = Base16Int.ReadBase16x1((Base16x1*)buffer);
+          if (intVal == 1)
+              val = true;
+          else if (intVal == 2)
+              val = null;
+          return val;
+      }
+
+             /// <summary>
+      /// Reads next value as Nullable Boolean from the tuple.
+      /// </summary>
+      /// <returns>The read Nullable Boolean value.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Boolean? ReadBooleanNullable() {
+          var val = ReadBooleanNullable(AtEnd);
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd++;
+          ValueOffset++;
+          return val;
+      }
+
+      /// <summary>
+       /// Returns the length of the current value to read.
+       /// </summary>
+       /// <returns>The length in bytes.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe uint GetValueLength() {
+          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
+          return len;
+      }
+
       /// <summary>
       /// Gets the read byte count.
       /// </summary>

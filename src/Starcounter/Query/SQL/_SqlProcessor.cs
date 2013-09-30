@@ -179,14 +179,15 @@ internal static class SqlProcessor
             typeBind = Bindings.GetTypeBindingInsensitive(typePath);
         } catch (DbException e) {
             if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
-                throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table " + typePath + " is not found");
-            throw;
+                typeBind = null;
+            else
+                throw;
         }
         PropertyBinding propBind = null;
         //if (typeBind == null)
         //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
         if (typeBind == null)
-            throw new SqlException("Table " + typePath + " is not found");
+            throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
         attributeIndexArr = new Int16[propertyList.Count + 1];
         for (Int32 i = 0; i < propertyList.Count; i++)
         {
@@ -306,10 +307,18 @@ internal static class SqlProcessor
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
 
+        TypeBinding typeBind;
         // Obtain correct table name
-        TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        try {
+            typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        } catch (DbException e) {
+            if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
+                typeBind = null;
+            else
+                throw;
+        }
         if (typeBind == null)
-            throw new SqlException("Table " + typePath + " is not found");
+            throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
 
         // Call kernel
         UInt32 errorCode;

@@ -130,6 +130,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\bit_operations.hpp = Chunks\common\bit_operations.hpp
 		Chunks\common\bounded_buffer.hpp = Chunks\common\bounded_buffer.hpp
 		Chunks\common\channel.hpp = Chunks\common\channel.hpp
+		Chunks\common\channel_interface.hpp = Chunks\common\channel_interface.hpp
 		Chunks\common\channel_mask.hpp = Chunks\common\channel_mask.hpp
 		Chunks\common\channel_number.hpp = Chunks\common\channel_number.hpp
 		Chunks\common\chunk.hpp = Chunks\common\chunk.hpp
@@ -362,6 +363,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.JsonByExample", "Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj", "{78B0F265-3764-4627-996B-B0113A8C7A52}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3a. MsBuild", "3a. MsBuild", "{D4A06269-DE78-403A-A194-041FAE896EB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "staradmin", "Server\staradmin\staradmin.csproj", "{7735503B-F15F-473F-88B8-B104068BD1BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -874,6 +877,11 @@ Global
 		{78B0F265-3764-4627-996B-B0113A8C7A52}.Debug|x64.Build.0 = Debug|Any CPU
 		{78B0F265-3764-4627-996B-B0113A8C7A52}.Release|x64.ActiveCfg = Release|Any CPU
 		{78B0F265-3764-4627-996B-B0113A8C7A52}.Release|x64.Build.0 = Release|Any CPU
+		{7735503B-F15F-473F-88B8-B104068BD1BE}.BuildServerTest|x64.ActiveCfg = Release|Any CPU
+		{7735503B-F15F-473F-88B8-B104068BD1BE}.Debug|x64.ActiveCfg = Debug|x64
+		{7735503B-F15F-473F-88B8-B104068BD1BE}.Debug|x64.Build.0 = Debug|x64
+		{7735503B-F15F-473F-88B8-B104068BD1BE}.Release|x64.ActiveCfg = Release|x64
+		{7735503B-F15F-473F-88B8-B104068BD1BE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -950,6 +958,7 @@ Global
 		{309EBD0A-3494-4999-BA61-1C9007477963} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{60AAE92E-E384-45FF-96F3-3D6B38462E3C} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{C20F6D2A-3988-4ABC-BFC2-95E19ACA3C07} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
+		{7735503B-F15F-473F-88B8-B104068BD1BE} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{8D3E6472-7E47-4266-947B-659F17F641F1} = {5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}
 		{EA81E2C5-0477-42AB-82F2-B57228AF694E} = {5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}
 		{AD049DC9-C2CA-4D87-AAD4-875C004C0EC5} = {5069EDE6-F3FE-4CD3-89C8-1AF15ED4B047}

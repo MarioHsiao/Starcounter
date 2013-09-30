@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Starcounter.Internal {
     public unsafe struct SafeTupleReaderBase64 {
@@ -35,6 +36,18 @@ namespace Starcounter.Internal {
             byte* nextOffsetPos = theTuple.AtStart + TupleReaderBase64.OffsetElementSizeSize + index * theTuple.OffsetElementSize;
             int nextOffset = (int)Base64Int.ReadSafe(theTuple.OffsetElementSize, nextOffsetPos);
             valueLength = nextOffset - valueOffset;
+        }
+
+        /// <summary>
+        /// Returns length of the value at given position in the tuple.
+        /// </summary>
+        /// <param name="index">The position in the tuple</param>
+        /// <returns>The length of the value.</returns>
+        public unsafe int GetValueLength(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            return valueLength;
         }
 
         /// <summary>
@@ -142,6 +155,45 @@ namespace Starcounter.Internal {
             GetAtPosition(index, out valuePos, out len);
             byte[] value = Base64Binary.Read((uint)len, valuePos);
             return value;
+        }
+
+        public unsafe int ReadByteArray(int index, byte* value, int valueMaxLength) {
+            byte* valuePos;
+            int len;
+            GetAtPosition(index, out valuePos, out len);
+            if (Base64Binary.MeasureNeededSizeToDecode((uint)len) > valueMaxLength)
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                    "Cannot read byte array value into given byte array pointer, since the value is too big. The actual value is " +
+                    len + " bytes, while " + valueMaxLength + " bytes are provided to write.");
+            return Base64Binary.Read((uint)len, valuePos, value);
+        }
+
+        /// <summary>
+        /// Reads Boolean at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe bool ReadBoolean(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            Debug.Assert(valueLength == 1);
+            // Read the value at the position with the length
+            return theTuple.ReadBoolean(valuePos);
+        }
+
+        /// <summary>
+        /// Reads Nullable Boolean at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe bool? ReadBooleanNullable(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            Debug.Assert(valueLength == 1);
+            // Read the value at the position with the length
+            return theTuple.ReadBooleanNullable(valuePos);
         }
     }
 }
