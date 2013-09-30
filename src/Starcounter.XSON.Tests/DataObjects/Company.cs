@@ -5,5 +5,6 @@ namespace Starcounter.Internal.XSON.Tests {
     /// 
     /// </summary>
     public class Company : Entity {
+		public Person Person { get; set; }
     }
 }

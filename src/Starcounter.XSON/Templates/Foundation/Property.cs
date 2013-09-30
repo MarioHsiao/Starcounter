@@ -139,7 +139,7 @@ namespace Starcounter {
 				var real = Bound;
 				if (real == Templates.Bound.No)
 					_Bind = null;
-				else
+				else if (_Bind == null)
 					_Bind = PropertyName;
 				invalidateBinding = true;
 			} 
