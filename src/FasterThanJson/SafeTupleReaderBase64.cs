@@ -179,7 +179,7 @@ namespace Starcounter.Internal {
             GetAtPosition(index, out valuePos, out valueLength);
             Debug.Assert(valueLength == 1);
             // Read the value at the position with the length
-            return theTuple.ReadBoolean(valuePos);
+            return AnyBaseBool.ReadBoolean(valuePos);
         }
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace Starcounter.Internal {
             GetAtPosition(index, out valuePos, out valueLength);
             Debug.Assert(valueLength == 1);
             // Read the value at the position with the length
-            return theTuple.ReadBooleanNullable(valuePos);
+            return AnyBaseBool.ReadBooleanNullable(valuePos);
         }
     }
 }
