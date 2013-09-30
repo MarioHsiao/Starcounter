@@ -30,6 +30,7 @@
 #include "../common/bounded_buffer.hpp"
 #include "../common/chunk.hpp"
 #include "../common/shared_chunk_pool.hpp"
+#include "../common/channel_interface.hpp"
 #include "../common/channel.hpp"
 #include "../common/common_scheduler_interface.hpp"
 #include "../common/common_client_interface.hpp"
@@ -61,7 +62,7 @@ typedef struct _sc_io_event
 	unsigned long chunk_index_;
 } sc_io_event;
 
-EXTERN_C unsigned long server_initialize_port(void *port_mem128, const char *name, unsigned long port_number, owner_id_value_type owner_id_value);
+EXTERN_C unsigned long server_initialize_port(void *port_mem128, const char *name, unsigned long port_number, owner_id_value_type owner_id_value, uint32_t channels_size);
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
@@ -102,25 +103,26 @@ class server_port {
 	
 	common_scheduler_interface_type* common_scheduler_interface_;
 	common_client_interface_type* common_client_interface_;
+	
+	channel_interface_type* channel_interface_;
+
 	channel_type *channel_;
+	uint32_t channels_size_;
 
 	// Keep track of the next channel to check for incomming messages.
 	channel_number next_channel_;
-
+	
+#if defined (IPC_GROUPED_CHANNELS)
+	// Number of client workers (in the Network Gateway, or the IPC test, etc.)
+	uint32_t client_workers_;
+#endif // defined (IPC_GROUPED_CHANNELS)
+	
 	scheduler_channel_type *scheduler_task_channel_;
 	scheduler_channel_type *scheduler_signal_channel_;
 	chunk_type *chunk_;
 	shared_chunk_pool_type* shared_chunk_pool_;
 	std::size_t id_;
 
-	// TODO: Remove gotoxy() - used during debug.
-	void gotoxy(int16_t x, int16_t y) {
-		COORD coord;
-		coord.X = x;
-		coord.Y = y;
-		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-	}
-	
 	owner_id& get_owner_id() {
 		return this_scheduler_interface_->get_owner_id();
 	}
@@ -133,9 +135,10 @@ public:
 	};
 	
 	server_port()
-	: next_channel_(0) {}
+	: channels_size_(),
+	next_channel_() {}
 	
-	unsigned long init(const char *name, std::size_t id, owner_id oid);
+	unsigned long init(const char *name, std::size_t id, owner_id oid, uint32_t channels_size);
 	unsigned long get_next_signal_or_task(unsigned int timeout_milliseconds, sc_io_event &the_io_event);
 	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 	long has_task();
@@ -400,13 +403,17 @@ private:
 };
 
 
-unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
+unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid, uint32_t channels_size) {
 	try {
 		if (!global_mapped_region.is_valid()) {
 			return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
 		}
 		
 		id_ = id;
+		channels_size_ = channels_size;
+#if defined (IPC_GROUPED_CHANNELS)
+		next_channel_ = id;
+#endif // defined (IPC_GROUPED_CHANNELS)
 		simple_shared_memory_manager *pm = new (global_mapped_region.get_address())
 		simple_shared_memory_manager;
 		
@@ -444,11 +451,15 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		common_client_interface_ = (common_client_interface_type*)
 		pm->find_named_block
 		(starcounter_core_shared_memory_common_client_interface_name);
-
+		
+		// Find the channel_interface.
+		channel_interface_ = (channel_interface_type*) pm->find_named_block
+		(starcounter_core_shared_memory_channel_interface_name);
+		
 		// Find the channels.
 		channel_ = (channel_type*) pm->find_named_block
 		(starcounter_core_shared_memory_channels_name);
-
+		
 		// Find the scheduler_interfaces.
 		scheduler_interface_type* scheduler_interface =
 		(scheduler_interface_type*) pm->find_named_block
@@ -537,6 +548,18 @@ sc_io_event& the_io_event) try {
 			return 0;
 		}
 
+#if 0 // defined (IPC_GROUPED_CHANNELS)
+		///=====================================================================
+		/// Scan grouped channels here. . .No cleanup is done.
+
+		for (channel_number this_channel = next_channel_;
+		this_channel < channels_size_; this_channel += client_workers_) {
+			channel_type& the_channel = channel_[this_channel];
+		}
+
+		next_channel_ = id_;
+
+#else // !defined (IPC_GROUPED_CHANNELS)
 		if (!common_client_interface().client_interfaces_to_clean_up()) {
 			// No clean up to do.
 			goto check_next_channel;
@@ -675,6 +698,7 @@ check_next_channel:
 			// Keep the mask word counter value (bit 7:6), and clear all other bits.
 			next_channel_ &= 192; // ...011000000
 		}
+#endif // defined (IPC_GROUPED_CHANNELS)
 		
 		// The scheduler has completed a scan of all its channels in queues.
 		this_scheduler_interface_->increment_channel_scan_counter();
@@ -1393,11 +1417,12 @@ inline void server_port::show_linked_chunks(chunk_index head) {
 _STATIC_ASSERT(sizeof(starcounter::core::server_port) <= 128);
 
 unsigned long server_initialize_port(void *port_mem128, const char *name, unsigned
-long port_number, owner_id_value_type owner_id_value) {
+long port_number, owner_id_value_type owner_id_value, uint32_t channels_size) {
 	using namespace starcounter::core;
 	server_port *the_port = new (port_mem128) server_port();
 	return the_port->init(name, port_number,
-	starcounter::core::owner_id(owner_id_value));
+	starcounter::core::owner_id(owner_id_value),
+	channels_size);
 }
 
 unsigned long server_get_next_signal_or_task(void *port, unsigned int
