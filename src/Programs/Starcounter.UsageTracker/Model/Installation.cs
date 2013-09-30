@@ -283,8 +283,8 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// <param name="installation"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
-        /// <returns></returns>
-        public static bool WasInstalled(Installation installation, DateTime from, DateTime to) {
+        /// <returns>The installation when it was installed othterwise null</returns>
+        public static Installation GetWhenInstallationWasInstalled(Installation installation, DateTime from, DateTime to) {
 
             Installation currentInstallation = Installation.GetLastNode(installation);
 
@@ -296,19 +296,18 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
                     if (currentInstallation.Date >= from && currentInstallation.Date < to) {
 
                         if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
-                            return true;
+                            return currentInstallation;
                         }
                         else if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
-                            return false;
+                            return null;
                         }
                     }
                 }
 
                 currentInstallation = Installation.GetPreviousNode(currentInstallation);
-
             }
 
-            return false;
+            return null;
         }
 
 
@@ -319,8 +318,8 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// <param name="installation"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
-        /// <returns></returns>
-        public static bool WasUnInstalled(Installation installation, DateTime from, DateTime to) {
+        /// <returns>The uninstallation when it was installed othterwise null</returns>
+        public static Installation GetWhenInstallationWasUninstalled(Installation installation, DateTime from, DateTime to) {
 
             Installation currentInstallation = Installation.GetLastNode(installation);
 
@@ -332,19 +331,18 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
                     if (currentInstallation.Date >= from && currentInstallation.Date < to) {
 
                         if (currentInstallation.InstallerFinish.Mode == 3) { // UnInstallation
-                            return true;
+                            return currentInstallation;
                         }
                         else if (currentInstallation.InstallerFinish.Mode == 1) { // Installation
-                            return false;
+                            return null;
                         }
                     }
                 }
 
                 currentInstallation = Installation.GetPreviousNode(currentInstallation);
-
             }
 
-            return false;
+            return null;
         }
 
     }
