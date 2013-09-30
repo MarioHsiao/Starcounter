@@ -60,7 +60,7 @@ const int32_t kWsBadProtoLen = static_cast<int32_t> (strlen(kWsBadProto));
 // Unmasks frame and pushes it to database.
 uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
-    uint8_t* payload = sd->get_data_blob() + frame_info_.payload_data_blob_offset_;
+    uint8_t* payload = sd->get_accum_buf()->get_chunk_orig_buf_ptr() + frame_info_.payload_offset_;
 
     switch (frame_info_.opcode_)
     {
@@ -83,11 +83,6 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
             // Determining user data offset.
             uint32_t user_data_offset = static_cast<uint32_t> (payload - (uint8_t *) sd);
-            if ((payload - sd->get_data_blob()) < MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE)
-                user_data_offset += MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE;
-
-            //std::cout << "Pushing payload: " << req->content_len_bytes_ << std::endl;
-
             sd->set_user_data_offset_in_socket_data(user_data_offset);
 
             // Push chunk to corresponding channel/scheduler.
@@ -153,7 +148,7 @@ uint32_t WsProto::ProcessWsDataToDb(
     GW_ASSERT_DEBUG(bmx::BMX_INVALID_HANDLER_INFO != user_handler_id);
 
     SocketDataChunk* sd_push_to_db = NULL;
-    uint8_t* orig_data_ptr = sd->get_data_blob();
+    uint8_t* orig_data_ptr = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
     uint32_t num_accum_bytes = sd->get_accum_buf()->get_accum_len_bytes();
     uint32_t num_processed_bytes = 0;
 
@@ -165,7 +160,7 @@ uint32_t WsProto::ProcessWsDataToDb(
 
     // Checking if we have already parsed the frame.
     if (frame_info_.is_complete_)
-        goto UNMASK_FRAME;
+        goto DATA_ACCUMULATED;
 
     // Since WebSocket frames can be grouped into one network packet
     // we have to processes all of them in a loop.
@@ -183,16 +178,13 @@ uint32_t WsProto::ProcessWsDataToDb(
         if (!frame_info_.is_complete_)
         {
             // Checking if we need to move current data up.
-            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopIfTooLittleSpace(cur_data_ptr, MixedCodeConstants::WS_MAX_FRAME_INFO_SIZE);
-
-            // Continue receiving.
-            sd->get_accum_buf()->ContinueReceive();
+            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
 
             // Returning socket to receiving state.
             return gw->Receive(sd);
         }
 
-        uint8_t* payload = sd->get_data_blob() + frame_info_.payload_data_blob_offset_;
+        uint8_t* payload = sd->get_accum_buf()->get_chunk_orig_buf_ptr() + frame_info_.payload_offset_;
 
         // Calculating number of bytes processed.
         int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
@@ -240,7 +232,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
 #endif
 
-UNMASK_FRAME:
+DATA_ACCUMULATED:
 
         // Data is complete, no more frames, creating parallel receive clone.
         if (NULL == sd_push_to_db)
@@ -248,9 +240,13 @@ UNMASK_FRAME:
             // Only when session is created we can receive non-stop.
             if (sd->HasActiveSession())
             {
-                err_code = sd->CloneToReceive(gw);
-                if (err_code)
-                    return err_code;
+                // Aggregation is done separately.
+                if (!sd->GetSocketAggregatedFlag())
+                {
+                    err_code = sd->CloneToReceive(gw);
+                    if (err_code)
+                        return err_code;
+                }
             }
 
             // Unmasking frame and pushing to database.
@@ -543,7 +539,7 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
     if (data < limit)
         frame_info_.is_complete_ = true;
     
-    frame_info_.payload_data_blob_offset_ = static_cast<uint32_t> (data - sd->get_data_blob());
+    frame_info_.payload_offset_ = static_cast<uint32_t> (data - sd->get_accum_buf()->get_chunk_orig_buf_ptr());
 
     return 0;
 }

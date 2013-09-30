@@ -276,6 +276,10 @@ Gateway::Gateway()
     InitializeCriticalSection(&cs_sockets_cleanup_);
     InitializeCriticalSection(&cs_statistics_);
 
+    num_aggregated_sent_messages_ = 0;
+    num_aggregated_recv_messages_ = 0;
+    num_aggregated_tosend_messages_ = 0;
+
     // Creating gateway handlers table.
     gw_handlers_ = new HandlersTable();
 
@@ -475,7 +479,7 @@ void ServerPort::Reset()
 }
 
 // Removes this port.
-void ServerPort::EraseDb(int32_t db_index)
+void ServerPort::EraseDb(db_index_type db_index)
 {
     // Deleting port handlers if any.
     port_handlers_->RemoveEntry(db_index);
@@ -960,7 +964,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
 }
 
 // Creates new connections on all workers.
-uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port_num, int32_t db_index)
+uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port_num, db_index_type db_index)
 {
     // Getting server port index.
     int32_t port_index = g_gateway.FindServerPortIndex(port_num);
@@ -974,6 +978,51 @@ uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port
     }
 
     return 0;
+}
+
+// Applying session parameters to socket data.
+bool Gateway::ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id)
+{
+    GW_ASSERT(socket_index < setting_max_connections_);
+
+    if (CompareUniqueSocketId(socket_index, unique_socket_id))
+    {
+        ScSocketInfoStruct si = all_sockets_infos_unsafe_[socket_index];
+
+        sd->AssignSession(si.session_);
+        sd->set_unique_socket_id(si.unique_socket_id_);
+        sd->set_socket_info_index(si.socket_info_index_);
+        sd->set_type_of_network_protocol((MixedCodeConstants::NetworkProtocolType)si.type_of_network_protocol_);
+
+        return true;
+    }
+
+    return false;
+}
+
+// Gets free socket index.
+session_index_type Gateway::ObtainFreeSocketIndex(
+    GatewayWorker* gw,
+    db_index_type db_index,
+    SOCKET s,
+    int32_t port_index)
+{
+    PSLIST_ENTRY free_socket_index_entry = InterlockedPopEntrySList(free_socket_indexes_unsafe_);
+    GW_ASSERT(free_socket_index_entry);
+
+    // NOTE: Socket info has the same address as socket index entry.
+    ScSocketInfoStruct* si = (ScSocketInfoStruct*) free_socket_index_entry;
+
+    // Resetting the socket structure.
+    si->Reset();
+
+    // Marking socket as alive.
+    si->socket_ = s;
+
+    // Creating unique ids.
+    CreateUniqueSocketId(si->socket_info_index_, port_index, gw->GenerateSchedulerId(db_index));
+
+    return si->socket_info_index_;
 }
 
 // Stub APC function that does nothing.
@@ -992,7 +1041,7 @@ void WakeUpThreadUsingAPC(HANDLE thread_handle)
 uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 {
     // Index of the database as parameter.
-    int32_t db_index = *(int32_t*)params;
+    db_index_type db_index = *(db_index_type*)params;
 
     // Determine the worker by interface or channel,
     // and wake up that worker.
@@ -1310,7 +1359,55 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     return err_code;
                 }
 
-                /*if (0 != setting_aggregation_port_)
+                // Registering URI handler for socket resource creation.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    setting_gw_stats_port_,
+                    "POST /socket",
+                    12,
+                    "POST /socket ",
+                    13,
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
+                    empty_db_index,
+                    PostSocketResource,
+                    true);
+
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    return err_code;
+                }
+
+                // Registering URI handler for socket resource deletion.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    setting_gw_stats_port_,
+                    "DELETE /socket",
+                    14,
+                    "DELETE /socket ",
+                    15,
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
+                    empty_db_index,
+                    DeleteSocketResource,
+                    true);
+
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    return err_code;
+                }
+
+                if (0 != setting_aggregation_port_)
                 {
                     // Registering port handler for aggregation.
                     err_code = AddPortHandler(
@@ -1328,7 +1425,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
                         return err_code;
                     }
-                }*/
+                }
             }
 
 #endif
@@ -1382,7 +1479,7 @@ ActiveDatabase::ActiveDatabase()
 void ActiveDatabase::Init(
     std::string db_name,
     uint64_t unique_num,
-    int32_t db_index)
+    db_index_type db_index)
 {
     // Creating fresh handlers table.
     user_handlers_ = new HandlersTable();
@@ -1517,7 +1614,7 @@ void ActiveDatabase::CloseSocketData()
         {
             // NOTE: Can't kill the session here, because it can be used by other databases.
 
-            // NOTE: Closing socket which will results in stop of all pending operations on that socket.
+            // Closing socket which will results in stop of all pending operations on that socket.
             g_gateway.get_worker(0)->AddSocketToDisconnectListUnsafe(socket_index);
         }
     }
@@ -1869,7 +1966,7 @@ GatewayWorker* Gateway::get_worker(int32_t worker_id)
 }
 
 // Delete all information associated with given database from server ports.
-uint32_t Gateway::EraseDatabaseFromPorts(int32_t db_index)
+uint32_t Gateway::EraseDatabaseFromPorts(db_index_type db_index)
 {
     // Going through all ports.
     for (int32_t i = 0; i < num_server_ports_slots_; i++)
@@ -1933,7 +2030,7 @@ int64_t Gateway::NumberOfReusableConnectSockets()
 }
 
 // Getting the number of used sockets per database.
-int64_t Gateway::NumberUsedSocketsPerDatabase(int32_t db_index)
+int64_t Gateway::NumberUsedSocketsPerDatabase(db_index_type db_index)
 {
     int64_t num_used_sockets = 0;
 
@@ -1966,7 +2063,7 @@ int64_t Gateway::NumberUsedChunksAllWorkersAndDatabases()
 }
 
 // Getting the number of used chunks per database.
-int64_t Gateway::NumberUsedChunksPerDatabase(int32_t db_index)
+int64_t Gateway::NumberUsedChunksPerDatabase(db_index_type db_index)
 {
     int64_t num_used_chunks = 0;
 
@@ -1988,7 +2085,7 @@ int64_t Gateway::NumberOverflowChunksAllWorkersAndDatabases()
 }
 
 // Getting the number of overflow chunks per database.
-int64_t Gateway::NumberOverflowChunksPerDatabase(int32_t db_index)
+int64_t Gateway::NumberOverflowChunksPerDatabase(db_index_type db_index)
 {
     int64_t num_overflow_chunks = 0;
 
@@ -3105,7 +3202,7 @@ uint32_t Gateway::AddUriHandler(
     uint8_t* param_types,
     int32_t num_params,
     BMX_HANDLER_TYPE handler_id,
-    int32_t db_index,
+    db_index_type db_index,
     GENERIC_HANDLER_CALLBACK handler_proc,
     bool is_gateway_handler)
 {
@@ -3198,7 +3295,7 @@ uint32_t Gateway::AddPortHandler(
     HandlersTable* handlers_table,
     uint16_t port,
     BMX_HANDLER_TYPE handler_info,
-    int32_t db_index,
+    db_index_type db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
 {
     BMX_HANDLER_INDEX_TYPE new_handler_index;
@@ -3218,7 +3315,7 @@ uint32_t Gateway::AddSubPortHandler(
     uint16_t port,
     bmx::BMX_SUBPORT_TYPE subport,
     BMX_HANDLER_TYPE handler_id,
-    int32_t db_index,
+    db_index_type db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
 {
     BMX_HANDLER_INDEX_TYPE new_handler_index;
