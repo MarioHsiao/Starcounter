@@ -14,7 +14,9 @@ namespace FasterThanJson.Tests {
         UINTNULL,
         ULONGNULL,
         INTNULL,
-        LONGNULL
+        LONGNULL,
+        BOOL,
+        BOOLNULL
     }
 
     public static class RandomValues {

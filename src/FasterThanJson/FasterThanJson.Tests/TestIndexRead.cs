@@ -125,7 +125,7 @@ namespace FasterThanJson.Tests {
             int nrIterations = 10000;
             Random writeRnd = new Random(1);
             for (int i = 0; i < nrIterations; i++) {
-                uint nrValues = (uint)writeRnd.Next(1, 400);
+                uint nrValues = (uint)writeRnd.Next(1, 500);
                 int[] valueTypes = new Int32[nrValues];
                 uint[] uintValues = new uint[nrValues];
                 String[] stringValues = new String[nrValues];
@@ -137,11 +137,13 @@ namespace FasterThanJson.Tests {
                 ulong?[] ulongNullValues = new ulong?[nrValues];
                 int?[] intNullValues = new int?[nrValues];
                 long?[] longNullValues = new long?[nrValues];
+                bool[] boolValues = new bool[nrValues];
+                bool?[] boolNullValues = new bool?[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, (uint)tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        valueTypes[j] = writeRnd.Next(1, 11);
+                        valueTypes[j] = writeRnd.Next(1, 13);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
@@ -183,6 +185,14 @@ namespace FasterThanJson.Tests {
                                 longNullValues[j] = RandomValues.RandomNullableLong(writeRnd);
                                 arrayWriter.WriteLongNullable(longNullValues[j]);
                                 break;
+                            case (int)ValueTypes.BOOL:
+                                boolValues[j] = RandomValues.RandomBoolean(writeRnd);
+                                arrayWriter.WriteBoolean(boolValues[j]);
+                                break;
+                            case (int)ValueTypes.BOOLNULL:
+                                boolNullValues[j] = RandomValues.RandomNullabelBoolean(writeRnd);
+                                arrayWriter.WriteBooleanNullable(boolNullValues[j]);
+                                break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
                                 break;
@@ -223,6 +233,12 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.LONGNULL:
                                 Assert.AreEqual(longNullValues[j], arrayReader.ReadLongNullable(j));
+                                break;
+                            case (int)ValueTypes.BOOL:
+                                Assert.AreEqual(boolValues[j], arrayReader.ReadBoolean(j));
+                                break;
+                            case (int)ValueTypes.BOOLNULL:
+                                Assert.AreEqual(boolNullValues[j], arrayReader.ReadBooleanNullable(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
