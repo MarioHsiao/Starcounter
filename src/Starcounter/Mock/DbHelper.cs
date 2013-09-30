@@ -171,5 +171,81 @@ namespace Starcounter {
             byte[] decbuff = HttpServerUtility.UrlTokenDecode(objectID);
             return Convert.ToUInt64(Encoding.UTF8.GetString(decbuff));
         }
+
+        #region Extending FasterThanJson with writing and reading methods on Binary
+        /// <summary>
+        /// Adds given binary as byte array to the tuple.
+        /// </summary>
+        /// <param name="tuple">The tuple</param>
+        /// <param name="value">The value</param>
+        public static void WriteBinary(ref TupleWriterBase64 tuple, Binary value) {
+            value.WriteToTuple(ref tuple);
+        }
+
+        /// <summary>
+        /// Adds given binary as byte array to the tuple.
+        /// </summary>
+        /// <param name="tuple">The tuple</param>
+        /// <param name="value">The value</param>
+        public static void WriteBinary(ref SafeTupleWriterBase64 tuple, Binary value) {
+            value.WriteToTuple(ref tuple);
+        }
+
+        /// <summary>
+        /// Reads next byte array value in the tuple into new binary.
+        /// </summary>
+        /// <param name="tuple">The tuple.</param>
+        /// <returns>New binary</returns>
+        public static Binary ReadBinary(ref TupleReaderBase64 tuple) {
+            return new Binary(ref tuple);
+        }
+
+        /// <summary>
+        /// Reads byte array value at the given position in the tuple into new binary.
+        /// </summary>
+        /// <param name="tuple">The tuple</param>
+        /// <param name="index">The position</param>
+        /// <returns>New binary</returns>
+        public static Binary ReadBinary(ref SafeTupleReaderBase64 tuple, int index) {
+            return new Binary(ref tuple, index);
+        }
+
+        /// <summary>
+        /// Adds given binary as byte array to the tuple.
+        /// </summary>
+        /// <param name="tuple">The tuple</param>
+        /// <param name="value">The value</param>
+        public static void WriteLargeBinary(ref TupleWriterBase64 tuple, LargeBinary value) {
+            value.WriteToTuple(ref tuple);
+        }
+
+        /// <summary>
+        /// Adds given binary as byte array to the tuple.
+        /// </summary>
+        /// <param name="tuple">The tuple</param>
+        /// <param name="value">The value</param>
+        public static void WriteLargeBinary(ref SafeTupleWriterBase64 tuple, LargeBinary value) {
+            value.WriteToTuple(ref tuple);
+        }
+
+        /// <summary>
+        /// Reads next byte array value in the tuple into new binary.
+        /// </summary>
+        /// <param name="tuple">The tuple.</param>
+        /// <returns>New binary</returns>
+        public static LargeBinary ReadLargeBinary(ref TupleReaderBase64 tuple) {
+            return new LargeBinary(ref tuple);
+        }
+
+        /// <summary>
+        /// Reads byte array value at the given position in the tuple into new binary.
+        /// </summary>
+        /// <param name="tuple">The tuple</param>
+        /// <param name="index">The position</param>
+        /// <returns>New binary</returns>
+        public static LargeBinary ReadLargeBinary(ref SafeTupleReaderBase64 tuple, int index) {
+            return new LargeBinary(ref tuple, index);
+        }
+        #endregion
     }
 }

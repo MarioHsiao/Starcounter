@@ -40,11 +40,11 @@ namespace FasterThanJson.Tests {
                 uint valCounter = 0;
                 for (; valCounter < valueCount * 2 / 3; valCounter++) {
                     inputUInts[valCounter] = RandomValues.RandomUInt(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeULong(inputUInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeULong(inputUInts[valCounter]);
                 }
                 for (; valCounter < valueCount; valCounter++) {
                     inputUInts[valCounter] = RandomValues.RandomULong(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeULong(inputUInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeULong(inputUInts[valCounter]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -94,11 +94,11 @@ namespace FasterThanJson.Tests {
                 uint valCounter = 0;
                 for (; valCounter < valueCount * 2 / 3; valCounter++) {
                     inputInts[valCounter] = RandomValues.RandomInt(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeLong(inputInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeLong(inputInts[valCounter]);
                 }
                 for (; valCounter < valueCount; valCounter++) {
                     inputInts[valCounter] = RandomValues.RandomLong(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeLong(inputInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeLong(inputInts[valCounter]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -148,11 +148,11 @@ namespace FasterThanJson.Tests {
                 uint valCounter = 0;
                 for (; valCounter < valueCount * 2 / 3; valCounter++) {
                     inputInts[valCounter] = RandomValues.RandomNullableUInt(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeNullableULong(inputInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeNullableULong(inputInts[valCounter]);
                 }
                 for (; valCounter < valueCount; valCounter++) {
                     inputInts[valCounter] = RandomValues.RandomNullableULong(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeNullableULong(inputInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeNullableULong(inputInts[valCounter]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -202,11 +202,11 @@ namespace FasterThanJson.Tests {
                 uint valCounter = 0;
                 for (; valCounter < valueCount * 2 / 3; valCounter++) {
                     inputInts[valCounter] = RandomValues.RandomNullableInt(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeNullableLong(inputInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeNullableLong(inputInts[valCounter]);
                 }
                 for (; valCounter < valueCount; valCounter++) {
                     inputInts[valCounter] = RandomValues.RandomNullableLong(rnd);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeNullableLong(inputInts[valCounter]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeNullableLong(inputInts[valCounter]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -255,7 +255,7 @@ namespace FasterThanJson.Tests {
                 uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputStrings[i] = RandomValues.RandomString(rnd, strignLength);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeString(inputStrings[i]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeString(inputStrings[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -306,7 +306,7 @@ namespace FasterThanJson.Tests {
                 uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputStrings[i] = RandomValues.RandomString(rnd, strignLength).ToCharArray();
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeString(inputStrings[i]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeString(inputStrings[i]);
                     outputStrings[i] = new char[inputStrings[i].Length];
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
@@ -360,7 +360,7 @@ namespace FasterThanJson.Tests {
                 uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputByteArrays[i] = RandomValues.RandomByteArray(rnd, byteArrayLength);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeByteArray(inputByteArrays[i]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeByteArray(inputByteArrays[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -411,7 +411,7 @@ namespace FasterThanJson.Tests {
                 uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
                 for (uint i = 0; i < valueCount; i++) {
                     inputByteArrays[i] = RandomValues.RandomByteArray(rnd, byteArrayLength);
-                    tupleLength += TupleWriterBase64.MeasureNeededSizeByteArray(inputByteArrays[i]);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeByteArray(inputByteArrays[i]);
                 }
                 uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
                 tupleLength += valueCount * offsetSize;
@@ -451,6 +451,106 @@ namespace FasterThanJson.Tests {
                     TupleReaderBase64 validationreader = new TupleReaderBase64(start, valueCount);
                     for (uint j = 0; j < valueCount; j++)
                         Assert.AreEqual(inputByteArrays[j], outputByteArrays[j]);
+                }
+            }
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public unsafe void BenchmarkBool() {
+            Random rnd = new Random(1);
+            Stopwatch timer = new Stopwatch();
+            foreach (uint valueCount in NrElements) {
+                bool[] inputBools = new bool[valueCount];
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
+                uint valCounter = 0;
+                for (; valCounter < valueCount ; valCounter++) {
+                    inputBools[valCounter] = RandomValues.RandomBoolean(rnd);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeBoolean(inputBools[valCounter]);
+                }
+                uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
+                tupleLength += valueCount * offsetSize;
+                fixed (byte* start = new byte[tupleLength]) {
+                    uint nrIter = NrIterations / valueCount;
+                    if (TestLogger.IsRunningOnBuildServer())
+                        nrIter *= 10;
+
+                    timer.Reset();
+                    timer.Start();
+                    for (uint i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
+                        for (uint j = 0; j < valueCount; j++)
+                            writer.WriteBoolean(inputBools[j]);
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Writing tuple of " + valueCount + " Booleans took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 1000 * 100 / nrIter) / 100 + " mcs per tuple write.");
+
+                    timer.Reset();
+                    timer.Start();
+                    for (uint i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
+                        for (uint j = 0; j < valueCount; j++)
+                            reader.ReadBoolean();
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Reading tuple of " + valueCount + " Booleans took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple read.");
+                    TupleReaderBase64 validationReader = new TupleReaderBase64(start, valueCount);
+                    for (uint j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputBools[j], validationReader.ReadBoolean());
+                }
+            }
+        }
+
+        [Test]
+        [Category("LongRunning")]
+        public unsafe void BenchmarkBoolNullable() {
+            Random rnd = new Random(1);
+            Stopwatch timer = new Stopwatch();
+            foreach (uint valueCount in NrElements) {
+                bool?[] inputBools = new bool?[valueCount];
+                uint tupleLength = TupleWriterBase64.OffsetElementSizeSize;
+                uint valCounter = 0;
+                for (; valCounter < valueCount; valCounter++) {
+                    inputBools[valCounter] = RandomValues.RandomNullabelBoolean(rnd);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeNullableBoolean(inputBools[valCounter]);
+                }
+                uint offsetSize = CalculateOffsetSize(tupleLength, valueCount);
+                tupleLength += valueCount * offsetSize;
+                fixed (byte* start = new byte[tupleLength]) {
+                    uint nrIter = NrIterations / valueCount;
+                    if (TestLogger.IsRunningOnBuildServer())
+                        nrIter *= 10;
+
+                    timer.Reset();
+                    timer.Start();
+                    for (uint i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, valueCount, offsetSize);
+                        for (uint j = 0; j < valueCount; j++)
+                            writer.WriteBooleanNullable(inputBools[j]);
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Writing tuple of " + valueCount + " Nullable Booleans took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 1000 * 100 / nrIter) / 100 + " mcs per tuple write.");
+
+                    timer.Reset();
+                    timer.Start();
+                    for (uint i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, valueCount);
+                        for (uint j = 0; j < valueCount; j++)
+                            reader.ReadBooleanNullable();
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Reading tuple of " + valueCount + " Nullable Booleans took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple read.");
+                    TupleReaderBase64 validationReader = new TupleReaderBase64(start, valueCount);
+                    for (uint j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputBools[j], validationReader.ReadBooleanNullable());
                 }
             }
         }

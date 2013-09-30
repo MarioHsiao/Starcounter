@@ -72,20 +72,8 @@ public:
 	atomic_bounded_buffer<T, 8> in; // 1 << 8 (256) elements.
 };
 
-#if 0
-// Define an STL compatible allocator of chunk_indexes that allocates from the
-// managed_shared_memory. This allocator will allow placing containers in the segment.
-typedef boost::interprocess::allocator<chunk_index, boost::interprocess
-::managed_shared_memory::segment_manager> shm_alloc_for_the_scheduler_channels;
-
-// Alias a scheduler_channel that uses the previous STL-like allocator so that it
-// allocates its values from the segment.
-typedef scheduler_channel<chunk_index, shm_alloc_for_the_scheduler_channels>
-scheduler_channel_type;
-#endif
-
-typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_the_channels2;
-typedef scheduler_channel<chunk_index, shm_alloc_for_the_channels2> scheduler_channel_type;
+typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_channels;
+typedef scheduler_channel<chunk_index, shm_alloc_for_channels> scheduler_channel_type;
 
 } // namespace core
 } // namespace starcounter

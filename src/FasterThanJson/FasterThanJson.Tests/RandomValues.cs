@@ -14,7 +14,9 @@ namespace FasterThanJson.Tests {
         UINTNULL,
         ULONGNULL,
         INTNULL,
-        LONGNULL
+        LONGNULL,
+        BOOL,
+        BOOLNULL
     }
 
     public static class RandomValues {
@@ -106,6 +108,26 @@ namespace FasterThanJson.Tests {
             for (int i = 0; i < length; i++)
                 value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue+1);
             return value;
+        }
+
+        public static Boolean RandomBoolean(Random rnd) {
+            int gen = rnd.Next(0, 2);
+            Debug.Assert(gen ==0 || gen == 1);
+            if (gen == 1)
+                return true;
+            else
+                return false;
+        }
+
+        public static Boolean? RandomNullabelBoolean(Random rnd) {
+            int gen = rnd.Next(0, 3);
+            Debug.Assert(gen >= 0 && gen <= 2);
+            if (gen == 1)
+                return true;
+            else if (gen == 0)
+                return false;
+            else
+                return null;
         }
     }
 }

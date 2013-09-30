@@ -1,7 +1,7 @@
 //
 // name_definitions.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -17,5 +17,6 @@
 #define starcounter_core_shared_memory_channels_name 7
 #define starcounter_core_shared_memory_scheduler_task_channels_name 8
 #define starcounter_core_shared_memory_scheduler_signal_channels_name 9
+#define starcounter_core_shared_memory_channel_interface_name 10
 
 #endif // STARCOUNTER_CORE_NAME_DEFINITIONS_HPP

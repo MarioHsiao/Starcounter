@@ -32,7 +32,7 @@ namespace Starcounter {
         internal override bool UseBinding(IBindable data) {
 			if (data == null)
 				return false;
-            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
+            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Starcounter {
 
 		internal virtual bool UseBinding(IBindable data) {
 			if (data == null) return false;
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
+            return DataBindingFactory.VerifyOrCreateBinding(this, data);
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Starcounter {
 				var real = Bound;
 				if (real == Templates.Bound.No)
 					_Bind = null;
-				else
+				else if (_Bind == null)
 					_Bind = PropertyName;
 				invalidateBinding = true;
 			} 

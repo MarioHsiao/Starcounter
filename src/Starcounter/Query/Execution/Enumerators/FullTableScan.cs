@@ -406,7 +406,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // In order to skip enumerator recreation next time.
         //triedEnumeratorRecreation = true;
         Debug.Assert(OffsetTuppleLength == 3);
-        TupleReaderBase64 thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
+        SafeTupleReaderBase64 thisEnumTuple = ValidateNodeAndReturnOffsetReader(rk, OffsetTuppleLength);
         return thisEnumTuple.ReadByteArray(2);
     }
 
@@ -639,15 +639,14 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     }
 
 
-    public unsafe short SaveEnumerator(ref TupleWriterBase64 enumerators, short expectedNodeId) {
+    public unsafe short SaveEnumerator(ref SafeTupleWriterBase64 enumerators, short expectedNodeId) {
         currentObject = null;
         Debug.Assert(expectedNodeId == nodeId);
         Debug.Assert(OffsetTuppleLength == 3);
-        TupleWriterBase64 tuple = new TupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE);
-        tuple.SetTupleLength(enumerators.AvailableSize);
+        SafeTupleWriterBase64 tuple = new SafeTupleWriterBase64(enumerators.AtEnd, OffsetTuppleLength, OFFSETELEMNETSIZE, enumerators.AvailableSize);
         // Static data for validation
-        tuple.WriteSafeULong((byte)NodeType);
-        tuple.WriteSafeULong(nodeId);
+        tuple.WriteULong((byte)NodeType);
+        tuple.WriteULong(nodeId);
 
         Byte* createdKey = GetRecreationKeyFromKernel();
         // Checking if it was last object.
@@ -655,7 +654,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             return -1;
         // Copying the recreation key.
         UInt16 bytesWritten = *((UInt16*)createdKey);
-        tuple.WriteSafeByteArray(createdKey, bytesWritten);
+        tuple.WriteByteArray(createdKey, bytesWritten);
         enumerators.HaveWritten(tuple.SealTuple());
         return (short)(expectedNodeId + 1);
     }

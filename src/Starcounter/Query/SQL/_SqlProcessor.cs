@@ -76,6 +76,13 @@ internal static class SqlProcessor
     //    throw new SqlException("Unknown statement.");
     //}
 
+    static Exception GetSqlExceptionForToken(String message, List<String> tokenList, int pos) {
+        if (pos < tokenList.Count)
+            return new SqlException(message, tokenList[pos]);
+        else
+            return new SqlException(message + " But no token is found (end of the query).");
+    }
+
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
@@ -94,7 +101,7 @@ internal static class SqlProcessor
         Int32 pos = 0;
         if (!Token("$CREATE", tokenList, pos))
         {
-            throw new SqlException("Expected word CREATE.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word CREATE.", tokenList, pos);
         }
         pos++;
         if (Token("$UNIQUE", tokenList, pos))
@@ -104,18 +111,18 @@ internal static class SqlProcessor
         }
         if (!Token("$INDEX", tokenList, pos))
         {
-            throw new SqlException("Expected word INDEX.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word INDEX.", tokenList, pos);
         }
         pos++;
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected identifier.", tokenList, pos);
         }
         String indexName = tokenList[pos];
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
-            throw new SqlException("Expected word ON.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word ON.", tokenList, pos);
         }
         pos++;
         
@@ -151,7 +158,7 @@ internal static class SqlProcessor
 
         if (!Token(")", tokenList, pos))
         {
-            throw new SqlException("Expected closing bracket ')'.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected closing bracket ')'.", tokenList, pos);
         }
         pos++;
 
@@ -172,20 +179,21 @@ internal static class SqlProcessor
             typeBind = Bindings.GetTypeBindingInsensitive(typePath);
         } catch (DbException e) {
             if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
-                throw new SqlException("Table " + typePath + " is not found");
-            throw e;
+                typeBind = null;
+            else
+                throw;
         }
         PropertyBinding propBind = null;
         //if (typeBind == null)
         //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
         if (typeBind == null)
-            throw new SqlException("Table " + typePath + " is not found");
+            throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
         attributeIndexArr = new Int16[propertyList.Count + 1];
         for (Int32 i = 0; i < propertyList.Count; i++)
         {
             propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
             if (propBind == null)
-                throw new SqlException("Column " + propertyList[i] + " is not found in table " + typeBind.Name);
+                throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Column " + propertyList[i] + " is not found in table " + typeBind.Name);
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
         }
 
@@ -207,7 +215,7 @@ internal static class SqlProcessor
         }
     }
 
-    internal static bool ProcessDQuery(String statement, params Object[] values)
+    internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)
     {
         List<String> tokenList = Tokenizer.Tokenize(statement);
         if (tokenList == null || tokenList.Count < 2)
@@ -232,7 +240,7 @@ internal static class SqlProcessor
             }
                 throw new SqlException("Unexpected token after DROP", tokenList[pos]);
         }
-        if (Token("$DELETE", tokenList, pos))
+        if (Token("$DELETE", tokenList, pos) && slowSQL)
         {
             pos++;
             ProcessDelete(statement, values);
@@ -278,13 +286,13 @@ internal static class SqlProcessor
         // Parse the rest of the statement and prepare variables to call kernel
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected identifier.", tokenList, pos);
         }
         String indexName = tokenList[pos];
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
-            throw new SqlException("Expected word ON.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected word ON.", tokenList, pos);
         }
         pos++;
 
@@ -299,10 +307,18 @@ internal static class SqlProcessor
             throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
         }
 
+        TypeBinding typeBind;
         // Obtain correct table name
-        TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        try {
+            typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        } catch (DbException e) {
+            if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
+                typeBind = null;
+            else
+                throw;
+        }
         if (typeBind == null)
-            throw new SqlException("Table " + typePath + " is not found");
+            throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
 
         // Call kernel
         UInt32 errorCode;

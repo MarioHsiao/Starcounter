@@ -28,7 +28,12 @@ namespace Starcounter {
                 var notEnumeratedResult = (IEnumerable)_data;
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is IBindable) {
-                        newApp = (Json)template.ElementType.CreateInstance(this);
+                        var tobj = template.ElementType;
+                        if (tobj == null) {
+                            template.CreateElementTypeFromDataObject(entity);
+                            tobj = template.ElementType;
+                        }
+                        newApp = (Json)tobj.CreateInstance(this);
                         newApp.Data = (IBindable)entity;
                         Add(newApp);
                     }
