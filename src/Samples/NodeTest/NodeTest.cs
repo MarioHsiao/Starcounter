@@ -23,7 +23,7 @@ namespace NodeTest
     class Settings
     {
         public const String ServerIp = "127.0.0.1";
-        public const String ServerNodeTestHttpRelativeUri = "/nodetest";
+        public const String ServerNodeTestHttpRelativeUri = "/echotest";
         public const String ServerNodeTestWsRelativeUri = "/ws";
         public const UInt16 ServerPort = 8080;
         public static readonly String CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
@@ -46,15 +46,17 @@ namespace NodeTest
 
         public Int32 MinEchoBytes = 1;
 
-        public Int32 MaxEchoBytes = 100000;
+        public Int32 MaxEchoBytes = 10000;
 
-        public Int32 NumEchoesPerWorker = 5000;
+        public Int32 NumEchoesPerWorker = 30000;
 
         public Int32 NumSecondsToWait = 5000;
 
         public AsyncModes AsyncMode = AsyncModes.ModeRandom;
 
         public ProtocolTypes ProtocolType = ProtocolTypes.ProtocolHttpV1;
+
+        public Boolean UseAggregation = false;
 
         public Boolean ConsoleDiag = false;
 
@@ -102,6 +104,10 @@ namespace NodeTest
                     else if (asyncParam == "ModeRandom")
                         AsyncMode = AsyncModes.ModeRandom;
                 }
+                else if (arg.StartsWith("-UseAggregation="))
+                {
+                    UseAggregation = Boolean.Parse(arg.Substring("-UseAggregation=".Length));
+                }
                 else if (arg.StartsWith("-ConsoleDiag="))
                 {
                     ConsoleDiag = Boolean.Parse(arg.Substring("-ConsoleDiag=".Length));
@@ -144,7 +150,16 @@ namespace NodeTest
             worker_ = worker;
             unique_id_ = unique_id;
             async_ = async;
-            useNodeX_ = ((num_echo_bytes_ % 2) == 0) ? true : false;
+
+            if (settings.UseAggregation)
+            {
+                useNodeX_ = false;
+                async_ = true;
+            }
+            else
+            {
+                useNodeX_ = ((num_echo_bytes_ % 2) == 0) ? true : false;
+            }
 
             num_echo_bytes_ = num_echo_bytes;
 
@@ -356,26 +371,24 @@ namespace NodeTest
         Boolean CheckResponse(Response resp)
         {
 #if FASTEST_POSSIBLE
+
             NodeTest.WorkersMonitor.IncrementNumFinishedTests();
             return true;
 #else
 
-            if (null == resp)
-                throw new Exception("Response is null by some reason!");
+            if (settings_.ConsoleDiag)
+                Console.WriteLine(worker_.Id + ": echoed: " + num_echo_bytes_ + " bytes");
+
+            Byte[] resp_body = resp.BodyBytes;
+            if (resp_body.Length != num_echo_bytes_)
+            {
+                Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
+                NodeTest.WorkersMonitor.FailTest();
+                return false;
+            }
 
             try
             {
-                Byte[] resp_body = resp.BodyBytes;
-                if (resp_body.Length != num_echo_bytes_)
-                {
-                    Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
-                    NodeTest.WorkersMonitor.FailTest();
-                    return false;
-                }
-
-                if (settings_.ConsoleDiag)
-                    Console.WriteLine(worker_.Id + ": echoed: " + num_echo_bytes_ + " bytes");
-
                 // Calculating SHA1 hash.
                 SHA1 sha1 = new SHA1CryptoServiceProvider();
                 Byte[] received_hash_ = sha1.ComputeHash(resp_body);
@@ -421,13 +434,20 @@ namespace NodeTest
 
         Settings settings_;
 
-        Node worker_node_ = new Node("127.0.0.1", 8080);
+        Node worker_node_;
+
+        public Node WorkerNode
+        {
+            get { return worker_node_; }
+        }
 
         public void Init(Settings settings, Int32 id)
         {
             Id = id;
             Rand = new Random(id);
             settings_ = settings;
+
+            worker_node_ = new Node("127.0.0.1", Settings.ServerPort, settings_.UseAggregation);
         }
 
         /// <summary>
@@ -508,9 +528,12 @@ namespace NodeTest
 
         Int64 num_finished_tests_;
 
-        public void Init(Settings settings)
+        Worker[] workers_;
+
+        public void Init(Settings settings, Worker[] workers)
         {
             settings_ = settings;
+            workers_ = workers;
         }
 
         /// <summary>
@@ -563,7 +586,11 @@ namespace NodeTest
                 delay_counter++;
                 if (delay_counter >= 100)
                 {
-                    Console.WriteLine("Last second num echoes: " + (num_finished_tests_ - prev_num_finished_tests));
+                    Console.WriteLine("Finished echoes: " + num_finished_tests_ + " out of " + num_tests_all_workers + ", last second: " + (num_finished_tests_ - prev_num_finished_tests));
+                    
+                    for (Int32 i = 0; i < workers_.Length; i++)
+                        Console.WriteLine("Worker " + i + " send-recv balance: " + workers_[i].WorkerNode.SentReceivedBalance);
+
                     prev_num_finished_tests = num_finished_tests_;
                     delay_counter = 0;
                 }
@@ -604,10 +631,11 @@ namespace NodeTest
             Console.WriteLine("Echoes number per worker: " + settings.NumEchoesPerWorker);
             Console.WriteLine("Max time seconds: " + settings.NumSecondsToWait);
 
-            WorkersMonitor.Init(settings);
-
             // Starting all workers.
             Worker[] workers = new Worker[settings.NumWorkers];
+
+            WorkersMonitor.Init(settings, workers);
+
             for (Int32 w = 0; w < settings.NumWorkers; w++)
             {
                 Int32 id = w;

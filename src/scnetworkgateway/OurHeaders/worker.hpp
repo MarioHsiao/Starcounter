@@ -55,15 +55,38 @@ class GatewayWorker
     // List of sockets indexes to be disconnected.
     std::list<session_index_type> sockets_indexes_to_disconnect_;
 
-    // Avoiding false sharing.
-    uint8_t pad[64];
+    /////////////////////////////AGGREGATION///////////////////////////////////
+
+    // Aggregation queue first item.
+    core::chunk_index first_aggregated_chunk_index_;
+    int8_t first_aggregated_chunk_db_index_;
+
+    // Aggregation queue last item.
+    core::chunk_index last_aggregated_chunk_;
+    int8_t last_aggregated_chunk_db_index_;
+
+    // Aggregation timer.
+    PreciseTimer aggr_timer_;
+    /////////////////////////////AGGREGATION////////////////////////////////////
 
 #ifdef GW_LOOPED_TEST_MODE
     LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
     LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
 #endif
 
+    // Avoiding false sharing.
+    uint8_t pad[64];
+
 public:
+
+    // Returns given socket data chunk to private chunk pool.
+    void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
+
+    // Adds socket data chunk to aggregation queue.
+    void AddToAggregation(SocketDataChunkRef sd);
+
+    // Processes all aggregated chunks.
+    uint32_t SendAggregatedChunks();
 
     // Pushes socket for further reuse.
     void PushToReusableAcceptSockets(SOCKET sock)
@@ -117,7 +140,7 @@ public:
     }
 
     // Tracks certain socket.
-    void TrackSocket(int32_t db_index, session_index_type index)
+    void TrackSocket(db_index_type db_index, session_index_type index)
     {
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "Tracking socket index: " << index << GW_ENDL;
@@ -127,7 +150,7 @@ public:
     }
 
     // Untracks certain socket.
-    void UntrackSocket(int32_t db_index, session_index_type index)
+    void UntrackSocket(db_index_type db_index, session_index_type index)
     {
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "UnTracking socket index: " << index << GW_ENDL;
@@ -137,7 +160,7 @@ public:
     }
 
     // Getting number of used sockets.
-    int64_t NumberUsedSocketPerDatabase(int32_t db_index)
+    int64_t NumberUsedSocketPerDatabase(db_index_type db_index)
     {
         if (worker_dbs_[db_index] != NULL)
         {
@@ -148,7 +171,7 @@ public:
     }
 
     // Getting number of used chunks.
-    int64_t NumberUsedChunksPerDatabasePerWorker(int32_t db_index)
+    int64_t NumberUsedChunksPerDatabasePerWorker(db_index_type db_index)
     {
         if (worker_dbs_[db_index] != NULL)
         {
@@ -159,7 +182,7 @@ public:
     }
 
     // Getting number of chunks in overflow queue.
-    int64_t NumberOverflowChunksPerDatabasePerWorker(int32_t db_index)
+    int64_t NumberOverflowChunksPerDatabasePerWorker(db_index_type db_index)
     {
         if (worker_dbs_[db_index] != NULL)
         {
@@ -230,9 +253,9 @@ public:
 #endif
 
     // Generates a new scheduler id.
-    scheduler_id_type GenerateSchedulerId(SocketDataChunk* sd)
+    scheduler_id_type GenerateSchedulerId(db_index_type db_index)
     {
-        return GetWorkerDb(sd->get_db_index())->GenerateSchedulerId();
+        return GetWorkerDb(db_index)->GenerateSchedulerId();
     }
 
     // Getting random generator.
@@ -248,7 +271,7 @@ public:
     }
 
     // Adds new active database.
-    uint32_t AddNewDatabase(int32_t db_index);
+    uint32_t AddNewDatabase(db_index_type db_index);
 
     // Sets worker suspend state.
     void set_worker_suspended(bool value)
@@ -281,7 +304,7 @@ public:
     }
 
     // Getting one of the active databases.
-    WorkerDbInterface* GetWorkerDb(int32_t db_index)
+    WorkerDbInterface* GetWorkerDb(db_index_type db_index)
     {
         // Checking for correct database.
         GW_ASSERT_DEBUG(db_index < g_gateway.get_num_dbs_slots());
@@ -293,13 +316,19 @@ public:
     uint32_t CloneChunkForAnotherDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
 
     // Deleting inactive database.
-    void DeleteInactiveDatabase(int32_t db_index);
+    void DeleteInactiveDatabase(db_index_type db_index);
 
     // Sends given predefined response.
     uint32_t SendPredefinedMessage(
         SocketDataChunkRef sd,
         const char* message,
         const int32_t message_len);
+
+    // Sends given body.
+    uint32_t SendBody(
+        SocketDataChunkRef sd,
+        const char* body,
+        const int32_t body_len);
 
     // Getting the bytes received statistics.
     int64_t get_worker_stats_bytes_received()
@@ -372,7 +401,7 @@ public:
     HANDLE get_worker_iocp() { return worker_iocp_; }
 
     // Used to create new connections when reaching the limit.
-    uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, int32_t db_index);
+    uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, db_index_type db_index);
 
 #ifdef GW_PROXY_MODE
     // Allocates a bunch of new connections.
@@ -459,11 +488,11 @@ public:
     // Creates the socket data structure.
     uint32_t CreateSocketData(
         session_index_type socket_info_index,
-        int32_t db_index,
+        db_index_type db_index,
         SocketDataChunkRef out_sd);
 
     // Gets SMC from given database chunk.
-    shared_memory_chunk* GetSmcFromChunkIndex(int32_t db_index, core::chunk_index the_chunk_index)
+    shared_memory_chunk* GetSmcFromChunkIndex(db_index_type db_index, core::chunk_index the_chunk_index)
     {
         return (shared_memory_chunk*) &(worker_dbs_[db_index]->get_shared_int()->chunk(the_chunk_index));
     }

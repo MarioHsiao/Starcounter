@@ -12,7 +12,7 @@ namespace starcounter {
 namespace network {
 
 // Should be called when whole handlers list should be unregistered.
-uint32_t HandlersList::UnregisterGlobally(int32_t db_index)
+uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
 {
     // Checking the type of handler.
     switch(type_)
@@ -55,7 +55,7 @@ uint32_t HandlersTable::RegisterPortHandler(
     uint16_t port_num,
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK port_handler,
-    int32_t db_index,
+    db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
     // Checking number of handlers.
@@ -155,7 +155,7 @@ uint32_t HandlersTable::RegisterPortHandler(
 
         // Checking if its an aggregation port.
         if (port_num == g_gateway.setting_aggregation_port())
-            server_port->set_aggregation_flag();
+            server_port->set_aggregating_flag();
     }
 
     // Checking if port contains handlers from this database.
@@ -197,7 +197,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     bmx::BMX_SUBPORT_TYPE subport,
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK subport_handler,
-    int32_t db_index,
+    db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
     // Checking number of handlers.
@@ -351,7 +351,7 @@ uint32_t HandlersTable::RegisterUriHandler(
     int32_t num_params,
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK uri_handler,
-    int32_t db_index,
+    db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
     // Checking number of handlers.
@@ -625,13 +625,13 @@ uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HA
         GW_ASSERT(accum_buffer->get_accum_len_bytes() == 8);
 
         // Copying echo message.
-        int64_t orig_echo = *(int64_t*)accum_buffer->get_orig_buf_ptr();
+        int64_t orig_echo = *(int64_t*)accum_buffer->get_chunk_orig_buf_ptr();
 
         // Duplicating this echo.
-        *(int64_t*)(accum_buffer->get_orig_buf_ptr() + 8) = orig_echo;
+        *(int64_t*)(accum_buffer->get_chunk_orig_buf_ptr() + 8) = orig_echo;
 
         // Prepare buffer to send outside.
-        accum_buffer->PrepareForSend(accum_buffer->get_orig_buf_ptr(), 16);
+        accum_buffer->PrepareForSend(accum_buffer->get_chunk_orig_buf_ptr(), 16);
 
         // Sending data.
         err_code = gw->Send(sd);

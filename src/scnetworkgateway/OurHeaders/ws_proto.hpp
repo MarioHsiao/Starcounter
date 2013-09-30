@@ -43,7 +43,7 @@ class WsProtoFrameInfo
     friend class SocketDataChunk;
 
     // Payload offset in sd data blob.
-    uint32_t payload_data_blob_offset_;
+    uint32_t payload_offset_;
 
     // Payload length in bytes.
     uint64_t payload_len_;

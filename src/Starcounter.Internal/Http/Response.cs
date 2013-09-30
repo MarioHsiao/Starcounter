@@ -864,34 +864,33 @@ namespace Starcounter.Advanced
 		private int EstimateNeededSize(byte[] bytes) {
 			// The sizes of the strings here is not accurate. We are mainly interested in making sure
 			// that we will never have a buffer overrun so we take the length of the strings * 2.
-			int strSizeMultiplier = 2;
-			int size;
-
-			size = HttpHeadersUtf8.TotalByteSize;
+			int size = HttpHeadersUtf8.TotalByteSize;
 
 			if (statusDescription_ != null)
-				size += statusDescription_.Length * strSizeMultiplier;
+				size += statusDescription_.Length;
 
             if (null != customHeaderFields_) {
                 foreach (KeyValuePair<string, string> h in customHeaderFields_) {
-                    size += (h.Key.Length + 2 + h.Value.Length + 2) * strSizeMultiplier;
+                    size += (h.Key.Length + h.Value.Length + 4);
                 }
             }
 
 			if (null != cacheControl_)
-				size += cacheControl_.Length * strSizeMultiplier;
+				size += cacheControl_.Length;
 			if (null != contentType_)
-				size += contentType_.Length * strSizeMultiplier;
+				size += contentType_.Length;
 			if (null != contentEncoding_)
-				size += contentEncoding_.Length * strSizeMultiplier;
+				size += contentEncoding_.Length;
 			if (null != AppsSession) {
-				size += ScSessionClass.DataLocationUriPrefixEscaped.Length * strSizeMultiplier;
+				size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
 				size += AppsSession.ToAsciiString().Length;
 			}
+
 			if (null != bodyString_)
-				size += bodyString_.Length * strSizeMultiplier;
+				size += (bodyString_.Length << 1); // Multiplying by 2 for possible UTF8.
 			else if (null != bytes)
 				size += bytes.Length;
+
 			return size;
 		}
 

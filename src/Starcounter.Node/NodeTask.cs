@@ -3,6 +3,7 @@ using Starcounter.Internal;
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace Starcounter {
     internal class NodeTask
@@ -15,7 +16,7 @@ namespace Starcounter {
         /// <summary>
         /// Maximum number of pending asynchronous calls.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 128;
+        public const Int32 MaxNumPendingAsyncTasks = 8192 * 4;
 
         /// <summary>
         /// Tcp client.
@@ -48,6 +49,11 @@ namespace Starcounter {
         public Byte[] RequestBytes = null;
 
         /// <summary>
+        /// Size of request in bytes.
+        /// </summary>
+        public Int32 RequestBytesLength = 0;
+
+        /// <summary>
         /// Original request.
         /// </summary>
         public Request OrigReq = null;
@@ -75,13 +81,14 @@ namespace Starcounter {
         /// <summary>
         /// Resets the connection details.
         /// </summary>
-        public void Reset(Byte[] requestBytes, Request origReq, Func<Response, Object, Response> userDelegate, Object userObject)
+        public void Reset(Byte[] requestBytes, Int32 requestBytesLength, Request origReq, Func<Response, Object, Response> userDelegate, Object userObject)
         {
             Resp = null;
             TotallyReceivedBytes = 0;
             ResponseSizeBytes = 0;
 
             RequestBytes = requestBytes;
+            RequestBytesLength = requestBytesLength;
             OrigReq = origReq;
 
             UserDelegate = userDelegate;
@@ -221,7 +228,7 @@ namespace Starcounter {
                 Int32 numBytesSent = SocketObj.EndSend(ar);
 
                 // Checking for correct number of bytes sent.
-                if (numBytesSent != RequestBytes.Length)
+                if (numBytesSent != RequestBytesLength)
                 {
                     CallUserDelegateOnFailure(new Exception("Socket has sent wrong amount of data!"));
                     return;
@@ -249,7 +256,7 @@ namespace Starcounter {
                 TcpClientObj = new TcpClient();
                 TcpClientObj.Client = SocketObj;
 
-                SocketObj.BeginSend(RequestBytes, 0, RequestBytes.Length, SocketFlags.None, NetworkWriteCallback, null);
+                SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkWriteCallback, null);
             }
             catch (Exception exc)
             {
@@ -273,7 +280,7 @@ namespace Starcounter {
             {
                 try
                 {
-                    SocketObj.BeginSend(RequestBytes, 0, RequestBytes.Length, SocketFlags.None, NetworkWriteCallback, null);
+                    SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkWriteCallback, null);
                 }
                 catch
                 {
@@ -283,6 +290,48 @@ namespace Starcounter {
                     SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkConnectCallback, null);
                 }
             }
+        }
+
+        /// <summary>
+        /// Constructs response from bytes.
+        /// </summary>
+        internal void ConstructResponseAndCallDelegate(Byte[] bytes, Int32 offset, Int32 resp_len_bytes)
+        {
+            try
+            {
+                // Trying to parse the response.
+                Resp = new Response(bytes, offset, resp_len_bytes, OrigReq, false);
+
+                // Getting the whole response size.
+                ResponseSizeBytes = Resp.ResponseLength;
+            }
+            catch (Exception exc)
+            {
+                // Continue to receive when there is not enough data.
+                Resp = null;
+
+                // Trying to fetch recognized error code.
+                UInt32 code;
+                if ((!ErrorCode.TryGetCode(exc, out code)) || (code != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS))
+                {
+                    // Logging the exception to server log.
+                    if (NodeInst.ShouldLogErrors)
+                        Node.NodeLogException_(exc);
+
+                    // Freeing connection resources.
+                    NodeInst.FreeConnection(this, true);
+
+                    throw exc;
+                }
+            }
+
+            // Setting the response buffer.
+            Byte[] resp_bytes = new Byte[resp_len_bytes];
+            Buffer.BlockCopy(bytes, offset, resp_bytes, 0, resp_len_bytes);
+            Resp.SetResponseBuffer(resp_bytes, null, resp_len_bytes);
+
+            // Invoking user delegate.
+            Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
         }
 
         /// <summary>
@@ -302,7 +351,7 @@ RECONNECT:
             // Sending the request.
             try
             {
-                SocketObj.Send(RequestBytes, 0, RequestBytes.Length, SocketFlags.None);
+                SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
             }
             catch
             {
@@ -310,7 +359,7 @@ RECONNECT:
                 // So we need to create a new one.
                 AttachConnection(null);
 
-                SocketObj.Send(RequestBytes, 0, RequestBytes.Length, SocketFlags.None);
+                SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
             }
 
             Int32 recievedBytes;
