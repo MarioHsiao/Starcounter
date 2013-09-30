@@ -264,19 +264,19 @@ namespace Starcounter.Internal {
 
         public unsafe void WriteBoolean(Boolean b) {
             uint size = MeasureNeededSizeBoolean(b);
+            Debug.Assert(size == 1);
             size = ValidateLength(size);
             theTuple.WriteBoolean(b);
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
-            Debug.Assert(size == 1);
             AvailableSize -= size;
         }
 
         public unsafe void WriteBooleanNullable(Boolean? b) {
             uint size = MeasureNeededSizeNullableBoolean(b);
+            Debug.Assert(size == 1);
             size = ValidateLength(size);
             theTuple.WriteBooleanNullable(b);
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
-            Debug.Assert(size == 1);
             AvailableSize -= size;
         }
     }

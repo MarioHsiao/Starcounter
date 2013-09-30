@@ -61,6 +61,7 @@
     <Compile Include="Base32Int.cs" />
     <Compile Include="Base64Binary.cs" />
     <Compile Include="Base64Int.cs" />
+    <Compile Include="AnyBaseBool.cs" />
     <Compile Include="MemcpyUtil.cs" />
     <Compile Include="SafeTupleReaderBase64.cs" />
     <Compile Include="SafeTupleWriterBase64.cs" />

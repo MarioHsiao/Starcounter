@@ -298,10 +298,7 @@ namespace Starcounter.Internal
        /// <param name="value">The value.</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void WriteBoolean(Boolean value) {
-          if (value)
-              Base16Int.WriteBase16x1(1, AtEnd);
-          else
-              Base16Int.WriteBase16x1(0, AtEnd);
+          AnyBaseBool.WriteBoolean(AtEnd, value);
           HaveWritten(1);
       }
 
@@ -311,12 +308,7 @@ namespace Starcounter.Internal
       /// <param name="value">The value.</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void WriteBooleanNullable(Boolean? value) {
-          if (value == null)
-              Base16Int.WriteBase16x1(2, AtEnd);
-          else if ((bool)value)
-              Base16Int.WriteBase16x1(1, AtEnd);
-          else
-              Base16Int.WriteBase16x1(0, AtEnd);
+          AnyBaseBool.WriteBooleanNullable(AtEnd, value);
           HaveWritten(1);
       }
 
