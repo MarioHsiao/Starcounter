@@ -1,6 +1,7 @@
 ﻿
 using System;
 using NUnit.Framework;
+using Starcounter.Advanced;
 using Starcounter.Templates;
 using TJson = Starcounter.Templates.TObject;
 
@@ -9,8 +10,48 @@ namespace Starcounter.Internal.XSON.Tests {
 
     public class BindingTests {
 
+		[TestFixtureSetUp]
+		public static void Setup() {
+			DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
+		}
 
-        //[Test] // Awaiting Christians push of autobinding as default
+		[Test]
+		public static void TestPathBindings() {
+			Person person = new Person() { FirstName = "Arne", LastName = "Anka" };
+			person.Address = new Address() { Street = "Nybrogatan" }; 
+			Company company = new Company() { Person = person };
+			
+			Person person2 = new Person() { Address = null };
+			Company company2 = new Company() { Person = person2 };
+
+			var jsonTemplate = new TObject();
+			var streetTemplate = jsonTemplate.Add<TString>("Street", "Person.Address.Street");
+			streetTemplate.Bound = Bound.Yes;
+
+			var firstNameTemplate = jsonTemplate.Add<TString>("FirstName", "Person.FirstName");
+			firstNameTemplate.Bound = Bound.Yes;
+
+			dynamic json = (Json)jsonTemplate.CreateInstance();
+			json.Data = company;
+			Assert.AreEqual(person.Address.Street, json.Street);
+			Assert.AreEqual(person.FirstName, json.FirstName);
+
+			json.Street = "Härjedalsvägen";
+			json.FirstName = "Nisse";
+			Assert.AreEqual("Härjedalsvägen", person.Address.Street);
+			Assert.AreEqual("Nisse", person.FirstName);
+
+			json.Data = company2;
+			Assert.DoesNotThrow(() => {
+				string value = json.Street;
+				json.Street = "Härjedalsvägen";
+
+				value = json.FirstName;
+				json.FirstName = "Nisse";
+			});
+		}
+
+        [Test]
         public static void TestDefaultAutoBinding() {
             Person p = new Person();
             p.FirstName = "Albert";

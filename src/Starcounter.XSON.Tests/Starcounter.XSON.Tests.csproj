@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Bindables.cs" />
     <Compile Include="Binding\BindingTests.cs" />
+    <Compile Include="DataObjects\Address.cs" />
     <Compile Include="DataObjects\Agent.cs" />
     <Compile Include="DataObjects\Company.cs" />
     <Compile Include="DataObjects\Database.cs" />
