@@ -12,7 +12,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#define IPC_GROUPED_CHANNELS
+//#define IPC_GROUPED_CHANNELS
 
 #if defined (IPC_GROUPED_CHANNELS)
 #endif // defined (IPC_GROUPED_CHANNELS)
