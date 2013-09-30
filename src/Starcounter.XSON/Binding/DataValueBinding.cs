@@ -150,9 +150,14 @@ namespace Starcounter.Internal.XSON {
 
 					if (createGetBinding)
 						bindingExpr = Expression.Condition(notNullCheck, bindingExpr, Expression.Default(memberType));
-					else
-						bindingExpr = Expression.IfThen(notNullCheck, bindingExpr);
+					else {
+						// TODO:
+						// Ignore if null or throw exception when setting the value?
 
+						//var exception = Expression.Throw(Expression.Constant(new NullReferenceException()));
+						//bindingExpr = Expression.IfThenElse(notNullCheck, bindingExpr, exception);
+						bindingExpr = Expression.IfThen(notNullCheck, bindingExpr);
+					}
 					block = Expression.Block(new[] { variables[i] }, callArr[i], bindingExpr);
 					callArr[i] = block;
 				}
