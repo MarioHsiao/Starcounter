@@ -96,9 +96,6 @@ namespace Starcounter.XSON.Metadata {
 					str += ParentClasses[i] + ".";
 				
                 str += ClassName;
-                if (GenericArg != null) {
-                    str += "<" + GenericArg + ">";
-                }
                 return str;
             }
         }
@@ -107,15 +104,6 @@ namespace Starcounter.XSON.Metadata {
         /// The name of the baseclass (if any) specified for the class.
         /// </summary>
         public string BaseClassName;
-
-        /// <summary>
-        /// Contains the generic argument (if any) for the class.
-        /// </summary>
-        public string GenericArg;
-        /// <summary>
-        /// Contains the generic argument (if any) for the inherited class.
-        /// </summary>
-        public string BaseClassGenericArg;
 
         /// <summary>
         /// 
