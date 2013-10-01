@@ -87,8 +87,6 @@ namespace Starcounter
         /// <exception cref="System.ArgumentException">Not enough free space in destination buffer.</exception>
         public void Read(Byte[] buffer, Int32 offset, Int32 length)
         {
-            UInt32 ec;
-
             if (buffer == null) throw new ArgumentNullException("dest");
             if ((buffer.Length - offset) < length)
                 throw new ArgumentException("Not enough free space in destination buffer.");
@@ -116,22 +114,7 @@ namespace Starcounter
                 return;
             }
 
-            // If the unmanaged buffer is linked, i.e. the message is larger
-            // than what fits in one chunk, we call a native function that will
-            // copy all data into the destination buffer since we don't want to 
-            // read linked chunks in managed code.
-            fixed (byte* p = buffer)
-            {
-                ec = bmx.sc_bmx_read_from_chunk(
-                        chunk_index_,
-                        unmanaged_chunk_,
-                        (UInt32)length,
-                        p + offset,
-                        (UInt32)(buffer.Length - offset)
-                );
-            }
-            if (ec != 0)
-                throw ErrorCode.ToException(ec);
+            throw new NotImplementedException();
         }
 
         /// <summary>

@@ -148,7 +148,7 @@ namespace HttpStructs.Tests
 
                 Byte[] http_request_bytes = Encoding.ASCII.GetBytes(http_request_strings[i]);
 
-                Request http_request = new Request(http_request_bytes);
+                Request http_request = new Request(http_request_bytes, http_request_bytes.Length);
 
                 // Checking correct URIs.
                 Assert.That(http_request.Uri == http_request_uris[i], Is.True);
@@ -188,7 +188,7 @@ namespace HttpStructs.Tests
                 try
                 {
                     // Should through only ScErrAppsHttpParserIncompleteHeaders, ScErrAppsHttpParserIncorrect.
-                    http_request = new Request(simple_http_request_bytes);
+                    http_request = new Request(simple_http_request_bytes, simple_http_request_bytes.Length);
                 }
                 catch (Exception e)
                 {

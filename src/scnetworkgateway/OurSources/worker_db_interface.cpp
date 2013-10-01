@@ -182,20 +182,20 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 // Writes given big linear buffer into obtained linked chunks.
 uint32_t WorkerDbInterface::WriteBigDataToChunks(
     uint8_t* buf,
-    uint32_t buf_len_bytes,
+    int32_t buf_len_bytes,
     starcounter::core::chunk_index cur_chunk_index,
-    uint32_t* actual_written_bytes,
-    uint32_t first_chunk_offset,
+    int32_t* actual_written_bytes,
+    int32_t first_chunk_offset,
     bool just_sending_flag
     )
 {
     // Maximum number of bytes that will be written in this call.
-    uint32_t num_bytes_to_write = buf_len_bytes;
-    uint32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    int32_t num_bytes_to_write = buf_len_bytes;
+    int32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
 
     // Number of chunks to use.
-    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
-    assert(num_extra_chunks_to_use > 0);
+    int32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
+    GW_ASSERT(num_extra_chunks_to_use > 0);
 
     // Checking if more than maximum chunks we can take at once.
     if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
@@ -227,8 +227,8 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
     // Going through each linked chunk and write data there.
-    uint32_t left_bytes_to_write = num_bytes_to_write;
-    uint32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
+    int32_t left_bytes_to_write = num_bytes_to_write;
+    int32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Writing to first chunk.
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
@@ -333,7 +333,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
-    if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
+    /*if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
     {
         uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL));
 
@@ -342,7 +342,8 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
         // TODO: Uncomment when centralized chunks are ready!
         //GW_ASSERT(0 == err_code);
-    }
+    }*/
+    // TODO: Check above!
 }
 
 // Releases all private chunks to shared chunk pool.
@@ -372,7 +373,11 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 #endif
 
     // Obtaining the current scheduler id.
-    scheduler_id_type sched_id = sd->get_scheduler_id();
+    scheduler_id_type sched_id = 255;
+
+    // Checking if socket has active session.
+    if (sd->HasActiveSession())
+        sched_id = sd->get_scheduler_id();
 
     // Modifying chunk data to use correct handler.
     shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->get_chunk_index()));
