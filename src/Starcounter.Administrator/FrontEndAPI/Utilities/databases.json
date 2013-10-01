@@ -1,0 +1,18 @@
+﻿{
+    "Databases": [
+        {
+            "name": "Foo",
+            "uri": "http://example.com/api/databases/foo",
+			"hostUri":"http://example.com/api/databases/bar",
+			"engineUri":"http://example.com/api/engines/foo",
+			"running": false
+        },
+		{
+            "name": "Foo",
+            "uri": "http://example.com/api/databases/foo",
+			"hostUri":"http://example.com/api/databases/bar",
+			"engineUri":"http://example.com/api/engines/foo",
+			"running": false
+        },
+    ]
+}
