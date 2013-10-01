@@ -37,9 +37,6 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         public InitializationWindow()
         {
-
-            this.Activate();
-
             // Setting library-resolving hooks.
             SetLibraryHooks();
 

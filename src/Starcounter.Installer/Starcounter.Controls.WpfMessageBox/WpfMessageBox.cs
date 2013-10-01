@@ -665,7 +665,15 @@ namespace Starcounter.Controls
 
         public static WpfMessageBoxResult Show(string messageBoxText, string caption, WpfMessageBoxButton button, WpfMessageBoxImage icon, WpfMessageBoxResult defaultResult)
         {
-            WpfMessageBox win = new WpfMessageBox() { Owner = System.Windows.Application.Current.MainWindow };
+
+//            WpfMessageBox win = new WpfMessageBox() { Owner = System.Windows.Application.Current.MainWindow };
+
+            WpfMessageBox win = new WpfMessageBox();
+
+            // Fix so the window dosent own itself
+            if (System.Windows.Application.Current.MainWindow != win) {
+                win.Owner = System.Windows.Application.Current.MainWindow;
+            }
 
             win.MessageBoxText = messageBoxText;
             win.Caption = caption;
