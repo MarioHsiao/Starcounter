@@ -14,7 +14,7 @@ namespace network {
 // Initialization.
 void SocketDataChunk::Init(
     session_index_type socket_info_index,
-    int32_t db_index,
+    db_index_type db_index,
     core::chunk_index chunk_index)
 {
     socket_info_index_ = INVALID_SESSION_INDEX;
@@ -35,11 +35,18 @@ void SocketDataChunk::Init(
     chunk_index_ = chunk_index;
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
+    // Sealing the next chunk.
+    next_chunk_db_index_ = INVALID_DB_INDEX;
+    get_smc()->set_next(INVALID_CHUNK_INDEX);
+
     flags_ = 0;
     set_to_database_direction_flag();
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
+
+    // Setting unique socket id.
+    set_unique_socket_id(g_gateway.GetUniqueSocketId(socket_info_index));
 
     num_chunks_ = 1;
 
@@ -108,16 +115,14 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             // Setting new chunk as a new buffer.
             accum_buf_.Init(MixedCodeConstants::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
         }
-        else
-        {
-            // Continue receiving in existing buffer.
-            accum_buf_.ContinueReceive();
-        }
     }
     else
     {
         // All data has been received.
         *is_accumulated = true;
+
+        // Restoring the socket data link.
+        accum_buf_.RestoreOrigBufPtr();
 
         // Resetting extra chunk index.
         extra_chunk_index_ = INVALID_CHUNK_INDEX;
@@ -172,6 +177,33 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     return 0;
 }
 
+// Start sending on socket.
+uint32_t SocketDataChunk::SendMultipleChunks(GatewayWorker* gw, uint32_t *num_sent_bytes)
+{
+    set_type_of_network_oper(SEND_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+#ifdef GW_LOOPED_TEST_MODE
+    PushToMeasuredNetworkEmulationQueue(gw);
+    return WSA_IO_PENDING;
+#endif
+    int32_t num_wsa_bufs = num_chunks_ - 1;
+
+    // Checking if its aggregating port.
+    if (g_gateway.IsAggregatingPort(socket_info_index_))
+        num_wsa_bufs--;
+
+    // Getting the contents of WSABUFs chunk.
+    WSABUF* wsa_bufs = (WSABUF*) gw->GetSmcFromChunkIndex(db_index_, extra_chunk_index_);
+
+    // Getting socket number.
+    SOCKET s = GetSocket();
+
+    // NOTE: Need to subtract one chunks from being included in send.
+    return WSASend(s, wsa_bufs, num_wsa_bufs, (LPDWORD)num_sent_bytes, 0, &ovl_, NULL);
+}
+
 // Clone current socket data to push it.
 uint32_t SocketDataChunk::CloneToPush(
     GatewayWorker*gw,
@@ -192,8 +224,7 @@ uint32_t SocketDataChunk::CloneToPush(
     }
 
     // Copying chunk data.
-    memcpy(new_smc, get_smc(),
-        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB + get_accum_buf()->get_accum_len_bytes());
+    memcpy(new_smc, get_smc(), MixedCodeConstants::SHM_CHUNK_SIZE);
 
     // Socket data inside chunk.
     (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
@@ -201,8 +232,13 @@ uint32_t SocketDataChunk::CloneToPush(
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_chunk_index);
 
+    // Sealing the chunk.
+    (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
+    new_smc->set_next(INVALID_CHUNK_INDEX);
+
     // Adjusting accumulative buffer.
-    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((*new_sd)->get_data_blob(), get_accum_buf());
+    int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
+    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((uint8_t*) (*new_sd) + offset_bytes_from_sd, get_accum_buf());
 
     // This socket becomes unattached.
     (*new_sd)->reset_socket_representer_flag();
@@ -232,8 +268,7 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     }
 
     // Copying chunk data.
-    memcpy(new_smc, get_smc(),
-        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB + get_accum_buf()->get_accum_len_bytes());
+    memcpy(new_smc, get_smc(), MixedCodeConstants::SHM_CHUNK_SIZE);
 
     // Socket data inside chunk.
     (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
@@ -244,8 +279,13 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_chunk_index);
 
+    // Sealing the chunk.
+    (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
+    new_smc->set_next(INVALID_CHUNK_INDEX);
+
     // Adjusting accumulative buffer.
-    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((*new_sd)->get_data_blob(), get_accum_buf());
+    int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
+    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((uint8_t*) (*new_sd) + offset_bytes_from_sd, get_accum_buf());
 
     return 0;
 }

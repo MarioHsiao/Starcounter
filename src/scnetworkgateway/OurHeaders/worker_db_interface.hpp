@@ -32,7 +32,7 @@ class WorkerDbInterface
     core::chunk_pool<core::chunk_index> private_chunk_pool_;
 
     // Database index.
-    int32_t db_index_;
+    db_index_type db_index_;
 
     // Worker id to which this interface belongs.
     int32_t worker_id_;
@@ -58,6 +58,8 @@ class WorkerDbInterface
         // Acquire chunks from the shared chunk pool to this worker private chunk pool.
         int32_t num_acquired_chunks = static_cast<int32_t> (shared_int_.acquire_from_shared_to_private(
             private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
+
+        GW_ASSERT(num_acquired_chunks == num_chunks);
 
         // Checking that number of acquired chunks is correct.
         if (num_acquired_chunks != num_chunks)
@@ -97,10 +99,10 @@ public:
     // Writes given big linear buffer into obtained linked chunks.
     uint32_t WorkerDbInterface::WriteBigDataToChunks(
         uint8_t* buf,
-        uint32_t buf_len_bytes,
+        int32_t buf_len_bytes,
         starcounter::core::chunk_index cur_chunk_index,
-        uint32_t* actual_written_bytes,
-        uint32_t first_chunk_offset,
+        int32_t* actual_written_bytes,
+        int32_t first_chunk_offset,
         bool just_sending_flag
         );
 
@@ -311,6 +313,18 @@ public:
     // Scans all channels for any incoming chunks.
     uint32_t ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms);
 
+    // Getting shared memory chunk.
+    shared_memory_chunk* GetSharedMemoryChunkFromIndex(core::chunk_index the_chunk_index)
+    {
+        return (shared_memory_chunk *)(&shared_int_.chunk(the_chunk_index));
+    }
+
+    // Getting socket data from chunk index.
+    SocketDataChunk* GetSocketDataFromChunkIndex(core::chunk_index the_chunk_index)
+    {
+        return (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(the_chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    }
+
     // Obtains chunk from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).
     uint32_t GetOneChunkFromPrivatePool(
@@ -323,7 +337,8 @@ public:
         {
             // Getting chunks from shared chunk pool.
             err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
-            GW_ERR_CHECK(err_code);
+            if (err_code)
+                return err_code;
         }
 
         // Getting data pointer.
@@ -348,7 +363,8 @@ public:
         {
             // Getting chunks from shared chunk pool.
             err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
-            GW_ERR_CHECK(err_code);
+            if (err_code)
+                return err_code;
         }
 
 #ifdef GW_CHUNKS_DIAG

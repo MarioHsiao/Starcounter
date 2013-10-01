@@ -117,18 +117,29 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 }
 
 // Parses decimal string into unsigned number.
-inline uint32_t ParseDecimalStringToUint(const char *at, size_t length)
+inline uint32_t ParseStringToUint(const char *at, size_t length)
 {
     uint32_t result = 0;
     int32_t mult = 1, i = (int32_t)length - 1;
-    while (true)
+    while (i >= 0)
     {
+        // Checking for white space character.
+        switch (at[i])
+        {
+            case ' ':
+            case '\n':
+            case '\t':
+            case '\r':
+            {
+                i--;
+                continue;
+            }
+        }
+
+        // Adding to result.
         result += (at[i] - '0') * mult;
 
         --i;
-        if (i < 0)
-            break;
-
         mult *= 10;
     }
 
