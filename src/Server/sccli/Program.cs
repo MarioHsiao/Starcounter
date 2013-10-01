@@ -190,6 +190,7 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.Restart), "Allow the application to be restarted if running.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoAutoCreateDb), "Prevents automatic creation of database.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.ResourceDirectory), "Sets the default directory for static resources.");
             if (extended) {
