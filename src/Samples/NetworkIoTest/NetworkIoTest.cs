@@ -422,7 +422,7 @@ namespace NetworkIoTestApp
                         };
                     });
 
-                    Handle.POST(8080, "/nodetest", (Request req) =>
+                    Handle.POST(8080, "/echotest", (Request req) =>
                     {
                         return new Response() { BodyBytes = req.BodyBytes };
                     });
@@ -722,7 +722,7 @@ namespace NetworkIoTestApp
             for (Int32 i = 0; i < request_strings.Length; i++)
             {
                 Byte[] request_bytes = Encoding.ASCII.GetBytes(request_strings[i]);
-                Request internal_request = new Request(request_bytes);
+                Request internal_request = new Request(request_bytes, request_bytes.Length);
 
                 responseBody += "-------------------------------";
                 responseBody += internal_request.ToString();

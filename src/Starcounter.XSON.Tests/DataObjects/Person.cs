@@ -13,5 +13,9 @@ namespace Starcounter.Internal.XSON.Tests {
         /// 
         /// </summary>
         public string LastName;
+		/// <summary>
+		/// 
+		/// </summary>
+		public Address Address; 
     }
 }

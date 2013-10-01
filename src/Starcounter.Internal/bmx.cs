@@ -103,24 +103,6 @@ namespace Starcounter.Internal
         public extern static UInt32 sc_wait_for_bmx_ready(UInt32 max_time_to_wait_ms);
 
         /// <summary>
-        /// Sc_bmx_read_from_chunks the specified chunk_index.
-        /// </summary>
-        /// <param name="chunk_index">The chunk_index.</param>
-        /// <param name="raw_chunk">The raw_chunk.</param>
-        /// <param name="length">The length.</param>
-        /// <param name="dest_buffer">The dest_buffer.</param>
-        /// <param name="dest_buffer_size">The dest_buffer_size.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_read_from_chunk(
-            UInt32 chunk_index,
-            Byte* raw_chunk,
-            UInt32 length,
-            Byte* dest_buffer,
-            UInt32 dest_buffer_size
-        );
-
-        /// <summary>
         /// sc_bmx_copy_all_chunks the specified chunk_index.
         /// </summary>
         /// <returns>UInt32.</returns>
@@ -279,7 +261,7 @@ namespace Starcounter.Internal
             (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = session.socket_unique_id_;
 
             (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
-                MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB + MixedCodeConstants.WS_MAX_FRAME_INFO_SIZE;
+                MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_MAX_USER_DATA_BYTES)) = MixedCodeConstants.SOCKET_DATA_BLOB_SIZE_BYTES;
 

@@ -431,7 +431,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating content length.
-            http->http_request_.content_len_bytes_ = ParseDecimalStringToUint(at, length);
+            http->http_request_.content_len_bytes_ = ParseStringToUint(at, length);
 
             break;
         }
@@ -573,7 +573,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
-        char* method_and_uri = (char*)(sd->get_data_blob());
+        char* method_and_uri = (char*)sd->get_accum_buf()->get_chunk_orig_buf_ptr();
         uint32_t method_and_uri_len, uri_offset;
 
         // Getting method and URI information.
@@ -590,7 +590,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 
         // Converting URI to lower case.
         err_code = GetMethodAndUriLowerCase(
-            (char*)(sd->get_data_blob()),
+            (char*)sd->get_accum_buf()->get_orig_buf_ptr(),
             sd->get_accum_buf()->get_accum_len_bytes(),
             method_and_uri_lower_case,
             &method_and_uri_len,
@@ -613,9 +613,6 @@ uint32_t HttpWsProto::HttpUriDispatcher(
                 return GatewayHttpWsReverseProxy(gw, sd, handler_index, is_handled);
             }
 #endif
-
-            // Continue receiving.
-            sd->get_accum_buf()->ContinueReceive();
 
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
@@ -691,7 +688,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         //set_matched_uri_index(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
-        sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_OFFSET_BLOB + uri_offset;
+        sd->get_http_ws_proto()->http_request_.uri_offset_ = sd->GetAccumDataOffset() + uri_offset;
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
@@ -739,15 +736,12 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         size_t bytes_parsed = http_parser_execute(
             (http_parser *)this,
             &g_httpParserSettings,
-            (const char *)sd->get_data_blob(),
+            (const char *)accum_buf->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
         if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
         {
-            // Continue receiving.
-            accum_buf->ContinueReceive();
-
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
             GW_ERR_CHECK(err_code);
@@ -771,6 +765,8 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
         {
+            GW_ASSERT(bytes_parsed < accum_buf->get_accum_len_bytes());
+
             GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
             return SCERRGWHTTPINCORRECTDATA;
         }
@@ -829,13 +825,13 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                uint32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
+                uint32_t num_content_bytes_received = sd->GetAccumDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
                 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint32_t>(SOCKET_DATA_OFFSET_BLOB + bytes_parsed);
+                    http_request_.content_offset_ = static_cast<uint32_t>(sd->GetAccumDataOffset() + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -893,10 +889,16 @@ ALL_DATA_ACCUMULATED:
 
             // Skipping cloning when in testing mode.
 #ifndef GW_TESTING_MODE
-            // Posting cloning receive since all data is accumulated.
-            err_code = sd->CloneToReceive(gw);
-            if (err_code)
-                return err_code;
+
+            // Aggregation is done separately.
+            if (!sd->GetSocketAggregatedFlag())
+            {
+                // Posting cloning receive since all data is accumulated.
+                err_code = sd->CloneToReceive(gw);
+                if (err_code)
+                    return err_code;
+            }
+
 #endif
 
             // Checking type of response.
@@ -905,7 +907,7 @@ ALL_DATA_ACCUMULATED:
                 case HTTP_STANDARD_RESPONSE:
                 {
                     // Setting request properties.
-                    http_request_.request_offset_ = SOCKET_DATA_OFFSET_BLOB;
+                    http_request_.request_offset_ = sd->GetAccumDataOffset();
                     http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
                     // Resetting user data parameters.
@@ -942,7 +944,7 @@ ALL_DATA_ACCUMULATED:
 
             // Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
-            GW_COUT << sd->get_data_blob() << GW_ENDL;
+            GW_COUT << sd->get_accum_buf()->get_chunk_orig_buf_ptr() << GW_ENDL;
 #endif
         }
 
@@ -1017,15 +1019,12 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
         size_t bytes_parsed = http_parser_execute(
             (http_parser *)this,
             &g_httpParserSettings,
-            (const char *)sd->get_data_blob(),
+            (const char *)sd->get_accum_buf()->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
         if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
         {
-            // Continue receiving.
-            accum_buf->ContinueReceive();
-
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
             GW_ERR_CHECK(err_code);
@@ -1107,13 +1106,13 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
+                int32_t num_content_bytes_received = sd->GetAccumDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint32_t> (SOCKET_DATA_OFFSET_BLOB + bytes_parsed);
+                    http_request_.content_offset_ = static_cast<uint32_t> (sd->GetAccumDataOffset() + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -1179,10 +1178,10 @@ ALL_DATA_ACCUMULATED:
             memcpy(copied_echo_string, (char*)sd + http_request_.content_offset_, kHttpEchoContentLength);
 
             // Coping echo HTTP response.
-            memcpy(sd->get_data_blob(), kHttpEchoResponse, kHttpEchoResponseLength);
+            memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), kHttpEchoResponse, kHttpEchoResponseLength);
 
             // Inserting echo id into HTTP response.
-            memcpy(sd->get_data_blob() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoContentLength);
+            memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoContentLength);
 
             // Sending echo response.
             err_code = gw->SendPredefinedMessage(sd, NULL, kHttpEchoResponseLength);
@@ -1201,8 +1200,8 @@ ALL_DATA_ACCUMULATED:
         GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
 
         // Obtaining original echo number.
-        //echo_id_type echo_id = *(int32_t*)sd->get_data_blob();
-        echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoContentLength);
+        //echo_id_type echo_id = *(int32_t*)sd->get_accum_buf()->get_orig_buf_ptr();
+        echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_accum_buf()->get_chunk_orig_buf_ptr() + kHttpEchoResponseInsertPoint, kHttpEchoContentLength);
 
 #ifdef GW_ECHO_STATISTICS
         GW_COUT << "Received echo: " << echo_id << GW_ENDL;
@@ -1332,7 +1331,7 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
 #endif
 
         // Setting client proxy socket.
-        gw->get_sd_receive_clone()->SetProxySocket(sd->get_socket_info_index());
+        gw->get_sd_receive_clone()->SetProxySocketIndex(sd->get_socket_info_index());
 
         // Re-enabling socket representer flag.
         sd->set_socket_representer_flag();
@@ -1361,7 +1360,50 @@ uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAN
     int32_t resp_len_bytes;
     const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&resp_len_bytes);
     *is_handled = true;
+
     return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
+}
+
+// POST sockets for Gateway.
+uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    // Getting the aggregation info.
+    AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
+
+    // Getting port handler.
+    int32_t port_index = g_gateway.FindServerPortIndex(ags.port_number_);
+
+    // Getting new socket index.
+    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, sd->get_db_index(), INVALID_SOCKET, port_index);
+    ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
+
+    char temp_buf[AggregationStructSizeBytes];
+    *(AggregationStruct*) temp_buf = ags;
+
+    *is_handled = true;
+
+    return gw->SendBody(sd, temp_buf, AggregationStructSizeBytes);
+}
+
+// DELETE sockets for Gateway.
+uint32_t DeleteSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    // Getting the aggregation info.
+    AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
+
+    // Checking if socket is legitimate.
+    if (g_gateway.CompareUniqueSocketId(ags.socket_info_index_, ags.unique_socket_id_))
+    {
+        // Closing socket which will results in stop of all pending operations on that socket.
+        gw->AddSocketToDisconnectListUnsafe(ags.socket_info_index_);
+    }
+
+    char temp_buf[AggregationStructSizeBytes];
+    *(AggregationStruct*) temp_buf = ags;
+
+    *is_handled = true;
+
+    return gw->SendBody(sd, temp_buf, AggregationStructSizeBytes);
 }
 
 } // namespace network

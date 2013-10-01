@@ -339,6 +339,32 @@ namespace Starcounter.Internal
       }
 
        /// <summary>
+       /// Reads next value as Boolean from the tuple.
+       /// </summary>
+       /// <returns>The read Boolean value.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Boolean ReadBoolean() {
+          var val = AnyBaseBool.ReadBoolean(AtEnd);
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd++;
+          ValueOffset++;
+          return val;
+      }
+
+             /// <summary>
+      /// Reads next value as Nullable Boolean from the tuple.
+      /// </summary>
+      /// <returns>The read Nullable Boolean value.</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Boolean? ReadBooleanNullable() {
+          var val = AnyBaseBool.ReadBooleanNullable(AtEnd);
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd++;
+          ValueOffset++;
+          return val;
+      }
+
+      /// <summary>
        /// Returns the length of the current value to read.
        /// </summary>
        /// <returns>The length in bytes.</returns>

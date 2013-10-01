@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON;
+using System.Reflection;
 
 namespace Starcounter.Templates {
 
@@ -142,7 +143,7 @@ namespace Starcounter.Templates {
         internal override bool UseBinding(IBindable data) {
 			if (data == null)
 				return false;
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
+            return DataBindingFactory.VerifyOrCreateBinding(this, data);
         }
 
         internal override object GetBoundValueAsObject(Json obj) {
@@ -191,5 +192,33 @@ namespace Starcounter.Templates {
 		public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
 			throw new NotImplementedException();
 		}
-	}
+
+        /// <summary>
+        /// Autogenerates a template for a given data object given its (one dimensional) primitive fields and properties.
+        /// This allows you to assign a SQL result to an expando like Json object without having defined
+        /// any schema for the Json array.
+        /// </summary>
+        /// <param name="entity">An instance to create the template from</param>
+        internal void CreateElementTypeFromDataObject(object entity) {
+            ElementType = new TObject();
+            var type = entity.GetType();
+            var props = type.GetProperties(BindingFlags.Public|BindingFlags.Instance);
+            foreach (var prop in props) {
+                if (prop.CanRead) {
+                    var pt = prop.PropertyType;
+                    if (Template.IsSupportedType(pt)) {
+                        ElementType.Add(pt, prop.Name);
+                    }
+                }
+            }
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var field in fields) {
+                var pt = field.FieldType;
+                if (Template.IsSupportedType(pt)) {
+                    ElementType.Add(pt, field.Name);
+                }
+            }
+
+        }
+    }
 }
