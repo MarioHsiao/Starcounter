@@ -1,6 +1,6 @@
 ﻿
 namespace MySampleNamespace {
-    partial class Incorrect {
+    partial class Incorrect<Order> {
         public string Name { get; set; }
     }
 }

@@ -28,12 +28,20 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void CodeBehindAnalyzeTest() {
             CodeBehindMetadata monoMetadata;
-//            CodeBehindMetadata roslynMetadata; 
+            
+			monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
+			Assert.AreEqual(null, monoMetadata.RootClassInfo.BoundDataClass);
+			Assert.AreEqual(null, monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
+			Assert.AreEqual("Json", monoMetadata.RootClassInfo.BaseClassName);
+			Assert.AreEqual("MySampleNamespace", monoMetadata.RootClassInfo.Namespace);
+			
+			Assert.AreEqual(2, monoMetadata.JsonPropertyMapList.Count);
+			Assert.AreEqual("OrderItem", monoMetadata.JsonPropertyMapList[1].BoundDataClass);
+			Assert.AreEqual("MyOtherNs.MySubNS.SubClass", monoMetadata.JsonPropertyMapList[1].BaseClassName);
+			Assert.AreEqual("Apapa.json.Items", monoMetadata.JsonPropertyMapList[1].RawDebugJsonMapAttribute);
 
-//            var roslyn = new Starcounter.XSON.Compiler.Roslyn.RoslynCSharpCompiler();
+			Assert.Throws<Exception>(() => MonoAnalyze("Incorrect", @"Compiler\incorrect.json.cs"));
 
-            monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
-//            roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
 //            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
 			//monoMetadata = MonoAnalyze("Complex", @"Compiler\complex.json.cs");
@@ -47,41 +55,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			//monoMetadata = MonoAnalyze("Incorrect", @"Compiler\Incorrect.json.cs");
 			//roslynMetadata = roslyn.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");            
 			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
-        }
-
-        private static void AssertMetadataAreEqual(CodeBehindMetadata roslyn, CodeBehindMetadata mono) {
-//            Assert.AreEqual(roslyn.RootClassInfo.AutoBindToDataObject, mono.RootClassInfo.AutoBindToDataObject);
-            Assert.AreEqual(roslyn.RootClassInfo.GenericArg, mono.RootClassInfo.GenericArg);
-            Assert.AreEqual(roslyn.RootClassInfo.BaseClassGenericArg, mono.RootClassInfo.BaseClassGenericArg);
-            Assert.AreEqual(roslyn.RootClassInfo.Namespace, mono.RootClassInfo.Namespace);
-
-            Assert.AreEqual(roslyn.RootClassInfo.InputBindingList.Count, mono.RootClassInfo.InputBindingList.Count);
-            for (int i = 0; i < roslyn.RootClassInfo.InputBindingList.Count; i++) {
-                var monoInput = mono.RootClassInfo.InputBindingList[i];
-                var roslynInput = roslyn.RootClassInfo.InputBindingList[i];
-
-                Assert.AreEqual(roslynInput.DeclaringClassName, monoInput.DeclaringClassName);
-                Assert.AreEqual(roslynInput.DeclaringClassNamespace, monoInput.DeclaringClassNamespace);
-                Assert.AreEqual(roslynInput.FullInputTypeName, monoInput.FullInputTypeName);
-            }
-
-            Assert.AreEqual(roslyn.JsonPropertyMapList.Count, mono.JsonPropertyMapList.Count);
-            for (int i = 0; i < roslyn.JsonPropertyMapList.Count; i++) {
-                var monoMap = mono.JsonPropertyMapList[i];
-                var roslynMap = roslyn.JsonPropertyMapList[i];
-
-//                Assert.AreEqual(roslynMap.AutoBindToDataObject, monoMap.AutoBindToDataObject);
-                Assert.AreEqual(roslynMap.ClassName, monoMap.ClassName);
-                Assert.AreEqual(roslynMap.GenericArg, monoMap.GenericArg);
-                Assert.AreEqual(roslynMap.BaseClassGenericArg, monoMap.BaseClassGenericArg);
-                Assert.AreEqual(roslynMap.RawDebugJsonMapAttribute, monoMap.RawDebugJsonMapAttribute);
-                Assert.AreEqual(roslynMap.Namespace, monoMap.Namespace);
-
-                Assert.AreEqual(roslynMap.ParentClasses.Count, monoMap.ParentClasses.Count);
-                for (int k = 0; k < roslynMap.ParentClasses.Count; k++) {
-                    Assert.AreEqual(roslynMap.ParentClasses[k], monoMap.ParentClasses[k]);
-                }
-            }
         }
     }
 }
