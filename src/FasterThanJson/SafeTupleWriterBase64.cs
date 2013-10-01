@@ -173,6 +173,23 @@ namespace Starcounter.Internal {
             return MeasureNeededSizeByteArray((uint)b.Length);
         }
 
+        /// <summary>
+        /// Estimates the size of encoding the value.
+        /// </summary>
+        /// <param name="str">The Boolean value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static uint MeasureNeededSizeBoolean(Boolean val) {
+            return 1;
+        }
+
+        /// <summary>
+        /// Estimates the size of encoding the value.
+        /// </summary>
+        /// <param name="str">The Nullable Boolean value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static uint MeasureNeededSizeNullableBoolean(Boolean? val) {
+            return 1;
+        }
 
         public void WriteULong(ulong n) {
             uint size = MeasureNeededSizeULong(n);
@@ -245,5 +262,22 @@ namespace Starcounter.Internal {
             AvailableSize -= size;
         }
 
+        public unsafe void WriteBoolean(Boolean b) {
+            uint size = MeasureNeededSizeBoolean(b);
+            Debug.Assert(size == 1);
+            size = ValidateLength(size);
+            theTuple.WriteBoolean(b);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
+
+        public unsafe void WriteBooleanNullable(Boolean? b) {
+            uint size = MeasureNeededSizeNullableBoolean(b);
+            Debug.Assert(size == 1);
+            size = ValidateLength(size);
+            theTuple.WriteBooleanNullable(b);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
     }
 }

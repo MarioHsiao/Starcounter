@@ -12,7 +12,6 @@ EXPORTS
 	sc_bmx_register_uri_handler
     sc_bmx_unregister_uri
 	sc_bmx_unregister_handler
-	sc_bmx_read_from_chunk
     sc_bmx_obtain_new_chunk
     sc_bmx_plain_copy_and_release_chunks
 	sc_bmx_send_buffer

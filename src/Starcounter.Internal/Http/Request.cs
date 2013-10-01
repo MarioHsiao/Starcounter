@@ -36,7 +36,9 @@ namespace Starcounter.Advanced {
         }
 
         public static Request GET(string uri) {
-            return new Request(RawGET(uri));
+            Byte[] reqBytes = RawGET(uri);
+
+            return new Request(reqBytes, reqBytes.Length);
         }
 
         public Request()
@@ -207,11 +209,11 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public Request(Byte[] buf)
+        public Request(Byte[] buf, Int32 buf_len)
         {
             unsafe
             {
-                Init(buf, null);
+                Init(buf, buf_len, null);
             }
         }
 
@@ -220,9 +222,9 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="buf"></param>
         /// <param name="params_info"></param>
-        public unsafe Request(Byte[] buf, Byte* params_info_ptr)
+        public unsafe Request(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
-            Init(buf, params_info_ptr);
+            Init(buf, buf_len, params_info_ptr);
         }
 
         /// <summary>
@@ -259,12 +261,12 @@ namespace Starcounter.Advanced {
         /// Initializes request structure.
         /// </summary>
         /// <param name="buf"></param>
-        unsafe void Init(Byte[] buf, Byte* params_info_ptr)
+        unsafe void Init(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
             unsafe
             {
                 // Allocating space for Request contents and structure.
-                Int32 alloc_size = buf.Length + sizeof(HttpRequestInternal);
+                Int32 alloc_size = buf_len + sizeof(HttpRequestInternal);
                 if (params_info_ptr != null)
                     alloc_size += MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES;
 
@@ -272,11 +274,11 @@ namespace Starcounter.Advanced {
                 fixed (Byte* fixed_buf = buf)
                 {
                     // Copying HTTP request data.
-                    BitsAndBytes.MemCpy(request_native_buf, fixed_buf, (UInt32)buf.Length);
+                    BitsAndBytes.MemCpy(request_native_buf, fixed_buf, (UInt32)buf_len);
                 }
 
                 // Pointing to HTTP request structure.
-                http_request_struct_ = (HttpRequestInternal*)(request_native_buf + buf.Length);
+                http_request_struct_ = (HttpRequestInternal*)(request_native_buf + buf_len);
 
                 // Setting the request data pointer.
                 http_request_struct_->socket_data_ = request_native_buf;
@@ -284,7 +286,7 @@ namespace Starcounter.Advanced {
                 // Checking if we have parameters info supplied.
                 if (params_info_ptr != null)
                 {
-                    http_request_struct_->params_info_ptr_ = request_native_buf + buf.Length + sizeof(HttpRequestInternal);
+                    http_request_struct_->params_info_ptr_ = request_native_buf + buf_len + sizeof(HttpRequestInternal);
                     BitsAndBytes.MemCpy(http_request_struct_->params_info_ptr_, params_info_ptr, MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES);
                 }
                 
@@ -299,7 +301,7 @@ namespace Starcounter.Advanced {
                 // Simply on which socket to send this "request"?
 
                 // Executing HTTP request parser and getting Request structure as result.
-                UInt32 err_code = sc_parse_http_request(request_native_buf, (UInt32)buf.Length, (Byte*)http_request_struct_);
+                UInt32 err_code = sc_parse_http_request(request_native_buf, (UInt32)buf_len, (Byte*)http_request_struct_);
 
                 // Checking if any error occurred.
                 if (err_code != 0)

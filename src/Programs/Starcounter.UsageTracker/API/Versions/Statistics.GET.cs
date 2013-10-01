@@ -38,7 +38,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         totalDownloads = downloads,                     // Total downloads
                         installations = installations,                  // Total starcounter installations
                         uninstallation = uninstallations,               // Total starcounter uninstallations
-                        successInstallations = -1,    // Total successful installations
+                        successInstallations = -1,
                         upgrades = -1,
                         downgrades = -1,
                         failures = -1,
@@ -85,21 +85,26 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             from = DateTime.MinValue;
             to = DateTime.MaxValue;
 
-            foreach (Installation installation in firstInstallations) {
+       
 
+            foreach (Installation installation in firstInstallations) {
 
                 Installation i = Installation.GetFirstNode(installation);
                 if (i != installation) {
                     // Error
                 }
 
-                if (Installation.WasInstalled(installation, from,to)) {
-                        numberOfInstallations++;
+                Installation installInstallation = Installation.GetWhenInstallationWasInstalled(installation, from, to);
+                if (installInstallation != null) {
+                    numberOfInstallations++;
                 }
 
-                if (Installation.WasUnInstalled(installation, from, to)) {
+                Installation uninstallInstallation = Installation.GetWhenInstallationWasUninstalled(installation, from, to);
+                if (uninstallInstallation != null) {
                     numberOfUnInstallations++;
                 }
+
+          
 
             }
 

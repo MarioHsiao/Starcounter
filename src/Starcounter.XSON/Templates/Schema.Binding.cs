@@ -16,7 +16,7 @@ namespace Starcounter.Templates {
         internal override bool UseBinding(IBindable data) {
 			if (data == null)
 				return false;
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
+            return DataBindingFactory.VerifyOrCreateBinding(this, data);
         }
 
 		/// <summary>

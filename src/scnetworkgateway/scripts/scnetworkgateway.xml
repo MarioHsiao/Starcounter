@@ -29,7 +29,7 @@
   <GatewayStatisticsPort>8181</GatewayStatisticsPort>
 
   <!-- Gateway traffic aggregation port -->
-  <AggregationPort>23456</AggregationPort>
+  <AggregationPort>9090</AggregationPort>
 
   <!-- Information on reverse proxies if any. -->
   <!--

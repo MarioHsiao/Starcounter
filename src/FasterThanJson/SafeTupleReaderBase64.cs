@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Starcounter.Internal {
     public unsafe struct SafeTupleReaderBase64 {
@@ -165,6 +166,34 @@ namespace Starcounter.Internal {
                     "Cannot read byte array value into given byte array pointer, since the value is too big. The actual value is " +
                     len + " bytes, while " + valueMaxLength + " bytes are provided to write.");
             return Base64Binary.Read((uint)len, valuePos, value);
+        }
+
+        /// <summary>
+        /// Reads Boolean at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe bool ReadBoolean(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            Debug.Assert(valueLength == 1);
+            // Read the value at the position with the length
+            return AnyBaseBool.ReadBoolean(valuePos);
+        }
+
+        /// <summary>
+        /// Reads Nullable Boolean at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe bool? ReadBooleanNullable(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            Debug.Assert(valueLength == 1);
+            // Read the value at the position with the length
+            return AnyBaseBool.ReadBooleanNullable(valuePos);
         }
     }
 }

@@ -131,7 +131,7 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
-            http->http_request_->content_len_bytes_ = ParseDecimalStringToUint(at, length);
+            http->http_request_->content_len_bytes_ = ParseStringToUint(at, length);
 
             break;
         }
