@@ -130,7 +130,7 @@ public class CPersonalServer : CComponentBase
             "",
             installPath,
             "Starts " + ConstantsBank.SCProductName + " Personal Administrator.",
-            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCAdminIconFilename));
 
         // Obtaining path to Start Menu for a current user.
         String startMenuDir = Path.GetDirectoryName(PersonalServerStartMenuPath);
