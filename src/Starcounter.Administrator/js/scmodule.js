@@ -347,27 +347,29 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     // Get all databases
     $scope._GetDatabases = function (readyCallback) {
 
-        // Example JSON response 
-        //-----------------------
-        //{
-        //    "Databases": [
-        //        {
-        //            "name": "Foo",
-        //            "uri": "http://example.com/api/databases/foo",
-        //            "hostUri":"http://example.com/api/databases/bar",
-        //            "engineUri":"http://example.com/api/engines/foo",
-        //            "running": false
-        //        },
-        //        {
-        //            "name": "Foo",
-        //            "uri": "http://example.com/api/databases/foo",
-        //            "hostUri":"http://example.com/api/databases/bar",
-        //            "engineUri":"http://example.com/api/engines/foo",
-        //            "running": false
-        //        },
-        //    ]
-        //}
         $http.get('/api/admin/databases').then(function (response) {
+
+            // Example JSON response 
+            //-----------------------
+            //{
+            //    "Databases": [
+            //        {
+            //            "name": "Foo",
+            //            "uri": "http://example.com/api/databases/foo",
+            //            "hostUri":"http://example.com/api/databases/bar",
+            //            "engineUri":"http://example.com/api/engines/foo",
+            //            "running": false
+            //        },
+            //        {
+            //            "name": "Foo",
+            //            "uri": "http://example.com/api/databases/foo",
+            //            "hostUri":"http://example.com/api/databases/bar",
+            //            "engineUri":"http://example.com/api/engines/foo",
+            //            "running": false
+            //        },
+            //    ]
+            //}
+
             // success handler
             if (response.data.hasOwnProperty("Databases") == true) {
                 var remoteDatabaseList = response.data.Databases;
@@ -417,6 +419,19 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     $scope._GetExecutables = function (readyCallback) {
 
         $http.get('/api/admin/executables').then(function (response) {
+
+            // Example JSON response 
+            //-----------------------
+            //{
+            //  "Executables":[
+            //      {
+            //          "path":"c:\path\to\executable\foo.exe",
+            //          "uri":"http://example.com/foo.exe-12345",
+            //          "databaseName":"default"
+            //      }
+            //  ]
+            //}
+
             // success handler
             if (response.data.hasOwnProperty("Executables") == true) {
 
@@ -458,7 +473,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     }
   
-    // Gets an database with status
+    // Get server settings
     $scope._GetServerSettings = function (name, successCallback, errorCallback) {
 
         $http.get('/api/admin/servers/' + name + '/settings').then(function (response) {
@@ -624,9 +639,9 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     }
 
     // Stop the executable's engine code host (All executables running in the database will be stopped)
-    $scope._StopAllExecutables = function (engine, readyCallback) {
+    $scope._StopAllExecutables = function (database, readyCallback) {
 
-        $http.delete('/api/engines/' + engine.name + '/host').then(function (response) {
+        $http.delete('/api/engines/' + database.name + '/host').then(function (response) {
             // success handler
 
             if (response.hasOwnProperty("data") == true) {
@@ -1068,9 +1083,9 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
     $scope.alerts.length = 0;
     $scope.engineList = [];
 
-    $scope.stopAllExecutables = function (engine) {
-        var job = $scope.addJob({ message: "Stopping all executables running in database " + engine.name });
-        $scope._StopAllExecutables(engine, function () {
+    $scope.stopAllExecutables = function (database) {
+        var job = $scope.addJob({ message: "Stopping all executables running in database " + database.name });
+        $scope._StopAllExecutables(database, function () {
 
             $scope._RefreshExecutables(function () {
                 // Done
@@ -1118,6 +1133,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
     $scope.isFalsey = function (val) {
         return !val;
     }
+
 
 }]);
 
