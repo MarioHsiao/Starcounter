@@ -144,11 +144,10 @@ namespace Starcounter.XSON.Compiler.Mono {
 			baseClass = null;
 			boundClass = null;
 
-			mce.MoveNext();
-			if (!(mce.Token == CSharpToken.COLON)) {
-				if (mce.Token == CSharpToken.OP_GENERICS_LT)
+			var token = mce.Peek();
+			if (!(token == CSharpToken.COLON)) {
+				if (token == CSharpToken.OP_GENERICS_LT)
 					throw new Exception("Generic declaration for typed json is not supported.");
-				throw new Exception("Expected inheritance list.");
 			}
 
 			// Since we allow inheritance we have no idea if the class we found is a valid
