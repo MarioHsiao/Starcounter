@@ -72,14 +72,14 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', '$rootScope', f
             }
 
             if (response.hasException) {
-                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
+                $scope.showServerError(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
             }
 
         }, function (response) {
             // Error
             $scope.isBusy = false;
             if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
+                $scope.showServerError(response.message, null, response.stack);
             }
             else {
 
@@ -283,20 +283,20 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     };
 
     // Show Exception dialog
-    $scope.showException = function (message, helpLink, stackTrace) {
+    //$scope.showException = function (message, helpLink, stackTrace) {
 
-        $scope.opts = {
-            backdrop: true,
-            keyboard: true,
-            backdropClick: true,
-            templateUrl: "partials/error.html",
-            controller: 'DialogCtrl',
-            data: { header: "Internal Server Error", message: message, stackTrace: stackTrace, helpLink: helpLink }
-        };
+    //    $scope.opts = {
+    //        backdrop: true,
+    //        keyboard: true,
+    //        backdropClick: true,
+    //        templateUrl: "partials/error.html",
+    //        controller: 'DialogCtrl',
+    //        data: { header: "Internal Server Error", message: message, stackTrace: stackTrace, helpLink: helpLink }
+    //    };
 
-        var d = $dialog.dialog($scope.opts);
-        d.open();
-    }
+    //    var d = $dialog.dialog($scope.opts);
+    //    d.open();
+    //}
 
     // Show Client Error dialog
     $scope.showClientError = function (message, helpLink, stackTrace) {
@@ -554,7 +554,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
         // error handler
         if (response instanceof SyntaxError) {
-            $scope.showClientError(response.message, null, response.stack);
+            $scope.showServerError(response.message, null, response.stack);
         }
         else if (response.status == 404) {
             // 404 Not Found
@@ -1616,7 +1616,8 @@ adminModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http', f
                   $scope.database = response.database;
 
                   if (response.database == null) {
-                      $scope.showException("Invalid response, database property was null", null, ".saveSettings()");
+                      $scope.showClientError("Invalid response, database property was null", null, ".saveSettings()");
+//                      $scope.showException("Invalid response, database property was null", null, ".saveSettings()");
                   }
                   else {
                       $scope.myForm.$setPristine();
@@ -1624,7 +1625,7 @@ adminModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http', f
 
               }
               else {
-                  $scope.showException("Unhandled http statuscode " + status, null, ".saveSettings()");
+                  $scope.showServerError("Unhandled http statuscode " + status, null, ".saveSettings()");
               }
 
           }).
@@ -1648,16 +1649,16 @@ adminModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http', f
                       }
                   }
                   else {
-                      $scope.showException("The return code '403 Forbidden' did not return any validation error fields.", null, null);
+                      $scope.showServerError("The return code '403 Forbidden' did not return any validation error fields.", null, null);
                   }
 
               }
               else if (status == 500) {
                   // 500 Internal Server Error
-                  $scope.showException(response.message, response.helpLink, response.stackTrace);
+                  $scope.showServerError(response.message, response.helpLink, response.stackTrace);
               }
               else {
-                  $scope.showException("Unhandled http statuscode " + status, null, ".createDatabase()");
+                  $scope.showClientError("Unhandled http statuscode " + status, null, ".createDatabase()");
               }
 
           });
