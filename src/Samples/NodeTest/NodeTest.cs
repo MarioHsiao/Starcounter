@@ -633,6 +633,7 @@ namespace NodeTest
 
             // Starting all workers.
             Worker[] workers = new Worker[settings.NumWorkers];
+            Thread[] worker_threads = new Thread[settings.NumWorkers];
 
             WorkersMonitor.Init(settings, workers);
 
@@ -642,7 +643,8 @@ namespace NodeTest
                 workers[w] = new Worker();
                 workers[w].Init(settings, w);
 
-                new Thread(() => { workers[id].WorkerLoop(); }).Start();
+                worker_threads[w] = new Thread(() => { workers[id].WorkerLoop(); });
+                worker_threads[w].Start();
             }
 
             Stopwatch timer = new Stopwatch();
@@ -667,6 +669,10 @@ namespace NodeTest
                 echoesPerSecond);
 
             Console.WriteLine("Echoes/second: " + echoesPerSecond);
+
+            // Waiting for all worker threads to finish.
+            for (Int32 w = 0; w < settings.NumWorkers; w++)
+                worker_threads[w].Join();
 
             return 0;
         }
