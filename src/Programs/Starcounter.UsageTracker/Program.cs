@@ -11,7 +11,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
         static void Main(string[] args) {
 
-            Console.WriteLine("Starcounter Usage Tracking Software v0.1");
+            Console.WriteLine("Starcounter Usage Tracking Software v0.2");
 
             // We accept to arguments, the first is the port number where the backend gui will answer to,
             // The second parameter is the resource folder (where html/javascript/images/etc... is located)
@@ -23,8 +23,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
                 bool result = ushort.TryParse(port, out uPort);
 
                 if (result == false || uPort > IPEndPoint.MaxPort || uPort < IPEndPoint.MinPort) {
-                    Console.WriteLine("ERROR: Invalid port number");
-                    return;
+                    throw new IndexOutOfRangeException("Invalid port number");
                 }
 
                 // Putting port and full path to resources directory.
@@ -39,12 +38,14 @@ namespace Starcounter.Applications.UsageTrackerApp {
                     return "Success!";
                 });
 
+                Utils.AssureIndexes();
+
                 // Bootstrap Backend GUI (system port)
                 Administrator.Bootstrap(uPort);
 
-                 // use TrackingEnvironment.StarcounterTrackerPort
+                // use TrackingEnvironment.StarcounterTrackerPort
                 // Bootstrap Tracking Incoming message
-                UsageTrackerAPI.Bootstrap( 8585, 8282, 80, resourceFolder);
+                UsageTrackerAPI.Bootstrap(8585, 8282, 80, resourceFolder);
 
             }
 
