@@ -64,6 +64,11 @@
     background-color: #F9F9FB;
 }
 
+/*style for Handsontable read only cells*/
+.handsontable .htDimmed {
+    font-style: normal;
+    color: inherit;
+}
 
 .console {
     background-color: #000000;
