@@ -15,7 +15,7 @@ class HandlersList
     BMX_HANDLER_TYPE handler_info_;
 
     // Database index (from which database this handler was registered).
-    int32_t db_index_;
+    db_index_type db_index_;
 
     // Unique handler number.
     uint64_t unique_number_;
@@ -61,7 +61,7 @@ public:
     }
 
     // Getting database index.
-    int32_t get_db_index()
+    db_index_type get_db_index()
     {
         return db_index_;
     }
@@ -183,7 +183,7 @@ public:
         uint32_t processed_uri_len_chars,
         uint8_t* param_types,
         int32_t num_params,
-        int32_t db_index,
+        db_index_type db_index,
         uint64_t unique_number)
     {
         GW_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
@@ -300,7 +300,7 @@ public:
     }
 
     // Should be called when whole handlers list should be unregistered.
-    uint32_t UnregisterGlobally(int32_t db_index);
+    uint32_t UnregisterGlobally(db_index_type db_index);
 };
 
 // All handlers belonging to database.
@@ -402,7 +402,7 @@ public:
         uint16_t port_num,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handler,
-        int32_t db_index,
+        db_index_type db_index,
         BMX_HANDLER_INDEX_TYPE& out_handler_index);
 
     // Registers sub-port handler.
@@ -412,7 +412,7 @@ public:
         bmx::BMX_SUBPORT_TYPE subport,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
-        int32_t db_index,
+        db_index_type db_index,
         BMX_HANDLER_INDEX_TYPE& out_handler_index);
 
     // Registers URI handler.
@@ -427,7 +427,7 @@ public:
         int32_t num_params,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
-        int32_t db_index,
+        db_index_type db_index,
         BMX_HANDLER_INDEX_TYPE& out_handler_index);
 
     // Constructor.
@@ -460,7 +460,7 @@ class PortHandlers
 public:
 
     // Initializing the entry.
-    void Add(int32_t db_index, HandlersList* handlers_list)
+    void Add(db_index_type db_index, HandlersList* handlers_list)
     {
         // Adding only if it does not exist.
         if (!handler_lists_.Find(handlers_list))
@@ -523,7 +523,7 @@ public:
     }
 
     // Removes certain entry.
-    bool RemoveEntry(int32_t db_index)
+    bool RemoveEntry(db_index_type db_index)
     {
         bool removed = false;
 
@@ -546,7 +546,7 @@ public:
     }
 
     // Checking if certain database is contained.
-    int32_t GetEntryIndex(int32_t db_index)
+    int32_t GetEntryIndex(db_index_type db_index)
     {
         // Going through all handler lists.
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
@@ -658,7 +658,7 @@ public:
     }
 
     // Removing certain entry.
-    bool RemoveEntry(int32_t db_index)
+    bool RemoveEntry(db_index_type db_index)
     {
         return false;
     }

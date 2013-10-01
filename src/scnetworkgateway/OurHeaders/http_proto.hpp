@@ -47,7 +47,7 @@ public:
     // Converts handler id and database index.
     static BMX_HANDLER_TYPE CreateHandlerInfoType(
         BMX_HANDLER_TYPE handler_info,
-        int32_t db_index)
+        db_index_type db_index)
     {
         return db_index | (handler_info << 8);
     }
@@ -56,9 +56,9 @@ public:
     static void ParseHandlerInfoType(
         BMX_HANDLER_TYPE handler_info,
         BMX_HANDLER_TYPE& handler_id,
-        int32_t& db_index)
+        db_index_type& db_index)
     {
-        db_index = (int32_t) handler_info;
+        db_index = (db_index_type) handler_info;
         handler_id = (BMX_HANDLER_TYPE) (handler_info >> 8);
     }
 
@@ -134,19 +134,19 @@ public:
     }
 
     // Removes certain entry.
-    bool ContainsDb(int32_t db_index)
+    bool ContainsDb(db_index_type db_index)
     {
         return (FindDb(db_index) >= 0);
     }
 
     // Removes certain entry.
-    int32_t GetFirstDbIndex()
+    db_index_type GetFirstDbIndex()
     {
         return handler_lists_[0]->get_db_index();
     }
 
     // Removes certain entry.
-    int32_t FindDb(int32_t db_index)
+    db_index_type FindDb(db_index_type db_index)
     {
         // Going through all handler list.
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
@@ -161,7 +161,7 @@ public:
     }
 
     // Removes certain entry.
-    bool RemoveEntry(int32_t db_index)
+    bool RemoveEntry(db_index_type db_index)
     {
         bool removed = false;
 
@@ -186,7 +186,7 @@ public:
     // Initializing the entry.
     RegisteredUri(
         uint8_t session_param_index,
-        int32_t db_index,
+        db_index_type db_index,
         HandlersList* handlers_list,
         bool is_gateway_uri)
     {
@@ -369,7 +369,7 @@ public:
     }
 
     // Checking if entry already exists.
-    bool ContainsEntry(char* uri, int32_t db_index)
+    bool ContainsEntry(char* uri, db_index_type db_index)
     {
         int32_t index = FindRegisteredUri(uri);
 
@@ -443,7 +443,7 @@ public:
     }
 
     // Removing certain entry.
-    bool RemoveEntry(int32_t db_index)
+    bool RemoveEntry(db_index_type db_index)
     {
         bool removed = false;
 
@@ -484,7 +484,7 @@ public:
     }
 
     // Removing certain entry.
-    bool RemoveEntry(int32_t db_index, char* processed_uri_info)
+    bool RemoveEntry(db_index_type db_index, char* processed_uri_info)
     {
         bool removed = false;
 

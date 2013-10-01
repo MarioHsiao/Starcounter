@@ -93,6 +93,11 @@ namespace Starcounter.Internal
             /// System HTTP port.
             /// </summary>
             public static UInt16 SystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+
+            /// <summary>
+            /// Aggregation port.
+            /// </summary>
+            public static UInt16 AggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
         }
 
         /// <summary>

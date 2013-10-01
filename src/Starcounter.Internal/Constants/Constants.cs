@@ -123,6 +123,11 @@ namespace Starcounter.Internal
             public const UInt16 DefaultPersonalServerSystemHttpPort = 8181;
 
             /// <summary>
+            /// Default aggregation port for Personal server.
+            /// </summary>
+            public const UInt16 DefaultPersonalServerAggregationPort = 9090;
+
+            /// <summary>
             /// Default user port for Personal server.
             /// </summary>
             public const String DefaultPersonalServerSystemHttpPort_String = "DefaultPersonalServerSystemHttpPort";
@@ -131,6 +136,11 @@ namespace Starcounter.Internal
             /// Default system port for System server.
             /// </summary>
             public const UInt16 DefaultSystemServerSystemHttpPort = 81;
+
+            /// <summary>
+            /// Default aggregation port for System server.
+            /// </summary>
+            public const UInt16 DefaultSystemServerAggregationPort = 90;
 
             /// <summary>
             /// Default system port for System server.

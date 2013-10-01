@@ -105,11 +105,6 @@ namespace Starcounter.Internal
         public const int HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 4096;
 
         /// <summary>
-        /// Maximum frame info size for WebSockets.
-        /// </summary>
-        public const int WS_MAX_FRAME_INFO_SIZE = 16;
-
-        /// <summary>
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
@@ -122,18 +117,18 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offsets in socket data and chunk.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 600;
-        public const int SOCKET_DATA_OFFSET_BLOB = 664;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 624;
+        public const int SOCKET_DATA_OFFSET_BLOB = 688;
         public const int CHUNK_OFFSET_SOCKET_FLAGS = 132;
         public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 106;
         public const int SOCKET_DATA_OFFSET_CLIENT_IP = 64;
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 184;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 192;
         public const int SOCKET_DATA_NUM_CLONE_BYTES = 112;
         public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 96;
         public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 108;
         public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 56;
         public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 72;
-        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 561;
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 569;
 
         /// <summary>
         /// Max user data offset in chunk.
