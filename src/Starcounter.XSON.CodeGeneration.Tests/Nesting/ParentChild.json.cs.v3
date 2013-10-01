@@ -2,10 +2,10 @@
 namespace Q {
 
    [ParentChild_json]
-   partial class Hello<T,T2> : Json<T> {
+   partial class Hello : Json {
    }
 
    [ParentChild_json.Child2]
-   partial class Mail<W> : Json<W> {
+   partial class Mail : Json {
    }
 }
