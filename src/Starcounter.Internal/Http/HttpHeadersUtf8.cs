@@ -47,6 +47,9 @@ namespace Starcounter.Internal {
 							+ setCookiePathEnd.Length 
 							+ CRLF.Length 
 							+ CRLFCRLF.Length;
+
+            // Adding new lines, etc.
+            TotalByteSize += 64;
 		}
 	}
 }

@@ -216,13 +216,13 @@ namespace Starcounter.Internal.Test
                             + "\r\n\r\n" 
                             + jsonContent);
 
-                        Assert.IsTrue("UserFunc1!" == genDel1(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
-                        Assert.IsTrue("UserFunc2!" == (String)genDel2(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
-                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
-                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
-                        Assert.IsTrue("UserFunc5!" == (String)genDel5(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
+                        Assert.IsTrue("UserFunc1!" == genDel1(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc2!" == (String)genDel2(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc5!" == (String)genDel5(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
 
-                        Request req = new Request(requestStrWithContent);
+                        Request req = new Request(requestStrWithContent, requestStrWithContent.Length);
                         req.ArgMessageObjectType = typeof(PersonMessage);
 
                         Assert.IsTrue("UserFunc6!" == (String)genDel6(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);

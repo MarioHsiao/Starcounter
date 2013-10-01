@@ -125,7 +125,7 @@
     <ClCompile Include="OurSources\urimatch_codegen.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
-    <ClCompile Include="aggregation.cpp">
+    <ClCompile Include="OurSources\aggregation.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
   </ItemGroup>
