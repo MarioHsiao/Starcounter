@@ -491,6 +491,8 @@ namespace Starcounter.InstallerWPF {
                 this.SetupOptions = SetupOptions.Ask;
             }
 #endif
+            this.Activate();
+
         }
 
         /// <summary>
