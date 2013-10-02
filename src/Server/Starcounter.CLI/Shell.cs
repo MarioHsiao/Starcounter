@@ -106,7 +106,7 @@ namespace Starcounter.CLI {
 
             int exitCode = 0;
             try {
-                ExeCLI.Exec(exePath, appArgs);
+                ExeCLI.Start(exePath, appArgs);
             } catch {
                 exitCode = -1;
             } finally {
