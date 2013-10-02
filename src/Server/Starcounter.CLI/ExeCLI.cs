@@ -33,7 +33,7 @@ namespace Starcounter.CLI {
         /// <paramref name="args"/>.</param>
         /// <param name="admin">The admin API to target, mainly defining
         /// the resource URIs to use.</param>
-        public static void Exec(string exePath, ApplicationArguments args, string[] entrypointArgs = null, AdminAPI admin = null) {
+        public static void Start(string exePath, ApplicationArguments args, string[] entrypointArgs = null, AdminAPI admin = null) {
             int serverPort;
             string serverName;
             string serverHost;
