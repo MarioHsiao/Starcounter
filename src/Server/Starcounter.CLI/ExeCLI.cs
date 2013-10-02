@@ -48,16 +48,6 @@ namespace Starcounter.CLI {
                 SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
                 SharedCLI.ResolveDatabase(args, out database);
 
-                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowHeadline("[Checking personal server]");
-                    ShowStatus("Retrieving server status");
-                    if (!PersonalServerProcess.IsOnline()) {
-                        ShowStatus("Starting server");
-                        PersonalServerProcess.Start();
-                    }
-                    ShowStatus("Server is online");
-                }
-
                 var node = new Node(serverHost, (ushort)serverPort);
 
                 ShowHeadline(
@@ -67,6 +57,16 @@ namespace Starcounter.CLI {
                     serverName,
                     node.BaseAddress.Host,
                     node.BaseAddress.Port));
+
+                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
+                    ShowHeadline("[Checking personal server]");
+                    ShowStatus("Retrieving server status");
+                    if (!PersonalServerProcess.IsOnline()) {
+                        ShowStatus("Starting server");
+                        PersonalServerProcess.Start();
+                    }
+                    ShowStatus("Server is online");
+                }
 
                 try {
                     Engine engine;
@@ -263,8 +263,11 @@ namespace Starcounter.CLI {
             ConsoleUtil.ToConsoleWithColor(headline, ConsoleColor.DarkGray);
         }
 
-        static void ShowStatus(string status) {
-            ConsoleUtil.ToConsoleWithColor(string.Format("  - {0}", status), ConsoleColor.DarkGray);
+        static void ShowStatus(string status, bool onlyIfVerbose = false) {
+            var show = !onlyIfVerbose || SharedCLI.Verbose;
+            if (show) {
+                ConsoleUtil.ToConsoleWithColor(string.Format("  - {0}", status), ConsoleColor.DarkGray);
+            }
         }
 
         static void ShowResultAndSetExitCode(Node node, Engine engine, Executable exe, ApplicationArguments args) {
