@@ -106,6 +106,10 @@ uint32_t PortAggregator(
         // Getting port handler.
         int32_t port_index = g_gateway.FindServerPortIndex(ags.port_number_);
 
+        // Checking if port exists.
+        if (INVALID_PORT_INDEX == port_index)
+            return SCERRGWPORTPROCESSFAILED;
+
         // Checking if we have already created socket.
         if (!ags.socket_info_index_)
         {
@@ -214,7 +218,11 @@ SEND_AND_FETCH_NEXT:
     // Sending current aggregated chunks.
     if (NULL != aggr_sd)
     {
+        // Setting total number of chunks.
         aggr_sd->set_num_chunks(total_num_chunks);
+
+        // Indicating that this is an aggregation sd.
+        aggr_sd->set_aggregation_sd_flag();
 
         // Setting the aggregation buffer length.
         aggr_sd->get_accum_buf()->Init(total_aggr_len_bytes, 0);
@@ -313,6 +321,7 @@ CREATE_AGGREGATION_STRUCT:
         num_wsa_bufs_done += num_linked_data_chunks;
 
         // Removing old WSABUFs chunk.
+        sd->set_num_chunks(num_linked_data_chunks);
         sd->set_extra_chunk_index(INVALID_CHUNK_INDEX);
         sd->get_smc()->set_link(temp_wsa_bufs_smc->get_link());
         temp_wsa_bufs_smc->set_link(INVALID_CHUNK_INDEX);
@@ -331,6 +340,7 @@ CREATE_AGGREGATION_STRUCT:
         num_wsa_bufs_done++;
     }
 
+    g_gateway.num_aggregated_send_queued_messages_--;
     g_gateway.num_aggregated_sent_messages_++;
 
     //std::cout << "Added to WSABUF: " << AggregationStructSizeBytes + aggr_struct->size_bytes_ << std::endl;

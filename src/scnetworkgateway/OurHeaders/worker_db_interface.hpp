@@ -374,9 +374,6 @@ public:
         return 0;
     }
 
-    // Returns given socket data chunk to private chunk pool.
-    void ReturnSocketDataChunksToPool(GatewayWorker *gw, SocketDataChunkRef sd);
-
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
     void ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
 
