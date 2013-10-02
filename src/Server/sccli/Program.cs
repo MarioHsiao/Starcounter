@@ -164,7 +164,7 @@ namespace star {
             // Turn to the shared CLI library to do the bulk of the
             // work executing.
 
-            ExeCLI.Start(exePath, appArgs, userArgs);
+            ExeCLI.StartOrStop(exePath, appArgs, userArgs);
         }
 
         static void ShowVersionInfo() {

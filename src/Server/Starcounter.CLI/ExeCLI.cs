@@ -20,6 +20,25 @@ namespace Starcounter.CLI {
     /// </summary>
     public static class ExeCLI {
         /// <summary>
+        /// Starts or stops a given application.
+        /// </summary>
+        /// <param name="exePath">
+        /// Path to the executable that are to be started or stopped.</param>
+        /// <param name="args">Parsed arguments, taken from the command-line of
+        /// the hosting CLI interface.</param>
+        /// <param name="entrypointArgs">Arguments to the entrypoint, in case
+        /// the application is to start; ignored otherwise.</param>
+        /// <param name="admin">The admin API to target, mainly defining
+        /// the resource URIs to use.</param>
+        public static void StartOrStop(string exePath, ApplicationArguments args, string[] entrypointArgs = null, AdminAPI admin = null) {
+            if (args.ContainsFlag(Option.Stop)) {
+                Stop(exePath, args, admin);
+            } else {
+                Start(exePath, args, entrypointArgs, admin);
+            }
+        }
+
+        /// <summary>
         /// Runs the given executable using a set of optional arguments
         /// and executable parameters.
         /// </summary>
