@@ -251,7 +251,7 @@ namespace FasterThanJson.Tests
       [Test]
       public unsafe void TestBase64Nullable() {
           fixed (byte* buffer = new byte[11]) {
-              uint size = Base64Int.WriteNullable(buffer, null);
+              int size = Base64Int.WriteNullable(buffer, null);
               Assert.AreEqual(1, size);
               Assert.AreEqual(null, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 0);

@@ -24,7 +24,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
 
                 // One proper write
-                writer = new SafeTupleWriterBase64(start, 5, 1, (uint)buffer.Length);
+                writer = new SafeTupleWriterBase64(start, 5, 1, buffer.Length);
                 writer.WriteString("abdsfklaskl;jfAKDJLKSFHA:SKFLHsadnfkalsn2354432sad");
                 // Write too long value
                 try {
@@ -65,7 +65,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeUIntWriter() {
             byte[] buffer = new byte[10];
             fixed (byte* start = buffer) {
-                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, (uint)buffer.Length);
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, buffer.Length);
                 writer.WriteULong(45);
                 writer.WriteULong(256);
                 Boolean wasException = false;
@@ -108,7 +108,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeIntWriter() {
             byte[] buffer = new byte[10];
             fixed (byte* start = buffer) {
-                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, (uint)buffer.Length);
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, buffer.Length);
                 writer.WriteLong(25);
                 writer.WriteLong(-256);
                 Boolean wasException = false;
@@ -151,7 +151,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeBinaryWriter() {
             byte[] buffer = new byte[97]; // (97 - 17) /4 * 3 = 60 original bytes
             fixed (byte* start = buffer) {
-                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 8, 1, (uint)buffer.Length);
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 8, 1, buffer.Length);
                 byte[] value = new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
                 writer.WriteByteArray(value); // 1 of 8 value, 14+9 bytes
                 value = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
