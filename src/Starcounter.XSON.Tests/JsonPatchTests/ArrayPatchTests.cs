@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
-    static class ArrayPatchTests {
+    class ArrayPatchTests : JsonPatchTests {
 
 
 
@@ -157,15 +157,11 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             company.Contacts = new object[] { person, person2 };
 
             Write("After status 2",company.DebugString);
-            Write("JSON-Patch 2",Session.Current.CreateJsonPatch(true));
+            Write("JSON-Patch 2", Session.Current.CreateJsonPatch(true));
 
-        }
+            Write("After status 3 (no changes)", company.DebugString);
+            Write("JSON-Patch 3 (empty)", Session.Current.CreateJsonPatch(true));
 
-        static void Write(string title, string value) {
-            Console.WriteLine();
-            Console.WriteLine(title);
-            Console.WriteLine( new String('=', title.Length) );
-            Console.WriteLine( value );
         }
 
         [Test]
