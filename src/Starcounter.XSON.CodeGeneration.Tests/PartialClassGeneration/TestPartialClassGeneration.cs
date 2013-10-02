@@ -57,16 +57,16 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(code);
         }
 
-        [Test]
-        public static void TestGenerics() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
-                "PartialClassGeneration/Generic.json",
-                "PartialClassGeneration/Generic.json.cs");
-            var dump = codegen.DumpAstTree();
-            var code = codegen.GenerateCode();
-            Console.WriteLine(dump);
-            Console.WriteLine(code);
-        }
+		//[Test]
+		//public static void TestGenerics() {
+		//	var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+		//		"PartialClassGeneration/Generic.json",
+		//		"PartialClassGeneration/Generic.json.cs");
+		//	var dump = codegen.DumpAstTree();
+		//	var code = codegen.GenerateCode();
+		//	Console.WriteLine(dump);
+		//	Console.WriteLine(code);
+		//}
 
         [Test]
         public static void TestGlobalClassSpecifier() {

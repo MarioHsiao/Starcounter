@@ -277,6 +277,7 @@ namespace Starcounter.Internal {
             try {
 
                 SqlResult<dynamic> sqlResult = Db.SlowSQL(query);
+
                 if (sqlResult != null) {
                     sqle = (Starcounter.SqlEnumerator<object>)sqlResult.GetEnumerator();
 
@@ -327,9 +328,9 @@ namespace Starcounter.Internal {
                         var jsonRow = rowArr.Add();
 
                         if (sqle.ProjectionTypeCode != null) {
-							#region GetValue
-							switch (sqle.ProjectionTypeCode) {
-                            //case DbTypeCode.Binary:
+                            #region GetValue
+                            switch (sqle.ProjectionTypeCode) {
+                                //case DbTypeCode.Binary:
                                 //    value = obj.GetBinary(prop.Index);
                                 //    break;
                                 case DbTypeCode.Boolean:
@@ -385,8 +386,8 @@ namespace Starcounter.Internal {
                                     break;
                                 default:
                                     throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", sqle.ProjectionTypeCode.ToString()));
-							}
-							#endregion
+                            }
+                            #endregion
                         }
                         else {
 
@@ -459,7 +460,7 @@ namespace Starcounter.Internal {
                                 }
                             }
                         }
-				
+
 
                         index++;
 
@@ -481,8 +482,10 @@ namespace Starcounter.Internal {
             }
             catch (Exception e) {
 
+                LogSources.Sql.LogException(e);
+
                 results.exception.helpLink = e.HelpLink;
-                results.exception.message = e.Message;
+                results.exception.message = e.GetType().ToString() + ": " + e.Message;
                 results.exception.stackTrace = e.StackTrace;
                 results.hasException = true;
             }
