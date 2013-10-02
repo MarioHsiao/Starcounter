@@ -130,9 +130,7 @@ namespace star {
                 exePath = Path.GetFullPath(exePath);
             } catch {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), false);
-                Console.WriteLine();
-                Usage(syntax, false, false, Error.SCERREXECUTABLENOTFOUND);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), true);
 
             }
             if (!File.Exists(exePath)) {
@@ -144,9 +142,7 @@ namespace star {
             }
             if (!File.Exists(exePath)) {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), false);
-                Console.WriteLine();
-                Usage(syntax, false, false, Error.SCERREXECUTABLENOTFOUND);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), true);
             }
 
             string[] userArgs = null;
