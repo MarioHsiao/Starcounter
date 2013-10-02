@@ -86,6 +86,11 @@ namespace Starcounter.CLI {
             /// </summary>
             public const string Restart = "restart";
             /// <summary>
+            /// Gets the option name of the parameter that specifies that
+            /// the executable should be stopped rather than started.
+            /// </summary>
+            public const string Stop = "stop";
+            /// <summary>
             /// Gets the option name of the parameter that instructs the
             /// client to turn on verbose output.
             /// </summary>
@@ -199,6 +204,10 @@ namespace Starcounter.CLI {
             definition.DefineFlag(
                 Option.Restart,
                 "Specifies that the application should be restarted if it's already running."
+                );
+            definition.DefineFlag(
+                Option.Stop,
+                "Specifies that the application should be stopped."
                 );
             definition.DefineFlag(
                 Option.Async,
