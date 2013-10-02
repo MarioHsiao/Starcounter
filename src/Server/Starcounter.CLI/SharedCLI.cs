@@ -378,6 +378,8 @@ namespace Starcounter.CLI {
             int exitCode = (int)msg.Code;
             Console.WriteLine();
             ConsoleUtil.ToConsoleWithColor(msg.ToString(), red);
+            Console.WriteLine();
+            ShowHints(msg.Code);
             if (exit) Environment.Exit(exitCode);
             else Environment.ExitCode = exitCode;
         }
@@ -418,6 +420,13 @@ namespace Starcounter.CLI {
             }
 
             if (exit) Environment.Exit((int)errorCode);
+        }
+
+        static void ShowHints(uint error) {
+            var color = ConsoleColor.Yellow;
+            ConsoleUtil.ToConsoleWithColor("Type \"star -h\" to see help about star.exe", color);
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("Type \"star {0}\" to launch the help page for error {0}", error), color);
         }
     }
 }
