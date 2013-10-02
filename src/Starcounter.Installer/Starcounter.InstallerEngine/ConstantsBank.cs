@@ -50,6 +50,7 @@ namespace Starcounter.InstallerEngine
 
         // Other constants.
         public const String SCIconFilename = "sc.ico";
+        public const String SCAdminIconFilename = "sc_logo.ico";
         
         public const String SilentArg = "Silent";
         public const String DontCheckOtherInstancesArg = "DontCheckOtherInstances";

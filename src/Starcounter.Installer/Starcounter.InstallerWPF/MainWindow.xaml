@@ -275,6 +275,8 @@
                 <!-- Devider -->
                 <!--<Border Grid.Row="3" Margin="30,0,30,40" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0"   />-->
 
+                <TextBlock Margin="5" Foreground="#20ffffff" Grid.Row="3" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Version}"></TextBlock>
+                
             </Grid>
 
         </Grid>
