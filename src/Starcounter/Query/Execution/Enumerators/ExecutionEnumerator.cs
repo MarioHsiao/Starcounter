@@ -18,7 +18,7 @@ namespace Starcounter.Query.Execution
 // Implementation for base execution enumerator class.
 internal abstract class ExecutionEnumerator
 {
-    protected static uint OFFSETELEMNETSIZE = 2; // Initial size of offset element in tuple writer
+    protected static int OFFSETELEMNETSIZE = 2; // Initial size of offset element in tuple writer
     protected static byte OffsetRootHeaderLength; // Length of the header of offset key tuple.
     protected readonly byte nodeId; // Unique node identifier in execution tree. Top node has largest nodeId.
     protected readonly byte OffsetTuppleLength; // Length of the tuple with offset of this enumerator.
@@ -306,13 +306,13 @@ internal abstract class ExecutionEnumerator
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
-        uint bytesWritten = 0;
+        int bytesWritten = 0;
         unsafe {
             fixed (Byte* recreationKey = tempBuffer) {
                 Debug.Assert(TopNode);
                 OffsetRootHeaderLength = 1;
                 byte nodesNum = (byte)(NodeId + 1);
-                SafeTupleWriterBase64 root = new SafeTupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE, (uint)tempBuffer.Length);
+                SafeTupleWriterBase64 root = new SafeTupleWriterBase64(recreationKey, (uint)(OffsetRootHeaderLength + 1), OFFSETELEMNETSIZE, tempBuffer.Length);
                 // General validation data
                 root.WriteULong(nodesNum); // Saving number of enumerators
                 // Saving enumerator data
