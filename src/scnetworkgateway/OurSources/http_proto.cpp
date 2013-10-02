@@ -688,7 +688,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         //set_matched_uri_index(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
-        sd->get_http_ws_proto()->http_request_.uri_offset_ = sd->GetAccumDataOffset() + uri_offset;
+        sd->get_http_ws_proto()->http_request_.uri_offset_ = sd->GetAccumOrigBufferSocketDataOffset() + uri_offset;
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
@@ -825,13 +825,13 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                uint32_t num_content_bytes_received = sd->GetAccumDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
+                uint32_t num_content_bytes_received = sd->GetAccumOrigBufferSocketDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
                 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint32_t>(sd->GetAccumDataOffset() + bytes_parsed);
+                    http_request_.content_offset_ = static_cast<uint32_t>(sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -907,16 +907,30 @@ ALL_DATA_ACCUMULATED:
                 case HTTP_STANDARD_RESPONSE:
                 {
                     // Setting request properties.
-                    http_request_.request_offset_ = sd->GetAccumDataOffset();
+                    http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
                     http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
                     // Resetting user data parameters.
                     sd->ResetUserDataOffset();
 
-                    // Push chunk to corresponding channel/scheduler.
-                    err_code = gw->PushSocketDataToDb(sd, handler_id);
-                    if (err_code)
-                        return err_code;
+#ifdef GW_LOOPBACK_AGGREGATION
+                    if (sd->GetSocketAggregatedFlag())
+                    {
+                        char body[1024];
+                        int32_t body_len = http_request_.content_len_bytes_;
+                        memcpy(body, (char*)sd + http_request_.content_offset_, body_len);
+                        err_code = gw->SendHttpBody(sd, body, body_len);
+                        if (err_code)
+                            return err_code;
+                    }
+                    else
+#endif
+                    {
+                        // Push chunk to corresponding channel/scheduler.
+                        err_code = gw->PushSocketDataToDb(sd, handler_id);
+                        if (err_code)
+                            return err_code;
+                    }
 
                     break;
                 }
@@ -1106,13 +1120,13 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = sd->GetAccumDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
+                int32_t num_content_bytes_received = sd->GetAccumOrigBufferSocketDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint32_t> (sd->GetAccumDataOffset() + bytes_parsed);
+                    http_request_.content_offset_ = static_cast<uint32_t> (sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -1367,6 +1381,9 @@ uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAN
 // POST sockets for Gateway.
 uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
+    // Cloning for receiving immediately.
+    sd->CloneToReceive(gw);
+
     // Getting the aggregation info.
     AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
 
@@ -1382,7 +1399,7 @@ uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLE
 
     *is_handled = true;
 
-    return gw->SendBody(sd, temp_buf, AggregationStructSizeBytes);
+    return gw->SendHttpBody(sd, temp_buf, AggregationStructSizeBytes);
 }
 
 // DELETE sockets for Gateway.
@@ -1403,7 +1420,7 @@ uint32_t DeleteSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
 
     *is_handled = true;
 
-    return gw->SendBody(sd, temp_buf, AggregationStructSizeBytes);
+    return gw->SendHttpBody(sd, temp_buf, AggregationStructSizeBytes);
 }
 
 } // namespace network

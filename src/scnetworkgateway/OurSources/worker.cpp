@@ -156,7 +156,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef proxy_sd)
         }
 
         // Skipping completion port if operation is already successful.
-        SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+        //SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 
         // Putting socket into non-blocking mode.
         ULONG ul = 1;
@@ -310,7 +310,7 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
             }
 
             // Skipping completion port if operation is already successful.
-            SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+            //SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 
             // Putting socket into non-blocking mode.
             ULONG ul = 1;
@@ -395,7 +395,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
     GW_ASSERT(false == sd->GetSocketAggregatedFlag());
 
 // This label is used to avoid recursiveness between Receive and FinishReceive.
-START_RECEIVING_AGAIN:
+//START_RECEIVING_AGAIN:
 
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "Receive: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
@@ -451,7 +451,9 @@ START_RECEIVING_AGAIN:
         // manipulations on it are not possible.
         sd = NULL;
     }
-    else
+    sd = NULL;
+
+    /*else
     {
         // Checking if socket is closed by the other peer.
         if (0 == numBytes)
@@ -474,7 +476,7 @@ START_RECEIVING_AGAIN:
             if (!called_from_receive)
                 goto START_RECEIVING_AGAIN;
         }
-    }
+    }*/
 
     return 0;
 }
@@ -620,7 +622,10 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     // Checking if aggregation is involved.
     if (sd->GetSocketAggregatedFlag())
     {
-        g_gateway.num_aggregated_tosend_messages_++;
+        // Increasing number of sends.
+        worker_stats_sent_num_++;
+
+        g_gateway.num_aggregated_send_queued_messages_++;
         AddToAggregation(sd);
 
         sd = NULL;
@@ -676,11 +681,17 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     }
     else
     {
+        // Returning extra chunks.
+        ReturnSocketDataChunksToPool(sd, true);
+
+        /*
         // Finish send operation.
         err_code = FinishSend(sd, num_sent_bytes);
         if (err_code)
             return err_code;
+        */
     }
+    g_gateway.num_pending_sends_++;
 
     return 0;
 }
@@ -763,31 +774,81 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     // Returning chunks to pool.
     ReturnSocketDataChunksToPool(sd);
 
+    g_gateway.num_pending_sends_--;
+
     return 0;
 }
 
 // Returns given socket data chunk to private chunk pool.
-void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
+void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool return_only_extra_chunks)
 {
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
+#endif
+
+    // Checking if its aggregating socket data.
+    if (sd->get_aggregation_sd_flag())
+    {
+        sd->set_num_chunks(2);
+        sd->reset_aggregation_sd_flag();
+    }
+
+    core::chunk_index next_chunk_index;
+    uint8_t next_chunk_db_index;
+
+    // Checking if we need to return chunk.
+    if (return_only_extra_chunks)
+    {
+        core::chunk_index extra_chunk_index = sd->get_extra_chunk_index();
+        if (INVALID_CHUNK_INDEX != extra_chunk_index)
+        {
+            worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks() - 1, extra_chunk_index);
+            sd->set_num_chunks(1);
+            sd->set_extra_chunk_index(INVALID_CHUNK_INDEX);
+            sd->get_smc()->set_link(INVALID_CHUNK_INDEX);
+        }
+
+        next_chunk_index = sd->get_smc()->get_next();
+        if (INVALID_CHUNK_INDEX == next_chunk_index)
+        {
+            // IMPORTANT: Preventing further usages of this socket data.
+            sd = NULL;
+            return;
+        }
+
+        sd->get_smc()->set_next(INVALID_CHUNK_INDEX);
+
+        // Getting next socket data.
+        next_chunk_db_index = sd->get_next_chunk_db_index();
+        sd = worker_dbs_[next_chunk_db_index]->GetSocketDataFromChunkIndex(next_chunk_index);
+    }
+
     // Checking if we have other chunks linked.
     while (true)
     {
-        core::chunk_index next_chunk_index = sd->get_smc()->get_next();
-        uint8_t next_chunk_db_index = sd->get_next_chunk_db_index();
+        next_chunk_index = sd->get_smc()->get_next();
+        next_chunk_db_index = sd->get_next_chunk_db_index();
+
+        sd->get_smc()->set_next(INVALID_CHUNK_INDEX);
 
         // Returning current chunks to pool.
-        worker_dbs_[sd->get_db_index()]->ReturnSocketDataChunksToPool(this, sd);
+        worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
 
         // Checking if links are finished.
         if (INVALID_CHUNK_INDEX == next_chunk_index)
+        {
+            // IMPORTANT: Preventing further usages of this socket data.
+            sd = NULL;
+
             return;
+        }
 
         // Getting next socket data.
         sd = worker_dbs_[next_chunk_db_index]->GetSocketDataFromChunkIndex(next_chunk_index);
-
-        // NOTE: Setting number of chunks to 0 because they are already returned by statistics.
-        sd->set_num_chunks(0);
     }
+
+    // IMPORTANT: Preventing further usages of this socket data.
+    sd = NULL;
 }
 
 // Processes sockets that should be disconnected.
@@ -864,7 +925,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     }
 
     // Setting unique socket id.
-    sd->CreateUniqueSocketId(GenerateSchedulerId(sd->get_db_index()));
+    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
 
 DISCONNECT_OPERATION:
 
@@ -873,6 +934,7 @@ DISCONNECT_OPERATION:
 
     // Calling DisconnectEx.
     err_code = sd->Disconnect(this);
+    GW_ASSERT(!err_code);
 
 #ifdef GW_PROFILER_ON
     profiler_.Stop(3);
@@ -910,6 +972,7 @@ DISCONNECT_OPERATION:
         // The disconnect operation is pending.
         return;
     }
+    /*
     else
     {
         // Finish disconnect operation.
@@ -918,7 +981,7 @@ DISCONNECT_OPERATION:
             goto RELEASE_CHUNK_TO_POOL;
 
         return;
-    }
+    }*/
 
     // Returning the chunk to pool.
 RELEASE_CHUNK_TO_POOL:
@@ -1046,7 +1109,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
         TrackSocket(sd->get_db_index(), sd->get_socket_info_index());
 
         // Setting unique socket id.
-        sd->CreateUniqueSocketId(GenerateSchedulerId(sd->get_db_index()));
+        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
 
         // Calling ConnectEx.
         uint32_t err_code = sd->Connect(this, server_addr);
@@ -1198,7 +1261,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     ChangeNumAcceptingSockets(sd->GetPortIndex(), 1);
 
     // Setting unique socket id.
-    sd->CreateUniqueSocketId(GenerateSchedulerId(sd->get_db_index()));
+    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
 
     // Calling AcceptEx.
     uint32_t err_code = sd->Accept(this);
@@ -1412,16 +1475,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Checking for socket data correctness.
                 GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
                 GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
-                GW_ASSERT(sd->get_chunk_index() != INVALID_CHUNK_INDEX);
-
-                // Checking that socket is valid.
-                /*if (!sd->ForceSocketDataValidity(this))
-                {
-                    // Releasing socket data chunks back to pool.
-                    GetWorkerDb(sd->get_db_index())->ReturnSocketDataChunksToPool(this, sd);
-
-                    continue;
-                }*/
+                GW_ASSERT(INVALID_CHUNK_INDEX != sd->get_chunk_index());
 
                 // Checking if its not receiving socket data.
                 if ((!sd->get_socket_representer_flag()) && (!sd->get_socket_trigger_disconnect_flag()))
@@ -1531,11 +1585,7 @@ uint32_t GatewayWorker::WorkerRoutine()
         // Processing socket disconnect list.
         ProcessSocketDisconnectList();
 
-        // Scanning all channels.
         next_sleep_interval_ms = INFINITE;
-        err_code = ScanChannels(next_sleep_interval_ms);
-        if (err_code)
-            return err_code;
 
         // Checking if we have aggregation.
         if (INVALID_PORT_NUMBER != g_gateway.setting_aggregation_port())
@@ -1558,6 +1608,11 @@ uint32_t GatewayWorker::WorkerRoutine()
                 aggr_timer_.Start();
             }
         }
+
+        // Scanning all channels.
+        err_code = ScanChannels(next_sleep_interval_ms);
+        if (err_code)
+            return err_code;
 
         // NOTE: Checking inactive sockets cleanup (only first worker).
         if ((g_gateway.get_num_sockets_to_cleanup_unsafe()) && (worker_id_ == 0))
@@ -1779,13 +1834,13 @@ void GatewayWorker::DeleteInactiveDatabase(db_index_type db_index)
 }
 
 // Sends given body.
-uint32_t GatewayWorker::SendBody(
+uint32_t GatewayWorker::SendHttpBody(
     SocketDataChunkRef sd,
     const char* body,
     const int32_t body_len)
 {
-    GW_ASSERT(body_len < 256);
-    char temp_resp[512];
+    GW_ASSERT(body_len < 1800);
+    char temp_resp[2048];
 
     // Copying predefined header.
     memcpy(temp_resp, kHttpStatsHeader, kHttpStatsHeaderLength);
@@ -1828,7 +1883,7 @@ uint32_t GatewayWorker::SendPredefinedMessage(
         WorkerDbInterface* worker_db = GetWorkerDb(sd->get_db_index());
         starcounter::core::chunk_index src_chunk_index = sd->get_chunk_index();
 
-        int32_t first_chunk_offset = sd->GetAccumBufferDataOffsetInChunk();
+        int32_t first_chunk_offset = sd->GetAccumOrigBufferChunkOffset();
 
         int32_t last_written_bytes;
         uint32_t err_code;
@@ -1880,6 +1935,8 @@ uint32_t GatewayWorker::SendPredefinedMessage(
 
     // Prepare buffer to send outside.
     accum_buf->PrepareForSend(accum_buf->get_chunk_orig_buf_ptr(), message_len);
+    sd->set_user_data_written_bytes(message_len);
+    sd->set_user_data_offset_in_socket_data(sd->GetAccumOrigBufferSocketDataOffset());
 
     // Sending data.
     return Send(sd);
