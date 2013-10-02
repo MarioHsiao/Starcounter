@@ -79,5 +79,148 @@ namespace Starcounter.Applications.UsageTrackerApp {
             return 1;
         }
 
+
+        public static void AssureIndexes() {
+
+            #region Installation
+
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallationNoIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallationNoIndex ON Installation (InstallationNo)");
+            }
+
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallationPrevNoIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallationPrevNoIndex ON Installation (PreviousInstallationNo)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallationDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallationDateIndex ON Installation (\"'Date'\")");
+            //}
+
+            #endregion
+
+            #region InstallerAbort
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerAbortIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallerAbortIndex ON InstallerAbort (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerAbortDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallerAbortDateIndex ON InstallerAbort (\"Date\")");
+            //}
+            #endregion
+
+            #region InstallerEnd
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerEndIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallerEndIndex ON InstallerEnd (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerEndDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallerEndDateIndex ON InstallerEnd (\"Date\")");
+            //}
+            #endregion
+
+            #region InstallerExecuting
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerExecutingIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallerExecutingIndex ON InstallerExecuting (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerExecutingDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallerExecutingDateIndex ON InstallerExecuting (\"Date\")");
+            //}
+            #endregion
+
+            #region InstallerFinish
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerFinishIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallerFinishIndex ON InstallerFinish (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerFinishDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallerFinishDateIndex ON InstallerFinish (\"Date\")");
+            //}
+            #endregion
+
+            #region InstallerStart
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerStartIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallerStartIndex ON InstallerStart (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerStartDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallerStartDateIndex ON InstallerStart (\"Date\")");
+            //}
+            #endregion
+
+            #region StarcounterUsage
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "StarcounterUsageIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX StarcounterUsageIndex ON StarcounterUsage (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "StarcounterUsageDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX StarcounterUsageDateIndex ON StarcounterUsage (\"Date\")");
+            //}
+            #endregion
+
+            #region StarcounterGeneral
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "StarcounterGeneralIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX StarcounterGeneralIndex ON StarcounterGeneral (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "StarcounterGeneralDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX StarcounterGeneralDateIndex ON StarcounterGeneral (\"Date\")");
+            //}
+            #endregion
+
+            #region ErrorReport
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "ErrorReportIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX ErrorReportIndex ON ErrorReport (Installation)");
+            }
+
+            #endregion
+
+            #region VersionBuild
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionBuildVersionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionBuildVersionIndex ON VersionBuild (Version)");
+            }
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionBuildChannelIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionBuildChannelIndex ON VersionBuild (Channel)");
+            }
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionBuildChannelVersionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionBuildChannelVersionIndex ON VersionBuild (Channel, Version)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionBuildDLIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX VersionBuildDLIndex ON VersionBuild (HasBeenDownloaded)");
+            //}
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionBuildChannelVersionDLIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX VersionBuildChannelVersionDLIndex ON VersionBuild (Channel, Version, HasBeenDownloaded)");
+            //}
+
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionBuildSerialIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionBuildSerialIndex ON VersionBuild (Serial)");
+            }
+
+
+
+            #endregion
+
+            
+            #region VersionSource
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
+            }
+
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionSourceBuildErrorIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorIndex ON VersionSource (BuildError)");
+            }
+
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionSourceVersionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceVersionIndex ON VersionSource (Version)");
+            }
+
+            #endregion
+
+            
+
+        }
+
     }
 }

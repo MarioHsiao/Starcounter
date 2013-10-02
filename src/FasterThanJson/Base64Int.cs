@@ -255,7 +255,7 @@ namespace Starcounter.Internal
       /// <param name="value">The value.</param>
       /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe uint MeasureNeededSize(UInt64 value)
+      public static unsafe int MeasureNeededSize(UInt64 value)
       {
          if (value <= 0x3F)
          {
@@ -301,7 +301,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe uint MeasureNeededSizeNullable(UInt64? value) {
+      public static unsafe int MeasureNeededSizeNullable(UInt64? value) {
           if (value == null)
               return 1;
           if (value <= 0x1F) {
@@ -456,7 +456,7 @@ namespace Starcounter.Internal
       /// <param name="value">The value.</param>
       /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe uint Write(byte* buffer, UInt64 value)
+      public static unsafe int Write(byte* buffer, UInt64 value)
       {
          var c = (Base64x5*) buffer;
          if ((value & 0xFFFFFFFFFFFFFFC0) == 0) {// 11 111111 111111 111111 111111 000000 (NOTE: groups of SIX bits)
@@ -483,7 +483,7 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe uint WriteNullable(byte* buffer, UInt64? valueN) {
+      public static unsafe int WriteNullable(byte* buffer, UInt64? valueN) {
           if (valueN == null) {
               WriteBase64x1(1, buffer);
               return 1;

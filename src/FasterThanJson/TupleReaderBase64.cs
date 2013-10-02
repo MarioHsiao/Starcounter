@@ -22,7 +22,7 @@ namespace Starcounter.Internal
        /// Offset integer pointing to the end of the tuple with 0 being the beginning of the value count
        /// Kept to speed up writing of offsets into the offset list
        /// </summary>
-      public UInt32 ValueOffset;
+      public Int32 ValueOffset;
 
       /// <summary>
       /// Counter remembering the number of values written
@@ -63,7 +63,7 @@ namespace Starcounter.Internal
          AtOffsetEnd = AtStart + OffsetElementSizeSize;
          ValueOffset = 0;
          ValueCount = valueCount;
-         OffsetElementSize = Base16Int.ReadBase16x1((Base16x1*)AtStart); // The first byte in the tuple tells the offset element size of the tuple
+         OffsetElementSize = (int)Base16Int.ReadBase16x1((Base16x1*)AtStart); // The first byte in the tuple tells the offset element size of the tuple
          AtEnd = AtStart + OffsetElementSizeSize + valueCount * OffsetElementSize;
 
       }
@@ -125,8 +125,8 @@ namespace Starcounter.Internal
          var ret = (uint)Base32Int.Read(len, (IntPtr)AtEnd);
 #endif
 #if BASE64
-         int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
-         len -= (int)ValueOffset;
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+         len -= ValueOffset;
          ulong ret = Base64Int.Read(len, AtEnd);
 #endif
 #if BASE256
@@ -134,7 +134,7 @@ namespace Starcounter.Internal
          len -= (int)ValueOffset;
          var ret = (uint)Base256Int.Read(len, (IntPtr)AtEnd);
 #endif
-         ValueOffset += (uint)len;
+         ValueOffset += len;
          AtOffsetEnd += OffsetElementSize;
          AtEnd += len;
          return ret;
@@ -146,9 +146,9 @@ namespace Starcounter.Internal
        /// <returns>The value</returns>
       public unsafe ulong? ReadULongNullable() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
-          len -= (int)ValueOffset;
+          len -= ValueOffset;
           ulong? ret = Base64Int.ReadNullable(len, AtEnd);
-          ValueOffset += (uint)len;
+          ValueOffset += len;
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
           return ret;
@@ -174,9 +174,9 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
       public unsafe long ReadLong() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
-          len -= (int)ValueOffset;
+          len -= ValueOffset;
           ulong uval = Base64Int.Read(len, AtEnd);
-          ValueOffset += (uint)len;
+          ValueOffset += len;
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
           return ConvertToLong(uval);
@@ -189,9 +189,9 @@ namespace Starcounter.Internal
        /// <returns>The read value.</returns>
       public unsafe long? ReadLongNullable() {
           int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
-          len -= (int)ValueOffset;
+          len -= ValueOffset;
           ulong? uval = Base64Int.ReadNullable(len, AtEnd);
-          ValueOffset += (uint)len;
+          ValueOffset += len;
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
           if (uval == null)
@@ -211,7 +211,7 @@ namespace Starcounter.Internal
          uint len = (uint)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
 #if BASE64
-         uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+         int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
 #endif
 #if BASE256
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
@@ -252,9 +252,9 @@ namespace Starcounter.Internal
        /// <returns>The length of the array written. -1 means null value. </returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe int ReadString(char* value) {
-         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+         int valueLength = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
          valueLength -= ValueOffset;
-         int leng = ReadString((int)valueLength, AtEnd, value);
+         int leng = ReadString(valueLength, AtEnd, value);
          AtEnd += valueLength;
          ValueOffset += valueLength;
          AtOffsetEnd += OffsetElementSize;
@@ -283,13 +283,13 @@ namespace Starcounter.Internal
          uint len = (uint)Base32Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
 #if BASE64
-         uint valueLength = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+         int valueLength = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
 #endif
 #if BASE256
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
          valueLength -= ValueOffset;
-         String str = ReadString((int)valueLength, AtEnd);
+         String str = ReadString(valueLength, AtEnd);
          AtEnd += valueLength;
          ValueOffset += valueLength;
          AtOffsetEnd += OffsetElementSize;
@@ -303,7 +303,7 @@ namespace Starcounter.Internal
       /// <returns>The length of the array written. -1 means null value. </returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe int ReadByteArray(byte* value) {
-          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= ValueOffset;
           int writtenLen = Base64Binary.Read(len, AtEnd, value);
           AtOffsetEnd += OffsetElementSize;
@@ -329,7 +329,7 @@ namespace Starcounter.Internal
       /// <returns>The read value. </returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe byte[] ReadByteArray() {
-          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= ValueOffset;
           byte[] value = Base64Binary.Read(len, AtEnd);
           AtOffsetEnd += OffsetElementSize;
@@ -369,8 +369,8 @@ namespace Starcounter.Internal
        /// </summary>
        /// <returns>The length in bytes.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe uint GetValueLength() {
-          uint len = (uint)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+      public unsafe int GetValueLength() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
           len -= ValueOffset;
           return len;
       }

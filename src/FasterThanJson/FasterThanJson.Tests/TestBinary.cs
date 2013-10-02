@@ -15,7 +15,7 @@ namespace FasterThanJson.Tests {
             byte[] decoded;
             unsafe {
                 fixed (byte* valuePtr = value, encodedPtr = encoded) {
-                    uint length = Base64Binary.Write(encodedPtr, valuePtr, 3);
+                    int length = Base64Binary.Write(encodedPtr, valuePtr, 3);
                     Assert.AreEqual(length, 4);
                     decoded = Base64Binary.Read(4, encodedPtr);
                 }
@@ -26,7 +26,7 @@ namespace FasterThanJson.Tests {
             byte[] nullBinary = null;
             unsafe {
                 fixed (byte* encodedPtr = encoded) {
-                    uint length = Base64Binary.Write(encodedPtr, nullBinary);
+                    int length = Base64Binary.Write(encodedPtr, nullBinary);
                     Assert.AreEqual(length, 1);
                     decoded = Base64Binary.Read(1, encodedPtr);
                 }
@@ -34,11 +34,11 @@ namespace FasterThanJson.Tests {
             Assert.AreEqual(null, decoded);
         }
 
-        internal void ConvertByteArray(byte[] value, uint valueLength, byte[] encoded, uint expectedEncodedLength) {
+        internal void ConvertByteArray(byte[] value, int valueLength, byte[] encoded, int expectedEncodedLength) {
             byte[] decoded;
             unsafe {
                 fixed (byte* valuePtr = value, encodedPtr = encoded) {
-                    uint length = Base64Binary.Write(encodedPtr, valuePtr, valueLength);
+                    int length = Base64Binary.Write(encodedPtr, valuePtr, valueLength);
                     Assert.AreEqual(length, expectedEncodedLength);
                     decoded = Base64Binary.Read(expectedEncodedLength, encodedPtr);
                 }
@@ -92,14 +92,14 @@ namespace FasterThanJson.Tests {
             Random rnd = new Random(1);
             int nrTests = 1000;
             for (int i = 0; i < nrTests; i++) {
-                uint valueLength = (uint)rnd.Next(1024);
-                uint valueArrayLength = valueLength;
+                int valueLength = rnd.Next(1024);
+                int valueArrayLength = valueLength;
                 if (rnd.Next(0, 2) == 1)
-                    valueArrayLength += (uint)rnd.Next(100);
-                uint encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
-                uint encodedArrayLength = encodedLength;
+                    valueArrayLength += rnd.Next(100);
+                int encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
+                int encodedArrayLength = encodedLength;
                 if (rnd.Next(0, 2) == 1)
-                    encodedArrayLength += (uint)rnd.Next(200);
+                    encodedArrayLength += rnd.Next(200);
                 byte[] value = new byte[valueArrayLength];
                 byte[] encoded = new byte[encodedArrayLength];
                 for (int j = 0; j < valueLength; j++)
@@ -110,8 +110,8 @@ namespace FasterThanJson.Tests {
 
         internal void BenchmarkABinary(int nrIterations, byte[] value) {
             Stopwatch timer = new Stopwatch();
-            uint valueLength = (uint)value.Length;
-            uint encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
+            int valueLength = value.Length;
+            int encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
             byte[] encoded = new byte[encodedLength];
             unsafe {
                 fixed (byte* encodedPtr = encoded, valuePtr = value) {

@@ -21,7 +21,6 @@ namespace Starcounter {
         /// 
         /// </summary>
         internal void CheckpointChangeLog() {
-            _BrandNew = false;
             this.ArrayAddsAndDeletes = null;
             var values = list;
             if (this.IsArray) {

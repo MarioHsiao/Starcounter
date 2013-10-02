@@ -117,21 +117,32 @@ namespace Starcounter {
                     thisj.SetBound(property, value);
                 }
             }
-
+            var index = property.TemplateIndex;
             if (property is TObjArr) {
-                var valuearr = (Json)value;
-                var oldValue = (Json)_list[property.TemplateIndex];
-                if (oldValue != null) {
-                    oldValue.InternalClear();
-                    //                oldValue.Clear();
-                    oldValue.SetParent(null);
+                Json valuearr;
+                if (value is Json) {
+                    valuearr = value as Json;
                 }
+                else {
+                    valuearr = new Json( (IEnumerable)value);
+                    valuearr.Parent = this;
+                    //valuearr._PendingEnumeration = true;
+                }
+                if (index < _list.Count) {
+                    var oldValue = (Json)_list[index];
+                    if (oldValue != null) {
+                        oldValue.InternalClear();
+                        //                oldValue.Clear();
+                        oldValue.SetParent(null);
+                    }
+                }
+                list[index] = valuearr;
 
                 valuearr.Array_InitializeAfterImplicitConversion(thisj, (TObjArr)property);
             }
-
-            if (property is TObject) {
+            else if (property is TObject) {
                 var j = (Json)value;
+                list[index] = j;
                 // We need to update the cached index array
                 if (j != null) {
                     j.Parent = this;
@@ -146,6 +157,9 @@ namespace Starcounter {
                     oldValue.SetParent(null);
                     oldValue._cacheIndexInArr = -1;
                 }
+            }
+            else {
+                list[index] = value;
             }
         }
 
@@ -452,14 +466,16 @@ namespace Starcounter {
                         oldValue.SetParent(null);
                         oldValue._cacheIndexInArr = -1;
                     }
+                    list[index] = value;
+
                 }
                 else {
+
                     var property = (TValue)((TObject)Template).Properties[index];
                     this._OnSetProperty(property, value);
                 }
-                list[index] = value;
 
-                if (!_BrandNew) {
+                if (HasBeenSent) {
                     MarkAsReplaced(index);
                 }
 
