@@ -322,7 +322,8 @@ namespace StarcounterInternal.Bootstrap
         {
             try {
 
-            DisconnectDatabase();
+                if (withdb_)
+                    DisconnectDatabase();
 
             } finally { OnEndCleanup(); }
         }
