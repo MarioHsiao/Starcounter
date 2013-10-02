@@ -155,6 +155,13 @@ namespace Starcounter.CLI {
                 }
             }
             else {
+                if (!args.ContainsFlag(Option.Restart)) {
+                    var alreadyStarted =
+                        ErrorCode.ToMessage(Error.SCERREXECUTABLEALREADYRUNNING,
+                        string.Format("Database: \"{0}\". Use --{1} to restart it.", databaseName, Option.Restart));
+                    SharedCLI.ShowErrorAndSetExitCode(alreadyStarted, true);
+                }
+
                 ShowStatus("Stopping host");
                 response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, null, null);
                 response.FailIfNotSuccessOr(404);

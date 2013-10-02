@@ -1,0 +1,14 @@
+﻿{
+    "Executables": [
+        {
+            "path": "C:\\path\to\\the\\exe\\foo.exe",
+            "uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789",
+			"databaseName":"default"
+        },
+		{
+            "path": "C:\\path\to\\the\\exe\\foo.exe",
+            "uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789",
+			"databaseName":"default"
+        },
+    ]
+}
