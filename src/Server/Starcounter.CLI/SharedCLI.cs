@@ -140,6 +140,11 @@ namespace Starcounter.CLI {
             }
         }
 
+        static string[] StandardHints = new string[] {
+            "Type \"star -h\" to see help about star.exe",
+            "Type \"star {0}\" to launch the help page for error {0}"
+        };
+
         /// <summary>
         /// Gets or sets a value indicating if the current client/host
         /// should display verbose output.
@@ -378,6 +383,37 @@ namespace Starcounter.CLI {
             int exitCode = (int)msg.Code;
             Console.WriteLine();
             ConsoleUtil.ToConsoleWithColor(msg.ToString(), red);
+            Console.WriteLine();
+            ShowHints(msg.Code);
+            if (exit) Environment.Exit(exitCode);
+            else Environment.ExitCode = exitCode;
+        }
+
+        /// <summary>
+        /// Writes the given information to the console and sets the process
+        /// exit code.
+        /// </summary>
+        /// <param name="info">The information to write.</param>
+        /// <param name="code">The process exit code to assign the process.</param>
+        /// <param name="hint">An optional hint.</param>
+        /// <param name="showStandardHints">Indicates if standard hints should
+        /// be shown too.</param>
+        /// <param name="exit">A boolean specifying if the process should be exited.</param>
+        /// <param name="color">An optional console color.</param>
+        /// <param name="hintColor">An optional hint console color.</param>
+        public static void ShowInformationAndSetExitCode(
+            string info, 
+            uint code, 
+            string hint = null,
+            bool showStandardHints = true,
+            bool exit = false,
+            ConsoleColor color = ConsoleColor.Yellow, 
+            ConsoleColor hintColor = ConsoleColor.Yellow) {
+            int exitCode = (int)code;
+            Console.WriteLine();
+            ConsoleUtil.ToConsoleWithColor(info, color);
+            Console.WriteLine();
+            ShowHints(code, hint, showStandardHints, hintColor);
             if (exit) Environment.Exit(exitCode);
             else Environment.ExitCode = exitCode;
         }
@@ -418,6 +454,17 @@ namespace Starcounter.CLI {
             }
 
             if (exit) Environment.Exit((int)errorCode);
+        }
+
+        static void ShowHints(uint error, string specificHint = null, bool showStandardHints = true, ConsoleColor color = ConsoleColor.Yellow) {
+            if (specificHint != null) {
+                ConsoleUtil.ToConsoleWithColor(specificHint, color);
+            }
+            if (showStandardHints) {
+                foreach (var hint in StandardHints) {
+                    ConsoleUtil.ToConsoleWithColor(string.Format(hint, error), color);
+                }
+            }
         }
     }
 }
