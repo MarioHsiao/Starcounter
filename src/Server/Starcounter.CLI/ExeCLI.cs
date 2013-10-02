@@ -89,8 +89,8 @@ namespace Starcounter.CLI {
                 try {
                     Engine engine;
                     Executable exe;
-                    DoExec(node, admin, exePath, database, args, entrypointArgs, out engine, out exe);
-                    ShowResultAndSetExitCode(node, database, engine, exe, args);
+                    DoStart(node, admin, exePath, database, args, entrypointArgs, out engine, out exe);
+                    ShowStartResultAndSetExitCode(node, database, engine, exe, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
                     return;
@@ -112,10 +112,53 @@ namespace Starcounter.CLI {
         /// <param name="admin">The admin API to target, mainly defining
         /// the resource URIs to use.</param>
         public static void Stop(string exePath, ApplicationArguments args, AdminAPI admin = null) {
-            SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED), true);
+            int serverPort;
+            string serverName;
+            string serverHost;
+            string database;
+            ShowVerbose(string.Format("Stopping {0}", exePath));
+
+            if (admin == null) {
+                admin = new AdminAPI();
+            }
+
+            try {
+                SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
+                SharedCLI.ResolveDatabase(args, out database);
+
+                var node = new Node(serverHost, (ushort)serverPort);
+
+                ShowHeadline(
+                    string.Format("[Stopping \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
+                    Path.GetFileName(exePath),
+                    database,
+                    serverName,
+                    node.BaseAddress.Host,
+                    node.BaseAddress.Port));
+
+                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
+                    ShowStatus("Retrieving server status", true);
+                    if (!PersonalServerProcess.IsOnline()) {
+                        SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
+                    }
+                }
+
+                try {
+                    Engine engine;
+                    DoStop(node, admin, exePath, database, args, out engine);
+                    ShowStopResultAndSetExitCode(node, database, engine, exePath, args);
+                } catch (SocketException se) {
+                    ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
+                    return;
+                }
+
+            } catch (Exception e) {
+                SharedCLI.ShowErrorAndSetExitCode(e, true, false);
+                return;
+            }
         }
 
-        static void DoExec(
+        static void DoStart(
             Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, string[] entrypointArgs, out Engine engine, out Executable exe) {
             ErrorDetail errorDetail;
             EngineReference engineRef;
@@ -258,6 +301,11 @@ namespace Starcounter.CLI {
             exe.PopulateFromJson(response.Body);
         }
 
+        static void DoStop(Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, out Engine engine) {
+            engine = null;
+            SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED), true);
+        }
+
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
             var db = new Database();
             db.Name = databaseName;
@@ -309,7 +357,7 @@ namespace Starcounter.CLI {
             }
         }
 
-        static void ShowResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
+        static void ShowStartResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
             
             ConsoleUtil.ToConsoleWithColor(
@@ -324,6 +372,21 @@ namespace Starcounter.CLI {
             ShowVerbose(
                 string.Format("Running in process {0}, started by \"{1}\"", engine.CodeHostProcess.PID, exe.StartedBy),
                 color);
+            Environment.ExitCode = 0;
+        }
+
+        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string exe, ApplicationArguments args) {
+            var color = ConsoleColor.Green;
+
+            // Include how many applications are now running?
+            // TODO:
+
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("Stopped \"{0}\" in database \"{1}\"",
+                Path.GetFileName(exe),
+                database),
+                color);
+
             Environment.ExitCode = 0;
         }
 
