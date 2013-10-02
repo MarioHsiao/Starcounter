@@ -12,14 +12,34 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-//#define IPC_GROUPED_CHANNELS
+/// Define the macro IPC_VERSION_2_0 in order to get the changes:
+/// -------------------------------------------------------------
+/// - No cleanup of resources (chunks, channels and client_interfaces), in the database's
+///   shared memory segment.
+/// - Grouped channels: One channel per worker-scheduler pair, and each worker have its own
+///   set of channels in the range 0 to N -1, where N is number of schedulers.
+///   A worker that want to communicate with scheduler S do so on channel(S).
+/// - Allocation of channels is not done. Once the Network Gateway, or IPC test, connects
+///   to the shared memory, each worker can start communicating with the schedulers.
+/// - Schedulers scan all channels. No need to tell the schedulers to start scanning.
+/// - The IPC Monitor is obsolete. I don't know if it will be running, but the Network Gateway
+///   and the IPC test will not register. They will use owner_id 2 for now.
+/// - No cleanup will be done by the IPC monitor (since the Network Gateway and IPC test
+///   will not register, no cleanup is triggered.)
+/// - Databases will not be notified by the IPC monitor that the Network Gateway or
+///   IPC test process terminated. But the server kills all databases anyway if the
+///   Network Gateway (and that should apply to the IPC test also) terminates.
+///
+/// If IPC_VERSION_2_0 is not defined, then it is IPC version 1.0
 
-#if defined (IPC_GROUPED_CHANNELS)
-#endif // defined (IPC_GROUPED_CHANNELS)
+//#define IPC_VERSION_2_0
 
-#if defined (IPC_GROUPED_CHANNELS)
-#else // !defined (IPC_GROUPED_CHANNELS)
-#endif // defined (IPC_GROUPED_CHANNELS)
+#if defined (IPC_VERSION_2_0)
+#endif // defined (IPC_VERSION_2_0)
+
+#if defined (IPC_VERSION_2_0)
+#else // !defined (IPC_VERSION_2_0)
+#endif // defined (IPC_VERSION_2_0)
 
 ///********************************************************************************************
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
