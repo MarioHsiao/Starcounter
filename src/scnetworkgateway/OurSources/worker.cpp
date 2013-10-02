@@ -783,7 +783,8 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool return_only_extra_chunks)
 {
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-    GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
+    if (!return_only_extra_chunks)
+        GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
 #endif
 
     // Checking if its aggregating socket data.
