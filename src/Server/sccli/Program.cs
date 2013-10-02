@@ -25,6 +25,16 @@ namespace star {
                 return;
             }
 
+            if (args.Length == 1) {
+                uint code;
+                if (uint.TryParse(args[0], out code)) {
+                    var helpPageUri = ErrorCode.ToHelpLink(code);
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Opening help page \"{0}\"", helpPageUri), ConsoleColor.DarkGray);
+                    Process.Start(helpPageUri);
+                    return;
+                }
+            }
+
             var syntax = DefineCommandLineSyntax();
             if (!SharedCLI.TryParse(args, syntax, out appArgs))
                 return;
