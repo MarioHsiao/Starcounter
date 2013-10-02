@@ -8,6 +8,8 @@ using System.Text;
 namespace Starcounter {
     partial class Session : IEnumerable<Change> {
 
+        private bool _BrandNew = true;
+
         /// <summary>
         /// The log of Json tree changes pertaining to the session data
         /// </summary>
@@ -67,10 +69,11 @@ namespace Starcounter {
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
         public string CreateJsonPatch( bool flushLog ) {
 
-            if (_Data._BrandNew) {
+            if (_BrandNew) {
                 // Just return the whole thing as a change to the root
                 //GenerateChangeLog(); // Needed to update bound dirty check values.
                 this.CheckpointChangeLog();
+                _BrandNew = false;
                 return "[{\"op\":\"add\",\"path\":\"/\",\"value\":"+_Data.ToJson()+"}]";
             }
 
@@ -139,6 +142,12 @@ namespace Starcounter {
         /// </summary>
         public void CheckpointChangeLog() {
             this._Data.CheckpointChangeLog();
+        }
+
+        public bool BrandNew {
+            get {
+                return _BrandNew;
+            }
         }
     }
 
