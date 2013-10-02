@@ -159,7 +159,7 @@ namespace Starcounter
         }
 
         internal unsafe Binary(ref SafeTupleReaderBase64 tuple, int index) {
-            int len = (int)Base64Binary.MeasureNeededSizeToDecode((uint)tuple.GetValueLength(index));
+            int len = Base64Binary.MeasureNeededSizeToDecode(tuple.GetValueLength(index));
             _buffer = new Byte[len + 4];
             _buffer[0] = (Byte)len;
             _buffer[1] = (Byte)(len >> 8);
@@ -469,7 +469,7 @@ namespace Starcounter
                 tuple.WriteByteArray(null);
             else
                 fixed (byte* start = _buffer) {
-                    tuple.WriteByteArray(start + 4, (uint)GetLength());
+                    tuple.WriteByteArray(start + 4, GetLength());
                 }
         }
 
@@ -478,7 +478,7 @@ namespace Starcounter
                 tuple.WriteByteArray(null);
             else
                 fixed (byte* start = _buffer) {
-                    tuple.WriteByteArray(start + 4, (uint)GetLength());
+                    tuple.WriteByteArray(start + 4, GetLength());
                 }
         }
     }

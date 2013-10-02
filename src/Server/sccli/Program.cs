@@ -25,6 +25,16 @@ namespace star {
                 return;
             }
 
+            if (args.Length == 1) {
+                uint code;
+                if (uint.TryParse(args[0], out code)) {
+                    var helpPageUri = ErrorCode.ToHelpLink(code);
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Opening help page \"{0}\"", helpPageUri), ConsoleColor.DarkGray);
+                    Process.Start(helpPageUri);
+                    return;
+                }
+            }
+
             var syntax = DefineCommandLineSyntax();
             if (!SharedCLI.TryParse(args, syntax, out appArgs))
                 return;
@@ -120,9 +130,7 @@ namespace star {
                 exePath = Path.GetFullPath(exePath);
             } catch {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), false);
-                Console.WriteLine();
-                Usage(syntax, false, false, Error.SCERREXECUTABLENOTFOUND);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), true);
 
             }
             if (!File.Exists(exePath)) {
@@ -134,9 +142,7 @@ namespace star {
             }
             if (!File.Exists(exePath)) {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), false);
-                Console.WriteLine();
-                Usage(syntax, false, false, Error.SCERREXECUTABLENOTFOUND);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), true);
             }
 
             string[] userArgs = null;
@@ -158,7 +164,7 @@ namespace star {
             // Turn to the shared CLI library to do the bulk of the
             // work executing.
 
-            ExeCLI.Exec(exePath, appArgs, userArgs);
+            ExeCLI.StartOrStop(exePath, appArgs, userArgs);
         }
 
         static void ShowVersionInfo() {
@@ -181,18 +187,21 @@ namespace star {
             Console.WriteLine(formatting, string.Format("-hx, --{0}", StarOption.HelpEx), "Shows extended/unofficial help about star.exe.");
             Console.WriteLine(formatting, string.Format("-v, --{0}", StarOption.Version), "Prints the version of Starcounter.");
             Console.WriteLine(formatting, string.Format("-i, --{0}", StarOption.Info), "Prints information about the Starcounter installation.");
-            Console.WriteLine(formatting, string.Format("-p, --{0} port", StarOption.Serverport), "The port to use to the admin server.");
-            Console.WriteLine(formatting, string.Format("--{0} name", StarOption.Server), "Specifies the name of the server. If no port is");
+            Console.WriteLine(formatting, string.Format("-p=,--{0}=port", StarOption.Serverport), "Port to the admin server.");
+            Console.WriteLine(formatting, string.Format("--{0}=name", StarOption.Server), "Specifies the name of the server. If no port is");
             Console.WriteLine(formatting, "", "specified, star.exe use the known port of server.");
-            Console.WriteLine(formatting, string.Format("--{0} host", StarOption.ServerHost), "Specifies the identity of the server host. If no");
+            Console.WriteLine(formatting, string.Format("--{0}=host", StarOption.ServerHost), "Specifies the identity of the server host. If no");
             Console.WriteLine(formatting, "", "host is specified, 'localhost' is used.");
-            Console.WriteLine(formatting, string.Format("-d, --{0} name", StarOption.Db), "The database to use. 'Default' is used if not given.");
-            Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
-            Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
-            Console.WriteLine(formatting, "", "without loading any database into the process.");
-            Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoAutoCreateDb), "Prevents automatic creation of database.");
-            Console.WriteLine(formatting, string.Format("--{0}", StarOption.ResourceDirectory), "Sets the default directory for static resources.");
+            Console.WriteLine(formatting, string.Format("-d=,--{0}=name", StarOption.Db), "The database to use. 'Default' is used if not given.");
+            Console.WriteLine(formatting, "", "Example \"star d=foo bar.exe\"");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.Stop), "Stops the given application.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.Restart), "Allow the application to be restarted if running.");
             if (extended) {
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
+                Console.WriteLine(formatting, "", "without loading any database into the process.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoAutoCreateDb), "Prevents automatic creation of database.");
+                Console.WriteLine(formatting, string.Format("--{0}=path", StarOption.ResourceDirectory), "Sets the default directory for static resources.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Async), "Returns before the entrypoint has finished.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");

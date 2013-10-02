@@ -8,21 +8,21 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal {
     public class Base64Binary {
-        public static unsafe uint MeasureNeededSizeToEncode(UInt32 length) {
+        public static unsafe int MeasureNeededSizeToEncode(Int32 length) {
             return 4 * (length / 3) + ((length % 3 == 0) ? 0 : length % 3 + 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-        public static unsafe uint MeasureNeededSizeToDecode(UInt32 length) {
+        public static unsafe int MeasureNeededSizeToDecode(Int32 length) {
             return 3 * (length >> 2) + ((length & 0x00000003) == 0 ? 0 : (length & 0x00000003) - 1);
         }
         
-        public static unsafe uint Write(byte* buffer, Byte* value, UInt32 length) {
+        public static unsafe int Write(byte* buffer, Byte* value, Int32 length) {
             byte* start = value;
             
-            uint triplesNr = length / 3;
-            uint reminder = length % 3;
-            uint writtenLength = 0;
+            int triplesNr = length / 3;
+            int reminder = length % 3;
+            int writtenLength = 0;
             
             for (uint i = 0; i <triplesNr; i++) {
                 uint triple = *(byte*)value++;
@@ -50,20 +50,20 @@ namespace Starcounter.Internal {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-        public static unsafe uint Write(byte* buffer, Byte[] value) {
+        public static unsafe int Write(byte* buffer, Byte[] value) {
             if (value == null) {
                 Base64Int.WriteBase64x1(0, buffer);
                 return 1;
             } else
                 fixed (byte* valuePtr = value)
-                    return Write(buffer, valuePtr, (uint)value.Length);
+                    return Write(buffer, valuePtr, value.Length);
         }
 
-        public static unsafe int Read(uint size, byte* ptr, byte* value) {
+        public static unsafe int Read(int size, byte* ptr, byte* value) {
             if (size == 1)
                 return -1;
-            uint quarNr = size >> 2;
-            uint reminder = size - (quarNr << 2);
+            int quarNr = size >> 2;
+            int reminder = size - (quarNr << 2);
             Debug.Assert(reminder != 1);
             byte* writing = value;
             for (uint i = 0; i < quarNr; i++) {
@@ -99,10 +99,10 @@ namespace Starcounter.Internal {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-        public static unsafe byte[] Read(uint size, byte* ptr) {
+        public static unsafe byte[] Read(int size, byte* ptr) {
             byte[] value;
             if (size != 1) {
-                uint length = MeasureNeededSizeToDecode(size);
+                int length = MeasureNeededSizeToDecode(size);
                 value = new byte[length];
                 fixed (byte* valuePtr = value) {
                     Read(size, ptr, valuePtr);

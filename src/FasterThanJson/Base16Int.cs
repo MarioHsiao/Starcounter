@@ -55,9 +55,9 @@ namespace Starcounter.Internal
       /// <param name="c">The c.</param>
       /// <returns>System.Int32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe int ReadBase16x1(Base16x1* c)
+      public static unsafe uint ReadBase16x1(Base16x1* c)
       {
-         return (c->b0 & 0x0F);
+         return (uint)(c->b0 & 0x0F);
       }
 
    }
