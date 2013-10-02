@@ -302,8 +302,50 @@ namespace Starcounter.CLI {
         }
 
         static void DoStop(Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, out Engine engine) {
-            engine = null;
-            SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED), true);
+            ErrorDetail errorDetail;
+            int statusCode;
+            var uris = admin.Uris;
+
+            ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
+
+            ShowStatus("Retreiving engine status", true);
+
+            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+            statusCode = response.FailIfNotSuccessOr(404);
+
+            if (statusCode == 404) {
+                errorDetail = new ErrorDetail();
+                errorDetail.PopulateFromJson(response.Body);
+                switch (errorDetail.ServerCode) {
+                    case Error.SCERRDATABASENOTFOUND:
+                    case Error.SCERRDATABASEENGINENOTRUNNING:
+                        var notAccessible = ErrorCode.ToMessage((uint)errorDetail.ServerCode, string.Format("Database: \"{0}\".", databaseName));
+                        SharedCLI.ShowErrorAndSetExitCode(notAccessible, true);
+                        break;
+                    default:
+                        var other404 = ErrorCode.ToMessage((uint)errorDetail.ServerCode, string.Format("Text from server: \"{0}\".", errorDetail.Text));
+                        SharedCLI.ShowErrorAndSetExitCode(other404, true);
+                        break;
+                }
+            }
+
+            engine = new Engine();
+            engine.PopulateFromJson(response.Body);
+
+            ExecutableReference exeRef = engine.GetExecutable(exePath);
+            if (exeRef == null) {
+                var notRunning = ErrorCode.ToMessage(Error.SCERREXECUTABLENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
+                SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
+            } else {
+                var fellowCount = engine.Executables.Executing.Count - 1;
+                var status = string.Format("Restarting database \"{0}\"", databaseName);
+                if (fellowCount > 0) {
+                    status += string.Format(" (and {0} other executable(s))", fellowCount);
+                }
+                ShowStatus(status);
+                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null, null);
+                response.FailIfNotSuccessOr();
+            }
         }
 
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
@@ -377,9 +419,6 @@ namespace Starcounter.CLI {
 
         static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
-
-            // Include how many applications are now running?
-            // TODO:
 
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("Stopped \"{0}\" in database \"{1}\"",
