@@ -164,7 +164,7 @@ namespace star {
             // Turn to the shared CLI library to do the bulk of the
             // work executing.
 
-            ExeCLI.Exec(exePath, appArgs, userArgs);
+            ExeCLI.StartOrStop(exePath, appArgs, userArgs);
         }
 
         static void ShowVersionInfo() {
@@ -194,6 +194,7 @@ namespace star {
             Console.WriteLine(formatting, "", "host is specified, 'localhost' is used.");
             Console.WriteLine(formatting, string.Format("-d=,--{0}=name", StarOption.Db), "The database to use. 'Default' is used if not given.");
             Console.WriteLine(formatting, "", "Example \"star d=foo bar.exe\"");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.Stop), "Stops the given application.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.Restart), "Allow the application to be restarted if running.");
             if (extended) {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
