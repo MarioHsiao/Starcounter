@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Starcounter.Internal {
     public static class MemcpyUtil {
-        internal unsafe static void Memcpy16fwd(byte* dest, byte* src, uint len) {
+        internal unsafe static void Memcpy16fwd(byte* dest, byte* src, int len) {
             if (len >= 16) {
                 do {
                     *(long*)dest = *(long*)src;
@@ -39,7 +39,7 @@ namespace Starcounter.Internal {
             }
         }
 
-        internal unsafe static void Memcpy16rwd(byte* dest, byte* src, uint len) {
+        internal unsafe static void Memcpy16rwd(byte* dest, byte* src, int len) {
             byte* destEnd = dest + len;
             byte* srcEnd = src + len;
             if (len >= 16) {
