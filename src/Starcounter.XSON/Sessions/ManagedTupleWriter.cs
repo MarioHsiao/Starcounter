@@ -68,7 +68,7 @@ namespace Starcounter.Internal {
          buffer = null;
          unsafe {
             fixed (byte* pbuf = buffer) {
-               tw = new TupleWriterBase64(pbuf, (uint)valueCount, (uint)initialOffsetElementSize);
+               tw = new TupleWriterBase64(pbuf, (uint)valueCount, initialOffsetElementSize);
             }
          }
       }

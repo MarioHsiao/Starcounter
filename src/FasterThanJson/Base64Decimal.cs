@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Starcounter.Internal {
     /// <summary>
@@ -7,6 +8,7 @@ namespace Starcounter.Internal {
     /// First letter contains 
     /// </summary>
     public static class Base64DecimalLossless {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public unsafe static int Write(byte* buffer, decimal value) {
             byte* byteValue = (byte*)&value;
             Debug.Assert((UInt16)(*byteValue) == 0);
@@ -21,7 +23,7 @@ namespace Starcounter.Internal {
             // Writing
             Base64Int.WriteBase64x1(firstChar, buffer);
             buffer++;
-            uint len = 1;
+            int len = 1;
             if (highInt == 0) {
                 len += Base64Int.Write(buffer, lowLong);
                 Debug.Assert(len <= 1 + 11);
@@ -32,10 +34,11 @@ namespace Starcounter.Internal {
                 len += Base64Int.Write(buffer, highInt);
                 Debug.Assert(len <= 1 + 11 + 6);
             }
-            return (int)len;
+            return len;
         }
 
-        public unsafe static decimal Read(byte* buffer, int size) {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public unsafe static decimal Read(int size, byte* buffer) {
             Debug.Assert(size > 1);
             byte firstChar = (byte)Base64Int.ReadBase64x1(buffer);
             size--;
