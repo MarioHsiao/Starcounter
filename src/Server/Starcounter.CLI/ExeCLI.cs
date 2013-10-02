@@ -59,20 +59,19 @@ namespace Starcounter.CLI {
                     node.BaseAddress.Port));
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowHeadline("[Checking personal server]");
-                    ShowStatus("Retrieving server status");
+                    ShowStatus("Retrieving server status", true);
                     if (!PersonalServerProcess.IsOnline()) {
                         ShowStatus("Starting server");
                         PersonalServerProcess.Start();
                     }
-                    ShowStatus("Server is online");
+                    ShowStatus("Server is online", true);
                 }
 
                 try {
                     Engine engine;
                     Executable exe;
                     DoExec(node, admin, exePath, database, args, entrypointArgs, out engine, out exe);
-                    ShowResultAndSetExitCode(node, engine, exe, args);
+                    ShowResultAndSetExitCode(node, database, engine, exe, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
                     return;
@@ -94,7 +93,7 @@ namespace Starcounter.CLI {
             ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
 
             // GET or START the engine
-            ShowStatus("Retreiving engine status");
+            ShowStatus("Retreiving engine status", true);
 
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
             statusCode = response.FailIfNotSuccessOr(404);
@@ -115,7 +114,7 @@ namespace Starcounter.CLI {
                     CreateDatabase(node, uris, databaseName);
                 }
 
-                ShowStatus("Starting engine");
+                ShowStatus("Starting database");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -136,10 +135,10 @@ namespace Starcounter.CLI {
 
             ExecutableReference exeRef = engine.GetExecutable(exePath);
             if (exeRef == null) {
-                // If it's not running, we'll check that the host host is
+                // If it's not running, we'll check that the code host is
                 // running, and start it if not.
                 if (engine.CodeHostProcess.PID == 0) {
-                    ShowStatus("Starting host");
+                    ShowStatus("Starting database");
                     engineRef = new EngineReference();
                     engineRef.Name = databaseName;
                     engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -162,11 +161,12 @@ namespace Starcounter.CLI {
                     SharedCLI.ShowErrorAndSetExitCode(alreadyStarted, true);
                 }
 
-                ShowStatus("Stopping host");
+                ShowStatus("Restarting database");
+                ShowStatus("Stopping host", true);
                 response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, null, null);
                 response.FailIfNotSuccessOr(404);
 
-                ShowStatus("Starting host");
+                ShowStatus("Starting host", true);
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -197,7 +197,7 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
-            ShowStatus("Starting executable");
+            ShowStatus("Starting executable", true);
             exe = new Executable();
             exe.Path = exePath;
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
@@ -253,9 +253,9 @@ namespace Starcounter.CLI {
             }
         }
 
-        static void ShowVerbose(string output) {
+        static void ShowVerbose(string output, ConsoleColor color = ConsoleColor.Yellow) {
             if (SharedCLI.Verbose) {
-                ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Yellow);
+                ConsoleUtil.ToConsoleWithColor(output, color);
             }
         }
 
@@ -270,18 +270,21 @@ namespace Starcounter.CLI {
             }
         }
 
-        static void ShowResultAndSetExitCode(Node node, Engine engine, Executable exe, ApplicationArguments args) {
+        static void ShowResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
             
             ConsoleUtil.ToConsoleWithColor(
-                string.Format("Successfully started \"{0}\" (engine PID:{1}, default port is {2} (Executable), {3} (Admin))", 
-                             Path.GetFileName(exe.Path), 
-                             engine.CodeHostProcess.PID, 
-                             exe.DefaultUserPort, 
-                             node.PortNumber), 
+                string.Format("\"{0}\" started in database \"{1}\". Default port is {2} (Executable), {3} (Admin))",
+                Path.GetFileName(exe.Path),
+                database,
+                exe.DefaultUserPort,
+                node.PortNumber), 
                 color);
+
             color = ConsoleColor.DarkGray;
-            ConsoleUtil.ToConsoleWithColor(string.Format("Started by \"{0}\"", exe.StartedBy), color);
+            ShowVerbose(
+                string.Format("Running in process {0}, started by \"{1}\"", engine.CodeHostProcess.PID, exe.StartedBy),
+                color);
             Environment.ExitCode = 0;
         }
 
