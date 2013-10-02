@@ -83,6 +83,19 @@ namespace Starcounter.CLI {
             }
         }
 
+        /// <summary>
+        /// Stops the given executable using a set of optional arguments
+        /// and executable parameters.
+        /// </summary>
+        /// <param name="exePath">Full path of the executable.</param>
+        /// <param name="args">Parsed arguments to use to customize the
+        /// call.</param>
+        /// <param name="admin">The admin API to target, mainly defining
+        /// the resource URIs to use.</param>
+        public static void Stop(string exePath, ApplicationArguments args, AdminAPI admin = null) {
+            SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED), true);
+        }
+
         static void DoExec(
             Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, string[] entrypointArgs, out Engine engine, out Executable exe) {
             ErrorDetail errorDetail;
