@@ -81,7 +81,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         internal void _CallHasChanged(TValue property) {
             if (Session != null) {
-                if (!_BrandNew) {
+                if (HasBeenSent) {
                    // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
                     this.Dirtyfy();
                 }
@@ -290,13 +290,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="data"></param>
         public void Set(TObjArr property, IEnumerable data) {
-            var current = (Json)list[property.TemplateIndex];
-            if (current != null) {
-                current.Clear();
-                current._PendingEnumeration = true;
-                current._data = data;
-                current.Array_InitializeAfterImplicitConversion(this, property);
-            }
+            this[property.TemplateIndex] = data;
         }
 
         /// <summary>
@@ -402,11 +396,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         internal void _CallHasChanged(TObjArr property, int index) {
-            if (Session != null) {
-                if (!_BrandNew) {
-                    //                    (_Values[index] as Json)._Dirty = true;
+            if (HasBeenSent) {
                     this.Dirtyfy();
-                }
             }
             this.Parent.ChildArrayHasReplacedAnElement(property, index);
         }
