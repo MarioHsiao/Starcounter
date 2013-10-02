@@ -482,6 +482,8 @@ namespace Starcounter.Internal {
             }
             catch (Exception e) {
 
+                LogSources.Sql.LogException(e);
+
                 results.exception.helpLink = e.HelpLink;
                 results.exception.message = e.GetType().ToString() + ": " + e.Message;
                 results.exception.stackTrace = e.StackTrace;
