@@ -155,10 +155,17 @@ namespace Starcounter.CLI {
             }
             else {
                 if (!args.ContainsFlag(Option.Restart)) {
-                    var alreadyStarted =
-                        ErrorCode.ToMessage(Error.SCERREXECUTABLEALREADYRUNNING,
-                        string.Format("Database: \"{0}\". Use --{1} to restart it.", databaseName, Option.Restart));
-                    SharedCLI.ShowErrorAndSetExitCode(alreadyStarted, true);
+                    var file = Path.GetFileName(exePath);
+                    var alreadyStarted = string.Format("\"{0}\" already running in database \"{1}\"", file, databaseName);
+                    SharedCLI.ShowInformationAndSetExitCode(
+                        alreadyStarted,
+                        Error.SCERREXECUTABLEALREADYRUNNING,
+                        string.Format("Type \"star --{0} {1}\" to restart it.", Option.Restart, file),
+                        false,
+                        true,
+                        ConsoleColor.Green,
+                        ConsoleColor.Yellow
+                        );
                 }
 
                 ShowStatus("Restarting database");
