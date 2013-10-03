@@ -276,9 +276,10 @@ Gateway::Gateway()
     InitializeCriticalSection(&cs_sockets_cleanup_);
     InitializeCriticalSection(&cs_statistics_);
 
+    num_pending_sends_ = 0;
     num_aggregated_sent_messages_ = 0;
     num_aggregated_recv_messages_ = 0;
-    num_aggregated_tosend_messages_ = 0;
+    num_aggregated_send_queued_messages_ = 0;
 
     // Creating gateway handlers table.
     gw_handlers_ = new HandlersTable();
@@ -924,7 +925,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     }
 
     // Skipping completion port if operation is already successful.
-    SetFileCompletionNotificationModes((HANDLE) sock, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+    //SetFileCompletionNotificationModes((HANDLE) sock, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 
     // The socket address to be passed to bind.
     sockaddr_in binding_addr;
@@ -1019,8 +1020,11 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     // Marking socket as alive.
     si->socket_ = s;
 
+    // Creating new socket info.
+    CreateNewSocketInfo(si->socket_info_index_, port_index);
+
     // Creating unique ids.
-    CreateUniqueSocketId(si->socket_info_index_, port_index, gw->GenerateSchedulerId(db_index));
+    GenerateUniqueSocketInfoIds(si->socket_info_index_, gw->GenerateSchedulerId(db_index));
 
     return si->socket_info_index_;
 }
@@ -2850,7 +2854,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 #endif
 
         // Printing the statistics string to console.
-#ifdef GW_TESTING_MODE
+#ifdef GW_LOG_TO_CONSOLE
         std::cout << global_statistics_stream_.str();
 #endif
 

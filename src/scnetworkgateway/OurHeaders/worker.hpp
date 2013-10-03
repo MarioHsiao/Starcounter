@@ -80,7 +80,7 @@ class GatewayWorker
 public:
 
     // Returns given socket data chunk to private chunk pool.
-    void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
+    void ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool return_only_extra_chunks = false);
 
     // Adds socket data chunk to aggregation queue.
     void AddToAggregation(SocketDataChunkRef sd);
@@ -325,7 +325,7 @@ public:
         const int32_t message_len);
 
     // Sends given body.
-    uint32_t SendBody(
+    uint32_t SendHttpBody(
         SocketDataChunkRef sd,
         const char* body,
         const int32_t body_len);

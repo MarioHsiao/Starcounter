@@ -201,7 +201,6 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
 
             #endregion
-
             
             #region VersionSource
             if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
@@ -217,6 +216,16 @@ namespace Starcounter.Applications.UsageTrackerApp {
             }
 
             #endregion
+
+
+            #region IPLocation
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "IPLocationIPIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX IPLocationIPIndex ON IPLocation (IPAdress)");
+            }
+
+            #endregion
+
+
 
             
 

@@ -126,4 +126,57 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         }
 
     }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Database]
+    public class IPLocation {
+        /// <summary>
+        /// 
+        /// </summary>
+        public string IPAdress { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string CountryCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string CountryName { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string RegionCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string RegionName { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string City { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string ZipCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal Latitude { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal Longitude { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string MetroCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string AreaCode { get; set; }
+
+    }
 }
