@@ -522,12 +522,6 @@ public:
         g_gateway.SetTypeOfNetworkProtocol(socket_info_index_, proto_type);
     }
 
-    // Getting saved user handler id.
-    BMX_HANDLER_TYPE GetSavedUserHandlerId()
-    {
-        return g_gateway.GetSavedUserHandlerId(socket_info_index_);
-    }
-
     // Setting aggregated flag on socket.
     void SetSocketAggregatedFlag()
     {
@@ -538,6 +532,12 @@ public:
     bool GetSocketAggregatedFlag()
     {
         return g_gateway.GetSocketAggregatedFlag(socket_info_index_);
+    }
+
+    // Getting saved user handler id.
+    BMX_HANDLER_TYPE GetSavedUserHandlerId()
+    {
+        return g_gateway.GetSavedUserHandlerId(socket_info_index_);
     }
 
     // Setting user handler id.
