@@ -40,6 +40,7 @@ void SocketDataChunk::Init(
 
     flags_ = 0;
     set_to_database_direction_flag();
+    align_16bytes.target_db_index_ = INVALID_DB_INDEX;
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
@@ -255,7 +256,10 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     shared_memory_chunk* new_db_smc;
 
     // Getting a chunk from new database.
-    uint32_t err_code = gw->GetWorkerDb(new_db_index)->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
+    WorkerDbInterface* new_worker_db = gw->GetWorkerDb(new_db_index);
+    GW_ASSERT(NULL != new_worker_db);
+
+    uint32_t err_code = new_worker_db->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
     if (err_code)
         return err_code;
 
@@ -289,7 +293,7 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     {
         shared_memory_chunk* cur_new_db_smc = new_db_smc;
 
-        err_code = gw->GetWorkerDb(new_db_index)->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
+        err_code = new_worker_db->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
         if (err_code)
             return err_code;
 

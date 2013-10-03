@@ -1792,7 +1792,9 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
         return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
 
     db_index_type target_db_index = sd->get_target_db_index();
+    GW_ASSERT(INVALID_DB_INDEX != target_db_index);
 
+    // Checking if we need to clone.
     if (target_db_index != 0)
     {
         // Getting new chunk and copy contents from old one.
