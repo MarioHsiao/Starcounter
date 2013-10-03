@@ -1,8 +1,11 @@
-﻿using Starcounter;
+﻿using Codeplex.Data;
+using Starcounter;
+using Starcounter.Advanced;
 using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,7 +21,6 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
 
         internal static void Start() {
-
 
             // Check if Database Packages exist in 'Settings.UploadFolder'
             // NOTE: It's important that this is called before .FixUnhandledPackages();
@@ -47,6 +49,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             // Previously failed builds will be rebuild if necessary
             UnmarkFailedBuilds();
+
+            // Assure that we have an location for ipadresses
+            AssureDownloadsIPLocation();
 
         }
 
@@ -435,6 +440,113 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             });
 
         }
+
+
+        /// <summary>
+        /// Assure that we have an location for ipadresses
+        /// </summary>
+        private static void AssureDownloadsIPLocation() {
+
+            var result = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.IPAdress IS NOT NULL");
+
+            foreach (VersionBuild versionBuild in result) {
+                AssureIPLocation(versionBuild.IPAdress);
+            }
+        }
+
+        /// <summary>
+        /// Assure that we have an location for an ipadress
+        /// </summary>
+        /// <param name="ipAddress"></param>
+        private static void AssureIPLocation(string ipAddress) {
+            // http://freegeoip.net/
+
+            IPLocation ipLocation = Db.SlowSQL<IPLocation>("SELECT o FROM IPLocation o WHERE o.IPAdress=?", ipAddress).First;
+            if (ipLocation != null) {
+                // We already got an location
+                return;
+            }
+
+            try {
+
+                // Service: http://freegeoip.net/  
+                // API usage is limited to 10,000 queries per hour. 
+                Node node = new Node("freegeoip.net", 80);
+
+                string uri = string.Format("/json/{0}", ipAddress);
+
+                Response response = node.GET(uri, null, null);
+                // Example call: http://freegeoip.net/json/85.89.70.180
+                // Example response
+                //{
+                //  "ip":"85.89.70.180",
+                //  "country_code":"SE",
+                //  "country_name":"Sweden",
+                //  "region_code":"10",
+                //  "region_name":"Dalarnas Lan",
+                //  "city":"Falun",
+                //  "zipcode":"",
+                //  "latitude":60.6,
+                //  "longitude":15.6333,
+                //  "metro_code":"",
+                //  "areacode":""
+                //}
+
+                if (response.StatusCode == (ushort)System.Net.HttpStatusCode.NotFound) {
+                    // TODO: Try another service?
+                    LogWriter.WriteLine(string.Format("NOTICE: Failed to lookup ip {0}. {1}", ipAddress, response.Body));
+                    return;
+                }
+                else if (response.StatusCode == (ushort)System.Net.HttpStatusCode.Forbidden) {
+                    LogWriter.WriteLine(string.Format("WARNING: Reached the limit of ip lookups. {0}", response.Body));
+                    return;
+                }
+
+                dynamic incomingJson = DynamicJson.Parse(response.Body);
+
+                Db.Transaction(() => {
+                    IPLocation locaction = new IPLocation();
+                    if (incomingJson.IsDefined("ip")) {
+                        locaction.IPAdress = incomingJson.ip;
+                    }
+                    if (incomingJson.IsDefined("country_code")) {
+                        locaction.CountryCode = incomingJson.country_code;
+                    }
+                    if (incomingJson.IsDefined("country_name")) {
+                        locaction.CountryName = incomingJson.country_name;
+                    }
+                    if (incomingJson.IsDefined("region_code")) {
+                        locaction.RegionCode = incomingJson.region_code;
+                    }
+                    if (incomingJson.IsDefined("region_name")) {
+                        locaction.RegionName = incomingJson.region_name;
+                    }
+                    if (incomingJson.IsDefined("city")) {
+                        locaction.City = incomingJson.city;
+                    }
+                    if (incomingJson.IsDefined("zipcode")) {
+                        locaction.ZipCode = incomingJson.zipcode;
+                    }
+                    if (incomingJson.IsDefined("latitude")) {
+                        locaction.Latitude = new decimal(incomingJson.latitude);
+                    }
+                    if (incomingJson.IsDefined("longitude")) {
+                        locaction.Longitude = new decimal(incomingJson.longitude);
+                    }
+                    if (incomingJson.IsDefined("metro_code")) {
+                        locaction.MetroCode = incomingJson.metro_code;
+                    }
+                    if (incomingJson.IsDefined("areacode")) {
+                        locaction.AreaCode = incomingJson.areacode;
+                    }
+                });
+            }
+            catch (Exception e) {
+                LogWriter.WriteLine(string.Format("ERROR: IP Lookup {0}. {1}", ipAddress, e.Message));
+            }
+
+        }
+
 
     }
 }
