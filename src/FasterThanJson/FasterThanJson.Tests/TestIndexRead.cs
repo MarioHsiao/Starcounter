@@ -141,7 +141,7 @@ namespace FasterThanJson.Tests {
                 bool?[] boolNullValues = new bool?[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
-                    SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, (uint)tupleBuffer.Length);
+                    SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
                         valueTypes[j] = writeRnd.Next(1, 13);
                         switch (valueTypes[j]) {

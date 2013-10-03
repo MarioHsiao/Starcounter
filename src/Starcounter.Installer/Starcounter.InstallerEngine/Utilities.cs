@@ -15,6 +15,7 @@ using Microsoft.VisualBasic.Devices;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using System.Xml;
+using System.Runtime.ExceptionServices;
 
 namespace Starcounter.InstallerEngine
 {
@@ -433,6 +434,8 @@ namespace Starcounter.InstallerEngine
         /// Checks if current machine is one core.
         /// </summary>
         /// <returns>True if one core.</returns>
+
+        [HandleProcessCorruptedStateExceptions]
         public static void CheckProcessorRequirements()
         {
             // Checking number of cores.
@@ -444,7 +447,16 @@ namespace Starcounter.InstallerEngine
 
             // Checking processor features.
             Boolean popcntInstr = false;
-            sc_check_cpu_features(ref popcntInstr);
+            
+            try
+            {
+                sc_check_cpu_features(ref popcntInstr);
+            }
+            catch
+            {
+                popcntInstr = false;
+            }
+
             if (!popcntInstr)
             {
                 //Utilities.MessageBoxWarning(

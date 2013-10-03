@@ -10,7 +10,7 @@ using TJson = Starcounter.Templates.TObject;
 namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
-    static class JsonPatchTests {
+    class JsonPatchTests {
 
 
         [Test]
@@ -18,45 +18,50 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             dynamic j = new Json();
             dynamic nicke = new Json();
+            dynamic daughter = new Json();
+
+            daughter.FirstName = "Kate";
+
             nicke.FirstName = "Nicke";
 
             j.FirstName = "Joachim";
             j.Age = 43;
             j.Length = 184.7;
 
+
+
             Session.Data = j;
 
             j.FirstName = "Douglas";
 
-            var before = ((Json)j).ToJson();
+            var before = ((Json)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
 
+            j.Daughter = daughter;
             j.FirstName = "Timothy";
             j.LastName = "Wester";
             j.FirstName = "Charlie";
 
-            var after = ((Json)j).ToJson();
+            var after = ((Json)j).DebugString;
             var result = Session.Current.CreateJsonPatch(true);
 
-            Console.WriteLine("Before");
-            Console.WriteLine("=====");
-            Console.WriteLine(before);
-            Console.WriteLine("");
-            Console.WriteLine("After");
-            Console.WriteLine("=====");
-            Console.WriteLine(after);
-            Console.WriteLine("");
-            Console.WriteLine("Changes");
-            Console.WriteLine("=====");
-            Console.WriteLine(result);
-            Console.WriteLine("");
+            Write("Before",before);
+            Write("After",after);
+            Write("Changes",result);
 
-            string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},\n{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
+            string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},\n{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},\n{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
             Assert.AreEqual(facit, result);
 
         }
 
+
+        protected static void Write(string title, string value) {
+            Console.WriteLine();
+            Console.WriteLine(title);
+            Console.WriteLine(new String('=', title.Length));
+            Console.WriteLine(value);
+        }
 
 
         [Test]
@@ -79,9 +84,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             j.Friends.Add(henrik);
 
-            Console.WriteLine("New stuff");
-            Console.WriteLine("=========");
-            Console.WriteLine(((Json)j).DebugString);
+            Write("New stuff",((Json)j).DebugString);
 
 //            Session.Current.CheckpointChangeLog();            
             Session.Current.CreateJsonPatch(true);
@@ -269,7 +272,7 @@ Assert.AreEqual(facit, result );
             j.Template = t;
             j.Data = p;
 
-            Assert.IsTrue(json._BrandNew);
+            Assert.IsTrue(!json.HasBeenSent);
             Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
 
             Session.Current.CreateJsonPatch(true); // Flush

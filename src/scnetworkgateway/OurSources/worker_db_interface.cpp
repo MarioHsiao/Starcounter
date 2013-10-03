@@ -19,15 +19,7 @@ uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
     int32_t released_chunks_num = static_cast<int32_t> (shared_int_.release_from_private_to_shared(
         private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
 
-    // Checking that number of released chunks is correct.
-    if (released_chunks_num != num_chunks)
-    {
-        // Some problem with releasing chunks.
-#ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Problem releasing chunks to shared chunk pool." << GW_ENDL;
-#endif
-        return SCERRGWCANTRELEASETOSHAREDPOOL;
-    }
+    GW_ASSERT(released_chunks_num == num_chunks);
 
     // Chunks have been released.
     ChangeNumUsedChunks(-num_chunks);
@@ -305,24 +297,6 @@ void WorkerDbInterface::PushLinkedChunksToDb(
     }
 }
 
-// Returns given socket data chunk to private chunk pool.
-void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
-{
-#ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
-#endif
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-    GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
-#endif
-
-    // Returning linked multiple chunks.
-    ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
-
-    // IMPORTANT: Preventing further usages of this socket data.
-    sd = NULL;
-}
-
 // Returns given chunk to private chunk pool.
 // NOTE: This function should always succeed.
 void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk)
@@ -333,7 +307,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
-    /*if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
+    if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
     {
         uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL));
 
@@ -342,8 +316,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
         // TODO: Uncomment when centralized chunks are ready!
         //GW_ASSERT(0 == err_code);
-    }*/
-    // TODO: Check above!
+    }
 }
 
 // Releases all private chunks to shared chunk pool.

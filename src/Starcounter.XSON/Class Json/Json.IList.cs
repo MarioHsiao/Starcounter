@@ -60,15 +60,32 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Used by change log
+        /// If true, this object has been flushed from the change log (usually an
+        /// indication that the object has been sent to its client.
         /// </summary>
-        public bool _BrandNew {
+        public bool HasBeenSent {
             get {
-                return __BrandNew_;
+                if (Parent != null) {
+                    return Parent.WasReplacedAt(IndexInParent);
+                }
+                else {
+                    var s = Session;
+                    if (s == null) {
+                        return false;
+                    }
+                    return !s.BrandNew;
+                }
             }
-            set {
-                __BrandNew_ = value;
+        }
+
+        private bool IsChanged(Template template) {
+            if (IsArray) {
+                throw new Exception("You can only call IsChanged on Json objects, not on Json Arrays");
             }
+#if DEBUG
+            this.Template.VerifyProperty(template);
+#endif
+            return this.WasReplacedAt(template.TemplateIndex);
         }
 
         /// <summary>
@@ -89,7 +106,7 @@ namespace Starcounter {
                         // even after instances have been created.
                         // For this reason, we need to allow the expansion of the 
                         // values.
-                        _ReplacedFlag.Add(false);
+                        _SetFlag.Add(false);
                         _list.Add(((Template)template.Properties[_list.Count]).CreateInstance(this));
                     }
                     return _list;
@@ -105,28 +122,28 @@ namespace Starcounter {
 
             if (IsArray) {
                 _list = new List<Json>();
-                _ReplacedFlag = new List<bool>();
+                _SetFlag = new List<bool>();
             }
             else {
                 var template = (TObject)Template;
                 var prop = template.Properties;
                 var vc = prop.Count;
                 _list = new List<object>(vc);
-                _ReplacedFlag = new List<bool>(vc);
+                _SetFlag = new List<bool>(vc);
                 _Dirty = false;
                 for (int t = 0; t < vc; t++) {
                     _list.Add( ((Template)prop[t]).CreateInstance(this) );
-                    _ReplacedFlag.Add(false);
+                    _SetFlag.Add(false);
                 }
             }
         }
 
         public bool WasReplacedAt(int index) {
-            return _ReplacedFlag[index];
+            return _SetFlag[index];
         }
 
         public void CheckpointAt(int index) {
-            _ReplacedFlag[index] = false;
+            _SetFlag[index] = false;
         }
 
 
@@ -144,14 +161,14 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         internal void MarkAsReplaced(int index) {
-            _ReplacedFlag[index] = true;
+            _SetFlag[index] = true;
             var v = list[index];
-            if (v is Json) {
-                (v as Json).Dirtyfy();
-            }
-            else {
+           // if (v is Json) {
+           //     (v as Json).Dirtyfy();
+           // }
+           // else {
                 this.Dirtyfy();
-            }
+           // }
         }
 
         /// <summary>
@@ -211,7 +228,7 @@ namespace Starcounter {
             }
 
             list.Insert(index, j);
-            _ReplacedFlag.Insert(index, false);
+            _SetFlag.Insert(index, false);
             MarkAsReplaced(index);
             (this as Json)._CallHasAddedElement(index,j);
         }
@@ -244,7 +261,7 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         public void RemoveAt(int index) {
             list.RemoveAt(index);
-            _ReplacedFlag.RemoveAt(index);
+            _SetFlag.RemoveAt(index);
 
             if (IsArray) {
                 Json otherItem;
@@ -285,8 +302,7 @@ namespace Starcounter {
                                 typedListTemplate.DebugString));
                 }
             }
-
-            _ReplacedFlag.Add(false);
+            _SetFlag.Add(false);
 //            MarkAsReplaced( this.IndexOf(item));
 
             var index = list.Add(j);
@@ -307,7 +323,7 @@ namespace Starcounter {
             list.Clear();
             (Parent as Json).MarkAsReplaced(Template);
             //this._BrandNew = true;
-            _ReplacedFlag.Clear();
+            _SetFlag.Clear();
 
 
             if (IsArray) {
@@ -345,7 +361,7 @@ namespace Starcounter {
             if (i == -1)
                 return;
             this.RemoveAt(i);
-            _ReplacedFlag.RemoveAt(i);
+            _SetFlag.RemoveAt(i);
             return;
         }
 
@@ -383,6 +399,22 @@ namespace Starcounter {
 #else
          throw new NotImplementedException();
 #endif
+        }
+
+        /// <summary>
+        /// Return the position of this Json object or array within its parent
+        /// object or array. For arrays, this means the index of the element and
+        /// for objects it means the index of the property.
+        /// </summary>
+        public int IndexInParent {
+            get {
+                if (IsArray) {
+                    return _cacheIndexInArr;
+                }
+                else {
+                    return Template.TemplateIndex;
+                }
+            }
         }
     }
 
