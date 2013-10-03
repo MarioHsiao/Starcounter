@@ -237,16 +237,12 @@ DATA_ACCUMULATED:
         // Data is complete, no more frames, creating parallel receive clone.
         if (NULL == sd_push_to_db)
         {
-            // Only when session is created we can receive non-stop.
-            if (sd->HasActiveSession())
+            // Aggregation is done separately.
+            if (!sd->GetSocketAggregatedFlag())
             {
-                // Aggregation is done separately.
-                if (!sd->GetSocketAggregatedFlag())
-                {
-                    err_code = sd->CloneToReceive(gw);
-                    if (err_code)
-                        return err_code;
-                }
+                err_code = sd->CloneToReceive(gw);
+                if (err_code)
+                    return err_code;
             }
 
             // Unmasking frame and pushing to database.
@@ -288,6 +284,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
 
     // Getting user data.
     uint8_t* payload = sd->UserDataBuffer();
+    uint8_t* orig_payload = payload;
 
     // Length of user data in bytes.
     uint64_t payload_len = sd->get_user_data_written_bytes();
@@ -311,8 +308,9 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     {
         // Adjusting first WSABuf structure.
         WSABUF* wsa_buf = (WSABUF*) gw->GetSmcFromChunkIndex(sd->get_db_index(), sd->get_extra_chunk_index());
-        wsa_buf->len = sd->GetNumRemainingDataBytesInChunk(payload);
-        wsa_buf->buf = (char *) payload;
+        int32_t diff = static_cast<int32_t>(orig_payload - payload);
+        wsa_buf->len += diff;
+        wsa_buf->buf -= diff;
     }
     
 JUST_SEND_SOCKET_DATA:

@@ -99,30 +99,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Represents this Starcounter node for default user port.
-        /// </summary>
-        [ThreadStatic]
-        static Node This_ = null;
-
-        /// <summary>
-        /// Creates an instance of localhost system node.
-        /// </summary>
-        public static Node This
-        {
-            get
-            {
-                // Checking if Node instance is already created for this thread.
-                if (null != This_)
-                    return This_;
-
-                // Creating new node instance.
-                This_ = new Node("127.0.0.1", StarcounterEnvironment.Default.UserHttpPort);
-
-                return This_;
-            }
-        }
-
-        /// <summary>
         /// Static constructor to automatically initialize REST.
         /// </summary>
         static Node()
@@ -273,7 +249,9 @@ namespace Starcounter
             if (0 == portNumber)
                 portNumber = StarcounterEnvironment.Default.UserHttpPort;
 
-            if (0 == aggrPortNumber)
+            aggrPortNumber_ = aggrPortNumber;
+
+            if (0 == aggrPortNumber_)
                 aggrPortNumber_ = StarcounterEnvironment.Default.AggregationPort;
 
             hostName_ = hostName;
@@ -304,7 +282,7 @@ namespace Starcounter
                 Byte[] aggr_struct_bytes = new Byte[AggregationStructSizeBytes];
                 unsafe { fixed (Byte* p = aggr_struct_bytes) { *(AggregationStruct*) p = this_node_aggr_struct_; } }
 
-                Response resp = Node.LocalhostSystemPortNode.POST("/socket", aggr_struct_bytes, null, null);
+                Response resp = X.POST(hostName_ + "/socket:" + aggrPortNumber_, aggr_struct_bytes, null, null);
 
                 Byte[] resp_bytes = resp.BodyBytes;
                 unsafe { fixed (Byte* p = resp_bytes) { this_node_aggr_struct_ = *(AggregationStruct*)p; } }
