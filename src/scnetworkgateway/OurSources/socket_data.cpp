@@ -152,6 +152,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->set_unique_socket_id(unique_socket_id_);
     sd_clone->set_socket_info_index(socket_info_index_);
     sd_clone->set_client_ip_info(client_ip_info_);
+    sd_clone->set_target_db_index(get_target_db_index());
 
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
@@ -230,6 +231,7 @@ uint32_t SocketDataChunk::CloneToPush(
 
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_chunk_index);
+    (*new_sd)->set_target_db_index(get_target_db_index());
 
     // Sealing the chunk.
     (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
@@ -271,6 +273,7 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
+    (*new_sd)->set_target_db_index(INVALID_DB_INDEX);
 
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_db_chunk_index);
