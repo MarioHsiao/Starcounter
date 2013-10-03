@@ -1112,7 +1112,7 @@ START_RECEIVING:
                                 Interlocked.Increment(ref sent_received_balance_);
 
                                 // Checking if request fits.
-                                if (AggregationStructSizeBytes + nt.RequestBytes.Length >= AggregationBlobSizeBytes - send_bytes_offset)
+                                if (AggregationStructSizeBytes + nt.RequestBytesLength >= AggregationBlobSizeBytes - send_bytes_offset)
                                 {
                                     if (0 == send_bytes_offset)
                                         throw new Exception("Request size is bigger than: " + AggregationBlobSizeBytes);
@@ -1124,7 +1124,7 @@ START_RECEIVING:
                                 // Creating the aggregation struct.
                                 AggregationStruct* ags = (AggregationStruct *)(sb + send_bytes_offset);
                                 *ags = this_node_aggr_struct_;
-                                ags->size_bytes_ = nt.RequestBytes.Length;
+                                ags->size_bytes_ = nt.RequestBytesLength;
                                 ags->unique_aggr_index_ = free_task_index;
 
                                 // Using fast memory copy here.

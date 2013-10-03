@@ -73,6 +73,7 @@ typedef int8_t db_index_type;
 //#define GW_SESSIONS_DIAG
 //#define GW_OLD_ACTIVE_DATABASES_DISCOVER
 #define GW_COLLECT_INACTIVE_SOCKETS
+//#define GW_LOOPBACK_AGGREGATION
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -170,7 +171,7 @@ const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 1000;
+const int32_t MAX_FETCHED_OVLS = 100;
 
 // Maximum size of HTTP content.
 const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
@@ -243,7 +244,7 @@ const random_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 1024;
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE = MAX_CHUNKS_IN_PRIVATE_POOL * 2;
 
 // Size of local/remove address structure.
@@ -1649,9 +1650,10 @@ class Gateway
 
 public:
 
+    int64_t num_pending_sends_;
     int64_t num_aggregated_sent_messages_;
     int64_t num_aggregated_recv_messages_;
-    int64_t num_aggregated_tosend_messages_;
+    int64_t num_aggregated_send_queued_messages_;
 
     // Gets aggregation port number.
     uint16_t setting_aggregation_port()
@@ -1847,15 +1849,20 @@ public:
     // Applying session parameters to socket data.
     bool ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id);
 
+    // Creates new socket info.
+    void CreateNewSocketInfo(session_index_type socket_index, int32_t port_index)
+    {
+        all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
+    }
+
     // Setting new unique socket number.
-    random_salt_type CreateUniqueSocketId(session_index_type socket_index, int32_t port_index, scheduler_id_type scheduler_id)
+    random_salt_type GenerateUniqueSocketInfoIds(session_index_type socket_index, scheduler_id_type scheduler_id)
     {
         GW_ASSERT(socket_index < setting_max_connections_);
 
         random_salt_type unique_id = get_unique_socket_id();
 
         all_sockets_infos_unsafe_[socket_index].unique_socket_id_ = unique_id;
-        all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
         all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = scheduler_id;
 
 #ifdef GW_SOCKET_DIAG

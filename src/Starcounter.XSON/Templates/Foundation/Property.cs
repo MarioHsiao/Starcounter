@@ -88,7 +88,12 @@ namespace Starcounter {
         /// </summary>
         /// <value>The name of the property to bind.</value>
         public string Bind {
-            get { return _Bind; }
+            get {
+                if (_Bind == null) {
+                    return this.PropertyName;
+                }
+                return _Bind;
+            }
             set {
                 _Bind = value;
                 var b = !string.IsNullOrEmpty(_Bind);

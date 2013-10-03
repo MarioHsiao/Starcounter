@@ -54,7 +54,7 @@ namespace FasterThanJson.Tests
          byte* start;
 
          IntPtr Blob = SessionBlobProxy.CreateBlob(out blob, out blobEnd, out start);
-         uint assumedOffsetElementSize = 2;
+         int assumedOffsetElementSize = 2;
 
          /****** Create tuple ******/
 
@@ -115,7 +115,7 @@ namespace FasterThanJson.Tests
 
       }
 
-      public unsafe void CreateTuple(byte* start, uint assumedOffsetElementSize, byte* overflowLimit) {
+      public unsafe void CreateTuple(byte* start, int assumedOffsetElementSize, byte* overflowLimit) {
           var root = new TupleWriterBase64(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
           var first = new TupleWriterBase64(root.AtEnd, 4, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 

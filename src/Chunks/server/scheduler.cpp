@@ -112,10 +112,13 @@ class server_port {
 	// Keep track of the next channel to check for incomming messages.
 	channel_number next_channel_;
 	
-#if defined (IPC_GROUPED_CHANNELS)
+#if defined (IPC_VERSION_2_0)
 	// Number of client workers (in the Network Gateway, or the IPC test, etc.)
 	uint32_t client_workers_;
-#endif // defined (IPC_GROUPED_CHANNELS)
+
+	// Number of schedulers.
+	uint32_t schedulers_;
+#endif // defined (IPC_VERSION_2_0)
 	
 	scheduler_channel_type *scheduler_task_channel_;
 	scheduler_channel_type *scheduler_signal_channel_;
@@ -411,9 +414,10 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		
 		id_ = id;
 		channels_size_ = channels_size;
-#if defined (IPC_GROUPED_CHANNELS)
+#if defined (IPC_VERSION_2_0)
 		next_channel_ = id;
-#endif // defined (IPC_GROUPED_CHANNELS)
+#endif // defined (IPC_VERSION_2_0)
+		
 		simple_shared_memory_manager *pm = new (global_mapped_region.get_address())
 		simple_shared_memory_manager;
 		
@@ -491,38 +495,15 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		this_scheduler_interface_->set_notify_flag(false);
 		this_scheduler_interface_->set_predicate(true);
 		common_scheduler_interface_->set_scheduler_number_flag(id_);
+#if defined (IPC_VERSION_2_0)
+		schedulers_ = common_scheduler_interface_->number_of_active_schedulers();
+#endif // defined (IPC_VERSION_2_0)
 	}
 	catch (...) {
 		return SCERRSERVERPORTUNKNOWNEXCEPTION;
 	}
 	return 0;
 }
-
-//------------------------------------------------------------------------------
-#if 0 /// TODO: Test if this method results in a faster scan of the channels.
-// Flags which words to scan, those channel_scan words that are not 0.
-mask_type words_to_scan; /// TODO: Align on cache-line boundary.
-
-// Flags for which of 4096 channels to scan.
-mask_type channel_scan[64]; /// TODO: Align on cache-line boundary.
-
-for (mask_type word_mask = words_to_scan; word_mask; word_mask &= word_mask -1) {
-    std::size_t i = bit_scan_forward(word_mask);
-    for (mask_type bit_mask = channel_scan[i]; bit_mask; bit_mask &= bit_mask -1) {
-        std::size_t this_channel = bit_scan_forward(bit_mask);
-        // Probe the channels in queue to see if there is a message...and process it.
-    }
-}
-
-/// The fastest would be to use 64 channels:
-for (mask_type channels_mask = get_channel_scan_mask();
-channels_mask; channels_mask &= channels_mask -1) {
-    std::size_t this_channel = bit_scan_forward(channels_mask);
-    // Probe the channels in queue to see if there is a message...and process it.
-}
-
-#endif /// TODO: Test if this method results in a faster scan of the channels.
-//------------------------------------------------------------------------------
 
 unsigned long server_port::get_next_signal_or_task(unsigned int timeout_milliseconds,
 sc_io_event& the_io_event) try {
@@ -548,20 +529,149 @@ sc_io_event& the_io_event) try {
 			return 0;
 		}
 
-#if 0 // defined (IPC_GROUPED_CHANNELS)
+#if defined (IPC_VERSION_2_0)
 		///=====================================================================
-		/// Scan grouped channels here. . .No cleanup is done.
+		uint32_t in_range;
+		
+		if (!common_client_interface().client_interfaces_to_clean_up()) {
+			// No cleanup to do.
+			goto check_next_channel;
+		}
+		else {
+			/// TODO: Remove the cleanup code, once it is no longer needed.
+			
+			/// At least one client_interface shall be cleaned up. Since the
+			/// "attention" to various channels or schedulers can vary, the best
+			/// seems to force a scan of all channels here.
+			
+			/// Scan through all channels of this scheduler and check if they
+			/// are marked for release.
+			
+			channel_number cleanup_channel_ = next_channel_;
 
-		for (channel_number this_channel = next_channel_;
-		this_channel < channels_size_; this_channel += client_workers_) {
+			for (uint32_t i = 0; i < client_workers_; ++i) {
+				channel_number this_channel = cleanup_channel_;
+				channel_type& the_channel = channel_[this_channel];
+				
+				// Calculate the next channel index:
+				in_range = -(cleanup_channel_ +schedulers_ < channels);
+				cleanup_channel_ = ((cleanup_channel_ +schedulers_) & in_range)
+				| (id_ & ~in_range);
+				
+				// Check if the channel is marked for release, assuming not.
+				if (!the_channel.is_to_be_released()) {
+					continue; // check next...
+				}
+				else {
+					// The channel has been marked for release. The release of
+					// the channel will be done when there are no more server
+					// references to the channel, i.e., there is tranquility in
+					// the channel. The state of tranquility in the channel
+					// remains for as long as the scheduler don't pop another
+					// message from the in queue of this channel.
+					if (the_channel.get_server_refs() != 0) {
+						// No tranquility yet in the channel.
+						continue;
+					}
+					else {
+						// Tranquility in the channel. Releasing it.
+						do_release_channel(this_channel);
+					}
+				}
+			}
+		}
+		
+check_next_channel:
+		// No cleanup to do. Normal round-robin scan.
+		for (uint32_t i = 0; i < client_workers_; ++i) {
+			channel_number this_channel = next_channel_;
 			channel_type& the_channel = channel_[this_channel];
+			
+			// Calculate the next channel index:
+			in_range = -(next_channel_ +schedulers_ < channels);
+			next_channel_ = ((next_channel_ +schedulers_) & in_range)
+			| (id_ & ~in_range);
+			
+			// Check if the channel is marked for release, assuming not.
+			if (!the_channel.is_to_be_released()) {
+				// An attempt to improve the flow of messages circulating in
+				// the system is that the scheduler shall attempt to move
+				// all items (if any) from the out overflow queue in the given
+				// channel to the out queue - before trying to get a new
+				// task from the in queue. The question is if this improves
+				// or degrades the performance. Cancel out this code to see
+				// if there is a difference. I'm not sure the quality of the
+				// implemention is good enough either.
+				while (!the_channel.out_overflow().empty()) {
+					if (!the_channel.out.try_push_front(the_channel
+					.out_overflow().front())) {
+						// Failed to push the item. Not removing it from
+						// the out_overflow queue.
+						break;
+					}
+					
+					// The item was successfully pushed to the out buffer.
+					// Removing the item from the overflow queue.
+					the_channel.out_overflow().pop_front();
+					
+					// Notify the client that the channel::out buffer might
+					// not be empty.
+					the_channel.client()->notify();
+				}
+				
+				// Check if there is a message and process it.
+				if (the_channel.in.try_pop_back(&the_chunk_index) == true) {
+					// Prefetching selected cache-lines of the chunk.
+					// How many cache-lines to prefetch in the beginning of
+					// the chunk is unclear. TODO: Testing needed!
+					char* chunk_addr = (char*) &chunk(the_chunk_index);
+					_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 0, _MM_HINT_T0);
+					_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 1, _MM_HINT_T0);
+					_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 2, _MM_HINT_T0);
+					_mm_prefetch(chunk_addr +CACHE_LINE_SIZE * 3, _MM_HINT_T0);
+					
+					// The last cache-line contains the link fields, which is
+					// currently always checked. However, maybe checking the
+					// link fields is not always necessary.
+					// TODO: Remove this when the "next" link (task #993)
+					// have been moved to the beginning of the chunk.
+					_mm_prefetch(chunk_addr +chunk_size -CACHE_LINE_SIZE, _MM_HINT_T0);
+					
+					// Notify the client that the in queue is not full.
+					the_channel.client()->notify();
+					
+					// Add a reference to for the caller. The caller will
+					// release the channel request has been processed.
+					the_channel.add_server_ref();
+					the_io_event.channel_index_ = this_channel;
+					the_io_event.chunk_index_ = the_chunk_index;
+					
+					// Successfully fetched a message from the given channel.
+					return 0;
+				}
+			}
+			else {
+				// The channel has been marked for release. The release of
+				// the channel will be done when there are no more server
+				// references to the channel, i.e., there is tranquility in
+				// the channel. The state of tranquility in the channel
+				// remains for as long as the scheduler don't pop another
+				// message from the in queue of this channel.
+				if (the_channel.get_server_refs() != 0) {
+					// No tranquility yet in the channel.
+					continue;
+				}
+				else {
+					// Tranquility in the channel. Releasing it.
+					release_channel_marked_for_release(this_channel);
+				}
+			}
 		}
 
-		next_channel_ = id_;
-
-#else // !defined (IPC_GROUPED_CHANNELS)
+		///=====================================================================
+#else // !defined (IPC_VERSION_2_0)
 		if (!common_client_interface().client_interfaces_to_clean_up()) {
-			// No clean up to do.
+			// No cleanup to do.
 			goto check_next_channel;
 		}
 		else {
@@ -604,7 +714,7 @@ sc_io_event& the_io_event) try {
 				}
 			}
 		}
-
+		
 check_next_channel:
 		for (channel_number mask_word_counter = next_channel_ >> 6;
 		mask_word_counter < channel_masks_; ++mask_word_counter) {
@@ -659,8 +769,10 @@ check_next_channel:
 						// The last cache-line contains the link fields, which is
 						// currently always checked. However, maybe checking the
 						// link fields is not always necessary. TODO: Consider this optimization.
+						// TODO: Remove this when the "next" link (task #993)
+						// have been moved to the beginning of the chunk.
 						_mm_prefetch(chunk_addr +chunk_size -CACHE_LINE_SIZE, _MM_HINT_T0);
-
+						
 						// Notify the client that the in queue is not full.
 						the_channel.client()->notify();
 						
@@ -669,7 +781,7 @@ check_next_channel:
 						the_channel.add_server_ref();
 						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
-
+						
 						// Successfully fetched a message from the given channel.
 						return 0;
 					}
@@ -698,11 +810,11 @@ check_next_channel:
 			// Keep the mask word counter value (bit 7:6), and clear all other bits.
 			next_channel_ &= 192; // ...011000000
 		}
-#endif // defined (IPC_GROUPED_CHANNELS)
+#endif // defined (IPC_VERSION_2_0)
 		
 		// The scheduler has completed a scan of all its channels in queues.
 		this_scheduler_interface_->increment_channel_scan_counter();
-				
+		
 		// In the last scan we did not find any message to process in any of the
 		// channels that this scheduler watches (according to the mask), or in
 		// the in queue of this schedulers channel. Therefore this scheduler

@@ -153,7 +153,7 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int len;
             GetAtPosition(index, out valuePos, out len);
-            byte[] value = Base64Binary.Read((uint)len, valuePos);
+            byte[] value = Base64Binary.Read(len, valuePos);
             return value;
         }
 
@@ -161,11 +161,11 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int len;
             GetAtPosition(index, out valuePos, out len);
-            if (Base64Binary.MeasureNeededSizeToDecode((uint)len) > valueMaxLength)
+            if (Base64Binary.MeasureNeededSizeToDecode(len) > valueMaxLength)
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
                     "Cannot read byte array value into given byte array pointer, since the value is too big. The actual value is " +
                     len + " bytes, while " + valueMaxLength + " bytes are provided to write.");
-            return Base64Binary.Read((uint)len, valuePos, value);
+            return Base64Binary.Read(len, valuePos, value);
         }
 
         /// <summary>
