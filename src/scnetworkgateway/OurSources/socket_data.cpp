@@ -190,8 +190,8 @@ uint32_t SocketDataChunk::SendMultipleChunks(GatewayWorker* gw, uint32_t *num_se
 #endif
     int32_t num_wsa_bufs = num_chunks_ - 1;
 
-    // Checking if its aggregating port.
-    if (g_gateway.IsAggregatingPort(socket_info_index_))
+    // Checking if its aggregating socket data.
+    if (get_aggregation_sd_flag())
         num_wsa_bufs--;
 
     // Getting the contents of WSABUFs chunk.
@@ -253,39 +253,56 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     int32_t new_db_index,
     SocketDataChunk** new_sd)
 {
-    // TODO: Add support for linked chunks.
-    GW_ASSERT(1 == get_num_chunks());
-
-    core::chunk_index new_chunk_index;
-    shared_memory_chunk* new_smc;
+    core::chunk_index new_db_chunk_index;
+    shared_memory_chunk* new_db_smc;
 
     // Getting a chunk from new database.
-    uint32_t err_code = gw->GetWorkerDb(new_db_index)->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
+    uint32_t err_code = gw->GetWorkerDb(new_db_index)->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
     if (err_code)
-    {
-        // New chunk can not be obtained.
         return err_code;
-    }
 
     // Copying chunk data.
-    memcpy(new_smc, get_smc(), MixedCodeConstants::SHM_CHUNK_SIZE);
+    memcpy(new_db_smc, get_smc(), MixedCodeConstants::SHM_CHUNK_SIZE);
 
     // Socket data inside chunk.
-    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_db_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
 
     // Changing new chunk index.
-    (*new_sd)->set_chunk_index(new_chunk_index);
+    (*new_sd)->set_chunk_index(new_db_chunk_index);
 
     // Sealing the chunk.
     (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
-    new_smc->set_next(INVALID_CHUNK_INDEX);
+    new_db_smc->set_next(INVALID_CHUNK_INDEX);
 
     // Adjusting accumulative buffer.
     int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
     (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((uint8_t*) (*new_sd) + offset_bytes_from_sd, get_accum_buf());
+
+    core::chunk_index prev_db_chunk_index = get_smc()->get_link();
+    shared_memory_chunk* prev_db_smc;
+
+    // Copying all linked chunks.
+    for (int32_t i = 0; i < static_cast<int32_t>(num_chunks_ - 1); i++)
+    {
+        shared_memory_chunk* cur_new_db_smc = new_db_smc;
+
+        err_code = gw->GetWorkerDb(new_db_index)->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
+        if (err_code)
+            return err_code;
+
+        // Getting link to previous database linked chunk.
+        prev_db_smc = gw->GetSmcFromChunkIndex(db_index_, prev_db_chunk_index);
+
+        // Copying chunk data.
+        memcpy(new_db_smc, prev_db_smc, MixedCodeConstants::SHM_CHUNK_SIZE);
+
+        cur_new_db_smc->set_link(new_db_chunk_index);
+
+        prev_db_chunk_index = prev_db_smc->get_link();
+    }
 
     return 0;
 }

@@ -73,9 +73,9 @@ namespace NodeTest
                     else if (protocolTypeParam == "ProtocolWebSockets")
                         ProtocolType = ProtocolTypes.ProtocolWebSockets;
                 }
-                else if (arg.StartsWith("-NumThreads="))
+                else if (arg.StartsWith("-NumWorkers="))
                 {
-                    NumWorkers = Int32.Parse(arg.Substring("-NumThreads=".Length));
+                    NumWorkers = Int32.Parse(arg.Substring("-NumWorkers=".Length));
                 }
                 else if (arg.StartsWith("-MinEchoBytes="))
                 {

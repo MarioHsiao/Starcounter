@@ -22,7 +22,8 @@ enum SOCKET_DATA_FLAGS
     HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
     HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048,
     HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
-    SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 8192
+    SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 8192,
+    SOCKET_DATA_FLAGS_AGGREGATION_SD = 8192 * 2,
 };
 
 // Socket data chunk.
@@ -122,7 +123,7 @@ public:
     }
 
     // Gets socket data accumulated data offset.
-    uint32_t GetAccumDataOffset()
+    uint32_t GetAccumOrigBufferSocketDataOffset()
     {
         return static_cast<uint32_t>(accum_buf_.get_chunk_orig_buf_ptr() - (uint8_t*)this);
     }
@@ -227,7 +228,7 @@ public:
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
     // Chunk data offset.
-    int32_t GetAccumBufferDataOffsetInChunk()
+    int32_t GetAccumOrigBufferChunkOffset()
     {
         return static_cast<int32_t> (accum_buf_.get_chunk_orig_buf_ptr() - (uint8_t*)get_smc());
     }
@@ -411,6 +412,21 @@ public:
         flags_ &= ~HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
     }
 
+    bool get_aggregation_sd_flag()
+    {
+        return (flags_ & SOCKET_DATA_FLAGS_AGGREGATION_SD) != 0;
+    }
+
+    void set_aggregation_sd_flag()
+    {
+        flags_ |= SOCKET_DATA_FLAGS_AGGREGATION_SD;
+    }
+
+    void reset_aggregation_sd_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_AGGREGATION_SD;
+    }
+
     // Getting big accumulation chunk.
     bool get_big_accumulation_chunk_flag()
     {
@@ -534,10 +550,10 @@ public:
     }
 
     // Setting new unique socket number.
-    void CreateUniqueSocketId(scheduler_id_type scheduler_id)
+    void GenerateUniqueSocketInfoIds(scheduler_id_type scheduler_id)
     {
         session_.scheduler_id_ = scheduler_id;
-        unique_socket_id_ = g_gateway.CreateUniqueSocketId(socket_info_index_, GetPortIndex(), session_.scheduler_id_);
+        unique_socket_id_ = g_gateway.GenerateUniqueSocketInfoIds(socket_info_index_, session_.scheduler_id_);
     }
 
     // Sets session if socket is correct.
@@ -904,7 +920,6 @@ public:
         PushToMeasuredNetworkEmulationQueue(gw);
         return WSA_IO_PENDING;
 #endif
-
 
         DWORD flags = 0;
         return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
