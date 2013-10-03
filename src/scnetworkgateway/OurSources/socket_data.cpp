@@ -33,7 +33,6 @@ void SocketDataChunk::Init(
     session_.Reset();
 
     chunk_index_ = chunk_index;
-    extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
     // Sealing the next chunk.
     next_chunk_db_index_ = INVALID_DB_INDEX;
@@ -93,7 +92,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
         if (accum_buf_.IsBufferFilled())
         {
             // Getting current chunk index.
-            core::chunk_index cur_chunk_index = extra_chunk_index_;
+            core::chunk_index cur_chunk_index = get_extra_chunk_index(), temp_chunk_index_;
             if (INVALID_CHUNK_INDEX == cur_chunk_index)
                 cur_chunk_index = chunk_index_;
 
@@ -101,7 +100,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 
             // Getting new chunk and attaching to current one.
             shared_memory_chunk *new_smc;
-            err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &new_smc);
+            err_code = worker_db->GetOneChunkFromPrivatePool(&temp_chunk_index_, &new_smc);
             if (err_code)
                 return err_code;
 
@@ -109,8 +108,8 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             num_chunks_++;
 
             // Linking new chunk to current chunk.
-            shared_memory_chunk* cur_smc = (shared_memory_chunk *)(&worker_db->get_shared_int()->chunk(cur_chunk_index));
-            cur_smc->set_link(extra_chunk_index_);
+            shared_memory_chunk* cur_smc = gw->GetSmcFromChunkIndex(db_index_, cur_chunk_index);
+            cur_smc->set_link(temp_chunk_index_);
 
             // Setting new chunk as a new buffer.
             accum_buf_.Init(MixedCodeConstants::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
@@ -123,9 +122,6 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 
         // Restoring the socket data link.
         accum_buf_.RestoreOrigBufPtr();
-
-        // Resetting extra chunk index.
-        extra_chunk_index_ = INVALID_CHUNK_INDEX;
     }
 
     return 0;
@@ -139,7 +135,9 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
         return 0;
 
     SocketDataChunk* sd_clone = NULL;
-    uint32_t err_code = gw->CreateSocketData(socket_info_index_, db_index_, sd_clone);
+
+    // NOTE: Cloning to receive only on database 0 chunks.
+    uint32_t err_code = gw->CreateSocketData(socket_info_index_, 0, sd_clone);
     GW_ERR_CHECK(err_code);
 
     // Since another socket is going to be attached.
@@ -195,7 +193,7 @@ uint32_t SocketDataChunk::SendMultipleChunks(GatewayWorker* gw, uint32_t *num_se
         num_wsa_bufs--;
 
     // Getting the contents of WSABUFs chunk.
-    WSABUF* wsa_bufs = (WSABUF*) gw->GetSmcFromChunkIndex(db_index_, extra_chunk_index_);
+    WSABUF* wsa_bufs = (WSABUF*) gw->GetSmcFromChunkIndex(db_index_, get_extra_chunk_index());
 
     // Getting socket number.
     SOCKET s = GetSocket();
@@ -272,6 +270,8 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_db_chunk_index);
+    (*new_sd)->reset_socket_representer_flag();
+    (*new_sd)->reset_socket_diag_active_conn_flag();
 
     // Sealing the chunk.
     (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
@@ -298,6 +298,8 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
         // Copying chunk data.
         memcpy(new_db_smc, prev_db_smc, MixedCodeConstants::SHM_CHUNK_SIZE);
+        new_db_smc->set_link(INVALID_CHUNK_INDEX);
+        new_db_smc->set_next(INVALID_CHUNK_INDEX);
 
         cur_new_db_smc->set_link(new_db_chunk_index);
 
@@ -335,11 +337,10 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     shared_memory_chunk* smc = head_smc;
     core::chunk_index cur_chunk_index = smc->get_link();
 
-    // Checking if we need to obtain an extra chunk.
-    GW_ASSERT(INVALID_CHUNK_INDEX == extra_chunk_index_);
+    core::chunk_index wsa_bufs_chunk_index;
 
     // Getting new chunk from pool.
-    err_code = worker_db->GetOneChunkFromPrivatePool(&extra_chunk_index_, &wsa_bufs_smc);
+    err_code = worker_db->GetOneChunkFromPrivatePool(&wsa_bufs_chunk_index, &wsa_bufs_smc);
     if (err_code)
         return err_code;
 
@@ -347,7 +348,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     num_chunks_++;
 
     // Inserting extra chunk in linked chunks.
-    head_smc->set_link(extra_chunk_index_);
+    head_smc->set_link(wsa_bufs_chunk_index);
     wsa_bufs_smc->set_link(cur_chunk_index);
 
     // Checking if head chunk is involved.
@@ -411,11 +412,8 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
     shared_memory_chunk* smc = get_smc();
 
     // Checking that there are linked chunks.
-    core::chunk_index first_linked_chunk = smc->get_link();
+    core::chunk_index first_linked_chunk = get_extra_chunk_index();
     GW_ASSERT(INVALID_CHUNK_INDEX != first_linked_chunk);
-
-    // Resetting extra chunk index.
-    extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
     // Restoring accumulative buffer.
     ResetAccumBuffer();

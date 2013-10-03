@@ -173,7 +173,8 @@ uint32_t HandlersTable::RegisterPortHandler(
 #endif
 
         // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
+        // NOTE: Creating connections only on database 0.
+        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, 0);
         if (err_code)
             goto ERROR_HANDLING;
     }
