@@ -9,17 +9,31 @@ namespace Starcounter.Internal {
     /// </summary>
     public static class Base64DecimalLossless {
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-        public unsafe static int Write(byte* buffer, decimal value) {
+        public unsafe static int Write(byte* buffer, Decimal value) {
+#if false
+            int[] intVal = Decimal.GetBits(value);
+            
+            Debug.Assert(firstChar < 64);
+            uint highInt;
+            ulong lowLong;
+            fixed (int* valPtr = intVal) {
+                highInt = *(uint*)(valPtr);
+                lowLong = *(ulong*)(valPtr + 1);
+            }
+#else
+            Debug.Assert(BitConverter.IsLittleEndian);
             byte* byteValue = (byte*)&value;
-            Debug.Assert((UInt16)(*byteValue) == 0);
             byte scale = *(byteValue + 2);
+            byte sign = (byte)(*(byteValue + 3) >> 7);
+            Debug.Assert((UInt16)(*byteValue) == 0);
             Debug.Assert(scale <= 28);
-            int sign = *(byteValue + 3) >> 7;
             Debug.Assert(sign == 0 || sign == 1);
-            uint firstChar = (uint)((scale << 1) + sign);
+            byte firstChar = (byte)((scale << 1) + sign);
             Debug.Assert(firstChar < 64);
             uint highInt = *(uint*)(byteValue + 4);
             ulong lowLong = *(ulong*)(byteValue + 8);
+
+#endif
             // Writing
             Base64Int.WriteBase64x1(firstChar, buffer);
             buffer++;
@@ -35,6 +49,18 @@ namespace Starcounter.Internal {
                 Debug.Assert(len <= 1 + 11 + 6);
             }
             return len;
+        }
+
+        public unsafe static int MeasureNeededSize(decimal value) {
+            byte* byteValue = (byte*)&value;
+            uint highInt = *(uint*)(byteValue + 4);
+            ulong lowLong = *(ulong*)(byteValue + 8);
+            int size = 1;
+            if (highInt == 0)
+                size += Base64Int.MeasureNeededSize(lowLong);
+            else
+                size += 11 + Base64Int.MeasureNeededSize(highInt);
+            return size;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5

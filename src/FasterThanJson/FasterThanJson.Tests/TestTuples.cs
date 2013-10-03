@@ -293,6 +293,26 @@ namespace FasterThanJson.Tests
               Assert.AreEqual(1, tupleReader.ReadLongNullable());
           }
       }
+
+      [Test]
+      public static unsafe void TestDecimal() {
+          fixed(byte* start = new byte[62]) {
+              TupleWriterBase64 tupleWriter = new TupleWriterBase64(start, 6, 1);
+              tupleWriter.WriteDecimalLossless(-2m); // 2 chars
+              tupleWriter.WriteDecimalLossless((decimal)UInt64.MaxValue + UInt32.MaxValue); // 18 chars
+              tupleWriter.WriteDecimalLossless(-(decimal)UInt64.MaxValue - UInt32.MaxValue); // 18 chars
+              tupleWriter.WriteDecimalLossless(((decimal)UInt64.MaxValue + UInt32.MaxValue)/100000000000000000); // 18 chars
+              tupleWriter.WriteDecimalLossless(0m); // 2 chars
+              tupleWriter.WriteDecimalLossless(-0.00000023432523m); // 4 chars
+              TupleReaderBase64 tupleReader = new TupleReaderBase64(start, 6);
+              Assert.AreEqual(-2m, tupleReader.ReadDecimalLossless());
+              Assert.AreEqual((decimal)UInt64.MaxValue + UInt32.MaxValue, tupleReader.ReadDecimalLossless());
+              Assert.AreEqual(-(decimal)UInt64.MaxValue - UInt32.MaxValue, tupleReader.ReadDecimalLossless());
+              Assert.AreEqual(((decimal)UInt64.MaxValue + UInt32.MaxValue) / 100000000000000000, tupleReader.ReadDecimalLossless());
+              Assert.AreEqual(0m, tupleReader.ReadDecimalLossless());
+              Assert.AreEqual(-0.00000023432523m, tupleReader.ReadDecimalLossless());
+          }
+      }
    }
 
    class Test {
