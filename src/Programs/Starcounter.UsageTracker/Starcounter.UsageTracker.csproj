@@ -69,6 +69,7 @@
     <Compile Include="API\Backend\StartCollectionHandler.GET.cs" />
     <Compile Include="API\Backend\CollectionHandler.cs" />
     <Compile Include="API\Installer\AbortCollectionHandler.POST.cs" />
+    <Compile Include="API\Installer\ExceptionCollectionHandler.POST.cs" />
     <Compile Include="API\Installer\InstallerCollectionHandler.cs" />
     <Compile Include="API\Installer\EndCollectionHandler.POST.cs" />
     <Compile Include="API\Installer\FinishCollectionHandler.POST.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="API\Versions\Upload.POST.cs" />
     <Compile Include="API\Versions\Utils.GET.cs" />
     <Compile Include="API\Versions\Versions.GET.cs" />
+    <Compile Include="Model\InstallerException.cs" />
     <Compile Include="Model\InstallerStart.cs" />
     <Compile Include="Model\InstallerExecuting.cs" />
     <Compile Include="Model\InstallerFinish.cs" />

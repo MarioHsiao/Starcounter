@@ -148,6 +148,16 @@ namespace Starcounter.Applications.UsageTrackerApp {
             //}
             #endregion
 
+            #region InstallerException
+            if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerExceptionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX InstallerExceptionIndex ON InstallerException (Installation)");
+            }
+
+            //if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "InstallerStartDateIndex").First == null) {
+            //    Starcounter.Db.SQL("CREATE INDEX InstallerStartDateIndex ON InstallerStart (\"Date\")");
+            //}
+            #endregion
+
             #region StarcounterUsage
             if (Starcounter.Db.SQL("SELECT i FROM SYSINDEX i WHERE Name=?", "StarcounterUsageIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX StarcounterUsageIndex ON StarcounterUsage (Installation)");
@@ -225,6 +235,10 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
             #endregion
 
+
+
+
+    
 
 
             

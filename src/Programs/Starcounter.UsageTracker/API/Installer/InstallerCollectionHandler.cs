@@ -10,7 +10,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
             ExecutingCollectionHandler.Setup_POST(port);
             FinishCollectionHandler.Setup_POST(port);
             EndCollectionHandler.Setup_POST(port);
-
+            ExceptionCollectionHandler.Setup_POST(port);
 
         }
 
