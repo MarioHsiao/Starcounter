@@ -244,18 +244,8 @@ namespace Starcounter.CLI {
                 }
 
                 ShowStatus("Restarting database");
-                ShowStatus("Stopping host", true);
-                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, null, null);
+                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null, null);
                 response.FailIfNotSuccessOr(404);
-
-                ShowStatus("Starting host", true);
-                engineRef = new EngineReference();
-                engineRef.Name = databaseName;
-                engineRef.NoDb = args.ContainsFlag(Option.NoDb);
-                engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
-
-                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
-                response.FailIfNotSuccess();
 
                 response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
