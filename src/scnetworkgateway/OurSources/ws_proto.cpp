@@ -307,7 +307,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     if (sd->get_num_chunks() > 1)
     {
         // Adjusting first WSABuf structure.
-        WSABUF* wsa_buf = (WSABUF*) gw->GetSmcFromChunkIndex(sd->get_db_index(), sd->get_extra_chunk_index());
+        WSABUF* wsa_buf = (WSABUF*) gw->GetSmcFromChunkIndex(sd->get_db_index(), sd->GetNextLinkedChunkIndex());
         int32_t diff = static_cast<int32_t>(orig_payload - payload);
         wsa_buf->len += diff;
         wsa_buf->buf -= diff;

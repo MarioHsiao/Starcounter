@@ -804,12 +804,12 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool ret
     // Checking if we need to return chunk.
     if (return_only_extra_chunks)
     {
-        core::chunk_index extra_chunk_index = sd->get_extra_chunk_index();
+        core::chunk_index extra_chunk_index = sd->GetNextLinkedChunkIndex();
         if (INVALID_CHUNK_INDEX != extra_chunk_index)
         {
             worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks() - 1, extra_chunk_index);
             sd->set_num_chunks(1);
-            sd->get_smc()->set_link(INVALID_CHUNK_INDEX);
+            sd->get_smc()->terminate_link();
         }
 
         next_chunk_index = sd->get_smc()->get_next();
@@ -820,7 +820,7 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool ret
             return;
         }
 
-        sd->get_smc()->set_next(INVALID_CHUNK_INDEX);
+        sd->get_smc()->terminate_next();
 
         // Getting next socket data.
         next_chunk_db_index = sd->get_next_chunk_db_index();
@@ -833,7 +833,7 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool ret
         next_chunk_index = sd->get_smc()->get_next();
         next_chunk_db_index = sd->get_next_chunk_db_index();
 
-        sd->get_smc()->set_next(INVALID_CHUNK_INDEX);
+        sd->get_smc()->terminate_next();
 
         // Returning current chunks to pool.
         worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
@@ -933,7 +933,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
 DISCONNECT_OPERATION:
 
-    GW_ASSERT(INVALID_CHUNK_INDEX == sd->get_smc()->get_next());
+    GW_ASSERT(sd->get_smc()->is_next_terminated());
     GW_ASSERT(INVALID_DB_INDEX == sd->get_next_chunk_db_index());
 
     // Calling DisconnectEx.

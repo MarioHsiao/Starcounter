@@ -36,7 +36,7 @@ void SocketDataChunk::Init(
 
     // Sealing the next chunk.
     next_chunk_db_index_ = INVALID_DB_INDEX;
-    get_smc()->set_next(INVALID_CHUNK_INDEX);
+    get_smc()->terminate_next();
 
     flags_ = 0;
     set_to_database_direction_flag();
@@ -80,6 +80,24 @@ void SocketDataChunk::Reset()
     ResetAccumBuffer();
 }
 
+// Gets last linked smc.
+shared_memory_chunk* SocketDataChunk::GetLastLinkedSmc(GatewayWorker* gw)
+{
+    // Calculating last chunk index.
+    core::chunk_index last_chunk_index = chunk_index_;
+    shared_memory_chunk* last_smc;
+    while (true) 
+    {
+        last_smc = gw->GetSmcFromChunkIndex(db_index_, last_chunk_index);
+        if (last_smc->is_terminated())
+            break;
+        else
+            last_chunk_index = last_smc->get_link();
+    }
+
+    return last_smc;
+}
+
 // Continues accumulation if needed.
 uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated)
 {
@@ -92,16 +110,14 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
         // Checking if current chunk buffer is full.
         if (accum_buf_.IsBufferFilled())
         {
-            // Getting current chunk index.
-            core::chunk_index cur_chunk_index = get_extra_chunk_index(), temp_chunk_index_;
-            if (INVALID_CHUNK_INDEX == cur_chunk_index)
-                cur_chunk_index = chunk_index_;
+            // Getting last chunk where we previously accumulated data.
+            shared_memory_chunk* last_smc = GetLastLinkedSmc(gw);
 
+            // Getting new chunk and attaching to last one to it.
             WorkerDbInterface* worker_db = gw->GetWorkerDb(db_index_);
-
-            // Getting new chunk and attaching to current one.
+            core::chunk_index new_chunk_index_;
             shared_memory_chunk *new_smc;
-            err_code = worker_db->GetOneChunkFromPrivatePool(&temp_chunk_index_, &new_smc);
+            err_code = worker_db->GetOneChunkFromPrivatePool(&new_chunk_index_, &new_smc);
             if (err_code)
                 return err_code;
 
@@ -109,8 +125,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             num_chunks_++;
 
             // Linking new chunk to current chunk.
-            shared_memory_chunk* cur_smc = gw->GetSmcFromChunkIndex(db_index_, cur_chunk_index);
-            cur_smc->set_link(temp_chunk_index_);
+            last_smc->set_link(new_chunk_index_);
 
             // Setting new chunk as a new buffer.
             accum_buf_.Init(MixedCodeConstants::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
@@ -195,7 +210,7 @@ uint32_t SocketDataChunk::SendMultipleChunks(GatewayWorker* gw, uint32_t *num_se
         num_wsa_bufs--;
 
     // Getting the contents of WSABUFs chunk.
-    WSABUF* wsa_bufs = (WSABUF*) gw->GetSmcFromChunkIndex(db_index_, get_extra_chunk_index());
+    WSABUF* wsa_bufs = (WSABUF*) gw->GetSmcFromChunkIndex(db_index_, GetNextLinkedChunkIndex());
 
     // Getting socket number.
     SOCKET s = GetSocket();
@@ -235,7 +250,7 @@ uint32_t SocketDataChunk::CloneToPush(
 
     // Sealing the chunk.
     (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
-    new_smc->set_next(INVALID_CHUNK_INDEX);
+    new_smc->terminate_next();
 
     // Adjusting accumulative buffer.
     int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
@@ -282,7 +297,7 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
     // Sealing the chunk.
     (*new_sd)->set_next_chunk_db_index(INVALID_DB_INDEX);
-    new_db_smc->set_next(INVALID_CHUNK_INDEX);
+    new_db_smc->terminate_next();
 
     // Adjusting accumulative buffer.
     int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
@@ -294,6 +309,8 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     // Copying all linked chunks.
     for (int32_t i = 0; i < static_cast<int32_t>(num_chunks_ - 1); i++)
     {
+        GW_ASSERT(INVALID_CHUNK_INDEX != prev_db_chunk_index);
+
         shared_memory_chunk* cur_new_db_smc = new_db_smc;
 
         err_code = new_worker_db->GetOneChunkFromPrivatePool(&new_db_chunk_index, &new_db_smc);
@@ -305,9 +322,10 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
         // Copying chunk data.
         memcpy(new_db_smc, prev_db_smc, MixedCodeConstants::SHM_CHUNK_SIZE);
-        new_db_smc->set_link(INVALID_CHUNK_INDEX);
-        new_db_smc->set_next(INVALID_CHUNK_INDEX);
+        new_db_smc->terminate_link();
+        new_db_smc->terminate_next();
 
+        // Linking previous chunk to the newly obtained.
         cur_new_db_smc->set_link(new_db_chunk_index);
 
         prev_db_chunk_index = prev_db_smc->get_link();
@@ -419,7 +437,7 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
     shared_memory_chunk* smc = get_smc();
 
     // Checking that there are linked chunks.
-    core::chunk_index first_linked_chunk = get_extra_chunk_index();
+    core::chunk_index first_linked_chunk = GetNextLinkedChunkIndex();
     GW_ASSERT(INVALID_CHUNK_INDEX != first_linked_chunk);
 
     // Restoring accumulative buffer.

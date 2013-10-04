@@ -289,7 +289,7 @@ SEND_AND_FETCH_NEXT:
 CREATE_AGGREGATION_STRUCT:
 
     // Sealing current sd.
-    sd->get_smc()->set_next(INVALID_CHUNK_INDEX);
+    sd->get_smc()->terminate_next();
     sd->set_next_chunk_db_index(INVALID_DB_INDEX);
 
     AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
@@ -301,10 +301,10 @@ CREATE_AGGREGATION_STRUCT:
     aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
     
     // Checking if we have multiple chunks socket data.
-    if (INVALID_CHUNK_INDEX != sd->get_extra_chunk_index())
+    core::chunk_index temp_wsa_bufs_chunk_index = sd->GetNextLinkedChunkIndex();
+    if (INVALID_CHUNK_INDEX != temp_wsa_bufs_chunk_index)
     {
-        core::chunk_index temp_wsa_bufs_chunk_index = sd->get_extra_chunk_index();
-        shared_memory_chunk* temp_wsa_bufs_smc = worker_dbs_[sd->get_db_index()]->GetSharedMemoryChunkFromIndex(temp_wsa_bufs_chunk_index);
+        shared_memory_chunk* temp_wsa_bufs_smc = GetSmcFromChunkIndex(sd->get_db_index(), temp_wsa_bufs_chunk_index);
 
         // Checking if all chunks WSABUFs fit in current WSABUFs chunk.
         int32_t num_linked_data_chunks = sd->get_num_chunks() - 1;
@@ -322,7 +322,7 @@ CREATE_AGGREGATION_STRUCT:
         // Removing old WSABUFs chunk.
         sd->set_num_chunks(num_linked_data_chunks);
         sd->get_smc()->set_link(temp_wsa_bufs_smc->get_link());
-        temp_wsa_bufs_smc->set_link(INVALID_CHUNK_INDEX);
+        temp_wsa_bufs_smc->terminate_link();
 
         // Returning old WSABUFs to pool.
         worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(1, temp_wsa_bufs_chunk_index);
