@@ -282,7 +282,7 @@ namespace Starcounter
                 Byte[] aggr_struct_bytes = new Byte[AggregationStructSizeBytes];
                 unsafe { fixed (Byte* p = aggr_struct_bytes) { *(AggregationStruct*) p = this_node_aggr_struct_; } }
 
-                Response resp = X.POST(hostName_ + "/socket:" + aggrPortNumber_, aggr_struct_bytes, null, null);
+                Response resp = X.POST(hostName_ + ":" + StarcounterEnvironment.Default.SystemHttpPort + "/socket", aggr_struct_bytes, null, null);
 
                 Byte[] resp_bytes = resp.BodyBytes;
                 unsafe { fixed (Byte* p = resp_bytes) { this_node_aggr_struct_ = *(AggregationStruct*)p; } }
