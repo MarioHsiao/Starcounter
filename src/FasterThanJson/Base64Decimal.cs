@@ -10,26 +10,45 @@ namespace Starcounter.Internal {
     public static class Base64DecimalLossless {
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public unsafe static int Write(byte* buffer, Decimal value) {
-#if false
+#if false // Too slow
             int[] intVal = Decimal.GetBits(value);
-            
+            uint sign = (uint)intVal[3] >> 31;
+            uint firstChar = (((uint)(intVal[3]) & 0x00FF0000) >> 15) + sign;
+            Debug.Assert((intVal[3] & 0x7F00FFFF) == 0);
+            Debug.Assert(sign == 0 || sign == 1);
+            Debug.Assert((firstChar >> 1) <= 28);
             Debug.Assert(firstChar < 64);
-            uint highInt;
-            ulong lowLong;
-            fixed (int* valPtr = intVal) {
-                highInt = *(uint*)(valPtr);
-                lowLong = *(ulong*)(valPtr + 1);
+            uint highInt = (uint)intVal[2];
+            ulong lowLong = (ulong)intVal[0];
+            if (intVal[1] != 00)
+                lowLong += (ulong)(intVal[1]) << 32;
+#if false
+            ulong lowNumber = (ulong)intVal[0];
+            ulong highNumber = 0;
+            if (intVal[1] != 0) {
+                lowNumber += (((ulong)intVal[1] & 0xFFFF) << 32);
+                highNumber = ((ulong)intVal[1] >> 16);
             }
+            if (intVal[2] != 0)
+                highNumber += ((ulong)intVal[2] << 16);
+#endif
 #else
             Debug.Assert(BitConverter.IsLittleEndian);
             byte* byteValue = (byte*)&value;
+            Debug.Assert(*(UInt16*)(byteValue) == 0);
+#if false // Same performance
             byte scale = *(byteValue + 2);
             byte sign = (byte)(*(byteValue + 3) >> 7);
-            Debug.Assert((UInt16)(*byteValue) == 0);
             Debug.Assert(scale <= 28);
             Debug.Assert(sign == 0 || sign == 1);
             byte firstChar = (byte)((scale << 1) + sign);
+#else
+            ushort firstChar = *(ushort*)(byteValue+2);
+            firstChar = (ushort)((firstChar << 1) | (firstChar >> 15));
+            Debug.Assert((firstChar >> 1) <= 28);
+            Debug.Assert((firstChar & 0x1) == 0 || (firstChar & 0x1) == 1);
             Debug.Assert(firstChar < 64);
+#endif
             uint highInt = *(uint*)(byteValue + 4);
             ulong lowLong = *(ulong*)(byteValue + 8);
 
