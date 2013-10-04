@@ -9,6 +9,11 @@ using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Administrator.API.Handlers;
+using Starcounter.Server.Rest.Representations.JSON;
+using Starcounter.Server.Rest;
+using Starcounter.CommandLine;
+using System.IO;
+using Starcounter.Rest.ExtensionMethods;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -47,14 +52,19 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         db.uri = admin.Uris.Database.ToAbsoluteUri(databaseInfo.Name);
                         db.engineUri = admin.Uris.Engine.ToAbsoluteUri(databaseInfo.Name);
 
+                        string uriTemplateDbProcess = RootHandler.API.Uris.Engine + "/db";
+                        db.databaseProcessUri = uriTemplateDbProcess.ToAbsoluteUri(databaseInfo.Name);
+
+                        string uriTemplateHostProcess = RootHandler.API.Uris.Engine + "/host";
+                        db.codeHostProcessUri = uriTemplateHostProcess.ToAbsoluteUri(databaseInfo.Name);
+
                         // Get Database status
                         EngineInfo engineInfo = databaseInfo.Engine;
                         if (engineInfo != null && engineInfo.DatabaseProcessRunning) {
                             db.running = true;
-
-                            string uriTemplateDbProcess = RootHandler.API.Uris.Engine + "/db";
-                            db.hostUri = uriTemplateDbProcess.ToAbsoluteUri(databaseInfo.Name);
                         }
+
+
                     }
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };
@@ -100,6 +110,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                     executable.path = appInfo.ExecutablePath;
                                     executable.uri = admin.Uris.Executable.ToAbsoluteUri(databaseInfo.Name, appInfo.Key);
                                     executable.databaseName = databaseInfo.Name;
+                                    if (appInfo.Arguments != null) {
+                                        foreach (string arg in appInfo.Arguments) {
+                                            var item = executable.arguments.Add();
+                                            item.dummy = arg;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -170,5 +186,8 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
 
         }
+
+
+
     }
 }
