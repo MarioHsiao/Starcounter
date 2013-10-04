@@ -243,7 +243,13 @@ namespace Starcounter.CLI {
                         );
                 }
 
-                ShowStatus("Restarting database");
+                var fellowCount = engine.Executables.Executing.Count - 1;
+                var status = string.Format("Restarting database \"{0}\"", databaseName);
+                if (fellowCount > 0) {
+                    status += string.Format(" (and {0} other executable(s))", fellowCount);
+                }
+
+                ShowStatus(status);
                 response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null, null);
                 response.FailIfNotSuccessOr(404);
 
