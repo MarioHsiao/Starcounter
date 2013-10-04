@@ -1,6 +1,7 @@
 ﻿using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -159,7 +160,7 @@ namespace Starcounter {
 
                 // Checking if remote host has closed the connection.
                 if (0 == recievedBytes)
-                    throw new Exception("Remote host closed the connection.");
+                    throw new IOException("Remote host closed the connection.");
 
                 // Process the bytes here.
                 if (Resp == null)
@@ -347,7 +348,8 @@ namespace Starcounter {
             // Sending the request.
             try
             {
-                SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
+                Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
+                Debug.Assert(RequestBytesLength == bytesSent);
             }
             catch
             {

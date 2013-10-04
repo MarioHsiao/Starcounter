@@ -142,6 +142,9 @@ public:
     // Tracks certain socket.
     void TrackSocket(db_index_type db_index, session_index_type index)
     {
+        // NOTE: Only first database has attached sockets.
+        GW_ASSERT(0 == db_index);
+
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "Tracking socket index: " << index << GW_ENDL;
 #endif
@@ -152,6 +155,9 @@ public:
     // Untracks certain socket.
     void UntrackSocket(db_index_type db_index, session_index_type index)
     {
+        // NOTE: Only first database has attached sockets.
+        GW_ASSERT(0 == db_index);
+
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "UnTracking socket index: " << index << GW_ENDL;
 #endif

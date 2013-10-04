@@ -1608,6 +1608,9 @@ void ActiveDatabase::CloseSocketData()
 
             if (worker_db->IsActiveSocket(socket_index))
             {
+                // NOTE: Only first database has attached sockets.
+                GW_ASSERT(0 == db_index_);
+
                 needs_deletion = true;
                 worker_db->UntrackSocket(socket_index);
             }

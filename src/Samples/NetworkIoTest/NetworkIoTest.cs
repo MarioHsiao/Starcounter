@@ -255,8 +255,8 @@ namespace NetworkIoTestApp
             //Thread perf_thread = new Thread(PrintPerformanceThread);
             //perf_thread.Start();
 
-            DbSession dbs = new DbSession();
-            dbs.RunAsync(() => PrintPerformanceThread(0), 0);
+            //DbSession dbs = new DbSession();
+            //dbs.RunAsync(() => PrintPerformanceThread(0), 0);
         }
 
         // Handlers registration.

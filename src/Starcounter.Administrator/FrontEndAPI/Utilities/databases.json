@@ -1,17 +1,19 @@
 ﻿{
     "Databases": [
         {
-            "name": "Foo",
+            "name": "foo",
             "uri": "http://example.com/api/databases/foo",
-			"hostUri":"http://example.com/api/databases/bar",
 			"engineUri":"http://example.com/api/engines/foo",
+			"codeHostProcessUri":"http://example.com/api/engines/foo/host",
+			"databaseProcessUri":"http://example.com/api/engines/foo/db",
 			"running": false
         },
 		{
-            "name": "Foo",
-            "uri": "http://example.com/api/databases/foo",
-			"hostUri":"http://example.com/api/databases/bar",
-			"engineUri":"http://example.com/api/engines/foo",
+            "name": "bar",
+            "uri": "http://example.com/api/databases/bar",
+			"engineUri":"http://example.com/api/engines/bar",
+			"codeHostProcessUri":"http://example.com/api/engines/bar/host",
+			"databaseProcessUri":"http://example.com/api/engines/bar/db",
 			"running": false
         },
     ]

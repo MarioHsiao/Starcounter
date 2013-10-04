@@ -49,6 +49,16 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Gets or sets the full argument set passed to the executable when
+        /// started, possibly including both arguments targeting Starcounter
+        /// and/or the actual App Main.
+        /// </summary>
+        public string[] Arguments {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the server key for this executable. A key must
         /// be assured to be unique within the scope of a single database.
         /// </summary>

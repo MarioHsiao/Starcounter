@@ -284,7 +284,6 @@ SEND_AND_FETCH_NEXT:
     total_num_chunks = 2;
 
     wsa_buf = (WSABUF*) wsa_bufs_smc;
-    aggr_sd->set_extra_chunk_index(wsa_bufs_chunk_index);
     aggr_sd->get_smc()->set_link(wsa_bufs_chunk_index);
 
 CREATE_AGGREGATION_STRUCT:
@@ -322,7 +321,6 @@ CREATE_AGGREGATION_STRUCT:
 
         // Removing old WSABUFs chunk.
         sd->set_num_chunks(num_linked_data_chunks);
-        sd->set_extra_chunk_index(INVALID_CHUNK_INDEX);
         sd->get_smc()->set_link(temp_wsa_bufs_smc->get_link());
         temp_wsa_bufs_smc->set_link(INVALID_CHUNK_INDEX);
 

@@ -67,9 +67,6 @@ class SocketDataChunk
     // Corresponding chunk index.
     core::chunk_index chunk_index_;
 
-    // Extra chunk index.
-    core::chunk_index extra_chunk_index_;
-
     // Indicates how many chunks are associated with this socket data (normally 1).
     uint32_t num_chunks_;
 
@@ -102,7 +99,7 @@ class SocketDataChunk
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
 
-    struct { int64_t unique_aggr_index_; uint64_t b; } align_16bytes;
+    struct { int64_t unique_aggr_index_; uint64_t target_db_index_; } align_16bytes;
 
     // Accept or parameters or temporary data.
     uint8_t accept_or_params_or_temp_data_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
@@ -525,12 +522,6 @@ public:
         g_gateway.SetTypeOfNetworkProtocol(socket_info_index_, proto_type);
     }
 
-    // Getting saved user handler id.
-    BMX_HANDLER_TYPE GetSavedUserHandlerId()
-    {
-        return g_gateway.GetSavedUserHandlerId(socket_info_index_);
-    }
-
     // Setting aggregated flag on socket.
     void SetSocketAggregatedFlag()
     {
@@ -541,6 +532,12 @@ public:
     bool GetSocketAggregatedFlag()
     {
         return g_gateway.GetSocketAggregatedFlag(socket_info_index_);
+    }
+
+    // Getting saved user handler id.
+    BMX_HANDLER_TYPE GetSavedUserHandlerId()
+    {
+        return g_gateway.GetSavedUserHandlerId(socket_info_index_);
     }
 
     // Setting user handler id.
@@ -694,15 +691,9 @@ public:
     }
 
     // Gets extra chunk index.
-    core::chunk_index& get_extra_chunk_index()
+    core::chunk_index get_extra_chunk_index()
     {
-        return extra_chunk_index_;
-    }
-
-    // Set extra chunk index.
-    void set_extra_chunk_index(core::chunk_index extra_chunk_index)
-    {
-        extra_chunk_index_ = extra_chunk_index;
+        return get_smc()->get_link();
     }
 
 #ifdef GW_TESTING_MODE
@@ -718,7 +709,7 @@ public:
     // Gets number of data bytes left in chunk.
     int32_t GetNumRemainingDataBytesInChunk(uint8_t* payload)
     {
-        return static_cast<int32_t> (SOCKET_DATA_BLOB_SIZE_BYTES - (payload - data_blob_));
+        return static_cast<int32_t> (MixedCodeConstants::CHUNK_MAX_DATA_BYTES - (payload - (uint8_t*)get_smc()));
     }
 
     // Returns number of used chunks.
@@ -822,6 +813,18 @@ public:
     void ResetAccumBuffer()
     {
         accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
+    }
+
+    // Index into target databases array.
+    db_index_type get_target_db_index()
+    {
+        return static_cast<db_index_type>(align_16bytes.target_db_index_);
+    }
+
+    // Index into target databases array.
+    void set_target_db_index(db_index_type db_index)
+    {
+        align_16bytes.target_db_index_ = db_index;
     }
 
     // Index into databases array.
@@ -939,7 +942,7 @@ public:
 
         // NOTE: Need to subtract two chunks from being included in receive.
         DWORD flags = 0;
-        return WSARecv(GetSocket(), (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+        return WSARecv(GetSocket(), (WSABUF*)&(shared_int->chunk(get_extra_chunk_index())), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
 
     // Start sending on socket.
