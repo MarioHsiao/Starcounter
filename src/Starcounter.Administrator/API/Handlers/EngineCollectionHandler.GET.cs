@@ -18,7 +18,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var result = new EngineCollection();
             foreach (var db in applicationDatabases) {
                 var appEngine = db.Engine;
-                if (appEngine != null && appEngine.HostProcessId != 0) {
+                if (appEngine != null) {
                     var engine = result.Engines.Add();
                     JSON.PopulateRefRepresentation(engine, db);
                 }

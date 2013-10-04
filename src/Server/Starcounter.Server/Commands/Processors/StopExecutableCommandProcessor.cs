@@ -97,28 +97,12 @@ namespace Starcounter.Server.Commands {
                     var exe = fellow.ToExecutable();
 
                     Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
-                    try {
-                        if (exe.RunEntrypointAsynchronous) {
-                            node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
-                        } else {
-                            var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
-                            response.FailIfNotSuccess();
-                        }
-                    } catch (IOException ioe) {
-                        // We catch this - and ignore it! This is a very temporary workaround,
-                        // and the result of the existence of unresolved issue 1060, which can
-                        // be read about here:
-                        // https://github.com/Starcounter/Starcounter/issues/1060
-                        //
-                        // To be sure we don't forget to address this, we log a warning when
-                        // this happens, and reference said issue.
-                        //
-                        // Remove this whole try/catch clause when that issue has been fixed.
-                        Log.LogWarning(
-                            "Ignoring IOException \"{0}\" as a temporary workaround to open issue #1060 ({1}).",
-                            ioe.Message,
-                            "https://github.com/Starcounter/Starcounter/issues/1060"
-                            );
+
+                    if (exe.RunEntrypointAsynchronous) {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                    } else {
+                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                        response.FailIfNotSuccess();
                     }
 
                     database.Apps.Add(fellow);

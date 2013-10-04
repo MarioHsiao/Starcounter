@@ -388,6 +388,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
+    GW_ASSERT(0 == sd->get_db_index());
+
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
@@ -490,6 +492,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishReceive: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
+
+    GW_ASSERT(0 == sd->get_db_index());
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
@@ -805,7 +809,6 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool ret
         {
             worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks() - 1, extra_chunk_index);
             sd->set_num_chunks(1);
-            sd->set_extra_chunk_index(INVALID_CHUNK_INDEX);
             sd->get_smc()->set_link(INVALID_CHUNK_INDEX);
         }
 
@@ -1788,10 +1791,26 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
 
+    db_index_type target_db_index = sd->get_target_db_index();
+    GW_ASSERT(INVALID_DB_INDEX != target_db_index);
+
+    // Checking if we need to clone.
+    if (target_db_index != 0)
+    {
+        // Getting new chunk and copy contents from old one.
+        SocketDataChunk* new_sd = NULL;
+        uint32_t err_code = CloneChunkForAnotherDatabase(sd, target_db_index, &new_sd);
+        if (err_code)
+            return err_code;
+
+        // Setting new chunk reference.
+        sd = new_sd;
+    }
+
     // Getting database to which this chunk belongs.
-    WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
+    WorkerDbInterface *db = GetWorkerDb(target_db_index);
     GW_ASSERT(NULL != db);
-    
+
     // Pushing chunk to that database.
     return db->PushSocketDataToDb(this, sd, handler_id);
 }
@@ -1808,14 +1827,8 @@ uint32_t GatewayWorker::CloneChunkForAnotherDatabase(
         return err_code;
 
     // Checking if its not receiving socket data.
-    if (old_sd->get_socket_representer_flag())
-    {
-        // Untracking corresponding socket.
-        UntrackSocket(old_sd->get_db_index(), old_sd->get_socket_info_index());
-
-        // Tracking corresponding socket.
-        TrackSocket(new_db_index, old_sd->get_socket_info_index());
-    }
+    // NOTE: Making sure that socket is always receiving.
+    GW_ASSERT(!old_sd->get_socket_representer_flag());
 
     // Returning old chunk to its pool.
     old_sd->reset_socket_diag_active_conn_flag();
