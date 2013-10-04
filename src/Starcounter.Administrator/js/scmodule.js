@@ -1037,22 +1037,42 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
                     return;
                 }
                 else {
+
+
                     // Restarting database
+                    var fellowCount = $scope.executables.length - 1;
+                    var status = "Restarting database " + database.name;
+                    if (fellowCount > 0) {
+                        status += " (and " + fellowCount + " other executable" + (fellowCount>1 ?  "s" : "") + ")";
+                    }
 
-                    job.message = "Stopping host for database " + database.name;
+                    job.message = status;
 
-                    $scope._StopCodeHost(database, function () {
+                    // Stop executable
+                    $scope._StopExecutable(executable, function () {
                         // Success
 
-                        job.message = "Starting engine " + database.name;
-
-
-                        var engineData = { Name: database.name, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from arguments
-
-                        // Start Engine
-                        $scope._StartEngine(engineData, function () {
+                        $scope._DoStartExecutable(executable, job, function () {
                             // Success
+                            if (successCallback != null) {
+                                successCallback();
+                            }
 
+                        }, function (response) {
+                            // Error
+
+                            if (errorCallback != null) {
+                                errorCallback(response);
+                            }
+
+                        });
+
+
+                    }, function (response) {
+                        // Error
+
+                        if (response.status == 404) {
+                            // 404 Not Found (Executable not running)
                             $scope._DoStartExecutable(executable, job, function () {
                                 // Success
                                 if (successCallback != null) {
@@ -1067,22 +1087,14 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
                                 }
 
                             });
+                        } else {
 
-
-                        }, function (response) {
-                            // Error Getting Engine
                             if (errorCallback != null) {
                                 errorCallback(response);
                             }
 
-                        });
-
-
-                    }, function (response) {
-                        // Error
-                        if (errorCallback != null) {
-                            errorCallback(response);
                         }
+
                     });
 
                 }
