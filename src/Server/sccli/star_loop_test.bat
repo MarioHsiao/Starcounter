@@ -12,7 +12,7 @@ COPY /Y scnetworkgateway.xml .srv\personal\scnetworkgateway.xml
 :: Setting StarcounterBin as current directory.
 SET StarcounterBin=%CD%
 
-for /l %%x in (1, 1, 300) do (
+for /l %%x in (1, 1, 100) do (
 
    :: Printing iteration number.
    echo %%x
