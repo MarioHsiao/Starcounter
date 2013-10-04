@@ -32,7 +32,8 @@ namespace Starcounter.Tracking {
                 if (!string.IsNullOrWhiteSpace(server)) {
                     this.ServerIP = server;
                 }
-            } catch { }
+            }
+            catch { }
 
             this.ServerPort = TrackingEnvironment.StarcounterTrackerPort;
         }
@@ -88,8 +89,8 @@ namespace Starcounter.Tracking {
         /// <param name="host"></param>
         /// <param name="port"></param>
         public void StartTrackUsage(
-            IServerRuntime serverInterface, 
-            LogSource log = null, 
+            IServerRuntime serverInterface,
+            LogSource log = null,
             string host = null,
             ushort port = 0) {
             if (serverInterface == null) {
@@ -111,7 +112,7 @@ namespace Starcounter.Tracking {
                         var usageIntervall = TimeSpan.FromHours(1);
                         var next = DateTime.Now;
                         var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, serverLog, ServerIP, ServerPort);
-                        
+
                         do {
                             var now = DateTime.Now;
 
@@ -121,7 +122,7 @@ namespace Starcounter.Tracking {
                                 var databases = databaseInfos.Length;
                                 var runningDatabases = 0;
                                 var runningexecutables = 0;
-                                
+
                                 foreach (DatabaseInfo dbInfo in databaseInfos) {
                                     if (dbInfo.Engine != null) {
                                         if (dbInfo.Engine.HostProcessId > 0) {
@@ -292,6 +293,46 @@ namespace Starcounter.Tracking {
             this.SendInstallerAbort(mode, message, null);
 
         }
+
+
+        /// <summary>
+        /// Send installer exception to tracking message
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="message"></param>
+        /// <param name="completeCallback"></param>
+        public void SendInstallerException(Exception e, EventHandler<CompletedEventArgs> completeCallback) {
+            try {
+                // Build json content
+                dynamic contentJson = new DynamicJson();
+
+                contentJson.exception = new { };
+
+                this.AddHeader(contentJson.exception);
+
+                contentJson.exception.message = e.Message;
+                contentJson.exception.stackTrace = e.StackTrace;
+                contentJson.exception.helpLink = e.HelpLink;
+
+                // Send json content to server
+                this.SendData("/api/usage/installer/exceptions", contentJson.ToString(), completeCallback);
+            }
+            catch (Exception) {
+                // TODO: Logging
+            }
+
+        }
+
+        /// <summary>
+        /// Send installer exception to tracking message
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="message"></param>
+        public void SendInstallerException(Exception e) {
+            this.SendInstallerException(e, null);
+
+        }
+
 
         /// <summary>
         /// Send installer finish tracking message
