@@ -897,7 +897,7 @@ namespace FasterThanJson.Tests {
             }
         }
 
-        [Test]
+        //[Test]
         public static unsafe void BenchmarkTupleDecimalLosslessScale() {
             decimal value = 100m;
             uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
@@ -977,6 +977,8 @@ namespace FasterThanJson.Tests {
             BenchmarkTupleByte1IntoScale();
             Console.WriteLine("------------ Booleans ----------------");
             BenchmarkTupleBoolScale();
+            Console.WriteLine("------------ Decimals ----------------");
+            BenchmarkTupleDecimalLosslessScale();
         }
     }
 }
