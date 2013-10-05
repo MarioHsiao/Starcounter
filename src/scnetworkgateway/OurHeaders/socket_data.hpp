@@ -221,6 +221,9 @@ public:
         return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
     }
 
+    // Gets last linked smc.
+    shared_memory_chunk* GetLastLinkedSmc(GatewayWorker* gw);
+
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
@@ -691,7 +694,7 @@ public:
     }
 
     // Gets extra chunk index.
-    core::chunk_index get_extra_chunk_index()
+    core::chunk_index GetNextLinkedChunkIndex()
     {
         return get_smc()->get_link();
     }
@@ -880,7 +883,7 @@ public:
 
         // Sealing the chunk.
         set_next_chunk_db_index(INVALID_DB_INDEX);
-        get_smc()->set_next(INVALID_CHUNK_INDEX);
+        get_smc()->terminate_next();
     }
 
     // Attaching to certain database.
@@ -942,7 +945,7 @@ public:
 
         // NOTE: Need to subtract two chunks from being included in receive.
         DWORD flags = 0;
-        return WSARecv(GetSocket(), (WSABUF*)&(shared_int->chunk(get_extra_chunk_index())), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+        return WSARecv(GetSocket(), (WSABUF*)&(shared_int->chunk(GetNextLinkedChunkIndex())), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
 
     // Start sending on socket.
