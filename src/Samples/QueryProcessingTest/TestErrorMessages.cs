@@ -62,7 +62,7 @@ namespace QueryProcessingTest {
                     Db.SQL("create index indx on account (accountid)");
                 });
             } catch (DbException ex) {
-                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED);
                 wasException = true;
             }
             Trace.Assert(wasException);
