@@ -44,7 +44,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="index">The index.</param>
         private Change(byte changeType, Json obj, TValue prop, Int32 index) {
 #if DEBUG
-            obj.Template.VerifyProperty(prop);
+			if (prop != null)
+				obj.Template.VerifyProperty(prop);
 #endif
             ChangeType = changeType;
             Obj = obj;
@@ -71,6 +72,16 @@ namespace Starcounter.Internal.XSON {
         internal static Change Add(Json obj, TObjArr list, Int32 index) {
             return new Change(Change.ADD, obj, list, index);
         }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <param name="tobj"></param>
+		/// <returns></returns>
+		internal static Change Add(Json obj) {
+			return new Change(Change.ADD, obj, null, -1);
+		}
 
         /// <summary>
         /// Creates and returns an instance of a Remove change.
