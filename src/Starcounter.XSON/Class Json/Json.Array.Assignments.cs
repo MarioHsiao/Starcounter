@@ -34,8 +34,8 @@ namespace Starcounter {
                             tobj = template.ElementType;
                         }
                         newApp = (Json)tobj.CreateInstance(this);
-                        newApp.Data = (IBindable)entity;
-                        Add(newApp);
+						Add(newApp);
+						newApp.Data = (IBindable)entity;
                     }
                     else if (entity is Json) {
                         Add((Json)entity);
