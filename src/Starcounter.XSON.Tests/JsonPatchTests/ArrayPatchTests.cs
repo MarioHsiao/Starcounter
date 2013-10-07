@@ -48,9 +48,10 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(result);
             Console.WriteLine("");
 
-            string facit = @"[{""op"":""replace"",""path"":""/Friends/1"",""value"":{""FirstName"":""Henrik"",""LastName"":""Boman""}}]";
+            string facit = @"[{""op"":""add"",""path"":""/Friends/1"",""value"":{""FirstName"":""Henrik"",""LastName"":""Boman""}}]";
             Assert.AreEqual(facit, result);
 
+			Session.End();
         }
 
         /// <summary>
@@ -83,6 +84,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Assert.AreEqual(
                "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}]}]", patch);
+
+			Session.End();
         }
 
         /// <summary>
@@ -127,6 +130,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Assert.AreEqual(
                 "[{\"op\":\"replace\",\"path\":\"/Friends/0\",\"value\":{\"FirstName\":\"Henrik\"}}]", patch);
+
+			Session.End();
         }
 
         [Test]
@@ -140,28 +145,29 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             person.FirstName = "Timothy";
             person2.FirstName = "Douglas";
 
-            Write("Initialize status",company.DebugString);
+            Write("Status 1",company.DebugString);
 
             Session.Data = company;
-            Session.Current.CreateJsonPatch(true);
-
+			Write("JSON-Patch 1", Session.Current.CreateJsonPatch(true));
+			
             Write("Before status",company.DebugString);
 
             var charlie = new Person();
             charlie.FirstName = "Charlie";
             company.Contacts = new object[] { charlie };
 
-            Write("After status", company.DebugString);
-            Write("JSON-Patch 1", Session.Current.CreateJsonPatch(true));
+            Write("After status 2", company.DebugString);
+            Write("JSON-Patch 2", Session.Current.CreateJsonPatch(true));
 
             company.Contacts = new object[] { person, person2 };
 
-            Write("After status 2",company.DebugString);
-            Write("JSON-Patch 2", Session.Current.CreateJsonPatch(true));
+            Write("After status 3",company.DebugString);
+            Write("JSON-Patch 3", Session.Current.CreateJsonPatch(true));
 
-            Write("After status 3 (no changes)", company.DebugString);
-            Write("JSON-Patch 3 (empty)", Session.Current.CreateJsonPatch(true));
+            Write("After status 4 (no changes)", company.DebugString);
+            Write("JSON-Patch 4 (empty)", Session.Current.CreateJsonPatch(true));
 
+			Session.End();
         }
 
         [Test]
@@ -190,6 +196,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine("JSON-Patch");
             Console.WriteLine("==========");
             Console.WriteLine(Session.Current.CreateJsonPatch(true));
+
+			Session.End();
         }
 
         [Test]
@@ -207,6 +215,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine("Changes:");
             Console.WriteLine("========");
             Console.WriteLine(Session.Current.CreateJsonPatch(true));
+
+			Session.End();
         }
 
         [Test]
@@ -230,6 +240,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine("Changes:");
             Console.WriteLine("========");
             Console.WriteLine(Session.Current.CreateJsonPatch(true));
+
+			Session.End();
         }
     }
 }
