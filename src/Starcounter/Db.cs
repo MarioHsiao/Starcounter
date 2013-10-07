@@ -16,6 +16,7 @@ namespace Starcounter
 
     public static partial class Db
     {
+        const int MaxTransactionConflictRetryAttempts = 100;
 
         /// <summary>
         /// </summary>
@@ -145,12 +146,17 @@ namespace Starcounter
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
         /// transaction. Specify 0 to disable retrying.</param>
-        public static void Transaction(Action action, int maxRetries = 100)
+        public static void Transaction(Action action, int maxRetries = MaxTransactionConflictRetryAttempts)
         {
             int retries;
             uint r;
             ulong handle;
             ulong verify;
+
+            if (maxRetries < 0 || maxRetries > MaxTransactionConflictRetryAttempts) {
+                throw new ArgumentOutOfRangeException(
+                    "maxRetries", string.Format("Valid range: 0-{0}", MaxTransactionConflictRetryAttempts));
+            }
 
             retries = 0;
 
