@@ -1634,11 +1634,6 @@
         A change in the durability of an object was requested, but the object was in a state where the durability couldn't be changed.
       </message>
     </code>
-    <code hex="001A" severity="Error" name="ScErrCantExecuteDDLTransactLocked">
-      <message>
-        Failed to execute DDL statement, since a transaction cannot be created for the execution. This can happen if the statement was called in a user-specified transaction scope.
-      </message>
-    </code>
 <!--
     <code hex="001A" severity="Error" name="ScErrBadAttributeIndexArg">
       <message>An invalid attribute index was passed to a kernel function.</message>
@@ -3132,6 +3127,11 @@
       <message>
         The name of a database class field or property clashed with a name
         reserved by Starcounter.
+      </message>
+    </code>
+    <code hex="010A" severity="Error" name="ScErrCantExecuteDDLTransactLocked">
+      <message>
+        Failed to execute DDL statement, since a transaction cannot be created for the execution. This can happen if the statement was called in a user-specified transaction scope.
       </message>
     </code>
   </facility>
