@@ -74,6 +74,7 @@ typedef int8_t db_index_type;
 //#define GW_OLD_ACTIVE_DATABASES_DISCOVER
 #define GW_COLLECT_INACTIVE_SOCKETS
 //#define GW_LOOPBACK_AGGREGATION
+//#define GW_IOCP_IMMEDIATE_COMPLETION
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -175,6 +176,9 @@ const int32_t MAX_FETCHED_OVLS = 100;
 
 // Maximum size of HTTP content.
 const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
+
+// Aggregation buffer size.
+const int32_t AGGREGATION_BUFFER_SIZE = 1024 * 1024 * 16;
 
 // Size of circular log buffer.
 const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
@@ -682,8 +686,8 @@ public:
 // Accumulative buffer.
 class AccumBuffer
 {
-    // Remaining bytes number in chunk.
-    ULONG chunk_num_remaining_bytes_;
+    // Available bytes number in chunk.
+    ULONG chunk_num_available_bytes_;
 
     // Current buffer pointer in chunk.
     uint8_t* chunk_cur_buf_ptr_;
@@ -715,7 +719,7 @@ public:
             memmove(chunk_orig_buf_ptr_, cur_data_ptr, num_copy_bytes);
             chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_ + num_copy_bytes;
 
-            chunk_num_remaining_bytes_ = chunk_orig_buf_len_bytes_ - num_copy_bytes;
+            chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_ - num_copy_bytes;
             accumulated_len_bytes_ = num_copy_bytes;
         }
 
@@ -740,7 +744,7 @@ public:
         bool reset_accum_len)
     {
         chunk_orig_buf_len_bytes_ = buf_total_len_bytes;
-        chunk_num_remaining_bytes_ = buf_total_len_bytes;
+        chunk_num_available_bytes_ = buf_total_len_bytes;
         chunk_orig_buf_ptr_ = orig_buf_ptr;
         chunk_cur_buf_ptr_ = orig_buf_ptr;
 
@@ -753,8 +757,8 @@ public:
         else
         {
             ULONG remaining = desired_accum_bytes_ - accumulated_len_bytes_;
-            if (chunk_num_remaining_bytes_ > remaining)
-                chunk_num_remaining_bytes_ = remaining;
+            if (chunk_num_available_bytes_ > remaining)
+                chunk_num_available_bytes_ = remaining;
         }
     }
 
@@ -764,17 +768,46 @@ public:
         uint32_t orig_buf_ptr_shift_bytes)
     {
         chunk_orig_buf_len_bytes_ = buf_total_len_bytes;
-        chunk_num_remaining_bytes_ = buf_total_len_bytes;
+        chunk_num_available_bytes_ = buf_total_len_bytes;
         chunk_orig_buf_ptr_ = chunk_orig_buf_ptr_ + orig_buf_ptr_shift_bytes;
         chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
         desired_accum_bytes_ = buf_total_len_bytes;
         accumulated_len_bytes_ = buf_total_len_bytes;
     }
 
-    // Get buffer length.
-    ULONG get_chunk_num_remaining_bytes()
+    // Initializes accumulative buffer.
+    void SetAccumulation(
+        ULONG buf_total_len_bytes,
+        uint32_t orig_buf_ptr_shift_bytes)
     {
-        return chunk_num_remaining_bytes_;
+        chunk_orig_buf_len_bytes_ -= orig_buf_ptr_shift_bytes;
+        chunk_num_available_bytes_ -= orig_buf_ptr_shift_bytes;
+        chunk_orig_buf_ptr_ += orig_buf_ptr_shift_bytes;
+        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
+        desired_accum_bytes_ = buf_total_len_bytes;
+        accumulated_len_bytes_ = buf_total_len_bytes;
+    }
+
+    // Get buffer length.
+    ULONG get_chunk_num_available_bytes()
+    {
+        return chunk_num_available_bytes_;
+    }
+
+    void RevertBeforeSend()
+    {
+        chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_;
+    }
+
+    ULONG get_chunk_orig_buf_len_bytes()
+    {
+        return chunk_orig_buf_len_bytes_;
+    }
+
+    void WriteBytesToSend(void* data, ULONG data_len)
+    {
+        memcpy(chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_, data, data_len);
+        chunk_num_available_bytes_ -= data_len;
     }
 
     // First chunk origin data.
@@ -796,12 +829,22 @@ public:
     }
 
     // Setting the data pointer for the next operation.
-    void RestoreOrigBufPtr()
+    void RestoreToFirstChunk()
     {
         chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr_;
         chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
         chunk_orig_buf_len_bytes_ = 0;
-        chunk_num_remaining_bytes_ = 0;
+        chunk_num_available_bytes_ = 0;
+    }
+
+    // Resets to original state.
+    void ResetToOriginalState()
+    {
+        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
+        chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_;
+        accumulated_len_bytes_ = 0;
+        desired_accum_bytes_ = 0;
+        first_chunk_orig_buf_ptr_ = NULL;
     }
 
     // Adds accumulated bytes.
@@ -809,13 +852,13 @@ public:
     {
         accumulated_len_bytes_ += num_bytes;
         chunk_cur_buf_ptr_ += num_bytes;
-        chunk_num_remaining_bytes_ -= num_bytes;
+        chunk_num_available_bytes_ -= num_bytes;
     }
 
     // Prepare buffer to send outside.
     void PrepareForSend(uint8_t *data, ULONG num_bytes_to_write)
     {
-        chunk_num_remaining_bytes_ = num_bytes_to_write;
+        chunk_num_available_bytes_ = num_bytes_to_write;
         chunk_cur_buf_ptr_ = data;
         accumulated_len_bytes_ = 0;
     }
@@ -823,7 +866,7 @@ public:
     // Prepare buffer to proxy outside.
     void PrepareForSend()
     {
-        chunk_num_remaining_bytes_ = accumulated_len_bytes_;
+        chunk_num_available_bytes_ = accumulated_len_bytes_;
     }
 
     // Starting accumulation.
@@ -833,8 +876,8 @@ public:
         accumulated_len_bytes_ = num_already_accumulated;
 
         ULONG remaining = total_desired_bytes - num_already_accumulated;
-        if (chunk_num_remaining_bytes_ > remaining)
-            chunk_num_remaining_bytes_ = remaining;
+        if (chunk_num_available_bytes_ > remaining)
+            chunk_num_available_bytes_ = remaining;
     }
 
     // Returns pointer to original data buffer.
@@ -858,7 +901,7 @@ public:
     // Checks if accumulating buffer is filled.
     bool IsBufferFilled()
     {
-        return 0 == chunk_num_remaining_bytes_;
+        return 0 == chunk_num_available_bytes_;
     }
 
     // Checking if all needed bytes are accumulated.
@@ -921,6 +964,18 @@ struct ScSessionStruct
     {
         return (INVALID_SESSION_INDEX != linear_index_);
     }
+};
+
+_declspec(align(128)) struct GatewayMemoryChunk
+{
+    // Entry to lock-free gateway memory chunks list.
+    SLIST_ENTRY free_gw_memory_chunks_entry_;
+    
+    // Length of allocated buffer in bytes.
+    int32_t buffer_len_bytes_;
+
+    // Pointed to allocated buffer.
+    uint8_t* buf_;
 };
 
 enum SOCKET_FLAGS
@@ -1554,6 +1609,9 @@ class Gateway
     // OTHER STUFF
     ////////////////////////
 
+    // Free gateway memory chunks.
+    PSLIST_HEADER gateway_mem_chunks_unsafe_;
+
     // Unique linear socket id.
     random_salt_type unique_socket_id_;
 
@@ -1670,6 +1728,29 @@ public:
 
     // Releases used socket index.
     void ReleaseSocketIndex(GatewayWorker* gw, session_index_type index);
+
+    // Obtains a gateway memory chunk.
+    GatewayMemoryChunk* ObtainGatewayMemoryChunk()
+    {
+        PSLIST_ENTRY free_gw_chunk_entry = InterlockedPopEntrySList(gateway_mem_chunks_unsafe_);
+
+        if (NULL == free_gw_chunk_entry)
+        {
+            GatewayMemoryChunk* c = new GatewayMemoryChunk();
+            c->buffer_len_bytes_ = AGGREGATION_BUFFER_SIZE;
+            c->buf_ = new uint8_t[c->buffer_len_bytes_];
+
+            free_gw_chunk_entry = (PSLIST_ENTRY) c;
+        }
+
+        return (GatewayMemoryChunk*) free_gw_chunk_entry;
+    }
+
+    // Returns gateway memory chunk back to list.
+    void ReturnGatewayMemoryChunk(GatewayMemoryChunk* gwc)
+    {
+        InterlockedPushEntrySList(gateway_mem_chunks_unsafe_, &gwc->free_gw_memory_chunks_entry_);
+    }
 
     // Checks if IP is on white list.
     bool CheckIpForWhiteList(ip_info_type ip)

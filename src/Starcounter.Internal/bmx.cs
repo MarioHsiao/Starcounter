@@ -253,7 +253,7 @@ namespace Starcounter.Internal
 
             (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
-            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NUM_CHUNKS)) = 1;
+            (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS)) = 1;
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) protocol_type;           
 

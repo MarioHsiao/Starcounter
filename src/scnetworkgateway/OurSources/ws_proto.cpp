@@ -303,16 +303,13 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Prepare buffer to send outside.
     sd->get_accum_buf()->PrepareForSend(payload, static_cast<ULONG>(payload_len));
 
-    // Checking if multiple chunks involved.
-    if (sd->get_num_chunks() > 1)
-    {
-        // Adjusting first WSABuf structure.
-        WSABUF* wsa_buf = (WSABUF*) gw->GetSmcFromChunkIndex(sd->get_db_index(), sd->GetNextLinkedChunkIndex());
-        int32_t diff = static_cast<int32_t>(orig_payload - payload);
-        wsa_buf->len += diff;
-        wsa_buf->buf -= diff;
-    }
-    
+    // Calculating difference between original user data and post-processed.
+    int32_t diff = static_cast<int32_t>(orig_payload - payload);
+
+    // Adjusting user data parameters.
+    sd->set_user_data_written_bytes(sd->get_user_data_written_bytes() + diff);
+    sd->set_user_data_offset_in_socket_data(sd->get_user_data_offset_in_socket_data() - diff);
+
 JUST_SEND_SOCKET_DATA:
 
     // Sending data.
