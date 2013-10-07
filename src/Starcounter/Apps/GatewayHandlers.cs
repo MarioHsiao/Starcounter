@@ -247,7 +247,7 @@ namespace Starcounter
             // Checking if we need to process linked chunks.
             if (!is_single_chunk)
             {
-                UInt32 num_chunks = *(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NUM_CHUNKS);
+                Int32 num_chunks = *(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS);
 
                 Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
 

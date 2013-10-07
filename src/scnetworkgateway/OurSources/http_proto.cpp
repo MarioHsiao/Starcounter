@@ -107,7 +107,7 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
         sd->set_target_db_index(handler_lists_[i]->get_db_index());
 
         // Ensuring that initial database is zero.
-        GW_ASSERT(0 == sd->get_db_index());
+        //GW_ASSERT(0 == sd->get_db_index());
 
         // Running handlers.
         err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
@@ -832,6 +832,10 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     num_content_bytes_received = 0;
                 }
 
+                // Checking if full request is received when aggregated.
+                if (sd->GetSocketAggregatedFlag())
+                    GW_ASSERT(http_request_.content_len_bytes_ == num_content_bytes_received);
+
                 // Checking if we need to continue receiving the content.
                 if (http_request_.content_len_bytes_ > num_content_bytes_received)
                 {
@@ -1385,10 +1389,14 @@ uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLE
 
     // Getting port handler.
     int32_t port_index = g_gateway.FindServerPortIndex(ags.port_number_);
+    GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
     // Getting new socket index.
     ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, sd->get_db_index(), INVALID_SOCKET, port_index);
     ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
+
+    // Setting some socket options.
+    g_gateway.SetSocketAggregatedFlag(ags.socket_info_index_);
 
     char temp_buf[AggregationStructSizeBytes];
     *(AggregationStruct*) temp_buf = ags;

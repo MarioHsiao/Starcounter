@@ -933,7 +933,7 @@ namespace Starcounter
         /// <summary>
         /// Size of aggregation blob.
         /// </summary>
-        const Int32 AggregationBlobSizeBytes = 1024 * 1024;
+        const Int32 AggregationBlobSizeBytes = 4 * 1024 * 1024;
 
         /// <summary>
         /// Bytes blob used for aggregated sends.

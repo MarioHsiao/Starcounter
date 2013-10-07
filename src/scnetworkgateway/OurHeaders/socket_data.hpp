@@ -23,7 +23,7 @@ enum SOCKET_DATA_FLAGS
     HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048,
     HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
     SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 8192,
-    SOCKET_DATA_FLAGS_AGGREGATION_SD = 8192 * 2,
+    SOCKET_DATA_FLAGS_AGGREGATION_SD = SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK * 2
 };
 
 // Socket data chunk.
@@ -86,8 +86,8 @@ class SocketDataChunk
     // Type of network protocol.
     uint8_t type_of_network_protocol_;
 
-    // Databases index for the next chunk.
-    db_index_type next_chunk_db_index_;
+    // Target database index.
+    db_index_type target_db_index_;
 
     /////////////////////////
     // Data structures.
@@ -99,7 +99,10 @@ class SocketDataChunk
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
 
-    struct { int64_t unique_aggr_index_; uint64_t target_db_index_; } align_16bytes;
+    // Pointer to gateway chunk if any.
+    GatewayMemoryChunk* gw_chunk_;
+
+    struct { int64_t unique_aggr_index_; uint64_t unused_; } align_16bytes;
 
     // Accept or parameters or temporary data.
     uint8_t accept_or_params_or_temp_data_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
@@ -108,6 +111,20 @@ class SocketDataChunk
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
 
 public:
+
+    // Has gateway chunk attached?
+    bool HasGatewayChunk()
+    {
+        return NULL != gw_chunk_;
+    }
+
+    GatewayMemoryChunk* get_gw_chunk()
+    {
+        return gw_chunk_;
+    }
+
+    // Returns gateway chunk to gateway if any.
+    void ReturnGatewayChunk();
 
     int64_t get_unique_aggr_index()
     {
@@ -164,6 +181,8 @@ public:
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
+        GW_ASSERT(((uint8_t*)&num_chunks_ - smc) == MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS);
+
         GW_ASSERT(((uint8_t*)&flags_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS);
 
         GW_ASSERT(((uint8_t*)&type_of_network_protocol_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE);
@@ -173,8 +192,6 @@ public:
         GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
-
-        GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
         GW_ASSERT(((uint8_t*)&user_data_offset_in_socket_data_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
@@ -721,12 +738,6 @@ public:
         return num_chunks_;
     }
 
-    // Setting number of used chunks.
-    void set_num_chunks(uint32_t value)
-    {
-        num_chunks_ = value;
-    }
-
     // Getting and linking more receiving chunks.
     uint32_t GetReceivingChunks(GatewayWorker *gw, uint32_t num_bytes);
 
@@ -806,28 +817,29 @@ public:
     // Initializes accumulated data buffer based on chunk data.
     void InitAccumBufferFromUserData()
     {
-        accum_buf_.Init(
-            user_data_written_bytes_,
-            (uint8_t*)this + user_data_offset_in_socket_data_,
-            true);
+        accum_buf_.Init(user_data_written_bytes_, (uint8_t*)this + user_data_offset_in_socket_data_, true);
     }
 
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
-        accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
+        // Checking if gateway chunk is used.
+        if (gw_chunk_)
+            accum_buf_.Init(gw_chunk_->buffer_len_bytes_, gw_chunk_->buf_, true);
+        else
+            accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 
     // Index into target databases array.
     db_index_type get_target_db_index()
     {
-        return static_cast<db_index_type>(align_16bytes.target_db_index_);
+        return target_db_index_;
     }
 
     // Index into target databases array.
     void set_target_db_index(db_index_type db_index)
     {
-        align_16bytes.target_db_index_ = db_index;
+        target_db_index_ = db_index;
     }
 
     // Index into databases array.
@@ -840,18 +852,6 @@ public:
     void set_db_index(db_index_type db_index)
     {
         db_index_ = db_index;
-    }
-
-    // Index into databases array.
-    db_index_type get_next_chunk_db_index()
-    {
-        return next_chunk_db_index_;
-    }
-
-    // Index into databases array.
-    void set_next_chunk_db_index(db_index_type next_chunk_db_index)
-    {
-        next_chunk_db_index_ = next_chunk_db_index;
     }
 
     // Exchanges sockets during proxying.
@@ -878,12 +878,7 @@ public:
     {
         db_index_ = db_index;
         chunk_index_ = the_chunk_index;
-        num_chunks_ = 1;
         type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
-
-        // Sealing the chunk.
-        set_next_chunk_db_index(INVALID_DB_INDEX);
-        get_smc()->terminate_next();
     }
 
     // Attaching to certain database.
@@ -1052,6 +1047,14 @@ public:
 
     // Clone current socket data to simply send it.
     uint32_t CloneToPush(GatewayWorker*gw, SocketDataChunk** new_sd);
+
+    // Clone current socket data to simply send it.
+    uint32_t CreateSocketDataFromBigBuffer(
+        GatewayWorker*gw,
+        session_index_type socket_info_index,
+        int32_t data_len,
+        uint8_t* data,
+        SocketDataChunk** new_sd);
 
     // Attaches session to socket data.
     void AssignSession(ScSessionStruct& session)

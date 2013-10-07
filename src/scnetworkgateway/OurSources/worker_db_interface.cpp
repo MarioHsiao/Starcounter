@@ -99,31 +99,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // Initializing socket data that arrived from database.
             sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+
+            if (!smc->is_terminated())
+                GW_ASSERT(sd->get_num_chunks() > 1);
+            else
+                GW_ASSERT(sd->get_num_chunks() == 1);
             
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
-
-            // We need to check if its a multi-chunk response.
-            if (!smc->is_terminated())
-            {
-                // Creating special chunk for keeping WSA buffers information there.
-                err_code = sd->CreateWSABuffers(
-                    this,
-                    smc,
-                    MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
-                    MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
-                    sd->get_user_data_written_bytes());
-
-                if (err_code)
-                {
-                    gw->DisconnectAndReleaseChunk(sd);
-                    continue;
-                }
-
-                GW_ASSERT(sd->get_num_chunks() > 2);
-
-                // NOTE: One chunk for WSA buffers will already be counted.
-                ChangeNumUsedChunks(-1);
-            }
 
             // Changing number of used chunks.
             ChangeNumUsedChunks(sd->get_num_chunks());
@@ -214,6 +196,9 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
+
+    // Setting total number of chunks.
+    *(int32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks_to_use;
 
     // Going through each linked chunk and write data there.
     int32_t left_bytes_to_write = num_bytes_to_write;

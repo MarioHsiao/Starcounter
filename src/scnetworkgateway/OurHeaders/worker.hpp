@@ -55,19 +55,11 @@ class GatewayWorker
     // List of sockets indexes to be disconnected.
     std::list<session_index_type> sockets_indexes_to_disconnect_;
 
-    /////////////////////////////AGGREGATION///////////////////////////////////
-
-    // Aggregation queue first item.
-    core::chunk_index first_aggregated_chunk_index_;
-    int8_t first_aggregated_chunk_db_index_;
-
-    // Aggregation queue last item.
-    core::chunk_index last_aggregated_chunk_;
-    int8_t last_aggregated_chunk_db_index_;
+    // Aggregation sockets waiting for send.
+    LinearList<SocketDataChunk*, 256> aggr_sds_to_send_;
 
     // Aggregation timer.
     PreciseTimer aggr_timer_;
-    /////////////////////////////AGGREGATION////////////////////////////////////
 
 #ifdef GW_LOOPED_TEST_MODE
     LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
@@ -79,8 +71,14 @@ class GatewayWorker
 
 public:
 
+    // Performs a send of given socket data on aggregation socket.
+    uint32_t SendOnAggregationSocket(SocketDataChunkRef sd);
+
+    // Tries to find current aggregation socket data from aggregation socket index.
+    SocketDataChunk* FindAggregationSdBySocketIndex(session_index_type aggr_socket_info_index);
+
     // Returns given socket data chunk to private chunk pool.
-    void ReturnSocketDataChunksToPool(SocketDataChunkRef sd, bool return_only_extra_chunks = false);
+    void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
 
     // Adds socket data chunk to aggregation queue.
     void AddToAggregation(SocketDataChunkRef sd);
