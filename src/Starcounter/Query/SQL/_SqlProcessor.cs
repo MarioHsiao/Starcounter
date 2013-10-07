@@ -211,7 +211,10 @@ internal static class SqlProcessor
         }
         if (errorCode != 0)
         {
-            throw ErrorCode.ToException(errorCode);
+            Exception ex = ErrorCode.ToException(errorCode);
+            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+            throw ex;
         }
     }
 
