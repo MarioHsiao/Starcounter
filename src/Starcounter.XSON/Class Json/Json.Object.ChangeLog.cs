@@ -83,7 +83,12 @@ namespace Starcounter {
         /// <param name="session"></param>
         private void LogArrayChangesWithDatabase(Session session) {
             if (ArrayAddsAndDeletes != null) {
-                Session._Changes.AddRange(this.ArrayAddsAndDeletes);
+                Session._Changes.AddRange(ArrayAddsAndDeletes);
+				ArrayAddsAndDeletes.Clear();
+
+				for (int i = 0; i < list.Count; i++) {
+					CheckpointAt(i);
+				}
             }
 //            foreach (var e in _Values) {
 //                (e as Json).LogValueChangesWithDatabase(session);
@@ -129,7 +134,20 @@ namespace Starcounter {
                                 throw new NotImplementedException();
                             }
                             else {
-                                Session.UpdateValue((this as Json), (TValue)template.Properties[t]);
+								var childTemplate = (TValue)template.Properties[t];
+                                Session.UpdateValue((this as Json), childTemplate);
+
+								// TODO:
+								// Added this code to make current implementation work.
+								// Probably not the correct place to do it though, both
+								// for readability and speed.
+								if (childTemplate is TContainer) {
+									var childJson = (Json)this.Get(childTemplate);
+									if (childJson != null){
+										childJson.SetBoundValuesInTuple();
+										childJson.CheckpointChangeLog();
+									}
+								}
                             }
                         }
                         CheckpointAt(t);
@@ -177,10 +195,15 @@ namespace Starcounter {
                             var p = templ.Properties[t] as TValue;
                             if (p != null && p.UseBinding(j.DataAsBindable)) {
                                 var val = j.GetBound(p);
-                                if (val != list[t]) {
-                                    list[t] = val;
-                                    Session.UpdateValue(j, (TValue)template.Properties[t]);
-                                }
+
+								// TODO:
+								// When comparing for example two boxed integers, the != comparison returns
+								// false when it should be true so we need to make a call to equals here.
+//                                if (val != list[t]) {
+								if ((val == null && list[t] != null) || (val != null && !val.Equals(list[t]))) {
+									list[t] = val;
+									Session.UpdateValue(j, (TValue)template.Properties[t]);
+								}
                             }
                         }
                     }
@@ -194,5 +217,30 @@ namespace Starcounter {
                 }
             }
         }
+
+		private void SetBoundValuesInTuple() {
+			if (IsArray) {
+				foreach (Json item in _list) {
+					item.SetBoundValuesInTuple();
+				}
+			} else {
+				var dataObj = DataAsBindable;
+				if (dataObj != null) {
+					var valueList = list;
+					TObject tobj = (TObject)Template;
+					for (int i = 0; i < tobj.Properties.Count; i++) {
+						var vt = tobj.Properties[i] as TValue;
+						if (vt != null) {
+							if (vt is TContainer) {
+								var childJson = (Json)Get(vt);
+								childJson.SetBoundValuesInTuple();
+							} else if (vt != null && vt.UseBinding(dataObj)) {
+								valueList[i] = GetBound(vt);
+							}
+						}
+					}
+				}
+			}
+		}
     }
 }
