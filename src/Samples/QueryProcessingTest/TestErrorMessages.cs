@@ -114,6 +114,14 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(wasException);
             wasException = false;
+            try {
+                Db.SQL("CREATE INDEX MyTestIndex ON Person ( 'Date' )");
+            } catch (Exception ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLINCORRECTSYNTAX);
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
         }
     }
 }
