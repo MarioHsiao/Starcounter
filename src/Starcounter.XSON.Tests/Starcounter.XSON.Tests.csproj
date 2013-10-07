@@ -61,6 +61,7 @@
     <Compile Include="DataObjects\Database.cs" />
     <Compile Include="DataObjects\Entity.cs" />
     <Compile Include="DataObjects\Person.cs" />
+    <Compile Include="DataObjects\Recursive.cs" />
     <Compile Include="ExpandoTests.cs" />
     <Compile Include="JsonPatchTests\ArrayPatchTests.cs" />
     <Compile Include="JsonPatchTests\JsonPatchTests.cs" />
