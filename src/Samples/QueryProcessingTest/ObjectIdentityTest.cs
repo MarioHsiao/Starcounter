@@ -104,9 +104,10 @@ namespace QueryProcessingTest {
             } catch (System.ArgumentException ex) {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRBADARGUMENTS);
             }
-            //a = Db.SQL<Account>("select a from account a where client = ?", "").First;
-            //a = Db.SQL<Account>("select a from account a where objectid = ?", "/asdfasdfa/asdfasdf").First;
-            //Trace.Assert(a == null);
+            a = Db.SQL<Account>("select a from account a where objectid = ?", "").First;
+            Trace.Assert(a == null);
+            a = Db.SQL<Account>("select a from account a where objectid = ?", "/asdfasdfa/asdfasdf").First;
+            Trace.Assert(a == null);
             HelpMethods.LogEvent("Finished testing object identities");
         }
     }
