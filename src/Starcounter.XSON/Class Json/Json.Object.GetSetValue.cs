@@ -368,7 +368,7 @@ namespace Starcounter {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Add((Json)this.Parent, tarr, index));
                 Dirtyfy();
             }
             Parent.ChildArrayHasAddedAnElement(tarr, index);
@@ -385,7 +385,7 @@ namespace Starcounter {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Remove(Change.Add((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Remove((Json)this.Parent, tarr, index));
                 Dirtyfy();
             }
             Parent.ChildArrayHasRemovedAnElement(tarr, index);
