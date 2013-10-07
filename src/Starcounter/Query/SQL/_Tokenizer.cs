@@ -149,6 +149,10 @@ internal static class Tokenizer
         return chr == '\'';
     }
 
+    internal static Boolean DoubleQuote(Char chr) {
+        return chr == '\"';
+    }
+
     internal static Boolean Underscore(Char chr)
     {
         return chr == '_';
@@ -205,8 +209,24 @@ internal static class Tokenizer
                 }
                 tokenList.Add(token);
                 token = "";
+                // Accumulate double quoted identifier token
+            } else if (i < chrArr.Length && DoubleQuote(chrArr[i])) {
+                while (i < chrArr.Length && DoubleQuote(chrArr[i])) {
+                    token += chrArr[i].ToString();
+                    i++;
+                    while (i < chrArr.Length && !DoubleQuote(chrArr[i])) {
+                        token += chrArr[i].ToString();
+                        i++;
+                    }
+                    if (i < chrArr.Length) {
+                        token = token.Substring(1);
+                        i++;
+                    }
+                }
+                tokenList.Add(token);
+                token = "";
             }
-            // Accumulate numerical token.
+                // Accumulate numerical token.
             else if (i < chrArr.Length && Digit(chrArr[i]))
             {
                 while (i < chrArr.Length && Digit(chrArr[i]))
