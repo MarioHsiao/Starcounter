@@ -139,18 +139,19 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Transactions the specified action.
+        /// Executes the given <paramref name="action"/> within a new transaction.
         /// </summary>
-        /// <param name="action">The action.</param>
-        public static void Transaction(Action action)
+        /// <param name="action">The action to execute.</param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify 0 to disable retrying.</param>
+        public static void Transaction(Action action, int maxRetries = 100)
         {
-            uint maxRetries;
-            uint retries;
+            int retries;
             uint r;
             ulong handle;
             ulong verify;
 
-            maxRetries = 100;
             retries = 0;
 
             for (; ; )
