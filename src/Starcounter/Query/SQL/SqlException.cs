@@ -199,5 +199,9 @@ public class SqlException : Exception
     internal static Exception GetSqlException(uint errorCode, string messagePostfix) {
         return ErrorCode.ToException(errorCode, messagePostfix, (m, e) => new SqlException(m));
     }
+
+    internal static Exception GetSqlException(uint errorCode, string messagePostfix, String token) {
+        return ErrorCode.ToException(errorCode, messagePostfix, (m, e) => new SqlException(m, token));
+    }
 }
 }

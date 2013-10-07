@@ -3519,6 +3519,9 @@
 	<code hex="001F" severity="Error" name="ScErrQueryResultTypeMismatch">
 	  <message>Expected generic result type does not match with query result type.</message>
 	</code>
+	<code hex="0020" severity="Error" name="ScErrTooManyIndexColumns">
+	  <message>Too many columns for compound index.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
