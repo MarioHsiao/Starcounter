@@ -69,25 +69,26 @@ namespace Starcounter {
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
         public string CreateJsonPatch( bool flushLog ) {
 
-            if (_BrandNew) {
-                // Just return the whole thing as a change to the root
-                //GenerateChangeLog(); // Needed to update bound dirty check values.
-                this.CheckpointChangeLog();
-                _BrandNew = false;
-                return "[{\"op\":\"add\",\"path\":\"/\",\"value\":"+_Data.ToJson()+"}]";
-            }
+			//if (_BrandNew) {
+			//	// Just return the whole thing as a change to the root
+			//	//GenerateChangeLog(); // Needed to update bound dirty check values.
+			//	this.CheckpointChangeLog();
+			//	_BrandNew = false;
+			//	return "[{\"op\":\"add\",\"path\":\"/\",\"value\":"+_Data.ToJson()+"}]";
+			//}
 
-            this.GenerateChangeLog();
+			//this.GenerateChangeLog();
 
-            var buffer = new List<byte>();
-            HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
-            var ret = Encoding.UTF8.GetString(buffer.ToArray());
+			//var buffer = new List<byte>();
+			//HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
+			//var ret = Encoding.UTF8.GetString(buffer.ToArray());
 
-            if (flushLog) {
-                this._Changes = new List<Change>();
-            }
+			//if (flushLog) {
+			//	this._Changes = new List<Change>();
+			//}
+			//return ret;
 
-            return ret;
+			return Encoding.UTF8.GetString(CreateJsonPatchBytes(flushLog));
         }
 
         /// <summary>
@@ -95,9 +96,16 @@ namespace Starcounter {
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public byte[] CreateJsonPatchBytes(bool flushLog ) {
-
-            this.GenerateChangeLog();
+        public byte[] CreateJsonPatchBytes(bool flushLog) {
+			if (_BrandNew) {
+				// TODO: 
+				// might be array.
+				_Changes.Add(Change.Add(_Data));
+				this.CheckpointChangeLog();
+				_BrandNew = false;
+			} else {
+				this.GenerateChangeLog();
+			}
 
             var buffer = new List<byte>();
             HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
