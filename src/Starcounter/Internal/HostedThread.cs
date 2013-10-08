@@ -81,9 +81,7 @@ namespace Starcounter.Internal {
         }
 
         private static void InternalSleep(Int32 millisecondsTimeout) {
-            // TODO:
-            // ec = sccorelib.cm3_sleep((IntPtr)0, millisecondsTimeout);
-            var ec = Error.SCERRNOTIMPLEMENTED;
+            var ec = sccorelib.cm3_sleep((IntPtr)0, (UInt32)millisecondsTimeout);
             if (ec == 0) {
                 return;
             }
