@@ -4,179 +4,189 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Threading;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
+using System;
+using System.Threading;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
     /// A task that is responsible for the transformation of calls to
-    /// a few System.Thread methods, like Thread.Sleep, to adapt user
-    /// code to the cooperative scheduler.
+    /// a few <see cref="System.Thread"/> methods, like <see cref="System.Thread"/>, 
+    /// to adapt user code to the cooperative scheduler.
     /// </summary>
-    /// <remarks>
-    /// This code is currently not called during weaving, since it is
-    /// kind of out-of-date. If we must reintroduce it, we have to move
-    /// the code that is weaved into the user code - i.e. the InterceptThread
-    /// class - to the Starcounter assembly, since it will otherwise result
-    /// in a reference to the weaver executable when weaved and recompiled.
-    /// </remarks>
     public sealed class ScEnhanceThreadingTask : Task {
         /// <summary>
-        /// Executes this instance.
+        /// Executes the current task, i.e. effectively looking for and
+        /// trapping the thread methods we support.
         /// </summary>
-        /// <returns>Boolean.</returns>
+        /// <returns><c>true</c> if successfull; <c>false</c> otherwise.
+        /// </returns>
         public override Boolean Execute() {
             var module = Project.Module;
-            Thread_Priority(module);
-            Thread_SleepA(module);
-            Thread_SleepB(module);
+            var binding = BindingOptions.OnlyExisting | BindingOptions.DontThrowException;
+
+            // Check if the current module even reference System.Threading
+            // and the Thread class. If not, no need to process it.
+            
+            var threadTypeRef = (TypeRefDeclaration)module.FindType(typeof(Thread), binding);    
+            if (threadTypeRef != null) {
+                var hostedThreadType = (TypeRefDeclaration)module.Cache.GetType(typeof(HostedThread));
+
+                FindAndReplaceThreadSetPriorityCalls(module, threadTypeRef, hostedThreadType);
+                FindAndReplaceThreadSleepInt32Calls(module, threadTypeRef, hostedThreadType);
+                FindAndReplaceThreadSleepTimeSpanCalls(module, threadTypeRef, hostedThreadType);
+            }
+            
             return true;
         }
 
         /// <summary>
-        /// Thread_s the priority.
+        /// Finds any call setting <see cref="Thread.Priority"/> in the
+        /// given <paramref name="module"/> and replaces each such call
+        /// with a call to <see cref="HostedThread.SetPriority"/>.
         /// </summary>
-        /// <param name="module">The module.</param>
-        private void Thread_Priority(ModuleDeclaration module) {
-            TypeRefDeclaration threadTypeRef = (TypeRefDeclaration)module.FindType(
-                                                   typeof(Thread),
-                                                   BindingOptions.OnlyExisting | BindingOptions.DontThrowException
-                                               );
-            if (threadTypeRef == null) {
-                return;
-            }
-            MethodRefDeclaration threadSetPriorityMethod = (MethodRefDeclaration)threadTypeRef.MethodRefs.GetMethod(
-                                                               "set_Priority",
-                                                               new MethodSignature(
-                                                                   module,
-                                                                   CallingConvention.Default,
-                                                                   module.Cache.GetIntrinsic(IntrinsicType.Void),
-                                                                   new[] { module.Cache.GetType(typeof(ThreadPriority)) },
-                                                                   0),
-                                                               BindingOptions.Default
-                                                           );
-            Set<MethodDefDeclaration> affectedMethods = FindAffectedMethods(threadSetPriorityMethod);
+        /// <param name="module">The module to investigate.</param>
+        /// <param name="threadTypeRef">The type reference to the .NET
+        /// type <see cref="System.Thread"/>, referenced from the given
+        /// <paramref name="module"/>.</param>
+        /// <param name="hostedThreadType">The type reference to the
+        /// <see cref="HostedThread"/> type, which we'll use as the new
+        /// target fall the calls we are replacing.</param>
+        private void FindAndReplaceThreadSetPriorityCalls(
+            ModuleDeclaration module,
+            TypeRefDeclaration threadTypeRef,
+            TypeRefDeclaration hostedThreadType) {
+            var threadSetPriorityMethod = (MethodRefDeclaration)
+                threadTypeRef.MethodRefs.GetMethod("set_Priority",
+                new MethodSignature(
+                    module,
+                    CallingConvention.Default,
+                    module.Cache.GetIntrinsic(IntrinsicType.Void),
+                    new[] { module.Cache.GetType(typeof(ThreadPriority)) },
+                    0),
+                    BindingOptions.Default
+                    );
+            
+            var affectedMethods = FindAffectedMethods(threadSetPriorityMethod);
             if (affectedMethods.Count == 0) {
                 return;
             }
-            TypeRefDeclaration interceptThreadType = (TypeRefDeclaration)module.Cache.GetType(
-                                                         typeof(InterceptThread)
-                                                     );
-            MethodRefDeclaration interceptThreadSetPriorityMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
-                                                                        "set_Priority",
-                                                                        new MethodSignature(
-                                                                                module,
-                                                                                CallingConvention.Default,
-                                                                                module.Cache.GetIntrinsic(IntrinsicType.Void),
-                                                                                new[]
-        {
-            module.Cache.GetType(typeof(Thread)),
-            module.Cache.GetType(typeof(ThreadPriority))
-        },
-            0
-                                                                        ),
-                                                                        BindingOptions.Default
-                                                                    );
-            ReplaceMethodCalls(affectedMethods, threadSetPriorityMethod, interceptThreadSetPriorityMethod);
+            
+            var hostedThreadSetPriorityMethod = (MethodRefDeclaration)
+                hostedThreadType.MethodRefs.GetMethod("SetPriority",
+                new MethodSignature(
+                    module,
+                    CallingConvention.Default,
+                    module.Cache.GetIntrinsic(IntrinsicType.Void),
+                    new[] {
+                        module.Cache.GetType(typeof(Thread)),
+                        module.Cache.GetType(typeof(ThreadPriority))
+                    },
+                    0),
+                    BindingOptions.Default
+                    );
+
+            ReplaceMethodCalls(affectedMethods, threadSetPriorityMethod, hostedThreadSetPriorityMethod);
         }
 
         /// <summary>
-        /// Thread_s the sleep A.
+        /// Finds any call to <see cref="Thread.Sleep(int32)"/> in the
+        /// given <paramref name="module"/> and replaces each such call
+        /// with a call to <see cref="HostedThread.Sleep(int32)"/>.
         /// </summary>
-        /// <param name="module">The module.</param>
-        private void Thread_SleepA(ModuleDeclaration module) {
-            TypeRefDeclaration threadType = (TypeRefDeclaration)module.FindType(
-                                                typeof(Thread),
-                                                BindingOptions.OnlyExisting | BindingOptions.DontThrowException
-                                            );
-            if (threadType == null) {
-                return;
-            }
-            MethodRefDeclaration threadSleepMethod = (MethodRefDeclaration)threadType.MethodRefs.GetMethod(
-                                                         "Sleep",
-                                                         new MethodSignature(
-                                                             module,
-                                                             CallingConvention.Default,
-                                                             module.Cache.GetIntrinsic(IntrinsicType.Void),
-                                                             new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.Int32) },
-            0),
-                                                         BindingOptions.Default
-                                                     );
-            Set<MethodDefDeclaration> affectedMethods = FindAffectedMethods(threadSleepMethod);
-            if (affectedMethods.Count == 0) {
-                return;
-            }
-            TypeRefDeclaration interceptThreadType = (TypeRefDeclaration)module.Cache.GetType(
-                typeof(InterceptThread)
-            );
-            MethodRefDeclaration interceptThreadSleepMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
+        /// <param name="module">The module to investigate.</param>
+        /// <param name="threadTypeRef">The type reference to the .NET
+        /// type <see cref="System.Thread"/>, referenced from the given
+        /// <paramref name="module"/>.</param>
+        /// <param name="hostedThreadType">The type reference to the
+        /// <see cref="HostedThread"/> type, which we'll use as the new
+        /// target fall the calls we are replacing.</param>
+        private void FindAndReplaceThreadSleepInt32Calls(
+            ModuleDeclaration module,
+            TypeRefDeclaration threadTypeRef,
+            TypeRefDeclaration hostedThreadType) {
+
+            var threadSleepMethod = (MethodRefDeclaration)threadTypeRef.MethodRefs.GetMethod(
                 "Sleep",
                 new MethodSignature(
                     module,
                     CallingConvention.Default,
                     module.Cache.GetIntrinsic(IntrinsicType.Void),
                     new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.Int32) },
-            0
-                ),
-                BindingOptions.Default
-            );
-            ReplaceMethodCalls(affectedMethods, threadSleepMethod, interceptThreadSleepMethod);
-        }
-
-        /// <summary>
-        /// Thread_s the sleep B.
-        /// </summary>
-        /// <param name="module">The module.</param>
-        private void Thread_SleepB(ModuleDeclaration module) {
-            TypeRefDeclaration threadType = (TypeRefDeclaration)module.FindType(
-                typeof(Thread),
-                BindingOptions.OnlyExisting | BindingOptions.DontThrowException
-            );
-            if (threadType == null) {
-                return;
-            }
-            MethodRefDeclaration threadSleepMethod = (MethodRefDeclaration)threadType.MethodRefs.GetMethod(
-                "Sleep",
-                new MethodSignature(
-                    module,
-                    CallingConvention.Default,
-                    module.Cache.GetIntrinsic(IntrinsicType.Void),
-            new[] { module.Cache.GetType(typeof(TimeSpan)) },
-            0),
-                BindingOptions.Default
-            );
-            Set<MethodDefDeclaration> affectedMethods = FindAffectedMethods(threadSleepMethod);
+                    0),
+                    BindingOptions.Default
+                    );
+            var affectedMethods = FindAffectedMethods(threadSleepMethod);
             if (affectedMethods.Count == 0) {
                 return;
             }
-            TypeRefDeclaration interceptThreadType = (TypeRefDeclaration)module.Cache.GetType(
-                typeof(InterceptThread)
-            );
-            MethodRefDeclaration interceptThreadSleepMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
+
+            var hostedThreadSleepMethod = (MethodRefDeclaration)hostedThreadType.MethodRefs.GetMethod(
                 "Sleep",
                 new MethodSignature(
                     module,
                     CallingConvention.Default,
                     module.Cache.GetIntrinsic(IntrinsicType.Void),
-            new[] { module.Cache.GetType(typeof(TimeSpan)) },
-            0
-                ),
-                BindingOptions.Default
-            );
-            ReplaceMethodCalls(affectedMethods, threadSleepMethod, interceptThreadSleepMethod);
+                    new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.Int32) },
+                    0),
+                    BindingOptions.Default
+                    );
+
+            ReplaceMethodCalls(affectedMethods, threadSleepMethod, hostedThreadSleepMethod);
         }
 
         /// <summary>
-        /// Finds the affected methods.
+        /// Finds any call to <see cref="Thread.Sleep(TimeSpan)"/> in the
+        /// given <paramref name="module"/> and replaces each such call
+        /// with a call to <see cref="HostedThread.Sleep(TimeSpan)"/>.
         /// </summary>
-        /// <param name="methodRef">The method ref.</param>
-        /// <returns>Set{MethodDefDeclaration}.</returns>
+        /// <param name="module">The module to investigate.</param>
+        /// <param name="threadTypeRef">The type reference to the .NET
+        /// type <see cref="System.Thread"/>, referenced from the given
+        /// <paramref name="module"/>.</param>
+        /// <param name="hostedThreadType">The type reference to the
+        /// <see cref="HostedThread"/> type, which we'll use as the new
+        /// target fall the calls we are replacing.</param>
+        private void FindAndReplaceThreadSleepTimeSpanCalls(
+            ModuleDeclaration module, 
+            TypeRefDeclaration threadTypeRef, 
+            TypeRefDeclaration hostedThreadType) {
+            var threadSleepMethod = (MethodRefDeclaration)threadTypeRef.MethodRefs.GetMethod(
+                "Sleep",
+                new MethodSignature(
+                    module,
+                    CallingConvention.Default,
+                    module.Cache.GetIntrinsic(IntrinsicType.Void), 
+                    new[] { module.Cache.GetType(typeof(TimeSpan)) },
+                    0),
+                    BindingOptions.Default
+            );
+            
+            var affectedMethods = FindAffectedMethods(threadSleepMethod);
+            if (affectedMethods.Count == 0) {
+                return;
+            }
+            
+            
+            var hostedThreadSleepMethod = (MethodRefDeclaration)hostedThreadType.MethodRefs.GetMethod(
+                "Sleep",
+                new MethodSignature(
+                    module,
+                    CallingConvention.Default,
+                    module.Cache.GetIntrinsic(IntrinsicType.Void),
+                    new[] { module.Cache.GetType(typeof(TimeSpan)) },
+                    0),
+                    BindingOptions.Default
+            );
+
+            ReplaceMethodCalls(affectedMethods, threadSleepMethod, hostedThreadSleepMethod);
+        }
+
         private static Set<MethodDefDeclaration> FindAffectedMethods(MethodRefDeclaration methodRef) {
-            Set<MethodDefDeclaration> affectedMethods = new Set<MethodDefDeclaration>(64);
+            var affectedMethods = new Set<MethodDefDeclaration>(64);
 #pragma warning disable 612
             foreach (MethodDefDeclaration methodDef in IndexUsagesTask.GetUsedBy(methodRef)) {
 #pragma warning restore 612
@@ -185,14 +195,7 @@ namespace Starcounter.Internal.Weaver {
             return affectedMethods;
         }
 
-        /// <summary>
-        /// Replaces the method calls.
-        /// </summary>
-        /// <param name="affectedMethods">The affected methods.</param>
-        /// <param name="toReplace">To replace.</param>
-        /// <param name="replaceWith">The replace with.</param>
-        private void ReplaceMethodCalls(Set<MethodDefDeclaration> affectedMethods, IMethod toReplace,
-        IMethod replaceWith) {
+        private void ReplaceMethodCalls(Set<MethodDefDeclaration> affectedMethods, IMethod toReplace, IMethod replaceWith) {
             InstructionWriter writer = new InstructionWriter();
             foreach (MethodDefDeclaration methodDef in affectedMethods) {
                 ProcessBlock(
@@ -205,16 +208,8 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
-        /// <summary>
-        /// Processes the block.
-        /// </summary>
-        /// <param name="block">The block.</param>
-        /// <param name="reader">The reader.</param>
-        /// <param name="writer">The writer.</param>
-        /// <param name="toReplace">To replace.</param>
-        /// <param name="replaceWith">The replace with.</param>
-        private static void ProcessBlock(InstructionBlock block, InstructionReader reader, InstructionWriter writer,
-        IMethod toReplace, IMethod replaceWith) {
+        private static void ProcessBlock(
+            InstructionBlock block, InstructionReader reader, InstructionWriter writer, IMethod toReplace, IMethod replaceWith) {
             if (block.HasChildrenBlocks) {
                 InstructionBlock child = block.FirstChildBlock;
                 while (child != null) {
@@ -230,16 +225,8 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
-        /// <summary>
-        /// Processes the sequence.
-        /// </summary>
-        /// <param name="sequence">The sequence.</param>
-        /// <param name="reader">The reader.</param>
-        /// <param name="writer">The writer.</param>
-        /// <param name="toReplace">To replace.</param>
-        /// <param name="replaceWith">The replace with.</param>
-        private static void ProcessSequence(InstructionSequence sequence, InstructionReader reader, InstructionWriter writer,
-        IMethod toReplace, IMethod replaceWith) {
+        private static void ProcessSequence(
+            InstructionSequence sequence, InstructionReader reader, InstructionWriter writer, IMethod toReplace, IMethod replaceWith) {
             OpCodeNumber opCodeToReplace = toReplace.GetMethodDefinition().IsStatic ? OpCodeNumber.Call : OpCodeNumber.Callvirt;
             bool changed = false;
             reader.EnterInstructionSequence(sequence);
