@@ -1,31 +1,31 @@
-// ***********************************************************************
-// <copyright file="InterceptThread.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
 
-using Starcounter;
 using System;
 using System.Threading;
 
-namespace Starcounter.Internal.Weaver {
+namespace Starcounter.Internal {
 
     /// <summary>
-    /// Class InterceptThread
+    /// Provides a set of utility methods for hosted threads, i.e.
+    /// threads that execute in the Starcounter code host process.
     /// </summary>
     /// <remarks>
-    /// If we reintroduce weaving of Systtem.Thread calls in user code, we
-    /// must move this class to the Starcounter assembly. For more information,
-    /// see the remarks in the ScEnhanceThreadingTask class summary.
+    /// The methods of this class are primary intended for the Starcounter
+    /// tools and the runtime host.
     /// </remarks>
     public static class HostedThread {
 
         /// <summary>
-        /// Set_s the priority.
+        /// Sets the thread priority of <paramref name="self"/> to the
+        /// given <paramref name="value"/>.
         /// </summary>
-        /// <param name="self">The self.</param>
-        /// <param name="value">The value.</param>
-        public static void set_Priority(Thread self, ThreadPriority value) {
+        /// <param name="self">The thread whose priority to set.</param>
+        /// <param name="value">The new priority.</param>
+        /// <remarks>
+        /// The Starcounter runtime will investigate all hosted code and
+        /// replace all assignments to <see cref="System.Thread.Priority"/>
+        /// with a call to this method.
+        /// </remarks>
+        public static void SetPriority(Thread self, ThreadPriority value) {
             // We don't allow setting priority on threads. Any attempt to do so
             // we simply ignore.
             //
@@ -41,57 +41,59 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Sleeps the specified milliseconds timeout.
         /// </summary>
-        /// <param name="millisecondsTimeout">The milliseconds timeout.</param>
+        /// <param name="millisecondsTimeout">The milliseconds timeout to sleep.</param>
         /// <exception cref="System.ArgumentOutOfRangeException">millisecondsTimeout</exception>
+        /// <remarks>
+        /// The Starcounter runtime will investigate all hosted code and
+        /// replace all calls to <see cref="System.Thread.Sleep(int)"/>
+        /// with a call to this method.
+        /// </remarks>
         public static void Sleep(Int32 millisecondsTimeout) {
             if (millisecondsTimeout < -1) {
                 throw new ArgumentOutOfRangeException("millisecondsTimeout");
             }
+
             InternalSleep(millisecondsTimeout);
         }
 
         /// <summary>
         /// Sleeps the specified timeout.
         /// </summary>
-        /// <param name="timeout">The timeout.</param>
+        /// <param name="timeout">The timeout to sleep</param>
         /// <exception cref="System.ArgumentOutOfRangeException">timeout</exception>
+        /// <remarks>
+        /// The Starcounter runtime will investigate all hosted code and
+        /// replace all calls to <see cref="System.Thread.Sleep(TimeSpan)"/>
+        /// with a call to this method.
+        /// </remarks>
         public static void Sleep(TimeSpan timeout) {
-            Double d;
-            Int32 i;
-            d = timeout.TotalMilliseconds;
+            var d = timeout.TotalMilliseconds;
             if (d > Int32.MaxValue) {
                 throw new ArgumentOutOfRangeException("timeout");
             }
-            i = (Int32)d;
+
+            var i = (Int32)d;
             if (i < -1) {
                 throw new ArgumentOutOfRangeException("timeout");
             }
+
             InternalSleep(i);
         }
 
-        /// <summary>
-        /// Internals the sleep.
-        /// </summary>
-        /// <param name="millisecondsTimeout">The milliseconds timeout.</param>
         private static void InternalSleep(Int32 millisecondsTimeout) {
-            UInt32 ec;
-
-            // There is no cm3_sleep present. What to do?
             // TODO:
-
             // ec = sccorelib.cm3_sleep((IntPtr)0, millisecondsTimeout);
-            ec = Error.SCERRUNSPECIFIED;
+            var ec = Error.SCERRNOTIMPLEMENTED;
             if (ec == 0) {
                 return;
             }
-            if (ec == Error.SCERRNOTAWORKERTHREAD) {
-                goto sleep_dt;
+            if (ec != Error.SCERRNOTAWORKERTHREAD && ec != Error.SCERRTHREADNOTATTACHED) {
+                throw ErrorCode.ToException(ec);
             }
-            if (ec == Error.SCERRTHREADNOTATTACHED) {
-                goto sleep_dt;
-            }
-            throw ErrorCode.ToException(ec);
-        sleep_dt:
+
+            // It's a detached thread. Just invoke the original
+            // .NET CLR thread sleeping method.
+            
             Thread.Sleep(millisecondsTimeout);
         }
     }
