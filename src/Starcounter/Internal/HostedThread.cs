@@ -18,7 +18,7 @@ namespace Starcounter.Internal.Weaver {
     /// must move this class to the Starcounter assembly. For more information,
     /// see the remarks in the ScEnhanceThreadingTask class summary.
     /// </remarks>
-    public static class InterceptThread {
+    public static class HostedThread {
 
         /// <summary>
         /// Set_s the priority.

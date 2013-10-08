@@ -64,7 +64,7 @@ namespace Starcounter.Internal.Weaver {
                 return;
             }
             TypeRefDeclaration interceptThreadType = (TypeRefDeclaration)module.Cache.GetType(
-                                                         typeof(InterceptThread)
+                                                         typeof(HostedThread)
                                                      );
             MethodRefDeclaration interceptThreadSetPriorityMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
                                                                         "set_Priority",
@@ -111,7 +111,7 @@ namespace Starcounter.Internal.Weaver {
                 return;
             }
             TypeRefDeclaration interceptThreadType = (TypeRefDeclaration)module.Cache.GetType(
-                typeof(InterceptThread)
+                typeof(HostedThread)
             );
             MethodRefDeclaration interceptThreadSleepMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
                 "Sleep",
@@ -154,7 +154,7 @@ namespace Starcounter.Internal.Weaver {
                 return;
             }
             TypeRefDeclaration interceptThreadType = (TypeRefDeclaration)module.Cache.GetType(
-                typeof(InterceptThread)
+                typeof(HostedThread)
             );
             MethodRefDeclaration interceptThreadSleepMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
                 "Sleep",
