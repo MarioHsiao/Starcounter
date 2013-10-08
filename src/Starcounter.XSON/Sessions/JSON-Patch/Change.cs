@@ -70,7 +70,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="index">The index in the list of the added item.</param>
         /// <returns></returns>
         internal static Change Add(Json obj, TObjArr list, Int32 index) {
-            return new Change(Change.ADD, obj, list, index);
+            return new Change(Change.REPLACE, obj, list, index);
         }
 
 		/// <summary>
@@ -80,7 +80,7 @@ namespace Starcounter.Internal.XSON {
 		/// <param name="tobj"></param>
 		/// <returns></returns>
 		internal static Change Add(Json obj) {
-			return new Change(Change.ADD, obj, null, -1);
+			return new Change(Change.REPLACE, obj, null, -1);
 		}
 
         /// <summary>

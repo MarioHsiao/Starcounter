@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Templates;
@@ -114,6 +115,34 @@ namespace Starcounter.Internal.XSON.Tests {
 			j.FirstName = "Douglas";
 			Assert.AreEqual("Douglas", j.FirstName);
 			Assert.AreEqual("Douglas", p.FirstName);
+		}
+
+		[Test]
+		public static void TestArrayBinding() {
+			Recursive r = new Recursive() { Name = "One" };
+			Recursive r2 = new Recursive() { Name = "Two" };
+			Recursive r3 = new Recursive() { Name = "Three" };
+
+			r.Recursives.Add(r2);
+			r2.Recursives.Add(r3);
+
+			var mainTemplate = new TJson();
+
+			var arrItemTemplate1 = new TJson();
+			arrItemTemplate1.Add<TString>("Name");
+
+			var arrItemTemplate2 = new TJson();
+			arrItemTemplate2.Add<TString>("Name");
+
+			var objArrTemplate = arrItemTemplate1.Add<TObjArr>("Recursives");
+			objArrTemplate.ElementType = arrItemTemplate2;
+
+			objArrTemplate = mainTemplate.Add<TObjArr>("Recursives");
+			objArrTemplate.ElementType = arrItemTemplate1;
+
+			var json = new Json();
+			json.Template = mainTemplate;
+			json.Data = r;
 		}
     }
 }
