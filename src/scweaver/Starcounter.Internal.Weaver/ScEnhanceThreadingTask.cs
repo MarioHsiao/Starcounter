@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Weaver {
                                                          typeof(HostedThread)
                                                      );
             MethodRefDeclaration interceptThreadSetPriorityMethod = (MethodRefDeclaration)interceptThreadType.MethodRefs.GetMethod(
-                                                                        "set_Priority",
+                                                                        "SetPriority",
                                                                         new MethodSignature(
                                                                                 module,
                                                                                 CallingConvention.Default,
