@@ -108,7 +108,6 @@
     <Compile Include="Starcounter.Internal.Weaver\IMessageHandler.cs" />
     <Compile Include="Starcounter.Internal.Weaver\IMethodLevelAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\InsteadOfFieldAccessAdvice.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\InterceptThread.cs" />
     <Compile Include="Starcounter.Internal.Weaver\IObjectViewImpl\ImplementsIObjectProxy.cs">
       <SubType>Code</SubType>
     </Compile>
