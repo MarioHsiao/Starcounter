@@ -16,7 +16,6 @@ namespace Starcounter
 
     public static partial class Db
     {
-
         /// <summary>
         /// </summary>
         public static DbEnvironment Environment { get; private set; }
@@ -139,18 +138,25 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Transactions the specified action.
+        /// Executes the given <paramref name="action"/> within a new transaction.
         /// </summary>
-        /// <param name="action">The action.</param>
-        public static void Transaction(Action action)
+        /// <param name="action">The action to execute.</param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. The default is <c>int.MaxValue</c> and indicate Starcounter
+        /// will try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        public static void Transaction(Action action, int maxRetries = int.MaxValue)
         {
-            uint maxRetries;
-            uint retries;
+            int retries;
             uint r;
             ulong handle;
             ulong verify;
 
-            maxRetries = 100;
+            if (maxRetries < 0) {
+                throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
+            }
+
             retries = 0;
 
             for (; ; )
