@@ -143,10 +143,10 @@ namespace Starcounter
         /// <param name="action">The action to execute.</param>
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
-        /// transaction. The default is <c>int.MaxValue</c> and indicate Starcounter
-        /// will try until the transaction succeeds. Specify 0 to disable retrying.
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transaction(Action action, int maxRetries = int.MaxValue)
+        public static void Transaction(Action action, int maxRetries = 100)
         {
             int retries;
             uint r;
