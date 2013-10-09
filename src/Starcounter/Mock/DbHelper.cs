@@ -149,6 +149,26 @@ namespace Starcounter {
             return Base64EncodeObjectNo(obj.Identity);
         }
 
+        public static void AddToWriteList(object obj) {
+            var proxy = obj as IObjectProxy;
+            if (proxy == null) {
+                if (obj == null) {
+                    throw new ArgumentNullException("obj");
+                } else {
+                    throw ErrorCode.ToException(
+                        Error.SCERRCODENOTENHANCED,
+                        string.Format("The type {0} is not a database class.", obj.GetType()),
+                        (msg, inner) => { return new InvalidCastException(msg, inner); });
+                }
+            }
+            AddToWriteList(proxy);
+        }
+
+        public static void AddToWriteList(IObjectProxy proxy) {
+            var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
+            if (dr != 0) throw ErrorCode.ToException(dr);
+        }
+
         internal const string ObjectNoName = "ObjectNo";
         internal static Type ObjectNoType = typeof(UInt64);
         internal const string ObjectIDName = "ObjectID";
