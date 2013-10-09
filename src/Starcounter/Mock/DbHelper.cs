@@ -149,6 +149,14 @@ namespace Starcounter {
             return Base64EncodeObjectNo(obj.Identity);
         }
 
+        /// <summary>
+        /// Adds <paramref name="obj"/> to the write list of the
+        /// currently attached transaction.
+        /// </summary>
+        /// </exception>
+        /// <param name="obj">The object to be added to the transaction
+        /// write list. If the object is not an instance of a database
+        /// class, an exception will be raised.</param>
         public static void AddToWriteList(object obj) {
             var proxy = obj as IObjectProxy;
             if (proxy == null) {
@@ -161,9 +169,17 @@ namespace Starcounter {
                         (msg, inner) => { return new InvalidCastException(msg, inner); });
                 }
             }
+            
             AddToWriteList(proxy);
         }
 
+        /// <summary>
+        /// Adds <paramref name="proxy"/> to the write list of the
+        /// currently attached transaction.
+        /// </summary>
+        /// </exception>
+        /// <param name="proxy">The proxy referencing the kernel
+        /// object to be added to the transaction write list.</param>
         public static void AddToWriteList(IObjectProxy proxy) {
             var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
             if (dr != 0) throw ErrorCode.ToException(dr);
