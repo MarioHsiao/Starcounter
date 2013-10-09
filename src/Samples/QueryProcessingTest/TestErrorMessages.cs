@@ -62,7 +62,7 @@ namespace QueryProcessingTest {
                     Db.SQL("create index indx on account (accountid)");
                 });
             } catch (DbException ex) {
-                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED);
                 wasException = true;
             }
             Trace.Assert(wasException);
@@ -110,6 +110,14 @@ namespace QueryProcessingTest {
                 Db.SQL("drop index indx on account");
             } catch (DbException ex) {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRINDEXNOTFOUND);
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            try {
+                Db.SQL("CREATE INDEX MyTestIndex ON Person ( 'Date' )");
+            } catch (Exception ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLINCORRECTSYNTAX);
                 wasException = true;
             }
             Trace.Assert(wasException);

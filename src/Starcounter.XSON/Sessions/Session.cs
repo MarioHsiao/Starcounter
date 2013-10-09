@@ -235,7 +235,7 @@ namespace Starcounter {
             Session._Current = null;
 
             // Resetting current transaction if any exists.
-            if (StarcounterBase._DB.GetCurrentTransaction() != null)
+            if (StarcounterBase._DB != null && StarcounterBase._DB.GetCurrentTransaction() != null)
                 StarcounterBase._DB.SetCurrentTransaction(null);
         }
 

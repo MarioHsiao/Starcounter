@@ -54,10 +54,11 @@
     <ScConnectionBoundObject /> 
     -->
     
-    <!--Weaving of threading related code is currently disabled. See
-    comments in the task and in the plugin-file.
-    <ScEnhanceThreadingTask />
+    <!-- 
+    Run the task looking for system threading calls, trying to make them
+    better part of the cooperative scheduler.
     -->
+    <ScEnhanceThreadingTask />
     
     <!-- 
     Now we compile the weaved code into a binary form, writing the file to

@@ -11,8 +11,6 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
     class JsonPatchTests {
-
-
         [Test]
         public static void TestSimpleJsonPatch() {
 
@@ -53,6 +51,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},\n{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},\n{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
             Assert.AreEqual(facit, result);
 
+			Session.End();
         }
 
 
@@ -112,7 +111,9 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine("==========");
             Console.WriteLine(str);
 
-            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"replace\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
+            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
+
+			Session.End();
         }
 
 
@@ -177,6 +178,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(str);
 
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
+
+			Session.End();
         }
 
 
@@ -242,6 +245,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 ";
 Assert.AreEqual(facit, result );
 
+			Session.End();
         }
 
         /// <summary>
@@ -265,10 +269,8 @@ Assert.AreEqual(facit, result );
             Assert.AreEqual("", json.ToJson()); // The data is not bound so the JSON should still be an empty object
 
             var t = new TJson();
-            var fname = t.Add<TString>("FirstName"); // TODO! By default, properties are automatically bound my matching property names
-            fname.Bind = "FirstName";
-            var lname = t.Add<TString>("LastName"); // TODO! By default, properties are automatically bound my matching property names
-            lname.Bind = "LastName";
+            var fname = t.Add<TString>("FirstName"); 
+            var lname = t.Add<TString>("LastName");
             j.Template = t;
             j.Data = p;
 
@@ -303,6 +305,8 @@ Assert.AreEqual(facit, result );
 
             Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Douglas\"}]",patch);
+
+			Session.End();
         }
 
 
@@ -340,8 +344,8 @@ Assert.AreEqual(facit, result );
 
             Assert.AreEqual(
                 "[{\"op\":\"add\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
+
+			Session.End();
         }
-
-
     }
 }

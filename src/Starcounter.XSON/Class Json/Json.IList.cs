@@ -65,10 +65,10 @@ namespace Starcounter {
         /// </summary>
         public bool HasBeenSent {
             get {
-                if (Parent != null) {
-                    return Parent.WasReplacedAt(IndexInParent);
-                }
-                else {
+				if (Parent != null) {
+					return !Parent.WasReplacedAt(IndexInParent);
+				}
+				else {
                     var s = Session;
                     if (s == null) {
                         return false;
@@ -302,7 +302,7 @@ namespace Starcounter {
                                 typedListTemplate.DebugString));
                 }
             }
-            _SetFlag.Add(false);
+            _SetFlag.Add(true);
 //            MarkAsReplaced( this.IndexOf(item));
 
             var index = list.Add(j);
@@ -408,7 +408,7 @@ namespace Starcounter {
         /// </summary>
         public int IndexInParent {
             get {
-                if (IsArray) {
+                if (_cacheIndexInArr != -1) {
                     return _cacheIndexInArr;
                 }
                 else {
