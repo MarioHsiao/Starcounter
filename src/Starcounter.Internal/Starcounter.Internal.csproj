@@ -125,6 +125,7 @@
     <Compile Include="TestLogger.cs" />
     <Compile Include="TreeHelper.cs" />
     <Compile Include="UnsupportedMimeTypeException.cs" />
+    <Compile Include="X6Decimal.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

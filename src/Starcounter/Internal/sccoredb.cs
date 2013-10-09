@@ -696,6 +696,11 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint SCObjectFakeWrite(ulong record_id, ulong record_addr);
+
+        /// <summary>
         /// The MDB_ data value flag_ null
         /// </summary>
         public const ushort Mdb_DataValueFlag_Null = 0x0001;
