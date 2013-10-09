@@ -15,12 +15,12 @@
 
 // Providing the arguments in a very hackish and uggly way - the user have to provide the arguments in the correct order.
 // The correct way is to have the same functionality that the Boost.Program_options library provide. For example:
-// >sc_ipc_test.exe --server-name=PERSONAL --database-name=myDatabase --timeout=240 --workers=2 --num_schedulers_each_worker_connect_to=8
+// >sc_ipc_test.exe --server-name=PERSONAL --database-name=db4 --timeout=10000 --workers=4 --num_schedulers_each_worker_connect_to=4
 //
 // But we are dropping Boost so we have to make such a lib ourself. No time for that now.
-// Usage example with database named "database1" running under PERSONAL server.
+// Usage example with database named "db4" running under PERSONAL server.
 // Running the IPC test for 10000 milliseconds:
-//>sc_ipc_test.exe PERSONAL 4 10000 database1
+//>sc_ipc_test.exe PERSONAL 4 10000 4 db4
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	// Start the interprocess_communication test application.
