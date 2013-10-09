@@ -195,5 +195,13 @@ namespace Starcounter.Internal {
             // Read the value at the position with the length
             return AnyBaseBool.ReadBooleanNullable(valuePos);
         }
+
+        public unsafe decimal ReadDecimalLossless(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64DecimalLossless.Read(valueLength, valuePos);
+        }
     }
 }

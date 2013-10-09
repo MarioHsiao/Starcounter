@@ -294,5 +294,65 @@ namespace FasterThanJson.Tests {
                 wasException = false;
             }
         }
+
+        [Test]
+        public unsafe void TestSafeDecimalLossless() {
+            fixed (byte* buffer = new byte[173]) {
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(buffer, 11, 1, 173);
+                Decimal value = 0;
+                writer.WriteDecimalLossless(value); // 2 chars
+                value = 1;
+                writer.WriteDecimalLossless(value); // 2 chars
+                value = -1;
+                writer.WriteDecimalLossless(value); // 2 chars
+                Decimal valueMax = Decimal.MaxValue;
+                writer.WriteDecimalLossless(valueMax); // 18 chars
+                Decimal valueMin = Decimal.MinValue;
+                writer.WriteDecimalLossless(valueMin); // 18 chars
+                valueMax = valueMax / 10; // 1
+                writer.WriteDecimalLossless(valueMax); // 18 chars
+                valueMin = valueMin / 10; // 1
+                writer.WriteDecimalLossless(valueMin); // 18 chars
+                for (int i = 1; i < 10; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                writer.WriteDecimalLossless(valueMax); // 18 chars
+                writer.WriteDecimalLossless(valueMin); // 18 chars
+                for (int i = 10; i < 28; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                writer.WriteDecimalLossless(valueMax); // 18 chars
+                writer.WriteDecimalLossless(valueMin); // 18 chars
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(buffer, 11);
+                valueMax = Decimal.MaxValue;
+                Assert.AreEqual(valueMax, reader.ReadDecimalLossless(3));
+                valueMin = Decimal.MinValue;
+                Assert.AreEqual(valueMin, reader.ReadDecimalLossless(4));
+                valueMax = valueMax / 10; // 1
+                Assert.AreEqual(valueMax, reader.ReadDecimalLossless(5));
+                valueMin = valueMin / 10; // 1
+                Assert.AreEqual(valueMin, reader.ReadDecimalLossless(6));
+                for (int i = 1; i < 10; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                Assert.AreEqual(valueMax, reader.ReadDecimalLossless(7));
+                value = 0;
+                Assert.AreEqual(value, reader.ReadDecimalLossless(0));
+                value = 1;
+                Assert.AreEqual(value, reader.ReadDecimalLossless(1));
+                value = -1;
+                Assert.AreEqual(value, reader.ReadDecimalLossless(2));
+                Assert.AreEqual(valueMin, reader.ReadDecimalLossless(8));
+                for (int i = 10; i < 28; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                Assert.AreEqual(valueMin, reader.ReadDecimalLossless(10));
+                Assert.AreEqual(valueMax, reader.ReadDecimalLossless(9));
+            }
+        }
     }
 }
