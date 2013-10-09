@@ -143,7 +143,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
     public String EvaluateToString() {
         if (value == null)
             return null;
-        return "object "+value.GetObjectID().ToString();
+        return "object "+value.GetObjectNo().ToString();
     }
 
     /// <summary>
