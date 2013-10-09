@@ -15,6 +15,40 @@
 namespace starcounter {
 namespace core {
 
+#if defined (IPC_VERSION_2_0)
+inline shared_interface::shared_interface()
+: segment_name_(),
+monitor_interface_name_(),
+chunk_(),
+shared_chunk_pool_(),
+common_scheduler_interface_(),
+scheduler_interface_(),
+common_client_interface_(),
+client_interface_(),
+channel_(),
+client_number_(no_client_number),
+owner_id_(0),
+pid_(0),
+id_() {}
+
+inline shared_interface::shared_interface(std::string segment_name, std::string
+monitor_interface_name, pid_type pid, owner_id oid, uint32_t iid)
+: segment_name_(segment_name),
+monitor_interface_name_(monitor_interface_name),
+chunk_(),
+shared_chunk_pool_(),
+common_scheduler_interface_(),
+scheduler_interface_(),
+common_client_interface_(),
+client_interface_(),
+channel_(),
+client_number_(no_client_number),
+owner_id_(oid),
+pid_(pid),
+id_() {
+	init(segment_name, monitor_interface_name, pid, oid, iid);
+}
+#else // !defined (IPC_VERSION_2_0)
 inline shared_interface::shared_interface()
 : segment_name_(),
 monitor_interface_name_(),
@@ -45,6 +79,7 @@ owner_id_(oid),
 pid_(pid) {
 	init(segment_name, monitor_interface_name, pid, oid);
 }
+#endif // defined (IPC_VERSION_2_0)
 
 inline shared_interface::~shared_interface() {
 	close_client_work_event();
@@ -54,13 +89,14 @@ inline shared_interface::~shared_interface() {
 	}
 }
 
+#if defined (IPC_VERSION_2_0)
 inline void shared_interface::init(std::string segment_name, std::string
-monitor_interface_name, pid_type pid, owner_id oid) {
+monitor_interface_name, pid_type pid, owner_id oid, uint32_t iid) {
 	segment_name_ = segment_name;
 	monitor_interface_name_ = monitor_interface_name;
 	owner_id_ = oid;
 	pid_ = pid;
-
+	
 	// Open the managed segment with the segment_name, which has the format:
 	// <DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>.
 	segment_.init_open(segment_name.c_str());
@@ -77,12 +113,12 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		// Invalid segment. The shared memory segment probably don't exist.
 		throw shared_interface_exception(SCERRSHAREDINTERFACEOPENDBSHM);
 	}
-
+	
 	client_work_event() = 0;
 	
 	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
 		scheduler_work_event(i) = 0;
-
+		
 		if (common_scheduler_interface().is_scheduler_active(i)) {
 			if (!open_scheduler_work_event(i)) {
 				// Failed to open the event.
@@ -91,6 +127,45 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		}
 	}
 }
+#else // !defined (IPC_VERSION_2_0)
+inline void shared_interface::init(std::string segment_name, std::string
+monitor_interface_name, pid_type pid, owner_id oid) {
+	segment_name_ = segment_name;
+	monitor_interface_name_ = monitor_interface_name;
+	owner_id_ = oid;
+	pid_ = pid;
+	
+	// Open the managed segment with the segment_name, which has the format:
+	// <DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>.
+	segment_.init_open(segment_name.c_str());
+	
+	// Check if it is valid.
+	if (segment_.is_valid()) {
+		mapped_region_.init(segment_);
+		if (mapped_region_.is_valid()) {
+			// Found the shared memory segment. Initialize pointers.
+			init();
+		}
+	}
+	else {
+		// Invalid segment. The shared memory segment probably don't exist.
+		throw shared_interface_exception(SCERRSHAREDINTERFACEOPENDBSHM);
+	}
+	
+	client_work_event() = 0;
+	
+	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
+		scheduler_work_event(i) = 0;
+		
+		if (common_scheduler_interface().is_scheduler_active(i)) {
+			if (!open_scheduler_work_event(i)) {
+				// Failed to open the event.
+				throw shared_interface_exception(SCERROPENSCHEDULERWORKEVENT);
+			}
+		}
+	}
+}
+#endif // defined (IPC_VERSION_2_0)
 
 inline std::string shared_interface::get_segment_name() const {
 	return segment_name_;
@@ -390,10 +465,23 @@ inline void shared_interface::init() {
 	channel_ = (channel_type*)
 	pm->find_named_block(starcounter_core_shared_memory_channels_name);
 	
+#if defined (IPC_VERSION_2_0)
+	if (channel_) {
+		// Each worker have its own slice of the array of channels,
+		// in the range channel(0) to channel(number_of_active_schedulers() -1).
+		// channel_ is set to point to channel_ +id * number_of_active_schedulers()
+		channel_ += id() * number_of_active_schedulers();
+	}
+	else {
+		// error: could not find the channels
+		throw shared_interface_exception(SCERRFINDCHANNELS);
+	}
+#else // !defined (IPC_VERSION_2_0)
 	if (!channel_) {
 		// error: could not find the channels
 		throw shared_interface_exception(SCERRFINDCHANNELS);
 	}
+#endif // defined (IPC_VERSION_2_0)
 }
 
 inline pid_type shared_interface::get_pid() const {
@@ -502,6 +590,12 @@ inline const ::HANDLE& shared_interface::scheduler_number_pool_not_full_event
 (std::size_t i) const {
 	return scheduler_number_pool_not_full_[i];
 }
+
+#if defined (IPC_VERSION_2_0)
+inline uint32_t shared_interface::id() const {
+	return id_;
+}
+#endif // defined (IPC_VERSION_2_0)
 
 inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
 uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
