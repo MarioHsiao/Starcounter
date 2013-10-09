@@ -43,7 +43,7 @@ namespace Starcounter.Internal {
             Debug.Assert(sign == 0 || sign == 1);
             byte firstChar = (byte)((scale << 1) + sign);
 #else
-            ushort firstChar = *(ushort*)(byteValue+2);
+            ushort firstChar = *(ushort*)(byteValue + 2);
             firstChar = (ushort)((firstChar << 1) | (firstChar >> 15));
             Debug.Assert((firstChar >> 1) <= 28);
             Debug.Assert((firstChar & 0x1) == 0 || (firstChar & 0x1) == 1);
@@ -112,6 +112,37 @@ namespace Starcounter.Internal {
         }
     }
 
-    public static class Base64DecimalScLoss {
+    public static class Base64X6Decimal {
+        /// <summary>
+        /// Encodes decimal value assuming that it was converted from X6Decimal and
+        /// writes into the given tuple
+        /// </summary>
+        /// <param name="buffer">Place to write</param>
+        /// <param name="value">Decimal with 6 digits scale as converted from X6Decimal</param>
+        /// <returns>Number of bytes written</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public unsafe static int Write(byte* buffer, Decimal value) {
+            Debug.Assert(BitConverter.IsLittleEndian);
+            uint* uintValue = (uint*)&value;
+            ulong sign = *uintValue >> 31;
+            ulong lowLong = *(ulong*)(uintValue + 2);
+            Debug.Assert(*(UInt16*)&value == 0);
+            Debug.Assert(*((byte*)&value + 2) == 6);
+            Debug.Assert(sign == 0 || sign == 1);
+            Debug.Assert(*(uintValue + 1) == 0);
+            Debug.Assert((lowLong >> 63) == 0);
+            return Base64Int.Write(buffer, (lowLong << 1) | sign);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public unsafe static decimal Read(int size, byte* buffer) {
+            Debug.Assert(BitConverter.IsLittleEndian);
+            ulong readValue = Base64Int.Read(size, buffer);
+            uint sign = (uint)((readValue & 0x1) << 31);
+            Decimal newValue = 1.000000m;
+            *(uint*)&newValue |= sign;
+            *((ulong*)&newValue + 1) = readValue >> 1;
+            return newValue;
+        }
     }
 }
