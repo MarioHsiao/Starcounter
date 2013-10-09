@@ -142,27 +142,23 @@ namespace Starcounter {
             }
             else if (property is TObject) {
                 var j = (Json)value;
-                list[index] = j;
                 // We need to update the cached index array
                 if (j != null) {
                     j.Parent = this;
-
-
                     j._cacheIndexInArr = property.TemplateIndex;
                 }
                 var vals = list;
-                var i = property.TemplateIndex;
-                var oldValue = (Json)vals[i];
+                var oldValue = (Json)list[index];
                 if (oldValue != null) {
                     oldValue.SetParent(null);
                     oldValue._cacheIndexInArr = -1;
                 }
+				list[index] = j;
             }
             else {
                 list[index] = value;
             }
         }
-
 
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.

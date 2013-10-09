@@ -114,7 +114,7 @@ restart:
 									valueSize = (arr[arrPos] as Json).ToJsonUtf8(out childObjArr);
 									if (valueSize == -1)
 										goto restart;
-									if (buf.Length < (offset + valueSize + 1))
+									if (buf.Length < (offset + valueSize + 2))
 										goto restart;
 								}
 

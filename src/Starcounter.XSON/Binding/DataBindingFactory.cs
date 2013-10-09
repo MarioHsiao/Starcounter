@@ -167,7 +167,7 @@ namespace Starcounter.Internal.XSON {
 			}
 
             var bInfo = GetBindingPath(dataType, data, bindingName, template, throwExceptionOnBindingFailure);
-			if (bInfo.Member == null) {
+			if (bInfo.Member != null) {
 				template.dataBinding = new DataValueBinding<IBindable>(template, bInfo);
 				return true;
 			} else {
