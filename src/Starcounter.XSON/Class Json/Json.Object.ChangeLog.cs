@@ -125,16 +125,18 @@ namespace Starcounter {
         /// <param name="session">The session to report to</param>
         private void LogObjectValueChangesWithDatabase(Session session ) {
             var template = (TObject)Template;
+			var exposed = template.Properties.ExposedProperties;
+
             if (_Dirty) {
-                for (int t = 0; t < _list.Count; t++) {
-                    if (WasReplacedAt(t)) {
+                for (int t = 0; t < exposed.Count; t++) {
+                    if (WasReplacedAt(exposed[t].TemplateIndex)) {
                         var s = Session;
                         if (s != null) {
                             if (IsArray) {
                                 throw new NotImplementedException();
                             }
                             else {
-								var childTemplate = (TValue)template.Properties[t];
+								var childTemplate = (TValue)exposed[t];
                                 Session.UpdateValue((this as Json), childTemplate);
 
 								// TODO:
@@ -150,12 +152,12 @@ namespace Starcounter {
 								}
                             }
                         }
-                        CheckpointAt(t);
+                        CheckpointAt(exposed[t].TemplateIndex);
                     }
                     else {
-                        var p = template.Properties[t];
+                        var p = exposed[t];
                         if (p is TContainer) {
-                            var c = ((Json)this[t]);
+                            var c = ((Json)this[p.TemplateIndex]);
                             if (c != null) {
                                 c.LogValueChangesWithDatabase(session);
                             }
@@ -168,9 +170,9 @@ namespace Starcounter {
                                 var j = this as Json;
                                 if (((TValue)p).UseBinding(j.DataAsBindable)) {
                                     var val = j.GetBound((TValue)p);
-                                    if ( val != list[t] ) {
-                                        list[t] = val;
-                                        Session.UpdateValue(j, (TValue)template.Properties[t]);
+                                    if ( val != list[p.TemplateIndex] ) {
+                                        list[p.TemplateIndex] = val;
+                                        Session.UpdateValue(j, (TValue)exposed[t]);
                                     }   
                                 }
                             }
@@ -180,8 +182,8 @@ namespace Starcounter {
                 _Dirty = false;
             }
             else if (template.HasAtLeastOneBoundProperty) {
-                for (int t = 0; t < list.Count; t++) {
-                    var value = list[t];
+                for (int t = 0; t < exposed.Count; t++) {
+					var value = list[exposed[t].TemplateIndex];
                     if (value is Json) {
                         ((Json)value).LogValueChangesWithDatabase(session);
                     }
@@ -192,7 +194,7 @@ namespace Starcounter {
                         else {
                             var j = this as Json;
                             var templ = j.Template as TObject;
-                            var p = templ.Properties[t] as TValue;
+                            var p = exposed[t] as TValue;
                             if (p != null && p.UseBinding(j.DataAsBindable)) {
                                 var val = j.GetBound(p);
 
@@ -200,9 +202,9 @@ namespace Starcounter {
 								// When comparing for example two boxed integers, the != comparison returns
 								// false when it should be true so we need to make a call to equals here.
 //                                if (val != list[t]) {
-								if ((val == null && list[t] != null) || (val != null && !val.Equals(list[t]))) {
-									list[t] = val;
-									Session.UpdateValue(j, (TValue)template.Properties[t]);
+								if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
+									list[p.TemplateIndex] = val;
+									Session.UpdateValue(j, (TValue)exposed[t]);
 								}
                             }
                         }
