@@ -283,5 +283,14 @@ namespace Starcounter.Internal {
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
             AvailableSize -= size;
         }
+
+        public void WriteDecimalLossless(decimal n) {
+            int size = MeasureNeededSizeDecimalLossless(n);
+            size = ValidateLength(size);
+            theTuple.WriteDecimalLossless(n);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
+
     }
 }
