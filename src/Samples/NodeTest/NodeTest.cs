@@ -447,7 +447,7 @@ namespace NodeTest
             Rand = new Random(id);
             settings_ = settings;
 
-            worker_node_ = new Node("127.0.0.1", Settings.ServerPort, settings_.UseAggregation);
+            worker_node_ = new Node("127.0.0.1", 0, Settings.ServerPort, settings_.UseAggregation);
         }
 
         /// <summary>
