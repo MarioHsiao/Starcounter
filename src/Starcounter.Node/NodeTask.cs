@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Starcounter {
     internal class NodeTask
@@ -28,6 +29,16 @@ namespace Starcounter {
         /// Connection socket.
         /// </summary>
         public Socket SocketObj = null;
+
+        /// <summary>
+        /// Timer used for receive timeout.
+        /// </summary>
+        public Timer ReceiveTimer = null;
+
+        /// <summary>
+        /// Indicates if connection has timed out.
+        /// </summary>
+        public Boolean ConnectionTimedOut = false;
 
         /// <summary>
         /// Response.
@@ -80,9 +91,14 @@ namespace Starcounter {
         public Node NodeInst = null;
 
         /// <summary>
+        /// Receive timeout in milliseconds.
+        /// </summary>
+        public Int32 ReceiveTimeoutMs { get; set; }
+
+        /// <summary>
         /// Resets the connection details.
         /// </summary>
-        public void Reset(Byte[] requestBytes, Int32 requestBytesLength, Request origReq, Func<Response, Object, Response> userDelegate, Object userObject)
+        public void Reset(Byte[] requestBytes, Int32 requestBytesLength, Request origReq, Func<Response, Object, Response> userDelegate, Object userObject, Int32 receiveTimeoutMs)
         {
             Resp = null;
             TotallyReceivedBytes = 0;
@@ -94,6 +110,9 @@ namespace Starcounter {
 
             UserDelegate = userDelegate;
             UserObject = userObject;
+
+            ReceiveTimeoutMs = receiveTimeoutMs;
+            ConnectionTimedOut = false;
 
             MemStream = new MemoryStream();
         }
@@ -148,13 +167,17 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Called when receive is finished on socket.
         /// </summary>
         /// <param name="ar"></param>
-        void NetworkReadCallback(IAsyncResult ar)
+        void NetworkOnReceiveCallback(IAsyncResult ar)
         {
             try
             {
+                // Checking if connection was timed out.
+                if (ConnectionTimedOut)
+                    throw new IOException("Connection timed out.");
+
                 // Calling end read to indicate finished read operation.
                 Int32 recievedBytes = SocketObj.EndReceive(ar);
 
@@ -208,7 +231,7 @@ namespace Starcounter {
                 else
                 {
                     // Read again. This callback will be called again.
-                    SocketObj.BeginReceive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkReadCallback, null);
+                    SocketObj.BeginReceive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
                 }
             }
             catch (Exception exc)
@@ -218,15 +241,29 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Called on receive timer expiration.
+        /// </summary>
+        /// <param name="obj"></param>
+        void OnReceiveTimeout(object obj)
+        {
+            ReceiveTimer.Dispose();
+            ConnectionTimedOut = true;
+            SocketObj.Close(); // Closing the Socket cancels the async operation.
+        }
+
+        /// <summary>
+        /// Called when send is finished on socket.
         /// </summary>
         /// <param name="ar"></param>
-        void NetworkWriteCallback(IAsyncResult ar)
+        void NetworkOnSendCallback(IAsyncResult ar)
         {
             try
             {
                 // Calling end write to indicate finished write operation.
                 Int32 numBytesSent = SocketObj.EndSend(ar);
+
+                // Setting the receive timeout.
+                SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
 
                 // Checking for correct number of bytes sent.
                 if (numBytesSent != RequestBytesLength)
@@ -236,7 +273,18 @@ namespace Starcounter {
                 }
 
                 // Starting read operation.
-                SocketObj.BeginReceive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkReadCallback, null);
+                IAsyncResult res = SocketObj.BeginReceive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
+
+                // Checking if receive is not completed immediately.
+                if(!res.IsCompleted)
+                {
+                    // Checking if we have timeout on receive.
+                    if (ReceiveTimeoutMs != 0)
+                    {
+                        // Scheduling a timer timeout job.
+                        ReceiveTimer = new Timer(OnReceiveTimeout, null, ReceiveTimeoutMs, Timeout.Infinite);
+                    }
+                }
             }
             catch (Exception exc)
             {
@@ -245,10 +293,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Called when connect is finished on socket.
         /// </summary>
         /// <param name="ar"></param>
-        void NetworkConnectCallback(IAsyncResult ar)
+        void NetworkOnConnectCallback(IAsyncResult ar)
         {
             try
             {
@@ -257,7 +305,7 @@ namespace Starcounter {
                 TcpClientObj = new TcpClient();
                 TcpClientObj.Client = SocketObj;
 
-                SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkWriteCallback, null);
+                SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
             }
             catch (Exception exc)
             {
@@ -275,20 +323,20 @@ namespace Starcounter {
             {
                 SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkConnectCallback, null);
+                SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
             }
             else
             {
                 try
                 {
-                    SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkWriteCallback, null);
+                    SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
                 }
                 catch
                 {
                     // Seems connection was closed so reconnecting.
                     SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                    SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkConnectCallback, null);
+                    SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
                 }
             }
         }
@@ -361,6 +409,9 @@ namespace Starcounter {
             }
 
             Int32 recievedBytes;
+
+            // Setting the receive timeout.
+            SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
 
             // Looping until we get everything.
             while (true)
