@@ -27,13 +27,12 @@ template<class T, class Alloc>
 inline circular_buffer<T, Alloc>::circular_buffer(size_type buffer_capacity,
 const allocator_type& alloc)
 : container_(buffer_capacity, alloc),
-unread_(0),
 spin_count_(0) {}
 
 template<class T, class Alloc>
 inline typename circular_buffer<T, Alloc>::size_type
 circular_buffer<T, Alloc>::size() const {
-	return unread_;
+	return container_.size();
 }
 
 template<class T, class Alloc>
@@ -44,30 +43,30 @@ circular_buffer<T, Alloc>::capacity() const {
 
 template<class T, class Alloc>
 inline bool circular_buffer<T, Alloc>::empty() const {
-	return unread_ == 0;
+	return container_.empty();
 }
 
 template<class T, class Alloc>
 inline bool circular_buffer<T, Alloc>::full() const {
-	return unread_ == capacity();
+	return container_.full();
 }
 
 template<class T, class Alloc>
 inline bool circular_buffer<T, Alloc>::push_front(param_type item) {
 	if (is_not_full()) {
 		container_.push_front(item);
-		++unread_;
 		// The item was pushed.
 		return true;
 	}
 	// The item was not pushed because the buffer is full.
-	return false;
+	return false; 
 }
 
 template<class T, class Alloc>
-inline bool circular_buffer<T, Alloc>::pop_back(value_type* item) {
+inline bool circular_buffer<T, Alloc>::pop_front(value_type* item) {
 	if (is_not_empty()) {
-		*item = container_[--unread_];
+		*item = container_.front();
+        container_.pop_front();
 		// The item was popped.
 		return true;
 	}
@@ -77,12 +76,12 @@ inline bool circular_buffer<T, Alloc>::pop_back(value_type* item) {
 
 template<class T, class Alloc>
 inline bool circular_buffer<T, Alloc>::is_not_empty() const {
-	return unread_ > 0;
+	return !container_.empty();
 }
 
 template<class T, class Alloc>
 inline bool circular_buffer<T, Alloc>::is_not_full() const {
-	return unread_ < container_.capacity();
+	return !container_.full();
 }
 
 } // namespace core

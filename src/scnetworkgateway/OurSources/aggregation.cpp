@@ -28,8 +28,7 @@ uint32_t PortAggregator(
 
     SocketDataChunk* sd_push_to_db = NULL;
     uint8_t* orig_data_ptr = big_accum_buf->get_chunk_orig_buf_ptr();
-    uint32_t num_accum_bytes = big_accum_buf->get_accum_len_bytes();
-    uint32_t num_processed_bytes = 0;
+    int32_t num_accum_bytes = big_accum_buf->get_accum_len_bytes(), num_processed_bytes = 0;
     AggregationStruct ags;
 
     session_index_type aggr_socket_info_index = sd->get_socket_info_index();
@@ -81,6 +80,7 @@ uint32_t PortAggregator(
 
         // Setting aggregation socket.
         sd_push_to_db->set_unique_aggr_index(ags.unique_aggr_index_);
+        sd_push_to_db->set_aggregated_flag();
 
         // Changing accumulative buffer accordingly.
         sd_push_to_db->get_accum_buf()->SetAccumulation(ags.size_bytes_, 0);

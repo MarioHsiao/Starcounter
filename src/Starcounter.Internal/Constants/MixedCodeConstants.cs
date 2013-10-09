@@ -105,6 +105,11 @@ namespace Starcounter.Internal
         public const int HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 4096;
 
         /// <summary>
+        /// Is socket data aggregated.
+        /// </summary>
+        public const int SOCKET_DATA_FLAGS_AGGREGATED = 8192 * 4;
+
+        /// <summary>
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
@@ -153,7 +158,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunk size.
         /// </summary>
-        public const int SHM_CHUNK_SIZE = 1 << 12; // 4K chunks.
+        public const int SHM_CHUNK_SIZE = 1 << 11; // 2K chunks.
 
         /// <summary>
         /// Shared memory chunks default number.

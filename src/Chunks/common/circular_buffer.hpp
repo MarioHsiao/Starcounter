@@ -195,12 +195,12 @@ public:
 	 */
 	bool push_front(param_type item);
 	
-	/// Pop item from the back of the queue.
+	/// Pop item from the front of the queue.
 	/**
-	 * @param item The item to be popped from the back of the queue.
+	 * @param item The item to be popped from the front of the queue.
 	 * @return true if the item was popped, false if the buffer was empty.
 	 */
-	bool pop_back(value_type* item);
+	bool pop_front(value_type* item);
 	
 private:
 	circular_buffer(const circular_buffer&);
