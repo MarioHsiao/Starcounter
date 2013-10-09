@@ -99,7 +99,7 @@ namespace Starcounter {
                 for (int i = lastArrayPos; i < Count; i++) {
                     if (itemJson == null) {
                         itemSize = (this[i] as Json).ToJsonUtf8(out itemJson);
-                        if ((buf.Length - offset - 1) < itemSize)
+                        if ((buf.Length - offset - 2) < itemSize)
                             goto restart;
                     }
                     Buffer.BlockCopy(itemJson, 0, buf, offset, itemSize);
