@@ -21,7 +21,7 @@
 ///   A worker that want to communicate with scheduler S do so on channel(S).
 /// - Allocation of channels is not done. Once the Network Gateway, or IPC test, connects
 ///   to the shared memory, each worker can start communicating with the schedulers.
-/// - Schedulers scan all channels. No need to tell the schedulers to start scanning.
+/// - Schedulers scan all channels, since all channels are acquired by the client.
 /// - The IPC Monitor is obsolete. I don't know if it will be running, but the Network Gateway
 ///   and the IPC test will not register. They will use owner_id 2 for now.
 /// - No cleanup will be done by the IPC monitor (since the Network Gateway and IPC test
@@ -36,6 +36,9 @@
 
 #if defined (IPC_VERSION_2_0)
 #endif // defined (IPC_VERSION_2_0)
+
+#if !defined (IPC_VERSION_2_0)
+#endif // !defined (IPC_VERSION_2_0)
 
 #if defined (IPC_VERSION_2_0)
 #else // !defined (IPC_VERSION_2_0)

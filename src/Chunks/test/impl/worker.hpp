@@ -24,8 +24,9 @@ shared_(),
 worker_id_(0),
 num_active_schedulers_(0),
 //chunk_pool_(chunks_total_number_max),
+#if !defined (IPC_VERSION_2_0)
 num_channels_(0),
-random_generator_(0 /*seed*/),
+#endif // !defined (IPC_VERSION_2_0)
 pushed_(0),
 popped_(0) {}
 
@@ -46,28 +47,89 @@ void worker::start() {
 	}
 	
 	chunk_type* chunk_ptr = &shared().chunk(0);
-	
+	//get_chunk_pool_list(scheduler_num).set_chunk_ptr(chunk_ptr);
+
 	size_t chunks_per_worker_scheduler_pair = 64;
 	//= shared().shared_chunk_pool().size() / 2 / num_active_schedulers_;
 	
 	size_t acquired_chunks = 0;
 	
-	// Acquire a channel_number for each scheduler.
+	// Acquire a channel for each scheduler.
 	for (scheduler_number scheduler_num = 0; scheduler_num < num_active_schedulers_; ++scheduler_num) {
 		// Try to acquire a bunch of chunks from the shared chunk
 		// pool to the private chunk pool.
 		get_chunk_pool_list(scheduler_num).set_chunk_ptr(chunk_ptr);
-
+		
 		acquired_chunks += shared().acquire_from_shared_chunk_pool
 		(get_chunk_pool_list(scheduler_num), chunks_per_worker_scheduler_pair,
 		&shared().client_interface(), 100 /* milliseconds timeout */);
 		
-		channel_[scheduler_num] = invalid_channel_number;
+#if 0 // Testing chunk_pool_list() functions acquire_linked_chunks() and release_linked_chunks()
+		chunk_index head;
 		
+		// Testing the chunk_pool_list. First try to link together 3 chunks:
+		if (get_chunk_pool_list(scheduler_num).acquire_linked_chunks(head, 3) == true) {
+			std::cout << "Successfully linked together 3 chunks!\n";
+			show_linked_chunks(chunk_ptr, head);
+			
+			// Then unlink them:
+			get_chunk_pool_list(scheduler_num).release_linked_chunks(head);
+			
+			// And link again:
+			if (get_chunk_pool_list(scheduler_num).acquire_linked_chunks(head, 3) == true) {
+				std::cout << "Successfully linked together 3 chunks again!\n";
+				show_linked_chunks(chunk_ptr, head);
+			
+				// Then unlink them:
+				get_chunk_pool_list(scheduler_num).release_linked_chunks(head);
+			}
+			else {
+				std::cout << "Failed to link together 3 chunks again.\n";
+			}
+		}
+		else {
+			std::cout << "Failed to link together 3 chunks.\n";
+		}
+#endif // Testing chunk_pool_list() functions acquire_linked_chunks() and release_linked_chunks()
+
+#if defined (IPC_VERSION_2_0)
+		/// NOTE: shared_interface::acquire_channel() must not be used!
+		/// TODO: disable shared_interface::acquire_channel().
+		
+		// Mark this channel as owned by this client.
+		shared().client_interface().set_channel_flag(scheduler_num, scheduler_num);
+		shared().client_interface().increment_number_of_allocated_channels();
+		
+		// Set the chunk base address relative to the clients address space.
+		shared().channel(scheduler_num).in_overflow().set_chunk_ptr(&shared().chunk(0));
+		
+		// Set index to the scheduler_interface.
+		shared().channel(scheduler_num).set_scheduler_number(scheduler_num);
+		
+		// Set pointer to the scheduler_interface.
+		shared().channel(scheduler_num).set_scheduler_interface
+		(&scheduler_interface_[the_scheduler_number]);
+		
+		// Set index to the client_interface.
+		shared().channel(scheduler_num).set_client_number(client_number_);
+		
+		// Set pointer to the client_interface.
+		shared().channel(scheduler_num).set_client_interface_as_qword
+		(scheduler_interface_[the_scheduler_number].get_client_interface_as_qword()
+		+(client_number_ * sizeof(client_interface_type)));
+		
+		// Set the channel number flag after having set pointers to the
+		// scheduler_interface and the client_interface.
+		scheduler_interface_[the_scheduler_number].set_channel_number_flag(scheduler_num);
+		
+#else // !defined (IPC_VERSION_2_0)
+		channel_[scheduler_num] = invalid_channel_number;
+
 		if (!shared().acquire_channel(&channel_[scheduler_num], scheduler_num)) {
 			std::cout << " worker[" << worker_id_ << "] error: "
 			"invalid channel number." << std::endl;
 		}
+#endif // defined (IPC_VERSION_2_0)
 		++num_channels_;
 	}
 	
