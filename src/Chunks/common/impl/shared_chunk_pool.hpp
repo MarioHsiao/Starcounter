@@ -325,7 +325,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	std::size_t released;
 	
 	for (released = 0; released < chunks_to_release; ++released) {
-		if (private_chunk_pool.pop_front(&current)) {
+		if (private_chunk_pool.pop_back(&current)) {
 			// Mark the chunk as not owned by this client.
 			client_interface_ptr->clear_chunk_flag(current);
 			
@@ -463,7 +463,7 @@ smp::spinlock::milliseconds timeout) {
 	std::size_t released;
 	
 	for (released = 0; released < chunks_to_release; ++released) {
-		if (private_chunk_pool.pop_front(&current)) {
+		if (private_chunk_pool.pop_back(&current)) {
 			// Make sure the CPU (and compiler) don't re-order instructions.
 			_mm_mfence();
 			
