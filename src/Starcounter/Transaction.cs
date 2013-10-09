@@ -104,11 +104,11 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public static Transaction NewCurrent(bool readOnly) {
+        public static Transaction NewCurrent(bool readOnly, bool detectConflicts = false) {
             try {
                 ulong handle;
                 ulong verify;
-                uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+                uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
 
                 if (readOnly)
                     flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
@@ -175,10 +175,10 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public Transaction(bool readOnly) {
+        public Transaction(bool readOnly, bool detectConflicts = false) {
             ulong handle;
             ulong verify;
-            uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+            uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
 
             this.IsReadOnly = readOnly;
             if (readOnly)
