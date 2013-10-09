@@ -1382,6 +1382,10 @@ uint32_t GatewayWorker::WorkerRoutine()
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
     uint32_t next_sleep_interval_ms = INFINITE;
 
+#ifdef GW_PROFILER_ON
+    uint32_t newTimeMs;
+#endif
+
     sd_receive_clone_ = NULL;
 
     // Starting worker infinite loop.

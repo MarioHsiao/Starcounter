@@ -169,7 +169,7 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192 * 8;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 100;
@@ -248,7 +248,7 @@ const random_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 1024;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 128;
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE = MAX_CHUNKS_IN_PRIVATE_POOL * 2;
 
 // Size of local/remove address structure.
@@ -306,7 +306,7 @@ enum GatewayTestingMode
 struct AggregationStruct
 {
     random_salt_type unique_socket_id_;
-    uint32_t size_bytes_;
+    int32_t size_bytes_;
     session_index_type socket_info_index_;
     int32_t unique_aggr_index_;
     uint16_t port_number_;
@@ -632,7 +632,7 @@ public:
 };
 
 template <class T, uint32_t MaxElems>
-class LinearStack
+class LinearQueue
 {
     T elems_[MaxElems];
     uint32_t push_index_;
@@ -641,7 +641,7 @@ class LinearStack
 
 public:
 
-    LinearStack()
+    LinearQueue()
     {
         Clear();
     }
