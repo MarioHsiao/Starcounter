@@ -55,7 +55,7 @@
 #include "../../Chunks/bmx/bmx.hpp"
 #include "../../Chunks/bmx/chunk_helper.h"
 #include "../common/chunk_pool.hpp"
-#include "random.hpp"
+#include "../common/chunk_pool_list.hpp"
 
 namespace starcounter {
 namespace interprocess_communication {
@@ -84,8 +84,6 @@ private:
 class worker : private noncopyable {
 public:
 	friend class test;
-	
-	typedef uint32_t channel_chunk;
 	
 	enum state {
 		stopped,
@@ -180,14 +178,16 @@ public:
 		return shared_;
 	}
 	
+#if !defined (IPC_VERSION_2_0)
 	// Help functions to work with the overflow_pool.
-	std::size_t num_channels() const {
+	size_t num_channels() const {
 		return num_channels_;
 	}
 	
-	channel_number channel(std::size_t i) {
+	channel_number channel(size_t i) {
 		return channel_[i];
 	}
+#endif // !defined (IPC_VERSION_2_0)
 	
     /// Return number of pushed items.
     /**
@@ -205,11 +205,8 @@ public:
         return popped_;
     }
 	
-	template<class T>
-	class chunk_pool_list;
-	
 	typedef chunk_pool_list<chunk_type::link_type> chunk_pool_list_type;
-
+	
 	/// Get reference to get_chunk_pool_list(n), where n is the scheduler number.
 	/**
 	 * @return A reference to get_chunk_pool_list(n).
@@ -226,114 +223,6 @@ public:
 		return chunk_pool_list_[n];
 	}
 	
-public:
-	// chunk_pool_list is not thread safe. The list is based on linking chunks
-	// that are stored in the the chunks themselves.
-	template<typename T>
-	class chunk_pool_list { // TODO: Rename it to chunk_pool.
-	public:
-		// Type definitions.
-		typedef T value_type;
-		typedef value_type& reference;
-		typedef const value_type& const_reference;
-		
-		enum {
-			link_terminator = chunk_type::link_terminator
-		};
-		
-		chunk_pool_list()
-		: front_(link_terminator),
-		back_(link_terminator),
-		chunk_(0) {}
-		
-		/// set_chunk_ptr() stores the address of the first chunk in an array of
-		/// chunks, so that operations on the chunk_pool_list can be done. The
-		/// address is relative to the worker thread operating on the chunk_pool_list.
-		/**
-		 * @param p The address of chunk[0], in the array of chunks.
-		 */
-		void set_chunk_ptr(chunk_type* p) {
-			chunk_ = p;
-		}
-		
-		/// empty() checks whether the queue is empty 
-		/**
-		 * @return true if the queue is empty, false otherwise.
-		 */
-		bool empty() const {
-			return front_ == link_terminator;
-		}
-		
-		/// Removes all elements from the list.
-		void clear() {
-			while (!empty()) {
-				value_type temp_front = chunk(front()).get_next();
-				chunk(front()).terminate_next();
-				front_ = temp_front;
-			}
-
-			front_ = link_terminator;
-			back_ = link_terminator;
-		}
-
-		/// front() returns a reference to the first element in the chunk_pool_list.
-		/// Calling front() on an empty container is undefined.
-		/**
-		 * @return A reference to the first element in the chunk_pool_list.
-		 */
-		reference front() {
-			return front_;
-		}
-		
-		/// front() returns a const reference to the first element in the chunk_pool_list.
-		/// Calling front() on an empty container is undefined.
-		/**
-		 * @return A const reference to the first element in the chunk_pool_list.
-		 */
-		/* constexpr */ const_reference front() const {
-			return front_;
-		}
-		
-		/// pop_front() removes the first element of the queue. 
-		void pop_front() {
-			if (!empty()) {
-				value_type temp_front = chunk(front()).get_next();
-				chunk(front()).terminate_next();
-				front_ = temp_front;
-			}
-		}
-		
-		/// push_front() prepends the given element value to the beginning of the queue.
-		/**
-		 * @param n A reference to the link that will point to the popped chunk
-		 *		if returning true.
-		 */
-		void push_front(value_type n) {
-			if (!empty()) {
-				chunk(n).set_next(front_);
-				front_ = n;
-			}
-			else {
-				front_ = n;
-				back_ = n;
-				chunk(n).set_next(link_terminator);
-			}
-		}
-		
-		// Returns a reference to chunk[n] relative to the worker process
-		// address space.
-		chunk_type& chunk(chunk_index n) {
-			return chunk_[n];
-		}
-		
-	private:
-		value_type front_;
-		value_type back_;
-		
-		// chunk_ is a pointer relative to the process address space.
-		chunk_type* chunk_;
-	};
-	
 private:
 	// There is one chunk_pool_list per scheduler so that the number
 	// of chunks that can end up in a given channels overflow queue are limited to
@@ -347,7 +236,6 @@ private:
 	// rather than at the end, to avoid always touching the last cache line in the
 	// chunk. TODO: Issue #993.
 	chunk_pool_list_type chunk_pool_list_[max_number_of_schedulers];
-    
 	thread thread_;
 	thread::native_handle_type thread_handle_;
 	boost::mutex mutex_;
@@ -374,17 +262,13 @@ private:
 	// A mask marking which of all channels this worker have acquired.
 	////channel_mask<channels> channel_mask_;
 	
+#if !defined (IPC_VERSION_2_0)
 	// An array of indexes to channels, unordered.
 	channel_number channel_[channels];
 	
 	// Number of channel indexes stored in the channel_ array.
 	std::size_t num_channels_;
-	
-	// A random number generator is used to simulate messages arriving on the
-	// TCP/IP stack. The message will contain a number n that is to be used:
-	// channel_[n], which gives the number to the channel where the message
-	// is to be sent. A blast ping message will be sent during simulation.
-	random_generator random_generator_;
+#endif // !defined (IPC_VERSION_2_0)
 	
     // For statistics:
     uint64_t pushed_;

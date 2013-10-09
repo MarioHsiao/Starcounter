@@ -221,9 +221,9 @@ namespace Starcounter.Query.Execution {
                     String obj = (expression as IStringExpression).EvaluateToString(contextObject);
                     if (String.IsNullOrEmpty(obj))
                         return null;
-                    currectObjectId = DbHelper.Base64ForUrlDecode(obj);
+                    currectObjectId = DbHelper.Base64DecodeObjectID(obj);
                 } catch (Exception ex) {
-                    if (ex is System.FormatException || ex is System.ArgumentNullException)
+                    if (ex is System.ArgumentException)
                         return null;
                     else
                         throw;
