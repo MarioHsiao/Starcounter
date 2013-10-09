@@ -104,7 +104,7 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public static Transaction NewCurrent(bool readOnly, bool detectConflicts = false) {
+        public static Transaction NewCurrent(bool readOnly, bool detectConflicts = true) {
             try {
                 ulong handle;
                 ulong verify;
@@ -175,7 +175,7 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public Transaction(bool readOnly, bool detectConflicts = false) {
+        public Transaction(bool readOnly, bool detectConflicts = true) {
             ulong handle;
             ulong verify;
             uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
