@@ -10,6 +10,7 @@ using Starcounter.Internal;
 using System;
 using System.Web;
 using System.Text;
+using System.Diagnostics;
 
 namespace Starcounter {
 
@@ -115,7 +116,7 @@ namespace Starcounter {
                 }
             }
 
-            return Base64ForUrlEncode(bindable.Identity);
+            return Base64EncodeObjectNo(bindable.Identity);
         }
 
         /// <summary>
@@ -145,7 +146,7 @@ namespace Starcounter {
             if (obj == null) {
                 throw new ArgumentNullException("obj");
             }
-            return Base64ForUrlEncode(obj.Identity);
+            return Base64EncodeObjectNo(obj.Identity);
         }
 
         internal const string ObjectNoName = "ObjectNo";
@@ -158,7 +159,7 @@ namespace Starcounter {
         ///</summary>
         ///<param name="objectNo">The original string</param>
         ///<returns>The Base64 encoded string</returns>
-        internal static string Base64ForUrlEncode(UInt64 objectNo) {
+        public static string Base64ForUrlEncode(UInt64 objectNo) {
             byte[] encbuff = Encoding.UTF8.GetBytes(objectNo.ToString());
             return HttpServerUtility.UrlTokenEncode(encbuff);
         }
@@ -167,9 +168,36 @@ namespace Starcounter {
         ///</summary>
         ///<param name="objectID">Base64 code</param>
         ///<returns>The decoded string.</returns>
-        internal static UInt64 Base64ForUrlDecode(string objectID) {
+        public static UInt64 Base64ForUrlDecode(string objectID) {
             byte[] decbuff = HttpServerUtility.UrlTokenDecode(objectID);
             return Convert.ToUInt64(Encoding.UTF8.GetString(decbuff));
+        }
+
+        public unsafe static string Base64EncodeObjectNo(UInt64 objectNo) {
+#if true
+            byte[] buffer = new byte[11];
+            int len;
+            fixed (byte* start = buffer)
+                len = Base64Int.Write(start, objectNo);
+            String objID = Encoding.UTF8.GetString(buffer, 0, len);
+            Debug.Assert(objID.Length == len);
+#else
+            byte* buffer = stackalloc byte[11];
+            int len = Base64Int.Write(buffer, objectNo);
+            String objID = new String((sbyte*)buffer, 0, len);
+            Debug.Assert(objID.Length == len);
+#endif
+            return objID;
+        }
+
+        public unsafe static UInt64 Base64DecodeObjectID(String objectID) {
+            if (!Base64Int.IsValidLength(objectID.Length))
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Encoded string of ObjectID is of invalid size");
+            byte[] buffer = Encoding.UTF8.GetBytes(objectID);
+            fixed (byte* ptr = buffer) {
+                UInt64 objNo = Base64Int.Read(objectID.Length, (byte*)ptr);
+                return objNo;
+            }
         }
 
         #region Extending FasterThanJson with writing and reading methods on Binary
