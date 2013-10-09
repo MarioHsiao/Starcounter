@@ -113,17 +113,6 @@ class SocketDataChunk
 
 public:
 
-    // Has gateway chunk attached?
-    bool HasGatewayChunk()
-    {
-        return NULL != gw_chunk_;
-    }
-
-    GatewayMemoryChunk* get_gw_chunk()
-    {
-        return gw_chunk_;
-    }
-
     // Returns gateway chunk to gateway if any.
     void ReturnGatewayChunk();
 
