@@ -18,7 +18,8 @@ namespace FasterThanJson.Tests {
         LONGNULL,
         BOOL,
         BOOLNULL,
-        DECIMALLOSSLESS
+        DECIMALLOSSLESS,
+        DECIMALNULL
     }
 
     public static class RandomValues {
@@ -32,10 +33,7 @@ namespace FasterThanJson.Tests {
         public static UInt32? RandomNullableUInt(Random rnd) {
             if (rnd.Next(0, 10) == 0)
                 return null;
-            Int32 genValue = rnd.Next(Int32.MinValue, Int32.MaxValue);
-            Int64 value = (Int64)genValue - Int32.MinValue;
-            Trace.Assert(value >= UInt32.MinValue && value <= UInt32.MaxValue);
-            return (UInt32)(value);
+            return RandomUInt(rnd);
         }
 
         public static UInt64 RandomULong(Random rnd) {
@@ -47,9 +45,7 @@ namespace FasterThanJson.Tests {
         public static UInt64? RandomNullableULong(Random rnd) {
             if (rnd.Next(0, 20) == 0)
                 return null;
-            UInt64 genVal = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
-            Trace.Assert(genVal >= UInt64.MinValue && genVal <= UInt64.MaxValue);
-            return genVal;
+            return RandomULong(rnd); ;
         }
 
         public static Int32 RandomInt(Random rnd) {
@@ -60,8 +56,7 @@ namespace FasterThanJson.Tests {
         public static Int32? RandomNullableInt(Random rnd) {
             if (rnd.Next(0, 10) == 0)
                 return null;
-            Int32 genValue = rnd.Next(Int32.MinValue, Int32.MaxValue);
-            return genValue;
+            return RandomInt(rnd); ;
         }
 
         public static Int64 RandomLong(Random rnd) {
@@ -76,12 +71,7 @@ namespace FasterThanJson.Tests {
         public static Int64? RandomNullableLong(Random rnd) {
             if (rnd.Next(0,20) == 0)
                 return null;
-            UInt64 genVal = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
-            Trace.Assert(genVal >= UInt64.MinValue && genVal <= UInt64.MaxValue);
-            if (genVal > Int64.MaxValue)
-                return (Int64)(genVal - Int64.MaxValue - 1);
-            else
-                return (Int64)genVal - Int64.MaxValue - 1;
+            return RandomLong(rnd);
         }
 
 
@@ -157,6 +147,12 @@ namespace FasterThanJson.Tests {
             val *= 0.000001m;
             Debug.Assert(val == X6Decimal.FromRaw(X6Decimal.ToRaw(val)));
             return val;
+        }
+
+        public static Decimal? RandomDecimalNullable(Random rnd) {
+            if (rnd.Next(0, 10) == 0)
+                return null;
+            return RandomDecimal(rnd);
         }
     }
 }
