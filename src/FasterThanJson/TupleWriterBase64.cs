@@ -318,6 +318,12 @@ namespace Starcounter.Internal
           HaveWritten(len);
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void WriteX6Decimal(Decimal value) {
+          int len = Base64X6Decimal.Write(AtEnd, value);
+          HaveWritten(len);
+      }
+
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       /// <summary>When you write a nested tuple, the parent tuple (the hosting tuple) will need to advance its write pointer. When you write a string or another primitive value,
       /// this is done automatically, but when you have written data using the nested tuple, you need to call the HaveWritten method manually.</summary>
