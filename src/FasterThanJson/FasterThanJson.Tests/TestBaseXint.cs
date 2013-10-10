@@ -201,6 +201,7 @@ namespace FasterThanJson.Tests
          TestFixedReadWrite(Base64Int.WriteBase64x4, Base64Int.ReadBase64x4, 4, 64 * 64 * 64 * 64 - 1);
          TestFixedReadWrite(Base64Int.WriteBase64x5, Base64Int.ReadBase64x5, 5, 64 * 64 * 64 * 64 * 64 - 1);
          TestFixedReadWrite(Base64Int.WriteBase64x6, Base64Int.ReadBase64x6, 6, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1);
+         TestFixedReadWrite(Base64Int.WriteBase64x8, Base64Int.ReadBase64x8, 8, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1);
          TestFixedReadWrite(Base64Int.WriteBase64x11, Base64Int.ReadBase64x11, 11, 0xFFFFFFFFFFFFFFFF); // Test maxed out 64 bit value
       }
 
@@ -221,6 +222,10 @@ namespace FasterThanJson.Tests
          Assert.AreEqual(5, Base64Int.MeasureNeededSize(64 * 64 * 64 * 64 * 64 - 1)); // Size 5 not available
          Assert.AreEqual(6, Base64Int.MeasureNeededSize(64 * 64 * 64 * 64 * 64));
          Assert.AreEqual(6, Base64Int.MeasureNeededSize(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1));
+         Assert.AreEqual(8, Base64Int.MeasureNeededSize(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL));
+         Assert.AreEqual(8, Base64Int.MeasureNeededSize(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1));
+         Assert.AreEqual(11, Base64Int.MeasureNeededSize(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL));
+         Assert.AreEqual(11, Base64Int.MeasureNeededSize(UInt64.MaxValue));
       }
 
       [Test]
@@ -244,7 +249,9 @@ namespace FasterThanJson.Tests
           Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 * 64 - 1));
           Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 * 64));
           Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 32UL - 1));
-          Assert.AreEqual(11, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1));
+          Assert.AreEqual(8, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1));
+          Assert.AreEqual(8, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 32UL - 1));
+          Assert.AreEqual(11, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL- 1));
           Assert.AreEqual(11, Base64Int.MeasureNeededSizeNullable(UInt64.MaxValue));
       }
 
@@ -270,8 +277,14 @@ namespace FasterThanJson.Tests
               Assert.AreEqual(6, size);
               Assert.AreEqual(64 * 64 * 64 * 64 * 64, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1);
-              Assert.AreEqual(11, size);
+              Assert.AreEqual(8, size);
               Assert.AreEqual(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1, Base64Int.ReadNullable((int)size, buffer));
+              size = Base64Int.WriteNullable(buffer, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL -1);
+              Assert.AreEqual(8, size);
+              Assert.AreEqual(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1, Base64Int.ReadNullable((int)size, buffer));
+              size = Base64Int.WriteNullable(buffer, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL);
+              Assert.AreEqual(11, size);
+              Assert.AreEqual(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, UInt64.MaxValue);
               Assert.AreEqual(11, size);
               Assert.AreEqual(UInt64.MaxValue, Base64Int.ReadNullable((int)size, buffer));

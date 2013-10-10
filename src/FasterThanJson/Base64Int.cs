@@ -68,6 +68,34 @@ namespace Starcounter.Internal
       /// </summary>
       public byte b10;
    }
+   public struct Base64x8 {
+       /// <summary>
+       /// The b0
+       /// </summary>
+       public byte b0;
+       /// <summary>
+       /// The b1
+       /// </summary>
+       public byte b1;
+       /// <summary>
+       /// The b2
+       /// </summary>
+       public byte b2;
+       /// <summary>
+       /// The b3
+       /// </summary>
+       public byte b3;
+       /// <summary>
+       /// The b4
+       /// </summary>
+       public byte b4;
+       /// <summary>
+       /// The b5
+       /// </summary>
+       public byte b5;
+       public byte b6;
+       public byte b7;
+   }
    /// <summary>
    /// Struct Base64x6
    /// </summary>
@@ -255,49 +283,41 @@ namespace Starcounter.Internal
       /// <param name="value">The value.</param>
       /// <returns>System.UInt32.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public static unsafe int MeasureNeededSize(UInt64 value)
-      {
-         if (value <= 0x3F)
-         {
-            //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
-            //    c->b4 = b64e[(value & 0x3F)]; // Everything fits in a byte
-            return 1;
-         }
-         else if (value <= 0xFFF)
-         {
-            //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
-            //     c->b3 = b64e[(value & 0xFC0) >> 06];
-            //     c->b4 = b64e[(value & 0x3F)];
-            return 2;
-         }
-         else if (value <= 0x3FFFF)
-         {
-            //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
-            //     c->b2 = b64e[(value & 0x3F000) >> 12];
-            //     c->b3 = b64e[(value & 0xFC0) >> 06];
-            //     c->b4 = b64e[(value & 0x3F)];
-            return 3;
-         }
-         else if (value <= 0xFFFFFF)
-         {
-            //   c->b0 = 0x30; // Set leading bytes to '0'
-            //   c->b1 = b64e[(value & 0xFC0000) >> 18];
-            //   c->b2 = b64e[(value & 0x3F000) >> 12];
-            //   c->b3 = b64e[(value & 0xFC0) >> 06];
-            //   c->b4 = b64e[(value & 0x3F)];
-            return 4;
-         }
-         else if (value <= 0x3FFFFFFF)
-         {
-            //      c->b0 = b64e[(value & 0x3F000000) >> 24];
-            //      c->b1 = b64e[(value & 0xFC0000) >> 18];
-            //      c->b2 = b64e[(value & 0x3F000) >> 12];
-            //      c->b3 = b64e[(value & 0xFC0) >> 06];
-            //      c->b4 = b64e[(value & 0x3F)];
-            return 5;
-         } else if (value <= 0xFFFFFFFFF)
-             return 6;
-         return 11;
+      public static unsafe int MeasureNeededSize(UInt64 value) {
+          if (value <= 0x3F) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //    c->b4 = b64e[(value & 0x3F)]; // Everything fits in a byte
+              return 1;
+          } else if (value <= 0xFFF) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //     c->b3 = b64e[(value & 0xFC0) >> 06];
+              //     c->b4 = b64e[(value & 0x3F)];
+              return 2;
+          } else if (value <= 0x3FFFF) {
+              //     ((UInt32*)c)[0] = 0x30303030; // Set leading bytes to '0'
+              //     c->b2 = b64e[(value & 0x3F000) >> 12];
+              //     c->b3 = b64e[(value & 0xFC0) >> 06];
+              //     c->b4 = b64e[(value & 0x3F)];
+              return 3;
+          } else if (value <= 0xFFFFFF) {
+              //   c->b0 = 0x30; // Set leading bytes to '0'
+              //   c->b1 = b64e[(value & 0xFC0000) >> 18];
+              //   c->b2 = b64e[(value & 0x3F000) >> 12];
+              //   c->b3 = b64e[(value & 0xFC0) >> 06];
+              //   c->b4 = b64e[(value & 0x3F)];
+              return 4;
+          } else if (value <= 0x3FFFFFFF) {
+              //      c->b0 = b64e[(value & 0x3F000000) >> 24];
+              //      c->b1 = b64e[(value & 0xFC0000) >> 18];
+              //      c->b2 = b64e[(value & 0x3F000) >> 12];
+              //      c->b3 = b64e[(value & 0xFC0) >> 06];
+              //      c->b4 = b64e[(value & 0x3F)];
+              return 5;
+          } else if (value <= 0xFFFFFFFFF)
+              return 6;
+          else if (value <= 0xFFFFFFFFFFFF)
+              return 8;
+          return 11;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -335,6 +355,8 @@ namespace Starcounter.Internal
               return 5;
           } else if (value <= 0x7FFFFFFFF)
               return 6;
+          else if (value <= 0x7FFFFFFFFFFF)
+              return 8;
           return 11;
       }
 
@@ -426,7 +448,20 @@ namespace Starcounter.Internal
          c->b5 = b64e[(value & 0x000000000000003FUL)];
       }
 
-      /// <summary>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe void WriteBase64x8(UInt64 value, byte* ptr) {
+          var c = (Base64x8*)ptr;
+          c->b0 = b64e[(value & 0x0000FC0000000000UL) >> 42];
+          c->b1 = b64e[(value & 0x000003F000000000UL) >> 36];
+          c->b2 = b64e[(value & 0x0000000FC0000000UL) >> 30];
+          c->b3 = b64e[(value & 0x000000003F000000UL) >> 24];
+          c->b4 = b64e[(value & 0x0000000000FC0000UL) >> 18];
+          c->b5 = b64e[(value & 0x000000000003F000UL) >> 12];
+          c->b6 = b64e[(value & 0x0000000000000FC0UL) >> 06];
+          c->b7 = b64e[(value & 0x000000000000003FUL)];
+      }
+
+       /// <summary>
       /// Writes the base64x11.
       /// </summary>
       /// <param name="value">The value.</param>
@@ -477,6 +512,9 @@ namespace Starcounter.Internal
          } else if ((value & (0xFFFFFFF000000000)) == 0) {
              WriteBase64x6(value, buffer);
              return 6;
+         } else if ((value & 0xFFFF000000000000) == 0) {
+             WriteBase64x8(value, buffer);
+             return 8;
          }
          WriteBase64x11(value, buffer);
          return 11;
@@ -508,6 +546,9 @@ namespace Starcounter.Internal
           } else if ((value & (0xFFFFFFF800000000)) == 0) {
               WriteBase64x6(value, buffer);
               return 6;
+          } else if ((value & 0xFFFF800000000000) == 0) {
+              WriteBase64x8(value, buffer);
+              return 8;
           }
           WriteBase64x11(value, buffer);
           return 11;
@@ -515,7 +556,7 @@ namespace Starcounter.Internal
 
 
       public static bool IsValidLength(int size) {
-          return (size >= 1 && size <= 6 || size == 11);
+          return (size >= 1 && size <= 6 || size == 8 || size == 11);
       }
 
       /// <summary>
@@ -527,7 +568,7 @@ namespace Starcounter.Internal
       /// <exception cref="System.Exception">Illegal size</exception>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public static unsafe UInt64 Read(int size, byte* ptr) {
-          Debug.Assert(size >= 1 && size <= 6 || size == 11);
+          Debug.Assert(IsValidLength(size));
           ulong val;
           if (size == 1)
               val = ReadBase64x1(ptr);
@@ -541,6 +582,8 @@ namespace Starcounter.Internal
               val = ReadBase64x5(ptr);
           else if (size == 6)
               val = ReadBase64x6(ptr);
+              else if (size == 8)
+              val = ReadBase64x8(ptr);
           else //if (size == 11)
               val = ReadBase64x11(ptr);
           //else
@@ -558,7 +601,7 @@ namespace Starcounter.Internal
        /// <param name="ptr">Pointer where to read</param>
        /// <returns>The read value.</returns>
       public static unsafe UInt64 ReadSafe(int size, byte* ptr) {
-          if (size < 1 || size > 6 && size < 11 || size > 11)
+          if (!IsValidLength(size))
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, " + size + ", in UInt64 read of FasterThanJson.");
           else
               return Read(size, ptr);
@@ -581,7 +624,7 @@ namespace Starcounter.Internal
                   Debug.Assert((val & 0x0001) == 0);
                   val = val >> 1;
               }
-          }  else if (size == 2)
+          } else if (size == 2)
               val = ReadBase64x2(ptr);
           else if (size == 3)
               val = ReadBase64x3(ptr);
@@ -591,6 +634,8 @@ namespace Starcounter.Internal
               val = ReadBase64x5(ptr);
           else if (size == 6)
               val = ReadBase64x6(ptr);
+          else if (size == 8)
+              val = ReadBase64x8(ptr);
           else if (size == 11)
               val = ReadBase64x11(ptr);
           else
@@ -673,7 +718,15 @@ namespace Starcounter.Internal
                    (((UInt64)b64d[c->b3] << 12)) + (((UInt64)b64d[c->b4] << 6)) + ((UInt64)b64d[c->b5]);
       }
 
-      /// <summary>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public static unsafe UInt64 ReadBase64x8(byte* ptr) {
+          var c = (Base64x11*)ptr;
+          return (((UInt64)b64d[c->b0]) << 42) + (((UInt64)b64d[c->b1]) << 36) + (((UInt64)b64d[c->b2]) << 30) +
+                    (((UInt64)b64d[c->b3]) << 24) + (((UInt64)b64d[c->b4]) << 18) +
+                    (((UInt64)b64d[c->b5]) << 12) + (((UInt64)b64d[c->b6]) << 6) + ((UInt64)b64d[c->b7]);
+      }
+
+       /// <summary>
       /// Reads the base64x11.
       /// </summary>
       /// <param name="ptr">The PTR.</param>

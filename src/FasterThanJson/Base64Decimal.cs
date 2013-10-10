@@ -10,53 +10,23 @@ namespace Starcounter.Internal {
     public static class Base64DecimalLossless {
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public unsafe static int Write(byte* buffer, Decimal value) {
-#if false // Too slow
-            int[] intVal = Decimal.GetBits(value);
-            uint sign = (uint)intVal[3] >> 31;
-            uint firstChar = (((uint)(intVal[3]) & 0x00FF0000) >> 15) + sign;
-            Debug.Assert((intVal[3] & 0x7F00FFFF) == 0);
-            Debug.Assert(sign == 0 || sign == 1);
-            Debug.Assert((firstChar >> 1) <= 28);
-            Debug.Assert(firstChar < 64);
-            uint highInt = (uint)intVal[2];
-            ulong lowLong = (ulong)intVal[0];
-            if (intVal[1] != 00)
-                lowLong += (ulong)(intVal[1]) << 32;
-#if false
-            ulong lowNumber = (ulong)intVal[0];
-            ulong highNumber = 0;
-            if (intVal[1] != 0) {
-                lowNumber += (((ulong)intVal[1] & 0xFFFF) << 32);
-                highNumber = ((ulong)intVal[1] >> 16);
-            }
-            if (intVal[2] != 0)
-                highNumber += ((ulong)intVal[2] << 16);
-#endif
-#else
             Debug.Assert(BitConverter.IsLittleEndian);
-            byte* byteValue = (byte*)&value;
-            Debug.Assert(*(UInt16*)(byteValue) == 0);
-#if false // Same performance
-            byte scale = *(byteValue + 2);
-            byte sign = (byte)(*(byteValue + 3) >> 7);
-            Debug.Assert(scale <= 28);
-            Debug.Assert(sign == 0 || sign == 1);
-            byte firstChar = (byte)((scale << 1) + sign);
-#else
-            ushort firstChar = *(ushort*)(byteValue + 2);
-            firstChar = (ushort)((firstChar << 1) | (firstChar >> 15));
+            uint* ptrValue = (uint*)&value;
+            // Scale and sign
+            Debug.Assert(*(UInt16*)(ptrValue) == 0);
+            ushort firstChar = (ushort)((*ptrValue >> 15) | (*ptrValue >> 31));
             Debug.Assert((firstChar >> 1) <= 28);
             Debug.Assert((firstChar & 0x1) == 0 || (firstChar & 0x1) == 1);
             Debug.Assert(firstChar < 64);
-#endif
-            uint highInt = *(uint*)(byteValue + 4);
-            ulong lowLong = *(ulong*)(byteValue + 8);
-
-#endif
-            // Writing
             Base64Int.WriteBase64x1(firstChar, buffer);
             buffer++;
             int len = 1;
+
+            // The value
+#if false
+            uint highInt = *(ptrValue + 1);
+            ulong lowLong = *(ulong*)(ptrValue + 2);
+
             if (highInt == 0) {
                 len += Base64Int.Write(buffer, lowLong);
                 Debug.Assert(len <= 1 + 11);
@@ -67,31 +37,69 @@ namespace Starcounter.Internal {
                 len += Base64Int.Write(buffer, highInt);
                 Debug.Assert(len <= 1 + 11 + 6);
             }
+#else
+            ulong low48bits6bytes = *(ulong*)(ptrValue + 2) & 0xFFFFFFFFFFFF;
+            ulong high48bits = (*(ptrValue + 3) >> 16) | ((ulong)*(ptrValue+1) << 16);
+            Debug.Assert((low48bits6bytes >> 48) == 0);
+            Debug.Assert((high48bits >> 48) == 0);
+            Debug.Assert(*(ptrValue + 1) == (high48bits >> 16));
+            Debug.Assert(*(ptrValue + 2) == (low48bits6bytes & 0xFFFFFFFF));
+            Debug.Assert(*(ptrValue + 3) == ((low48bits6bytes >> 32) | (uint)(high48bits << 16)));
+            if (high48bits == 0) {
+                len += Base64Int.Write(buffer, low48bits6bytes);
+                Debug.Assert(len <= 1 + 8); 
+            } else {
+                Base64Int.WriteBase64x8(low48bits6bytes, buffer);
+                buffer += 8;
+                len += 8;
+                len += Base64Int.Write(buffer, high48bits);
+                Debug.Assert(len <= 1 + 8 + 8);
+            }
+#endif
             return len;
         }
 
         public unsafe static int MeasureNeededSize(decimal value) {
+            int size = 1;
+#if false
             byte* byteValue = (byte*)&value;
             uint highInt = *(uint*)(byteValue + 4);
             ulong lowLong = *(ulong*)(byteValue + 8);
-            int size = 1;
             if (highInt == 0)
                 size += Base64Int.MeasureNeededSize(lowLong);
             else
                 size += 11 + Base64Int.MeasureNeededSize(highInt);
+#else
+            uint* ptrValue = (uint*)&value;
+            ulong low48bits6bytes = *(ulong*)(ptrValue + 2) & 0xFFFFFFFFFFFF;
+            ulong high48bits = (*(ptrValue + 3) >> 16) | ((ulong)*(ptrValue + 1) << 16);
+            if (high48bits == 0)
+                size += Base64Int.MeasureNeededSize(low48bits6bytes);
+            else
+                size += 8 + Base64Int.MeasureNeededSize(high48bits);
+#endif
             return size;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public unsafe static decimal Read(int size, byte* buffer) {
+            // Sign and scale
             Debug.Assert(size > 1);
-            byte firstChar = (byte)Base64Int.ReadBase64x1(buffer);
+            uint firstChar = (uint)Base64Int.ReadBase64x1(buffer);
             size--;
             buffer++;
-            int sign = firstChar & 0x01;
+            uint sign = firstChar & 0x01;
             Debug.Assert(sign == 0 || sign == 1);
-            int scale = firstChar >> 1;
+            uint scale = firstChar >> 1;
             Debug.Assert(scale <= 28);
+            Decimal newValue = 0m;
+            uint* ptrValue = (uint*)&newValue;
+            *ptrValue = (sign << 31) | (scale << 16);
+            Debug.Assert((*ptrValue >> 31) == sign);
+            Debug.Assert((*ptrValue & 0x7F00FFFF) == 0);
+
+            // The value
+#if false
             ulong highInt = 0;
             ulong lowLong;
             if (size > 11) {
@@ -102,12 +110,23 @@ namespace Starcounter.Internal {
                 Debug.Assert(highInt <= uint.MaxValue);
             } else
                 lowLong = Base64Int.Read(size, buffer);
-            Decimal newValue = 0m;
-            byte* byteValue = (byte*)&newValue;
-            *(byteValue + 2) = (byte)scale;
-            *(byteValue + 3) = (byte)(sign << 7);
-            *((uint*)(byteValue + 4)) = (uint)highInt;
-            *((ulong*)(byteValue + 8)) = lowLong;
+            *(ptrValue + 1) = (uint)highInt;
+            *((ulong*)(ptrValue + 2)) = lowLong;
+#else
+            ulong low6bytes = 0;
+            ulong high6bytes = 0;
+            if (size > 8) { 
+                low6bytes = Base64Int.ReadBase64x8(buffer);
+                size -= 8;
+                buffer += 8;
+                high6bytes = Base64Int.Read(size, buffer);
+                *(ptrValue + 1) = (uint)(high6bytes >> 16);
+                *(ptrValue + 3) = (uint)high6bytes << 16;
+            } else {
+                low6bytes = Base64Int.Read(size, buffer);
+            }
+            *(ulong*)(ptrValue + 2) |= low6bytes;
+#endif
             return newValue;
         }
 
