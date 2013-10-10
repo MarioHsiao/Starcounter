@@ -196,6 +196,11 @@ namespace Starcounter.Internal {
             return AnyBaseBool.ReadBooleanNullable(valuePos);
         }
 
+        /// <summary>
+        /// Reads lossless Decimal at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
         public unsafe decimal ReadDecimal(int index) {
             byte* valuePos;
             int valueLength;
@@ -204,6 +209,11 @@ namespace Starcounter.Internal {
             return Base64DecimalLossless.Read(valueLength, valuePos);
         }
 
+        /// <summary>
+        /// Reads lossless Nullable Decimal at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
         public unsafe decimal? ReadDecimalNullable(int index) {
             byte* valuePos;
             int valueLength;

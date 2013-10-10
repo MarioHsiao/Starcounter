@@ -191,14 +191,29 @@ namespace Starcounter.Internal {
             return 1;
         }
 
+        /// <summary>
+        /// Estimates the size of encoding Decimal value without loss.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
         public static int MeasureNeededSizeDecimalLossless(Decimal val) {
             return Base64DecimalLossless.MeasureNeededSize(val);
         }
 
+        /// <summary>
+        /// Estimates the size of encoding Decimal value as it was converted from X6Decimal.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
         public static int MeasureNeededSizeX6Decimal(Decimal val) {
             return Base64X6Decimal.MeasureNeededSize(val);
         }
 
+        /// <summary>
+        /// Estimates the size of encoding Nullable Decimal value without loss.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
         public static int MeasureNeededSizeNullableDecimalLossless(Decimal? val) {
             return Base64DecimalLossless.MeasureNeededSizeNullable(val);
         }
