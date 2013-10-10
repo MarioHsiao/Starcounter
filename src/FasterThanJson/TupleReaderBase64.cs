@@ -375,6 +375,17 @@ namespace Starcounter.Internal
           return val;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe Decimal ReadX6Decimal() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
+          decimal val = Base64X6Decimal.Read(len, AtEnd);
+          ValueOffset += len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          return val;
+      }
+
       /// <summary>
        /// Returns the length of the current value to read.
        /// </summary>

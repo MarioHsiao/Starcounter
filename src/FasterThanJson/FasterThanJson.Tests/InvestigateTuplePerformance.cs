@@ -931,6 +931,41 @@ namespace FasterThanJson.Tests {
             }
         }
 
+        //[Test]
+        public static unsafe void BenchmarkTupleX6DecimalScale() {
+            decimal value = 2.003200m;
+            Assert.AreEqual(X6Decimal.FromRaw(X6Decimal.ToRaw(value)), value);
+            uint[] valueCounts = new uint[] { 20, 10, 2, 1 };
+            int[] nrIters = new int[] { nrIterations, nrIterations, nrIterations * 10, nrIterations * 10 };
+            Assert.AreEqual(valueCounts.Length, nrIters.Length);
+            Stopwatch timer = new Stopwatch();
+            fixed (byte* buffer = new byte[121]) {
+                for (int k = 0; k < valueCounts.Length; k++) {
+                    uint valueCount = valueCounts[k];
+                    int nrIter = nrIters[k];
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.WriteX6Decimal(value);
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleWriter creates and " + valueCount + " X6Decimal writes", nrIter);
+                    TupleReaderBase64 reader = new TupleReaderBase64(buffer, valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(value, reader.ReadX6Decimal());
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 tuple = new TupleReaderBase64(buffer, valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            tuple.ReadX6Decimal();
+                    }
+                    timer.Stop();
+                    Print(timer, "TupleReader creates and " + valueCount + " X6Decimal reads", nrIter);
+                }
+            }
+        }
+
         [Test]
         [Category("LongRunning")]
         public static unsafe void RunAllTests() {
@@ -979,6 +1014,7 @@ namespace FasterThanJson.Tests {
             BenchmarkTupleBoolScale();
             Console.WriteLine("------------ Decimals ----------------");
             BenchmarkTupleDecimalLosslessScale();
+            BenchmarkTupleX6DecimalScale();
         }
     }
 }

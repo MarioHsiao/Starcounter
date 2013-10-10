@@ -195,6 +195,10 @@ namespace Starcounter.Internal {
             return Base64DecimalLossless.MeasureNeededSize(val);
         }
 
+        public static int MeasureNeededSizeX6Decimal(Decimal val) {
+            return Base64X6Decimal.MeasureNeededSize(val);
+        }
+
         public void WriteULong(ulong n) {
             int size = MeasureNeededSizeULong(n);
             size = ValidateLength(size);

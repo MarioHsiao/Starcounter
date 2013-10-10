@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using Starcounter.Internal;
 
 namespace FasterThanJson.Tests {
     public enum ValueTypes {
@@ -142,6 +143,19 @@ namespace FasterThanJson.Tests {
                 val = (decimal)(gen * (double)Decimal.MaxValue);
             for (int i = 0; i < scale; i++)
                 val = val / 10;
+            return val;
+        }
+
+        public static Decimal RandomX6Decimal(Random rnd) {
+            double gen = rnd.NextDouble();
+            bool sign = RandomBoolean(rnd);
+            decimal val;
+            if (sign)
+                val = (decimal)((long)(gen * X6Decimal.MinValue));
+            else
+                val = (decimal)((long)(gen * X6Decimal.MaxValue));
+            val *= 0.000001m;
+            Debug.Assert(val == X6Decimal.FromRaw(X6Decimal.ToRaw(val)));
             return val;
         }
     }

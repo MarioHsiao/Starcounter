@@ -134,6 +134,10 @@ namespace Starcounter.Internal {
             return Base64Int.Write(buffer, (lowLong << 1) | sign);
         }
 
+        public unsafe static int MeasureNeededSize(decimal value) {
+            return Base64Int.MeasureNeededSize(*((ulong*)&value + 1) << 1);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public unsafe static decimal Read(int size, byte* buffer) {
             Debug.Assert(BitConverter.IsLittleEndian);
