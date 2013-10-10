@@ -654,6 +654,56 @@ namespace FasterThanJson.Tests {
                 }
             }
         }
+
+        [Test]
+        [Category("LongRunning")]
+        public unsafe void BenchmarkDecimalLosslessNullable() {
+            Random rnd = new Random(1);
+            Stopwatch timer = new Stopwatch();
+            foreach (int valueCount in NrElements) {
+                decimal?[] inputDecimal = new decimal?[valueCount];
+                int tupleLength = TupleWriterBase64.OffsetElementSizeSize;
+                int valCounter = 0;
+                for (; valCounter < valueCount; valCounter++) {
+                    inputDecimal[valCounter] = RandomValues.RandomDecimalNullable(rnd);
+                    tupleLength += SafeTupleWriterBase64.MeasureNeededSizeNullableDecimalLossless(inputDecimal[valCounter]);
+                }
+                int offsetSize = CalculateOffsetSize(tupleLength, valueCount);
+                tupleLength += valueCount * offsetSize;
+                fixed (byte* start = new byte[tupleLength]) {
+                    int nrIter = NrIterations / valueCount;
+                    if (TestLogger.IsRunningOnBuildServer())
+                        nrIter *= 10;
+
+                    timer.Reset();
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleWriterBase64 writer = new TupleWriterBase64(start, (uint)valueCount, offsetSize);
+                        for (uint j = 0; j < valueCount; j++)
+                            writer.WriteDecimalLosslessNullable(inputDecimal[j]);
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Writing tuple of " + valueCount + " Nullable Decimals took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 1000 * 100 / nrIter) / 100 + " mcs per tuple write.");
+
+                    timer.Reset();
+                    timer.Start();
+                    for (int i = 0; i < nrIter; i++) {
+                        TupleReaderBase64 reader = new TupleReaderBase64(start, (uint)valueCount);
+                        for (int j = 0; j < valueCount; j++)
+                            reader.ReadDecimalLosslessNullable();
+                    }
+                    timer.Stop();
+                    Console.WriteLine("Reading tuple of " + valueCount + " Nullable Decimals took " +
+                        timer.ElapsedMilliseconds + " ms for " + nrIter + " times, i.e., " +
+                        (Decimal)(timer.ElapsedMilliseconds * 100000 / nrIter) / 100 + " mcs per tuple read.");
+                    TupleReaderBase64 validationReader = new TupleReaderBase64(start, (uint)valueCount);
+                    for (int j = 0; j < valueCount; j++)
+                        Assert.AreEqual(inputDecimal[j], validationReader.ReadDecimalLosslessNullable());
+                }
+            }
+        }
 #if false
         unsafe void BenchmarkInto<T>(Func<Random, T> getInputValue, Func<T, uint> getNeededSize,
             Action<TupleWriterBase64, T> writeValue, Action<TupleReaderBase64, T> readValue,

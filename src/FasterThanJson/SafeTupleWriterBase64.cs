@@ -199,6 +199,10 @@ namespace Starcounter.Internal {
             return Base64X6Decimal.MeasureNeededSize(val);
         }
 
+        public static int MeasureNeededSizeNullableDecimalLossless(Decimal? val) {
+            return Base64DecimalLossless.MeasureNeededSizeNullable(val);
+        }
+
         public void WriteULong(ulong n) {
             int size = MeasureNeededSizeULong(n);
             size = ValidateLength(size);
@@ -288,7 +292,7 @@ namespace Starcounter.Internal {
             AvailableSize -= size;
         }
 
-        public void WriteDecimalLossless(decimal n) {
+        public void WriteDecimal(decimal n) {
             int size = MeasureNeededSizeDecimalLossless(n);
             size = ValidateLength(size);
             theTuple.WriteDecimalLossless(n);
@@ -296,5 +300,13 @@ namespace Starcounter.Internal {
             AvailableSize -= size;
         }
 
+
+        public void WriteDecimalNullable(decimal? n) {
+            int size = MeasureNeededSizeNullableDecimalLossless(n);
+            size = ValidateLength(size);
+            theTuple.WriteDecimalLosslessNullable(n);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
     }
 }

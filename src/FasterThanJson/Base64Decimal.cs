@@ -129,7 +129,18 @@ namespace Starcounter.Internal {
             } else
                 return Read(size, buffer);
         }
-}
+    
+        public unsafe static int MeasureNeededSizeNullable(decimal? value) {
+            if (value == null)
+                return 1;
+            else {
+                var size = MeasureNeededSize((decimal)value);
+                Debug.Assert(size > 1);
+                return size;
+            }
+        }
+
+    }
 
     public static class Base64X6Decimal {
         /// <summary>
