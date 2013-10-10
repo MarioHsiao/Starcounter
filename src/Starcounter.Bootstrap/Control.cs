@@ -294,6 +294,8 @@ namespace StarcounterInternal.Bootstrap
 
                 OnAutoStartModuleExecuted();
             }
+
+            OnCodeHostBootCompleted();
                 
             // Receive until we are told to shutdown.
 
@@ -588,6 +590,7 @@ namespace StarcounterInternal.Bootstrap
         private void OnNetworkGatewayConnected() { Trace("Network gateway connected."); }
         private void OnArgumentsParsed() { Trace("Command line arguments parsed."); }
         private void OnAutoStartModuleExecuted() { Trace("Auto start module executed."); }
+        private void OnCodeHostBootCompleted() { Trace("Booting completed."); }
 
         private void OnEndStart() { Trace("Start completed."); }
 
