@@ -729,10 +729,10 @@ namespace Starcounter
         /// <summary>
         /// Frees network streams.
         /// </summary>
-        internal void FreeConnection(NodeTask nt, Boolean fromSyncRequest = false)
+        internal void FreeConnection(NodeTask nt, Boolean isSyncCall)
         {
             // Checking if we are called from async request.
-            if (!fromSyncRequest)
+            if (!isSyncCall)
             {
                 // Attaching the connection since it could already be reconnected.
                 core_task_info_.AttachConnection(nt.TcpClientObj);
