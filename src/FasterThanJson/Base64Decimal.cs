@@ -110,7 +110,26 @@ namespace Starcounter.Internal {
             *((ulong*)(byteValue + 8)) = lowLong;
             return newValue;
         }
-    }
+
+        public unsafe static int WriteNullable(byte* buffer, Decimal? value) {
+            if (value == null) {
+                Base16Int.WriteBase16x1(1, buffer);
+                return 1;
+            } else {
+                var len = Write(buffer, (Decimal)value);
+                Debug.Assert(len > 1);
+                return len;
+            }
+        }
+
+        public unsafe static decimal? ReadNullable(int size, byte* buffer) {
+            if (size == 1) {
+                Debug.Assert(Base16Int.ReadBase16x1((Base16x1*)buffer) == 1);
+                return null;
+            } else
+                return Read(size, buffer);
+        }
+}
 
     public static class Base64X6Decimal {
         /// <summary>
@@ -142,7 +161,7 @@ namespace Starcounter.Internal {
         public unsafe static decimal Read(int size, byte* buffer) {
             Debug.Assert(BitConverter.IsLittleEndian);
             ulong readValue = Base64Int.Read(size, buffer);
-            uint sign = (uint)((readValue & 0x1) << 31);
+            uint sign = (uint)(readValue & 0x1) << 31;
             Decimal newValue = 1.000000m;
             *(uint*)&newValue |= sign;
             *((ulong*)&newValue + 1) = readValue >> 1;
