@@ -23,7 +23,8 @@ enum SOCKET_DATA_FLAGS
     HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048,
     HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
     SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 8192,
-    SOCKET_DATA_FLAGS_AGGREGATION_SD = SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK * 2
+    SOCKET_DATA_FLAGS_AGGREGATION_SD = 8192 * 2,
+    SOCKET_DATA_FLAGS_AGGREGATED = MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED
 };
 
 // Socket data chunk.
@@ -112,17 +113,6 @@ class SocketDataChunk
 
 public:
 
-    // Has gateway chunk attached?
-    bool HasGatewayChunk()
-    {
-        return NULL != gw_chunk_;
-    }
-
-    GatewayMemoryChunk* get_gw_chunk()
-    {
-        return gw_chunk_;
-    }
-
     // Returns gateway chunk to gateway if any.
     void ReturnGatewayChunk();
 
@@ -163,6 +153,26 @@ public:
     {
         uint8_t* sd = (uint8_t*) this;
         uint8_t* smc = (uint8_t*)get_smc();
+
+        /*
+        std::cout << "sizeof AccumBuffer = "<< sizeof(AccumBuffer) << std::endl;
+        std::cout << "sizeof HttpWsProto = "<< sizeof(HttpWsProto) << std::endl;
+        std::cout << "sizeof accept_or_params_or_temp_data_ = "<< sizeof(accept_or_params_or_temp_data_) << std::endl;
+        std::cout << "sizeof ScSessionStruct = "<< sizeof(ScSessionStruct) << std::endl;
+        std::cout << "sizeof HttpRequest = "<< sizeof(HttpRequest) << std::endl;
+        std::cout << "sizeof http_parser = "<< sizeof(http_parser) << std::endl;
+        std::cout << "sizeof WsProto = "<< sizeof(WsProto) << std::endl;
+        std::cout << "sizeof OVERLAPPED = "<< sizeof(OVERLAPPED) << std::endl;
+
+        std::cout << "offset ovl_ = "<< ((uint8_t*)&ovl_ - sd) << std::endl;
+        std::cout << "offset session_ = "<< ((uint8_t*)&session_ - sd) << std::endl;
+        std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
+        std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
+        std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
+        std::cout << "offset user_data_offset_in_socket_data_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
+        std::cout << "offset max_user_data_bytes_ = "<< ((uint8_t*)&max_user_data_bytes_ - sd) << std::endl;
+        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&user_data_written_bytes_ - sd) << std::endl;
+        */
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
@@ -427,6 +437,21 @@ public:
     void reset_gracefully_close_flag()
     {
         flags_ &= ~HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+    }
+
+    bool get_aggregated_flag()
+    {
+        return (flags_ & SOCKET_DATA_FLAGS_AGGREGATED) != 0;
+    }
+
+    void set_aggregated_flag()
+    {
+        flags_ |= SOCKET_DATA_FLAGS_AGGREGATED;
+    }
+
+    void reset_aggregated_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_AGGREGATED;
     }
 
     bool get_aggregation_sd_flag()

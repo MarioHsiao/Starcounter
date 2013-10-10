@@ -36,9 +36,14 @@ void SocketDataChunk::Init(
 
     // Checking if its an aggregation socket.
     if (g_gateway.IsAggregatingPort(socket_info_index))
+    {
         gw_chunk_ = g_gateway.ObtainGatewayMemoryChunk();
+        set_big_accumulation_chunk_flag();
+    }
     else
+    {
         gw_chunk_ = NULL;
+    }
 
     // Configuring data buffer.
     ResetAccumBuffer();
@@ -103,9 +108,10 @@ shared_memory_chunk* SocketDataChunk::GetLastLinkedSmc(GatewayWorker* gw)
 // Returns gateway chunk to gateway if any.
 void SocketDataChunk::ReturnGatewayChunk()
 {
-    if (gw_chunk_)
+    if (get_big_accumulation_chunk_flag())
     {
         g_gateway.ReturnGatewayMemoryChunk(gw_chunk_);
+        reset_big_accumulation_chunk_flag();
         gw_chunk_ = NULL;
     }
 }

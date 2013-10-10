@@ -44,10 +44,10 @@ class GatewayWorker
     SocketDataChunk* sd_receive_clone_;
 
     // List of reusable connect sockets.
-    LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
+    LinearQueue<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
 
     // List of reusable accept sockets.
-    LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_accept_sockets_;
+    LinearQueue<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_accept_sockets_;
 
     // Number of created connections calculated for worker.
     int32_t num_created_conns_worker_;
@@ -62,12 +62,12 @@ class GatewayWorker
     PreciseTimer aggr_timer_;
 
 #ifdef GW_LOOPED_TEST_MODE
-    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
-    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
+    LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
+    LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
 #endif
 
     // Avoiding false sharing.
-    uint8_t pad[64];
+    uint8_t pad[CACHE_LINE_SIZE];
 
 public:
 
