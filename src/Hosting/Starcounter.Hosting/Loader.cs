@@ -210,10 +210,7 @@ namespace StarcounterInternal.Hosting
             bool execEntryPointSynchronously = false
             )
         {
-            if (stopwatch != null)
-                stopwatch_ = stopwatch;
-            else
-                stopwatch_ = new Stopwatch();
+            stopwatch_ = stopwatch ?? Stopwatch.StartNew();
 
             OnLoaderStarted();
 
