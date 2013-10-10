@@ -8,9 +8,9 @@ using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
-using System.Web;
-using System.Text;
 using System.Diagnostics;
+using System.Text;
+using System.Web;
 
 namespace Starcounter {
 
@@ -147,42 +147,6 @@ namespace Starcounter {
                 throw new ArgumentNullException("obj");
             }
             return Base64EncodeObjectNo(obj.Identity);
-        }
-
-        /// <summary>
-        /// Adds <paramref name="obj"/> to the write list of the
-        /// currently attached transaction.
-        /// </summary>
-        /// </exception>
-        /// <param name="obj">The object to be added to the transaction
-        /// write list. If the object is not an instance of a database
-        /// class, an exception will be raised.</param>
-        public static void AddToWriteList(object obj) {
-            var proxy = obj as IObjectProxy;
-            if (proxy == null) {
-                if (obj == null) {
-                    throw new ArgumentNullException("obj");
-                } else {
-                    throw ErrorCode.ToException(
-                        Error.SCERRCODENOTENHANCED,
-                        string.Format("The type {0} is not a database class.", obj.GetType()),
-                        (msg, inner) => { return new InvalidCastException(msg, inner); });
-                }
-            }
-            
-            AddToWriteList(proxy);
-        }
-
-        /// <summary>
-        /// Adds <paramref name="proxy"/> to the write list of the
-        /// currently attached transaction.
-        /// </summary>
-        /// </exception>
-        /// <param name="proxy">The proxy referencing the kernel
-        /// object to be added to the transaction write list.</param>
-        public static void AddToWriteList(IObjectProxy proxy) {
-            var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
-            if (dr != 0) throw ErrorCode.ToException(dr);
         }
 
         internal const string ObjectNoName = "ObjectNo";
