@@ -205,7 +205,7 @@ namespace Starcounter {
                         UInt32 code;
                         if ((!ErrorCode.TryGetCode(exc, out code)) || (code != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS))
                         {
-                            CallUserDelegateOnFailure(exc);
+                            CallUserDelegateOnFailure(exc, false);
 
                             return;
                         }
@@ -226,7 +226,7 @@ namespace Starcounter {
                     Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
 
                     // Freeing connection resources.
-                    NodeInst.FreeConnection(this);
+                    NodeInst.FreeConnection(this, false);
                 }
                 else
                 {
@@ -236,7 +236,7 @@ namespace Starcounter {
             }
             catch (Exception exc)
             {
-                CallUserDelegateOnFailure(exc);
+                CallUserDelegateOnFailure(exc, false);
             }
         }
 
@@ -268,7 +268,7 @@ namespace Starcounter {
                 // Checking for correct number of bytes sent.
                 if (numBytesSent != RequestBytesLength)
                 {
-                    CallUserDelegateOnFailure(new Exception("Socket has sent wrong amount of data!"));
+                    CallUserDelegateOnFailure(new Exception("Socket has sent wrong amount of data!"), false);
                     return;
                 }
 
@@ -288,7 +288,7 @@ namespace Starcounter {
             }
             catch (Exception exc)
             {
-                CallUserDelegateOnFailure(exc);
+                CallUserDelegateOnFailure(exc, false);
             }
         }
 
@@ -309,7 +309,7 @@ namespace Starcounter {
             }
             catch (Exception exc)
             {
-                CallUserDelegateOnFailure(exc);
+                CallUserDelegateOnFailure(exc, false);
             }
         }
 
@@ -368,7 +368,7 @@ namespace Starcounter {
                         Node.NodeLogException_(exc);
 
                     // Freeing connection resources.
-                    NodeInst.FreeConnection(this, true);
+                    NodeInst.FreeConnection(this, false);
 
                     throw exc;
                 }
@@ -389,85 +389,92 @@ namespace Starcounter {
         /// <returns></returns>
         public Response PerformSyncRequest()
         {
-            // Checking if we are connected.
-            if (null == SocketObj)
-                AttachConnection(null);
-
-            // Sending the request.
             try
             {
-                Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
-                Debug.Assert(RequestBytesLength == bytesSent);
-            }
-            catch
-            {
-                // Assuming that existing TCP connection is down.
-                // So we need to create a new one.
-                AttachConnection(null);
+                // Checking if we are connected.
+                if (null == SocketObj)
+                    AttachConnection(null);
 
-                SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
-            }
-
-            Int32 recievedBytes;
-
-            // Setting the receive timeout.
-            SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
-
-            // Looping until we get everything.
-            while (true)
-            {
-                // Reading the response into predefined buffer.
-                recievedBytes = SocketObj.Receive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None);
-                if (recievedBytes <= 0)
+                // Sending the request.
+                try
                 {
-                    SocketObj = null;
-                    throw new IOException("Remote host closed the connection.");
+                    Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
+                    Debug.Assert(RequestBytesLength == bytesSent);
+                }
+                catch
+                {
+                    // Assuming that existing TCP connection is down.
+                    // So we need to create a new one.
+                    AttachConnection(null);
+
+                    SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
                 }
 
-                if (Resp == null)
+                Int32 recievedBytes;
+
+                // Setting the receive timeout.
+                SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
+
+                // Looping until we get everything.
+                while (true)
                 {
-                    try
+                    // Reading the response into predefined buffer.
+                    recievedBytes = SocketObj.Receive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None);
+                    if (recievedBytes <= 0)
                     {
-                        // Trying to parse the response.
-                        Resp = new Response(NodeInst.AccumBuffer, 0, recievedBytes, OrigReq, false);
-
-                        // Getting the whole response size.
-                        ResponseSizeBytes = Resp.ResponseLength;
+                        SocketObj = null;
+                        throw new IOException("Remote host closed the connection.");
                     }
-                    catch (Exception exc)
+
+                    if (Resp == null)
                     {
-                        // Continue to receive when there is not enough data.
-                        Resp = null;
-
-                        // Trying to fetch recognized error code.
-                        UInt32 code;
-                        if ((!ErrorCode.TryGetCode(exc, out code)) || (code != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS))
+                        try
                         {
-                            // Logging the exception to server log.
-                            if (NodeInst.ShouldLogErrors)
-                                Node.NodeLogException_(exc);
+                            // Trying to parse the response.
+                            Resp = new Response(NodeInst.AccumBuffer, 0, recievedBytes, OrigReq, false);
 
-                            // Freeing connection resources.
-                            NodeInst.FreeConnection(this, true);
+                            // Getting the whole response size.
+                            ResponseSizeBytes = Resp.ResponseLength;
+                        }
+                        catch (Exception exc)
+                        {
+                            // Continue to receive when there is not enough data.
+                            Resp = null;
 
-                            throw exc;
+                            // Trying to fetch recognized error code.
+                            UInt32 code;
+                            if ((!ErrorCode.TryGetCode(exc, out code)) || (code != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS))
+                            {
+                                // Logging the exception to server log.
+                                if (NodeInst.ShouldLogErrors)
+                                    Node.NodeLogException_(exc);
+
+                                // Freeing connection resources.
+                                NodeInst.FreeConnection(this, true);
+
+                                throw exc;
+                            }
                         }
                     }
+
+                    MemStream.Write(NodeInst.AccumBuffer, 0, recievedBytes);
+                    TotallyReceivedBytes += recievedBytes;
+
+                    // Checking if we have received everything.
+                    if ((Resp != null) && (TotallyReceivedBytes == ResponseSizeBytes))
+                        break;
                 }
 
-                MemStream.Write(NodeInst.AccumBuffer, 0, recievedBytes);
-                TotallyReceivedBytes += recievedBytes;
+                // Setting the response buffer.
+                Resp.SetResponseBuffer(MemStream.GetBuffer(), MemStream, TotallyReceivedBytes);
 
-                // Checking if we have received everything.
-                if ((Resp != null) && (TotallyReceivedBytes == ResponseSizeBytes))
-                    break;
+                // Freeing connection resources.
+                NodeInst.FreeConnection(this, true);
             }
-
-            // Setting the response buffer.
-            Resp.SetResponseBuffer(MemStream.GetBuffer(), MemStream, TotallyReceivedBytes);
-
-            // Freeing connection resources.
-            NodeInst.FreeConnection(this, true);
+            catch (Exception exc)
+            {
+                CallUserDelegateOnFailure(exc, true);
+            }
 
             return Resp;
         }
@@ -476,7 +483,7 @@ namespace Starcounter {
         /// Calls user delegate when response has failed.
         /// </summary>
         /// <param name="exc"></param>
-        void CallUserDelegateOnFailure(Exception exc)
+        void CallUserDelegateOnFailure(Exception exc, Boolean isSyncCall)
         {
             // Logging the exception to server log.
             if (NodeInst.ShouldLogErrors)
@@ -495,10 +502,11 @@ namespace Starcounter {
             Resp.ParseResponseFromUncompressed();
 
             // Invoking user delegate.
-            Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
+            if (null != UserDelegate)
+                Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
 
             // Freeing connection resources.
-            NodeInst.FreeConnection(this);
+            NodeInst.FreeConnection(this, isSyncCall);
         }
     }
 }
