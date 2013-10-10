@@ -397,17 +397,19 @@ namespace Starcounter.Server.Commands {
 
         private void OnBeginExecute()
         {
-            Trace("Executing.");
+            Trace("Executing '{0}'", true, this.command.Description);
         }
 
         private void OnEndExecute()
         {
-            Trace("Execution completed.");
+            Trace("Executing completed");
         }
 
         [Conditional("TRACE")]
-        protected void Trace(string message)
+        protected void Trace(string message, bool restartWatch = false, params object[] args)
         {
+            message = string.Format(message, args);
+            if (restartWatch) stopwatch.Restart();
             Diagnostics.WriteTrace("server", stopwatch.ElapsedTicks, message);
         }
 
