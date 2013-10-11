@@ -550,8 +550,12 @@ namespace StarcounterInternal.Bootstrap
         private Stopwatch stopwatch_;
         
         [Conditional("TRACE")]
-        private void Trace(string message)
+        private void Trace(string message, bool restartWatch = false)
         {
+            if (restartWatch) {
+                stopwatch_.Restart();
+                ticksElapsedBetweenProcessStartAndMain_ = 0;
+            }
             long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
             Diagnostics.WriteTrace("control", elapsedTicks, message);
 
@@ -594,7 +598,7 @@ namespace StarcounterInternal.Bootstrap
 
         private void OnEndStart() { Trace("Start completed."); }
 
-        private void OnEndRun() { Trace("Run completed."); }
+        private void OnEndRun() { Trace("Run completed.", true); }
         private void OnEndStop() { Trace("Stop completed."); }
         private void OnEndCleanup() { Trace("Cleanup completed."); }
     }
