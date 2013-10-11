@@ -221,5 +221,18 @@ namespace Starcounter.Internal {
             // Read the value at the position with the length
             return Base64DecimalLossless.ReadNullable(valueLength, valuePos);
         }
+
+        /// <summary>
+        /// Reads Double at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe double ReadDouble(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Double.Read(valueLength, valuePos);
+        }
     }
 }

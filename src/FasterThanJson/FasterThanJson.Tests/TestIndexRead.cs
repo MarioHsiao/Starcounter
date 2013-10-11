@@ -141,11 +141,12 @@ namespace FasterThanJson.Tests {
                 bool?[] boolNullValues = new bool?[nrValues];
                 decimal[] decimalValues = new decimal[nrValues];
                 decimal?[] decimalNullValues = new decimal?[nrValues];
+                double[] doubleValues = new double[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        Assert.AreEqual(15, Enum.GetValues(typeof(ValueTypes)).Length);
+                        Assert.AreEqual(16, Enum.GetValues(typeof(ValueTypes)).Length);
                         valueTypes[j] = writeRnd.Next(1, Enum.GetValues(typeof(ValueTypes)).Length);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
@@ -204,6 +205,10 @@ namespace FasterThanJson.Tests {
                                 decimalNullValues[j] = RandomValues.RandomDecimalNullable(writeRnd);
                                 arrayWriter.WriteDecimalNullable(decimalNullValues[j]);
                                 break;
+                            case (int)ValueTypes.DOUBLE:
+                                doubleValues[j] = RandomValues.RandomDouble(writeRnd);
+                                arrayWriter.WriteDouble(doubleValues[j]);
+                                break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
                                 break;
@@ -256,6 +261,9 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.DECIMALNULL:
                                 Assert.AreEqual(decimalNullValues[j], arrayReader.ReadDecimalNullable(j));
+                                break;
+                            case (int)ValueTypes.DOUBLE:
+                                Assert.AreEqual(doubleValues[j], arrayReader.ReadDouble(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

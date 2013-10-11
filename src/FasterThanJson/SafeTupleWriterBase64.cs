@@ -324,11 +324,18 @@ namespace Starcounter.Internal {
             AvailableSize -= size;
         }
 
-
         public void WriteDecimalNullable(decimal? n) {
             int size = MeasureNeededSizeNullableDecimalLossless(n);
             size = ValidateLength(size);
             theTuple.WriteDecimalLosslessNullable(n);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
+
+        public void WriteDouble(double n) {
+            int size = MeasureNeededSizeDouble(n);
+            size = ValidateLength(size);
+            theTuple.WriteDouble(n);
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
             AvailableSize -= size;
         }
