@@ -236,6 +236,15 @@ namespace Starcounter.Internal {
             return Base64Double.MeasureNeededSizeNullable(val);
         }
 
+        /// <summary>
+        /// Estimates the size of encoding Single value.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static int MeasureNeededSizeSingle(Single val) {
+            return Base64Single.MeasureNeededSize(val);
+        }
+
         public void WriteULong(ulong n) {
             int size = MeasureNeededSizeULong(n);
             size = ValidateLength(size);
