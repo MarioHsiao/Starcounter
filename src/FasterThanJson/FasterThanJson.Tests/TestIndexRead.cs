@@ -125,7 +125,7 @@ namespace FasterThanJson.Tests {
             int nrIterations = 10000;
             Random writeRnd = new Random(1);
             for (int i = 0; i < nrIterations; i++) {
-                uint nrValues = (uint)writeRnd.Next(1, 600);
+                uint nrValues = (uint)writeRnd.Next(1, 100 * Enum.GetValues(typeof(ValueTypes)).Length / 2);
                 int[] valueTypes = new Int32[nrValues];
                 uint[] uintValues = new uint[nrValues];
                 String[] stringValues = new String[nrValues];
@@ -142,11 +142,12 @@ namespace FasterThanJson.Tests {
                 decimal[] decimalValues = new decimal[nrValues];
                 decimal?[] decimalNullValues = new decimal?[nrValues];
                 double[] doubleValues = new double[nrValues];
+                double?[] doubleNullValues = new double?[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        Assert.AreEqual(16, Enum.GetValues(typeof(ValueTypes)).Length);
+                        Assert.AreEqual(17, Enum.GetValues(typeof(ValueTypes)).Length);
                         valueTypes[j] = writeRnd.Next(1, Enum.GetValues(typeof(ValueTypes)).Length);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
@@ -209,6 +210,10 @@ namespace FasterThanJson.Tests {
                                 doubleValues[j] = RandomValues.RandomDouble(writeRnd);
                                 arrayWriter.WriteDouble(doubleValues[j]);
                                 break;
+                            case(int)ValueTypes.DOUBLENULL:
+                                doubleNullValues[j] = RandomValues.RandomDoubleNullable(writeRnd);
+                                arrayWriter.WriteDoubleNullable(doubleNullValues[j]);
+                                break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
                                 break;
@@ -264,6 +269,9 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.DOUBLE:
                                 Assert.AreEqual(doubleValues[j], arrayReader.ReadDouble(j));
+                                break;
+                            case (int)ValueTypes.DOUBLENULL:
+                                Assert.AreEqual(doubleNullValues[j], arrayReader.ReadDoubleNullable(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

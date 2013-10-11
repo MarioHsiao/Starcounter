@@ -210,6 +210,15 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Estimates the size of encoding Nullable Decimal value without loss.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static int MeasureNeededSizeNullableDecimalLossless(Decimal? val) {
+            return Base64DecimalLossless.MeasureNeededSizeNullable(val);
+        }
+
+        /// <summary>
         /// Estimates the size of encoding Double value.
         /// </summary>
         /// <param name="str">The value to encode.</param>
@@ -219,12 +228,12 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
-        /// Estimates the size of encoding Nullable Decimal value without loss.
+        /// Estimates the size of encoding Nullable Double value.
         /// </summary>
         /// <param name="str">The value to encode.</param>
         /// <returns>The estimated length. </returns>
-        public static int MeasureNeededSizeNullableDecimalLossless(Decimal? val) {
-            return Base64DecimalLossless.MeasureNeededSizeNullable(val);
+        public static int MeasureNeededSizeNullableDouble(Double? val) {
+            return Base64Double.MeasureNeededSizeNullable(val);
         }
 
         public void WriteULong(ulong n) {
@@ -336,6 +345,14 @@ namespace Starcounter.Internal {
             int size = MeasureNeededSizeDouble(n);
             size = ValidateLength(size);
             theTuple.WriteDouble(n);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
+
+        public void WriteDoubleNullable(double? n) {
+            int size = MeasureNeededSizeNullableDouble(n);
+            size = ValidateLength(size);
+            theTuple.WriteDoubleNullable(n);
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
             AvailableSize -= size;
         }
