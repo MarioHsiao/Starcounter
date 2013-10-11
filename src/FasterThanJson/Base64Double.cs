@@ -36,7 +36,34 @@ namespace Starcounter.Internal {
             value = (value >> 12) | (value << 52);
             return *(Double*)&value;
         }
-}
+
+        public static unsafe int WriteNullable(byte* buffer, Double? value) {
+            if (value == null) {
+                Base16Int.WriteBase16x1(1, buffer);
+                return 1;
+            } else {
+                Base16Int.WriteBase16x1(0, buffer);
+                return 1 + Write(buffer + 1, (Double)value);
+            }
+        }
+
+        public static unsafe int MeasureNeededSizeNullable(Double? value) {
+            if (value == null)
+                return 1;
+            else
+                return 1 + MeasureNeededSize((Double)value);
+        }
+
+        public static unsafe Double? ReadNullable(int size, byte* buffer) {
+            if (size > 1) {
+                Debug.Assert(Base16Int.ReadBase16x1((Base16x1*)buffer) == 0);
+                return Read(size - 1, buffer + 1);
+            } else {
+                Debug.Assert(Base16Int.ReadBase16x1((Base16x1*)buffer) == 1);
+                return null;
+            }
+        }
+    }
 
     public static class Base64Single {
     }

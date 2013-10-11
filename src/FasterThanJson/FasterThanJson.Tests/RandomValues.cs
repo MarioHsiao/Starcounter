@@ -20,7 +20,8 @@ namespace FasterThanJson.Tests {
         BOOLNULL,
         DECIMALLOSSLESS,
         DECIMALNULL,
-        DOUBLE
+        DOUBLE,
+        DOUBLENULL
     }
 
     public static class RandomValues {
@@ -173,6 +174,12 @@ namespace FasterThanJson.Tests {
                     val /= 2;
             }
             return val;
+        }
+
+        public static Double? RandomDoubleNullable(Random rnd) {
+            if (rnd.Next(0, 10) == 0)
+                return null;
+            return RandomDouble(rnd);
         }
     }
 }
