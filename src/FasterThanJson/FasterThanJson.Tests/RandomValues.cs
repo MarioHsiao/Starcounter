@@ -19,7 +19,8 @@ namespace FasterThanJson.Tests {
         BOOL,
         BOOLNULL,
         DECIMALLOSSLESS,
-        DECIMALNULL
+        DECIMALNULL,
+        DOUBLE
     }
 
     public static class RandomValues {
@@ -153,6 +154,25 @@ namespace FasterThanJson.Tests {
             if (rnd.Next(0, 10) == 0)
                 return null;
             return RandomDecimal(rnd);
+        }
+
+        public static Double RandomDouble(Random rnd) {
+            double val = rnd.NextDouble();
+            bool sign = RandomBoolean(rnd);
+            if (sign)
+                val = val * Double.MinValue;
+            else
+                val = val * Double.MaxValue;
+            if (RandomBoolean(rnd)) {
+                int scale = rnd.Next(0, 15);
+                for (int i = 0; i < scale; i++)
+                    val /= 10;
+            } else {
+                int scale = rnd.Next(0, 32);
+                for (int i = 0; i < scale; i++)
+                    val /= 2;
+            }
+            return val;
         }
     }
 }
