@@ -210,6 +210,15 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Estimates the size of encoding Double value.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static int MeasureNeededSizeDouble(Double val) {
+            return Base64Double.MeasureNeededSize(val);
+        }
+
+        /// <summary>
         /// Estimates the size of encoding Nullable Decimal value without loss.
         /// </summary>
         /// <param name="str">The value to encode.</param>
