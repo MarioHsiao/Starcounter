@@ -141,12 +141,19 @@ namespace Starcounter
         /// Executes the given <paramref name="action"/> within a new transaction.
         /// </summary>
         /// <param name="action">The action to execute.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transaction(Action action, int maxRetries = 100)
+        public static void Transaction(Action action, bool forceSnapshot = false, int maxRetries = 100)
         {
             int retries;
             uint r;
@@ -155,6 +162,10 @@ namespace Starcounter
 
             if (maxRetries < 0) {
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
+            }
+
+            if (forceSnapshot) {
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
             }
 
             retries = 0;
