@@ -966,7 +966,7 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
 
         // Checking if we are already passed the WebSockets handshake.
         if (sd->IsWebSocket())
-            return get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
         ResetParser(sd);
@@ -999,7 +999,7 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
 #endif
 
             // Perform WebSockets handshake.
-            return get_ws_proto()->DoHandshake(gw, sd, handler_id, is_handled);
+            return sd->get_ws_proto()->DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
