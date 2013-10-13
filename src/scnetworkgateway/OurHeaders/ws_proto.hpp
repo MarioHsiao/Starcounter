@@ -42,23 +42,20 @@ class WsProtoFrameInfo
     friend class WsProto;
     friend class SocketDataChunk;
 
-    // Payload offset in sd data blob.
-    uint32_t payload_offset_;
-
     // Payload length in bytes.
     uint64_t payload_len_;
 
     // Masking value.
     uint64_t mask_;
 
+    // Payload offset in sd data blob.
+    uint16_t payload_offset_;
+
     // Is final frame.
     bool is_final_;
 
     // Opcode type.
     uint8_t opcode_;
-
-    // Is frame masked?
-    bool is_masked_;
 
     // Is frame complete.
     bool is_complete_;
@@ -77,14 +74,6 @@ class WsProto
     // Frame information.
     WsProtoFrameInfo frame_info_;
 
-    // WebSocket client handshake key.
-    char *client_key_;
-    int32_t client_key_len_;
-
-    // WebSocket sub-protocol.
-    char *sub_protocol_;
-    int32_t sub_protocol_len_;
-
 public:
 
     // WebSockets frame info.
@@ -94,28 +83,13 @@ public:
     }
 
     // Sets the client key.
-    void SetClientKey(char *newClientKey, int32_t newClientKeyLen)
-    {
-        client_key_ = newClientKey;
-        client_key_len_ = newClientKeyLen;
-    }
+    void SetClientKey(char *client_key, int32_t client_key_len);
 
     // Sets the sub protocol.
-    void SetSubProtocol(char *newSubProtocol, int32_t newSubProtocolLen)
-    {
-        sub_protocol_ = newSubProtocol;
-        sub_protocol_len_ = newSubProtocolLen;
-    }
+    void SetSubProtocol(char *sub_protocol, int32_t sub_protocol_len);
 
     // Resets the structure.
-    void Reset()
-    {
-        client_key_ = NULL;
-        client_key_len_ = 0;
-
-        sub_protocol_ = NULL;
-        sub_protocol_len_ = 0;
-    }
+    void Reset();
 
     uint32_t UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id);
 

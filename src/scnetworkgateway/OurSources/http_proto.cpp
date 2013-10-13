@@ -60,6 +60,15 @@ const int32_t kHttpNotFoundPrefixLength = static_cast<int32_t> (strlen(kHttpNotF
 const char* const kHttpNotFoundMessage = "URI not found: ";
 const int32_t kHttpNotFoundMessageLength = static_cast<int32_t> (strlen(kHttpNotFoundMessage));
 
+//////////////////////////////////////////////////////////
+/////////////////THREAD STATIC DATA///////////////////////
+//////////////////////////////////////////////////////////
+
+__declspec(thread) http_parser g_ts_http_parser_;
+__declspec(thread) uint8_t g_ts_last_field_;
+__declspec(thread) SocketDataChunk* g_ts_sd_;
+__declspec(thread) HttpRequest* g_ts_http_request_;
+
 // Constructs HTTP 404 response.
 inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_bytes, const char* uri, const int32_t uri_len)
 {
@@ -258,44 +267,40 @@ inline uint32_t GetMethodAndUriLowerCase(
     return SCERRGWNONHTTPPROTOCOL;
 }
 
-inline int HttpWsProto::OnMessageBegin(http_parser* p)
+inline int HttpProto::OnMessageBegin(http_parser* p)
 {
 #ifdef GW_HTTP_DIAG
     GW_COUT << "OnMessageBegin" << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
     return 0;
 }
 
-inline int HttpWsProto::OnHeadersComplete(http_parser* p)
+inline int HttpProto::OnHeadersComplete(http_parser* p)
 {
 #ifdef GW_HTTP_DIAG
     GW_COUT << "OnHeadersComplete" << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
-
     // Setting complete header flag.
-    http->sd_ref_->set_complete_header_flag();
+    g_ts_sd_->set_complete_header_flag();
     
-    // Setting headers length (skipping 4 bytes for \r\n\r\n).
-    http->http_request_.headers_len_bytes_ = p->nread - 4 - http->http_request_.headers_len_bytes_;
+    // Setting headers length (skipping 2 bytes for \r\n).
+    g_ts_http_request_->headers_len_bytes_ = p->nread - 2 - g_ts_http_request_->headers_len_bytes_;
 
     return 0;
 }
 
-inline int HttpWsProto::OnMessageComplete(http_parser* p)
+inline int HttpProto::OnMessageComplete(http_parser* p)
 {
 #ifdef GW_HTTP_DIAG
     GW_COUT << "OnMessageComplete" << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
     return 0;
 }
 
-inline int HttpWsProto::OnUri(http_parser* p, const char *at, size_t length)
+inline int HttpProto::OnUri(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
     char at_ref[256];
@@ -304,16 +309,14 @@ inline int HttpWsProto::OnUri(http_parser* p, const char *at, size_t length)
     GW_COUT << "OnUri: " << at_ref << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
-
     // Setting the reference to URI.
-    http->http_request_.uri_offset_ = static_cast<uint32_t>(at - (char *)(http->sd_ref_));
-    http->http_request_.uri_len_bytes_ = static_cast<uint32_t>(length);
+    g_ts_http_request_->uri_offset_ = static_cast<uint16_t>(at - (char *)g_ts_sd_);
+    g_ts_http_request_->uri_len_bytes_ = static_cast<uint16_t>(length);
 
     return 0;
 }
 
-inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t length)
+inline int HttpProto::OnHeaderField(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
     char at_ref[256];
@@ -322,34 +325,27 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
     GW_COUT << "OnHeaderField: " << at_ref << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
-
     // Determining what header field is that.
-    http->last_field_ = DetermineField(at, length);
-
-    // Saving header offset.
-    http->http_request_.header_offsets_[http->http_request_.num_headers_] = static_cast<uint32_t>(at - (char*)http->sd_ref_);
-    http->http_request_.header_len_bytes_[http->http_request_.num_headers_] = static_cast<uint32_t>(length);
+    g_ts_last_field_ = DetermineField(at, length);
 
     // Setting headers beginning.
-    if (!http->http_request_.headers_offset_)
+    if (!g_ts_http_request_->headers_offset_)
     {
-        http->http_request_.headers_len_bytes_ = static_cast<uint32_t>(p->nread - length - 1);
-        http->http_request_.headers_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
+        g_ts_http_request_->headers_len_bytes_ = static_cast<uint16_t>(p->nread - length - 1);
+        g_ts_http_request_->headers_offset_ = static_cast<uint16_t>(at - (char*)g_ts_sd_);
     }
 
     return 0;
 }
 
 // Processes the session information.
-inline void HttpWsProto::ProcessSessionString(SocketDataChunk* sd, const char* session_id_start)
+inline void HttpProto::ProcessSessionString(SocketDataChunk* sd, const char* session_id_start)
 {
     // Parsing the session.
     sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
 
     // Setting the session offset.
-    http_request_.session_string_offset_ = static_cast<uint32_t>(session_id_start - (char*)sd);
-    http_request_.session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+    http_request_.session_string_offset_ = static_cast<uint16_t>(session_id_start - (char*)sd);
 
     // Checking if we have session related socket.
     sd->SetGlobalSessionIfEmpty();
@@ -364,12 +360,11 @@ inline void HttpWsProto::ProcessSessionString(SocketDataChunk* sd, const char* s
 
         // Resetting the session information.
         http_request_.session_string_offset_ = 0;
-        http_request_.session_string_len_bytes_ = 0;
         sd->ResetSdSession();
     }*/
 }
 
-inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
+inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
     char at_ref[256];
@@ -378,33 +373,9 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     GW_COUT << "OnHeaderValue: " << at_ref << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
-
-    // Saving header length.
-    http->http_request_.header_value_offsets_[http->http_request_.num_headers_] = static_cast<uint32_t>(at - (char*)http->sd_ref_);
-    http->http_request_.header_value_len_bytes_[http->http_request_.num_headers_] = static_cast<uint32_t>(length);
-
-    // Increasing number of saved headers.
-    http->http_request_.num_headers_++;
-    if (http->http_request_.num_headers_ >= MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS)
-    {
-        // Too many HTTP headers.
-        GW_COUT << "Too many HTTP headers detected, maximum allowed: " << MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS << GW_ENDL;
-        return SCERRGWHTTPTOOMANYHEADERS;
-    }
-
     // Processing last field type.
-    switch (http->last_field_)
+    switch (g_ts_last_field_)
     {
-        case COOKIE_FIELD:
-        {
-            // Setting needed HttpRequest fields.
-            http->http_request_.cookies_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
-            http->http_request_.cookies_len_bytes_ = static_cast<uint32_t>(length);
-
-            break;
-        }
-
         case REFERRER_FIELD:
         case XREFERRER_FIELD:
         {
@@ -415,7 +386,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             if ((MixedCodeConstants::SESSION_STRING_LEN_CHARS < length) &&
                 (*(session_id_start - 1) == '/'))
             {
-               http->ProcessSessionString(http->sd_ref_, session_id_start);
+               g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_id_start);
             }
 
             break;
@@ -424,7 +395,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating content length.
-            http->http_request_.content_len_bytes_ = ParseStringToUint(at, length);
+            g_ts_http_request_->content_len_bytes_ = ParseStringToUint(at, length);
 
             break;
         }
@@ -438,18 +409,10 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
             // Checking if Gzip is accepted.
             if (strstr(atnull, "gzip"))
-                http->http_request_.gzip_accepted_ = true;
+                g_ts_http_request_->gzip_accepted_ = true;
 
             // Restoring old character.
             atnull[length] = c;
-
-            break;
-        }
-
-        case ACCEPT_FIELD:
-        {
-            http->http_request_.accept_value_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
-            http->http_request_.accept_value_len_bytes_ = static_cast<uint32_t>(length);
 
             break;
         }
@@ -466,7 +429,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case WS_KEY_FIELD:
         {
             GW_ASSERT_DEBUG(24 == length);
-            http->ws_proto_.SetClientKey((char *)at, static_cast<int32_t>(length));
+            g_ts_sd_->get_ws_proto()->SetClientKey((char *)at, static_cast<int32_t>(length));
             break;
         }
 
@@ -475,7 +438,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             if (length > 32)
                 return SCERRGWHTTPINCORRECTDATA;
 
-            http->ws_proto_.SetSubProtocol((char *)at, static_cast<int32_t>(length));
+            g_ts_sd_->get_ws_proto()->SetSubProtocol((char *)at, static_cast<int32_t>(length));
             break;
         }
 
@@ -487,31 +450,23 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
             break;
         }
-
-        case COMPRESSION_FIELD:
-        {
-
-            break;
-        }
     }
 
     return 0;
 }
 
-inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
+inline int HttpProto::OnBody(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
     GW_COUT << "OnBody" << GW_ENDL;
 #endif
 
-    HttpWsProto *http = (HttpWsProto *)p;
-
     // Setting content parameters.
-    if (http->http_request_.content_len_bytes_ < 0)
-        http->http_request_.content_len_bytes_ = static_cast<uint32_t>(length);
+    if (g_ts_http_request_->content_len_bytes_ < 0)
+        g_ts_http_request_->content_len_bytes_ = static_cast<uint32_t>(length);
 
     // Setting content data offset.
-    http->http_request_.content_offset_ = static_cast<uint32_t>(at - (char*)http->sd_ref_);
+    g_ts_http_request_->content_offset_ = static_cast<uint16_t>(at - (char*)g_ts_sd_);
 
     return 0;
 }
@@ -522,17 +477,17 @@ http_parser_settings g_httpParserSettings;
 void HttpGlobalInit()
 {
     // Setting HTTP callbacks.
-    g_httpParserSettings.on_body = HttpWsProto::OnBody;
-    g_httpParserSettings.on_header_field = HttpWsProto::OnHeaderField;
-    g_httpParserSettings.on_header_value = HttpWsProto::OnHeaderValue;
-    g_httpParserSettings.on_headers_complete = HttpWsProto::OnHeadersComplete;
-    g_httpParserSettings.on_message_begin = HttpWsProto::OnMessageBegin;
-    g_httpParserSettings.on_message_complete = HttpWsProto::OnMessageComplete;
-    g_httpParserSettings.on_url = HttpWsProto::OnUri;
+    g_httpParserSettings.on_body = HttpProto::OnBody;
+    g_httpParserSettings.on_header_field = HttpProto::OnHeaderField;
+    g_httpParserSettings.on_header_value = HttpProto::OnHeaderValue;
+    g_httpParserSettings.on_headers_complete = HttpProto::OnHeadersComplete;
+    g_httpParserSettings.on_message_begin = HttpProto::OnMessageBegin;
+    g_httpParserSettings.on_message_complete = HttpProto::OnMessageComplete;
+    g_httpParserSettings.on_url = HttpProto::OnUri;
 }
 
 // Determines the correct HTTP handler.
-uint32_t HttpWsProto::HttpUriDispatcher(
+uint32_t HttpProto::HttpUriDispatcher(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_index,
@@ -551,19 +506,19 @@ uint32_t HttpWsProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if already determined further handler.
-        if (INVALID_URI_INDEX != matched_uri_index_)
+        if (INVALID_URI_INDEX != sd->GetMatchedUriIndex())
         {
             // Running determined handler now.
 
             ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
             RegisteredUris* reg_uris = server_port->get_registered_uris();
 
-            return reg_uris->GetEntryByIndex(matched_uri_index_)->RunHandlers(gw, sd, is_handled);
+            return reg_uris->GetEntryByIndex(sd->GetMatchedUriIndex())->RunHandlers(gw, sd, is_handled);
         }
 
         // Checking if we are already passed the WebSockets handshake.
         if (sd->IsWebSocket())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index, is_handled);
+            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
         char* method_and_uri = (char*)sd->get_accum_buf()->get_chunk_orig_buf_ptr();
@@ -625,7 +580,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         RegisteredUris* port_uris = server_port->get_registered_uris();
 
         // Determining which matched handler to pick.
-        int32_t matched_index = INVALID_URI_INDEX;
+        uri_index_type matched_index = INVALID_URI_INDEX;
 
         // Checking if URI matching code is generated.
         if (NULL == port_uris->get_latest_match_uri_func())
@@ -681,11 +636,11 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         }
 
         // Indicating that matching URI index was found.
-        //set_matched_uri_index(matched_index);
+        //sd->SetMatchedUriIndex(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
-        sd->get_http_ws_proto()->http_request_.uri_offset_ = sd->GetAccumOrigBufferSocketDataOffset() + uri_offset;
-        sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
+        sd->get_http_proto()->http_request_.uri_offset_ = sd->GetAccumOrigBufferSocketDataOffset() + uri_offset;
+        sd->get_http_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
         return matched_uri->RunHandlers(gw, sd, is_handled);
@@ -699,8 +654,20 @@ uint32_t HttpWsProto::HttpUriDispatcher(
     return 0;
 }
 
+// Resets the parser related fields.
+void HttpProto::ResetParser(SocketDataChunk* sd)
+{
+    g_ts_last_field_ = UNKNOWN_FIELD;
+    g_ts_http_request_ = sd->get_http_proto()->get_http_request();
+    g_ts_sd_ = sd;
+
+    http_request_.Reset();
+
+    http_parser_init(&g_ts_http_parser_, HTTP_REQUEST);
+}
+
 // Parses the HTTP request and pushes processed data to database.
-uint32_t HttpWsProto::AppsHttpWsProcessData(
+uint32_t HttpProto::AppsHttpWsProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
@@ -720,17 +687,14 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
 
         // Checking if we are already passed the WebSockets handshake.
         if (sd->IsWebSocket())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
-        ResetParser();
-
-        // Attaching a socket.
-        AttachToParser(sd);
+        ResetParser(sd);
 
         // Executing HTTP parser.
         size_t bytes_parsed = http_parser_execute(
-            (http_parser *)this,
+            &g_ts_http_parser_,
             &g_httpParserSettings,
             (const char *)accum_buf->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
@@ -749,14 +713,14 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         }
 
         // Checking if we have WebSockets upgrade.
-        if (http_parser_.upgrade)
+        if (g_ts_http_parser_.upgrade)
         {
 #ifdef GW_WEBSOCKET_DIAG
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
+            return sd->get_ws_proto()->DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
@@ -770,7 +734,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
         else
         {
             // Getting the HTTP method.
-            http_method method = (http_method)http_parser_.method;
+            http_method method = (http_method)g_ts_http_parser_.method;
             switch (method)
             {
             case http_method::HTTP_GET: 
@@ -827,7 +791,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint32_t>(sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
+                    http_request_.content_offset_ = static_cast<uint16_t>(sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -902,59 +866,40 @@ ALL_DATA_ACCUMULATED:
 #endif
 
             // Checking type of response.
-            switch (resp_type_)
-            {
-                case HTTP_STANDARD_RESPONSE:
-                {
-                    // Setting request properties.
-                    http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
-                    http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
+#ifdef GW_PONG_MODE
 
-                    // Resetting user data parameters.
-                    sd->ResetUserDataOffset();
+            // Sending Pong response.
+            err_code = gw->SendPredefinedMessage(sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
+            if (err_code)
+                return err_code;
+
+#else
+
+            // Setting request properties.
+            http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
+            http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
+
+            // Resetting user data parameters.
+            sd->ResetUserDataOffset();
 
 #ifdef GW_LOOPBACK_AGGREGATION
-                    if (sd->GetSocketAggregatedFlag())
-                    {
-                        char body[1024];
-                        int32_t body_len = http_request_.content_len_bytes_;
-                        memcpy(body, (char*)sd + http_request_.content_offset_, body_len);
-                        err_code = gw->SendHttpBody(sd, body, body_len);
-                        if (err_code)
-                            return err_code;
-                    }
-                    else
-#endif
-                    {
-                        // Push chunk to corresponding channel/scheduler.
-                        err_code = gw->PushSocketDataToDb(sd, handler_id);
-                        if (err_code)
-                            return err_code;
-                    }
-
-                    break;
-                }
-                    
-                case HTTP_GATEWAY_PONG_RESPONSE:
-                {
-                    // Sending Pong response.
-                    err_code = gw->SendPredefinedMessage(sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
-                    if (err_code)
-                        return err_code;
-
-                    break;
-                }
-
-                default:
-                {
-                    // Sending no-content response.
-                    err_code = gw->SendPredefinedMessage(sd, kHttpNoContent, kHttpNoContentLength);
-                    if (err_code)
-                        return err_code;
-
-                    break;
-                }
+            if (sd->GetSocketAggregatedFlag())
+            {
+                char body[1024];
+                int32_t body_len = http_request_.content_len_bytes_;
+                memcpy(body, (char*)sd + http_request_.content_offset_, body_len);
+                err_code = gw->SendHttpBody(sd, body, body_len);
+                if (err_code)
+                    return err_code;
             }
+            else
+#endif
+            // Push chunk to corresponding channel/scheduler.
+            err_code = gw->PushSocketDataToDb(sd, handler_id);
+            if (err_code)
+                return err_code;
+
+#endif
 
             // Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
@@ -972,7 +917,7 @@ ALL_DATA_ACCUMULATED:
     {
         // Checking if we are already passed the WebSockets handshake.
         if (sd->IsWebSocket())
-            return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
+            return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
         // Handled successfully.
         *is_handled = true;
@@ -1001,7 +946,7 @@ ALL_DATA_ACCUMULATED:
 #ifdef GW_TESTING_MODE
 
 // Parses the HTTP request and pushes processed data to database.
-uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
+uint32_t HttpProto::GatewayHttpWsProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
@@ -1021,17 +966,14 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
 
         // Checking if we are already passed the WebSockets handshake.
         if (sd->IsWebSocket())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+            return get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
-        ResetParser();
-
-        // Attaching a socket.
-        AttachToParser(sd);
+        ResetParser(sd);
 
         // Executing HTTP parser.
         size_t bytes_parsed = http_parser_execute(
-            (http_parser *)this,
+            &g_ts_http_parser_,
             &g_httpParserSettings,
             (const char *)sd->get_accum_buf()->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
@@ -1050,14 +992,14 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
         }
 
         // Checking if we have WebSockets upgrade.
-        if (http_parser_.upgrade)
+        if (g_ts_http_parser_.upgrade)
         {
 #ifdef GW_WEBSOCKET_DIAG
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
+            return get_ws_proto()->DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
@@ -1069,7 +1011,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
         else
         {
             // Getting the HTTP method.
-            http_method method = (http_method)http_parser_.method;
+            http_method method = (http_method)g_ts_http_parser_.method;
             switch (method)
             {
             case http_method::HTTP_GET: 
@@ -1126,7 +1068,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint32_t> (sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
+                    http_request_.content_offset_ = static_cast<uint16_t> (sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
 
                     num_content_bytes_received = 0;
                 }
@@ -1269,7 +1211,7 @@ SEND_HTTP_ECHO_TO_MASTER:
 // HTTP/WebSockets handler for Gateway.
 uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_ws_proto()->GatewayHttpWsProcessEcho(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->GatewayHttpWsProcessEcho(gw, sd, handler_id, is_handled);
 }
 
 #endif
@@ -1277,13 +1219,13 @@ uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAN
 // Outer HTTP/WebSockets handler.
 uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_ws_proto()->HttpUriDispatcher(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->HttpUriDispatcher(gw, sd, handler_id, is_handled);
 }
 
 // HTTP/WebSockets handler for Apps.
 uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_ws_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
 }
 
 #ifdef GW_PROXY_MODE
@@ -1291,11 +1233,11 @@ uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLE
 // HTTP/WebSockets handler for Gateway proxy.
 uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_ws_proto()->GatewayHttpWsReverseProxy(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->GatewayHttpWsReverseProxy(gw, sd, handler_id, is_handled);
 }
 
 // Reverse proxies the HTTP traffic.
-uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
+uint32_t HttpProto::GatewayHttpWsReverseProxy(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
@@ -1357,7 +1299,7 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
         sd->get_accum_buf()->PrepareForSend();
 
         // Getting proxy information.
-        ReverseProxyInfo* proxy_info = g_gateway.SearchProxiedServerAddress((char*)sd + sd->get_http_ws_proto()->http_request_.uri_offset_);
+        ReverseProxyInfo* proxy_info = g_gateway.SearchProxiedServerAddress((char*)sd + sd->get_http_proto()->http_request_.uri_offset_);
 
         // Connecting to the server.
         return gw->Connect(sd, &proxy_info->addr_);

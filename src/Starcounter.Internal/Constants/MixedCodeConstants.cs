@@ -35,19 +35,9 @@ namespace Starcounter.Internal
         public const int BMX_HEADER_MAX_SIZE_BYTES = 32;
 
         /// <summary>
-        /// OVERLAPPED_SIZE
-        /// </summary>
-        public const int OVERLAPPED_SIZE = 32;
-
-        /// <summary>
         /// Offset of socket data in chunk.
         /// </summary>
         public const int CHUNK_OFFSET_SOCKET_DATA = BMX_HEADER_MAX_SIZE_BYTES;
-
-        /// <summary>
-        /// Offset of session in chunk.
-        /// </summary>
-        public const int CHUNK_OFFSET_SESSION = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
 
         /// <summary>
         /// Data offset/size constants. 
@@ -55,34 +45,14 @@ namespace Starcounter.Internal
         public const int BMX_HANDLER_SIZE = 2;
 
         /// <summary>
-        /// Chunk session scheduler id offset.
-        /// </summary>
-        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = CHUNK_OFFSET_SESSION;
-
-        /// <summary>
-        /// Chunk session linear index offset.
-        /// </summary>
-        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = CHUNK_OFFSET_SESSION_SCHEDULER_ID + 4;
-
-        /// <summary>
-        /// Chunk session random salt offset.
-        /// </summary>
-        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = CHUNK_OFFSET_SESSION_LINEAR_INDEX + 4;
-
-        /// <summary>
-        /// Chunk session view model index offset.
-        /// </summary>
-        public const int CHUNK_OFFSET_SESSION_RESERVED_INDEX = CHUNK_OFFSET_SESSION_RANDOM_SALT + 8;
-
-        /// <summary>
         /// Session string length in characters.
         /// </summary>
-        public const int SESSION_STRING_LEN_CHARS = 32;
+        public const int SESSION_STRING_LEN_CHARS = 24;
 
         /// <summary>
         /// Size of the session structure in bytes.
         /// </summary>
-        public const int SESSION_STRUCT_SIZE = 24;
+        public const int SESSION_STRUCT_SIZE = 16;
 
         /// <summary>
         /// Just send flag.
@@ -113,37 +83,28 @@ namespace Starcounter.Internal
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
-
-        /// <summary>
-        /// Offset in bytes for the session.
-        /// </summary>
-        public const int SOCKET_DATA_OFFSET_SESSION = 32;
-
+        
         /// <summary>
         /// Offsets in socket data and chunk.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 624;
-        public const int SOCKET_DATA_OFFSET_BLOB = 688;
-        public const int CHUNK_OFFSET_NUM_CHUNKS = 124;
-        public const int CHUNK_OFFSET_SOCKET_FLAGS = 128;
-        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 102;
-        public const int SOCKET_DATA_OFFSET_CLIENT_IP = 64;
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 184;
-        public const int SOCKET_DATA_NUM_CLONE_BYTES = 104;
-        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 108;
-        public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 56;
-        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 72;
-        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 561;
-
-        /// <summary>
-        /// Max user data offset in chunk.
-        /// </summary>
-        public const int CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA + 4;
-
-        /// <summary>
-        /// User data written bytes offset.
-        /// </summary>
-        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
+        public const int SOCKET_DATA_OFFSET_SESSION = 176;
+        public const int CHUNK_OFFSET_SESSION = 208;
+        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 220;
+        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 216;
+        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 208;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 192;
+        public const int SOCKET_DATA_OFFSET_BLOB = 256;
+        public const int CHUNK_OFFSET_NUM_CHUNKS = 100;
+        public const int CHUNK_OFFSET_SOCKET_FLAGS = 92;
+        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 74;
+        public const int SOCKET_DATA_OFFSET_CLIENT_IP = 40;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 128;
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 192;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 102;
+        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 84;
+        public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 32;
+        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 48;
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 171;
         
         /// <summary>
         /// Maximum number of URI callback parameters.
@@ -158,7 +119,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunk size.
         /// </summary>
-        public const int SHM_CHUNK_SIZE = 1 << 11; // 2K chunks.
+        public const int SHM_CHUNK_SIZE = 1 << 10; // 1K chunks.
 
         /// <summary>
         /// Shared memory chunks default number.
@@ -191,19 +152,9 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_MAX_SIZE = CHUNK_MAX_DATA_BYTES - CHUNK_OFFSET_SOCKET_DATA;
 
         /// <summary>
-        /// MAX_PREPARSED_HTTP_REQUEST_HEADERS
-        /// </summary>
-        public const int MAX_PREPARSED_HTTP_REQUEST_HEADERS = 16;
-
-        /// <summary>
         /// Size of socket data blob.
         /// </summary>
         public const int SOCKET_DATA_BLOB_SIZE_BYTES = SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
-
-        /// <summary>
-        /// MAX_PREPARSED_HTTP_RESPONSE_HEADERS
-        /// </summary>
-        public const int MAX_PREPARSED_HTTP_RESPONSE_HEADERS = 32;
 
         // Maximum URI string length.
         public const int MAX_URI_STRING_LEN = 512;

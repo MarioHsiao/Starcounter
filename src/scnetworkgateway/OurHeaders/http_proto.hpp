@@ -5,16 +5,6 @@
 namespace starcounter {
 namespace network {
 
-// Type of HTTP/WebSockets response.
-enum HttpWsResponseType
-{
-    HTTP_NO_CONTENT_RESPONSE,
-    HTTP_STANDARD_RESPONSE,
-    HTTP_GATEWAY_PONG_RESPONSE,
-    WS_HANDSHAKE_RESPONSE,
-    WS_BAD_REQUEST_RESPONSE
-};
-
 void HttpGlobalInit();
 class WsProto;
 class GatewayWorker;
@@ -328,7 +318,7 @@ public:
     }
 
     // Runs the generated URI matcher and gets handler information as a result.
-    int32_t RunCodegenUriMatcher(char* uri_info, uint32_t uri_info_len, uint8_t* params_storage)
+    uri_index_type RunCodegenUriMatcher(char* uri_info, uint32_t uri_info_len, uint8_t* params_storage)
     {
         // Pointing to parameters storage.
         MixedCodeConstants::UserDelegateParamInfo** out_params = (MixedCodeConstants::UserDelegateParamInfo**)&params_storage;
@@ -509,10 +499,10 @@ public:
     }
 
     // Find certain URI entry.
-    int32_t FindRegisteredUri(const char* processed_uri_info)
+    uri_index_type FindRegisteredUri(const char* processed_uri_info)
     {
         // Going through all entries.
-        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
+        for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Doing exact comparison.
             if (!strcmp(processed_uri_info, reg_uris_[i].get_processed_uri_info()))
@@ -526,38 +516,12 @@ public:
     }
 };
 
-class HttpWsProto
+class HttpProto
 {
-    // HttpProto is also an http_parser.
-    http_parser http_parser_;
-
     // Structure that holds HTTP request.
     HttpRequest http_request_;
 
-    // To which socket this instance belongs.
-    SocketDataChunk* sd_ref_;
-
-    // Index to already determined URI.
-    uint32_t matched_uri_index_;
-
-    // WebSocket related data.
-    HttpWsFields last_field_;
-    HttpWsResponseType resp_type_;
-    WsProto ws_proto_;
-
 public:
-
-    // WebSockets protocol info.
-    WsProto* get_ws_proto()
-    {
-        return &ws_proto_;
-    }
-
-    // Setting matching URI index.
-    void set_matched_uri_index(uint32_t value)
-    {
-        matched_uri_index_ = value;
-    }
 
     // Getting HTTP request.
     HttpRequest* get_http_request()
@@ -577,35 +541,14 @@ public:
     // Processes the session information.
     void ProcessSessionString(SocketDataChunk* sd, const char* session_id_start);
 
-    // Initializes HTTP structure.
-    void Init()
-    {
-        // Initializing WebSocket data.
-        Reset();
-        sd_ref_ = NULL;
-    }
-
     // Resets the HTTP/WS structure.
     void Reset()
     {
-        matched_uri_index_ = INVALID_URI_INDEX;
-        ws_proto_.Reset();
+        
     }
 
     // Resets the parser related fields.
-    void ResetParser()
-    {
-        last_field_ = UNKNOWN_FIELD;
-        resp_type_ = HTTP_STANDARD_RESPONSE;
-
-#ifdef GW_PONG_MODE
-        resp_type_ = HTTP_GATEWAY_PONG_RESPONSE;
-#endif
-
-        http_request_.Reset();
-
-        http_parser_init((http_parser *)this, HTTP_REQUEST);
-    }
+    void ResetParser(SocketDataChunk* sd);
 
     // Entry point for outer data processing.
     uint32_t HttpUriDispatcher(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
@@ -629,12 +572,6 @@ public:
         BMX_HANDLER_TYPE handler_id,
         bool* is_handled);
 #endif
-
-    // Attaching socket data and gateway worker to parser.
-    void AttachToParser(SocketDataChunkRef sd)
-    {
-        sd_ref_ = sd;
-    }
 };
 
 const char* const kHttpStatsHeader =

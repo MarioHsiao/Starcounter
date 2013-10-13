@@ -6,7 +6,7 @@ namespace starcounter {
 namespace network {
 
 class GatewayWorker;
-class HttpWsProto;
+class HttpProto;
 
 enum SOCKET_DATA_FLAGS
 {
@@ -35,9 +35,6 @@ class SocketDataChunk
     // (must be 8-bytes aligned).
     OVERLAPPED ovl_;
 
-    // Starcounter session information.
-    ScSessionStruct session_;
-
     /////////////////////////
     // 8 bytes aligned data.
     /////////////////////////
@@ -55,24 +52,28 @@ class SocketDataChunk
     // Socket identifier.
     session_index_type socket_info_index_;
 
-    // Offset in bytes from the beginning of the socket data to place
-    // where user data should be written.
-    uint32_t user_data_offset_in_socket_data_;
-
-    // Maximum bytes that user code can write to this chunk.
-    uint32_t max_user_data_bytes_;
-
     // Size in bytes of written user data.
     uint32_t user_data_written_bytes_;
 
     // Corresponding chunk index.
     core::chunk_index chunk_index_;
 
-    // Indicates how many chunks are associated with this socket data (normally 1).
-    uint32_t num_chunks_;
-
     // Socket data flags.
     uint32_t flags_;
+
+    // Aggregation unique index.
+    uint32_t unique_aggr_index_;
+
+    /////////////////////////
+    // 2 bytes aligned data.
+    /////////////////////////
+
+    // Indicates how many chunks are associated with this socket data (normally 1).
+    uint16_t num_chunks_;
+
+    // Offset in bytes from the beginning of the socket data to place
+    // where user data should be written.
+    uint16_t user_data_offset_in_socket_data_;
 
     /////////////////////////
     // 1 bytes aligned data.
@@ -98,12 +99,13 @@ class SocketDataChunk
     AccumBuffer accum_buf_;
 
     // HTTP protocol instance.
-    HttpWsProto http_ws_proto_;
+    HttpProto http_proto_;
 
-    // Pointer to gateway chunk if any.
-    GatewayMemoryChunk* gw_chunk_;
+    // WebSocket related data.
+    WsProto ws_proto_;
 
-    struct { int64_t unique_aggr_index_; uint64_t unused_; } align_16bytes;
+    // Starcounter session information.
+    ScSessionStruct session_;
 
     // Accept or parameters or temporary data.
     uint8_t accept_or_params_or_temp_data_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
@@ -113,17 +115,29 @@ class SocketDataChunk
 
 public:
 
+    // Get Http protocol instance.
+    HttpProto* get_http_proto()
+    {
+        return &http_proto_;
+    }
+
+    // WebSockets protocol info.
+    WsProto* get_ws_proto()
+    {
+        return &ws_proto_;
+    }
+
     // Returns gateway chunk to gateway if any.
     void ReturnGatewayChunk();
 
-    int64_t get_unique_aggr_index()
+    session_index_type get_unique_aggr_index()
     {
-        return align_16bytes.unique_aggr_index_;
+        return unique_aggr_index_;
     }
 
-    void set_unique_aggr_index(int64_t unique_aggr_index)
+    void set_unique_aggr_index(session_index_type unique_aggr_index)
     {
-        align_16bytes.unique_aggr_index_ = unique_aggr_index;
+        unique_aggr_index_ = unique_aggr_index;
     }
 
     // Gets socket data accumulated data offset.
@@ -154,9 +168,33 @@ public:
         uint8_t* sd = (uint8_t*) this;
         uint8_t* smc = (uint8_t*)get_smc();
 
-        /*
+        std::cout << "offset ovl_ = "<< ((uint8_t*)&ovl_ - sd) << std::endl;
+        std::cout << "offset session_ = "<< ((uint8_t*)&session_ - sd) << std::endl;
+        std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
+        std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
+        std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
+        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&user_data_written_bytes_ - sd) << std::endl;
+        std::cout << "offset chunk_index_ = "<< ((uint8_t*)&chunk_index_ - sd) << std::endl;
+        std::cout << "offset flags_ = "<< ((uint8_t*)&flags_ - sd) << std::endl;
+        std::cout << "offset unique_aggr_index_ = "<< ((uint8_t*)&unique_aggr_index_ - sd) << std::endl;
+        std::cout << "offset num_chunks_ = "<< ((uint8_t*)&num_chunks_ - sd) << std::endl;
+        std::cout << "offset user_data_offset_in_socket_data_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
+        std::cout << "offset db_index_ = "<< ((uint8_t*)&db_index_ - sd) << std::endl;
+        std::cout << "offset type_of_network_oper_ = "<< ((uint8_t*)&type_of_network_oper_ - sd) << std::endl;
+        std::cout << "offset type_of_network_protocol_ = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
+        std::cout << "offset target_db_index_ = "<< ((uint8_t*)&target_db_index_ - sd) << std::endl;
+        std::cout << "offset accum_buf_ = "<< ((uint8_t*)&accum_buf_ - sd) << std::endl;
+        std::cout << "offset http_proto_ = "<< ((uint8_t*)&http_proto_ - sd) << std::endl;
+        std::cout << "offset ws_proto_ = "<< ((uint8_t*)&ws_proto_ - sd) << std::endl;
+        std::cout << "offset accept_or_params_or_temp_data_ = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
+        std::cout << "offset data_blob_ = "<< ((uint8_t*)&data_blob_ - sd) << std::endl;
+
+        std::cout << std::endl;
+        std::cout << std::endl;
+
         std::cout << "sizeof AccumBuffer = "<< sizeof(AccumBuffer) << std::endl;
-        std::cout << "sizeof HttpWsProto = "<< sizeof(HttpWsProto) << std::endl;
+        std::cout << "sizeof HttpProto = "<< sizeof(HttpProto) << std::endl;
+        std::cout << "sizeof WsProto = "<< sizeof(WsProto) << std::endl;
         std::cout << "sizeof accept_or_params_or_temp_data_ = "<< sizeof(accept_or_params_or_temp_data_) << std::endl;
         std::cout << "sizeof ScSessionStruct = "<< sizeof(ScSessionStruct) << std::endl;
         std::cout << "sizeof HttpRequest = "<< sizeof(HttpRequest) << std::endl;
@@ -164,28 +202,46 @@ public:
         std::cout << "sizeof WsProto = "<< sizeof(WsProto) << std::endl;
         std::cout << "sizeof OVERLAPPED = "<< sizeof(OVERLAPPED) << std::endl;
 
-        std::cout << "offset ovl_ = "<< ((uint8_t*)&ovl_ - sd) << std::endl;
-        std::cout << "offset session_ = "<< ((uint8_t*)&session_ - sd) << std::endl;
-        std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
-        std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
-        std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
-        std::cout << "offset user_data_offset_in_socket_data_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
-        std::cout << "offset max_user_data_bytes_ = "<< ((uint8_t*)&max_user_data_bytes_ - sd) << std::endl;
-        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&user_data_written_bytes_ - sd) << std::endl;
-        */
+        std::cout << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "SOCKET_DATA_OFFSET_SESSION = " << ((uint8_t*)&session_ - sd) << std::endl;
+        std::cout << "CHUNK_OFFSET_SESSION = " << ((uint8_t*)&session_ - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_SESSION_SCHEDULER_ID = "<< (&session_.scheduler_id_ - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_SESSION_LINEAR_INDEX = "<< ((uint8_t*)&session_.linear_index_ - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_SESSION_RANDOM_SALT = "<< ((uint8_t*)&session_.random_salt_ - smc) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_PARAMS_INFO = "<< (accept_or_params_or_temp_data_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_BLOB = "<< (data_blob_ - sd) << std::endl;
+        std::cout << "CHUNK_OFFSET_NUM_CHUNKS = "<< ((uint8_t*)&num_chunks_ - smc) << std::endl;
+
+        std::cout << "CHUNK_OFFSET_SOCKET_FLAGS = "<< ((uint8_t*)&flags_ - smc) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_CLIENT_IP = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_HTTP_REQUEST = "<< ((uint8_t*)get_http_proto()->get_http_request() - sd) << std::endl;
+        std::cout << "SOCKET_DATA_NUM_CLONE_BYTES = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
+        std::cout << "CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - smc) << std::endl;
+
+        std::cout << "CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = "<< ((uint8_t*)&user_data_written_bytes_ - smc) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
         GW_ASSERT(8 == sizeof(BMX_HANDLER_TYPE));
         GW_ASSERT(4 == sizeof(core::chunk_index));
+        GW_ASSERT(16 == sizeof(ScSessionStruct));
+        GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
         GW_ASSERT(MixedCodeConstants::SHM_CHUNK_SIZE == starcounter::core::chunk_size);
         GW_ASSERT(MixedCodeConstants::CHUNK_LINK_SIZE == shared_memory_chunk::link_size);
 
+        GW_ASSERT((sd - smc) == MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+
+        GW_ASSERT(((uint8_t*)&session_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION);
         GW_ASSERT((&session_.scheduler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_SCHEDULER_ID);
         GW_ASSERT(((uint8_t*)&session_.linear_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
         GW_ASSERT(((uint8_t*)&session_.random_salt_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
-        GW_ASSERT(((uint8_t*)&session_.reserved_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RESERVED_INDEX);
 
         GW_ASSERT((accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
 
@@ -199,13 +255,11 @@ public:
 
         GW_ASSERT(((uint8_t*)&client_ip_info_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_CLIENT_IP);
 
-        GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
+        GW_ASSERT(((uint8_t*)get_http_proto()->get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
-        GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
+        GW_ASSERT(((uint8_t*)&accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
 
         GW_ASSERT(((uint8_t*)&user_data_offset_in_socket_data_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
-
-        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_MAX_USER_DATA_BYTES);
 
         GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
 
@@ -213,7 +267,11 @@ public:
 
         GW_ASSERT(((uint8_t*)&socket_info_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
 
-        GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+        GW_ASSERT((&get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+
+        GatewayMemoryChunk gmc;
+        int32_t temp = static_cast<int32_t>((uint8_t*)&gmc.buf_ - (uint8_t*)&gmc);
+        GW_ASSERT(BufOffsetWithinGatewayMemoryChunk == temp);
 
         return 0;
     }
@@ -579,6 +637,18 @@ public:
         return g_gateway.GetSocketAggregatedFlag(socket_info_index_);
     }
 
+    // Getting matched URI index.
+    uri_index_type GetMatchedUriIndex()
+    {
+        return g_gateway.GetMatchedUriIndex(socket_info_index_);
+    }
+
+    // Setting matched URI index.
+    void SetMatchedUriIndex(uri_index_type uri_index)
+    {
+        return g_gateway.SetMatchedUriIndex(socket_info_index_, uri_index);
+    }
+
     // Getting saved user handler id.
     BMX_HANDLER_TYPE GetSavedUserHandlerId()
     {
@@ -758,7 +828,7 @@ public:
     }
 
     // Returns number of used chunks.
-    uint32_t get_num_chunks()
+    uint16_t get_num_chunks()
     {
         return num_chunks_;
     }
@@ -773,12 +843,6 @@ public:
         uint32_t head_chunk_offset_bytes,
         uint32_t head_chunk_num_bytes,
         uint32_t total_bytes);
-
-    // Get Http protocol instance.
-    HttpWsProto* get_http_ws_proto()
-    {
-        return &http_ws_proto_;
-    }
 
     // Overlapped structure used for WinSock.
     OVERLAPPED* get_ovl()
@@ -812,17 +876,14 @@ public:
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
-    void set_user_data_offset_in_socket_data(uint32_t user_data_offset_in_socket_data)
+    void set_user_data_offset_in_socket_data(uint16_t user_data_offset_in_socket_data)
     {
         user_data_offset_in_socket_data_ = user_data_offset_in_socket_data;
-
-        // Correcting max user data bytes accordingly.
-        max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
-    uint32_t get_user_data_offset_in_socket_data()
+    uint16_t get_user_data_offset_in_socket_data()
     {
         return user_data_offset_in_socket_data_;
     }
@@ -848,11 +909,8 @@ public:
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
-        // Checking if gateway chunk is used.
-        if (gw_chunk_)
-            accum_buf_.Init(gw_chunk_->buffer_len_bytes_, gw_chunk_->buf_, true);
-        else
-            accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
+        GW_ASSERT(false == get_big_accumulation_chunk_flag());
+        accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 
     // Index into target databases array.
@@ -931,8 +989,6 @@ public:
     void ResetUserDataOffset()
     {
         user_data_offset_in_socket_data_ = static_cast<uint32_t> (data_blob_ - (uint8_t*)this);
-
-        max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
 
     // Start receiving on socket.
