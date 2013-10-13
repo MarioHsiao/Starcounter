@@ -17,16 +17,14 @@ void SocketDataChunk::Init(
     db_index_type db_index,
     core::chunk_index chunk_index)
 {
+    flags_ = 0;
+
     socket_info_index_ = INVALID_SESSION_INDEX;
 
-    // Obtaining corresponding port handler.
     db_index_ = db_index;
 
-    // Resets data buffer offset.
     ResetUserDataOffset();
 
-    // Calculating maximum size of user data.
-    max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES;
     user_data_written_bytes_ = 0;
     socket_info_index_ = socket_info_index;
     
@@ -37,31 +35,29 @@ void SocketDataChunk::Init(
     // Checking if its an aggregation socket.
     if (g_gateway.IsAggregatingPort(socket_info_index))
     {
-        gw_chunk_ = g_gateway.ObtainGatewayMemoryChunk();
+        GatewayMemoryChunk* gw_chunk = g_gateway.ObtainGatewayMemoryChunk();
         set_big_accumulation_chunk_flag();
+        accum_buf_.Init(gw_chunk->buffer_len_bytes_, gw_chunk->buf_, true);
     }
     else
     {
-        gw_chunk_ = NULL;
+        // Configuring data buffer.
+        ResetAccumBuffer();
     }
 
-    // Configuring data buffer.
-    ResetAccumBuffer();
-
-    flags_ = 0;
     set_to_database_direction_flag();
     target_db_index_ = INVALID_DB_INDEX;
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
-    // Setting unique socket id.
     set_unique_socket_id(g_gateway.GetUniqueSocketId(socket_info_index));
 
     num_chunks_ = 1;
 
     // Initializing HTTP/WEBSOCKETS data structures.
-    http_ws_proto_.Init();
+    get_http_proto()->Reset();
+    get_ws_proto()->Reset();
 }
 
 // Resetting socket.
@@ -81,7 +77,8 @@ void SocketDataChunk::Reset()
     session_.Reset();
 
     // Resetting HTTP/WS stuff.
-    http_ws_proto_.Reset();
+    get_http_proto()->Reset();
+    get_ws_proto()->Reset();
 
     // Configuring data buffer.
     ResetAccumBuffer();
@@ -110,9 +107,8 @@ void SocketDataChunk::ReturnGatewayChunk()
 {
     if (get_big_accumulation_chunk_flag())
     {
-        g_gateway.ReturnGatewayMemoryChunk(gw_chunk_);
+        g_gateway.ReturnGatewayMemoryChunk(FromBufToMemoryChunk(accum_buf_.get_chunk_orig_buf_ptr()));
         reset_big_accumulation_chunk_flag();
-        gw_chunk_ = NULL;
     }
 }
 
@@ -363,7 +359,7 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     shared_memory_chunk* prev_db_smc;
 
     // Copying all linked chunks.
-    for (int32_t i = 0; i < static_cast<int32_t>(num_chunks_ - 1); i++)
+    for (uint16_t i = 0; i < num_chunks_ - 1; i++)
     {
         GW_ASSERT(INVALID_CHUNK_INDEX != prev_db_chunk_index);
 

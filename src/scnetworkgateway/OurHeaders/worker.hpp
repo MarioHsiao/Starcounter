@@ -121,7 +121,7 @@ public:
     }
 
     // Processes looped queue.
-    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, ULONG* removedOvlsNum, int32_t max_fetched);
+    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, uint32_t* removedOvlsNum, int32_t max_fetched);
 
 #endif
 

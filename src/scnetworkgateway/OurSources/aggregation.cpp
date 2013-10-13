@@ -150,7 +150,7 @@ WRITE_TO_AGGR_SD:
     {
         // Checking if data fits in socket data.
         AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
-        ULONG total_num_bytes = sd->get_user_data_written_bytes() + AggregationStructSizeBytes;
+        uint32_t total_num_bytes = sd->get_user_data_written_bytes() + AggregationStructSizeBytes;
 
         // NOTE: Asserting that maximum data to send fits in big aggregation chunk.
         GW_ASSERT(total_num_bytes < aggr_accum_buf->get_chunk_orig_buf_len_bytes());
@@ -173,7 +173,7 @@ WRITE_TO_AGGR_SD:
             }
             else
             {
-                ULONG bytes_left = total_num_bytes;
+                uint32_t bytes_left = total_num_bytes;
 
                 int32_t cur_chunk_data_size = AggregationStructSizeBytes + MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data();
 

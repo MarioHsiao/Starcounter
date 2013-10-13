@@ -375,7 +375,7 @@ public:
     }
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
-    void ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+    void ReturnLinkedChunksToPool(uint16_t num_linked_chunks, core::chunk_index& first_linked_chunk);
 
     // Returns all chunks from private pool to shared.
     void ReturnAllPrivateChunksToSharedPool();

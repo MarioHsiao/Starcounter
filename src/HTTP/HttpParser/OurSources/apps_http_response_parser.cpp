@@ -55,8 +55,8 @@ inline int HttpResponseOnHeadersComplete(http_parser* p)
     // Setting complete header flag.
     http->complete_header_flag_ = true;
 
-    // Setting headers length (skipping 4 bytes for \r\n\r\n).
-    http->http_response_->headers_len_bytes_ = p->nread - 4 - http->http_response_->headers_len_bytes_;
+    // Setting headers length (skipping 2 bytes for \r\n).
+    http->http_response_->headers_len_bytes_ = p->nread - 2 - http->http_response_->headers_len_bytes_;
 
     return 0;
 }
@@ -81,10 +81,6 @@ inline int HttpResponseOnHeaderField(http_parser* p, const char *at, size_t leng
     // Determining what header field is that.
     http->last_field_ = DetermineField(at, length);
 
-    // Saving header offset.
-    http->http_response_->header_offsets_[http->http_response_->num_headers_] = (uint32_t)(at - (char*)http->response_buf_);
-    http->http_response_->header_len_bytes_[http->http_response_->num_headers_] = (uint32_t)length;
-
     // Setting headers beginning.
     if (!http->http_response_->headers_offset_)
     {
@@ -99,31 +95,9 @@ inline int HttpResponseOnHeaderValue(http_parser* p, const char *at, size_t leng
 {
     HttpResponseParserStruct *http = (HttpResponseParserStruct *)p;
 
-    // Saving header length.
-    http->http_response_->header_value_offsets_[http->http_response_->num_headers_] = (uint32_t)(at - (char*)http->response_buf_);
-    http->http_response_->header_value_len_bytes_[http->http_response_->num_headers_] = (uint32_t)length;
-
-    // Increasing number of saved headers.
-    http->http_response_->num_headers_++;
-    if (http->http_response_->num_headers_ >= MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS)
-    {
-        // Too many HTTP headers.
-        std::cout << "Too many HTTP headers detected, maximum allowed: " << MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS << std::endl;
-        return 1;
-    }
-
     // Processing last field type.
     switch (http->last_field_)
     {
-        case SET_COOKIE_FIELD:
-        {
-            // Setting needed HttpResponse fields.
-            http->http_response_->set_cookies_offset_ = (uint32_t)(at - (char*)http->response_buf_);
-            http->http_response_->set_cookies_len_bytes_ = (uint32_t)length;
-
-            break;
-        }
-
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
@@ -188,8 +162,8 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
 
     // TODO: Check body length.
 
-    // Setting response properties.
-    http_response->response_len_bytes_ = http_response->headers_offset_ + http_response->headers_len_bytes_ + 4 + http_response->content_len_bytes_;
+    // Setting response properties (+2 for \r\n between headers and body).
+    http_response->response_len_bytes_ = http_response->headers_offset_ + http_response->headers_len_bytes_ + 2 + http_response->content_len_bytes_;
 
     // Setting status code.
     http_response->status_code_ = thread_http_response_parser.http_parser_.status_code;

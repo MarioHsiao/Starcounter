@@ -151,8 +151,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef proxy_sd)
 #endif
 
         // Putting socket into non-blocking mode.
-        ULONG ul = 1;
-        uint32_t temp;
+        uint32_t ul = 1, temp;
         if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
         {
 #ifdef GW_ERRORS_DIAG
@@ -307,8 +306,7 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 #endif
 
             // Putting socket into non-blocking mode.
-            ULONG ul = 1;
-            uint32_t temp;
+            uint32_t ul = 1, temp;
             if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
             {
 #ifdef GW_ERRORS_DIAG
@@ -1377,7 +1375,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 {
     BOOL compl_status = false;
     OVERLAPPED_ENTRY* fetched_ovls = new OVERLAPPED_ENTRY[MAX_FETCHED_OVLS];
-    ULONG num_fetched_ovls = 0;
+    uint32_t num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
     uint32_t next_sleep_interval_ms = INFINITE;
@@ -1399,7 +1397,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 #ifdef GW_LOOPED_TEST_MODE
         compl_status = ProcessEmulatedNetworkOperations(fetched_ovls, &num_fetched_ovls, MAX_FETCHED_OVLS);
 #else
-        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, &num_fetched_ovls, next_sleep_interval_ms, TRUE);
+        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, (PULONG)&num_fetched_ovls, next_sleep_interval_ms, TRUE);
 #endif
 
 #ifdef GW_PROFILER_ON
@@ -1938,7 +1936,7 @@ uint32_t GatewayWorker::SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id)
 // Processes emulated network operations.
 bool GatewayWorker::ProcessEmulatedNetworkOperations(
     OVERLAPPED_ENTRY* fetched_ovls,
-    ULONG* num_fetched_ovls,
+    uint32_t* num_fetched_ovls,
     int32_t max_fetched)
 {
     int32_t num_processed = 0, num_entries_left;
