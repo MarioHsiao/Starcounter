@@ -86,7 +86,7 @@ namespace Starcounter {
                     this.Dirtyfy();
                 }
             }
-            //this.HasChanged(property);
+            this.HasChanged(property);
         }
 
         /// <summary>
