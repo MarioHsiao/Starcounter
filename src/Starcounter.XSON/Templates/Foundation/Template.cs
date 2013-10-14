@@ -41,7 +41,11 @@ namespace Starcounter.Templates {
             }
         }
 
-        public bool IsArray { get; set; }
+		public virtual bool IsArray {
+			get { 
+				return false;
+			}
+		}
 
 
         private bool _Dynamic = false;
