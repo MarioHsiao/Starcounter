@@ -13,7 +13,7 @@ namespace Starcounter.Server {
     /// that exit.
     /// </summary>
     internal sealed class DatabaseEngineMonitor {
-        readonly LogSource log = ServerLogSources.Default;
+        readonly LogSource log = ServerLogSources.Processes;
         
         /// <summary>
         /// Gets the server that has instantiated this monitor.
