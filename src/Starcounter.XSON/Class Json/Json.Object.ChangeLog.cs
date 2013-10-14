@@ -39,7 +39,7 @@ namespace Starcounter {
                     var property = tjson.Properties[t];
                     if (property is TValue) {
                         var tval = property as TValue;
-                        if (!tval.IsArray && tval.UseBinding(json.DataAsBindable)) {
+                        if (!(tval is TContainer) && tval.UseBinding(json.DataAsBindable)) {
                             values[t] = json.GetBound(tval);
                         }
                     }
@@ -183,7 +183,7 @@ namespace Starcounter {
             }
             else if (template.HasAtLeastOneBoundProperty) {
                 for (int t = 0; t < exposed.Count; t++) {
-					var value = list[exposed[t].TemplateIndex];
+					var value = this[exposed[t].TemplateIndex]; //list[exposed[t].TemplateIndex];
                     if (value is Json) {
                         ((Json)value).LogValueChangesWithDatabase(session);
                     }
