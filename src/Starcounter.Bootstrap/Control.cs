@@ -294,6 +294,8 @@ namespace StarcounterInternal.Bootstrap
 
                 OnAutoStartModuleExecuted();
             }
+
+            OnCodeHostBootCompleted();
                 
             // Receive until we are told to shutdown.
 
@@ -548,8 +550,12 @@ namespace StarcounterInternal.Bootstrap
         private Stopwatch stopwatch_;
         
         [Conditional("TRACE")]
-        private void Trace(string message)
+        private void Trace(string message, bool restartWatch = false)
         {
+            if (restartWatch) {
+                stopwatch_.Restart();
+                ticksElapsedBetweenProcessStartAndMain_ = 0;
+            }
             long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
             Diagnostics.WriteTrace("control", elapsedTicks, message);
 
@@ -588,10 +594,11 @@ namespace StarcounterInternal.Bootstrap
         private void OnNetworkGatewayConnected() { Trace("Network gateway connected."); }
         private void OnArgumentsParsed() { Trace("Command line arguments parsed."); }
         private void OnAutoStartModuleExecuted() { Trace("Auto start module executed."); }
+        private void OnCodeHostBootCompleted() { Trace("Booting completed."); }
 
         private void OnEndStart() { Trace("Start completed."); }
 
-        private void OnEndRun() { Trace("Run completed."); }
+        private void OnEndRun() { Trace("Run completed.", true); }
         private void OnEndStop() { Trace("Stop completed."); }
         private void OnEndCleanup() { Trace("Cleanup completed."); }
     }

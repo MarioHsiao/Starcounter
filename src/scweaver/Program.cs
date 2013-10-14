@@ -9,6 +9,8 @@ using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using System.IO;
 using System.Diagnostics;
+using PostSharp.Extensibility;
+using Starcounter.Internal.Weaver;
 
 namespace Weaver {
 
@@ -301,6 +303,11 @@ namespace Weaver {
                         // statically.
                         break;
                 }
+            }
+
+            if (Program.OutputVerbosity == Verbosity.Diagnostic) {
+                PostSharpTrace.EnableCategory(ScAnalysisTrace.Instance);
+                PostSharpTrace.EnableCategory(ScTransformTrace.Instance);
             }
 
             if (arguments.TryGetProperty("errorparcelid", out propertyValue)) {
