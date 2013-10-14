@@ -757,8 +757,13 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     // tag the chunk with needed metadata.
 
     // Send the response back.
-    //	errorcode = cm_send_to_client(task_info.chunk_index);
-    //	if (errorcode != 0) goto finish;
+    /*if (((*(uint32_t*)(raw_chunk + MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED) != 0)
+    {
+        err_code = cm_send_to_client(task_info.chunk_index);
+        if (err_code != 0) goto finish;
+
+        goto finish;
+    }*/
 
     // Checking for the unique handler number.
     if (handler_info == registered_handlers_[handler_index].get_handler_info())
@@ -773,17 +778,17 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
         goto release_chunks;
     }
 
-/*
-try_receive:
+/*try_receive:
     // Check if more chunks are available. If so repeat from beginning.
-    err_code = cm_try_receive_from_client((DWORD*)&task_info.chunk_index);
+    err_code = cm_try_receive_from_client((chunk_index_type*)&task_info.chunk_index);
     if (!err_code) goto do_work;
     if (err_code != SCERRWAITTIMEOUT) goto finish;
 
     loop_count++;
-    if (loop_count < SCHEDULER_SPIN_COUNT) goto try_receive;
+    if (loop_count < 100000) goto try_receive;
     err_code = 0;
-*/
+
+    goto finish;*/
 
 release_chunks:
 
