@@ -77,36 +77,48 @@ namespace Starcounter.Server.Commands {
             // assure we reflect any changed internal state externally no
             // matter the result.
             try {
-                var stopped = Engine.DatabaseEngine.StopCodeHostProcess(database);
-                if (!stopped) {
-                    throw ErrorCode.ToException(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database {0}.", database.Name));
-                }
 
-                Process codeHost;
-                Engine.DatabaseEngine.StartCodeHostProcess(database, out codeHost);
-                Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHost, database);
+                WithinTask(Task.StopCodeHost, (task) => {
+                    var stopped = Engine.DatabaseEngine.StopCodeHostProcess(database);
+                    if (!stopped) {
+                        throw ErrorCode.ToException(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database {0}.", database.Name));
+                    }
+                });
 
-                var node = Node.LocalhostSystemPortNode;
-                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+                WithinTask(Task.RestartCodeHost, (task) => {
+                    Process codeHost;
+                    Engine.DatabaseEngine.StartCodeHostProcess(database, out codeHost);
+                    Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHost, database);
+                });
 
-                foreach (var fellow in fellowApplications) {
-                    if (object.ReferenceEquals(fellow, app)) {
-                        continue;
+                WithinTask(Task.RestartExecutables, (task) => {
+                    var node = Node.LocalhostSystemPortNode;
+                    var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+
+                    foreach (var fellow in fellowApplications) {
+                        if (object.ReferenceEquals(fellow, app)) {
+                            continue;
+                        }
+
+                        var exe = fellow.ToExecutable();
+
+                        Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
+
+                        if (exe.RunEntrypointAsynchronous) {
+                            node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                        } else {
+                            var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                            response.FailIfNotSuccess();
+                        }
+
+                        database.Apps.Add(fellow);
                     }
 
-                    var exe = fellow.ToExecutable();
-
-                    Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
-
-                    if (exe.RunEntrypointAsynchronous) {
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
-                    } else {
-                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
-                        response.FailIfNotSuccess();
-                    }
-
-                    database.Apps.Add(fellow);
-                }
+                    // By returning false, we mark this task as cancelled.
+                    // We do so if we turned out not to have restarted any
+                    // fellow executables.
+                    return database.Apps.Count == 0 ? false : true;
+                });
 
             } finally {
                 var result = Engine.CurrentPublicModel.UpdateDatabase(database);

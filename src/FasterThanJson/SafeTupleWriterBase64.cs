@@ -236,6 +236,24 @@ namespace Starcounter.Internal {
             return Base64Double.MeasureNeededSizeNullable(val);
         }
 
+        /// <summary>
+        /// Estimates the size of encoding Single value.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static int MeasureNeededSizeSingle(Single val) {
+            return Base64Single.MeasureNeededSize(val);
+        }
+
+        /// <summary>
+        /// Estimates the size of encoding NUllable Single value.
+        /// </summary>
+        /// <param name="str">The value to encode.</param>
+        /// <returns>The estimated length. </returns>
+        public static int MeasureNeededSizeNullableSingle(Single? val) {
+            return Base64Single.MeasureNeededSizeNullable(val);
+        }
+
         public void WriteULong(ulong n) {
             int size = MeasureNeededSizeULong(n);
             size = ValidateLength(size);
@@ -353,6 +371,22 @@ namespace Starcounter.Internal {
             int size = MeasureNeededSizeNullableDouble(n);
             size = ValidateLength(size);
             theTuple.WriteDoubleNullable(n);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
+
+        public void WriteSingle(Single n) {
+            int size = MeasureNeededSizeSingle(n);
+            size = ValidateLength(size);
+            theTuple.WriteSingle(n);
+            Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
+            AvailableSize -= size;
+        }
+
+        public void WriteSingleNullable(Single? n) {
+            int size = MeasureNeededSizeNullableSingle(n);
+            size = ValidateLength(size);
+            theTuple.WriteSingleNullable(n);
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
             AvailableSize -= size;
         }

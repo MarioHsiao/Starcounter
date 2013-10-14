@@ -544,6 +544,10 @@ namespace Weaver {
                 messageIdAndText = message.MessageText;
             } else {
                 messageIdAndText = string.Format("{0} - {1}", message.MessageId, message.MessageText);
+                // Semi-hack. There are a few places where multiple braces are used, and it will
+                // make the stream writer fuck out. All output from the weaver should be gone through
+                // later, so I don't really want to start tampering with it all right now.
+                messageIdAndText = messageIdAndText.Replace("{", string.Empty).Replace("}", string.Empty);
             }
 
             switch (message.Severity) {
