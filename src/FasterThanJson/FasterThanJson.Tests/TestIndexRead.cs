@@ -143,11 +143,13 @@ namespace FasterThanJson.Tests {
                 decimal?[] decimalNullValues = new decimal?[nrValues];
                 double[] doubleValues = new double[nrValues];
                 double?[] doubleNullValues = new double?[nrValues];
+                Single[] singleValues = new Single[nrValues];
+                Single?[] singleNullValues = new Single?[nrValues];
                 byte[] tupleBuffer = new byte[nrValues * 700];
                 fixed (byte* start = tupleBuffer) {
                     SafeTupleWriterBase64 arrayWriter = new SafeTupleWriterBase64(start, nrValues, 2, tupleBuffer.Length);
                     for (int j = 0; j < nrValues; j++) {
-                        Assert.AreEqual(17, Enum.GetValues(typeof(ValueTypes)).Length);
+                        Assert.AreEqual(19, Enum.GetValues(typeof(ValueTypes)).Length);
                         valueTypes[j] = writeRnd.Next(1, Enum.GetValues(typeof(ValueTypes)).Length);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
@@ -210,9 +212,17 @@ namespace FasterThanJson.Tests {
                                 doubleValues[j] = RandomValues.RandomDouble(writeRnd);
                                 arrayWriter.WriteDouble(doubleValues[j]);
                                 break;
-                            case(int)ValueTypes.DOUBLENULL:
+                            case (int)ValueTypes.DOUBLENULL:
                                 doubleNullValues[j] = RandomValues.RandomDoubleNullable(writeRnd);
                                 arrayWriter.WriteDoubleNullable(doubleNullValues[j]);
+                                break;
+                            case (int)ValueTypes.SINGLE:
+                                singleValues[j] = RandomValues.RandomSingle(writeRnd);
+                                arrayWriter.WriteSingle(singleValues[j]);
+                                break;
+                            case (int)ValueTypes.SINGLENULL:
+                                singleNullValues[j] = RandomValues.RandomSingleNullable(writeRnd);
+                                arrayWriter.WriteSingleNullable(singleNullValues[j]);
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
@@ -272,6 +282,12 @@ namespace FasterThanJson.Tests {
                                 break;
                             case (int)ValueTypes.DOUBLENULL:
                                 Assert.AreEqual(doubleNullValues[j], arrayReader.ReadDoubleNullable(j));
+                                break;
+                            case (int)ValueTypes.SINGLE:
+                                Assert.AreEqual(singleValues[j], arrayReader.ReadSingle(j));
+                                break;
+                            case (int)ValueTypes.SINGLENULL:
+                                Assert.AreEqual(singleNullValues[j], arrayReader.ReadSingleNullable(j));
                                 break;
                             default:
                                 Assert.Fail(((ValueTypes)valueTypes[j]).ToString());

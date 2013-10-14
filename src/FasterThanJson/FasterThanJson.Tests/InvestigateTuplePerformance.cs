@@ -1015,7 +1015,7 @@ namespace FasterThanJson.Tests {
                     for (int i = 0; i < nrIter; i++) {
                         TupleWriterBase64 tuple = new TupleWriterBase64(buffer, valueCount, 2);
                         for (int j = 0; j < valueCount; j++)
-                            tuple.WriterSingle(value);
+                            tuple.WriteSingle(value);
                     }
                     timer.Stop();
                     Print(timer, "TupleWriter creates and " + valueCount + " Single writes", nrIter);

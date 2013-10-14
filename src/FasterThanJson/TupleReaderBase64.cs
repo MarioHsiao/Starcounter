@@ -428,6 +428,16 @@ namespace Starcounter.Internal
           return val;
       }
 
+      public unsafe Single? ReadSingleNullable() {
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
+          Single? val = Base64Single.ReadNullable(len, AtEnd);
+          ValueOffset += len;
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          return val;
+      }
+
       /// <summary>
        /// Returns the length of the current value to read.
        /// </summary>

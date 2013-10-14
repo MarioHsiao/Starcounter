@@ -341,8 +341,13 @@ namespace Starcounter.Internal
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void WriterSingle(Single value) {
+      public unsafe void WriteSingle(Single value) {
           int len = Base64Single.Write(AtEnd, value);
+          HaveWritten(len);
+      }
+
+      public unsafe void WriteSingleNullable(Single? value) {
+          int len = Base64Single.WriteNullable(AtEnd, value);
           HaveWritten(len);
       }
 
