@@ -11,6 +11,8 @@ using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
 using System.Runtime.CompilerServices;
 using System.Collections;
+using System.Collections.Generic;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     /// <summary>
@@ -429,16 +431,14 @@ namespace Starcounter {
                         object ret;
                         ret = json.GetBound(property);
                         if (property is TObject) {
-                            var newJson = (Json)property.CreateInstance(this);
-                            newJson.AttachData((IBindable)ret);
-                            _SetAt(property.TemplateIndex, newJson);
-                            return newJson;
+							Json value = (Json)_GetAt(property.TemplateIndex);
+							value.CheckBoundObject(ret);
+							return value;
                         }
                         else if (property is TObjArr) {
-                            var newJson = (Json)property.CreateInstance(this);
-                            newJson.Data = (IEnumerable)ret;
-                            _SetAt(property.TemplateIndex, newJson);
-                            return newJson;
+							Json value = (Json)_GetAt(property.TemplateIndex);
+							value.CheckBoundArray((IEnumerable)ret);
+							return value;
                         }
                         return ret;
                     }
@@ -487,6 +487,61 @@ namespace Starcounter {
             }
         }
 
+		private void CheckBoundObject(object boundValue) {
+			// TODO:
+			// If not IBindable do an equals comparison.
+			IBindable boundBindable = boundValue as IBindable;
+			IBindable existingBindable = DataAsBindable;
+
+			if ((existingBindable == null && boundBindable != null)
+					|| (existingBindable != null && boundBindable == null)
+					|| (existingBindable.Identity != boundBindable.Identity)) {
+						AttachData(boundBindable);
+			}
+		}
+
+		private void CheckBoundArray(IEnumerable boundValue) {
+			Json oldJson;
+			Json newJson;
+			IBindable boundBindable;
+			IBindable existingBindable;
+			int index = 0;
+			TObjArr tArr = Template as TObjArr;
+			bool hasChanged = false;
+
+			// TODO:
+			// If not IBindable do an equals comparison.
+
+			foreach (object value in boundValue) {
+				boundBindable = value as IBindable;
+
+				if (_list.Count <= index) {
+					newJson = (Json)tArr.ElementType.CreateInstance();
+					newJson.Data = value;
+					Add(newJson);
+					hasChanged = true;
+				} else {
+					oldJson = (Json)_list[index];
+					existingBindable = oldJson.Data as IBindable;
+					if (existingBindable.Identity != boundBindable.Identity) {
+						oldJson.Data = boundBindable;
+						if (ArrayAddsAndDeletes == null)
+							ArrayAddsAndDeletes = new List<Change>();
+						ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+						hasChanged = true;
+					}
+				}
+				index++;
+			}
+
+			for (int i = _list.Count - 1; i >= index; i--) {
+				RemoveAt(i);
+				hasChanged = true;
+			}
+
+			if (hasChanged)
+				this.Parent.HasChanged(tArr);
+		}
 
 
 
