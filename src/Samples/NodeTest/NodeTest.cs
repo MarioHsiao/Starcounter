@@ -22,13 +22,6 @@ namespace NodeTest
 {
     class Settings
     {
-        public const String ServerIp = "127.0.0.1";
-        public const String ServerNodeTestHttpRelativeUri = "/echotest";
-        public const String ServerNodeTestWsRelativeUri = "/ws";
-        public const UInt16 ServerPort = 8080;
-        public static readonly String CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
-        public static readonly String CompleteWebSocketUri = "ws://" + ServerIp + ":" + ServerPort + ServerNodeTestWsRelativeUri;
-
         public enum AsyncModes
         {
             ModeSync,
@@ -41,6 +34,18 @@ namespace NodeTest
             ProtocolHttpV1,
             ProtocolWebSockets
         }
+
+        public const String ServerNodeTestHttpRelativeUri = "/echotest";
+
+        public const String ServerNodeTestWsRelativeUri = "/ws";
+
+        public String ServerIp = "127.0.0.1";
+
+        public UInt16 ServerPort = 8080;
+
+        public static String CompleteHttpUri;
+
+        public static String CompleteWebSocketUri;
 
         public Int32 NumWorkers = 3;
 
@@ -64,7 +69,15 @@ namespace NodeTest
         {
             foreach (String arg in args)
             {
-                if (arg.StartsWith("-ProtocolType="))
+                if (arg.StartsWith("-ServerIp="))
+                {
+                    ServerIp = arg.Substring("-ServerIp=".Length);
+                }
+                else if (arg.StartsWith("-ServerPort="))
+                {
+                    ServerPort = UInt16.Parse(arg.Substring("-ServerPort=".Length));
+                }
+                else if (arg.StartsWith("-ProtocolType="))
                 {
                     String protocolTypeParam = arg.Substring("-ProtocolType=".Length);
 
@@ -113,6 +126,9 @@ namespace NodeTest
                     ConsoleDiag = Boolean.Parse(arg.Substring("-ConsoleDiag=".Length));
                 }
             }
+
+            CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
+            CompleteWebSocketUri = "ws://" + ServerIp + ":" + ServerPort + ServerNodeTestWsRelativeUri;
         }
     }
 
@@ -447,7 +463,7 @@ namespace NodeTest
             Rand = new Random(id);
             settings_ = settings;
 
-            worker_node_ = new Node("127.0.0.1", 0, Settings.ServerPort, settings_.UseAggregation);
+            worker_node_ = new Node(settings_.ServerIp, settings_.ServerPort, 0, settings_.UseAggregation);
         }
 
         /// <summary>
