@@ -55,8 +55,8 @@ inline int HttpRequestOnHeadersComplete(http_parser* p)
     // Setting complete header flag.
     http->complete_header_flag_ = true;
 
-    // Setting headers length (skipping 4 bytes for \r\n\r\n).
-    http->http_request_->headers_len_bytes_ = p->nread - 4 - http->http_request_->headers_len_bytes_;
+    // Setting headers length (skipping 2 bytes for \r\n).
+    http->http_request_->headers_len_bytes_ = p->nread - 2 - http->http_request_->headers_len_bytes_;
 
     return 0;
 }
@@ -72,8 +72,8 @@ inline int HttpRequestOnUri(http_parser* p, const char *at, size_t length)
     HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Setting the reference to URI.
-    http->http_request_->uri_offset_ = (uint32_t)(at - (char*)http->request_buf_);
-    http->http_request_->uri_len_bytes_ = (uint32_t)length;
+    http->http_request_->uri_offset_ = (uint16_t)(at - (char*)http->request_buf_);
+    http->http_request_->uri_len_bytes_ = (uint16_t)length;
 
     return 0;
 }
@@ -85,15 +85,11 @@ inline int HttpRequestOnHeaderField(http_parser* p, const char *at, size_t lengt
     // Determining what header field is that.
     http->last_field_ = DetermineField(at, length);
 
-    // Saving header offset.
-    http->http_request_->header_offsets_[http->http_request_->num_headers_] = (uint32_t)(at - (char*)http->request_buf_);
-    http->http_request_->header_len_bytes_[http->http_request_->num_headers_] = (uint32_t)length;
-
     // Setting headers beginning.
     if (!http->http_request_->headers_offset_)
     {
-        http->http_request_->headers_len_bytes_ = (uint32_t)(p->nread - length - 1);
-        http->http_request_->headers_offset_ = (uint32_t)(at - (char*)http->request_buf_);
+        http->http_request_->headers_len_bytes_ = (uint16_t)(p->nread - length - 1);
+        http->http_request_->headers_offset_ = (uint16_t)(at - (char*)http->request_buf_);
     }
 
     return 0;
@@ -103,31 +99,9 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
 {
     HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
-    // Saving header length.
-    http->http_request_->header_value_offsets_[http->http_request_->num_headers_] = (uint32_t)(at - (char*)http->request_buf_);
-    http->http_request_->header_value_len_bytes_[http->http_request_->num_headers_] = (uint32_t)length;
-
-    // Increasing number of saved headers.
-    http->http_request_->num_headers_++;
-    if (http->http_request_->num_headers_ >= MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS)
-    {
-        // Too many HTTP headers.
-        std::cout << "Too many HTTP headers detected, maximum allowed: " << MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS << std::endl;
-        return 1;
-    }
-
     // Processing last field type.
     switch (http->last_field_)
     {
-        case COOKIE_FIELD:
-        {
-            // Setting needed HttpRequest fields.
-            http->http_request_->cookies_offset_ = (uint32_t)(at - (char*)http->request_buf_);
-            http->http_request_->cookies_len_bytes_ = (uint32_t)length;
-
-            break;
-        }
-
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
@@ -156,14 +130,6 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
             break;
         }
 
-        case ACCEPT_FIELD:
-        {
-            http->http_request_->accept_value_offset_ = (uint32_t)(at - (char*)http->request_buf_);
-            http->http_request_->accept_value_len_bytes_ = (uint32_t)length;
-
-            break;
-        }
-
         case REFERRER_FIELD:
         case XREFERRER_FIELD:
         {
@@ -171,8 +137,7 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
             if (MixedCodeConstants::SESSION_STRING_LEN_CHARS == length)
             {
                 // Setting the session offset.
-                http->http_request_->session_string_offset_ = (uint32_t)(at - (char*)http->request_buf_);
-                http->http_request_->session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+                http->http_request_->session_string_offset_ = (uint16_t)(at - (char*)http->request_buf_);
             }
 
             break;
@@ -188,10 +153,10 @@ inline int HttpRequestOnBody(http_parser* p, const char *at, size_t length)
 
     // Setting body parameters.
     if (http->http_request_->content_len_bytes_ < 0)
-        http->http_request_->content_len_bytes_ = (uint32_t)length;
+        http->http_request_->content_len_bytes_ = (uint16_t)length;
 
     // Setting body data offset.
-    http->http_request_->content_offset_ = (uint32_t)(at - (char*)http->request_buf_);
+    http->http_request_->content_offset_ = (uint16_t)(at - (char*)http->request_buf_);
 
     return 0;
 }
@@ -275,8 +240,8 @@ EXTERN_C uint32_t __stdcall sc_parse_http_request(
 
     // TODO: Check body length.
 
-    // Setting request properties.
-    http_request->request_len_bytes_ = http_request->headers_offset_ + http_request->headers_len_bytes_ + 4 + http_request->content_len_bytes_;
+    // Setting request properties (+2 for \r\n between headers and body).
+    http_request->request_len_bytes_ = http_request->headers_offset_ + http_request->headers_len_bytes_ + 2 + http_request->content_len_bytes_;
 
     return 0;
 }

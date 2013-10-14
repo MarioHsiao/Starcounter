@@ -9,35 +9,17 @@ namespace network {
 
 struct HttpResponse
 {
-    // Response offset.
-    uint32_t response_offset_;
     uint32_t response_len_bytes_;
-
-    // Content.
-    uint32_t content_offset_;
     int32_t content_len_bytes_;
 
-    // Key-value header.
-    uint32_t headers_offset_;
-    uint32_t headers_len_bytes_;
-
-    // Cookie value.
-    uint32_t set_cookies_offset_;
-    uint32_t set_cookies_len_bytes_;
-
-    // Session ID.
-    uint32_t session_string_offset_;
-    uint32_t session_string_len_bytes_;
-
-    // Header offsets.
-    uint32_t header_offsets_[MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-    uint32_t header_len_bytes_[MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-    uint32_t header_value_offsets_[MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-    uint32_t header_value_len_bytes_[MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-    uint32_t num_headers_;
-
-    // HTTP response status code.
+    uint16_t response_offset_;
+    uint16_t content_offset_;
+    uint16_t headers_offset_;
+    uint16_t headers_len_bytes_;
+    uint16_t session_string_offset_;
     uint16_t status_code_;
+
+    uint8_t session_string_len_bytes_;
 
     // Resets this instance of request.
     void Reset()

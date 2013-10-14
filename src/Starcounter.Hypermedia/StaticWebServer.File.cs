@@ -338,7 +338,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileExtension">The file extension.</param>
         public void ParseFileSpecifier(string serverPath, string relativeUri, out string directory, out string fileName, out string fileExtension) {
             if (!relativeUri.StartsWith("/")) {
-                Console.WriteLine(String.Format("Illegal URI for static resoruce {0}", relativeUri));
+                Console.WriteLine(String.Format("Illegal URI for static resource: {0}", relativeUri));
                 directory = null;
                 fileExtension = null;
                 fileName = null;
