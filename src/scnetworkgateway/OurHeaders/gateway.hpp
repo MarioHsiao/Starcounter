@@ -55,6 +55,8 @@ typedef uint8_t scheduler_id_type;
 typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
+typedef int16_t uri_index_type;
+typedef int16_t port_index_type;
 typedef int8_t db_index_type;
 
 // Statistics macros.
@@ -71,7 +73,6 @@ typedef int8_t db_index_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 //#define GW_SESSIONS_DIAG
-//#define GW_OLD_ACTIVE_DATABASES_DISCOVER
 #define GW_COLLECT_INACTIVE_SOCKETS
 //#define GW_LOOPBACK_AGGREGATION
 //#define GW_IOCP_IMMEDIATE_COMPLETION
@@ -117,7 +118,6 @@ typedef int8_t db_index_type;
 #define SCERRGWHANDLERNOTFOUND 12358
 #define SCERRGWPORTNOTHANDLED 12359
 #define SCERRGWNONHTTPPROTOCOL 12362
-#define SCERRGWHTTPTOOMANYHEADERS 12364
 #define SCERRGWBMXCHUNKWRONGFORMAT 12369
 #define SCERRGWHTTPNONWEBSOCKETSUPGRADE 12370
 #define SCERRGWHTTPWRONGWEBSOCKETSVERSION 12371
@@ -217,7 +217,7 @@ const session_index_type INVALID_SOCKET_INDEX = ~0;
 const int32_t INVALID_PORT_NUMBER = 0;
 
 // Bad URI index.
-const int32_t INVALID_URI_INDEX = -1;
+const uri_index_type INVALID_URI_INDEX = -1;
 
 // Invalid parameter index in user delegate.
 const uint8_t INVALID_PARAMETER_INDEX = 255;
@@ -687,7 +687,7 @@ public:
 class AccumBuffer
 {
     // Available bytes number in chunk.
-    ULONG chunk_num_available_bytes_;
+    uint32_t chunk_num_available_bytes_;
 
     // Current buffer pointer in chunk.
     uint8_t* chunk_cur_buf_ptr_;
@@ -695,17 +695,17 @@ class AccumBuffer
     // Initial data pointer in chunk.
     uint8_t* chunk_orig_buf_ptr_;
 
-    // Original chunk total length.
-    ULONG chunk_orig_buf_len_bytes_;
-
-    // Total number of bytes accumulated.
-    ULONG accumulated_len_bytes_;
-
     // First chunk data pointer.
     uint8_t* first_chunk_orig_buf_ptr_;
 
+    // Original chunk total length.
+    uint32_t chunk_orig_buf_len_bytes_;
+
+    // Total number of bytes accumulated.
+    uint32_t accumulated_len_bytes_;
+
     // Desired number of bytes to accumulate.
-    ULONG desired_accum_bytes_;
+    uint32_t desired_accum_bytes_;
 
 public:
 
@@ -739,7 +739,7 @@ public:
 
     // Initializes accumulative buffer.
     void Init(
-        ULONG buf_total_len_bytes,
+        uint32_t buf_total_len_bytes,
         uint8_t* orig_buf_ptr,
         bool reset_accum_len)
     {
@@ -756,7 +756,7 @@ public:
         }
         else
         {
-            ULONG remaining = desired_accum_bytes_ - accumulated_len_bytes_;
+            uint32_t remaining = desired_accum_bytes_ - accumulated_len_bytes_;
             if (chunk_num_available_bytes_ > remaining)
                 chunk_num_available_bytes_ = remaining;
         }
@@ -764,7 +764,7 @@ public:
 
     // Initializes accumulative buffer.
     void Init(
-        ULONG buf_total_len_bytes,
+        uint32_t buf_total_len_bytes,
         uint32_t orig_buf_ptr_shift_bytes)
     {
         chunk_orig_buf_len_bytes_ = buf_total_len_bytes;
@@ -777,7 +777,7 @@ public:
 
     // Initializes accumulative buffer.
     void SetAccumulation(
-        ULONG buf_total_len_bytes,
+        uint32_t buf_total_len_bytes,
         uint32_t orig_buf_ptr_shift_bytes)
     {
         chunk_orig_buf_len_bytes_ -= orig_buf_ptr_shift_bytes;
@@ -789,7 +789,7 @@ public:
     }
 
     // Get buffer length.
-    ULONG get_chunk_num_available_bytes()
+    uint32_t get_chunk_num_available_bytes()
     {
         return chunk_num_available_bytes_;
     }
@@ -799,12 +799,12 @@ public:
         chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_;
     }
 
-    ULONG get_chunk_orig_buf_len_bytes()
+    uint32_t get_chunk_orig_buf_len_bytes()
     {
         return chunk_orig_buf_len_bytes_;
     }
 
-    void WriteBytesToSend(void* data, ULONG data_len)
+    void WriteBytesToSend(void* data, uint32_t data_len)
     {
         memcpy(chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_, data, data_len);
         chunk_num_available_bytes_ -= data_len;
@@ -816,14 +816,26 @@ public:
         first_chunk_orig_buf_ptr_ = chunk_orig_buf_ptr_;
     }
 
-    // Get buffer length.
-    ULONG GetNumLeftBytesInChunk(uint8_t* cur_ptr)
+    // First chunk origin data.
+    void set_first_chunk_orig_buf_ptr(uint8_t* first_chunk_orig_buf_ptr)
     {
-        return static_cast<ULONG> (chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - cur_ptr);
+        first_chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr;
+    }
+
+    // First chunk origin data.
+    uint8_t* get_first_chunk_orig_buf_ptr()
+    {
+        return first_chunk_orig_buf_ptr_;
+    }
+
+    // Get buffer length.
+    uint32_t GetNumLeftBytesInChunk(uint8_t* cur_ptr)
+    {
+        return static_cast<uint32_t> (chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - cur_ptr);
     }
 
     // Getting desired accumulating bytes.
-    ULONG get_desired_accum_bytes()
+    uint32_t get_desired_accum_bytes()
     {
         return desired_accum_bytes_;
     }
@@ -856,7 +868,7 @@ public:
     }
 
     // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *data, ULONG num_bytes_to_write)
+    void PrepareForSend(uint8_t *data, uint32_t num_bytes_to_write)
     {
         chunk_num_available_bytes_ = num_bytes_to_write;
         chunk_cur_buf_ptr_ = data;
@@ -870,12 +882,12 @@ public:
     }
 
     // Starting accumulation.
-    void StartAccumulation(ULONG total_desired_bytes, ULONG num_already_accumulated)
+    void StartAccumulation(uint32_t total_desired_bytes, uint32_t num_already_accumulated)
     {
         desired_accum_bytes_ = total_desired_bytes;
         accumulated_len_bytes_ = num_already_accumulated;
 
-        ULONG remaining = total_desired_bytes - num_already_accumulated;
+        uint32_t remaining = total_desired_bytes - num_already_accumulated;
         if (chunk_num_available_bytes_ > remaining)
             chunk_num_available_bytes_ = remaining;
     }
@@ -893,7 +905,7 @@ public:
     }
 
     // Returns the size in bytes of accumulated data.
-    ULONG get_accum_len_bytes()
+    uint32_t get_accum_len_bytes()
     {
         return accumulated_len_bytes_;
     }
@@ -914,17 +926,14 @@ public:
 // Represents a session in terms of gateway/Apps.
 struct ScSessionStruct
 {
-    // Scheduler id.
-    scheduler_id_type scheduler_id_;
+    // Unique random number.
+    random_salt_type random_salt_;
 
     // Session linear index.
     session_index_type linear_index_;
 
-    // Unique random number.
-    random_salt_type random_salt_;
-
-    // View model number.
-    session_index_type reserved_;
+    // Scheduler id.
+    scheduler_id_type scheduler_id_;
 
     // Reset.
     void Reset()
@@ -936,7 +945,6 @@ struct ScSessionStruct
 
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
-        reserved_ = INVALID_VIEW_MODEL_INDEX;
     }
 
     // Constructing session from string.
@@ -944,10 +952,9 @@ struct ScSessionStruct
     {
         GW_ASSERT(MixedCodeConstants::SESSION_STRING_LEN_CHARS == len_bytes);
 
-        scheduler_id_ = static_cast<scheduler_id_type> (hex_string_to_uint64(str_in, 2));
-        linear_index_ = static_cast<session_index_type> (hex_string_to_uint64(str_in + 2, 6));
-        random_salt_ = static_cast<random_salt_type> (hex_string_to_uint64(str_in + 8, 16));
-        reserved_ = static_cast<session_index_type> (hex_string_to_uint64(str_in + 24, 8));
+        random_salt_ = static_cast<random_salt_type> (hex_string_to_uint64(str_in, 16));
+        linear_index_ = static_cast<session_index_type> (hex_string_to_uint64(str_in + 16, 6));
+        scheduler_id_ = static_cast<scheduler_id_type> (hex_string_to_uint64(str_in + 22, 2));
     }
 
     // Compare socket stamps of two sessions.
@@ -966,7 +973,7 @@ struct ScSessionStruct
     }
 };
 
-_declspec(align(128)) struct GatewayMemoryChunk
+_declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct GatewayMemoryChunk
 {
     // Entry to lock-free gateway memory chunks list.
     SLIST_ENTRY free_gw_memory_chunks_entry_;
@@ -984,7 +991,7 @@ enum SOCKET_FLAGS
 };
 
 // Structure that facilitates the socket.
-_declspec(align(128)) struct ScSocketInfoStruct
+_declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 {
     // Entry to lock-free free list.
     SLIST_ENTRY free_socket_indexes_entry_;
@@ -998,10 +1005,26 @@ _declspec(align(128)) struct ScSocketInfoStruct
     // Unique number for socket.
     random_salt_type unique_socket_id_;
 
+    // Determined handler id.
+    BMX_HANDLER_TYPE saved_user_handler_id_;
+
+    // Socket number.
+    SOCKET socket_;
+
+    // Proxy socket identifier.
+    session_index_type proxy_socket_info_index_;
+
+    // This socket info index.
+    session_index_type socket_info_index_;
+
     // Aggregation socket index.
     session_index_type aggr_socket_info_index_;
 
-    uint32_t unused0_;
+    // Port index.
+    port_index_type port_index_;
+
+    // Index to already determined URI.
+    uri_index_type matched_uri_index_;
 
     // Some flags on socket.
     uint8_t flags_;
@@ -1009,25 +1032,8 @@ _declspec(align(128)) struct ScSocketInfoStruct
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
 
-    uint8_t unused1_;
-    uint8_t unused2_;
-
-    // Port index.
-    int32_t port_index_;
-
-    // Socket number.
-    SOCKET socket_;
-
-    uint64_t unused3_;
-
-    // Determined handler id.
-    BMX_HANDLER_TYPE saved_user_handler_id_;
-
-    // Proxy socket identifier.
-    session_index_type proxy_socket_info_index_;
-
-    // This socket info index.
-    session_index_type socket_info_index_;
+    // Avoiding false sharing between workers.
+    uint8_t pad[CACHE_LINE_SIZE];
 
     // Getting socket aggregated flag.
     bool get_socket_aggregated_flag()
@@ -1063,6 +1069,7 @@ _declspec(align(128)) struct ScSocketInfoStruct
         socket_ = INVALID_SOCKET;
         saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
         flags_ = 0;
+        matched_uri_index_ = INVALID_URI_INDEX;
     }
 };
 
@@ -1736,7 +1743,7 @@ public:
 
         if (NULL == free_gw_chunk_entry)
         {
-            GatewayMemoryChunk* c = new GatewayMemoryChunk();
+            GatewayMemoryChunk* c =  (GatewayMemoryChunk*) _aligned_malloc(sizeof(GatewayMemoryChunk), MEMORY_ALLOCATION_ALIGNMENT);
             c->buffer_len_bytes_ = AGGREGATION_BUFFER_SIZE;
             c->buf_ = new uint8_t[c->buffer_len_bytes_];
 
@@ -1818,7 +1825,7 @@ public:
     // Checking if unique socket number is correct.
     bool CompareUniqueSocketId(session_index_type socket_index, random_salt_type unique_socket_id)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return (all_sockets_infos_unsafe_[socket_index].unique_socket_id_ == unique_socket_id);
     }
@@ -1826,7 +1833,7 @@ public:
     // Get type of network protocol for this socket.
     MixedCodeConstants::NetworkProtocolType GetTypeOfNetworkProtocol(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return (MixedCodeConstants::NetworkProtocolType) all_sockets_infos_unsafe_[socket_index].type_of_network_protocol_;
     }
@@ -1834,7 +1841,7 @@ public:
     // Setting client IP address info.
     void SetSavedUserHandlerId(session_index_type socket_index, BMX_HANDLER_TYPE saved_user_handler_id)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         all_sockets_infos_unsafe_[socket_index].saved_user_handler_id_ = saved_user_handler_id;
     }
@@ -1842,15 +1849,31 @@ public:
     // Getting client IP address info.
     BMX_HANDLER_TYPE GetSavedUserHandlerId(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].saved_user_handler_id_;
+    }
+
+    // Getting matched URI index.
+    uri_index_type GetMatchedUriIndex(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[socket_index].matched_uri_index_;
+    }
+
+    // Setting matched URI index.
+    void SetMatchedUriIndex(session_index_type socket_index, uri_index_type uri_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].matched_uri_index_ = uri_index;
     }
 
     // Getting socket id.
     int32_t GetPortIndex(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].port_index_;
     }
@@ -1858,7 +1881,7 @@ public:
     // Getting scheduler id.
     int32_t GetSchedulerId(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_;
     }
@@ -1866,7 +1889,7 @@ public:
     // Getting socket index.
     SOCKET GetSocket(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].socket_;
     }
@@ -1874,7 +1897,7 @@ public:
     // Checks for proxy socket.
     bool HasProxySocket(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return INVALID_SESSION_INDEX != all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
     }
@@ -1882,7 +1905,7 @@ public:
     // Getting aggregation socket index.
     session_index_type GetAggregationSocketIndex(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].aggr_socket_info_index_;
     }
@@ -1890,7 +1913,7 @@ public:
     // Setting aggregation socket index.
     void SetAggregationSocketIndex(session_index_type socket_index, session_index_type aggr_socket_info_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         all_sockets_infos_unsafe_[socket_index].aggr_socket_info_index_ = aggr_socket_info_index;
     }
@@ -1898,7 +1921,7 @@ public:
     // Getting aggregated socket flag.
     bool GetSocketAggregatedFlag(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].get_socket_aggregated_flag();
     }
@@ -1906,7 +1929,7 @@ public:
     // Setting aggregated socket flag.
     void SetSocketAggregatedFlag(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         all_sockets_infos_unsafe_[socket_index].set_socket_aggregated_flag();
     }
@@ -1914,7 +1937,7 @@ public:
     // Getting proxy socket index.
     session_index_type GetProxySocketIndex(session_index_type socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
     }
@@ -1922,7 +1945,7 @@ public:
     // Getting proxy socket index.
     void SetProxySocketIndex(session_index_type socket_index, session_index_type proxy_socket_index)
     {
-        GW_ASSERT(socket_index < setting_max_connections_);
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_ = proxy_socket_index;
     }

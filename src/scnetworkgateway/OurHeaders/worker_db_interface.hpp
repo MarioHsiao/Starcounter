@@ -103,7 +103,8 @@ public:
         starcounter::core::chunk_index cur_chunk_index,
         int32_t* actual_written_bytes,
         int32_t first_chunk_offset,
-        bool just_sending_flag
+        bool just_sending_flag,
+        bool is_aggregated_flag
         );
 
     // Increments or decrements the number of active chunks.
@@ -375,7 +376,7 @@ public:
     }
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
-    void ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+    void ReturnLinkedChunksToPool(uint16_t num_linked_chunks, core::chunk_index& first_linked_chunk);
 
     // Returns all chunks from private pool to shared.
     void ReturnAllPrivateChunksToSharedPool();

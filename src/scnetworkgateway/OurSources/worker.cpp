@@ -151,8 +151,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef proxy_sd)
 #endif
 
         // Putting socket into non-blocking mode.
-        ULONG ul = 1;
-        uint32_t temp;
+        uint32_t ul = 1, temp;
         if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
         {
 #ifdef GW_ERRORS_DIAG
@@ -307,8 +306,7 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 #endif
 
             // Putting socket into non-blocking mode.
-            ULONG ul = 1;
-            uint32_t temp;
+            uint32_t ul = 1, temp;
             if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
             {
 #ifdef GW_ERRORS_DIAG
@@ -388,7 +386,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
     // Checking that not aggregated socket are trying to receive.
-    GW_ASSERT(false == sd->GetSocketAggregatedFlag());
+    GW_ASSERT_DEBUG(false == sd->GetSocketAggregatedFlag());
 
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
 // This label is used to avoid recursiveness between Receive and FinishReceive.
@@ -643,6 +641,8 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     }
     else
     {
+        GW_ASSERT(!sd->get_big_accumulation_chunk_flag());
+
         // Creating special chunk for keeping WSA buffers information there.
         err_code = sd->CreateWSABuffers(
             worker_dbs_[sd->get_db_index()],
@@ -920,7 +920,6 @@ DISCONNECT_OPERATION:
         // The disconnect operation is pending.
         return;
     }
-    /*
     else
     {
         // Finish disconnect operation.
@@ -929,7 +928,7 @@ DISCONNECT_OPERATION:
             goto RELEASE_CHUNK_TO_POOL;
 
         return;
-    }*/
+    }
 
     // Returning the chunk to pool.
 RELEASE_CHUNK_TO_POOL:
@@ -1377,7 +1376,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 {
     BOOL compl_status = false;
     OVERLAPPED_ENTRY* fetched_ovls = new OVERLAPPED_ENTRY[MAX_FETCHED_OVLS];
-    ULONG num_fetched_ovls = 0;
+    uint32_t num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
     uint32_t next_sleep_interval_ms = INFINITE;
@@ -1399,7 +1398,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 #ifdef GW_LOOPED_TEST_MODE
         compl_status = ProcessEmulatedNetworkOperations(fetched_ovls, &num_fetched_ovls, MAX_FETCHED_OVLS);
 #else
-        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, &num_fetched_ovls, next_sleep_interval_ms, TRUE);
+        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, (PULONG)&num_fetched_ovls, next_sleep_interval_ms, TRUE);
 #endif
 
 #ifdef GW_PROFILER_ON
@@ -1860,7 +1859,8 @@ uint32_t GatewayWorker::SendPredefinedMessage(
             src_chunk_index,
             &last_written_bytes,
             first_chunk_offset,
-            just_sending_flag
+            just_sending_flag,
+            sd->get_aggregated_flag()
             );
 
         if (err_code)
@@ -1938,7 +1938,7 @@ uint32_t GatewayWorker::SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id)
 // Processes emulated network operations.
 bool GatewayWorker::ProcessEmulatedNetworkOperations(
     OVERLAPPED_ENTRY* fetched_ovls,
-    ULONG* num_fetched_ovls,
+    uint32_t* num_fetched_ovls,
     int32_t max_fetched)
 {
     int32_t num_processed = 0, num_entries_left;
