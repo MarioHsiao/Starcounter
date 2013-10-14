@@ -103,7 +103,8 @@ public:
         starcounter::core::chunk_index cur_chunk_index,
         int32_t* actual_written_bytes,
         int32_t first_chunk_offset,
-        bool just_sending_flag
+        bool just_sending_flag,
+        bool is_aggregated_flag
         );
 
     // Increments or decrements the number of active chunks.

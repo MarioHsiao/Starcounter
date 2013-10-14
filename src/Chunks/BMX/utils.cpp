@@ -161,6 +161,10 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     if (just_sending_flag)
         (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
+    // Checking if this chunk was aggregated.
+    bool aggregated_flag =
+        (0 != ((*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED));
+
     // Checking if data fits in one chunk.
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {
@@ -186,7 +190,7 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     int32_t num_bytes_to_write = buf_len_bytes;
 
     // Checking if more than maximum chunks we can take at once.
-    if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
+    if ((num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!aggregated_flag))
     {
         num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
         num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_left_first_chunk;

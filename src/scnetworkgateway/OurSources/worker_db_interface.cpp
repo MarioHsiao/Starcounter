@@ -157,7 +157,8 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     starcounter::core::chunk_index cur_chunk_index,
     int32_t* actual_written_bytes,
     int32_t first_chunk_offset,
-    bool just_sending_flag
+    bool just_sending_flag,
+    bool is_aggregated_flag
     )
 {
     // Maximum number of bytes that will be written in this call.
@@ -169,7 +170,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     GW_ASSERT(num_extra_chunks_to_use > 0);
 
     // Checking if more than maximum chunks we can take at once.
-    if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
+    if ((num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!is_aggregated_flag))
     {
         num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
         num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;

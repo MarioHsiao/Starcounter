@@ -35,9 +35,10 @@ void SocketDataChunk::Init(
     // Checking if its an aggregation socket.
     if (g_gateway.IsAggregatingPort(socket_info_index))
     {
-        GatewayMemoryChunk* gw_chunk = g_gateway.ObtainGatewayMemoryChunk();
+        GatewayMemoryChunk* gwc = g_gateway.ObtainGatewayMemoryChunk();
         set_big_accumulation_chunk_flag();
-        accum_buf_.Init(gw_chunk->buffer_len_bytes_, gw_chunk->buf_, true);
+        accum_buf_.Init(gwc->buffer_len_bytes_, gwc->buf_, true);
+        accum_buf_.set_first_chunk_orig_buf_ptr((uint8_t*)gwc);
     }
     else
     {
@@ -63,8 +64,6 @@ void SocketDataChunk::Init(
 // Resetting socket.
 void SocketDataChunk::Reset()
 {
-    flags_ = 0;
-
     set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
@@ -80,8 +79,18 @@ void SocketDataChunk::Reset()
     get_http_proto()->Reset();
     get_ws_proto()->Reset();
 
-    // Configuring data buffer.
-    ResetAccumBuffer();
+    // Checking if big gateway chunk is used.
+    if (get_big_accumulation_chunk_flag())
+    {
+        flags_ = 0;
+        accum_buf_.ResetToOriginalState();
+        set_big_accumulation_chunk_flag();
+    }
+    else
+    {
+        flags_ = 0;
+        ResetAccumBuffer();
+    }
 }
 
 // Gets last linked smc.
@@ -107,7 +116,10 @@ void SocketDataChunk::ReturnGatewayChunk()
 {
     if (get_big_accumulation_chunk_flag())
     {
-        g_gateway.ReturnGatewayMemoryChunk(FromBufToMemoryChunk(accum_buf_.get_chunk_orig_buf_ptr()));
+        GatewayMemoryChunk* gmc = (GatewayMemoryChunk*) accum_buf_.get_first_chunk_orig_buf_ptr();
+        GW_ASSERT_DEBUG(AGGREGATION_BUFFER_SIZE == gmc->buffer_len_bytes_);
+
+        g_gateway.ReturnGatewayMemoryChunk(gmc);
         reset_big_accumulation_chunk_flag();
     }
 }
@@ -265,7 +277,8 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
             sd->get_chunk_index(),
             &total_processed_bytes,
             sd->GetAccumOrigBufferChunkOffset(),
-            false
+            false,
+            true
             );
 
         if (err_code)
