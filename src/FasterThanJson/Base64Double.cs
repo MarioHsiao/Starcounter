@@ -27,7 +27,8 @@ namespace Starcounter.Internal {
         }
 
         public static unsafe int MeasureNeededSize(Double value) {
-            return Base64Int.MeasureNeededSize(*(ulong*)&value << 12);
+            ulong valueUInt = *(ulong*)&value;
+            return Base64Int.MeasureNeededSize((valueUInt << 12) | (valueUInt >> 52));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -66,5 +67,64 @@ namespace Starcounter.Internal {
     }
 
     public static class Base64Single {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public static unsafe int Write(byte* buffer, Single value) {
+            uint valueUInt = *(uint*)&value;
+            uint encValue = (valueUInt << 9) | (valueUInt >> 23);
+            int len = Base64Int.Write(buffer, encValue);
+            Debug.Assert(valueUInt == ((encValue >> 9) | (encValue << 23)));
+            Debug.Assert(len <= 6);
+            return len;
+        }
+
+        public static unsafe int MeasureNeededSize(Single value) {
+            uint valueUInt = *(uint*)&value;
+            return Base64Int.MeasureNeededSize((valueUInt << 9) | (valueUInt >> 23));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public static unsafe Single Read(int size, byte* buffer) {
+            ulong value = Base64Int.Read(size, buffer);
+            value = (value >> 9) | (value << 23);
+            return *(Single*)&value;
+        }
+
+        public static unsafe int WriteNullable(byte* buffer, Single? value) {
+            if (value == null) {
+                Base64Int.WriteBase64x1(1, buffer);
+                return 1;
+            }
+            float val = (Single)value;
+            uint valueUInt = *(uint*)&val;
+            ulong encValue = (valueUInt << 9) | (valueUInt >> 23);
+            Debug.Assert((encValue & 0xFFFFFFFF00000000) == 0);
+            Debug.Assert(valueUInt == (uint)((encValue >> 9) | (encValue << 23)));
+            ulong nullVal = encValue << 1;
+            Debug.Assert((encValue & 0xFFFFFFFE00000000) == 0);
+            Debug.Assert(valueUInt == (uint)(((nullVal >> 1) >> 9) | ((nullVal >> 1) << 23)));
+            int size = Base64Int.Write(buffer, nullVal);
+            Debug.Assert(size <= 6);
+            return size;
+        }
+
+        public static unsafe int MeasureNeededSizeNullable(Single? value) {
+            if (value == null)
+                return 1;
+            float val = (Single)value;
+            uint valueUInt = *(uint*)&val;
+            ulong encVal = (valueUInt << 9) | (valueUInt >> 23);
+            int size = Base64Int.MeasureNeededSize(encVal << 1);
+            return size;
+        }
+
+        public static unsafe Single? ReadNullable(int size, byte* buffer) {
+            ulong value = Base64Int.Read(size, buffer);
+            if (value == 1)
+                return null;
+            Debug.Assert((value & 0x1) == 0);
+            value = value >> 1;
+            value = (value >> 9) | (value << 23);
+            return *(Single*)&value;
+        }
     }
 }

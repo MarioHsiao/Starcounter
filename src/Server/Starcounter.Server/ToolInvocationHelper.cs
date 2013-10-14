@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,6 +18,8 @@ namespace Starcounter.Server {
     /// of external processes ("tools").
     /// </summary>
     internal static class ToolInvocationHelper {
+        static LogSource log = ServerLogSources.Processes;
+
         /// <summary>
         /// Event raised when a tool has completed.
         /// </summary>
@@ -44,7 +47,7 @@ namespace Starcounter.Server {
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.RedirectStandardOutput = true;
             try {
-                process.Start();
+                StartProcess(process);
             } catch (Exception e) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, e,
                     string.Format("Cannot start the process '{0}': {1}.", process.StartInfo.FileName, e.Message));
@@ -143,7 +146,7 @@ namespace Starcounter.Server {
             process.OutputDataReceived += (sender, e) => { output.Add(e.Data); };
 
             try {
-                process.Start();
+                StartProcess(process);
             } catch (Exception e) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, e,
                     string.Format("Cannot start the process '{0}': {1}.", process.StartInfo.FileName, e.Message));
@@ -221,6 +224,14 @@ namespace Starcounter.Server {
                 toolProcess.StartInfo.Arguments,
                 toolProcess.ExitCode
                 );
+        }
+
+        private static bool StartProcess(Process process) {
+            log.Debug("Starting \"\"{0}\" {1}\" at {2}",
+                process.StartInfo.FileName,
+                process.StartInfo.Arguments,
+                DateTime.Now.ToString("hh.mm.ss.fff"));
+            return process.Start();
         }
 
         private static void ReceiveOutput(string toolName, List<string> output, string message) {
