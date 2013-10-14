@@ -203,5 +203,11 @@ namespace FasterThanJson.Tests {
             }
             return val;
         }
+
+        public static Single? RandomSingleNullable(Random rnd) {
+            if (rnd.Next(0, 10) == 0)
+                return null;
+            return RandomSingle(rnd);
+        }
     }
 }
