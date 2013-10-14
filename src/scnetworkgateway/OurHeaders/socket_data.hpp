@@ -269,10 +269,6 @@ public:
 
         GW_ASSERT((&get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
 
-        GatewayMemoryChunk gmc;
-        int32_t temp = static_cast<int32_t>((uint8_t*)&gmc.buf_ - (uint8_t*)&gmc);
-        GW_ASSERT(BufOffsetWithinGatewayMemoryChunk == temp);
-
         return 0;
     }
 
@@ -909,7 +905,7 @@ public:
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
-        GW_ASSERT(false == get_big_accumulation_chunk_flag());
+        GW_ASSERT_DEBUG(false == get_big_accumulation_chunk_flag());
         accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 

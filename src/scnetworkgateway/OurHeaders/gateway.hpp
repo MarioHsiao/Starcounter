@@ -815,6 +815,18 @@ public:
         first_chunk_orig_buf_ptr_ = chunk_orig_buf_ptr_;
     }
 
+    // First chunk origin data.
+    void set_first_chunk_orig_buf_ptr(uint8_t* first_chunk_orig_buf_ptr)
+    {
+        first_chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr;
+    }
+
+    // First chunk origin data.
+    uint8_t* get_first_chunk_orig_buf_ptr()
+    {
+        return first_chunk_orig_buf_ptr_;
+    }
+
     // Get buffer length.
     uint32_t GetNumLeftBytesInChunk(uint8_t* cur_ptr)
     {
@@ -971,13 +983,6 @@ _declspec(align(128)) struct GatewayMemoryChunk
     // Pointed to allocated buffer.
     uint8_t* buf_;
 };
-
-const int32_t BufOffsetWithinGatewayMemoryChunk = 24;
-
-inline GatewayMemoryChunk* FromBufToMemoryChunk(uint8_t* buf)
-{
-    return (GatewayMemoryChunk*) (buf - BufOffsetWithinGatewayMemoryChunk);
-}
 
 enum SOCKET_FLAGS
 {

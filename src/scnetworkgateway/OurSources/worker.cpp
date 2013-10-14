@@ -386,7 +386,7 @@ uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
     // Checking that not aggregated socket are trying to receive.
-    GW_ASSERT(false == sd->GetSocketAggregatedFlag());
+    GW_ASSERT_DEBUG(false == sd->GetSocketAggregatedFlag());
 
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
 // This label is used to avoid recursiveness between Receive and FinishReceive.
@@ -641,6 +641,8 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     }
     else
     {
+        GW_ASSERT(!sd->get_big_accumulation_chunk_flag());
+
         // Creating special chunk for keeping WSA buffers information there.
         err_code = sd->CreateWSABuffers(
             worker_dbs_[sd->get_db_index()],
@@ -918,7 +920,6 @@ DISCONNECT_OPERATION:
         // The disconnect operation is pending.
         return;
     }
-    /*
     else
     {
         // Finish disconnect operation.
@@ -927,7 +928,7 @@ DISCONNECT_OPERATION:
             goto RELEASE_CHUNK_TO_POOL;
 
         return;
-    }*/
+    }
 
     // Returning the chunk to pool.
 RELEASE_CHUNK_TO_POOL:
@@ -1858,7 +1859,8 @@ uint32_t GatewayWorker::SendPredefinedMessage(
             src_chunk_index,
             &last_written_bytes,
             first_chunk_offset,
-            just_sending_flag
+            just_sending_flag,
+            sd->get_aggregated_flag()
             );
 
         if (err_code)
