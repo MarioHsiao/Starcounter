@@ -124,8 +124,11 @@ namespace Starcounter {
                     valuearr = value as Json;
                 }
                 else {
-                    valuearr = new Json( (IEnumerable)value);
-                    valuearr.Parent = this;
+					valuearr = (Json)property.CreateInstance(this);// new Json((IEnumerable)value);
+					valuearr._data = value;
+					valuearr._PendingEnumeration = true;
+
+//                    valuearr.Parent = this;
                     //valuearr._PendingEnumeration = true;
                 }
                 if (index < _list.Count) {

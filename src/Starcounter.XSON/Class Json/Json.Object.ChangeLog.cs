@@ -170,7 +170,7 @@ namespace Starcounter {
                                 var j = this as Json;
                                 if (((TValue)p).UseBinding(j.DataAsBindable)) {
                                     var val = j.GetBound((TValue)p);
-                                    if ( val != list[p.TemplateIndex] ) {
+									if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
                                         list[p.TemplateIndex] = val;
                                         Session.UpdateValue(j, (TValue)exposed[t]);
                                     }   
@@ -198,10 +198,6 @@ namespace Starcounter {
                             if (p != null && p.UseBinding(j.DataAsBindable)) {
                                 var val = j.GetBound(p);
 
-								// TODO:
-								// When comparing for example two boxed integers, the != comparison returns
-								// false when it should be true so we need to make a call to equals here.
-//                                if (val != list[t]) {
 								if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
 									list[p.TemplateIndex] = val;
 									Session.UpdateValue(j, (TValue)exposed[t]);
@@ -220,25 +216,23 @@ namespace Starcounter {
             }
         }
 
-		private void SetBoundValuesInTuple() {
+		internal void SetBoundValuesInTuple() {
 			if (IsArray) {
 				foreach (Json item in _list) {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
 				var dataObj = DataAsBindable;
-				if (dataObj != null) {
-					var valueList = list;
-					TObject tobj = (TObject)Template;
-					for (int i = 0; i < tobj.Properties.Count; i++) {
-						var vt = tobj.Properties[i] as TValue;
-						if (vt != null) {
-							if (vt is TContainer) {
-								var childJson = (Json)Get(vt);
-								childJson.SetBoundValuesInTuple();
-							} else if (vt != null && vt.UseBinding(dataObj)) {
-								valueList[i] = GetBound(vt);
-							}
+				var valueList = list;
+				TObject tobj = (TObject)Template;
+				for (int i = 0; i < tobj.Properties.Count; i++) {
+					var vt = tobj.Properties[i] as TValue;
+					if (vt != null) {
+						if (vt is TContainer) {
+							var childJson = (Json)Get(vt);
+							childJson.SetBoundValuesInTuple();
+						} else if (vt != null && vt.UseBinding(dataObj)) {
+							valueList[i] = GetBound(vt);
 						}
 					}
 				}
