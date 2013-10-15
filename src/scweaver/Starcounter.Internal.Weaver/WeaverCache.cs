@@ -340,7 +340,7 @@ namespace Starcounter.Internal.Weaver {
 
             if (hashedAssemblies == null) {
                 hashedAssemblies = new Dictionary<string, string>(32, StringComparer.InvariantCultureIgnoreCase);
-                starcounterAssembly = Assembly.GetExecutingAssembly();
+                starcounterAssembly = typeof(Db).Assembly;
                 hash = HashHelper.ComputeHash(starcounterAssembly.Location);
                 hashedAssemblies[starcounterAssembly.ManifestModule.Name] = hash;
             }
