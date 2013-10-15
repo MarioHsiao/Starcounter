@@ -206,6 +206,13 @@ namespace Starcounter
             return 0;
         }
 
+        static String AggrRespString =
+            "HTTP/1.1 200 OK\r\n" +
+            "Content-Type: text/html; charset=UTF-8\r\n" +
+            "Content-Length: 10\r\n\r\n1234567890";
+
+        static Byte[] AggrRespBytes = UTF8Encoding.ASCII.GetBytes(AggrRespString);
+
         /// <summary>
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
@@ -282,6 +289,14 @@ namespace Starcounter
             }
             else
             {
+                /*if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_AGGREGATED) != 0)
+                {
+                    data_stream.Init(raw_chunk, true, chunk_index);
+                    data_stream.SendResponse(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+
+                    return 0;
+                }*/
+
                 // Obtaining Request structure.
                 Request http_request = new Request(
                     raw_chunk,
