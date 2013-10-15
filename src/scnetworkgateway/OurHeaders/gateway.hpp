@@ -169,10 +169,10 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192 * 8;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 100;
+const int32_t MAX_FETCHED_OVLS = 10;
 
 // Maximum size of HTTP content.
 const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
