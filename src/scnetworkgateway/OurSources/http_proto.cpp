@@ -66,6 +66,7 @@ const int32_t kHttpNotFoundMessageLength = static_cast<int32_t> (strlen(kHttpNot
 
 __declspec(thread) http_parser g_ts_http_parser_;
 __declspec(thread) uint8_t g_ts_last_field_;
+__declspec(thread) bool g_xhreferer_read_;
 __declspec(thread) SocketDataChunk* g_ts_sd_;
 __declspec(thread) HttpRequest* g_ts_http_request_;
 
@@ -377,6 +378,12 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
     switch (g_ts_last_field_)
     {
         case REFERRER_FIELD:
+        {
+            // Do nothing if X-Referer field is already processed.
+            if (g_xhreferer_read_)
+                break;
+        }
+
         case XREFERRER_FIELD:
         {
             // Pointing to the actual value of a session.
@@ -387,6 +394,10 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
                 (*(session_id_start - 1) == '/'))
             {
                g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_id_start);
+
+               // Checking if X-Referer field is read.
+               if (XREFERRER_FIELD == g_ts_last_field_)
+                   g_xhreferer_read_ = true;
             }
 
             break;
@@ -660,6 +671,7 @@ void HttpProto::ResetParser(SocketDataChunk* sd)
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
     g_ts_sd_ = sd;
+    g_xhreferer_read_ = false;
 
     http_request_.Reset();
 
