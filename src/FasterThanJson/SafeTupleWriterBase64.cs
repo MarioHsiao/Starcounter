@@ -148,7 +148,7 @@ namespace Starcounter.Internal {
         /// <returns>The estimated length. </returns>
         public static int MeasureNeededSizeNullableLong(long? n) {
             if (n == null)
-                return 1;
+                return Base64Int.MeasureNeededSizeNullable(null);
             if (n >= 0)
                 return Base64Int.MeasureNeededSizeNullable((ulong)n << 1);
             else
@@ -188,7 +188,7 @@ namespace Starcounter.Internal {
         /// <param name="str">The Nullable Boolean value to encode.</param>
         /// <returns>The estimated length. </returns>
         public static int MeasureNeededSizeNullableBoolean(Boolean? val) {
-            return 1;
+            return AnyBaseBool.MeasureNeededSizeNullable(val);
         }
 
         /// <summary>
@@ -336,7 +336,7 @@ namespace Starcounter.Internal {
 
         public unsafe void WriteBooleanNullable(Boolean? b) {
             int size = MeasureNeededSizeNullableBoolean(b);
-            Debug.Assert(size == 1);
+            Debug.Assert(size == 1 || size == 0);
             size = ValidateLength(size);
             theTuple.WriteBooleanNullable(b);
             Debug.Assert(theTuple.AtEnd - theTuple.AtStart <= TupleMaxLength);
