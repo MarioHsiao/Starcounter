@@ -484,7 +484,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	// Checking if number of schedulers is defined.
 #ifdef WITH_DATABASE
 	str_template =
-        L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" "
+        L"scadminserver.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" "
         L"--DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
@@ -529,7 +529,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 #else
 
 	str_template =
-        L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
+        L"scadminserver.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
         L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --FLAG:NoDb %s";
 
