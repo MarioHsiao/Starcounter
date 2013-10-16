@@ -28,24 +28,13 @@ namespace Starcounter.CLI {
         /// </remarks>
         [DebuggerNonUserCode]
         public static void BootInHost() {
-            if (IsCodeHostProcess(Process.GetCurrentProcess())) 
+            if (StarcounterEnvironment.IsCodeHosted)
                 return;
             
             var args = Environment.GetCommandLineArgs();
             var workingDirectory = Environment.CurrentDirectory;
 
             DoBootInHostAndExit(args, workingDirectory);
-        }
-
-        /// <summary>
-        /// Determines whether <paramref name="p"/> reference a process
-        /// that is considered a Starcounter code host process.
-        /// </summary>
-        /// <param name="p">The process to evaluate</param>
-        /// <returns><c>true</c> if the process is a code host; <c>false</c>
-        /// otherwise.</returns>
-        public static bool IsCodeHostProcess(Process p) {
-            return p.ProcessName.Equals(StarcounterConstants.ProgramNames.ScCode);
         }
 
         /// <summary>
