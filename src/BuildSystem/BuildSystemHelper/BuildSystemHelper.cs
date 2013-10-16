@@ -300,6 +300,7 @@ namespace BuildSystemHelper
                         "scnetworkgateway",
                         "scnetworkgatewayloopedtest",
                         "scipcmonitor",
+						"scadminserver",
                         "scweaver",
                         "scsqlparser"
                     });
