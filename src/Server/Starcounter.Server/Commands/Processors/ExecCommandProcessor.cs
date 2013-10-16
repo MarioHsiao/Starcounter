@@ -12,6 +12,7 @@ using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace Starcounter.Server.Commands {
 
@@ -106,12 +107,32 @@ namespace Starcounter.Server.Commands {
                         IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous
                     };
                     var exe = app.ToExecutable();
-                    
+
                     if (exe.RunEntrypointAsynchronous) {
+                        // Just make the asynchronous call and be done with it
+                        // We never check anything more.
                         node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
                     } else {
-                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
-                        response.FailIfNotSuccess();
+                        // Make a asynchronous call, where we let the callback
+                        // set the event whenever the code host is done. Until
+                        // then, we wait for this, and check that the code host
+                        // is running perodically.
+                        var confirmed = new ManualResetEvent(false);
+                        Response codeHostResponse = null;
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, confirmed, (Response resp, object userObject) => {
+                            var done = (ManualResetEvent)userObject;
+                            codeHostResponse = resp;
+                            done.Set();
+                            return resp;
+                        });
+
+                        var timeout = 500;
+                        while (!confirmed.WaitOne(timeout)) {
+                            RaiseExceptionIfCodeHostTerminated(codeHostProcess, database);
+                            timeout = 20;
+                        }
+                        confirmed.Dispose();
+                        codeHostResponse.FailIfNotSuccess();
                     }
                     OnCodeHostExecRequestProcessed();
 
@@ -122,25 +143,7 @@ namespace Starcounter.Server.Commands {
                     OnDatabaseAppRegistered();
 
                 } catch (Exception ex) {
-                    // When we experience a timeout, we can try to check if the
-                    // process is still alive. If not, it might have crashed.
-                    // Else, we should indicate that the timeout time can be adjusted
-                    // by means of config?
-                    codeHostProcess.Refresh();
-                    if (codeHostProcess.HasExited) {
-                        // The code host has exited, most likely because something
-                        // in the bootstrap sequence or in the exec handler has gone
-                        // wrong. 
-                        // We count on the code host logging the exact reason,
-                        // but just in case it fails to do so, we log this from the
-                        // perspective of the server, including the exit code which 
-                        // should be a proper starcounter errorcode.
-                        // We also don't try to amend this right now, since we don't
-                        // have any good strategy figured out. We start with just
-                        // logging it and nothing else.
-
-                        throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, ex);
-                    }
+                    RaiseExceptionIfCodeHostTerminated(codeHostProcess, database, ex);
                     throw ex;
                 }
             });
@@ -149,6 +152,24 @@ namespace Starcounter.Server.Commands {
             SetResult(result);
 
             OnDatabaseStatusUpdated();
+        }
+
+        void RaiseExceptionIfCodeHostTerminated(Process codeHostProcess, Database database, Exception ex = null) {
+            codeHostProcess.Refresh();
+            if (codeHostProcess.HasExited) {
+                // The code host has exited, most likely because something
+                // in the bootstrap sequence or in the exec handler has gone
+                // wrong. 
+                // We count on the code host logging the exact reason,
+                // but just in case it fails to do so, we log this from the
+                // perspective of the server, including the exit code which 
+                // should be a proper starcounter errorcode.
+                // We also don't try to amend this right now, since we don't
+                // have any good strategy figured out. We start with just
+                // logging it and nothing else.
+
+                throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, ex);
+            }
         }
 
         /// <summary>
