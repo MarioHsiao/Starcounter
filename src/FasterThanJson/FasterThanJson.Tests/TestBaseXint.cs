@@ -230,28 +230,28 @@ namespace FasterThanJson.Tests
 
       [Test]
       public unsafe void TestBase64NullableVariableSizes() {
-          Assert.AreEqual(1, Base64Int.MeasureNeededSizeNullable(null));
+          Assert.AreEqual(0, Base64Int.MeasureNeededSizeNullable(null));
           Assert.AreEqual(1, Base64Int.MeasureNeededSizeNullable(0));
           Assert.AreEqual(1, Base64Int.MeasureNeededSizeNullable(1));
           Assert.AreEqual(1, Base64Int.MeasureNeededSizeNullable(31));
-          Assert.AreEqual(2, Base64Int.MeasureNeededSizeNullable(63));
+          Assert.AreEqual(1, Base64Int.MeasureNeededSizeNullable(63));
           Assert.AreEqual(2, Base64Int.MeasureNeededSizeNullable(64));
           Assert.AreEqual(2, Base64Int.MeasureNeededSizeNullable(64 * 32 - 1));
-          Assert.AreEqual(3, Base64Int.MeasureNeededSizeNullable(64 * 64 - 1));
+          Assert.AreEqual(2, Base64Int.MeasureNeededSizeNullable(64 * 64 - 1));
           Assert.AreEqual(3, Base64Int.MeasureNeededSizeNullable(64 * 64));
           Assert.AreEqual(3, Base64Int.MeasureNeededSizeNullable(64 * 64 * 32 - 1));
-          Assert.AreEqual(4, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 - 1));
+          Assert.AreEqual(3, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 - 1));
           Assert.AreEqual(4, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64));
           Assert.AreEqual(4, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 32 - 1));
-          Assert.AreEqual(5, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 - 1));
+          Assert.AreEqual(4, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 - 1));
           Assert.AreEqual(5, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64));
           Assert.AreEqual(5, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 * 32 - 1));
-          Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 * 64 - 1));
+          Assert.AreEqual(5, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 * 64 - 1));
           Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64 * 64 * 64 * 64 * 64));
           Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 32UL - 1));
-          Assert.AreEqual(8, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1));
+          Assert.AreEqual(6, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1));
           Assert.AreEqual(8, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 32UL - 1));
-          Assert.AreEqual(11, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL- 1));
+          Assert.AreEqual(8, Base64Int.MeasureNeededSizeNullable(64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL- 1));
           Assert.AreEqual(11, Base64Int.MeasureNeededSizeNullable(UInt64.MaxValue));
       }
 
@@ -259,7 +259,7 @@ namespace FasterThanJson.Tests
       public unsafe void TestBase64Nullable() {
           fixed (byte* buffer = new byte[11]) {
               int size = Base64Int.WriteNullable(buffer, null);
-              Assert.AreEqual(1, size);
+              Assert.AreEqual(0, size);
               Assert.AreEqual(null, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 0);
               Assert.AreEqual(1, size);
@@ -271,13 +271,13 @@ namespace FasterThanJson.Tests
               Assert.AreEqual(1, size);
               Assert.AreEqual(5, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 63);
-              Assert.AreEqual(2, size);
+              Assert.AreEqual(1, size);
               Assert.AreEqual(63, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 64 * 64 * 64 * 64 * 64);
               Assert.AreEqual(6, size);
               Assert.AreEqual(64 * 64 * 64 * 64 * 64, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1);
-              Assert.AreEqual(8, size);
+              Assert.AreEqual(6, size);
               Assert.AreEqual(64UL * 64UL * 64UL * 64UL * 64UL * 64UL - 1, Base64Int.ReadNullable((int)size, buffer));
               size = Base64Int.WriteNullable(buffer, 64UL * 64UL * 64UL * 64UL * 64UL * 64UL * 64UL -1);
               Assert.AreEqual(8, size);
