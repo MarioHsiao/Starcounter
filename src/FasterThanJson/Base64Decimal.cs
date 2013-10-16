@@ -131,34 +131,22 @@ namespace Starcounter.Internal {
         }
 
         public unsafe static int WriteNullable(byte* buffer, Decimal? value) {
-            if (value == null) {
-                Base16Int.WriteBase16x1(1, buffer);
-                return 1;
-            } else {
-                var len = Write(buffer, (Decimal)value);
-                Debug.Assert(len > 1);
-                return len;
-            }
+            if (value == null)
+                return 0;
+            return Write(buffer, (Decimal)value);
         }
 
         public unsafe static decimal? ReadNullable(int size, byte* buffer) {
-            if (size == 1) {
-                Debug.Assert(Base16Int.ReadBase16x1((Base16x1*)buffer) == 1);
+            if (size == 0)
                 return null;
-            } else
-                return Read(size, buffer);
-        }
-    
-        public unsafe static int MeasureNeededSizeNullable(decimal? value) {
-            if (value == null)
-                return 1;
-            else {
-                var size = MeasureNeededSize((decimal)value);
-                Debug.Assert(size > 1);
-                return size;
-            }
+            return Read(size, buffer);
         }
 
+        public unsafe static int MeasureNeededSizeNullable(decimal? value) {
+            if (value == null)
+                return 0;
+            return MeasureNeededSize((decimal)value);
+        }
     }
 
     public static class Base64X6Decimal {
