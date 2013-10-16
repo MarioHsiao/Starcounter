@@ -264,8 +264,7 @@ namespace Starcounter.Internal
       public unsafe void WriteLongNullable(long? n) {
           int len;
           if (n == null) {
-              Base64Int.WriteBase64x1(1, AtEnd);
-              len = 1;
+              len = Base64Int.WriteNullable(AtEnd, null);
           } else {
               len = Base64Int.WriteNullable(AtEnd, ConvertFromLong((long)n));
           }
@@ -308,8 +307,8 @@ namespace Starcounter.Internal
       /// <param name="value">The value.</param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void WriteBooleanNullable(Boolean? value) {
-          AnyBaseBool.WriteBooleanNullable(AtEnd, value);
-          HaveWritten(1);
+          int size = AnyBaseBool.WriteBooleanNullable(AtEnd, value);
+          HaveWritten(size);
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
