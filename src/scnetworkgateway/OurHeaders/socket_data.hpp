@@ -303,7 +303,13 @@ public:
     }
 
     // Gets last linked smc.
-    shared_memory_chunk* GetLastLinkedSmc(GatewayWorker* gw);
+    shared_memory_chunk* ObtainLastLinkedSmc(GatewayWorker* gw);
+
+    // Saves last linked smc.
+    void SaveLastLinkedChunk(core::chunk_index the_chunk_index)
+    {
+        get_smc()->set_next(the_chunk_index);
+    }
 
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);

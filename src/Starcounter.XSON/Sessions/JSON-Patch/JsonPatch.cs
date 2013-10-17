@@ -129,6 +129,7 @@ namespace Starcounter.Internal.JsonPatch {
 				if (value is Json) {
 					var oo = (Json)value;
 					sb.Append(oo.ToJson());
+					oo.SetBoundValuesInTuple();
 				} else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }

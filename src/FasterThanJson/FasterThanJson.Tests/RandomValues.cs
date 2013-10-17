@@ -21,7 +21,9 @@ namespace FasterThanJson.Tests {
         DECIMALLOSSLESS,
         DECIMALNULL,
         DOUBLE,
-        DOUBLENULL
+        DOUBLENULL,
+        SINGLE,
+        SINGLENULL
     }
 
     public static class RandomValues {
@@ -180,6 +182,32 @@ namespace FasterThanJson.Tests {
             if (rnd.Next(0, 10) == 0)
                 return null;
             return RandomDouble(rnd);
+        }
+
+        public static Single RandomSingle(Random rnd) {
+            double gen = rnd.NextDouble();
+            bool sign = RandomBoolean(rnd);
+            Single val;
+            if (sign)
+                val = (Single)(gen * Double.MinValue);
+            else
+                val = (Single)(gen * Double.MaxValue);
+            if (RandomBoolean(rnd)) {
+                int scale = rnd.Next(0, 10);
+                for (int i = 0; i < scale; i++)
+                    val /= 10;
+            } else {
+                int scale = rnd.Next(0, 20);
+                for (int i = 0; i < scale; i++)
+                    val /= 2;
+            }
+            return val;
+        }
+
+        public static Single? RandomSingleNullable(Random rnd) {
+            if (rnd.Next(0, 10) == 0)
+                return null;
+            return RandomSingle(rnd);
         }
     }
 }

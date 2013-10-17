@@ -86,7 +86,7 @@ namespace Starcounter {
                     this.Dirtyfy();
                 }
             }
-            //this.HasChanged(property);
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -370,6 +370,7 @@ namespace Starcounter {
                 }
                 ArrayAddsAndDeletes.Add(Change.Add((Json)this.Parent, tarr, index));
                 Dirtyfy();
+				item.SetBoundValuesInTuple();
             }
             Parent.ChildArrayHasAddedAnElement(tarr, index);
         }

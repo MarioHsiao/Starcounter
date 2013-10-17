@@ -124,7 +124,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunks default number.
         /// </summary>
-        public const int SHM_CHUNKS_DEFAULT_NUMBER = 1 << 15; // 32K chunks.
+        public const int SHM_CHUNKS_DEFAULT_NUMBER = 1 << 14; // 32K chunks.
 
         /// <summary>
         /// Linked chunk flag.

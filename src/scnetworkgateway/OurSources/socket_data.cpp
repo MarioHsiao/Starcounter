@@ -94,21 +94,12 @@ void SocketDataChunk::Reset()
 }
 
 // Gets last linked smc.
-shared_memory_chunk* SocketDataChunk::GetLastLinkedSmc(GatewayWorker* gw)
+shared_memory_chunk* SocketDataChunk::ObtainLastLinkedSmc(GatewayWorker* gw)
 {
-    // Calculating last chunk index.
-    core::chunk_index last_chunk_index = chunk_index_;
-    shared_memory_chunk* last_smc;
-    while (true) 
-    {
-        last_smc = gw->GetSmcFromChunkIndex(db_index_, last_chunk_index);
-        if (last_smc->is_terminated())
-            break;
-        else
-            last_chunk_index = last_smc->get_link();
-    }
+    if (1 == num_chunks_)
+        return get_smc();
 
-    return last_smc;
+    return gw->GetSmcFromChunkIndex(db_index_, get_smc()->get_next());
 }
 
 // Returns gateway chunk to gateway if any.
@@ -137,13 +128,13 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
         if (accum_buf_.IsBufferFilled())
         {
             // Getting last chunk where we previously accumulated data.
-            shared_memory_chunk* last_smc = GetLastLinkedSmc(gw);
+            shared_memory_chunk* last_smc = ObtainLastLinkedSmc(gw);
 
             // Getting new chunk and attaching to last one to it.
             WorkerDbInterface* worker_db = gw->GetWorkerDb(db_index_);
-            core::chunk_index new_chunk_index_;
+            core::chunk_index new_chunk_index;
             shared_memory_chunk *new_smc;
-            err_code = worker_db->GetOneChunkFromPrivatePool(&new_chunk_index_, &new_smc);
+            err_code = worker_db->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
             if (err_code)
                 return err_code;
 
@@ -151,7 +142,10 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             num_chunks_++;
 
             // Linking new chunk to current chunk.
-            last_smc->set_link(new_chunk_index_);
+            last_smc->set_link(new_chunk_index);
+
+            // Saving last linked chunk index.
+            SaveLastLinkedChunk(new_chunk_index);
 
             // Setting new chunk as a new buffer.
             accum_buf_.Init(MixedCodeConstants::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
@@ -164,6 +158,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 
         // Restoring the socket data link.
         accum_buf_.RestoreToFirstChunk();
+        get_smc()->terminate_next();
     }
 
     return 0;

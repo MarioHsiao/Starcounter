@@ -874,13 +874,13 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
-    GW_ASSERT(sizeof(ScSocketInfoStruct) == 128);
-
     GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == *(int64_t*)"Content-Length: ");
     GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == *(int64_t*)"Upgrade:");
     GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == *(int64_t*)"Sec-WebSocket: ");
     GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == *(int64_t*)"Referer: ");
     GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == *(int64_t*)"X-Referer: ");
+
+    GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
     return 0;
 
@@ -1629,12 +1629,12 @@ void ActiveDatabase::CloseSocketData()
 uint32_t Gateway::Init()
 {
     // Allocating data for sockets infos.
-    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
-    free_socket_indexes_unsafe_ = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*) _aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, MEMORY_ALLOCATION_ALIGNMENT);
+    free_socket_indexes_unsafe_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
     GW_ASSERT(free_socket_indexes_unsafe_);
     InitializeSListHead(free_socket_indexes_unsafe_);
 
-    gateway_mem_chunks_unsafe_ = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    gateway_mem_chunks_unsafe_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
     GW_ASSERT(gateway_mem_chunks_unsafe_);
     InitializeSListHead(gateway_mem_chunks_unsafe_);
 

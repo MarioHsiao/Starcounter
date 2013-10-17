@@ -397,18 +397,22 @@ namespace Starcounter.Server.Commands {
 
         private void OnBeginExecute()
         {
-            Trace("Executing.");
+            Trace("Executing '{0}'", true, this.command.Description);
         }
 
         private void OnEndExecute()
         {
-            Trace("Execution completed.");
+            Trace("Executing completed");
         }
 
         [Conditional("TRACE")]
-        protected void Trace(string message)
+        protected void Trace(string message, bool restartWatch = false, params object[] args)
         {
+            message = string.Format(message, args);
+            if (restartWatch) stopwatch.Restart();
             Diagnostics.WriteTrace("server", stopwatch.ElapsedTicks, message);
+
+            Diagnostics.WriteTimeStamp("SERVER", message);
         }
 
         #region Progress tracking
@@ -434,6 +438,8 @@ namespace Starcounter.Server.Commands {
 
             if (task.Duration.IsDeterminate())
                 throw new InvalidOperationException();
+
+            Trace("Begin task '{0}'", false, task.ShortText);
 
             progressInfo = new ProgressInfo(task.ID, 0, -1, null);
 
@@ -600,13 +606,7 @@ namespace Starcounter.Server.Commands {
         /// </summary>
         /// <param name="task">The <see cref="CommandTask"/> to cancel.
         protected void CancelTask(CommandTask task) {
-            ProgressInfo info;
-
-            info = this.progress[task.ID];
-            if (info.IsCompleted) throw new InvalidOperationException();
-            info.Cancel();
-
-            NotifyStatusChanged();
+            EndTask(task, true);
         }
 
         /// <summary>
@@ -617,6 +617,8 @@ namespace Starcounter.Server.Commands {
         /// be marked as cancelled or fulfilled.</param>
         protected void EndTask(CommandTask task, bool cancel = false) {
             ProgressInfo info;
+
+            Trace("End task (cancelled={0})", false, cancel);
 
             info = this.progress[task.ID];
             EndSingleProgress(info, cancel);

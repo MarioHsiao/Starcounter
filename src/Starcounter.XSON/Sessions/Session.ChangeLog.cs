@@ -150,6 +150,7 @@ namespace Starcounter {
         /// </summary>
         public void CheckpointChangeLog() {
             this._Data.CheckpointChangeLog();
+			this._Data.SetBoundValuesInTuple();
 			_BrandNew = false;
         }
 

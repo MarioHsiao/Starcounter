@@ -56,6 +56,7 @@ typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
 typedef int16_t uri_index_type;
+typedef int16_t port_index_type;
 typedef int8_t db_index_type;
 
 // Statistics macros.
@@ -168,10 +169,10 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192 * 8;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 100;
+const int32_t MAX_FETCHED_OVLS = 10;
 
 // Maximum size of HTTP content.
 const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
@@ -972,7 +973,7 @@ struct ScSessionStruct
     }
 };
 
-_declspec(align(128)) struct GatewayMemoryChunk
+_declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct GatewayMemoryChunk
 {
     // Entry to lock-free gateway memory chunks list.
     SLIST_ENTRY free_gw_memory_chunks_entry_;
@@ -990,7 +991,7 @@ enum SOCKET_FLAGS
 };
 
 // Structure that facilitates the socket.
-_declspec(align(128)) struct ScSocketInfoStruct
+_declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 {
     // Entry to lock-free free list.
     SLIST_ENTRY free_socket_indexes_entry_;
@@ -1004,10 +1005,23 @@ _declspec(align(128)) struct ScSocketInfoStruct
     // Unique number for socket.
     random_salt_type unique_socket_id_;
 
+    // Determined handler id.
+    BMX_HANDLER_TYPE saved_user_handler_id_;
+
+    // Socket number.
+    SOCKET socket_;
+
+    // Proxy socket identifier.
+    session_index_type proxy_socket_info_index_;
+
+    // This socket info index.
+    session_index_type socket_info_index_;
+
     // Aggregation socket index.
     session_index_type aggr_socket_info_index_;
 
-    uint16_t unused0_;
+    // Port index.
+    port_index_type port_index_;
 
     // Index to already determined URI.
     uri_index_type matched_uri_index_;
@@ -1018,25 +1032,8 @@ _declspec(align(128)) struct ScSocketInfoStruct
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
 
-    uint8_t unused1_;
-    uint8_t unused2_;
-
-    // Port index.
-    int32_t port_index_;
-
-    // Socket number.
-    SOCKET socket_;
-
-    uint64_t unused3_;
-
-    // Determined handler id.
-    BMX_HANDLER_TYPE saved_user_handler_id_;
-
-    // Proxy socket identifier.
-    session_index_type proxy_socket_info_index_;
-
-    // This socket info index.
-    session_index_type socket_info_index_;
+    // Avoiding false sharing between workers.
+    uint8_t pad[CACHE_LINE_SIZE];
 
     // Getting socket aggregated flag.
     bool get_socket_aggregated_flag()
@@ -1746,7 +1743,7 @@ public:
 
         if (NULL == free_gw_chunk_entry)
         {
-            GatewayMemoryChunk* c = new GatewayMemoryChunk();
+            GatewayMemoryChunk* c =  (GatewayMemoryChunk*) _aligned_malloc(sizeof(GatewayMemoryChunk), MEMORY_ALLOCATION_ALIGNMENT);
             c->buffer_len_bytes_ = AGGREGATION_BUFFER_SIZE;
             c->buf_ = new uint8_t[c->buffer_len_bytes_];
 
