@@ -449,6 +449,8 @@ namespace Starcounter.Internal
         [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static unsafe UInt32 cm3_get_stash(void* ignore, UInt32** ppstash);
 
+        public const uint MH4_MENV_MAX_SLABS = (uint)((0x4000000000UL - 1) / 8192);
+
         /// <summary>
         /// Mh4_menv_creates the specified mem128.
         /// </summary>

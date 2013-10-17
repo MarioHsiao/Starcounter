@@ -389,7 +389,12 @@ namespace StarcounterInternal.Bootstrap
         /// <returns>System.UInt64.</returns>
         private unsafe ulong ConfigureMemory(Configuration c, void* mem128)
         {
-            uint slabs = (0xFFFFF000 - 4096) / 4096;  // 4 GB - 4 KB
+            Kernel32.MEMORYSTATUSEX m;
+            m.dwLength = (uint)sizeof(Kernel32.MEMORYSTATUSEX);
+            Kernel32.GlobalMemoryStatusEx(&m);
+            uint slabs = (uint)(m.ullTotalPhys / 8192);
+            if (slabs > sccorelib.MH4_MENV_MAX_SLABS)
+                slabs = sccorelib.MH4_MENV_MAX_SLABS;
             ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
             if (hmenv != 0) return hmenv;
             throw ErrorCode.ToException(Starcounter.Error.SCERROUTOFMEMORY);
