@@ -53,6 +53,7 @@ namespace Starcounter.Internal {
             int retries = 60;
             int timeout = 1000; // timeout per wait for signal, not total timeout wait.
             bool signaled;
+			uint errorCode = 0;
             EventWaitHandle serverOnlineEvent = null;
 
             try {
@@ -70,11 +71,18 @@ namespace Starcounter.Internal {
                     }
 
                     if (serverProcess.HasExited) {
-                        uint errorCode = (uint)serverProcess.ExitCode;
+
+						try {
+							// Sometimes we are not allowed to read the exitcode. In that case 
+							// we just ignore it and send a general starcounter error.
+							errorCode = (uint)serverProcess.ExitCode;
+						} catch (InvalidOperationException) { }
+
+
                         if (errorCode != 0) {
                             throw ErrorCode.ToException(errorCode);
                         }
-                        throw ErrorCode.ToException(Error.SCERRSERVERNOTAVAILABLE);
+						throw ErrorCode.ToException(Error.SCERRSERVERNOTRUNNING);
                     }
                 }
             } finally {

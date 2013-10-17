@@ -318,26 +318,41 @@ namespace Starcounter {
         /// </summary>
         public void PerformAsyncRequest()
         {
-            // Obtaining existing or creating new connection.
-            if (null == SocketObj)
+            try
             {
-                SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                // Checking if we already have an active connection.
+                if (NodeInst.CoreTaskInfo.IsConnectionEstablished())
+                    AttachConnection(NodeInst.CoreTaskInfo.TcpClientObj);
 
-                SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
-            }
-            else
-            {
-                try
+                // Obtaining existing or creating new connection.
+                if (null == SocketObj)
                 {
-                    SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
-                }
-                catch
-                {
-                    // Seems connection was closed so reconnecting.
                     SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                     SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
                 }
+                else
+                {
+                    try
+                    {
+                        SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
+                    }
+                    catch
+                    {
+                        // Seems connection was closed so reconnecting.
+                        SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                        SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                // Connection wasn't established.
+                SocketObj = null;
+                TcpClientObj = null;
+
+                CallUserDelegateOnFailure(exc, false);
             }
         }
 
@@ -391,18 +406,22 @@ namespace Starcounter {
         {
             try
             {
-                // Checking if we are connected.
-                if (null == SocketObj)
-                    AttachConnection(null);
-
-                // Sending the request.
                 try
                 {
+                    // Checking if we are connected.
+                    if (null == SocketObj)
+                        AttachConnection(null);
+
+                    // Sending the request.
                     Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
                     Debug.Assert(RequestBytesLength == bytesSent);
                 }
                 catch
                 {
+                    // Connection wasn't established.
+                    SocketObj = null;
+                    TcpClientObj = null;
+
                     // Assuming that existing TCP connection is down.
                     // So we need to create a new one.
                     AttachConnection(null);
