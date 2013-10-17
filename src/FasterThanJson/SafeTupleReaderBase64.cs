@@ -191,9 +191,9 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int valueLength;
             GetAtPosition(index, out valuePos, out valueLength);
-            Debug.Assert(valueLength == 1);
+            Debug.Assert(valueLength == 1 || valueLength == 0);
             // Read the value at the position with the length
-            return AnyBaseBool.ReadBooleanNullable(valuePos);
+            return AnyBaseBool.ReadBooleanNullable(valueLength, valuePos);
         }
 
         /// <summary>
@@ -246,6 +246,32 @@ namespace Starcounter.Internal {
             GetAtPosition(index, out valuePos, out valueLength);
             // Read the value at the position with the length
             return Base64Double.ReadNullable(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads Single at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe Single ReadSingle(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Single.Read(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads Nullable Single at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe Single? ReadSingleNullable(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Single.ReadNullable(valueLength, valuePos);
         }
     }
 }

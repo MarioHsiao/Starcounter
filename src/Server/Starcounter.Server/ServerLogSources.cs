@@ -16,5 +16,11 @@ namespace Starcounter.Server {
         /// The default server log source.
         /// </summary>
         internal readonly static LogSource Default = new LogSource("Starcounter.Server");
+
+        /// <summary>
+        /// The log source used by the server to log information
+        /// relating to external process management.
+        /// </summary>
+        internal readonly static LogSource Processes = new LogSource("Starcounter.Server.Processes");
     }
 }

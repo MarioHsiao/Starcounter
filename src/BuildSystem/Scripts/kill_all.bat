@@ -5,6 +5,7 @@ TASKKILL /f /t /im scdblog.exe
 TASKKILL /f /t /im scnetworkgateway.exe
 TASKKILL /f /t /im scnetworkgatewayloopedtest.exe
 TASKKILL /f /t /im scipcmonitor.exe
+TASKKILL /f /t /im scadminserver.exe
 TASKKILL /f /t /im scweaver.exe
 TASKKILL /f /t /im scsqlparser.exe
 

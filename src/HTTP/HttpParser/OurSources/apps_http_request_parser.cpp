@@ -19,6 +19,9 @@ struct HttpRequestParserStruct
     // Indicates if we have complete header.
     bool complete_header_flag_;
 
+    // Checks if X-Referer field is read.
+    bool is_xhreferer_read_;
+
     // Pointer to request buffer.
     uint8_t* request_buf_;
 
@@ -33,6 +36,7 @@ struct HttpRequestParserStruct
 
         http_parser_init(&http_parser_, HTTP_REQUEST);
         complete_header_flag_ = false;
+        is_xhreferer_read_ = false;
     }
 };
 
@@ -131,6 +135,12 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
         }
 
         case REFERRER_FIELD:
+        {
+            // Do nothing if X-Referer field is already processed.
+            if (http->is_xhreferer_read_)
+                break;
+        }
+
         case XREFERRER_FIELD:
         {
             // Checking if Starcounter session id is presented.
@@ -138,6 +148,10 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
             {
                 // Setting the session offset.
                 http->http_request_->session_string_offset_ = (uint16_t)(at - (char*)http->request_buf_);
+
+                // Checking if X-Referer field is read.
+                if (XREFERRER_FIELD == http->last_field_)
+                    http->is_xhreferer_read_ = true;
             }
 
             break;

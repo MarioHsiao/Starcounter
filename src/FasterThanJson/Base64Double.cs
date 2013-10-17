@@ -27,7 +27,8 @@ namespace Starcounter.Internal {
         }
 
         public static unsafe int MeasureNeededSize(Double value) {
-            return Base64Int.MeasureNeededSize(*(ulong*)&value << 12);
+            ulong valueUInt = *(ulong*)&value;
+            return Base64Int.MeasureNeededSize((valueUInt << 12) | (valueUInt >> 52));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
@@ -66,5 +67,44 @@ namespace Starcounter.Internal {
     }
 
     public static class Base64Single {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public static unsafe int Write(byte* buffer, Single value) {
+            uint valueUInt = *(uint*)&value;
+            uint encValue = (valueUInt << 9) | (valueUInt >> 23);
+            int len = Base64Int.Write(buffer, encValue);
+            Debug.Assert(valueUInt == ((encValue >> 9) | (encValue << 23)));
+            Debug.Assert(len <= 6);
+            return len;
+        }
+
+        public static unsafe int MeasureNeededSize(Single value) {
+            uint valueUInt = *(uint*)&value;
+            return Base64Int.MeasureNeededSize((valueUInt << 9) | (valueUInt >> 23));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+        public static unsafe Single Read(int size, byte* buffer) {
+            ulong value = Base64Int.Read(size, buffer);
+            value = (value >> 9) | (value << 23);
+            return *(Single*)&value;
+        }
+
+        public static unsafe int WriteNullable(byte* buffer, Single? value) {
+            if (value == null)
+                return 0;
+            return Write(buffer, (Single)value);
+        }
+
+        public static unsafe int MeasureNeededSizeNullable(Single? value) {
+            if (value == null)
+                return 0;
+            return MeasureNeededSize((Single)value);
+        }
+
+        public static unsafe Single? ReadNullable(int size, byte* buffer) {
+            if (size == 0)
+                return null;
+            return Read(size, buffer);
+        }
     }
 }
