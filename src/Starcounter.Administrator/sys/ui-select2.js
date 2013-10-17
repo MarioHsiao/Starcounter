@@ -1,6 +1,4 @@
-﻿angular.module('ui.config', []).value('ui.config', {});
-angular.module('ui.directives', ['ui.config']);
-
+﻿
 /**
  * Enhanced Select2 Dropmenus
  *
@@ -8,19 +6,19 @@ angular.module('ui.directives', ['ui.config']);
  *     This change is so that you do not have to do an additional query yourself on top of Select2's own query
  * @params [options] {object} The configuration options passed to $.fn.select2(). Refer to the documentation
  */
-angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', function (uiConfig, $http) {
+angular.module('ui.select2', []).value('uiSelect2Config', {}).directive('uiSelect2', ['uiSelect2Config', '$timeout', function (uiSelect2Config, $timeout) {
     var options = {};
-    if (uiConfig.select2) {
-        angular.extend(options, uiConfig.select2);
+    if (uiSelect2Config) {
+        angular.extend(options, uiSelect2Config);
     }
     return {
-        require: '?ngModel',
+        require: 'ngModel',
         compile: function (tElm, tAttrs) {
             var watch,
               repeatOption,
               repeatAttr,
               isSelect = tElm.is('select'),
-              isMultiple = (tAttrs.multiple !== undefined);
+              isMultiple = angular.isDefined(tAttrs.multiple);
 
             // Enable watching of the options dataset if in use
             if (tElm.is('select')) {
@@ -36,6 +34,44 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
                 // instance-specific options
                 var opts = angular.extend({}, options, scope.$eval(attrs.uiSelect2));
 
+                /*
+                Convert from Select2 view-model to Angular view-model.
+                */
+                var convertToAngularModel = function (select2_data) {
+                    var model;
+                    if (opts.simple_tags) {
+                        model = [];
+                        angular.forEach(select2_data, function (value, index) {
+                            model.push(value.id);
+                        });
+                    } else {
+                        model = select2_data;
+                    }
+                    return model;
+                };
+
+                /*
+                Convert from Angular view-model to Select2 view-model.
+                */
+                var convertToSelect2Model = function (angular_data) {
+                    var model = [];
+                    if (!angular_data) {
+                        return model;
+                    }
+
+                    if (opts.simple_tags) {
+                        model = [];
+                        angular.forEach(
+                          angular_data,
+                          function (value, index) {
+                              model.push({ 'id': value, 'text': value });
+                          });
+                    } else {
+                        model = angular_data;
+                    }
+                    return model;
+                };
+
                 if (isSelect) {
                     // Use <select multiple> instead
                     delete opts.multiple;
@@ -46,27 +82,42 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
 
                 if (controller) {
                     // Watch the model for programmatic changes
+                    scope.$watch(tAttrs.ngModel, function (current, old) {
+                        if (!current) {
+                            return;
+                        }
+                        if (current === old) {
+                            return;
+                        }
+                        controller.$render();
+                    }, true);
                     controller.$render = function () {
                         if (isSelect) {
-                            elm.select2('val', controller.$modelValue);
+                            elm.select2('val', controller.$viewValue);
                         } else {
-                            if (isMultiple && !controller.$modelValue) {
-                                elm.select2('data', []);
-                            } else if (angular.isObject(controller.$modelValue)) {
-                                elm.select2('data', controller.$modelValue);
+                            if (opts.multiple) {
+                                elm.select2(
+                                  'data', convertToSelect2Model(controller.$viewValue));
                             } else {
-                                elm.select2('val', controller.$modelValue);
+                                if (angular.isObject(controller.$viewValue)) {
+                                    elm.select2('data', controller.$viewValue);
+                                } else if (!controller.$viewValue) {
+                                    elm.select2('data', null);
+                                } else {
+                                    elm.select2('val', controller.$viewValue);
+                                }
                             }
                         }
                     };
 
-
                     // Watch the options dataset for changes
                     if (watch) {
                         scope.$watch(watch, function (newVal, oldVal, scope) {
-                            if (!newVal) return;
+                            if (!newVal) {
+                                return;
+                            }
                             // Delayed so that the options have time to be rendered
-                            setTimeout(function () {
+                            $timeout(function () {
                                 elm.select2('val', controller.$viewValue);
                                 // Refresh angular to remove the superfluous option
                                 elm.trigger('change');
@@ -74,11 +125,28 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
                         });
                     }
 
+                    // Update valid and dirty statuses
+                    controller.$parsers.push(function (value) {
+                        var div = elm.prev();
+                        div
+                          .toggleClass('ng-invalid', !controller.$valid)
+                          .toggleClass('ng-valid', controller.$valid)
+                          .toggleClass('ng-invalid-required', !controller.$valid)
+                          .toggleClass('ng-valid-required', controller.$valid)
+                          .toggleClass('ng-dirty', controller.$dirty)
+                          .toggleClass('ng-pristine', controller.$pristine);
+                        return value;
+                    });
+
                     if (!isSelect) {
                         // Set the view and model value and update the angular template manually for the ajax/multiple select2.
                         elm.bind("change", function () {
+                            if (scope.$$phase) {
+                                return;
+                            }
                             scope.$apply(function () {
-                                controller.$setViewValue(elm.select2('data'));
+                                controller.$setViewValue(
+                                  convertToAngularModel(elm.select2('data')));
                             });
                         });
 
@@ -86,7 +154,7 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
                             var initSelection = opts.initSelection;
                             opts.initSelection = function (element, callback) {
                                 initSelection(element, function (value) {
-                                    controller.$setViewValue(value);
+                                    controller.$setViewValue(convertToAngularModel(value));
                                     callback(value);
                                 });
                             };
@@ -94,8 +162,16 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
                     }
                 }
 
+                elm.bind("$destroy", function () {
+                    elm.select2("destroy");
+                });
+
                 attrs.$observe('disabled', function (value) {
-                    elm.select2(value && 'disable' || 'enable');
+                    elm.select2('enable', !value);
+                });
+
+                attrs.$observe('readonly', function (value) {
+                    elm.select2('readonly', !!value);
                 });
 
                 if (attrs.ngMultiple) {
@@ -104,12 +180,21 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
                     });
                 }
 
-                // Set initial value since Angular doesn't
-                elm.val(scope.$eval(attrs.ngModel));
-
                 // Initialize the plugin late so that the injected DOM does not disrupt the template compiler
-                setTimeout(function () {
+                $timeout(function () {
                     elm.select2(opts);
+
+                    // Set initial value - I'm not sure about this but it seems to need to be there
+                    elm.val(controller.$viewValue);
+                    // important!
+                    controller.$render();
+
+                    // Not sure if I should just check for !isSelect OR if I should check for 'tags' key
+                    if (!opts.initSelection && !isSelect) {
+                        controller.$setViewValue(
+                          convertToAngularModel(elm.select2('data'))
+                        );
+                    }
                 });
             };
         }
