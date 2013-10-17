@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using Sc.Tools.Logging;
 using Starcounter;
+using System.Collections;
 
 namespace Starcounter.Administrator {
     partial class LogApp : Json {
@@ -17,6 +18,20 @@ namespace Starcounter.Administrator {
 
         public void RefreshLogEntriesList() {
 
+            Hashtable activeFilterSourceList = new Hashtable();
+            Hashtable filterSourceList = new Hashtable();
+
+            if (!string.IsNullOrEmpty(this.FilterSource)) {
+                string[] sourceFilter = this.FilterSource.Split(';');
+
+                foreach (string source in sourceFilter) {
+                    if (!activeFilterSourceList.ContainsKey(source)) {
+                        activeFilterSourceList.Add(source.ToUpper(), source);
+                    }
+                }
+
+            }
+
             this.LogEntries.Clear(); // Clearlist
 
             int limit = 30;   // Limith the result
@@ -27,6 +42,11 @@ namespace Starcounter.Administrator {
             for (; ; ) {
                 var le = lr.Next();
                 if (le == null) break;
+
+                // Add Source filter items
+                if (!filterSourceList.ContainsKey(le.Source)) {
+                    filterSourceList.Add(le.Source, le.Source);
+                }
 
                 if (this.FilterDebug == false && le.Severity == Severity.Debug) {
                     continue;
@@ -44,6 +64,14 @@ namespace Starcounter.Administrator {
                     continue;
                 }
 
+                if (!string.IsNullOrEmpty(this.FilterSource)) {
+                    // Use source filter
+                    if (!activeFilterSourceList.ContainsKey(le.Source.ToUpper())) {
+                        continue;
+                    }
+                }
+
+
                 if (++i > limit) break;
 
                 LogEntries.Add(
@@ -56,6 +84,17 @@ namespace Starcounter.Administrator {
                     }
                     );
             }
+
+            string sourceItems = string.Empty;
+            foreach (DictionaryEntry item in filterSourceList) {
+                if (sourceItems != string.Empty) {
+                    sourceItems += ";";
+                }
+                sourceItems += item.Value.ToString();
+            }
+
+            this.FilterSource = sourceItems;
+
             lr.Close();
         }
     }

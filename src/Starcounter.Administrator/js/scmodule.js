@@ -231,7 +231,7 @@ var adminModule = angular.module('scadmin', ['sc.sqlquery', 'ui', 'ui.bootstrap'
             redirect: function ($route, $location) {
                 if (jQuery.isEmptyObject($location.search())) {
                     // Set default search filter
-                    $location.search({ "debug": false, "notice": false, "warning": true, "error": true });
+                    $location.search({ "debug": false, "notice": false, "warning": true, "error": true, "source": "" });
                 }
             }
         }
@@ -1043,7 +1043,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
                     var fellowCount = $scope.executables.length - 1;
                     var status = "Restarting database " + database.name;
                     if (fellowCount > 0) {
-                        status += " (and " + fellowCount + " other executable" + (fellowCount>1 ?  "s" : "") + ")";
+                        status += " (and " + fellowCount + " other executable" + (fellowCount > 1 ? "s" : "") + ")";
                     }
 
                     job.message = status;
@@ -2480,7 +2480,16 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
         debug: false,
         notice: false,
         warning: true,
-        error: true
+        error: true,
+        source: ""
+    };
+
+    $scope.list_of_string = []
+
+    $scope.select2Options = {
+        'multiple': true,
+        'simple_tags': true,
+        'tags': []
     };
 
     $scope.socket = null;
@@ -2493,9 +2502,9 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
         }
     })
 
-
     // Set the filters from the address bar parameters to the controller
     $scope.filterModel = $location.search();
+
 
     // Watch for changes in the filer
     $scope.$watch('filterModel', function () {
@@ -2503,12 +2512,50 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
         $location.search($scope.filterModel);
     }, true);
 
+    //// Watch for changes in the filer
+    $scope.$watch('list_of_string', function () {
+        // Filter changed, update the address bar
+
+        var sourceFilter = "";
+        for (var i = 0 ; i < $scope.list_of_string.length; i++) {
+            if (sourceFilter != "") sourceFilter += ";";
+
+            // Special handling, sometime the list_of_string can be objects and some othertimes it's string. no clue why!?!
+            if ($scope.list_of_string[i].hasOwnProperty('id')) {
+                sourceFilter += $scope.list_of_string[i].id;
+            }
+            else {
+                sourceFilter += $scope.list_of_string[i];
+            }
+        }
+
+        if ($scope.filterModel.source != sourceFilter) {
+            $scope.filterModel.source = sourceFilter;
+        }
+
+
+    }, true);
+
+
+    var arr = $scope.filterModel.source.split(';');
+    for (var i = 0 ; i < arr.length; i++) {
+        if (arr[i] == "") continue;
+        $scope.list_of_string.push(arr[i]);
+    }
+
     // Retrive log information
     $scope.getLog = function () {
+
+        $scope.select2Options.tags.length = 0;
 
         $http.get('/api/admin/log', { params: $scope.filterModel }).then(function (response) {
             // success handler
             $scope.log = response.data;
+
+            var filterSourceOptions = $scope.log.FilterSource.split(";");
+            for (var i = 0; i < filterSourceOptions.length ; i++) {
+                $scope.select2Options.tags.push(filterSourceOptions[i]);
+            }
 
         }, function (response) {
             // error handler
