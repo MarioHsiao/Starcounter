@@ -36,7 +36,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
                 }
                 catch (Exception e) {
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = "Could not handle package. " + e.ToString() };
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = "Failed to handle the package. " + e.ToString() };
                 }
 
             });

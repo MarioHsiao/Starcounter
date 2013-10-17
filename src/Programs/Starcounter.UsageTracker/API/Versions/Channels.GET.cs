@@ -33,7 +33,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     foreach (string channel in result) {
 
-                        System.Version latestVersion = VersionSource.GetLatestVersion(channel);
+                        string latestVersion = VersionSource.GetLatestVersion(channel);
                         if (latestVersion == null) continue;
 
                         var item = channels.channels.Add();
@@ -67,7 +67,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("Channel {0} not found", channel) };
                     }
 
-                    System.Version latestVersion = VersionSource.GetLatestVersion(channel);
+                    string latestVersion = VersionSource.GetLatestVersion(channel);
                     if (latestVersion == null) {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("There is no available versions in the channel {0}", channel) };
                     }

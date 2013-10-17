@@ -47,7 +47,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                             currentChannelItem = allVersionItems.channels.Add();
                             currentChannelItem.name = versionSource.Channel;
 
-                            System.Version latestVersion = VersionSource.GetLatestVersion(versionSource.Channel);
+                            string latestVersion = VersionSource.GetLatestVersion(versionSource.Channel);
                             if (latestVersion != null) {
                                 currentChannelItem.latestVersion = latestVersion.ToString();
                                 currentChannelItem.downloadUrl = string.Format("http://downloads.starcounter.com/archive/{0}/{1}", versionSource.Channel, versionSource.Version);
