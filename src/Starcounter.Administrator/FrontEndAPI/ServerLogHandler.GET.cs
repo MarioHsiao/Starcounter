@@ -52,6 +52,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         Boolean filter_error;
                         Boolean.TryParse(collection["error"], out filter_error);
                         logApp.FilterError = filter_error;
+
+                        string filter_sourceList = collection["source"];
+                        if (!string.IsNullOrEmpty(filter_sourceList)) {
+                            logApp.FilterSource = filter_sourceList;
+                        }
+
                         #endregion
 
                         logApp.RefreshLogEntriesList();
