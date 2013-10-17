@@ -57,7 +57,11 @@ namespace Starcounter.Internal
                 if (null != isCodeHosted)
                     return isCodeHosted.Value;
 
-                isCodeHosted = (Process.GetCurrentProcess().ProcessName == StarcounterConstants.ProgramNames.ScCode);
+                var name = Process.GetCurrentProcess().ProcessName;
+                var ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+                isCodeHosted =
+                    name.Equals(StarcounterConstants.ProgramNames.ScCode, ignoreCase) ||
+                    name.Equals(StarcounterConstants.ProgramNames.ScAdminServer, ignoreCase);
 
                 return isCodeHosted.Value;
             }

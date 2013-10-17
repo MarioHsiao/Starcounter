@@ -182,7 +182,6 @@ namespace Starcounter.Internal
           return ConvertToLong(uval);
       }
 
-
        /// <summary>
        /// Reads nullable signed long integer.
        /// </summary>
@@ -199,7 +198,6 @@ namespace Starcounter.Internal
           else
               return ConvertToLong((ulong)uval);
       }
-
 
       /// <summary>
       /// Skip one value
@@ -357,10 +355,12 @@ namespace Starcounter.Internal
       /// <returns>The read Nullable Boolean value.</returns>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe Boolean? ReadBooleanNullable() {
-          var val = AnyBaseBool.ReadBooleanNullable(AtEnd);
+          int len = (int)Base64Int.Read(OffsetElementSize, AtOffsetEnd);
+          len -= ValueOffset;
+          var val = AnyBaseBool.ReadBooleanNullable(len, AtEnd);
           AtOffsetEnd += OffsetElementSize;
-          AtEnd++;
-          ValueOffset++;
+          AtEnd += len;
+          ValueOffset += len;
           return val;
       }
 

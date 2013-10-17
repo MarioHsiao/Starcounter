@@ -191,9 +191,9 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int valueLength;
             GetAtPosition(index, out valuePos, out valueLength);
-            Debug.Assert(valueLength == 1);
+            Debug.Assert(valueLength == 1 || valueLength == 0);
             // Read the value at the position with the length
-            return AnyBaseBool.ReadBooleanNullable(valuePos);
+            return AnyBaseBool.ReadBooleanNullable(valueLength, valuePos);
         }
 
         /// <summary>

@@ -85,6 +85,12 @@ namespace Starcounter.Internal
             /// Just represents the product name.
             /// </summary>
             public const string ProductName = "Starcounter";
+
+            /// <summary>
+            /// Gets the name of the code host process that runs the
+            /// Starcounter admin server.
+            /// </summary>
+            public const string ScAdminServer = "scadminserver";
         }
 
         /// <summary>

@@ -107,9 +107,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             bool bUnpacked = false;
             LogWriter.WriteLine("NOTICE: Checking for new packages to unpack.");
 
-            var versions = Db.SlowSQL("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
+            SqlResult<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
 
-            foreach (VersionSource item in versions) {
+            foreach (VersionSource item in versionSources) {
 
                 if (string.IsNullOrEmpty(item.PackageFile)) {
                     // Already unpacked
@@ -140,7 +140,6 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 if (result == true) {
                     // Success
 
-
                     try {
                         // Delete package
                         File.Delete(item.PackageFile);
@@ -151,7 +150,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                     Db.Transaction(() => {
                         // Clear packagefile
-                        item.PackageFile = string.Empty;
+                        item.PackageFile = null;
                         item.SourceFolder = destination;
                     });
 
@@ -168,9 +167,51 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             }
 
             if (bUnpacked) {
+
+                // Cleanup Obsolete Version
+                CleanUpObsoleteVersions();
+
                 // Trigger the buildworker
                 VersionHandlerApp.BuildkWorker.Trigger();
             }
         }
+
+
+        /// <summary>
+        /// Remove Obsolete Version, we only want to keep a number of versions available
+        /// to save diskspace
+        /// </summary>
+        private void CleanUpObsoleteVersions() {
+
+            int sourceCount = VersionHandlerSettings.GetSettings().MaximumSourceCount;
+
+            Int64 numVersion = Db.SlowSQL<Int64>("SELECT count(*) FROM VersionSource o WHERE o.BuildError=?", false).First;
+
+            if (numVersion > sourceCount) {
+
+                Int64 numDelete = numVersion - sourceCount;
+
+                // Start deleteing versions and syncdata
+                Db.Transaction(() => {
+
+                    // Retrive versions to delete
+                    SqlResult<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", false, numDelete);
+                    foreach (VersionSource versionSource in versionSources) {
+
+                        // Delete Obsolete Version Builds
+                        VersionBuild.DeleteVersionBuild(versionSource.Channel, versionSource.Version);
+
+                        // Delete Obsolete Version Source (including with documentation and package file)
+                        string version = versionSource.Version;
+                        VersionSource.DeleteVersion(versionSource);
+                        LogWriter.WriteLine(string.Format("NOTICE: Obsolete Version {0} deleted.", version));
+                    }
+                });
+            }
+
+
+
+        }
+
     }
 }
