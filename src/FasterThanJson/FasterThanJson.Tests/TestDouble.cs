@@ -251,7 +251,7 @@ namespace FasterThanJson.Tests {
                 Assert.AreEqual(value, Base64Single.ReadNullable(size, buffer));
                 value = null;
                 size = Base64Single.WriteNullable(buffer, value);
-                Assert.AreEqual(1, size);
+                Assert.AreEqual(0, size);
                 Assert.AreEqual(value, Base64Single.ReadNullable(size, buffer));
             }
         }

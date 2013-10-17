@@ -6,6 +6,7 @@ using Codeplex.Data;
 using Starcounter.Applications.UsageTrackerApp.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler;
 using System.IO;
+using System.Collections.Generic;
 
 namespace StarcounterApplicationWebSocket.API.Versions {
     internal class Utils {
@@ -15,21 +16,21 @@ namespace StarcounterApplicationWebSocket.API.Versions {
 
             //    Db.Transaction(() => {
 
-            //        LogWriter.WriteLine(string.Format("Reseting database."));
+            //        LogWriter.WriteLine(string.Format("Resetting database."));
 
-            //        var result = Db.SlowSQL("SELECT o FROM VersionSource o");
+            //        SqlResult<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o");
 
-            //        foreach (VersionSource item in result) {
+            //        foreach (VersionSource item in versionSources) {
             //            item.Delete();
             //        }
 
-            //        result = Db.SlowSQL("SELECT o FROM VersionBuild o");
-            //        foreach (VersionBuild item in result) {
+            //        SqlResult<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o");
+            //        foreach (VersionBuild item in versionBuilds) {
             //            item.Delete();
             //        }
 
-            //        result = Db.SlowSQL("SELECT o FROM Somebody o");
-            //        foreach (Somebody item in result) {
+            //        SqlResult<Somebody> sombodies = Db.SlowSQL<Somebody>("SELECT o FROM Somebody o");
+            //        foreach (Somebody item in sombodies) {
             //            item.Delete();
             //        }
 
@@ -206,5 +207,18 @@ namespace StarcounterApplicationWebSocket.API.Versions {
             return null;
         }
 
+
+        /// <summary>
+        /// Check if a directory is empty
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>True if directory is empty otherwise false</returns>
+        public static bool IsDirectoryEmpty(string path) {
+            //    return !Directory.EnumerateFileSystemEntries(path).Any();
+            IEnumerable<string> items = Directory.EnumerateFileSystemEntries(path);
+            using (IEnumerator<string> en = items.GetEnumerator()) {
+                return !en.MoveNext();
+            }
+        }
     }
 }

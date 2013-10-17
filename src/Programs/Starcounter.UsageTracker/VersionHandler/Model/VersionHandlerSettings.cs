@@ -52,6 +52,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
+        /// Default Number of versions sources to keep.
+        /// </summary>
+        public int MaximumSourceCount;
+
+
+        /// <summary>
         /// Get Settings
         /// </summary>
         /// <returns>If no settings exits, default settings will be created and used</returns>
@@ -64,6 +70,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                     // Create default settings
                     settings = new VersionHandlerSettings();
                     settings.MaximumBuilds = 10;
+                    settings.MaximumSourceCount = 5;
                 }
 
                 if (string.IsNullOrEmpty(settings.UploadFolder)) {
@@ -84,7 +91,9 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                 if (string.IsNullOrEmpty(settings.CertificationFile)) {
                     settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";
                 }
-
+                if (settings.MaximumSourceCount == 0) {
+                    settings.MaximumSourceCount = 5;
+                }
 
             });
 
