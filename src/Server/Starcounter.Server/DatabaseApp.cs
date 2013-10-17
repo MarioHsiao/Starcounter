@@ -90,6 +90,7 @@ namespace Starcounter.Server {
             return new AppInfo() {
                 ExecutablePath = this.OriginalExecutablePath,
                 ExecutionPath = this.ExecutionPath,
+                Arguments = this.Arguments,
                 Key = this.Key
             };
         }

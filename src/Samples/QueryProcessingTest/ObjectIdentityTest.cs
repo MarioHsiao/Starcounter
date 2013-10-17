@@ -10,7 +10,7 @@ namespace QueryProcessingTest {
             Account a = Db.SQL<Account>("select a from account a").First;
             Trace.Assert(a != null);
             Trace.Assert(a.GetObjectID() != null);
-            Trace.Assert(DbHelper.Base64ForUrlDecode(a.GetObjectID()) == a.GetObjectNo());
+            Trace.Assert(DbHelper.Base64DecodeObjectID(a.GetObjectID()) == a.GetObjectNo());
             Trace.Assert(DbHelper.GetObjectNo(a) == a.GetObjectNo());
             Trace.Assert(DbHelper.GetObjectID(a) == a.GetObjectID());
             var r = Db.SQL<string>("select objectid from account");
@@ -104,9 +104,12 @@ namespace QueryProcessingTest {
             } catch (System.ArgumentException ex) {
                 Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRBADARGUMENTS);
             }
-            //a = Db.SQL<Account>("select a from account a where client = ?", "").First;
-            //a = Db.SQL<Account>("select a from account a where objectid = ?", "/asdfasdfa/asdfasdf").First;
-            //Trace.Assert(a == null);
+            a = Db.SQL<Account>("select a from account a where objectid = ?", "").First;
+            Trace.Assert(a == null);
+            a = Db.SQL<Account>("select a from account a where objectid = ?", "/asdfasdfa/asdfasdf").First;
+            Trace.Assert(a == null);
+            a = Db.SQL<Account>("select a from account a where objectid = ?", "/a+").First;
+            Trace.Assert(a == null);
             HelpMethods.LogEvent("Finished testing object identities");
         }
     }

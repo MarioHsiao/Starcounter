@@ -131,101 +131,71 @@ namespace Starcounter.XSON.Compiler.Mono {
 
         /// <summary>
         /// Assumes that the current position of the enumerator is positioned at the class identifer.
-        /// If a baseclass
-        /// is found, the generic argument will be retrieved as well if it exists.
+        /// If an IBound interface declaration is found the boundClass parameter will be set to the 
+		/// generic argument
         /// /// </summary>
         /// <param name="mce"></param>
         /// <param name="baseClass"></param>
-        /// <param name="genericArgument"></param>
-        /// <returns></returns>
-        private static void ProcessClassDeclaration(MonoCSharpEnumerator mce, out string baseClass, out string genericArgument, out string baseClassGenericArgument, out string boundClass ) {
-            // bool isTypedJsonClass;
-            string baseClassNameStr = "";
+        /// <param name="boundClass"></param>
+        private static void ProcessClassDeclaration(MonoCSharpEnumerator mce, out string baseClass, out string boundClass) {
+            string currentClassStr = "";
             string genericArgStr = "";
-            string baseClassGenericArgStr = "";
+			
+			baseClass = null;
+			boundClass = null;
 
-            genericArgument = null;
-            baseClass = null;
-            baseClassGenericArgument = null;
-            //    isTypedJsonClass = false;
+			var token = mce.Peek();
+			if (!(token == CSharpToken.COLON)) {
+				if (token == CSharpToken.OP_GENERICS_LT)
+					throw new Exception("Generic declaration for typed json is not supported.");
+			}
 
-            // Since we allow inheritance we have no idea if the class we found is a valid
-            // typed json class or not. So we have to assume that the first one is the basetype
-            // and not an interface or something.
+			// Since we allow inheritance we have no idea if the class we found is a valid
+			// typed json class or not. So we have to assume that the first one is the basetype
+			// and not an interface or something.
             while (mce.MoveNext()) {
-                if (mce.Token == CSharpToken.OPEN_BRACE ) { //|| mce.Token == CSharpToken.COMMA) {
-                    baseClass = baseClassNameStr;
-                    //		isTypedJsonClass = true;
+                if (mce.Token == CSharpToken.OPEN_BRACE ) {
+					if (baseClass == null)
+						baseClass = currentClassStr;
                     break;
                 }
-                else if (mce.Token == CSharpToken.IDENTIFIER) {
-                    baseClassNameStr += mce.Value;
+				else if (mce.Token == CSharpToken.COMMA) {
+					if (baseClass == null)
+						baseClass = currentClassStr;
+					currentClassStr = "";
+                } else if (mce.Token == CSharpToken.IDENTIFIER) {
+                    currentClassStr += mce.Value;
                 }
                 else if (mce.Token == CSharpToken.DOT) {
-                    baseClassNameStr += ".";
+                    currentClassStr += ".";
                 }
                 else if (mce.Token == CSharpToken.OP_GENERICS_LT) {
-                    while (mce.MoveNext()) {
-                        if (mce.Token == CSharpToken.OP_GENERICS_GT) {
-                            genericArgument = genericArgStr;
-                            break;
-                        }
-                        else if (mce.Token == CSharpToken.IDENTIFIER) {
-                            genericArgStr += mce.Value;
-                        }
-                        else if (mce.Token == CSharpToken.DOT) {
-                            genericArgStr += ".";
-                        }
-                        else if (mce.Token == CSharpToken.COMMA) {
-                            genericArgStr += ",";
-                        }
-                    }
-                }
-                else if (mce.Token == CSharpToken.COLON) {
-                    while (mce.MoveNext()) {
-                        if (mce.Token == CSharpToken.COMMA) {
-                            baseClassNameStr += ",";
-                        }
-                        else if (mce.Token == CSharpToken.OPEN_BRACE) { //|| mce.Token == CSharpToken.COMMA) {
-                            baseClass = baseClassNameStr;
-                            //       isTypedJsonClass = true;
-                            break;
-                        }
-                        else if (mce.Token == CSharpToken.IDENTIFIER) {
-                            baseClassNameStr += mce.Value;
-                        }
-                        else if (mce.Token == CSharpToken.DOT) {
-                            baseClassNameStr += ".";
-                        }
-                        else if (mce.Token == CSharpToken.OP_GENERICS_LT) {
-                            while (mce.MoveNext()) {
-                                if (mce.Token == CSharpToken.OP_GENERICS_GT) {
-                                    baseClassGenericArgument = baseClassGenericArgStr;
-                                    break;
-                                }
-                                else if (mce.Token == CSharpToken.OBJECT) {
-                                    baseClassGenericArgStr += "object";
-                                }
-                                else if (mce.Token == CSharpToken.IDENTIFIER) {
-                                    baseClassGenericArgStr += mce.Value;
-                                }
-                                else if (mce.Token == CSharpToken.DOT) {
-                                    baseClassGenericArgStr += ".";
-                                }
-                                else if (mce.Token == CSharpToken.COMMA) {
-                                    baseClassGenericArgStr += ",";
-                                }
-                            }
-                        }
-                    }
-                    break;
+					if (!currentClassStr.Equals("IBound")) {
+						// Not an IBound interface. We are not interested in this generic argument
+						while (mce.MoveNext()) {
+							if (mce.Token == CSharpToken.OP_GENERICS_GT)
+								break;
+						}
+					} else {
+						while (mce.MoveNext()) {
+							if (mce.Token == CSharpToken.OP_GENERICS_GT) {
+								boundClass = genericArgStr;
+								break;
+							}
+							else if (mce.Token == CSharpToken.IDENTIFIER) {
+								genericArgStr += mce.Value;
+							}
+							else if (mce.Token == CSharpToken.DOT) {
+								genericArgStr += ".";
+							}
+							else if (mce.Token == CSharpToken.COMMA) {
+								throw new Exception("Only one generic argument for an IBound interface is supported");	
+							}
+						}
+					}
                 }
 
             }
-            baseClass = baseClass.Split(',')[0]; // UGLY HACK
-            boundClass = baseClassGenericArgument; // UGLY HACK
-            baseClassGenericArgument = null; // UGLY HACK
-            return;
         }
 
         /// <summary>
@@ -338,8 +308,6 @@ namespace Starcounter.XSON.Compiler.Mono {
         private static CodeBehindClassInfo AnalyzeClassNode(string className, MonoCSharpEnumerator mce, CodeBehindMetadata metadata) {
             CodeBehindClassInfo classInfo;
             string foundClassName;
-            string genericArg;
-            string baseClassGenericArg;
             string baseClass;
             string boundClass;
             
@@ -352,7 +320,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             classInfo = mce.LastFoundJsonAttribute;
             mce.LastFoundJsonAttribute = null;
 
-            ProcessClassDeclaration(mce, out baseClass, out genericArg, out baseClassGenericArg, out boundClass );
+            ProcessClassDeclaration(mce, out baseClass, out boundClass );
                 if (className.Equals(foundClassName)) {
 #if DEBUG
                     if (metadata.RootClassInfo != null)
@@ -368,8 +336,6 @@ namespace Starcounter.XSON.Compiler.Mono {
                             foundClassName, classInfo.RawDebugJsonMapAttribute));
                     }
                     classInfo.Namespace = mce.CurrentNamespace;
-                    classInfo.GenericArg = genericArg;
-                    classInfo.BaseClassGenericArg = baseClassGenericArg;
                     classInfo.BaseClassName = baseClass;
                     classInfo.BoundDataClass = boundClass;
 //                    classInfo.AutoBindToDataObject = (genericArg != null);
@@ -388,9 +354,7 @@ namespace Starcounter.XSON.Compiler.Mono {
  //                       info.AutoBindToDataObject = (genericArg != null);
                         info.ClassName = foundClassName;
                         info.BaseClassName = baseClass;
-                        info.GenericArg = genericArg;
                         info.BoundDataClass = boundClass;
-                        info.BaseClassGenericArg = baseClassGenericArg;
                         //               info.JsonMapName = attribute.Raw;
                         info.Namespace = mce.CurrentNamespace;
                         info.ParentClasses = mce.ClassList;

@@ -34,5 +34,6 @@ namespace QueryProcessingTest {
         public User Client;
         public Decimal Amount;
         public DateTime When;
+        public String Where;
     }
 }

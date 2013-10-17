@@ -218,10 +218,17 @@ namespace Starcounter.Query.Execution {
         IObjectView EvaluateToObject() {
             if (expression is IStringExpression)
                 try {
-                    currectObjectId = DbHelper.Base64ForUrlDecode((expression as IStringExpression).EvaluateToString(contextObject));
-                } catch (System.FormatException ex) {
-                    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, ex, "ObjectID string argument contains badly formatted value " + 
-                        (expression as IStringExpression).EvaluateToString(contextObject));
+                    String obj = (expression as IStringExpression).EvaluateToString(contextObject);
+                    if (String.IsNullOrEmpty(obj))
+                        return null;
+                    currectObjectId = DbHelper.Base64DecodeObjectID(obj);
+                } catch (Exception ex) {
+                    if (ex is System.ArgumentException)
+                        return null;
+                    else
+                        throw;
+                    //throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, ex, "ObjectID string argument contains badly formatted value " + 
+                    //    (expression as IStringExpression).EvaluateToString(contextObject));
                 }
             else
                 currectObjectId = (ulong)(expression as INumericalExpression).EvaluateToUInteger(contextObject);

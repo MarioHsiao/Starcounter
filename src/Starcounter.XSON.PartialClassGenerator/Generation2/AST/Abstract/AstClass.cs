@@ -120,11 +120,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (BuiltInType != null) {
                 return GetGenericsSpecifier(BuiltInType);
             }
-            else if (CodebehindClass != null) {
-                if (CodebehindClass.GenericArg != null) {
-                    return "<" + CodebehindClass.GenericArg + ">";
-                }
-            }
             else if (Generic != null) {
                 var str = "<" + GetSafeGeneric(Generic, 0);
                 for (int y = 1; y < Generic.Length; y++) {

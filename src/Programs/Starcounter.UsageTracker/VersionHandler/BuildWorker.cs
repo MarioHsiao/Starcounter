@@ -208,6 +208,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     }
                 }
             }
+
+            LogWriter.WriteLine("NOTICE: Waiting to build new versions.");
+
         }
 
         /// <summary>
@@ -266,22 +269,25 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 using (Process exeProcess = Process.Start(startInfo)) {
 
                     int timeout_min = 5;
-                    LogWriter.WriteLine(exeProcess.StandardOutput.ReadToEnd());
+                    string output = exeProcess.StandardOutput.ReadToEnd();
                     exeProcess.WaitForExit(timeout_min * 60 * 1000);
 
                     if (exeProcess.HasExited == false) {
-                        LogWriter.WriteLine(string.Format("ERROR: Failed to build within reasonable time ({0} sec).", timeout_min));
+                        LogWriter.WriteLine(output);
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to build within reasonable time ({0} min).", timeout_min));
                         exeProcess.Kill();
                         return false;
                     }
 
                     if (exeProcess.ExitCode != 0) {
+                        LogWriter.WriteLine(output);
                         LogWriter.WriteLine(string.Format("ERROR: Failed to build, error code {0}.", exeProcess.ExitCode));
                         return false;
                     }
 
                     string[] files = Directory.GetFiles(destinationFolder);
                     if (files == null || files.Length == 0) {
+                        LogWriter.WriteLine(output);
                         LogWriter.WriteLine(string.Format("ERROR: Building tool did not generate an output file in destination folder {0}.", destinationFolder));
                         return false;
                     }

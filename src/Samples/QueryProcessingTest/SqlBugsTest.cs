@@ -28,6 +28,7 @@ namespace QueryProcessingTest {
             QueryResultMismatch();
             TestIndexQueryOptimization();
             TestShortClassNames();
+            TestDDLStmts();
         }
 
         public static void TestFetchOrderBy() {
@@ -386,6 +387,24 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Test queries with classes having similar short names");
             Trace.Assert(Db.SQL<commonclass>("select c from commonclass c").First == null);
             HelpMethods.LogEvent("Finished testing queries with classes having similar short names");
+        }
+
+        public static void TestDDLStmts() {
+            HelpMethods.LogEvent("Test DDL statements");
+            Db.SQL("create index whenindx on account (when)");
+            Db.SQL("create index whereindx on account (\"where\")");
+            try {
+                Db.SQL("create index anwhereindx on account (where)");
+            } catch (SqlException) { }
+            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whenindx").First != null);
+            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whereindx").First != null);
+            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "anwhereindx").First == null);
+            Db.SQL("drop index whenindx on account ");
+            Db.SQL("drop index whereindx on account");
+            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whenindx").First == null);
+            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whereindx").First == null);
+            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "anwhereindx").First == null);
+            HelpMethods.LogEvent("Finished testing DDL statements");
         }
     }
 }

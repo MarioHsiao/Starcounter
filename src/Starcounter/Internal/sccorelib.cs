@@ -432,6 +432,15 @@ namespace Starcounter.Internal
 #endif
 
         /// <summary>
+        /// Expose the kernel method <c>cm3_sleep</c> to managed code.
+        /// </summary>
+        /// <param name="h_opt">Optional handle.</param>
+        /// <param name="time">The time to sleep.</param>
+        /// <returns>The result of the call.</returns>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static UInt32 cm3_sleep(IntPtr h_opt, UInt32 time);
+
+        /// <summary>
         /// Cm3_get_stashes the specified ignore.
         /// </summary>
         /// <param name="ignore">The ignore.</param>

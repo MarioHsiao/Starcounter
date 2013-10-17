@@ -19,15 +19,7 @@ uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
     int32_t released_chunks_num = static_cast<int32_t> (shared_int_.release_from_private_to_shared(
         private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
 
-    // Checking that number of released chunks is correct.
-    if (released_chunks_num != num_chunks)
-    {
-        // Some problem with releasing chunks.
-#ifdef GW_ERRORS_DIAG
-        GW_PRINT_WORKER << "Problem releasing chunks to shared chunk pool." << GW_ENDL;
-#endif
-        return SCERRGWCANTRELEASETOSHAREDPOOL;
-    }
+    GW_ASSERT(released_chunks_num == num_chunks);
 
     // Chunks have been released.
     ChangeNumUsedChunks(-num_chunks);
@@ -107,34 +99,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // Initializing socket data that arrived from database.
             sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+
+            if (!smc->is_terminated())
+                GW_ASSERT(sd->get_num_chunks() > 1);
+            else
+                GW_ASSERT(sd->get_num_chunks() == 1);
             
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
-
-            // We need to check if its a multi-chunk response.
-            if (!smc->is_terminated())
-            {
-                // Extra chunk index is not used when comes from database.
-                sd->set_extra_chunk_index(INVALID_CHUNK_INDEX);
-
-                // Creating special chunk for keeping WSA buffers information there.
-                err_code = sd->CreateWSABuffers(
-                    this,
-                    smc,
-                    MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
-                    MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
-                    sd->get_user_data_written_bytes());
-
-                if (err_code)
-                {
-                    gw->DisconnectAndReleaseChunk(sd);
-                    continue;
-                }
-
-                GW_ASSERT(sd->get_num_chunks() > 2);
-
-                // NOTE: One chunk for WSA buffers will already be counted.
-                ChangeNumUsedChunks(-1);
-            }
 
             // Changing number of used chunks.
             ChangeNumUsedChunks(sd->get_num_chunks());
@@ -145,6 +116,17 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // NOTE: We always override the global session with active session received from database.
             sd->ForceSetGlobalSessionIfEmpty();
+
+            // Checking if data is aggregated.
+            /*if (sd->GetSocketAggregatedFlag())
+            {
+                char body[1024];
+                int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
+                memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
+                err_code = gw->SendHttpBody(sd, body, body_len);
+                GW_ASSERT (0 == err_code);
+                continue;
+            }*/
 
             // Resetting the accumulative buffer.
             sd->InitAccumBufferFromUserData();
@@ -186,7 +168,8 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     starcounter::core::chunk_index cur_chunk_index,
     int32_t* actual_written_bytes,
     int32_t first_chunk_offset,
-    bool just_sending_flag
+    bool just_sending_flag,
+    bool is_aggregated_flag
     )
 {
     // Maximum number of bytes that will be written in this call.
@@ -198,7 +181,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     GW_ASSERT(num_extra_chunks_to_use > 0);
 
     // Checking if more than maximum chunks we can take at once.
-    if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
+    if ((num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!is_aggregated_flag))
     {
         num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
         num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;
@@ -225,6 +208,9 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
+
+    // Setting total number of chunks.
+    *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks_to_use;
 
     // Going through each linked chunk and write data there.
     int32_t left_bytes_to_write = num_bytes_to_write;
@@ -305,27 +291,9 @@ void WorkerDbInterface::PushLinkedChunksToDb(
     }
 }
 
-// Returns given socket data chunk to private chunk pool.
-void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
-{
-#ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
-#endif
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-    GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
-#endif
-
-    // Returning linked multiple chunks.
-    ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
-
-    // IMPORTANT: Preventing further usages of this socket data.
-    sd = NULL;
-}
-
 // Returns given chunk to private chunk pool.
 // NOTE: This function should always succeed.
-void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core::chunk_index& first_linked_chunk)
+void WorkerDbInterface::ReturnLinkedChunksToPool(uint16_t num_linked_chunks, core::chunk_index& first_linked_chunk)
 {
     // Releasing chunk to private pool.
     bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
@@ -333,7 +301,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
-    /*if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
+    if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
     {
         uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL));
 
@@ -342,8 +310,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
         // TODO: Uncomment when centralized chunks are ready!
         //GW_ASSERT(0 == err_code);
-    }*/
-    // TODO: Check above!
+    }
 }
 
 // Releases all private chunks to shared chunk pool.

@@ -63,7 +63,7 @@ restart:
 
 					if (recreateBuffer) {
 						int initLen = writer.Length;
-						writer.HaveWritten((uint)(offset - initLen));
+						writer.HaveWritten(offset - initLen);
 					}
 					recreateBuffer = true;
 
@@ -81,7 +81,7 @@ restart:
 										goto restart;
 
 									Marshal.Copy(childObjArr, 0, (IntPtr)writer.AtEnd, valueSize);
-									writer.HaveWritten((uint)valueSize);
+									writer.HaveWritten(valueSize);
 									childObjArr = null;
 								}
 							} else
@@ -111,7 +111,7 @@ restart:
 								}
 
 								Marshal.Copy(childObjArr, 0, (IntPtr)itemWriter.AtEnd, valueSize);
-								itemWriter.HaveWritten((uint)valueSize);
+								itemWriter.HaveWritten(valueSize);
 								childObjArr = null;
 								posInArray++;
 							}

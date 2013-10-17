@@ -109,7 +109,13 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append("{\"op\":\"");
             sb.Append(PatchTypeToString(patchType));
             sb.Append("\",\"path\":\"");
-            IndexPathToString(sb, from, nearestApp);
+
+			if (from != null) {
+				IndexPathToString(sb, from, nearestApp);
+			} else {
+				sb.Append('/');
+				value = nearestApp;
+			}
 
           if (index != -1) {
               sb.Append('/');
@@ -123,6 +129,7 @@ namespace Starcounter.Internal.JsonPatch {
 				if (value is Json) {
 					var oo = (Json)value;
 					sb.Append(oo.ToJson());
+					oo.SetBoundValuesInTuple();
 				} else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }

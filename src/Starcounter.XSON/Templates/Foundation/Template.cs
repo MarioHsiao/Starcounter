@@ -41,7 +41,11 @@ namespace Starcounter.Templates {
             }
         }
 
-        public bool IsArray { get; set; }
+		public virtual bool IsArray {
+			get { 
+				return false;
+			}
+		}
 
 
         private bool _Dynamic = false;
@@ -366,10 +370,17 @@ namespace Starcounter.Templates {
 #if DEBUG
         internal void VerifyProperty(Template prop) {
             if (this != prop.Parent) {
+                string parentString;
+                if (prop.Parent == null) {
+                    parentString = "as a parentless " + prop.GetType();
+                }
+                else {
+                    parentString = "in " + prop.Parent.DebugString;
+                }
                 throw new Exception(String.Format(
-                    "The property {0} is declared in {1} but an attempt was made to use it in {2}",
+                    "The property {0} is declared {1} but an attempt was made to use it in {2}",
                     prop.DebugString,
-                    prop.Parent.DebugString,
+                    parentString,
                     this.DebugString));
             }
 

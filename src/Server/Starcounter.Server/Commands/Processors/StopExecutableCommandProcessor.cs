@@ -77,52 +77,48 @@ namespace Starcounter.Server.Commands {
             // assure we reflect any changed internal state externally no
             // matter the result.
             try {
-                var stopped = Engine.DatabaseEngine.StopCodeHostProcess(database);
-                if (!stopped) {
-                    throw ErrorCode.ToException(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database {0}.", database.Name));
-                }
 
-                Process codeHost;
-                Engine.DatabaseEngine.StartCodeHostProcess(database, out codeHost);
-                Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHost, database);
-
-                var node = Node.LocalhostSystemPortNode;
-                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-
-                foreach (var fellow in fellowApplications) {
-                    if (object.ReferenceEquals(fellow, app)) {
-                        continue;
+                WithinTask(Task.StopCodeHost, (task) => {
+                    var stopped = Engine.DatabaseEngine.StopCodeHostProcess(database);
+                    if (!stopped) {
+                        throw ErrorCode.ToException(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database {0}.", database.Name));
                     }
+                });
 
-                    var exe = fellow.ToExecutable();
+                WithinTask(Task.RestartCodeHost, (task) => {
+                    Process codeHost;
+                    Engine.DatabaseEngine.StartCodeHostProcess(database, out codeHost);
+                    Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHost, database);
+                });
 
-                    Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
-                    try {
+                WithinTask(Task.RestartExecutables, (task) => {
+                    var node = Node.LocalhostSystemPortNode;
+                    var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+
+                    foreach (var fellow in fellowApplications) {
+                        if (object.ReferenceEquals(fellow, app)) {
+                            continue;
+                        }
+
+                        var exe = fellow.ToExecutable();
+
+                        Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
+
                         if (exe.RunEntrypointAsynchronous) {
                             node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
                         } else {
                             var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
                             response.FailIfNotSuccess();
                         }
-                    } catch (IOException ioe) {
-                        // We catch this - and ignore it! This is a very temporary workaround,
-                        // and the result of the existence of unresolved issue 1060, which can
-                        // be read about here:
-                        // https://github.com/Starcounter/Starcounter/issues/1060
-                        //
-                        // To be sure we don't forget to address this, we log a warning when
-                        // this happens, and reference said issue.
-                        //
-                        // Remove this whole try/catch clause when that issue has been fixed.
-                        Log.LogWarning(
-                            "Ignoring IOException \"{0}\" as a temporary workaround to open issue #1060 ({1}).",
-                            ioe.Message,
-                            "https://github.com/Starcounter/Starcounter/issues/1060"
-                            );
+
+                        database.Apps.Add(fellow);
                     }
 
-                    database.Apps.Add(fellow);
-                }
+                    // By returning false, we mark this task as cancelled.
+                    // We do so if we turned out not to have restarted any
+                    // fellow executables.
+                    return database.Apps.Count == 0 ? false : true;
+                });
 
             } finally {
                 var result = Engine.CurrentPublicModel.UpdateDatabase(database);

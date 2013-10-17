@@ -130,7 +130,7 @@ namespace Starcounter.Server.Setup {
                 TempDirectory = Path.Combine(structure.TempDirectory, "[DatabaseName]"),
                 SQLProcessPort = (UInt16)(StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort + serverPortRange),
                 DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort,
-                ChunksNumber = 4096,
+                ChunksNumber = MixedCodeConstants.SHM_CHUNKS_DEFAULT_NUMBER,
             };
 
             databaseConfiguration = new DatabaseConfiguration() {

@@ -68,11 +68,36 @@ private:
 /// by a scheduler, as original thought. Schedulers use a similar but different
 /// interface - class server_port. However, clients should use shared_interface
 /// instead of client_port (which is obsolete.)
+/// A shared_interface is unique to a client worker thread, and cannot be
+/// used by another client worker thread once it has been initialized.
 class shared_interface {
 public:
 	/// Default constructor.
 	shared_interface();
 	
+#if defined (IPC_VERSION_2_0)
+	/// Constructor.
+	/**
+	 * @param segment_name is used to open the database shared memory.
+	 *		The segment_name has the format:
+	 *		<DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>
+	 */
+	explicit shared_interface(std::string segment_name, std::string
+	monitor_interface_name, pid_type pid, owner_id oid = owner_id
+	(owner_id::none), uint32_t iid = -1);
+	
+	/// Destructor.
+	~shared_interface();
+	
+	/// Initialize.
+	/**
+	 * @param segment_name is used to open the database shared memory.
+	 *		The segment_name has the format:
+	 *		<DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>
+	 */
+	void init(std::string segment_name, std::string monitor_interface_name,
+	pid_type pid, owner_id oid = owner_id(owner_id::none), uint32_t iid = -1);
+#else // !defined (IPC_VERSION_2_0)
 	/// Constructor.
 	/**
 	 * @param segment_name is used to open the database shared memory.
@@ -94,6 +119,7 @@ public:
 	 */
 	void init(std::string segment_name, std::string monitor_interface_name,
 	pid_type pid, owner_id oid = owner_id(owner_id::none));
+#endif // defined (IPC_VERSION_2_0)
 	
 	// Resource acquisition/release paired functions.
 	
@@ -365,12 +391,25 @@ public:
 	 */
 	client_interface_type& client_interface() const;
 	
+#if defined (IPC_VERSION_2_0)
+	/// Get reference to channel[n], relative to this client worker thread.
+	/// Each worker have an array of channels from 0 to
+	/// number of schedulers -1. This array is a slice of
+	/// all channels instantiated. But a worker must only access
+	/// its own set of channels.
+	/**
+	 * @param n The channel_number.
+	 * @return reference to channel[n].
+	 */
+	channel_type& channel(std::size_t n) const;
+#else // !defined (IPC_VERSION_2_0)
 	/// Get reference to channel[n].
 	/**
 	 * @param n The channel_number.
 	 * @return reference to channel[n].
 	 */
 	channel_type& channel(std::size_t n) const;
+#endif // defined (IPC_VERSION_2_0)
 	
 	/// Set database state. This is used by the monitor when it detects that
 	/// the database process exit without having unregistered.
@@ -558,6 +597,14 @@ public:
 	 */ 
 	const ::HANDLE& scheduler_number_pool_not_full_event(std::size_t i) const;
 	
+#if defined (IPC_VERSION_2_0)
+	/// Get ID of the worker using this shared_interface.
+	/**
+	 * @return The ID of the worker using this shared_interface.
+	 */ 
+	uint32_t id() const;
+#endif // defined (IPC_VERSION_2_0)
+	
 private:
 	// Specify what it throws.
 	void init();
@@ -578,6 +625,9 @@ private:
 	
 	owner_id owner_id_;
 	pid_type pid_;
+#if defined (IPC_VERSION_2_0)
+	uint32_t id_;
+#endif // defined (IPC_VERSION_2_0)
 	std::string segment_name_;
 	std::string monitor_interface_name_;
 	

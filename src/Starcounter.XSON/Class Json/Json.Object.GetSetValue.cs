@@ -81,12 +81,12 @@ namespace Starcounter {
         /// <param name="property"></param>
         internal void _CallHasChanged(TValue property) {
             if (Session != null) {
-                if (!_BrandNew) {
+                if (HasBeenSent) {
                    // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
                     this.Dirtyfy();
                 }
             }
-            //this.HasChanged(property);
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -290,13 +290,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="data"></param>
         public void Set(TObjArr property, IEnumerable data) {
-            var current = (Json)list[property.TemplateIndex];
-            if (current != null) {
-                current.Clear();
-                current._PendingEnumeration = true;
-                current._data = data;
-                current.Array_InitializeAfterImplicitConversion(this, property);
-            }
+            this[property.TemplateIndex] = data;
         }
 
         /// <summary>
@@ -374,8 +368,9 @@ namespace Starcounter {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Add((Json)this.Parent, tarr, index));
                 Dirtyfy();
+				item.SetBoundValuesInTuple();
             }
             Parent.ChildArrayHasAddedAnElement(tarr, index);
         }
@@ -391,7 +386,7 @@ namespace Starcounter {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Remove(Change.Add((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Remove((Json)this.Parent, tarr, index));
                 Dirtyfy();
             }
             Parent.ChildArrayHasRemovedAnElement(tarr, index);
@@ -402,11 +397,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         internal void _CallHasChanged(TObjArr property, int index) {
-            if (Session != null) {
-                if (!_BrandNew) {
-                    //                    (_Values[index] as Json)._Dirty = true;
+            if (HasBeenSent) {
                     this.Dirtyfy();
-                }
             }
             this.Parent.ChildArrayHasReplacedAnElement(property, index);
         }

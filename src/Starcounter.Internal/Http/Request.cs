@@ -620,8 +620,6 @@ namespace Starcounter.Advanced {
             }
         }
 
-        String headersString_;
-
         /// <summary>
         /// Headers string.
         /// </summary>
@@ -669,7 +667,7 @@ namespace Starcounter.Advanced {
             get
             {
                 if (null == cookieString_)
-                    cookieString_ = GetCookiesStringUtf8_Slow();
+                    cookieString_ = this["Cookie"];
 
                 return cookieString_;
             }
@@ -1222,93 +1220,18 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the raw cookies.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes) 
-        {
-            switch (protocol_type_)
-            {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
-                        
-                        http_request_struct_->GetRawCookies(out ptr, out sizeBytes);
-                    }
-
-                    return;
-                }
-            }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
-        }
-
-        /// <summary>
-        /// Gets cookies as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        String GetCookiesStringUtf8_Slow()
-        {
-            switch (protocol_type_)
-            {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
-
-                        return http_request_struct_->GetCookiesStringUtf8_Slow();
-                    }
-                }
-            }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
-        }
-
-        /// <summary>
-        /// Gets the raw accept.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes) 
-        {
-            switch (protocol_type_)
-            {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
-
-                        http_request_struct_->GetRawAccept(out ptr, out sizeBytes);
-                    }
-
-                    return;
-                }
-            }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
-        }
-
-        /// <summary>
         /// Gets the raw session string.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) 
+        public void GetRawSessionString(out IntPtr ptr) 
         {
             unsafe
             {
                 if (null == http_request_struct_)
                     throw new ArgumentException("HTTP request not initialized.");
 
-                http_request_struct_->GetRawSessionString(out ptr, out sizeBytes);
+                http_request_struct_->GetRawSessionString(out ptr);
             }
         }
 
@@ -1340,6 +1263,11 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
+        /// String containing all headers.
+        /// </summary>
+        String headersString_;
+
+        /// <summary>
         /// Gets the <see cref="String" /> with the specified name.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -1357,7 +1285,7 @@ namespace Starcounter.Advanced {
                             if (null == http_request_struct_)
                                 throw new ArgumentException("HTTP request not initialized.");
 
-                            return http_request_struct_->GetHeaderValue(name);
+                            return http_request_struct_->GetHeaderValue(name, ref headersString_);
                         }
                     }
                 }
@@ -1606,7 +1534,7 @@ namespace Starcounter.Advanced {
                             if (null == http_request_struct_)
                                 throw new ArgumentException("HTTP request not initialized.");
 
-                            return http_request_struct_->is_gzip_accepted_;
+                            return (http_request_struct_->gzip_accepted_ != 0);
                         }
                     }
                 }
@@ -1631,55 +1559,22 @@ namespace Starcounter.Advanced {
         }
     }
 
-    //[StructLayout(LayoutKind.Sequential, Pack = 8)]
-    /// <summary>
-    /// Struct HttpRequestInternal
-    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct HttpRequestInternal {
 
-        // Request offset.
-        public UInt32 request_offset_;
-        public UInt32 request_len_bytes_;
+        internal UInt32 request_len_bytes_;
+        internal UInt32 content_len_bytes_;
 
-        // Content offset.
-        public UInt32 content_offset_;
-        public UInt32 content_len_bytes_;
+        internal UInt16 request_offset_;
+        internal UInt16 content_offset_;
+        internal UInt16 uri_len_bytes_;
+        internal UInt16 headers_offset_;
+        internal UInt16 headers_len_bytes_;
+        internal UInt16 session_string_offset_;
+        internal UInt16 uri_offset_;
 
-        // Resource URI offset.
-        public UInt32 uri_offset_;
-        public UInt32 uri_len_bytes_;
-
-        // Key-value header offset.
-        public UInt32 headers_offset_;
-        public UInt32 headers_len_bytes_;
-
-        // Cookie value offset.
-        public UInt32 cookies_offset_;
-        public UInt32 cookies_len_bytes_;
-
-        // Accept value offset.
-        public UInt32 accept_value_offset_;
-        public UInt32 accept_value_len_bytes_;
-
-        // Session ID string offset.
-        public UInt32 session_string_offset_;
-        public UInt32 session_string_len_bytes_;
-
-        // Header offsets.
-        public fixed UInt32 header_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-        public fixed UInt32 header_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-        public fixed UInt32 header_value_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-        public fixed UInt32 header_value_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-
-        // The num_headers_
-        public UInt32 num_headers_;
-
-        // HTTP method.
-        public HTTP_METHODS http_method_;
-
-        // Is Gzip accepted.
-        public bool is_gzip_accepted_;
+        internal Byte http_method_;
+        internal Byte gzip_accepted_;
 
         // Socket data pointer.
         public unsafe Byte* socket_data_;
@@ -1779,7 +1674,7 @@ namespace Starcounter.Advanced {
             // NOTE: Method and URI must always exist.
 
             ptr = new IntPtr(socket_data_ + request_offset_);
-            sizeBytes = uri_offset_ - request_offset_ + uri_len_bytes_;
+            sizeBytes = (UInt32) (uri_offset_ - request_offset_ + uri_len_bytes_);
         }
 
         /// <summary>
@@ -1820,92 +1715,24 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the cookies as byte array.
-        /// </summary>
-        /// <returns>Cookies bytes.</returns>
-        internal Byte[] GetCookiesByteArray_Slow()
-        {
-            // Checking if there are cookies.
-            if (cookies_len_bytes_ <= 0)
-                return null;
-
-            // TODO: Provide a more efficient interface with existing Byte[] and offset.
-
-            Byte[] cookies_bytes = new Byte[(Int32)cookies_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + cookies_offset_), cookies_bytes, 0, (Int32)cookies_len_bytes_);
-
-            return cookies_bytes;
-        }
-
-        /// <summary>
-        /// Gets cookies as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        internal String GetCookiesStringUtf8_Slow()
-        {
-            // Checking if there are cookies.
-            if (cookies_len_bytes_ <= 0)
-                return null;
-
-            return new String((SByte*)(socket_data_ + cookies_offset_), 0, (Int32)cookies_len_bytes_, Encoding.ASCII);
-        }
-
-        /// <summary>
-        /// Gets the raw cookies.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes) {
-            if (cookies_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + cookies_offset_);
-
-            sizeBytes = cookies_len_bytes_;
-        }
-
-        /// <summary>
-        /// Gets the raw accept.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes) {
-            if (accept_value_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + accept_value_offset_);
-
-            sizeBytes = accept_value_len_bytes_;
-        }
-
-        /// <summary>
         /// Gets the raw session string.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) {
-            if (session_string_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + session_string_offset_);
-
-            sizeBytes = session_string_len_bytes_;
+        public void GetRawSessionString(out IntPtr ptr) {
+            ptr = new IntPtr(socket_data_ + session_string_offset_);
         }
 
         /// <summary>
         /// Gets the session string.
         /// </summary>
         /// <returns>String.</returns>
-        public String GetSessionString() {
-            // Checking if there is any session.
-            if (session_string_len_bytes_ <= 0)
-                return null;
-
+        public String GetSessionString()
+        {
             IntPtr raw_session_string;
-            UInt32 len_bytes;
-            GetRawSessionString(out raw_session_string, out len_bytes);
+            GetRawSessionString(out raw_session_string);
 
-            return Marshal.PtrToStringAnsi(raw_session_string, (Int32)len_bytes);
+            return Marshal.PtrToStringAnsi(raw_session_string, MixedCodeConstants.SESSION_STRING_LEN_CHARS);
         }
 
         /// <summary>
@@ -1915,95 +1742,39 @@ namespace Starcounter.Advanced {
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe {
-                fixed (UInt32* header_offsets = header_offsets_,
-                    header_len_bytes = header_len_bytes_,
-                    header_value_offsets = header_value_offsets_,
-                    header_value_len_bytes = header_value_len_bytes_) {
-                    // Going through all headers.
-                    for (Int32 i = 0; i < num_headers_; i++) {
-                        Boolean found = true;
-
-                        // Checking that length is correct.
-                        if (headerName.Length == header_len_bytes[i]) {
-                            // Going through all characters in current header.
-                            for (Int32 k = 0; k < headerName.Length; k++) {
-                                // Comparing each character.
-                                if (((Byte)headerName[k]) != *(socket_data_ + header_offsets[i] + k)) {
-                                    found = false;
-                                    break;
-                                }
-                            }
-
-                            if (found) {
-                                ptr = (IntPtr)(socket_data_ + header_value_offsets[i]);
-                                sizeBytes = header_value_len_bytes[i];
-
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // In case if header is not found.
-            ptr = IntPtr.Zero;
-            sizeBytes = 0;
+            throw new NotImplementedException();
         }
 
         /// <summary>
         /// Gets the header value.
         /// </summary>
         /// <param name="headerName">Name of the header.</param>
+        /// <param name="headersString">Reference of the header string.</param>
         /// <returns>String.</returns>
-        public String GetHeaderValue(String headerName) {
-            unsafe {
-                fixed (UInt32* header_offsets = header_offsets_,
-                    header_len_bytes = header_len_bytes_,
-                    header_value_offsets = header_value_offsets_,
-                    header_value_len_bytes = header_value_len_bytes_) {
-                    // Going through all headers.
-                    for (Int32 i = 0; i < num_headers_; i++) {
-                        Boolean found = true;
+        public String GetHeaderValue(String headerName, ref String headersString) {
 
-                        // Checking that length is correct.
-                        if (headerName.Length == header_len_bytes[i]) {
-                            // Going through all characters in current header.
-                            for (Int32 k = 0; k < headerName.Length; k++) {
-                                // Comparing each character.
-                                if (((Byte)headerName[k]) != *(socket_data_ + header_offsets[i] + k)) {
-                                    found = false;
-                                    break;
-                                }
-                            }
-
-                            if (found) {
-                                // Skipping two bytes for colon and one space.
-                                return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + header_value_offsets[i]), (Int32)header_value_len_bytes[i]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-
-            /*
             // Constructing the string if its the first time.
-            String headers_and_values = Marshal.PtrToStringAnsi((IntPtr)(sd_ + headers_offset_), (Int32)headers_len_bytes_);
+            if (headersString == null)
+                headersString = Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             // Getting needed substring.
-            Int32 index = headers_and_values.IndexOf(name);
-            if (index < 0)
+            Int32 hstart = headersString.IndexOf(headerName);
+            if (hstart < 0)
                 return null;
 
-            // Going until end of line.
-            Int32 k = index + name.Length;
-            while ((headers_and_values[k] != '\r') && (k < (headers_and_values.Length - 1)))
-                k++;
+            // Skipping header name and colon.
+            hstart += headerName.Length + 1;
 
-            return headers_and_values.Substring(index + name.Length, k - index - name.Length);
-            */
+            // Skipping header name.
+            while (headersString[hstart] == ' ' || headersString[hstart] == ':')
+                hstart++;
+
+            // Going until end of line.
+            Int32 hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart);
+            if (hend <= 0)
+                throw new ArgumentException("HTTP header is corrupted!");
+
+            return headersString.Substring(hstart, hend - hstart);
         }
 
         /// <summary>

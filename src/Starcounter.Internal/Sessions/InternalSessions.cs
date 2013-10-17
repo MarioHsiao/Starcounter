@@ -90,28 +90,23 @@ namespace HttpStructs
     /// </summary>
     public struct ScSessionStruct
     {
-        // Scheduler id.
-        public Byte scheduler_id_;
+        // Unique random salt.
+        public UInt64 random_salt_;
 
         // Session linear index.
         public UInt32 linear_index_;
 
-        // Unique random salt.
-        public UInt64 random_salt_;
-
-        // View model number.
-        public UInt32 reserved_;
+        // Scheduler id.
+        public Byte scheduler_id_;
 
         public void Init(
             Byte scheduler_id,
             UInt32 linear_index,
-            UInt64 random_salt,
-            UInt32 reserved)
+            UInt64 random_salt)
         {
             scheduler_id_ = scheduler_id;
             linear_index_ = linear_index;
             random_salt_ = random_salt;
-            reserved_ = reserved;
         }
 
         // Checks if this session is active.
@@ -144,10 +139,41 @@ namespace HttpStructs
         {
             Byte[] strBytes = Encoding.ASCII.GetBytes(str);
 
-            scheduler_id_ = (Byte) hex_string_to_uint64(strBytes, 0, 2);
-            linear_index_ = (UInt32) hex_string_to_uint64(strBytes, 2, 8);
-            random_salt_ = (UInt64) hex_string_to_uint64(strBytes, 8, 16);
-            reserved_ = (UInt32) hex_string_to_uint64(strBytes, 24, 8);
+            random_salt_ = (UInt64) hex_string_to_uint64(strBytes, 0, 16);
+            linear_index_ = (UInt32) hex_string_to_uint64(strBytes, 16, 6);
+            scheduler_id_ = (Byte) hex_string_to_uint64(strBytes, 22, 2);
+        }
+
+        // Serializing session structure to bytes.
+        public void SerializeToBytes(Byte[] session_bytes)
+        {
+            uint64_to_hex_string(random_salt_, session_bytes, 0, 16);
+            uint64_to_hex_string(linear_index_, session_bytes, 16, 6);
+            uint64_to_hex_string(scheduler_id_, session_bytes, 22, 2);
+        }
+
+        static Byte[] hex_table = { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
+
+        // Converts uint64 number to hexadecimal string.
+        Int32 uint64_to_hex_string(UInt64 number, Byte[] str_out, Int32 offset, Int32 num_4bits)
+        {
+            Int32 n = 0;
+            while (number > 0)
+            {
+                str_out[offset + n] = hex_table[number & 0xF];
+                n++;
+                number >>= 4;
+            }
+
+            // Filling with zero values if necessary.
+            while (n < num_4bits)
+            {
+                str_out[offset + n] = (Byte)'0';
+                n++;
+            }
+
+            // Returning length.
+            return n;
         }
 
         // Invalid value of converted number from hexadecimal string.
@@ -192,12 +218,6 @@ namespace HttpStructs
         }
     }
 
-    // Session structure 128 bits:
-    //
-    // | Scheduler Id |  Linear Index | Session Salt | View Model Number |
-    // |    1 byte    |    3 bytes    |    8 bytes   |      4 bytes      |
-    //
-
     /// <summary>
     /// Apps session representation struct.
     /// </summary>
@@ -240,6 +260,12 @@ namespace HttpStructs
             return false;
         }
 
+        // Serializing session structure to bytes.
+        internal void SerializeToBytes()
+        {
+            session_struct_.SerializeToBytes(session_bytes_);
+        }
+
         // Checks if session is alive.
         public Boolean IsAlive()
         {
@@ -278,39 +304,6 @@ namespace HttpStructs
                 session_string_ = Encoding.ASCII.GetString(session_bytes_);
 
             return session_string_;
-        }
-
-        // Serializing session structure to bytes.
-        public void SerializeToBytes()
-        {
-            uint64_to_hex_string(session_struct_.scheduler_id_, session_bytes_, 0, 2);
-            uint64_to_hex_string(session_struct_.linear_index_, session_bytes_, 2, 8);
-            uint64_to_hex_string(session_struct_.random_salt_, session_bytes_, 8, 16);
-            uint64_to_hex_string(session_struct_.reserved_, session_bytes_, 24, 8);
-        }
-
-        static Byte[] hex_table = { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
-        
-        // Converts uint64 number to hexadecimal string.
-        Int32 uint64_to_hex_string(UInt64 number, Byte[] str_out, Int32 offset, Int32 num_4bits)
-        {
-            Int32 n = 0;
-            while(number > 0)
-            {
-                str_out[offset + n] = hex_table[number & 0xF];
-                n++;
-                number >>= 4;
-            }
-
-            // Filling with zero values if necessary.
-            while (n < num_4bits)
-            {
-                str_out[offset + n] = (Byte)'0';
-                n++;
-            }
-
-            // Returning length.
-            return n;
         }
     }
 
@@ -434,8 +427,7 @@ namespace HttpStructs
             s.session_struct_.Init(
                 ss.scheduler_id_,
                 ss.linear_index_,
-                ss.random_salt_,
-                ss.reserved_);
+                ss.random_salt_);
 
             // Serializing to bytes.
             s.SerializeToBytes();

@@ -139,7 +139,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 acn = new AstJsonClass(Generator) {
                     CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = mapInfo.BaseClassName,
-                        GenericArg = mapInfo.BaseClassGenericArg,
 						Namespace = mapInfo.Namespace
                     },
                 };
@@ -165,8 +164,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 acn.NMetadataClass = new AstMetadataClass(Generator) {
                     NValueClass = acn,
                     CodebehindClass = new CodeBehindClassInfo(null) {
-                        ClassName = CalculateInnerClassName(mapInfo.BaseClassName, mapInfo.BaseClassGenericArg, "MEE"),
-                        GenericArg = null //mapInfo.BaseClassGenericArg,
+                        ClassName = CalculateInnerClassName(mapInfo.BaseClassName, "MEE"),
                     }
 //                    Template = Generator.DefaultObjTemplate
                 };
@@ -495,12 +493,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// "somenamespace.someclass"</param>
         /// <param name="prefix">The prefix such as T or M</param>
         /// <returns>The inner class path (i.e. somenamespace.someclass.Tsomeclass)</returns>
-        internal string CalculateInnerClassName(string classpath, string generics, string prefix) {
+        internal string CalculateInnerClassName(string classpath, string prefix) {
             var parts = classpath.Split('.');
             var classname = prefix + parts[parts.Length - 1];
-            if (generics != null) {
-                parts[parts.Length-1] = parts[parts.Length-1] + "<" + generics + ">";
-            }
             var str = parts[0];
             for (int t = 1; t < parts.Length; t++) {
                 str += "." + parts[t];

@@ -65,6 +65,11 @@ namespace Starcounter.Templates {
             throw new System.NotImplementedException();
         }
 
+		public override bool IsArray {
+			get {
+				return true;
+			}
+		}
 
         /// <summary>
         /// Gets the children.

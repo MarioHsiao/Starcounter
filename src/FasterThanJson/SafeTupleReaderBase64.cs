@@ -153,7 +153,7 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int len;
             GetAtPosition(index, out valuePos, out len);
-            byte[] value = Base64Binary.Read((uint)len, valuePos);
+            byte[] value = Base64Binary.Read(len, valuePos);
             return value;
         }
 
@@ -161,11 +161,11 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int len;
             GetAtPosition(index, out valuePos, out len);
-            if (Base64Binary.MeasureNeededSizeToDecode((uint)len) > valueMaxLength)
+            if (Base64Binary.MeasureNeededSizeToDecode(len) > valueMaxLength)
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
                     "Cannot read byte array value into given byte array pointer, since the value is too big. The actual value is " +
                     len + " bytes, while " + valueMaxLength + " bytes are provided to write.");
-            return Base64Binary.Read((uint)len, valuePos, value);
+            return Base64Binary.Read(len, valuePos, value);
         }
 
         /// <summary>
@@ -191,9 +191,87 @@ namespace Starcounter.Internal {
             byte* valuePos;
             int valueLength;
             GetAtPosition(index, out valuePos, out valueLength);
-            Debug.Assert(valueLength == 1);
+            Debug.Assert(valueLength == 1 || valueLength == 0);
             // Read the value at the position with the length
-            return AnyBaseBool.ReadBooleanNullable(valuePos);
+            return AnyBaseBool.ReadBooleanNullable(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads lossless Decimal at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe decimal ReadDecimal(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64DecimalLossless.Read(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads lossless Nullable Decimal at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe decimal? ReadDecimalNullable(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64DecimalLossless.ReadNullable(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads Double at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe double ReadDouble(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Double.Read(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads Nullable Double at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe double? ReadDoubleNullable(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Double.ReadNullable(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads Single at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe Single ReadSingle(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Single.Read(valueLength, valuePos);
+        }
+
+        /// <summary>
+        /// Reads Nullable Single at the given position of the tuple.
+        /// </summary>
+        /// <param name="index">Index of the value to read in this tuple.</param>
+        /// <returns>The read value.</returns>
+        public unsafe Single? ReadSingleNullable(int index) {
+            byte* valuePos;
+            int valueLength;
+            GetAtPosition(index, out valuePos, out valueLength);
+            // Read the value at the position with the length
+            return Base64Single.ReadNullable(valueLength, valuePos);
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using Starcounter;
+using System.IO;
+using Starcounter.Applications.UsageTrackerApp;
 
 namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
@@ -14,15 +16,6 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// </summary>
         public string Version;
 
-
-        /// <summary>
-        /// Version object of the source
-        /// </summary>
-        public Version VersionObject {
-            get {
-                return new Version(this.Version);
-            }
-        }
 
         /// <summary>
         /// Channel of the source, example 'Stable', 'Nightly'
@@ -92,26 +85,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// <returns>Unique build or null</returns>
         internal static VersionBuild GetLatestAvailableBuild(string channel) {
 
-            // Get Latest all available versions
-            var result = Db.SlowSQL<String>("SELECT o.Version FROM VersionBuild o WHERE o.Channel=? GROUP BY o.Version", channel);
+            // Get latest version source
+            string version = VersionSource.GetLatestVersion(channel);
+            if (version == null) return null;
 
-            String highestVersion = string.Empty;
-
-            // Find highest version number
-            foreach (var item in result) {
-                if (highestVersion == string.Empty || new Version(item) > new Version(highestVersion)) {
-                    highestVersion = item;
-                }
-            }
-
-            VersionBuild latestBuild = null;
-
-            // Get latest available build
-            if (highestVersion != string.Empty) {
-                latestBuild = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Version=? AND o.HasBeenDownloaded=?", highestVersion, false).First;
-            }
-
-            return latestBuild;
+            // Get version build
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", channel, version, false).First;
         }
 
 
@@ -124,6 +103,139 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         internal static VersionBuild GetAvailableBuild(string channel, string version) {
             return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", channel, version, false).First;
         }
+
+
+        /// <summary>
+        /// This will delete the Version build from filesystem and it's database reference
+        /// if the version build has been downloaded the database entry will NOT be deleted.
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="version"></param>
+        internal static void DeleteVersionBuild(string channel, string version) {
+
+            Db.Transaction(() => {
+
+                // A downloaded version build should not be deleted
+                SqlResult<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE  o.Channel=? AND o.Version=?", channel, version);
+                foreach (VersionBuild versionBuild in versionBuilds) {
+
+                    VersionBuild.DeleteVersionBuildFile(versionBuild);
+
+                    if (!versionBuild.HasBeenDownloaded) {
+                        // Also delete the database entry if the build hasent been downloaded
+                        versionBuild.Delete();
+                    }
+
+                }
+
+                // Delete folder if it's empty
+                // c:\versions\builds\NightlyBuilds\2.0.986.3\
+                string versionFolder = Path.Combine(VersionHandlerSettings.GetSettings().VersionFolder, channel);
+                versionFolder = Path.Combine(versionFolder, version);
+
+                try {
+
+                    if (Directory.Exists(versionFolder)) {
+                        if (StarcounterApplicationWebSocket.API.Versions.Utils.IsDirectoryEmpty(versionFolder)) {
+                            Directory.Delete(versionFolder);
+                        }
+                    }
+
+                }
+                catch (Exception e) {
+                    LogWriter.WriteLine(string.Format("ERROR: Failed to delete build folder {0}. {1}", versionFolder, e.Message));
+                }
+
+            });
+        }
+
+
+        /// <summary>
+        /// Delete the build file/folder and remove it's database reference
+        /// </summary>
+        /// <param name="versionBuild"></param>
+        /// <returns></returns>
+        /// <returns>True if successfull otherwise false</returns>
+        internal static bool DeleteVersionBuildFile(VersionBuild versionBuild) {
+
+            if (!string.IsNullOrEmpty(versionBuild.File)) {
+
+                try {
+                    if (System.IO.File.Exists(versionBuild.File)) {
+                        System.IO.File.Delete(versionBuild.File);
+                    }
+
+                    string folder = Path.GetDirectoryName(versionBuild.File);
+                    if (Directory.Exists(folder)) {
+                        Directory.Delete(folder, true);
+                    }
+                    Db.Transaction(() => {
+                        versionBuild.File = null;
+                    });
+
+                    return true;
+                }
+                catch (Exception e) {
+                    LogWriter.WriteLine(string.Format("ERROR: Failed to delete file {0}. {1}", versionBuild.File, e.Message));
+                }
+
+            }
+            return false;
+        }
+
+
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Database]
+    public class IPLocation {
+        /// <summary>
+        /// 
+        /// </summary>
+        public string IPAdress { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string CountryCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string CountryName { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string RegionCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string RegionName { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string City { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string ZipCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal Latitude { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal Longitude { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string MetroCode { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string AreaCode { get; set; }
 
     }
 }
