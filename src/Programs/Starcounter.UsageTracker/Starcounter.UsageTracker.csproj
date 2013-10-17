@@ -95,7 +95,6 @@
     <Compile Include="Model\ErrorReportItem.cs" />
     <Compile Include="Model\StarcounterGeneral.cs" />
     <Compile Include="Model\Installation.cs" />
-    <Compile Include="Model\Sequence.cs" />
     <Compile Include="Model\ErrorReport.cs" />
     <Compile Include="Model\StarcounterUsage.cs" />
     <Compile Include="Model\Statistics.cs" />
