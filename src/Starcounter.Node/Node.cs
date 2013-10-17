@@ -187,6 +187,11 @@ namespace Starcounter
         NodeTask core_task_info_ = null;
 
         /// <summary>
+        /// Core task info accessor.
+        /// </summary>
+        internal NodeTask CoreTaskInfo { get { return core_task_info_; } }
+
+        /// <summary>
         /// Delegate to process the results of calling user delegate.
         /// </summary>
         /// <param name="request"></param>
@@ -735,7 +740,8 @@ namespace Starcounter
             if (!isSyncCall)
             {
                 // Attaching the connection since it could already be reconnected.
-                core_task_info_.AttachConnection(nt.TcpClientObj);
+                if (null != nt.TcpClientObj)
+                    core_task_info_.AttachConnection(nt.TcpClientObj);
 
                 // Pushing to finished queue.
                 finished_async_tasks_.Enqueue(nt);
@@ -918,10 +924,6 @@ namespace Starcounter
                 // Initializing connection.
                 nt.Reset(requestBytes, requestBytesLength, origReq, userDelegate, userObject, receiveTimeoutMs);
 
-                // Checking if we already have an active connection.
-                if (core_task_info_.IsConnectionEstablished())
-                    nt.AttachConnection(core_task_info_.TcpClientObj);
-
                 // Checking if we don't use aggregation.
                 if (null == aggrTcpClient_)
                 {
@@ -954,25 +956,6 @@ namespace Starcounter
 
             // Initializing connection.
             core_task_info_.Reset(requestBytes, requestBytesLength, origReq, userDelegate, userObject, receiveTimeoutMs);
-
-            // Checking if its the first time, then creating new connection.
-            if (!core_task_info_.IsConnectionEstablished()) {
-                try {
-                    core_task_info_.AttachConnection(null);
-                }
-                catch (SocketException err) {
-                    if (err.Message.Contains("No such host is known") && UserSuspectedOfForgettingLeadingSlash(this.hostName_) ) {
-                        var msg = String.Format("Did you mean to access a local resource (\"{0}\")? Then you need a leading forward slash (i.e. \"{1}\"). If you are trying to access a foreign resource, the TCP/IP cannot connect to a host named {0} (socketexception:{2}).",
-                            this.hostName_, "/" + this.hostName_, err.Message );
-                        throw new Exception(msg,err);
-                    }
-                    else {
-                        var msg = String.Format("Cannot connect to {0} (socketexception:{1})", 
-                            this.hostName_, err.Message );
-                        throw new Exception(msg,err);
-                    }
-                }
-            }
 
             // Doing synchronous request and returning response.
             return core_task_info_.PerformSyncRequest();

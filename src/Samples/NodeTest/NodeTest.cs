@@ -330,12 +330,12 @@ namespace NodeTest
                     {
                         if (useNodeX_)
                         {
-                            Response resp = X.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null);
+                            Response resp = X.POST(Settings.CompleteHttpUri, body_bytes_, null, null);
                             return CheckResponse(resp);
                         }
                         else
                         {
-                            Response resp = node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null);
+                            Response resp = node.POST(Settings.CompleteHttpUri, body_bytes_, null, null);
                             return CheckResponse(resp);
                         }
                     }
@@ -364,7 +364,7 @@ namespace NodeTest
             {
                 if (useNodeX_)
                 {
-                    X.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    X.POST(Settings.CompleteHttpUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
                         return null;
@@ -372,7 +372,7 @@ namespace NodeTest
                 }
                 else
                 {
-                    node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    node.POST(Settings.CompleteHttpUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
                         return null;
@@ -640,12 +640,17 @@ namespace NodeTest
             Settings settings = new Settings();
             settings.Init(args);
 
-            Console.WriteLine("Node Test!");
-            Console.WriteLine("Protocol: " + settings.ProtocolType);
-            Console.WriteLine("Workers: " + settings.NumWorkers);
-            Console.WriteLine("Echoes size bytes: [" + settings.MinEchoBytes + ", " + settings.MaxEchoBytes + "]");
-            Console.WriteLine("Echoes number per worker: " + settings.NumEchoesPerWorker);
-            Console.WriteLine("Max time seconds: " + settings.NumSecondsToWait);
+            Console.WriteLine("Node test settings!");
+            Console.WriteLine("ServerIp: " + settings.ServerIp);
+            Console.WriteLine("ServerPort: " + settings.ServerPort);
+            Console.WriteLine("ProtocolType: " + settings.ProtocolType);
+            Console.WriteLine("NumWorkers: " + settings.NumWorkers);
+            Console.WriteLine("MinEchoBytes: " + settings.MinEchoBytes);
+            Console.WriteLine("MaxEchoBytes: " + settings.MaxEchoBytes);
+            Console.WriteLine("NumEchoesPerWorker: " + settings.NumEchoesPerWorker);
+            Console.WriteLine("NumSecondsToWait: " + settings.NumSecondsToWait);
+            Console.WriteLine("AsyncMode: " + settings.AsyncMode);
+            Console.WriteLine("UseAggregation: " + settings.UseAggregation);
 
             // Starting all workers.
             Worker[] workers = new Worker[settings.NumWorkers];
