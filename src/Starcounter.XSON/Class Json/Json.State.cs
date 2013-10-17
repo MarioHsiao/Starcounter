@@ -25,7 +25,7 @@ namespace Starcounter {
         /// </summary>
         internal bool _Dirty = false;
 
-        private bool __BrandNew_ = true;
+        //private bool __BrandNew_ = true;
 
         /// <summary>
         /// 
@@ -38,10 +38,9 @@ namespace Starcounter {
         private Int32 _cachePathDepth = -1;
 
         /// <summary>
-        /// The naive implementation keeps track of the changed values
-        /// generate the JSON-Patch document
+        /// For unbound values, we keep a list of flags to know which properties has changed.
         /// </summary>
-        protected List<bool> _ReplacedFlag;
+        protected List<bool> _SetFlag;
 
         /// <summary>
         /// </summary>

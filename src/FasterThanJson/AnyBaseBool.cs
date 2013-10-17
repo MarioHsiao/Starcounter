@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Starcounter.Internal {
@@ -19,13 +20,6 @@ namespace Starcounter.Internal {
         }
     
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-        public unsafe static void WriteBooleanNullable(byte* buffer, Boolean? value) {
-            if (value == null)
-                Base16Int.WriteBase16x1(2, buffer);
-            else WriteBoolean(buffer, (bool)value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
         public unsafe static Boolean ReadBoolean(byte* buffer) {
 #if false
             Boolean val = false;
@@ -38,15 +32,25 @@ namespace Starcounter.Internal {
 #endif
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-        public unsafe static Boolean? ReadBooleanNullable(byte* buffer) {
-            Boolean? val = false;
-            var intVal = Base16Int.ReadBase16x1((Base16x1*)buffer);
-            if (intVal == 1)
-                val = true;
-            else if (intVal == 2)
-                val = null;
-            return val;
+        public unsafe static int WriteBooleanNullable(byte* buffer, Boolean? value) {
+            if (value == null)
+                return 0;
+            WriteBoolean(buffer, (bool)value);
+            return 1;
+        }
+
+        public unsafe static int MeasureNeededSizeNullable(Boolean? value) {
+            if (value == null)
+                return 0;
+            else
+                return 1;
+        }
+
+        public unsafe static Boolean? ReadBooleanNullable(int size, byte* buffer) {
+            if (size == 0)
+                return null;
+            Debug.Assert(size == 1);
+            return ReadBoolean(buffer);
         }
     }
 }

@@ -21,7 +21,6 @@ namespace Starcounter {
         /// 
         /// </summary>
         internal void CheckpointChangeLog() {
-            _BrandNew = false;
             this.ArrayAddsAndDeletes = null;
             var values = list;
             if (this.IsArray) {
@@ -40,7 +39,7 @@ namespace Starcounter {
                     var property = tjson.Properties[t];
                     if (property is TValue) {
                         var tval = property as TValue;
-                        if (!tval.IsArray && tval.UseBinding(json.DataAsBindable)) {
+                        if (!(tval is TContainer) && tval.UseBinding(json.DataAsBindable)) {
                             values[t] = json.GetBound(tval);
                         }
                     }
@@ -84,7 +83,12 @@ namespace Starcounter {
         /// <param name="session"></param>
         private void LogArrayChangesWithDatabase(Session session) {
             if (ArrayAddsAndDeletes != null) {
-                Session._Changes.AddRange(this.ArrayAddsAndDeletes);
+                Session._Changes.AddRange(ArrayAddsAndDeletes);
+				ArrayAddsAndDeletes.Clear();
+
+				for (int i = 0; i < list.Count; i++) {
+					CheckpointAt(i);
+				}
             }
 //            foreach (var e in _Values) {
 //                (e as Json).LogValueChangesWithDatabase(session);
@@ -121,24 +125,39 @@ namespace Starcounter {
         /// <param name="session">The session to report to</param>
         private void LogObjectValueChangesWithDatabase(Session session ) {
             var template = (TObject)Template;
+			var exposed = template.Properties.ExposedProperties;
+
             if (_Dirty) {
-                for (int t = 0; t < _list.Count; t++) {
-                    if (WasReplacedAt(t)) {
+                for (int t = 0; t < exposed.Count; t++) {
+                    if (WasReplacedAt(exposed[t].TemplateIndex)) {
                         var s = Session;
                         if (s != null) {
                             if (IsArray) {
                                 throw new NotImplementedException();
                             }
                             else {
-                                Session.UpdateValue((this as Json), (TValue)template.Properties[t]);
+								var childTemplate = (TValue)exposed[t];
+                                Session.UpdateValue((this as Json), childTemplate);
+
+								// TODO:
+								// Added this code to make current implementation work.
+								// Probably not the correct place to do it though, both
+								// for readability and speed.
+								if (childTemplate is TContainer) {
+									var childJson = (Json)this.Get(childTemplate);
+									if (childJson != null){
+										childJson.SetBoundValuesInTuple();
+										childJson.CheckpointChangeLog();
+									}
+								}
                             }
                         }
-                        CheckpointAt(t);
+                        CheckpointAt(exposed[t].TemplateIndex);
                     }
                     else {
-                        var p = template.Properties[t];
+                        var p = exposed[t];
                         if (p is TContainer) {
-                            var c = ((Json)this[t]);
+                            var c = ((Json)this[p.TemplateIndex]);
                             if (c != null) {
                                 c.LogValueChangesWithDatabase(session);
                             }
@@ -151,9 +170,9 @@ namespace Starcounter {
                                 var j = this as Json;
                                 if (((TValue)p).UseBinding(j.DataAsBindable)) {
                                     var val = j.GetBound((TValue)p);
-                                    if ( val != list[t] ) {
-                                        list[t] = val;
-                                        Session.UpdateValue(j, (TValue)template.Properties[t]);
+									if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
+                                        list[p.TemplateIndex] = val;
+                                        Session.UpdateValue(j, (TValue)exposed[t]);
                                     }   
                                 }
                             }
@@ -163,8 +182,8 @@ namespace Starcounter {
                 _Dirty = false;
             }
             else if (template.HasAtLeastOneBoundProperty) {
-                for (int t = 0; t < list.Count; t++) {
-                    var value = list[t];
+                for (int t = 0; t < exposed.Count; t++) {
+					var value = this[exposed[t].TemplateIndex]; //list[exposed[t].TemplateIndex];
                     if (value is Json) {
                         ((Json)value).LogValueChangesWithDatabase(session);
                     }
@@ -175,13 +194,14 @@ namespace Starcounter {
                         else {
                             var j = this as Json;
                             var templ = j.Template as TObject;
-                            var p = templ.Properties[t] as TValue;
+                            var p = exposed[t] as TValue;
                             if (p != null && p.UseBinding(j.DataAsBindable)) {
                                 var val = j.GetBound(p);
-                                if (val != list[t]) {
-                                    list[t] = val;
-                                    Session.UpdateValue(j, (TValue)template.Properties[t]);
-                                }
+
+								if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
+									list[p.TemplateIndex] = val;
+									Session.UpdateValue(j, (TValue)exposed[t]);
+								}
                             }
                         }
                     }
@@ -195,5 +215,28 @@ namespace Starcounter {
                 }
             }
         }
+
+		internal void SetBoundValuesInTuple() {
+			if (IsArray) {
+				foreach (Json item in _list) {
+					item.SetBoundValuesInTuple();
+				}
+			} else {
+				var dataObj = DataAsBindable;
+				var valueList = list;
+				TObject tobj = (TObject)Template;
+				for (int i = 0; i < tobj.Properties.Count; i++) {
+					var vt = tobj.Properties[i] as TValue;
+					if (vt != null) {
+						if (vt is TContainer) {
+							var childJson = (Json)Get(vt);
+							childJson.SetBoundValuesInTuple();
+						} else if (vt != null && vt.UseBinding(dataObj)) {
+							valueList[i] = GetBound(vt);
+						}
+					}
+				}
+			}
+		}
     }
 }

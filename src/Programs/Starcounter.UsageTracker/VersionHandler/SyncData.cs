@@ -1,8 +1,11 @@
-﻿using Starcounter;
+﻿using Codeplex.Data;
+using Starcounter;
+using Starcounter.Advanced;
 using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,7 +21,6 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
 
         internal static void Start() {
-
 
             // Check if Database Packages exist in 'Settings.UploadFolder'
             // NOTE: It's important that this is called before .FixUnhandledPackages();
@@ -47,6 +49,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             // Previously failed builds will be rebuild if necessary
             UnmarkFailedBuilds();
+
+            // Assure that we have an location for ipadresses
+            AssureDownloadsIPLocation();
 
         }
 
@@ -355,8 +360,14 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                                 bRemoveBuildFolder = true;
                             }
                             else {
-                                // Also remove downloaded builds to cleanup
-                                if (versionBuild.HasBeenDownloaded == true) {
+
+                                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", versionBuild.Channel, versionBuild.Version).First;
+                                if (versionSource == null) {
+                                    // No source
+                                    bRemoveBuildFolder = true;
+                                }
+                                else if (versionBuild.HasBeenDownloaded == true) {
+                                    // Also remove downloaded builds to cleanup
                                     bRemoveBuildFolder = true;
                                 }
                             }
@@ -375,6 +386,29 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                                 LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup build folder {0}. {1}.", buildFolder, e.Message));
                             }
                         }
+                    }
+                }
+            }
+
+
+            // Cleanup empty folders
+
+            foreach (string channel in channels) {
+
+                string[] versions = Directory.GetDirectories(channel);
+                DirectoryInfo channelFolder = new DirectoryInfo(channel);
+
+                foreach (string versionFolder in versions) {
+
+                    try {
+                        if (Directory.Exists(versionFolder)) {
+                            if (StarcounterApplicationWebSocket.API.Versions.Utils.IsDirectoryEmpty(versionFolder)) {
+                                Directory.Delete(versionFolder);
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup empty folder {0}. {1}.", versionFolder, e.Message));
                     }
                 }
             }
@@ -435,6 +469,20 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             });
 
         }
+
+
+        /// <summary>
+        /// Assure that we have an location for ipadresses
+        /// </summary>
+        private static void AssureDownloadsIPLocation() {
+
+            var result = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.IPAdress IS NOT NULL");
+
+            foreach (VersionBuild versionBuild in result) {
+                Utils.AssureIPLocation(versionBuild.IPAdress);
+            }
+        }
+
 
     }
 }

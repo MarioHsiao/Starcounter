@@ -276,9 +276,10 @@ Gateway::Gateway()
     InitializeCriticalSection(&cs_sockets_cleanup_);
     InitializeCriticalSection(&cs_statistics_);
 
+    num_pending_sends_ = 0;
     num_aggregated_sent_messages_ = 0;
     num_aggregated_recv_messages_ = 0;
-    num_aggregated_tosend_messages_ = 0;
+    num_aggregated_send_queued_messages_ = 0;
 
     // Creating gateway handlers table.
     gw_handlers_ = new HandlersTable();
@@ -873,17 +874,13 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
-    GW_ASSERT(sizeof(ScSocketInfoStruct) == 128);
-
-    GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == *(int64_t*)"Accept: ");
-    GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == *(int64_t*)"Accept-Encoding: ");
-    GW_ASSERT(COOKIE_HEADER_VALUE_8BYTES == *(int64_t*)"Cookie: ");
-    GW_ASSERT(SET_COOKIE_HEADER_VALUE_8BYTES == *(int64_t*)"Set-Cookie: ");
     GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == *(int64_t*)"Content-Length: ");
     GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == *(int64_t*)"Upgrade:");
     GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == *(int64_t*)"Sec-WebSocket: ");
     GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == *(int64_t*)"Referer: ");
     GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == *(int64_t*)"X-Referer: ");
+
+    GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
     return 0;
 
@@ -923,8 +920,10 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
         return SCERRGWFAILEDTOATTACHSOCKETTOIOCP;
     }
 
+#ifdef GW_IOCP_IMMEDIATE_COMPLETION
     // Skipping completion port if operation is already successful.
     SetFileCompletionNotificationModes((HANDLE) sock, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+#endif
 
     // The socket address to be passed to bind.
     sockaddr_in binding_addr;
@@ -1019,8 +1018,11 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     // Marking socket as alive.
     si->socket_ = s;
 
+    // Creating new socket info.
+    CreateNewSocketInfo(si->socket_info_index_, port_index);
+
     // Creating unique ids.
-    CreateUniqueSocketId(si->socket_info_index_, port_index, gw->GenerateSchedulerId(db_index));
+    GenerateUniqueSocketInfoIds(si->socket_info_index_, gw->GenerateSchedulerId(db_index));
 
     return si->socket_info_index_;
 }
@@ -1604,6 +1606,9 @@ void ActiveDatabase::CloseSocketData()
 
             if (worker_db->IsActiveSocket(socket_index))
             {
+                // NOTE: Only first database has attached sockets.
+                GW_ASSERT(0 == db_index_);
+
                 needs_deletion = true;
                 worker_db->UntrackSocket(socket_index);
             }
@@ -1624,10 +1629,14 @@ void ActiveDatabase::CloseSocketData()
 uint32_t Gateway::Init()
 {
     // Allocating data for sockets infos.
-    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*)_aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, 64);
-    free_socket_indexes_unsafe_ = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*) _aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, MEMORY_ALLOCATION_ALIGNMENT);
+    free_socket_indexes_unsafe_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
     GW_ASSERT(free_socket_indexes_unsafe_);
     InitializeSListHead(free_socket_indexes_unsafe_);
+
+    gateway_mem_chunks_unsafe_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    GW_ASSERT(gateway_mem_chunks_unsafe_);
+    InitializeSListHead(gateway_mem_chunks_unsafe_);
 
     sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
     num_active_sockets_ = 0;
@@ -2199,8 +2208,6 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
     uint32_t err_code = 0;
     std::set<std::string> active_databases_set;
 
-#ifndef GW_OLD_ACTIVE_DATABASES_DISCOVER 
-
     // Opening active databases event with monitor.
     err_code = g_gateway.OpenActiveDatabasesUpdatedEvent();
     if (err_code)
@@ -2238,96 +2245,6 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
             }
         }
     }
-
-#else
-
-    // Creating path to IPC monitor directory active databases.
-    std::wstring active_databases_dir = g_gateway.get_setting_server_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
-
-    // Obtaining full path to IPC monitor directory.
-    wchar_t active_databases_dir_full[1024];
-    if (!GetFullPathName(active_databases_dir.c_str(), 1024, active_databases_dir_full, NULL))
-    {
-        GW_PRINT_GLOBAL << "Can't obtain full path for IPC monitor output directory: " << PrintLastError() << GW_ENDL;
-        return SCERRGWPATHTOIPCMONITORDIR;
-    }
-
-    // Waiting until active databases directory is up.
-    while (GetFileAttributes(active_databases_dir_full) == INVALID_FILE_ATTRIBUTES)
-    {
-        GW_PRINT_GLOBAL << "Please start the IPC monitor process first!" << GW_ENDL;
-        Sleep(100);
-    }
-
-    // Creating path to active databases file.
-    std::wstring active_databases_file_path = active_databases_dir_full;
-    active_databases_file_path += W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME;
-
-    // Setting listener on monitor output directory.
-    HANDLE dir_changes_hook_handle = FindFirstChangeNotification(active_databases_dir_full, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
-    if ((INVALID_HANDLE_VALUE == dir_changes_hook_handle) || (NULL == dir_changes_hook_handle))
-    {
-        GW_PRINT_GLOBAL << "Can't listen for active databases directory changes: " << PrintLastError() << GW_ENDL;
-        FindCloseChangeNotification(dir_changes_hook_handle);
-
-        return SCERRGWACTIVEDBLISTENPROBLEM;
-    }
-
-    GW_PRINT_GLOBAL << "Waiting for databases..." << GW_ENDL;
-    while (1)
-    {
-        // Waiting infinitely on directory changes.
-        DWORD wait_status = WaitForSingleObject(dir_changes_hook_handle, INFINITE);
-        GW_PRINT_GLOBAL << "Changes in active databases directory detected." << GW_ENDL;
-
-        switch (wait_status)
-        {
-            case WAIT_OBJECT_0:
-            {
-                std::ifstream ad_file(active_databases_file_path);
-
-                // Just quiting if file can't be opened.
-                if (ad_file.is_open() == false)
-                    break;
-
-                // Populating the active databases set.
-                std::string current_db_name;
-                while (getline(ad_file, current_db_name))
-                    active_databases_set.insert(current_db_name);
-
-                // Checking for any database changes in active databases file.
-                err_code = g_gateway.CheckDatabaseChanges(active_databases_set);
-
-                if (err_code)
-                {
-                    FindCloseChangeNotification(dir_changes_hook_handle);
-                    return err_code;
-                }
-
-                // Requests that the operating system signal a change notification
-                // handle the next time it detects an appropriate change.
-                if (FindNextChangeNotification(dir_changes_hook_handle) == FALSE)
-                {
-                    GW_PRINT_GLOBAL << "Failed to find next change notification on monitor active databases directory: " << PrintLastError() << GW_ENDL;
-                    FindCloseChangeNotification(dir_changes_hook_handle);
-
-                    return SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION;
-                }
-
-                break;
-            }
-
-            default:
-            {
-                GW_PRINT_GLOBAL << "Error listening for active databases directory changes: " << PrintLastError() << GW_ENDL;
-                FindCloseChangeNotification(dir_changes_hook_handle);
-
-                return SCERRGWACTIVEDBLISTENPROBLEM;
-            }
-        }
-    }
-
-#endif
 
     return 0;
 }
@@ -2850,7 +2767,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 #endif
 
         // Printing the statistics string to console.
-#ifdef GW_TESTING_MODE
+#ifdef GW_LOG_TO_CONSOLE
         std::cout << global_statistics_stream_.str();
 #endif
 
@@ -3238,10 +3155,10 @@ uint32_t Gateway::AddUriHandler(
 
     // Registering URI on port.
     RegisteredUris* port_uris = server_port->get_registered_uris();
-    int32_t uri_index = port_uris->FindRegisteredUri(processed_uri_info);
+    uri_index_type uri_index = port_uris->FindRegisteredUri(processed_uri_info);
 
     // Checking if there is an entry.
-    if (uri_index < 0)
+    if (INVALID_URI_INDEX == uri_index)
     {
         // Checking if there is a session in parameters.
         uint8_t session_param_index = INVALID_PARAMETER_INDEX;

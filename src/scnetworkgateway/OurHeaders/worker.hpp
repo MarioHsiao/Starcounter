@@ -44,10 +44,10 @@ class GatewayWorker
     SocketDataChunk* sd_receive_clone_;
 
     // List of reusable connect sockets.
-    LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
+    LinearQueue<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
 
     // List of reusable accept sockets.
-    LinearStack<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_accept_sockets_;
+    LinearQueue<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_accept_sockets_;
 
     // Number of created connections calculated for worker.
     int32_t num_created_conns_worker_;
@@ -55,29 +55,27 @@ class GatewayWorker
     // List of sockets indexes to be disconnected.
     std::list<session_index_type> sockets_indexes_to_disconnect_;
 
-    /////////////////////////////AGGREGATION///////////////////////////////////
-
-    // Aggregation queue first item.
-    core::chunk_index first_aggregated_chunk_index_;
-    int8_t first_aggregated_chunk_db_index_;
-
-    // Aggregation queue last item.
-    core::chunk_index last_aggregated_chunk_;
-    int8_t last_aggregated_chunk_db_index_;
+    // Aggregation sockets waiting for send.
+    LinearList<SocketDataChunk*, 256> aggr_sds_to_send_;
 
     // Aggregation timer.
     PreciseTimer aggr_timer_;
-    /////////////////////////////AGGREGATION////////////////////////////////////
 
 #ifdef GW_LOOPED_TEST_MODE
-    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
-    LinearStack<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
+    LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
+    LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
 #endif
 
     // Avoiding false sharing.
-    uint8_t pad[64];
+    uint8_t pad[CACHE_LINE_SIZE];
 
 public:
+
+    // Performs a send of given socket data on aggregation socket.
+    uint32_t SendOnAggregationSocket(SocketDataChunkRef sd);
+
+    // Tries to find current aggregation socket data from aggregation socket index.
+    SocketDataChunk* FindAggregationSdBySocketIndex(session_index_type aggr_socket_info_index);
 
     // Returns given socket data chunk to private chunk pool.
     void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
@@ -123,7 +121,7 @@ public:
     }
 
     // Processes looped queue.
-    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, ULONG* removedOvlsNum, int32_t max_fetched);
+    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, uint32_t* removedOvlsNum, int32_t max_fetched);
 
 #endif
 
@@ -142,6 +140,9 @@ public:
     // Tracks certain socket.
     void TrackSocket(db_index_type db_index, session_index_type index)
     {
+        // NOTE: Only first database has attached sockets.
+        GW_ASSERT(0 == db_index);
+
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "Tracking socket index: " << index << GW_ENDL;
 #endif
@@ -152,6 +153,9 @@ public:
     // Untracks certain socket.
     void UntrackSocket(db_index_type db_index, session_index_type index)
     {
+        // NOTE: Only first database has attached sockets.
+        GW_ASSERT(0 == db_index);
+
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "UnTracking socket index: " << index << GW_ENDL;
 #endif
@@ -325,7 +329,7 @@ public:
         const int32_t message_len);
 
     // Sends given body.
-    uint32_t SendBody(
+    uint32_t SendHttpBody(
         SocketDataChunkRef sd,
         const char* body,
         const int32_t body_len);

@@ -223,6 +223,20 @@ namespace Starcounter.Internal.XSON.Tests {
             //Assert.AreEqual(4, c.Age);
         }
 
+		[Test]
+		public static void TestParentAssignment() {
+			dynamic json = new Json();
+			dynamic newchildJson = new Json();
+			dynamic oldChildJson = new Json();
+
+			json.Page = oldChildJson;
+			Assert.IsNotNull(oldChildJson.Parent);
+
+			json.Page = newchildJson;
+			Assert.IsNotNull(newchildJson.Parent);
+			Assert.IsNull(oldChildJson.Parent);
+		}
+
         /// <summary>
         /// Tests TestCorrectJsonInstances.
         /// </summary>

@@ -24,7 +24,7 @@ namespace FasterThanJson.Tests {
                 wasException = false;
 
                 // One proper write
-                writer = new SafeTupleWriterBase64(start, 5, 1, (uint)buffer.Length);
+                writer = new SafeTupleWriterBase64(start, 5, 1, buffer.Length);
                 writer.WriteString("abdsfklaskl;jfAKDJLKSFHA:SKFLHsadnfkalsn2354432sad");
                 // Write too long value
                 try {
@@ -65,7 +65,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeUIntWriter() {
             byte[] buffer = new byte[10];
             fixed (byte* start = buffer) {
-                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, (uint)buffer.Length);
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, buffer.Length);
                 writer.WriteULong(45);
                 writer.WriteULong(256);
                 Boolean wasException = false;
@@ -108,7 +108,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeIntWriter() {
             byte[] buffer = new byte[10];
             fixed (byte* start = buffer) {
-                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, (uint)buffer.Length);
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 4, 1, buffer.Length);
                 writer.WriteLong(25);
                 writer.WriteLong(-256);
                 Boolean wasException = false;
@@ -151,7 +151,7 @@ namespace FasterThanJson.Tests {
         public unsafe void TestSafeBinaryWriter() {
             byte[] buffer = new byte[97]; // (97 - 17) /4 * 3 = 60 original bytes
             fixed (byte* start = buffer) {
-                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 8, 1, (uint)buffer.Length);
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(start, 8, 1, buffer.Length);
                 byte[] value = new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
                 writer.WriteByteArray(value); // 1 of 8 value, 14+9 bytes
                 value = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -292,6 +292,128 @@ namespace FasterThanJson.Tests {
                 }
                 Assert.True(wasException);
                 wasException = false;
+            }
+        }
+
+        [Test]
+        public unsafe void TestSafeDecimalLossless() {
+            fixed (byte* buffer = new byte[173]) {
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(buffer, 11, 1, 173);
+                Decimal value = 0;
+                writer.WriteDecimal(value); // 2 chars
+                value = 1;
+                writer.WriteDecimal(value); // 2 chars
+                value = -1;
+                writer.WriteDecimal(value); // 2 chars
+                Decimal valueMax = Decimal.MaxValue;
+                writer.WriteDecimal(valueMax); // 18 chars
+                Decimal valueMin = Decimal.MinValue;
+                writer.WriteDecimal(valueMin); // 18 chars
+                valueMax = valueMax / 10; // 1
+                writer.WriteDecimal(valueMax); // 18 chars
+                valueMin = valueMin / 10; // 1
+                writer.WriteDecimal(valueMin); // 18 chars
+                for (int i = 1; i < 10; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                writer.WriteDecimal(valueMax); // 18 chars
+                writer.WriteDecimal(valueMin); // 18 chars
+                for (int i = 10; i < 28; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                writer.WriteDecimal(valueMax); // 18 chars
+                writer.WriteDecimal(valueMin); // 18 chars
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(buffer, 11);
+                valueMax = Decimal.MaxValue;
+                Assert.AreEqual(valueMax, reader.ReadDecimal(3));
+                valueMin = Decimal.MinValue;
+                Assert.AreEqual(valueMin, reader.ReadDecimal(4));
+                valueMax = valueMax / 10; // 1
+                Assert.AreEqual(valueMax, reader.ReadDecimal(5));
+                valueMin = valueMin / 10; // 1
+                Assert.AreEqual(valueMin, reader.ReadDecimal(6));
+                for (int i = 1; i < 10; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                Assert.AreEqual(valueMax, reader.ReadDecimal(7));
+                value = 0;
+                Assert.AreEqual(value, reader.ReadDecimal(0));
+                value = 1;
+                Assert.AreEqual(value, reader.ReadDecimal(1));
+                value = -1;
+                Assert.AreEqual(value, reader.ReadDecimal(2));
+                Assert.AreEqual(valueMin, reader.ReadDecimal(8));
+                for (int i = 10; i < 28; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                Assert.AreEqual(valueMin, reader.ReadDecimal(10));
+                Assert.AreEqual(valueMax, reader.ReadDecimal(9));
+            }
+        }
+
+        [Test]
+        public unsafe void TestSafeDecimalNullable() {
+            fixed (byte* buffer = new byte[176]) {
+                SafeTupleWriterBase64 writer = new SafeTupleWriterBase64(buffer, 12, 1, 176);
+                Decimal? value = 0;
+                writer.WriteDecimalNullable(value); // 2 chars
+                value = 1;
+                writer.WriteDecimalNullable(value); // 2 chars
+                value = -1;
+                writer.WriteDecimalNullable(value); // 2 chars
+                Decimal? valueMax = Decimal.MaxValue;
+                writer.WriteDecimalNullable(valueMax); // 18 chars
+                Decimal? valueMin = Decimal.MinValue;
+                writer.WriteDecimalNullable(valueMin); // 18 chars
+                valueMax = valueMax / 10; // 1
+                writer.WriteDecimalNullable(valueMax); // 18 chars
+                valueMin = valueMin / 10; // 1
+                writer.WriteDecimalNullable(valueMin); // 18 chars
+                for (int i = 1; i < 10; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                writer.WriteDecimalNullable(valueMax); // 18 chars
+                writer.WriteDecimalNullable(valueMin); // 18 chars
+                for (int i = 10; i < 28; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                writer.WriteDecimalNullable(valueMax); // 18 chars
+                writer.WriteDecimalNullable(valueMin); // 18 chars
+                writer.WriteDecimalNullable(null); // 1 char
+                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(buffer, 12);
+                Assert.AreEqual(null, reader.ReadDecimalNullable(11));
+                valueMax = Decimal.MaxValue;
+                Assert.AreEqual(valueMax, reader.ReadDecimalNullable(3));
+                valueMin = Decimal.MinValue;
+                Assert.AreEqual(valueMin, reader.ReadDecimalNullable(4));
+                valueMax = valueMax / 10; // 1
+                Assert.AreEqual(valueMax, reader.ReadDecimalNullable(5));
+                valueMin = valueMin / 10; // 1
+                Assert.AreEqual(valueMin, reader.ReadDecimalNullable(6));
+                for (int i = 1; i < 10; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                Assert.AreEqual(valueMax, reader.ReadDecimalNullable(7));
+                value = 0;
+                Assert.AreEqual(value, reader.ReadDecimalNullable(0));
+                value = 1;
+                Assert.AreEqual(value, reader.ReadDecimalNullable(1));
+                value = -1;
+                Assert.AreEqual(value, reader.ReadDecimalNullable(2));
+                Assert.AreEqual(valueMin, reader.ReadDecimalNullable(8));
+                for (int i = 10; i < 28; i++) {
+                    valueMax /= 10;
+                    valueMin /= 10;
+                }
+                Assert.AreEqual(valueMin, reader.ReadDecimalNullable(10));
+                Assert.AreEqual(valueMax, reader.ReadDecimalNullable(9));
             }
         }
     }

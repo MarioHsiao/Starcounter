@@ -7,6 +7,7 @@
 using Starcounter.Internal;
 using System;
 using Starcounter.Advanced;
+using Starcounter.Binding;
 
 namespace Starcounter
 {
@@ -104,11 +105,11 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public static Transaction NewCurrent(bool readOnly) {
+        public static Transaction NewCurrent(bool readOnly, bool detectConflicts = true) {
             try {
                 ulong handle;
                 ulong verify;
-                uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+                uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
 
                 if (readOnly)
                     flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
@@ -140,6 +141,42 @@ namespace Starcounter
                 if (_current != null) Transaction.SetCurrent(_current);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Adds <paramref name="obj"/> to the write list of the
+        /// currently attached transaction.
+        /// </summary>
+        /// </exception>
+        /// <param name="obj">The object to be added to the transaction
+        /// write list. If the object is not an instance of a database
+        /// class, an exception will be raised.</param>
+        public static void Touch(object obj) {
+            var proxy = obj as IObjectProxy;
+            if (proxy == null) {
+                if (obj == null) {
+                    throw new ArgumentNullException("obj");
+                } else {
+                    throw ErrorCode.ToException(
+                        Error.SCERRCODENOTENHANCED,
+                        string.Format("The type {0} is not a database class.", obj.GetType()),
+                        (msg, inner) => { return new InvalidCastException(msg, inner); });
+                }
+            }
+
+            Touch(proxy);
+        }
+
+        /// <summary>
+        /// Adds <paramref name="proxy"/> to the write list of the
+        /// currently attached transaction.
+        /// </summary>
+        /// </exception>
+        /// <param name="proxy">The proxy referencing the kernel
+        /// object to be added to the transaction write list.</param>
+        public static void Touch(IObjectProxy proxy) {
+            var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
+            if (dr != 0) throw ErrorCode.ToException(dr);
         }
 
         private static Exception ToException(Transaction transaction, uint r) {
@@ -175,10 +212,10 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public Transaction(bool readOnly) {
+        public Transaction(bool readOnly, bool detectConflicts = true) {
             ulong handle;
             ulong verify;
-            uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+            uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
 
             this.IsReadOnly = readOnly;
             if (readOnly)

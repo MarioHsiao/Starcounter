@@ -61,6 +61,8 @@
     <Compile Include="RandomValues.cs" />
     <Compile Include="TestBaseXint.cs" />
     <Compile Include="TestBinary.cs" />
+    <Compile Include="TestDecimal.cs" />
+    <Compile Include="TestDouble.cs" />
     <Compile Include="TestSafeTupleWriter.cs" />
     <Compile Include="TestTupleBugs.cs" />
     <Compile Include="TestIndexRead.cs" />

@@ -50,11 +50,11 @@ try {
 		chunks_total_number = chunks_total_number_max;
 	}
 	
-#if defined (IPC_GROUPED_CHANNELS)
+#if defined (IPC_VERSION_2_0)
 	size_t channels_size = schedulers * gateway_num_workers;
-#else // !defined (IPC_GROUPED_CHANNELS)
+#else // !defined (IPC_VERSION_2_0)
 	size_t channels_size = channels;
-#endif // defined (IPC_GROUPED_CHANNELS)
+#endif // defined (IPC_VERSION_2_0)
 
 	// Compute the memory required for all objects in shared memory.
 	std::size_t shared_memory_segment_size =

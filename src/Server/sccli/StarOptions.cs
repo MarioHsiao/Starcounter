@@ -15,6 +15,8 @@ namespace star {
         public const string ResourceDirectory = SharedCLI.Option.ResourceDirectory;
         public const string LogSteps = SharedCLI.Option.LogSteps;
         public const string NoDb = SharedCLI.Option.NoDb;
+        public const string Restart = SharedCLI.Option.Restart;
+        public const string Stop = SharedCLI.Option.Stop;
         public const string NoAutoCreateDb = SharedCLI.Option.NoAutoCreateDb;
         public const string Verbose = SharedCLI.Option.Verbose;
         public const string Async = SharedCLI.Option.Async;

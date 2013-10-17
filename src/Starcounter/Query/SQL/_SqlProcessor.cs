@@ -78,9 +78,9 @@ internal static class SqlProcessor
 
     static Exception GetSqlExceptionForToken(String message, List<String> tokenList, int pos) {
         if (pos < tokenList.Count)
-            return new SqlException(message, tokenList[pos]);
+            return SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, message, tokenList[pos]);
         else
-            return new SqlException(message + " But no token is found (end of the query).");
+            return SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, message + " But no token is found (end of the query).");
     }
 
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
@@ -133,7 +133,7 @@ internal static class SqlProcessor
         // Parse properties (column) names
         if (!Token("(", tokenList, pos))
         {
-            throw new SqlException("Expected opening bracket '('.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected opening bracket '('.", tokenList, pos);
         }
         pos++;
         List<String> propertyList = new List<String>(); // List of properties/columns
@@ -164,13 +164,14 @@ internal static class SqlProcessor
 
         if (propertyList.Count > MAX_INDEX_ATTRIBUTES)
         {
-            throw new SqlException("Indexes with more than " + MAX_INDEX_ATTRIBUTES + " attributes are not supported.");
+            throw SqlException.GetSqlException(Error.SCERRTOOMANYINDEXCOLUMNS, "Compoind index to create contains " + 
+                propertyList.Count + "columns, while " + MAX_INDEX_ATTRIBUTES + " columns are supported for index creation.");
         }
 
         if (pos < tokenList.Count)
         {
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
-            throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
+            throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Found token after end of statement.");
         }
 
         // Prepare array of attributes
@@ -211,7 +212,10 @@ internal static class SqlProcessor
         }
         if (errorCode != 0)
         {
-            throw ErrorCode.ToException(errorCode);
+            Exception ex = ErrorCode.ToException(errorCode);
+            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+            throw ex;
         }
     }
 
@@ -238,7 +242,7 @@ internal static class SqlProcessor
                 ProcessDropTable(statement, tokenList, pos);
                 return true;
             }
-                throw new SqlException("Unexpected token after DROP", tokenList[pos]);
+                throw GetSqlExceptionForToken("Unexpected token after DROP", tokenList, pos);
         }
         if (Token("$DELETE", tokenList, pos) && slowSQL)
         {
@@ -256,7 +260,7 @@ internal static class SqlProcessor
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect statement.");
 
         if (statement.Length < 12 && statement.ToUpperInvariant().Substring(0, 12) != "DELETE FROM ")
-            throw new SqlException("Expected words DELETE FROM.");
+            throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Expected words DELETE FROM.");
 
         String tableName = statement.Substring(12);
 
@@ -304,7 +308,7 @@ internal static class SqlProcessor
         if (pos < tokenList.Count)
         {
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
-            throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
+            throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Found token after end of statement.");
         }
 
         TypeBinding typeBind;
@@ -326,9 +330,11 @@ internal static class SqlProcessor
         {
             errorCode = sccoredb.sccoredb_drop_index(typeBind.Name, indexName);
         }
-        if (errorCode != 0)
-        {
-            throw ErrorCode.ToException(errorCode);
+        if (errorCode != 0) {
+            Exception ex = ErrorCode.ToException(errorCode);
+            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+            throw ex;
         }
     }
 
@@ -349,7 +355,7 @@ internal static class SqlProcessor
         if (pos < tokenList.Count)
         {
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
-            throw new SqlException("Found token after end of statement (maybe a semicolon is missing).");
+            throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Found token after end of statement.");
         }
 
         // Call kernel
@@ -358,9 +364,11 @@ internal static class SqlProcessor
         {
             errorCode = sccoredb.sccoredb_drop_table(typePath);
         }
-        if (errorCode != 0)
-        {
-            throw ErrorCode.ToException(errorCode);
+        if (errorCode != 0) {
+            Exception ex = ErrorCode.ToException(errorCode);
+            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+            throw ex;
         }
     }
 

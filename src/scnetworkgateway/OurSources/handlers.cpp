@@ -11,6 +11,31 @@
 namespace starcounter {
 namespace network {
 
+// Running all registered handlers.
+uint32_t PortHandlers::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Going through all handler list.
+    for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
+    {
+        // Checking if there is no predefined user handler id.
+        if (INVALID_DB_INDEX == sd->get_target_db_index())
+        {
+            // Setting destination database.
+            sd->set_target_db_index(handler_lists_[i]->get_db_index());
+        }
+
+        err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
+
+        // Checking if information was handled and no errors occurred.
+        if (*is_handled || err_code)
+            return err_code;
+    }
+
+    return SCERRGWPORTNOTHANDLED;
+}
+
 // Should be called when whole handlers list should be unregistered.
 uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
 {
@@ -173,7 +198,8 @@ uint32_t HandlersTable::RegisterPortHandler(
 #endif
 
         // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
+        // NOTE: Creating connections only on database 0.
+        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, 0);
         if (err_code)
             goto ERROR_HANDLING;
     }
