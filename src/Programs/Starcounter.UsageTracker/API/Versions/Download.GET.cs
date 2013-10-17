@@ -6,6 +6,7 @@ using Codeplex.Data;
 using System.Net;
 using StarcounterApplicationWebSocket.VersionHandler;
 using System.IO;
+using Starcounter.Applications.UsageTrackerApp.VersionHandler;
 
 namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
@@ -35,24 +36,30 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
-                    VersionBuild latestBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
-                    if (latestBuild == null) {
+                    VersionBuild versionBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
+                    if (versionBuild == null) {
                         string message = string.Format("The download is not available at the moment. Please try again later.");
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
                     }
 
-                    byte[] fileBytes = File.ReadAllBytes(latestBuild.File);
+                    byte[] fileBytes = File.ReadAllBytes(versionBuild.File);
 
                     Db.Transaction(() => {
-                        latestBuild.DownloadDate = DateTime.UtcNow;
-                        latestBuild.IPAdress = request.GetClientIpAddress().ToString();
+                        versionBuild.DownloadDate = DateTime.UtcNow;
+                        versionBuild.IPAdress = request.GetClientIpAddress().ToString();
                     });
 
                     VersionHandlerApp.BuildkWorker.Trigger();
 
-                    LogWriter.WriteLine(string.Format("NOTICE: Sending version {0} to ip {1}", latestBuild.Version, request.GetClientIpAddress().ToString()));
+                    LogWriter.WriteLine(string.Format("NOTICE: Sending version {0} to ip {1}", versionBuild.Version, request.GetClientIpAddress().ToString()));
 
-                    string fileName = Path.GetFileName(latestBuild.File);
+                    string fileName = Path.GetFileName(versionBuild.File);
+
+                    // Delete version build file
+                    VersionBuild.DeleteVersionBuildFile(versionBuild);
+
+                    // Assure IP Location
+                    Utils.AssureIPLocation(versionBuild.IPAdress);
 
                     Response response = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
                     response["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
@@ -78,25 +85,32 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
                     }
 
-                    VersionBuild latestBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
-                    if (latestBuild == null) {
+                    VersionBuild versionBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
+                    if (versionBuild == null) {
                         string message = string.Format("The download is not available at the moment. Please try again later.");
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, Body = message };
                     }
 
-                    byte[] fileBytes = File.ReadAllBytes(latestBuild.File);
+
+                    byte[] fileBytes = File.ReadAllBytes(versionBuild.File);
 
                     Db.Transaction(() => {
-                        latestBuild.DownloadDate = DateTime.UtcNow;
-                        latestBuild.DownloadKey = downloadkey;
-                        latestBuild.IPAdress = request.GetClientIpAddress().ToString();
+                        versionBuild.DownloadDate = DateTime.UtcNow;
+                        versionBuild.DownloadKey = downloadkey;
+                        versionBuild.IPAdress = request.GetClientIpAddress().ToString();
                     });
 
                     VersionHandlerApp.BuildkWorker.Trigger();
 
-                    LogWriter.WriteLine(string.Format("NOTICE: Sending version {0} to ip {1} with Key {2}", latestBuild.Version, request.GetClientIpAddress().ToString(), downloadkey));
+                    LogWriter.WriteLine(string.Format("NOTICE: Sending version {0} to ip {1} with Key {2}", versionBuild.Version, request.GetClientIpAddress().ToString(), downloadkey));
 
-                    string fileName = Path.GetFileName(latestBuild.File);
+                    string fileName = Path.GetFileName(versionBuild.File);
+
+                    // Delete version build file
+                    VersionBuild.DeleteVersionBuildFile(versionBuild);
+
+                    // Assure IP Location
+                    Utils.AssureIPLocation(versionBuild.IPAdress);
 
                     Response response = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
                     response["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
@@ -141,6 +155,12 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     string fileName = Path.GetFileName(versionBuild.File);
 
+                    // Delete version build file
+                    VersionBuild.DeleteVersionBuildFile(versionBuild);
+
+                    // Assure IP Location
+                    Utils.AssureIPLocation(versionBuild.IPAdress);
+
                     Response response = new Response() { BodyBytes = fileBytes, StatusCode = (ushort)System.Net.HttpStatusCode.OK };
                     response["Content-Disposition"] = "attachment; filename=\"" + fileName + "\"";
                     return response;
@@ -163,5 +183,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             });
 
         }
+
+      
     }
 }
