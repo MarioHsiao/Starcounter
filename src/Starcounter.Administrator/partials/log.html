@@ -7,6 +7,11 @@
         <button type="button" ng-disabled="isBusy == true" class="btn btn-danger" ng-model="filterModel.error" btn-checkbox>Error</button>
     </div>
     <button ng-hide="isWebsocketSupport == true" class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
+
+</div>
+
+<div class="row-fluid">
+    <input type="text" class="span12" ui-select2="select2Options" ng-model="list_of_string" class="input-large" placeholder="Source filter">
 </div>
 
 

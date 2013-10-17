@@ -11,5 +11,6 @@
 	"FilterNotice" : true,
 	"FilterWarning" : true,
 	"FilterError" : true,
-	"FilterDebug" : true
+	"FilterDebug" : true,
+	"FilterSource": "Starcounter;Starcounter.Host"
 }
