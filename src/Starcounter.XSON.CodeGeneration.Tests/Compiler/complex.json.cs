@@ -5,6 +5,8 @@
 // ***********************************************************************
 
 using System;
+using MySampleNamespace.Something;
+using SomeOtherNamespace;
 
 namespace MySampleNamespace
 {
@@ -27,7 +29,8 @@ namespace MySampleNamespace
     /// <summary>
     /// Class MySampleJson
     /// </summary>
-    partial class Complex : Json<Order>, ISomeInterface
+	[Complex_json]
+    partial class Complex : MyBaseJsonClass, ISomeInterface, IBound<Order>
     {
         /// <summary>
         /// Handles the specified input.
@@ -60,7 +63,7 @@ namespace MySampleNamespace
         [Another(Fake=true), Test]
         [json.ActivePage.SubPage1.SubPage2.SubPage3]
         [SomeOther]
-        public partial class SubPage3Impl : Json<Order>, IFoo, IFoo3
+        public partial class SubPage3Impl : Json, IFoo, IFoo3, IBound<OrderItem>
         {
             [json.Blabla.bla]
             public partial class SubPage3Sub1 : Json {
