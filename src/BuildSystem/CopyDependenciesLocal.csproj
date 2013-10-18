@@ -46,18 +46,7 @@
     <GacScripts Include="..\BuildSystem\Scripts\gac_*" />
   </ItemGroup>
   <ItemGroup>
-    <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
-	
-    <ProjectReference Include="..\Starcounter.ErrorCodes\scerrres\scerrres.vcxproj">
-	  <Project>{5A65D606-6613-4139-8853-B5F26313E4DF}</Project>
-	  <Name>scerrres</Name>
-	</ProjectReference>
-	  
-	<ProjectReference Include="..\Starcounter.ErrorCodes\scerrres\scerrres32.vcxproj">
-	  <Project>{AD78AE53-5B4C-4C20-B66E-78D42008DCE3}</Project>
-	  <Name>scerrres32</Name>
-	</ProjectReference>
-	
+    <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />	
   </ItemGroup>
   <Target Name="CopyLocalFiles">
     <!-- Building Blue solution if any. -->
@@ -81,5 +70,6 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Name="Build" DependsOnTargets="CopyLocalFiles" />
+  <!-- <Target Name="Build" DependsOnTargets="CopyLocalFiles" /> -->
+  <Target Name="AfterBuild" DependsOnTargets="CopyLocalFiles" />
 </Project>
