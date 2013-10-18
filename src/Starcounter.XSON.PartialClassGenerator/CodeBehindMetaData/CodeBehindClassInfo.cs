@@ -62,6 +62,11 @@ namespace Starcounter.XSON.Metadata {
             }
         }
 
+		/// <summary>
+		/// If set to false the 'global::' specifier will not be added to the full name.
+		/// </summary>
+		public bool UseGlobalSpecifier = true;
+
         /// <summary>
         /// If the code-behind contains a partial class for this class, this property is true
         /// </summary>
@@ -89,6 +94,10 @@ namespace Starcounter.XSON.Metadata {
         public string GlobalClassSpecifier {
             get {
                 var str = "global::";
+
+				if (!UseGlobalSpecifier)
+					str = "";
+
                 if (Namespace != null)
                     str += Namespace + ".";
 

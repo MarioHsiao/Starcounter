@@ -319,6 +319,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
         public bool UseInAliasName = true;
 
+		public bool UseClassAlias = true;
+
         internal override string CalculateClassAliasIdentifier(int chars) {
             if (UseInAliasName) {
                 var str = base.CalculateClassAliasIdentifier(Math.Max(chars/3, 1));
