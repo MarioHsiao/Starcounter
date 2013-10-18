@@ -25,7 +25,7 @@ namespace Starcounter.Administrator {
                 string[] sourceFilter = this.FilterSource.Split(';');
 
                 foreach (string source in sourceFilter) {
-                    if (!activeFilterSourceList.ContainsKey(source)) {
+                    if (!activeFilterSourceList.ContainsKey(source.ToUpper())) {
                         activeFilterSourceList.Add(source.ToUpper(), source);
                     }
                 }
