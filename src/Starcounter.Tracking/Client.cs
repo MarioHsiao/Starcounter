@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Starcounter.Tracking {
+    using Starcounter.Advanced;
     using TrackingEnvironment = Starcounter.Tracking.Environment;
 
     /// <summary>
@@ -500,50 +501,30 @@ namespace Starcounter.Tracking {
         }
 
 
+        /// <summary>
+        /// Send data to tracker
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="content"></param>
+        /// <param name="completeCallback"></param>
         private void SendData(string uri, string content, EventHandler<CompletedEventArgs> completeCallback) {
 
-            // This is a temporary solution until we have true Node async mode.
-            ThreadPool.QueueUserWorkItem(SendThread, new object[] { uri, content, completeCallback });
+            Node node = new Node(this.ServerIP, this.ServerPort);
 
-        }
+            // ==================================================================================================
+            // Protocol version history
+            // --------------------------------------------------------------------------------------------------
+            // v1 - 2013-06-01 Firstversion
+            // v2 - 2013-06-14 Added "version" to the header
+            //                 The response "installation.sequenceNo" was changed to "installation.installationNo" 
+            // ==================================================================================================
+            node.POST(uri, content, "Accept: application/starcounter.tracker.usage-v2+json\r\n", null, null, (Response respAsync, Object userObject) => {
 
-
-        private void SendData(string uri, string content) {
-            this.SendData(uri, content, null);
-        }
-
-
-        /// <summary>
-        /// This is a temporary solution until we have true Node async mode.
-        /// </summary>
-        /// <param name="state"></param>
-        private void SendThread(object state) {
-
-            // Send json content to server
-            string uri = ((object[])state)[0] as string;
-            string content = ((object[])state)[1] as string;
-            EventHandler<CompletedEventArgs> completeCallback = ((object[])state)[2] as EventHandler<CompletedEventArgs>;
-
-            try {
-
-                Node node = new Node(this.ServerIP, this.ServerPort);
-
-                // ==================================================================================================
-                // Protocol version history
-                // --------------------------------------------------------------------------------------------------
-                // v1 - 2013-06-01 Firstversion
-                // v2 - 2013-06-14 Added "version" to the header
-                //                 The response "installation.sequenceNo" was changed to "installation.installationNo" 
-                // ==================================================================================================
-                Advanced.Response response = node.POST(uri, content, "Accept: application/starcounter.tracker.usage-v2+json\r\n", null);
-
-                if (response.StatusCode >= 200 && response.StatusCode < 300) {
-                    // Success
+                if (respAsync.IsSuccessStatusCode) {
 
                     // If the tracking server response with a new sequenceNo we will use it
-                    // NOTE: This is only for the InstallerStart request, but att the moment we dont know the calling type
-                    //       It will be fixed when Node async bug if solved
-                    String responseContent = response.Body;
+                    // NOTE: This is only for the InstallerStart request, but at the moment we dont know the calling type
+                    String responseContent = respAsync.Body;
                     if (!string.IsNullOrEmpty(responseContent)) {
                         dynamic incomingJson = DynamicJson.Parse(responseContent);
                         if (incomingJson.IsDefined("installation")) {
@@ -560,28 +541,23 @@ namespace Starcounter.Tracking {
 
                 }
                 else {
-                    // Error
-                    string message = "ERROR: UsageTracker http-StatusCode:" + response.StatusCode;
-                    //Console.WriteLine("ERROR: UsageTracker http-StatusCode:" + response.StatusCode);
-
+                    string message = "ERROR: UsageTracker http-StatusCode:" + respAsync.StatusCode;
                     if (completeCallback != null) {
                         completeCallback(this, new CompletedEventArgs(new Exception(message)));
                     }
+                }
 
-                }
-            }
-            catch (SocketException s) {
-                if (completeCallback != null) {
-                    completeCallback(this, new CompletedEventArgs(s));
-                }
-            }
-            catch (Exception e) {
-                if (completeCallback != null) {
-                    completeCallback(this, new CompletedEventArgs(e));
-                }
-            }
+                return null;
+            }, 10000); // 10 Sec timeout
+
 
         }
+
+
+        private void SendData(string uri, string content) {
+            this.SendData(uri, content, null);
+        }
+
 
         private void AddHeader(dynamic json) {
 
