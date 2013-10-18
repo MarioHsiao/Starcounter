@@ -1796,7 +1796,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
  */
 adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function ($scope, $dialog, $http) {
 
-    $scope.alerts.length = 0;
+//    $scope.alerts.length = 0;
 
     $scope.startDatabase = function (database) {
 
