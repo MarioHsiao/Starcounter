@@ -95,7 +95,7 @@ namespace Starcounter
             SqlResult<T> enumerableResult = null;
             try {
                 enumerableResult = new SqlResult<T>(0, query, false, values);
-                enumerableResult.GetExecutionEnumerator().Dispose();
+                enumerableResult.CacheExecutionEnumerator();
             } catch (Exception) {
                 try {
                     if (ParseNonSelectQuery(query, values))

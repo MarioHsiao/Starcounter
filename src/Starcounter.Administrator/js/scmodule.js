@@ -2251,7 +2251,7 @@ adminModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http', f
 /**
  * Database Create Controller
  */
-adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scope, $http) {
+adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', '$location', '$anchorScroll', function ($scope, $http, $location, $anchorScroll) {
 
     $scope.isBusy = false;
     $scope.alerts.length = 0;
@@ -2282,6 +2282,11 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scop
         $scope.alerts.length = 0;
         var job = $scope.addJob({ message: "Verifying properties" });
 
+        // Scroll top top
+        $location.hash('top');
+        $anchorScroll();
+
+
         $scope._VerifyDatabaseProperties($scope.settings, function (validationErrors) {
             // Validation done
 
@@ -2292,8 +2297,13 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scop
 
                 $scope._CreateDatabase($scope.settings, function () {
                     // Success
+                    $location.hash("");
+
                     $scope.removeJob(job);
                     $scope.alerts.push({ type: 'success', msg: "Database " + $scope.settings.name + " was created." });
+
+                    $location.path("/databases");
+
 
                 }, function () {
                     $scope.removeJob(job);
