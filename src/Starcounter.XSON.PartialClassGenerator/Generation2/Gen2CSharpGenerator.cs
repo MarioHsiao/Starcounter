@@ -8,6 +8,8 @@ using Starcounter.Templates.Interfaces;
 using System.Text;
 using System;
 using Starcounter.Templates;
+using System.Collections.Generic;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
 
@@ -45,7 +47,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public Gen2DomGenerator Generator;
         private const string markAsCodegen = "[_GEN1_][_GEN2_(\"Starcounter\",\"2.0\")]";
         private const string markAsCodegen2 = "[_GEN2_(\"Starcounter\",\"2.0\")]";
-
+		private static List<string> defaultUsings;
 
         /// <summary>
         /// 
@@ -742,26 +744,39 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="fileName">The name of the original json file</param>
         /// <param name="h">The h.</param>
         static internal void WriteHeader( AstRoot root, string fileName, StringBuilder h ) {
+			if (defaultUsings == null) {
+				defaultUsings = new List<string>();
+				defaultUsings.Add("System");
+				defaultUsings.Add("System.Collections");
+				defaultUsings.Add("System.Collections.Generic");
+				defaultUsings.Add("Starcounter.Advanced");
+				defaultUsings.Add("Starcounter");
+				defaultUsings.Add("Starcounter.Internal");
+				defaultUsings.Add("Starcounter.Templates");
+				defaultUsings.Add("st=Starcounter.Templates");
+				defaultUsings.Add("s=Starcounter");
+				defaultUsings.Add("_GEN1_=System.Diagnostics.DebuggerNonUserCodeAttribute");
+				defaultUsings.Add("_GEN2_=System.CodeDom.Compiler.GeneratedCodeAttribute");
+			}
+
             h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);
             h.Append('"');
             h.Append('\n');
             h.Append("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN\n");
             h.Append('\n');
-            h.Append("using System;\n");
-            h.Append("using System.Collections;\n");
-            h.Append("using System.Collections.Generic;\n");
-            h.Append("using Starcounter.Advanced;\n");
-            h.Append("using Starcounter;\n");
-            h.Append("using Starcounter.Internal;\n");
-            h.Append("using Starcounter.Templates;\n");
-            h.Append("using st = Starcounter.Templates;\n");
-            h.Append("using s = Starcounter;\n");
-            h.Append("using _GEN1_=System.Diagnostics.DebuggerNonUserCodeAttribute;\n");
-            h.Append("using _GEN2_=System.CodeDom.Compiler.GeneratedCodeAttribute;\n");
 
-//            h.Append("using TJson = Starcounter.Templates.Schema;\n");
-//            h.Append("using uSr = " + root.RootJsonClassAlias + ";\n");
+			foreach (var usingDirective in defaultUsings) {
+				h.Append("using " + usingDirective + ";\n");
+			}
+
+			if (root.Generator.CodeBehindMetadata != null){
+				var usingList = root.Generator.CodeBehindMetadata.UsingDirectives;
+				foreach (var usingDirective in usingList) {
+					if (!defaultUsings.Contains(usingDirective))
+						h.Append("using " + usingDirective + ";\n");
+				}
+			}
 
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
