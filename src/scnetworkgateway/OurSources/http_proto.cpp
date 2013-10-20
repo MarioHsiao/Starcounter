@@ -510,7 +510,7 @@ uint32_t HttpProto::HttpUriDispatcher(
 
     // Checking if we are in gateway HTTP mode.
     if (MODE_GATEWAY_HTTP == g_gateway.setting_mode())
-        return GatewayHttpWsProcessEcho(gw, sd, handler_index, is_handled);
+        return GatewayHttpWsProcessEcho(hl, gw, sd, handler_index, is_handled);
 
 #endif
 
