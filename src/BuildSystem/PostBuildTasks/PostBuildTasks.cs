@@ -34,7 +34,8 @@ namespace PostBuildTasks
         {
             "personal.xml",
             "facit.cpp.txt",
-            "WebSocket4Net.dll"
+            "WebSocket4Net.dll",
+            "scnetworkgateway_proxy_test.xml"
         };
 
         /// <summary>

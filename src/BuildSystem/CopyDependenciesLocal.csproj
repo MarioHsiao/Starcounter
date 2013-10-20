@@ -22,6 +22,7 @@
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
     <NodeUploadTool>..\BuildSystem\Tools\NodeUploadTool.exe</NodeUploadTool>
     <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
+    <LocalGatewayXMLProxyTest>..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml</LocalGatewayXMLProxyTest>
     <ScerrresDll>
         ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll;
         ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.pdb;
@@ -61,6 +62,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(NodeUploadTool)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalTestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXMLProxyTest)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GacScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll)" DestinationFolder="$(OutputPath)" />

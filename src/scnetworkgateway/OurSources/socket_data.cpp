@@ -62,8 +62,11 @@ void SocketDataChunk::Init(
 }
 
 // Resetting socket.
-void SocketDataChunk::Reset()
+void SocketDataChunk::ResetOnDisconnect()
 {
+    // Resetting associated socket info.
+    g_gateway.ResetSocketInfoOnDisconnect(socket_info_index_);
+
     set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
@@ -206,8 +209,8 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     gw->SetReceiveClone(sd_clone);
 
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "Cloned socket " << socket_ << ":" << unique_socket_id_ << ":" << chunk_index_ << " to socket index " <<
-        sd_clone->get_socket_info_index() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
+    GW_COUT << "Cloned socket " << socket_info_index_ << ":" << GetSocket() << ":" << unique_socket_id_ << ":" << chunk_index_ << ":" << (uint64_t)this << " to socket " <<
+        sd_clone->get_socket_info_index() << ":" << sd_clone->GetSocket() << ":" << sd_clone->get_unique_socket_id() << ":" << sd_clone->get_chunk_index() << ":" << (uint64_t)sd_clone << GW_ENDL;
 #endif
 
     return 0;

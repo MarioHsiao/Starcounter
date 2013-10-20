@@ -1,4 +1,6 @@
-﻿using Starcounter.Advanced;
+﻿#define RECONNECT
+
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Diagnostics;
@@ -333,9 +335,12 @@ namespace Starcounter {
                 }
                 else
                 {
+#if RECONNECT
                     try
                     {
+#endif
                         SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
+#if RECONNECT
                     }
                     catch
                     {
@@ -344,6 +349,7 @@ namespace Starcounter {
 
                         SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
                     }
+#endif
                 }
             }
             catch (Exception exc)
@@ -406,8 +412,10 @@ namespace Starcounter {
         {
             try
             {
+#if RECONNECT
                 try
                 {
+#endif
                     // Checking if we are connected.
                     if (null == SocketObj)
                         AttachConnection(null);
@@ -415,6 +423,7 @@ namespace Starcounter {
                     // Sending the request.
                     Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
                     Debug.Assert(RequestBytesLength == bytesSent);
+#if RECONNECT
                 }
                 catch
                 {
@@ -428,6 +437,7 @@ namespace Starcounter {
 
                     SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
                 }
+#endif
 
                 Int32 recievedBytes;
 

@@ -42,6 +42,9 @@ class HandlersList
     HandlersList(const HandlersList&);
     HandlersList& operator=(const HandlersList&);
 
+    // Proxy information.
+    ReverseProxyInfo* reverse_proxy_info_;
+
 public:
 
     bool ContainsHandler(GENERIC_HANDLER_CALLBACK handler)
@@ -73,6 +76,11 @@ public:
 
         original_uri_info_ = NULL;
         processed_uri_info_ = NULL;
+    }
+
+    ReverseProxyInfo* get_reverse_proxy_info()
+    {
+        return reverse_proxy_info_;
     }
 
     // Getting params.
@@ -184,7 +192,8 @@ public:
         uint8_t* param_types,
         int32_t num_params,
         db_index_type db_index,
-        uint64_t unique_number)
+        uint64_t unique_number,
+        ReverseProxyInfo* reverse_proxy_info)
     {
         GW_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
         GW_ASSERT(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
@@ -197,6 +206,8 @@ public:
 
         db_index_ = db_index;
         unique_number_ = unique_number;
+
+        reverse_proxy_info_ = reverse_proxy_info;
 
         original_uri_info_len_chars_ = original_uri_len_chars;
         processed_uri_info_len_chars_ = processed_uri_len_chars;
@@ -256,6 +267,7 @@ public:
         type_ = bmx::HANDLER_TYPE::UNUSED_HANDLER;
         handler_info_ = bmx::BMX_INVALID_HANDLER_INFO;
         db_index_ = INVALID_DB_INDEX;
+        reverse_proxy_info_ = NULL;
 
         return 0;
     }
@@ -289,7 +301,7 @@ public:
         for (int32_t i = 0; i < handlers_.get_num_entries(); i++)
         {
             // Running the handler.
-            err_code = handlers_[i](gw, sd, handler_info_, is_handled);
+            err_code = handlers_[i](this, gw, sd, handler_info_, is_handled);
 
             // Checking if information was handled and no errors occurred.
             if (*is_handled || err_code)
@@ -428,7 +440,8 @@ public:
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
         db_index_type db_index,
-        BMX_HANDLER_INDEX_TYPE& out_handler_index);
+        BMX_HANDLER_INDEX_TYPE& out_handler_index,
+         ReverseProxyInfo* reverse_proxy_info);
 
     // Constructor.
     HandlersTable()

@@ -410,24 +410,6 @@ public:
 
 #ifdef GW_PROXY_MODE
 
-    // Getting proxying flag.
-    bool get_proxied_server_socket_flag()
-    {
-        return (flags_ & HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET) != 0;
-    }
-
-    // Setting proxying flag.
-    void set_proxied_server_socket_flag()
-    {
-        flags_ |= HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
-    }
-
-    // ReSetting proxying flag.
-    void reset_proxied_server_socket_flag()
-    {
-        flags_ &= ~HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET;
-    }
-
     // Getting proxying unknown protocol flag.
     bool get_unknown_proxied_proto_flag()
     {
@@ -753,6 +735,12 @@ public:
         return g_gateway.HasProxySocket(socket_info_index_);
     }
 
+    // Returns true if its a proxy connect socket.
+    bool IsProxyConnectSocket()
+    {
+        return g_gateway.IsProxyConnectSocket(socket_info_index_);
+    }
+
     // Returns aggregation socket index.
     session_index_type GetAggregationSocketIndex()
     {
@@ -948,13 +936,11 @@ public:
         random_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_socket_info_index);
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Exchanging sockets: " << socket_ << "<->" << proxy_socket_ << " and ids " <<
+        GW_COUT << "Exchanging sockets: " << socket_info_index_ << "<->" << proxy_socket_info_index << " and ids " <<
             unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
 #endif
 
         socket_info_index_ = proxy_socket_info_index;
-
-        // Setting unique socket id.
         unique_socket_id_ = proxy_unique_socket_id;
     }
 
@@ -979,7 +965,7 @@ public:
         core::chunk_index chunk_index);
 
     // Resetting socket.
-    void Reset();
+    void ResetOnDisconnect();
 
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
