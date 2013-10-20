@@ -27,6 +27,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             CodeBehindMetadata metadata;
             CSharpToken token;
             MonoCSharpEnumerator mce;
+			bool beforeNS = true;
 
             if ((codebehind == null) || codebehind.Equals("") ) {
                 return CodeBehindMetadata.Empty;
@@ -38,7 +39,17 @@ namespace Starcounter.XSON.Compiler.Mono {
             while (mce.MoveNext()) {
                 token = mce.Token;
                 switch (token) {
+					case CSharpToken.USING:
+						if (beforeNS) {
+							// We only add the using-directives that are specified in the header
+							// of the codebehind file, before the first namespace is declared since
+							// otherwise we have to place the usingdirectives in the correct namespace 
+							// for the generated code.
+							AddUsingDirective(mce, metadata);
+						}
+						break;
                     case CSharpToken.NAMESPACE:
+						beforeNS = false;
                         AnalyzeNamespaceNode(mce);
                         break;
                     case CSharpToken.CLASS:
@@ -85,6 +96,23 @@ namespace Starcounter.XSON.Compiler.Mono {
 
             return metadata;
         }
+
+		private static void AddUsingDirective(MonoCSharpEnumerator mce, CodeBehindMetadata metadata) {
+			string usingDirective = "";
+
+			while (mce.MoveNext()) {
+				if (mce.Token == CSharpToken.SEMICOLON) {
+					metadata.UsingDirectives.Add(usingDirective);
+					break;
+				} else if (mce.Token == CSharpToken.IDENTIFIER) {
+					usingDirective += mce.Value;
+				} else if (mce.Token == CSharpToken.DOT) {
+					usingDirective += ".";
+				} else if (mce.Token == CSharpToken.ASSIGN) {
+					usingDirective += "=";
+				}
+			}
+		}
 
 //        /// <summary>
 //        /// 
