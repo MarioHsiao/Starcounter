@@ -16,6 +16,8 @@ namespace Starcounter {
         /// </summary>
         public class FileServerConfiguration {
 
+            static Nullable<Boolean> CheckedCacheDisabled;
+
             /// <summary>
             /// Blocks both server side file caching and browser side file caching.
             /// Ideal when doing development with automatically refreshing pages.
@@ -23,8 +25,17 @@ namespace Starcounter {
             /// <summary>
             public bool DisableAllCaching {
                 get {
-                    // TODO!
-                    return false;
+
+                    // TODO!!!!!!
+
+                    if (CheckedCacheDisabled != null)
+                        return CheckedCacheDisabled.Value;
+
+                    CheckedCacheDisabled = new Boolean();
+                    if (0 == String.Compare("True", Environment.GetEnvironmentVariable("SC_DISABLE_FILE_CACHING"), true))
+                        CheckedCacheDisabled = true;
+
+                    return CheckedCacheDisabled.Value;
                 }
                 set {
                     throw new NotImplementedException();
