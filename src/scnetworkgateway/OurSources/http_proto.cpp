@@ -499,6 +499,7 @@ void HttpGlobalInit()
 
 // Determines the correct HTTP handler.
 uint32_t HttpProto::HttpUriDispatcher(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_index,
@@ -563,13 +564,13 @@ uint32_t HttpProto::HttpUriDispatcher(
 #ifdef GW_PROXY_MODE
 
             // Checking if we are proxying.
-            if (sd->get_proxied_server_socket_flag())
+            if (sd->HasProxySocket())
             {
                 // Set the unknown proxied protocol here.
                 sd->set_unknown_proxied_proto_flag();
 
                 // Just running proxy processing.
-                return GatewayHttpWsReverseProxy(gw, sd, handler_index, is_handled);
+                return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
             }
 #endif
 
@@ -659,7 +660,7 @@ uint32_t HttpProto::HttpUriDispatcher(
     else
     {
         // Just running standard response processing.
-        return AppsHttpWsProcessData(gw, sd, handler_index, is_handled);
+        return AppsHttpWsProcessData(hl, gw, sd, handler_index, is_handled);
     }
 
     return 0;
@@ -680,6 +681,7 @@ void HttpProto::ResetParser(SocketDataChunk* sd)
 
 // Parses the HTTP request and pushes processed data to database.
 uint32_t HttpProto::AppsHttpWsProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
@@ -714,9 +716,13 @@ uint32_t HttpProto::AppsHttpWsProcessData(
         // Checking if we have complete data.
         if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
         {
+            // Checking if any space left in chunk.
+            GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
+
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
-            GW_ERR_CHECK(err_code);
+            if (err_code)
+                return err_code;
 
             // Handled successfully.
             *is_handled = true;
@@ -959,6 +965,7 @@ ALL_DATA_ACCUMULATED:
 
 // Parses the HTTP request and pushes processed data to database.
 uint32_t HttpProto::GatewayHttpWsProcessEcho(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
@@ -1221,35 +1228,36 @@ SEND_HTTP_ECHO_TO_MASTER:
 }
 
 // HTTP/WebSockets handler for Gateway.
-uint32_t GatewayUriProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessEcho(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_proto()->GatewayHttpWsProcessEcho(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->GatewayHttpWsProcessEcho(hl, gw, sd, handler_id, is_handled);
 }
 
 #endif
 
 // Outer HTTP/WebSockets handler.
-uint32_t OuterUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t OuterUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_proto()->HttpUriDispatcher(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->HttpUriDispatcher(hl, gw, sd, handler_id, is_handled);
 }
 
 // HTTP/WebSockets handler for Apps.
-uint32_t AppsUriProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t AppsUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_proto()->AppsHttpWsProcessData(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->AppsHttpWsProcessData(hl, gw, sd, handler_id, is_handled);
 }
 
 #ifdef GW_PROXY_MODE
 
 // HTTP/WebSockets handler for Gateway proxy.
-uint32_t GatewayUriProcessProxy(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessProxy(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_proto()->GatewayHttpWsReverseProxy(gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->GatewayHttpWsReverseProxy(hl, gw, sd, handler_id, is_handled);
 }
 
 // Reverse proxies the HTTP traffic.
 uint32_t HttpProto::GatewayHttpWsReverseProxy(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
@@ -1263,55 +1271,47 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     // Checking if already in proxy mode.
     if (sd->HasProxySocket())
     {
-        // Posting cloning receive for client.
-        err_code = sd->CloneToReceive(gw);
-        if (err_code)
-            return err_code;
+        // Aggregation is done separately.
+        if (!sd->GetSocketAggregatedFlag())
+        {
+            // Posting cloning receive for client.
+            err_code = sd->CloneToReceive(gw);
+            if (err_code)
+                return err_code;
+        }
+
+        // Making sure that sd is just send.
+        sd->reset_socket_representer_flag();
 
         // Finished receiving from proxied server,
         // now sending to the original user.
         sd->ExchangeToProxySocket();
 
-        // Enabling proxy mode.
-        sd->set_proxied_server_socket_flag();
-
         // Setting number of bytes to send.
-        sd->get_accum_buf()->PrepareForSend();
+        sd->get_accum_buf()->PrepareToSendOnProxy();
 
         // Sending data to user.
         return gw->Send(sd);
     }
     else // We have not started a proxy mode yet.
     {
-        // Posting cloning receive for client.
-        uint32_t err_code = sd->CloneToReceive(gw);
-        if (err_code)
-            return err_code;
-
         // Creating new socket to proxied server.
         err_code = gw->CreateProxySocket(sd);
         if (err_code)
             return err_code;
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Created proxy socket index: " << gw->get_sd_receive_clone()->get_socket_info_index() << ":" << gw->get_sd_receive_clone()->get_chunk_index() <<
-            " -> socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
+        GW_COUT << "Created proxy socket: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-        // Setting client proxy socket.
-        gw->get_sd_receive_clone()->SetProxySocketIndex(sd->get_socket_info_index());
 
         // Re-enabling socket representer flag.
         sd->set_socket_representer_flag();
 
-        // Setting proxy mode.
-        sd->set_proxied_server_socket_flag();
-
         // Setting number of bytes to send.
-        sd->get_accum_buf()->PrepareForSend();
+        sd->get_accum_buf()->PrepareToSendOnProxy();
 
         // Getting proxy information.
-        ReverseProxyInfo* proxy_info = g_gateway.SearchProxiedServerAddress((char*)sd + sd->get_http_proto()->http_request_.uri_offset_);
+        ReverseProxyInfo* proxy_info = hl->get_reverse_proxy_info();
 
         // Connecting to the server.
         return gw->Connect(sd, &proxy_info->addr_);
@@ -1323,7 +1323,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 #endif
 
 // HTTP/WebSockets statistics for Gateway.
-uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     int32_t resp_len_bytes;
     const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&resp_len_bytes);
@@ -1333,8 +1333,10 @@ uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAN
 }
 
 // POST sockets for Gateway.
-uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t PostSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
+    GW_ASSERT(false == sd->GetSocketAggregatedFlag());
+
     // Cloning for receiving immediately.
     sd->CloneToReceive(gw);
 
@@ -1346,7 +1348,7 @@ uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLE
     GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
     // Getting new socket index.
-    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, sd->get_db_index(), INVALID_SOCKET, port_index);
+    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, sd->get_db_index(), INVALID_SOCKET, port_index, false);
     ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
 
     // Setting some socket options.
@@ -1361,7 +1363,7 @@ uint32_t PostSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLE
 }
 
 // DELETE sockets for Gateway.
-uint32_t DeleteSocketResource(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t DeleteSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     // Getting the aggregation info.
     AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);

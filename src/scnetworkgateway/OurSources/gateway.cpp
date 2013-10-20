@@ -647,7 +647,11 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         doc.parse<0>(config_contents); // 0 means default parse flags.
 
         xml_node<> *root_elem = doc.first_node("NetworkGateway");
-        GW_ASSERT(root_elem);
+        if (!root_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read NetworkGateway property.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
 
         // Getting local interfaces.
         xml_node<>* node_elem = root_elem->first_node("BindingIP");
@@ -659,9 +663,18 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
         // Getting workers number.
         node_elem = root_elem->first_node("WorkersNumber");
-        GW_ASSERT(node_elem);
+        if (!node_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read WorkersNumber property.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+
         setting_num_workers_ = atoi(node_elem->value());
-        GW_ASSERT(setting_num_workers_ > 0 && setting_num_workers_ < 16);
+        if (setting_num_workers_ <= 0 || setting_num_workers_ > 16)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported WorkersNumber value.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
 
 #ifdef GW_TESTING_MODE
         if (cmd_setting_num_workers_)
@@ -670,27 +683,60 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaxConnections");
-        GW_ASSERT(node_elem);
+        if (!node_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read MaxConnections property.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+
         setting_max_connections_ = atoi(node_elem->value());
-        GW_ASSERT(setting_max_connections_ > 10 && setting_max_connections_ < 10000000);
+        if (setting_max_connections_ < 10 || setting_max_connections_ > 10000000)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaxConnections value.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
 
         // Getting inactive socket timeout.
         node_elem = root_elem->first_node("InactiveConnectionTimeout");
-        GW_ASSERT(node_elem);
+        if (!node_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read InactiveConnectionTimeout property.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+
         setting_inactive_socket_timeout_seconds_ = atoi(node_elem->value());
-        GW_ASSERT(setting_inactive_socket_timeout_seconds_ > 0 && setting_inactive_socket_timeout_seconds_ < 100000);
+        if (setting_inactive_socket_timeout_seconds_ <= 0 || setting_inactive_socket_timeout_seconds_ > 100000)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported InactiveConnectionTimeout value.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
 
         // Getting gateway statistics port number.
         node_elem = root_elem->first_node("GatewayStatisticsPort");
-        GW_ASSERT(node_elem);
+        if (!node_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read GatewayStatisticsPort property.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+
         setting_gw_stats_port_ = (uint16_t)atoi(node_elem->value());
-        GW_ASSERT(setting_gw_stats_port_ > 0 && setting_gw_stats_port_ < 65536);
+        if (setting_gw_stats_port_ <= 0 || setting_gw_stats_port_ >= 65536)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported GatewayStatisticsPort value.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
 
         // Getting aggregation port number.
         node_elem = root_elem->first_node("AggregationPort");
-        GW_ASSERT(node_elem);
-        setting_aggregation_port_ = (uint16_t)atoi(node_elem->value());
-        GW_ASSERT(setting_aggregation_port_ >= 0 && setting_aggregation_port_ < 65536);
+        if (node_elem)
+        {
+            setting_aggregation_port_ = (uint16_t)atoi(node_elem->value());
+            if (setting_aggregation_port_ <= 0 || setting_aggregation_port_ >= 65536)
+            {
+                g_gateway.LogWriteCritical(L"Gateway XML: Unsupported AggregationPort value.");
+                return SCERRGWCANTLOADXMLSETTINGS;
+            }
+        }
 
         // Just enforcing minimum socket timeout multiplier.
         if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
@@ -803,28 +849,96 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (proxies_node)
         {
             xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
-            GW_ASSERT(node_elem);
+            if (!node_elem)
+            {
+                g_gateway.LogWriteCritical(L"Gateway XML: Can't read ReverseProxy property.");
+                return SCERRGWCANTLOADXMLSETTINGS;
+            }
 
             int32_t n = 0;
             while (proxy_node)
             {
                 // Filling reverse proxy information.
-                node_elem = proxy_node->first_node("ServerIP");
-                GW_ASSERT(node_elem);
-                reverse_proxies_[n].server_ip_ = node_elem->value();
+                node_elem = proxy_node->first_node("ServerDNS");
+                if (!node_elem)
+                {
+                    node_elem = proxy_node->first_node("ServerIP");
+                    if (!node_elem)
+                    {
+                        g_gateway.LogWriteCritical(L"Gateway XML: Can't read ServerIP property. Either ServerDNS or ServerIP property should be specified.");
+                        return SCERRGWCANTLOADXMLSETTINGS;
+                    }
+                    reverse_proxies_[n].server_ip_ = node_elem->value();
+                }
+                else
+                {
+                    addrinfo *dns_addr_info = NULL;
+
+                    // Obtaining server IP from DNS name.
+                    uint32_t err_code = GetAddrInfoA(node_elem->value(), NULL, NULL, &dns_addr_info);
+                    if (err_code)
+                    {
+                        std::wstring temp = L"Reverse proxy: Can't obtain IP address from DNS name: ";
+                        std::wstring ws_temp;
+                        std::string s_temp = node_elem->value();
+                        ws_temp.assign(s_temp.begin(), s_temp.end());
+                        temp += ws_temp;
+
+                        g_gateway.LogWriteCritical(temp.c_str());
+                        return SCERRGWCANTLOADXMLSETTINGS;
+                    }
+
+                    // Checking if its IPv4 address.
+                    if (dns_addr_info->ai_family != AF_INET)
+                    {
+                        std::wstring temp = L"Reverse proxy: Only resolved IPv4 addresses are supported at the moment: ";
+                        std::wstring ws_temp;
+                        std::string s_temp = node_elem->value();
+                        ws_temp.assign(s_temp.begin(), s_temp.end());
+                        temp += ws_temp;
+
+                        g_gateway.LogWriteCritical(temp.c_str());
+                        return SCERRGWCANTLOADXMLSETTINGS;
+                    }
+
+                    // Getting the first IP address.
+                    reverse_proxies_[n].server_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
+                }
 
                 node_elem = proxy_node->first_node("ServerPort");
-                GW_ASSERT(node_elem);
+                if (!node_elem)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read ServerPort property.");
+                    return SCERRGWCANTLOADXMLSETTINGS;
+                }
+
                 reverse_proxies_[n].server_port_ = atoi(node_elem->value());
-                GW_ASSERT(reverse_proxies_[n].server_port_  > 0 && reverse_proxies_[n].server_port_  < 65536);
+                if (reverse_proxies_[n].server_port_ <= 0 || reverse_proxies_[n].server_port_  >= 65536)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect ServerPort number.");
+                    return SCERRGWCANTLOADXMLSETTINGS;
+                }
 
                 node_elem = proxy_node->first_node("GatewayProxyPort");
-                GW_ASSERT(node_elem);
-                reverse_proxies_[n].gw_proxy_port_ = atoi(node_elem->value());
-                proxy_node->first_node("ServiceUri");
+                if (!node_elem)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read GatewayProxyPort property.");
+                    return SCERRGWCANTLOADXMLSETTINGS;
+                }
 
+                reverse_proxies_[n].gw_proxy_port_ = atoi(node_elem->value());
+                if (reverse_proxies_[n].gw_proxy_port_ <= 0 || reverse_proxies_[n].gw_proxy_port_  >= 65536)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect GatewayProxyPort number.");
+                    return SCERRGWCANTLOADXMLSETTINGS;
+                }
+
+                node_elem = proxy_node->first_node("ServiceUri");
                 reverse_proxies_[n].service_uri_ = node_elem->value();
+                reverse_proxies_[n].service_uri_processed_ = reverse_proxies_[n].service_uri_ + " ";
+
                 reverse_proxies_[n].service_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].service_uri_.length());
+                reverse_proxies_[n].service_uri_processed_len_ = reverse_proxies_[n].service_uri_len_ + 1;
 
                 // Loading proxied servers.
                 sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
@@ -990,7 +1104,7 @@ bool Gateway::ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_t
 
         sd->AssignSession(si.session_);
         sd->set_unique_socket_id(si.unique_socket_id_);
-        sd->set_socket_info_index(si.socket_info_index_);
+        sd->set_socket_info_index(si.read_only_index_);
         sd->set_type_of_network_protocol((MixedCodeConstants::NetworkProtocolType)si.type_of_network_protocol_);
 
         return true;
@@ -1004,7 +1118,8 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     GatewayWorker* gw,
     db_index_type db_index,
     SOCKET s,
-    int32_t port_index)
+    int32_t port_index,
+    bool proxy_connect_socket)
 {
     PSLIST_ENTRY free_socket_index_entry = InterlockedPopEntrySList(free_socket_indexes_unsafe_);
     GW_ASSERT(free_socket_index_entry);
@@ -1018,13 +1133,17 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     // Marking socket as alive.
     si->socket_ = s;
 
+    // Checking if this socket is used for connecting to remote machine.
+    if (proxy_connect_socket)
+        si->set_socket_proxy_connect_flag();
+
     // Creating new socket info.
-    CreateNewSocketInfo(si->socket_info_index_, port_index);
+    CreateNewSocketInfo(si->read_only_index_, port_index);
 
     // Creating unique ids.
-    GenerateUniqueSocketInfoIds(si->socket_info_index_, gw->GenerateSchedulerId(db_index));
+    GenerateUniqueSocketInfoIds(si->read_only_index_, gw->GenerateSchedulerId(db_index));
 
-    return si->socket_info_index_;
+    return si->read_only_index_;
 }
 
 // Stub APC function that does nothing.
@@ -1303,40 +1422,42 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
 #else
 
-#ifdef GW_PROXY_MODE
-
-            // Registering all proxies.
-            for (int32_t i = 0; i < num_reversed_proxies_; i++)
-            {
-                // Registering URI handlers.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    reverse_proxies_[i].gw_proxy_port_,
-                    reverse_proxies_[i].service_uri_.c_str(),
-                    reverse_proxies_[i].service_uri_len_,
-                    reverse_proxies_[i].service_uri_.c_str(),
-                    reverse_proxies_[i].service_uri_len_,
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    GatewayUriProcessProxy);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    return err_code;
-                }
-            }
-
-#endif
-
             // Only registering gateway handlers with Administrator database which is first.
             if (0 == empty_db_index)
             {
+#ifdef GW_PROXY_MODE
+
+                // Registering all proxies.
+                for (int32_t i = 0; i < num_reversed_proxies_; i++)
+                {
+                    // Registering URI handlers.
+                    err_code = AddUriHandler(
+                        &gw_workers_[0],
+                        gw_handlers_,
+                        reverse_proxies_[i].gw_proxy_port_,
+                        reverse_proxies_[i].service_uri_.c_str(),
+                        reverse_proxies_[i].service_uri_len_,
+                        reverse_proxies_[i].service_uri_processed_.c_str(),
+                        reverse_proxies_[i].service_uri_processed_len_,
+                        NULL,
+                        0,
+                        bmx::BMX_INVALID_HANDLER_INFO,
+                        empty_db_index,
+                        GatewayUriProcessProxy,
+                        false,
+                        reverse_proxies_ + i);
+
+                    if (err_code)
+                    {
+                        // Leaving global lock.
+                        LeaveGlobalLock();
+
+                        return err_code;
+                    }
+                }
+
+#endif
+
                 // Registering URI handler for gateway statistics.
                 err_code = AddUriHandler(
                     &gw_workers_[0],
@@ -1647,7 +1768,7 @@ uint32_t Gateway::Init()
     {
         // Resetting all sockets infos.
         all_sockets_infos_unsafe_[i].Reset();
-        all_sockets_infos_unsafe_[i].socket_info_index_ = i;
+        all_sockets_infos_unsafe_[i].read_only_index_ = i;
 
         // Pushing to free indexes list.
         InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_));
@@ -1655,15 +1776,6 @@ uint32_t Gateway::Init()
 
     // Checking if already initialized.
     GW_ASSERT((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
-
-    // Initialize WinSock.
-    WSADATA wsaData = { 0 };
-    int32_t errCode = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (errCode != 0)
-    {
-        GW_COUT << "WSAStartup() failed: " << errCode << GW_ENDL;
-        return errCode;
-    }
 
     // Allocating workers data.
     gw_workers_ = new GatewayWorker[setting_num_workers_];
@@ -2905,31 +3017,40 @@ Gateway::~Gateway()
 
 int32_t Gateway::StartGateway()
 {
-    uint32_t errCode;
+    uint32_t err_code;
 
     // Assert some correct state.
-    errCode = AssertCorrectState();
-    if (errCode)
+    err_code = AssertCorrectState();
+    if (err_code)
     {
         GW_COUT << "Asserting correct state failed." << GW_ENDL;
-        return errCode;
+        return err_code;
+    }
+
+    // Initialize WinSock.
+    WSADATA wsaData = { 0 };
+    err_code = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (err_code != 0)
+    {
+        GW_COUT << "WSAStartup() failed: " << err_code << GW_ENDL;
+        return err_code;
     }
 
     // Loading configuration settings.
-    errCode = LoadSettings(setting_config_file_path_);
-    if (errCode)
+    err_code = LoadSettings(setting_config_file_path_);
+    if (err_code)
     {
         GW_COUT << "Loading configuration settings failed." << GW_ENDL;
-        return errCode;
+        return err_code;
     }
 
     // Creating data structures and binding sockets.
-    errCode = Init();
-    if (errCode)
-        return errCode;
+    err_code = Init();
+    if (err_code)
+        return err_code;
 
     // Starting workers and statistics printer.
-    errCode = StartWorkerAndManagementThreads(
+    err_code = StartWorkerAndManagementThreads(
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
         (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
         (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine,
@@ -2937,8 +3058,8 @@ int32_t Gateway::StartGateway()
         (LPTHREAD_START_ROUTINE)GatewayLoggingRoutine,
         (LPTHREAD_START_ROUTINE)GatewayMonitorRoutine);
 
-    if (errCode)
-        return errCode;
+    if (err_code)
+        return err_code;
 
     return 0;
 }
@@ -3121,7 +3242,8 @@ uint32_t Gateway::AddUriHandler(
     BMX_HANDLER_TYPE handler_id,
     db_index_type db_index,
     GENERIC_HANDLER_CALLBACK handler_proc,
-    bool is_gateway_handler)
+    bool is_gateway_handler,
+    ReverseProxyInfo* reverse_proxy_info)
 {
     uint32_t err_code;
 
@@ -3139,7 +3261,8 @@ uint32_t Gateway::AddUriHandler(
         handler_id,
         handler_proc,
         db_index,
-        new_handler_index);
+        new_handler_index,
+        reverse_proxy_info);
 
     if (err_code)
         return err_code;

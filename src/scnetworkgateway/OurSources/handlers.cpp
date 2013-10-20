@@ -148,7 +148,8 @@ uint32_t HandlersTable::RegisterPortHandler(
         NULL,
         0,
         db_index,
-        0);
+        0,
+        NULL);
 
     if (err_code)
         goto ERROR_HANDLING;
@@ -294,7 +295,8 @@ uint32_t HandlersTable::RegisterSubPortHandler(
         NULL,
         0,
         db_index,
-        0);
+        0,
+        NULL);
 
     if (err_code)
         goto ERROR_HANDLING;
@@ -378,7 +380,8 @@ uint32_t HandlersTable::RegisterUriHandler(
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK uri_handler,
     db_index_type db_index,
-    BMX_HANDLER_INDEX_TYPE& out_handler_index)
+    BMX_HANDLER_INDEX_TYPE& out_handler_index,
+    ReverseProxyInfo* reverse_proxy_info)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -449,7 +452,8 @@ uint32_t HandlersTable::RegisterUriHandler(
         param_types,
         num_params,
         db_index,
-        0);
+        0,
+        reverse_proxy_info);
 
     if (err_code)
         goto ERROR_HANDLING;
@@ -565,7 +569,12 @@ uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_id)
 }
 
 // Outer port handler.
-uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_index, bool* is_handled)
+uint32_t OuterPortProcessData(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_index,
+    bool* is_handled)
 {
     // First searching in database handlers table.
     HandlersTable* handlers_table = g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers();
@@ -594,7 +603,12 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
 }
 
 // General sockets handler.
-uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t AppsPortProcessData(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id,
+    bool* is_handled)
 {
     uint32_t err_code;
 
@@ -637,7 +651,12 @@ uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDL
 #ifdef GW_TESTING_MODE
 
 // Port echo handler.
-uint32_t GatewayPortProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t GatewayPortProcessEcho(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id,
+    bool* is_handled)
 {
     uint32_t err_code;
 
@@ -722,23 +741,38 @@ SEND_RAW_ECHO_TO_MASTER:
 #endif
 
 // Outer port handler.
-uint32_t OuterSubportProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_index, bool* is_handled)
+uint32_t OuterSubportProcessData(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_index,
+    bool* is_handled)
 {
-    return OuterPortProcessData(gw, sd, handler_index, is_handled);
+    return OuterPortProcessData(hl, gw, sd, handler_index, is_handled);
 }
 
 // Subport handler.
-uint32_t AppsSubportProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t AppsSubportProcessData(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id,
+    bool* is_handled)
 {
-    return AppsPortProcessData(gw, sd, user_handler_id, is_handled);
+    return AppsPortProcessData(hl, gw, sd, user_handler_id, is_handled);
 }
 
 #ifdef GW_TESTING_MODE
 
 // Subport echo handler.
-uint32_t GatewaySubportProcessEcho(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t GatewaySubportProcessEcho(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id,
+    bool* is_handled)
 {
-    return GatewayPortProcessEcho(gw, sd, user_handler_id, is_handled);
+    return GatewayPortProcessEcho(hl, gw, sd, user_handler_id, is_handled);
 }
 
 #endif

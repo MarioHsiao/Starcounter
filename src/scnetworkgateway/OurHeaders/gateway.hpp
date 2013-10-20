@@ -392,8 +392,10 @@ class SocketDataChunk;
 typedef SocketDataChunk*& SocketDataChunkRef;
 
 class GatewayWorker;
+class HandlersList;
 
 typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -414,12 +416,14 @@ extern uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, ech
 #endif
 
 uint32_t OuterPortProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsPortProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -428,6 +432,7 @@ uint32_t AppsPortProcessData(
 #ifdef GW_TESTING_MODE
 
 uint32_t GatewayPortProcessEcho(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -436,12 +441,14 @@ uint32_t GatewayPortProcessEcho(
 #endif
 
 uint32_t OuterSubportProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsSubportProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -450,6 +457,7 @@ uint32_t AppsSubportProcessData(
 #ifdef GW_TESTING_MODE
 
 uint32_t GatewaySubportProcessEcho(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -458,12 +466,14 @@ uint32_t GatewaySubportProcessEcho(
 #endif
 
 uint32_t OuterUriProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsUriProcessData(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -472,6 +482,7 @@ uint32_t AppsUriProcessData(
 #ifdef GW_TESTING_MODE
 
 uint32_t GatewayUriProcessEcho(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -481,6 +492,7 @@ uint32_t GatewayUriProcessEcho(
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -488,6 +500,7 @@ uint32_t GatewayStatisticsInfo(
 
 // POST sockets for Gateway.
 uint32_t PostSocketResource(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -495,6 +508,7 @@ uint32_t PostSocketResource(
 
 // DELETE sockets for Gateway.
 uint32_t DeleteSocketResource(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -502,12 +516,14 @@ uint32_t DeleteSocketResource(
 
 // Aggregation on gateway.
 uint32_t PortAggregator(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t GatewayUriProcessProxy(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
@@ -753,6 +769,7 @@ public:
         {
             desired_accum_bytes_ = 0;
             accumulated_len_bytes_ = 0;
+            first_chunk_orig_buf_ptr_ = NULL;
         }
         else
         {
@@ -843,6 +860,8 @@ public:
     // Setting the data pointer for the next operation.
     void RestoreToFirstChunk()
     {
+        GW_ASSERT(NULL != first_chunk_orig_buf_ptr_);
+
         chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr_;
         chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
         chunk_orig_buf_len_bytes_ = 0;
@@ -876,9 +895,14 @@ public:
     }
 
     // Prepare buffer to proxy outside.
-    void PrepareForSend()
+    void PrepareToSendOnProxy()
     {
+        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
         chunk_num_available_bytes_ = accumulated_len_bytes_;
+
+        GW_ASSERT_DEBUG(NULL == first_chunk_orig_buf_ptr_);
+        GW_ASSERT_DEBUG(0 == desired_accum_bytes_);
+        accumulated_len_bytes_ = 0;
     }
 
     // Starting accumulation.
@@ -896,12 +920,6 @@ public:
     uint8_t* get_chunk_orig_buf_ptr()
     {
         return chunk_orig_buf_ptr_;
-    }
-
-    // Returns pointer to response data.
-    uint8_t* ResponseDataStart()
-    {
-        return chunk_orig_buf_ptr_ + accumulated_len_bytes_;
     }
 
     // Returns the size in bytes of accumulated data.
@@ -976,7 +994,7 @@ struct ScSessionStruct
 _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct GatewayMemoryChunk
 {
     // Entry to lock-free gateway memory chunks list.
-    SLIST_ENTRY free_gw_memory_chunks_entry_;
+    SLIST_ENTRY slist_entry_;
     
     // Length of allocated buffer in bytes.
     int32_t buffer_len_bytes_;
@@ -987,7 +1005,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct GatewayMemoryChunk
 
 enum SOCKET_FLAGS
 {
-    SOCKET_FLAGS_AGGREGATED = 1
+    SOCKET_FLAGS_AGGREGATED = 1,
+    SOCKET_FLAGS_PROXY_CONNECT = 2
 };
 
 // Structure that facilitates the socket.
@@ -1015,7 +1034,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     session_index_type proxy_socket_info_index_;
 
     // This socket info index.
-    session_index_type socket_info_index_;
+    session_index_type read_only_index_;
 
     // Aggregation socket index.
     session_index_type aggr_socket_info_index_;
@@ -1035,16 +1054,24 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Avoiding false sharing between workers.
     uint8_t pad[CACHE_LINE_SIZE];
 
-    // Getting socket aggregated flag.
     bool get_socket_aggregated_flag()
     {
         return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED) != 0;
     }
 
-    // Setting socket aggregated flag.
     void set_socket_aggregated_flag()
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED;
+    }
+
+    bool get_socket_proxy_connect_flag()
+    {
+        return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_PROXY_CONNECT) != 0;
+    }
+
+    void set_socket_proxy_connect_flag()
+    {
+        flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_PROXY_CONNECT;
     }
 
     ScSocketInfoStruct()
@@ -1070,6 +1097,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
         flags_ = 0;
         matched_uri_index_ = INVALID_URI_INDEX;
+        proxy_socket_info_index_ = INVALID_SESSION_INDEX;
+        aggr_socket_info_index_ = INVALID_SESSION_INDEX;
     }
 };
 
@@ -1371,6 +1400,10 @@ struct ReverseProxyInfo
     // Uri that is being proxied.
     std::string service_uri_;
     int32_t service_uri_len_;
+
+    // Uri that is being proxied.
+    std::string service_uri_processed_;
+    int32_t service_uri_processed_len_;
 
     // IP address of the destination server.
     std::string server_ip_;
@@ -1731,7 +1764,8 @@ public:
         GatewayWorker* gw,
         db_index_type db_index,
         SOCKET s,
-        int32_t port_index);
+        int32_t port_index,
+        bool proxy_connect_socket);
 
     // Releases used socket index.
     void ReleaseSocketIndex(GatewayWorker* gw, session_index_type index);
@@ -1756,7 +1790,7 @@ public:
     // Returns gateway memory chunk back to list.
     void ReturnGatewayMemoryChunk(GatewayMemoryChunk* gwc)
     {
-        InterlockedPushEntrySList(gateway_mem_chunks_unsafe_, &gwc->free_gw_memory_chunks_entry_);
+        InterlockedPushEntrySList(gateway_mem_chunks_unsafe_, &gwc->slist_entry_);
     }
 
     // Checks if IP is on white list.
@@ -1854,6 +1888,14 @@ public:
         return all_sockets_infos_unsafe_[socket_index].saved_user_handler_id_;
     }
 
+    // Resets socket info when socket is disconnected.
+    void ResetSocketInfoOnDisconnect(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].Reset();
+    }
+
     // Getting matched URI index.
     uri_index_type GetMatchedUriIndex(session_index_type socket_index)
     {
@@ -1900,6 +1942,14 @@ public:
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return INVALID_SESSION_INDEX != all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
+    }
+
+    // Checks for proxy connect socket flag.
+    bool IsProxyConnectSocket(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[socket_index].get_socket_proxy_connect_flag();
     }
 
     // Getting aggregation socket index.
@@ -1970,7 +2020,7 @@ public:
         all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = scheduler_id;
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "New unique socket id " << s << ":" << unique_id << GW_ENDL;
+        GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;
 #endif
 
         return unique_id;
@@ -2063,22 +2113,6 @@ public:
         return reverse_proxies_ + index;
     }
 
-    // Returns instance of proxied server.
-    ReverseProxyInfo* SearchProxiedServerAddress(char* uri)
-    {
-        for (int32_t i = 0; i < num_reversed_proxies_; i++)
-        {
-            int32_t k = 0;
-            while (reverse_proxies_[i].service_uri_[k] == uri[k])
-                k++;
-
-            if (k >= reverse_proxies_[i].service_uri_len_)
-                return reverse_proxies_ + i;
-        }
-
-        return NULL;
-    }
-
     // Adds some URI handler: either Apps or Gateway.
     uint32_t AddUriHandler(
         GatewayWorker *gw,
@@ -2093,7 +2127,8 @@ public:
         BMX_HANDLER_TYPE user_handler_id,
         db_index_type db_index,
         GENERIC_HANDLER_CALLBACK handler_proc,
-        bool is_gateway_handler = false);
+        bool is_gateway_handler = false,
+        ReverseProxyInfo* reverse_proxy_info = NULL);
 
     // Adds some port handler: either Apps or Gateway.
     uint32_t AddPortHandler(

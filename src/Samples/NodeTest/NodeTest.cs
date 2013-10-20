@@ -399,6 +399,7 @@ namespace NodeTest
             if (resp_body.Length != num_echo_bytes_)
             {
                 Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
+                Console.WriteLine("Incorrect response: " + resp.Body);
                 NodeTest.WorkersMonitor.FailTest();
                 return false;
             }

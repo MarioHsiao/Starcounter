@@ -13,6 +13,7 @@ namespace network {
 
 // Aggregation on gateway.
 uint32_t PortAggregator(
+    HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,

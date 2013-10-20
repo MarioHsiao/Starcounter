@@ -144,6 +144,12 @@ namespace Starcounter.Administrator {
             GET("/test", () => {
                 return "hello";
             });
+
+            POST("/echotest", (Request req) =>
+            {
+                return new Response() { BodyBytes = req.BodyBytes };
+            });
+
             #endregion
 
         }

@@ -373,8 +373,13 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     uint8_t base64_len = static_cast<uint8_t>(base64_encode_block(sha1_begin, 20, base64_begin, &b64));
     base64_len += static_cast<uint8_t>(base64_encode_blockend(base64_begin + base64_len, &b64) - 1);
 
+    // Copying sub-protocol data.
+    char sub_protocol_temp[32];
+    GW_ASSERT_DEBUG(g_ts_sub_protocol_len_ < 32);
+    memcpy(sub_protocol_temp, g_ts_sub_protocol_, g_ts_sub_protocol_len_);
+
     // Pointing to the beginning of the data.
-    uint8_t* resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
+    uint8_t* resp_data_begin = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
 
     // Copying initial header in response buffer.
     int32_t resp_len_bytes = InjectData(resp_data_begin, 0, kWsHsResponseStaticPart, kWsHsResponseStaticPartLen);
@@ -389,7 +394,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     if (g_ts_sub_protocol_len_)
     {
         resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, SecWebSocketProtocol, SecWebSocketProtocolLen);
-        resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, g_ts_sub_protocol_, g_ts_sub_protocol_len_);
+        resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, sub_protocol_temp, g_ts_sub_protocol_len_);
         resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
     }
     

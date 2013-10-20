@@ -17,7 +17,7 @@
   -->
 
   <!-- Number of worker threads -->
-  <WorkersNumber>2</WorkersNumber>
+  <WorkersNumber>3</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>100100</MaxConnections>
@@ -33,24 +33,15 @@
 
   <!-- Information on reverse proxies if any. -->
 
-  <!--
   <ReverseProxies>
       
-     <ReverseProxy>
-      <ServerIP>www.starcounter.com</ServerIP>
-      <ServerPort>80</ServerPort>
-      <GatewayProxyPort>8181</GatewayProxyPort>
-      <ServiceUri>GET /forum@w</ServiceUri>
-    </ReverseProxy>
-
     <ReverseProxy>
-      <ServerDNS>www.starcounter.com</ServerDNS>
-      <ServerPort>80</ServerPort>
+      <ServerIP>127.0.0.1</ServerIP>
+      <ServerPort>8181</ServerPort>
       <GatewayProxyPort>8080</GatewayProxyPort>
-      <ServiceUri>GET /oldwiki@w</ServiceUri>
+      <ServiceUri>POST /echotest@w</ServiceUri>
     </ReverseProxy>
-     
+      
   </ReverseProxies>
-  -->
   
 </NetworkGateway>

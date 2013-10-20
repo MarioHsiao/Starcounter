@@ -426,7 +426,10 @@ public:
     void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
 
     // Disconnects arbitrary socket.
-    void DisconnectSocket(session_index_type socket_index);
+    uint32_t DisconnectSocket(session_index_type socket_index);
+
+    // Initiates receive on arbitrary socket.
+    uint32_t ReceiveOnSocket(session_index_type socket_index);
 
     // Running send on socket data.
     uint32_t Send(SocketDataChunkRef sd);

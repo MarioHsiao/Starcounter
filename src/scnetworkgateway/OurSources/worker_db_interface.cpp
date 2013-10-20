@@ -111,7 +111,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             ChangeNumUsedChunks(sd->get_num_chunks());
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << GW_ENDL;
+            GW_PRINT_WORKER << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
             // NOTE: We always override the global session with active session received from database.
@@ -336,7 +336,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << GW_ENDL;
+    GW_PRINT_WORKER << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Obtaining the current scheduler id.
@@ -360,6 +360,10 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 
     // Checking that scheduler is correct for this database.
     GW_ASSERT(sched_id < num_schedulers_);
+
+    // Checking that chunk is terminated.
+    if (1 == sd->get_num_chunks())
+        GW_ASSERT_DEBUG(sd->get_smc()->is_terminated());
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);

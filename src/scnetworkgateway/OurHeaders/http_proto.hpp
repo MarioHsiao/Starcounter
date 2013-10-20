@@ -551,13 +551,14 @@ public:
     void ResetParser(SocketDataChunk* sd);
 
     // Entry point for outer data processing.
-    uint32_t HttpUriDispatcher(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t HttpUriDispatcher(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Standard HTTP/WS handler once URI is determined.
-    uint32_t AppsHttpWsProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t AppsHttpWsProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
 
     // Parses the HTTP request and pushes processed data to database.
     uint32_t GatewayHttpWsProcessEcho(
+        HandlersList* hl,
         GatewayWorker *gw,
         SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
@@ -567,6 +568,7 @@ public:
 
     // Reverse proxies the HTTP traffic.
     uint32_t GatewayHttpWsReverseProxy(
+        HandlersList* hl,
         GatewayWorker *gw,
         SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
