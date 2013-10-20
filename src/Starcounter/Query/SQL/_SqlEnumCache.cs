@@ -106,30 +106,28 @@ public sealed class SqlEnumCache
         return execEnum;
     }
 
+    internal Int32 CacheEnumerator<T>(String query) {
+        if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
+            return lastUsedEnumIndex;
+        // We have to ask dictionary for the index.
+        Int32 enumIndex = globalQueryCache.GetEnumIndex(query);
+
+        // Checking if its completely new query.
+        if (enumIndex < 0) {
+            enumIndex = globalQueryCache.AddNewQuery<T>(query);
+            if (totalCachedEnum == 0) // Cache was reset
+                enumIndex = globalQueryCache.AddNewQuery<T>(query);
+        }
+        return enumIndex;
+    }
+
     /// <summary>
     /// Gets an already existing enumerator corresponding to the query from the cache or creates a new one.
     /// </summary>
     internal IExecutionEnumerator GetCachedEnumerator<T>(String query)
     {
-        // Trying last used enumerator.
-        if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
-        {
-            return GetCachedEnumerator(lastUsedEnumIndex);
-        }
-
-        // We have to ask dictionary for the index.
-        Int32 enumIndex = globalQueryCache.GetEnumIndex(query);
-
-        // Checking if its completely new query.
-        if (enumIndex < 0)
-        {
-            enumIndex = globalQueryCache.AddNewQuery<T>(query);
-            if (totalCachedEnum == 0) // Cache was reset
-                enumIndex = globalQueryCache.AddNewQuery<T>(query);
-        }
-
         // Fetching existing enumerator using index.
-        return GetCachedEnumerator(enumIndex);
+        return GetCachedEnumerator(CacheEnumerator<T>(query));
     }
 
     /// <summary>

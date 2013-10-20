@@ -136,45 +136,57 @@
 
                                         </Grid>
 
-                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="30"/>
+                                                <ColumnDefinition Width="auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <ComboBox x:Name="cb_PersonalServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
+                                            <StackPanel>
 
-                                            <ComboBox.Text>
-                                                <Binding Path="DefaultUserHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
-                                                    <Binding.ValidationRules>
-                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
-                                                    </Binding.ValidationRules>
-                                                </Binding>
-                                            </ComboBox.Text>
+                                                <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
 
-                                            <ComboBoxItem>
-                                                <TextBlock>8080</TextBlock>
-                                            </ComboBoxItem>
-                                            <ComboBoxItem>
-                                                <TextBlock>9090</TextBlock>
-                                            </ComboBoxItem>
-                                        </ComboBox>-->
+                                                <ComboBox x:Name="cb_PersonalServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
-                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _system port"   />
+                                                    <ComboBox.Text>
+                                                        <Binding Path="DefaultUserHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                            <Binding.ValidationRules>
+                                                                <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                            </Binding.ValidationRules>
+                                                        </Binding>
+                                                    </ComboBox.Text>
 
-                                        <ComboBox x:Name="cb_PersonalServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
+                                                    <ComboBoxItem>
+                                                        <TextBlock>8080</TextBlock>
+                                                    </ComboBoxItem>
+                                                    <ComboBoxItem>
+                                                        <TextBlock>9090</TextBlock>
+                                                    </ComboBoxItem>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            
+                                            <StackPanel Grid.Column="2">
+                                                <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _system port"   />
+                                                <ComboBox x:Name="cb_PersonalServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
-                                            <ComboBox.Text>
-                                                <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
-                                                    <Binding.ValidationRules>
-                                                        <rules:PortRule  CheckIfAvailable="True" ValidatesOnTargetUpdated="True"/>
-                                                    </Binding.ValidationRules>
-                                                </Binding>
-                                            </ComboBox.Text>
+                                                    <ComboBox.Text>
+                                                        <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                            <Binding.ValidationRules>
+                                                                <rules:PortRule  CheckIfAvailable="True" ValidatesOnTargetUpdated="True"/>
+                                                            </Binding.ValidationRules>
+                                                        </Binding>
+                                                    </ComboBox.Text>
 
-                                            <ComboBoxItem>
-                                                <TextBlock>8181</TextBlock>
-                                            </ComboBoxItem>
-                                            <ComboBoxItem>
-                                                <TextBlock>9191</TextBlock>
-                                            </ComboBoxItem>
-                                        </ComboBox>
+                                                    <ComboBoxItem>
+                                                        <TextBlock>8181</TextBlock>
+                                                    </ComboBoxItem>
+                                                    <ComboBoxItem>
+                                                        <TextBlock>9191</TextBlock>
+                                                    </ComboBoxItem>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
 
                                         <!--<Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />
 
@@ -273,7 +285,7 @@
 
                                         </Grid>
 
-                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP user port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
+                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP user port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
 
                                         <ComboBox x:Name="cb_SystemServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
                                             <ComboBox.Text>
@@ -290,7 +302,7 @@
                                             <ComboBoxItem>
                                                 <TextBlock>90</TextBlock>
                                             </ComboBoxItem>
-                                        </ComboBox>-->
+                                        </ComboBox>
 
                                         <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP system port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
 

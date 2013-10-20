@@ -1,5 +1,8 @@
 ﻿using Starcounter;
+using PageNamespace;
 
-[minimal_json]
-public partial class Minimal : Page, IBound<Person> {
+namespace MinimalNamespace {
+	[minimal_json]
+	public partial class Minimal : Page, IBound<Person> {
+	}
 }

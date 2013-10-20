@@ -68,23 +68,25 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         }
                     }
 
-                    AstClassAlias alias;
-                    int variant;
-                    var id = "__" + cls.CalculateClassAliasIdentifier(8) + "__" ;
-                    if (Used.TryGetValue(id, out variant)) {
-                        variant++;
-                        Used[id] = variant;
-                        id = id.Substring(0,id.Length-2) + variant + "__";
-                    }
-                    Used.Add(id, 0);
+					if (cls.UseClassAlias) {
+						AstClassAlias alias;
+						int variant;
+						var id = "__" + cls.CalculateClassAliasIdentifier(8) + "__";
+						if (Used.TryGetValue(id, out variant)) {
+							variant++;
+							Used[id] = variant;
+							id = id.Substring(0, id.Length - 2) + variant + "__";
+						}
+						Used.Add(id, 0);
 
-                    alias = new AstClassAlias(node.Generator) {
-                        Alias = id,
-                        Specifier = cls.GlobalClassSpecifier
-                    };
-                    alias.Parent = Generator.Root;
+						alias = new AstClassAlias(node.Generator) {
+							Alias = id,
+							Specifier = cls.GlobalClassSpecifier
+						};
+						alias.Parent = Generator.Root;
 
-                    cls.ClassAlias = alias;
+						cls.ClassAlias = alias;
+					}
 
                     if (cls.InheritedClass != null) {
                         CreateClassAliases(cls.InheritedClass);
