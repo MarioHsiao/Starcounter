@@ -761,59 +761,32 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         else
             setting_is_master_ = false;
 
-        // Number of connections to establish to master.
-        node_elem = root_elem->first_node("NumConnectionsToMaster");
-        GW_ASSERT(node_elem);
-        setting_num_connections_to_master_ = atoi(node_elem->value());
+        // Server test port.
+        setting_server_test_port_ = 123;
+        GW_ASSERT(setting_server_test_port_ > 0 && setting_server_test_port_ < 65536);
 
-        if (cmd_setting_num_connections_to_master_)
-            setting_num_connections_to_master_ = cmd_setting_num_connections_to_master_;
+        // Number of connections to establish to master.
+        setting_num_connections_to_master_ = cmd_setting_num_connections_to_master_;
 
         GW_ASSERT((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
         setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
 
         // Number of echoes to send to master node from clients.
-        node_elem = root_elem->first_node("NumEchoesToMaster");
-        GW_ASSERT(node_elem);
-        setting_num_echoes_to_master_ = atoi(node_elem->value());
-
-        if (cmd_setting_num_echoes_to_master_)
-            setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
-
-        node_elem = root_elem->first_node("ServerTestPort");
-        GW_ASSERT(node_elem);
-        setting_server_test_port_ = atoi(node_elem->value());
-        GW_ASSERT(setting_server_test_port_ > 0 && setting_server_test_port_ < 65536);
+        setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
 
         GW_ASSERT(setting_num_echoes_to_master_ <= MAX_TEST_ECHOES);
         ResetEchoTests();
 
         // Obtaining testing mode.
-        node_elem = root_elem->first_node("TestingMode");
-        GW_ASSERT(node_elem);
-        setting_mode_ = GetGatewayTestingMode(node_elem->value());
-
-        if (cmd_setting_mode_ != GatewayTestingMode::MODE_GATEWAY_UNKNOWN)
-            setting_mode_ = cmd_setting_mode_;
+        setting_mode_ = cmd_setting_mode_;
 
         // Maximum running time for tests.
-        node_elem = root_elem->first_node("MaxTestTimeSeconds");
-        GW_ASSERT(node_elem);
-        setting_max_test_time_seconds_ = atoi(node_elem->value());
+        setting_max_test_time_seconds_ = cmd_setting_max_test_time_seconds_;
         GW_ASSERT(setting_max_test_time_seconds_ > 0 && setting_max_test_time_seconds_ < 10000);
-
-        if (cmd_setting_max_test_time_seconds_)
-            setting_max_test_time_seconds_ = cmd_setting_max_test_time_seconds_;
-
         GW_ASSERT((setting_max_test_time_seconds_ % GW_MONITOR_THREAD_TIMEOUT_SECONDS) == 0);
 
         // Loading statistics name.
-        node_elem = root_elem->first_node("ReportStatisticsName");
-        GW_ASSERT(node_elem);
-        setting_stats_name_ = node_elem->value();
-
-        if (cmd_setting_stats_name_.length())
-            setting_stats_name_ = cmd_setting_stats_name_;
+        setting_stats_name_ = cmd_setting_stats_name_;
 
 #ifdef GW_LOOPED_TEST_MODE
         switch (setting_mode_)

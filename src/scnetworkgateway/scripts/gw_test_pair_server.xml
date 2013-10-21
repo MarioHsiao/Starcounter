@@ -59,22 +59,4 @@
   </ReverseProxies>
   -->
 
-  <!-- In which test mode Gateway operates. -->
-  <TestingMode>MODE_GATEWAY_RAW</TestingMode>
-
-  <!-- Server test port. -->
-  <ServerTestPort>123</ServerTestPort>
-
-  <!-- Number of connections to make to master node from this client -->
-  <NumConnectionsToMaster>10</NumConnectionsToMaster>
-
-  <!-- Number of tracked echoes to master node from this client -->
-  <NumEchoesToMaster>5000000</NumEchoesToMaster>
-
-  <!-- Maximum test time in seconds. -->
-  <MaxTestTimeSeconds>1000</MaxTestTimeSeconds>
-
-  <!-- Gateway-only HTTP requests per second. -->
-  <ReportStatisticsName>gateway_simple_raw_eps_2workers_1000conns</ReportStatisticsName>
-
 </NetworkGateway>
