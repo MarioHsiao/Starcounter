@@ -296,6 +296,7 @@ namespace Starcounter.Internal.Weaver {
             // Add it to the schema and assign the candidate binary to the
             // result before we finally return.
 
+            candidate.SetIsLoadedFromCache();
             result.Assembly = candidate;
             schema.Assemblies.Add(candidate);
 
