@@ -26,7 +26,7 @@
       <DestinationIP>127.0.0.1</DestinationIP>
       <DestinationPort>8181</DestinationPort>
       <StarcounterProxyPort>8080</StarcounterProxyPort>
-      <MatchingUri>POST /echotest@w</MatchingUri>
+      <MatchingMethodAndUri>POST /echotest@w</MatchingMethodAndUri>
     </ReverseProxy>
       
   </ReverseProxies>

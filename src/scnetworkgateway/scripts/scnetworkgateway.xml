@@ -27,14 +27,14 @@
       <DestinationIP>www.starcounter.com</DestinationIP>
       <DestinationPort>80</DestinationPort>
       <StarcounterProxyPort>8181</StarcounterProxyPort>
-      <MatchingUri>GET /forum@w</MatchingUri>
+      <MatchingMethodAndUri>GET /forum@w</MatchingMethodAndUri>
     </ReverseProxy>
 
     <ReverseProxy>
       <DestinationDNS>www.starcounter.com</DestinationDNS>
       <DestinationPort>80</DestinationPort>
       <StarcounterProxyPort>8080</StarcounterProxyPort>
-      <MatchingUri>GET /oldwiki@w</MatchingUri>
+      <MatchingMethodAndUri>GET /oldwiki@w</MatchingMethodAndUri>
     </ReverseProxy>
      
   </ReverseProxies>

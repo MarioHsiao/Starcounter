@@ -1398,12 +1398,12 @@ public:
 struct ReverseProxyInfo
 {
     // Uri that is being proxied.
-    std::string matching_uri_;
-    int32_t matching_uri_len_;
+    std::string matching_method_and_uri_;
+    int32_t matching_method_and_uri_len_;
 
     // Uri that is being proxied.
-    std::string matching_uri_processed_;
-    int32_t matching_uri_processed_len_;
+    std::string matching_method_and_uri_processed_;
+    int32_t matching_method_and_uri_processed_len_;
 
     // IP address of the destination server.
     std::string destination_ip_;
