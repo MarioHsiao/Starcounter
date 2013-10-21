@@ -10,12 +10,6 @@ using TJson = Starcounter.Templates.TObject;
 namespace Starcounter.Internal.XSON.Tests {
 
     public class BindingTests {
-
-		[TestFixtureSetUp]
-		public static void Setup() {
-			DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
-		}
-
 		[Test]
 		public static void TestPathBindings() {
 			Person person = new Person() { FirstName = "Arne", LastName = "Anka" };
@@ -27,10 +21,10 @@ namespace Starcounter.Internal.XSON.Tests {
 
 			var jsonTemplate = new TObject();
 			var streetTemplate = jsonTemplate.Add<TString>("Street", "Person.Address.Street");
-			streetTemplate.Bound = Bound.Yes;
+			streetTemplate.BindingStrategy = BindingStrategy.Bound;
 
 			var firstNameTemplate = jsonTemplate.Add<TString>("FirstName", "Person.FirstName");
-			firstNameTemplate.Bound = Bound.Yes;
+			firstNameTemplate.BindingStrategy = BindingStrategy.Bound;
 
 			dynamic json = (Json)jsonTemplate.CreateInstance();
 			json.Data = company;
@@ -73,7 +67,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var t = new TJson();
             var prop = t.Add<TString>("FirstName");
             prop.Bind = "FirstName";
-            prop.Bound = Bound.Yes;
+            prop.BindingStrategy = BindingStrategy.Bound;
             j.Template = t;
             j.Data = p;
 
@@ -97,16 +91,16 @@ namespace Starcounter.Internal.XSON.Tests {
 			dynamic j = new Json();
 			var t = new TJson();
 			var prop = t.Add<TString>("FirstName");
-			prop.Bound = Bound.Auto;
+			prop.BindingStrategy = BindingStrategy.Auto;
 
 			var noteProp = t.Add<TString>("Notes");
-			noteProp.Bound = Bound.Yes;
+			noteProp.BindingStrategy = BindingStrategy.Bound;
 
 			j.Template = t;
 			j.Data = p;
 
 			Assert.Throws(typeof(Exception), () => { string notes = j.Notes; });
-			noteProp.Bound = Bound.Auto;
+			noteProp.BindingStrategy = BindingStrategy.Unbound;
 			Assert.DoesNotThrow(() => { string notes = j.Notes; });
 
 			Assert.AreEqual("Joachim", p.FirstName);

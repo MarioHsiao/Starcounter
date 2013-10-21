@@ -31,7 +31,6 @@ namespace Starcounter.Internal.XSON.Tests {
         [TestFixtureSetUp]
         public static void Setup() {
             StarcounterBase._DB = new FakeDbImpl();
-            DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 
 //        /// <summary>
@@ -59,7 +58,6 @@ namespace Starcounter.Internal.XSON.Tests {
                 }
             }
         }
-
 
         /// <summary>
         /// Creates a template (schema) and Puppets using that schema in code.
@@ -345,12 +343,201 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("SubClass3", virtualValue);
         }
 
+		[Test]
+		public static void TestTemplateGettersAndSetters() {
+			bool bound;
+			TJson tJson = CreateSimplePersonTemplateWithDataBinding();
+			Json json = (Json)tJson.CreateInstance();
+
+			var person = new PersonObject();
+			person.FirstName = "Ture";
+			person.Surname = "ApaPapa";
+			person.Age = 19;
+
+			person.Number = new PhoneNumberObject();
+			person.Number.Number = "12345678";
+
+			json.Data = person;
+
+			// FirstName$
+			TString property = tJson.Properties[0] as TString;
+			Assert.IsNotNull(property);
+			
+			bound = (property.Bind != null);
+			property.GenerateUnboundGetterAndSetter(json);
+			if (bound)
+				property.GenerateBoundGetterAndSetter(json);
+#if DEBUG
+			PrintTemplateDebugInfo<String>(property);
+#endif
+
+			property.UnboundSetter(json, "Test!");
+			Assert.AreEqual("Test!", property.UnboundGetter(json));
+
+			if (bound) {
+				Assert.AreEqual(person.FirstName, property.BoundGetter(json));
+				property.BoundSetter(json, "NotTure");
+				Assert.AreEqual("NotTure", person.FirstName);
+			}
+
+			// The property is bound so getter should return the bound value.
+			Assert.AreEqual("NotTure", property.Getter(json));
+			property.Setter(json, "SomeOther");
+			Assert.AreEqual("SomeOther", person.FirstName);
+		
+			// LastName
+			property = tJson.Properties[1] as TString;
+			Assert.IsNotNull(property);
+			
+			bound = (property.Bind != null);
+			property.GenerateUnboundGetterAndSetter(json);
+			if (bound)
+				property.GenerateBoundGetterAndSetter(json);
+#if DEBUG
+			PrintTemplateDebugInfo<String>(property);
+#endif
+
+			property.UnboundSetter(json, "Test!");
+			Assert.AreEqual("Test!", property.UnboundGetter(json));
+
+			if (bound) {
+				Assert.AreEqual(person.Surname, property.BoundGetter(json));
+				property.BoundSetter(json, "NotApapapa");
+				Assert.AreEqual("NotApapapa", person.Surname);
+			}
+
+			// The property is bound so getter should return the bound value.
+			Assert.AreEqual("NotApapapa", property.Getter(json));
+			property.Setter(json, "SomeOther");
+			Assert.AreEqual("SomeOther", person.Surname);
+			
+
+			// Age
+			TLong ageProperty = tJson.Properties[2] as TLong;
+			Assert.IsNotNull(ageProperty);
+			
+			bound = (ageProperty.Bind != null);
+			ageProperty.GenerateUnboundGetterAndSetter(json);
+			if (bound)
+				ageProperty.GenerateBoundGetterAndSetter(json);
+#if DEBUG
+			PrintTemplateDebugInfo<long>(ageProperty);
+#endif
+
+			ageProperty.UnboundSetter(json, 199);
+			Assert.AreEqual(199, ageProperty.UnboundGetter(json));
+
+			if (bound) {
+				Assert.AreEqual(person.Age, ageProperty.BoundGetter(json));
+				ageProperty.BoundSetter(json, 213);
+				Assert.AreEqual(213, person.Age);
+			}
+
+			// The property is not bound so getter should return the unbound value.
+			Assert.AreEqual(199, ageProperty.Getter(json));
+			ageProperty.Setter(json, 226);
+			Assert.AreNotEqual(226, person.Age); // not bound, data value should not be changed.
+			
+
+			// PhoneNumber
+			TObject pnProperty = tJson.Properties[8] as TObject;
+			Assert.IsNotNull(pnProperty);
+
+			bound = (pnProperty.Bind != null);
+			pnProperty.GenerateUnboundGetterAndSetter(json);
+			if (bound)
+				pnProperty.GenerateBoundGetterAndSetter(json);
+#if DEBUG
+			PrintTemplateDebugInfo(pnProperty);
+#endif
+
+			var pn = new PhoneNumberObject();
+
+			pnProperty.UnboundSetter(json, pn);
+			Assert.AreEqual(pn, pnProperty.UnboundGetter(json));
+
+			if (bound) {
+				Assert.AreEqual(person.Number, pnProperty.BoundGetter(json));
+				pnProperty.BoundSetter(json, pn);
+				Assert.AreEqual(pn, person.Number);
+			}
+		}
+
+#if DEBUG
+		private static void PrintTemplateDebugInfo<T>(Property<T> property){
+			string str = property.TemplateName + " (index: " + property.TemplateIndex;
+			bool bound = (property.Bind != null);
+
+			if (bound) {
+				str += ", bind: " + property.Bind;
+			}
+
+			str += ", Type: " + property.GetType().Name;
+			str += ")";
+
+			Console.WriteLine("------------------------------------------");
+			Console.WriteLine("Property:");
+			Console.WriteLine(str);
+			Console.WriteLine();
+			Console.WriteLine("UnboundGetter:");
+			Console.WriteLine(property.DebugUnboundGetter);
+			Console.WriteLine();
+			Console.WriteLine("UnboundSetter:");
+			Console.WriteLine(property.DebugUnboundSetter);
+			Console.WriteLine();
+
+			if (bound) {
+				Console.WriteLine("BoundGetter:");
+				Console.WriteLine(property.DebugBoundGetter);
+				Console.WriteLine();
+				Console.WriteLine("BoundSetter:");
+				Console.WriteLine(property.DebugBoundSetter);
+				Console.WriteLine();
+			}
+		}
+
+		private static void PrintTemplateDebugInfo(TObject property) {
+			string str = property.TemplateName + " (index: " + property.TemplateIndex;
+			bool bound = (property.Bind != null);
+
+			if (bound) {
+				str += ", bind: " + property.Bind;
+			}
+
+			str += ", Type: " + property.GetType().Name;
+			str += ")";
+
+			Console.WriteLine("------------------------------------------");
+			Console.WriteLine("Property:");
+			Console.WriteLine(str);
+			Console.WriteLine();
+			Console.WriteLine("UnboundGetter:");
+			Console.WriteLine(property.DebugUnboundGetter);
+			Console.WriteLine();
+			Console.WriteLine("UnboundSetter:");
+			Console.WriteLine(property.DebugUnboundSetter);
+			Console.WriteLine();
+
+			if (bound) {
+				Console.WriteLine("BoundGetter:");
+				Console.WriteLine(property.DebugBoundGetter);
+				Console.WriteLine();
+				Console.WriteLine("BoundSetter:");
+				Console.WriteLine(property.DebugBoundSetter);
+				Console.WriteLine();
+			}
+		}
+#endif
+
         private static TJson CreateSimplePersonTemplateWithDataBinding() {
-            var personSchema = new TJson() { BindChildren = Bound.Yes };
+            var personSchema = new TJson() { BindChildren = BindingStrategy.Bound };
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
             personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
-            personSchema.Add<TLong>("_Age"); // Will not be bound
-            personSchema.Add<TString>("Created");
+            
+			var t = personSchema.Add<TLong>("Age"); // Will not be bound
+			t.BindingStrategy = BindingStrategy.Unbound;
+            
+			personSchema.Add<TString>("Created");
             personSchema.Add<TString>("Updated");
             personSchema.Add<TString>("AbstractValue");
             personSchema.Add<TString>("VirtualValue");
@@ -358,8 +545,8 @@ namespace Starcounter.Internal.XSON.Tests {
             var misc = personSchema.Add<TString>("Misc");
             misc.Bind = null; // Removing the binding for this specific template.
 
-            var phoneNumber = personSchema.Add<TJson>("_PhoneNumber", "Number"); // Bound to Number even though name start with '_'
-            phoneNumber.BindChildren = Bound.Yes;
+            var phoneNumber = personSchema.Add<TJson>("PhoneNumber", "Number");
+            phoneNumber.BindChildren = BindingStrategy.Bound;
             phoneNumber.Add<TString>("Number"); // Bound to Number
             
             return personSchema;
