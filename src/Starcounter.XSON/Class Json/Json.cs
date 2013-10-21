@@ -111,7 +111,7 @@ namespace Starcounter {
             var thisj = this as Json;
 
 
-            if (property.UseBinding(thisj.DataAsBindable)) {
+            if (property.UseBinding(thisj)) {
                 if (property is TObject) {
                     thisj.SetBound(property, (value as Json).Data);
                 }
@@ -296,21 +296,26 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property</param>
         public void Refresh(Template property) {
-            if (property is TObjArr) {
-                TObjArr apa = (TObjArr)property;
-                this.Set(apa, this.GetBound(apa));
-            }
-            else if (property is TObject) {
-                var at = (TObject)property;
-                IBindable v = this.GetBound(at);
-                this.Set(at, v);
-            }
-            else {
-                TValue p = property as TValue;
-                if (p != null) {
-                    HasChanged(p);
-                }
-            }
+			throw new NotImplementedException("TODO!");
+
+			// TODO:
+			// Should be rewritten to getter/setter delegates.
+
+			//if (property is TObjArr) {	
+			//	//TObjArr apa = (TObjArr)property;
+			//	//this.Set(apa, this.GetBound(apa));
+			//}
+			//else if (property is TObject) {
+			//	var at = (TObject)property;
+			//	IBindable v = (IBindable)this.GetBound(at);
+			//	this.Set(at, v);
+			//}
+			//else {
+			//	TValue p = property as TValue;
+			//	if (p != null) {
+			//		HasChanged(p);
+			//	}
+			//}
         }
 
         /// <summary>
@@ -427,7 +432,7 @@ namespace Starcounter {
                 else {
                     var json = this as Json;
                     var property = (TValue)((TObject)Template).Properties[index];
-                    if (property.UseBinding(json.DataAsBindable)) {
+                    if (property.UseBinding(json)) {
                         object ret;
                         ret = json.GetBound(property);
                         if (property is TObject) {
