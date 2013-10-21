@@ -4,7 +4,6 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 using Starcounter.Internal;
-using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
 namespace Starcounter.XSON {
