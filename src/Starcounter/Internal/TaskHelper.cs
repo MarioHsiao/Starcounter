@@ -11,7 +11,6 @@ namespace Starcounter.Internal {
         /// </summary>
         public static void Reset() {
             ResetCurrentTransaction();
-            ThreadData.Current.CleanupAllObjects();
         }
 
         private static void ResetCurrentTransaction() {
