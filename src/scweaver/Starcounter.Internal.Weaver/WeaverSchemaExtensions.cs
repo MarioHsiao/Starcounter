@@ -15,6 +15,26 @@ namespace Starcounter.Internal.Weaver {
     /// </summary>
     internal static class WeaverSchemaExtensions {
         /// <summary>
+        /// Tags the assmbly as one loaded from the weaver cache.
+        /// </summary>
+        /// <param name="assembly">The assembly to tag as being loaded from
+        /// the weaver cache.</param>
+        public static void SetIsLoadedFromCache(this DatabaseAssembly assembly) {
+            assembly.Tags["IsLoadedFromCache"] = bool.TrueString;
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the given assembly is loaded from the
+        /// weaver cache.
+        /// </summary>
+        /// <param name="assembly">The assembly to consult.</param>
+        /// <returns><c>true</c> if <paramref name="assembly"/> was loaded
+        /// from the weaver cache; <c>false</c> otherwise</returns>
+        public static bool GetIsLoadedFromCache(this DatabaseAssembly assembly) {
+            return assembly.Tags.ContainsKey("IsLoadedFromCache");
+        }
+
+        /// <summary>
         /// Sets the type definition.
         /// </summary>
         /// <param name="databaseClass">The database class.</param>
