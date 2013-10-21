@@ -54,6 +54,7 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterationsNoDispose / schedulers, () => GetEnumeratorAndMoveNoDispose(nrIterationsNoDispose / schedulers), 
                     "Obtaining enumerator and move next with no dispose on ");
 #endif
+                GC.WaitForFullGCComplete(1000);
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
         }
