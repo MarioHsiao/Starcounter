@@ -128,25 +128,27 @@ namespace Starcounter.XSON {
 			bool throwException;
 			Type dataType;
 			Expression<Func<Json, T>> getLambda;
-			Expression<Action<Json, T>> setLambda;
+			Expression<Action<Json, T>> setLambda = null;
 			object dataObject = json.Data;
 
 			dataType = dataObject.GetType();
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
-			// TODO:
-			// Check if set exists.
 			bInfo = DataBindingHelper.GetBindingPath(dataType, dataObject, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<T>(bInfo);
-				setLambda = GenerateBoundSetExpression<T>(bInfo);
-
 				property.BoundGetter = getLambda.Compile();
-				property.BoundSetter = setLambda.Compile();
+
+				if (DataBindingHelper.HasSetter(bInfo.Member)) {
+					setLambda = GenerateBoundSetExpression<T>(bInfo);
+					property.BoundSetter = setLambda.Compile();
+				}
 
 #if DEBUG
 				property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-				property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+
+				if (setLambda != null)
+					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
 			}
 			property.dataTypeForBinding = dataType;
@@ -163,25 +165,26 @@ namespace Starcounter.XSON {
 			bool throwException;
 			Type dataType;
 			Expression<Func<Json, object>> getLambda;
-			Expression<Action<Json, object>> setLambda;
+			Expression<Action<Json, object>> setLambda = null;
 			object dataObject = json.Data;
 
 			dataType = dataObject.GetType();
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
-			// TODO:
-			// Check if set exists.
 			bInfo = DataBindingHelper.GetBindingPath(dataType, dataObject, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<object>(bInfo);
-				setLambda = GenerateBoundSetExpression<object>(bInfo);
-
 				property.BoundGetter = getLambda.Compile();
-				property.BoundSetter = setLambda.Compile();
 
+				if (DataBindingHelper.HasSetter(bInfo.Member)) {
+					setLambda = GenerateBoundSetExpression<object>(bInfo);
+					property.BoundSetter = setLambda.Compile();
+				}
 #if DEBUG
 				property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-				property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+
+				if (setLambda != null)
+					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
 			}
 			property.dataTypeForBinding = dataType;
@@ -198,25 +201,27 @@ namespace Starcounter.XSON {
 			bool throwException;
 			Type dataType;
 			Expression<Func<Json, IEnumerable>> getLambda;
-			Expression<Action<Json, IEnumerable>> setLambda;
+			Expression<Action<Json, IEnumerable>> setLambda = null;
 			object dataObject = json.Data;
 
 			dataType = dataObject.GetType();
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
-			// TODO:
-			// Check if set exists.
 			bInfo = DataBindingHelper.GetBindingPath(dataType, dataObject, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo);
-				setLambda = GenerateBoundSetExpression<IEnumerable>(bInfo);
-
 				property.BoundGetter = getLambda.Compile();
-				property.BoundSetter = setLambda.Compile();
+
+				if (DataBindingHelper.HasSetter(bInfo.Member)) {
+					setLambda = GenerateBoundSetExpression<IEnumerable>(bInfo);
+					property.BoundSetter = setLambda.Compile();
+				}
 
 #if DEBUG
 				property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-				property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+
+				if (setLambda != null)
+					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
 			}
 			property.dataTypeForBinding = dataType;
