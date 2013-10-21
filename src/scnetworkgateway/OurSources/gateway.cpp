@@ -906,12 +906,12 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
                     return SCERRGWCANTLOADXMLSETTINGS;
                 }
 
-                node_elem = proxy_node->first_node("MatchingUri");
-                reverse_proxies_[n].matching_uri_ = node_elem->value();
-                reverse_proxies_[n].matching_uri_processed_ = reverse_proxies_[n].matching_uri_ + " ";
+                node_elem = proxy_node->first_node("MatchingMethodAndUri");
+                reverse_proxies_[n].matching_method_and_uri_ = node_elem->value();
+                reverse_proxies_[n].matching_method_and_uri_processed_ = reverse_proxies_[n].matching_method_and_uri_ + " ";
 
-                reverse_proxies_[n].matching_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].matching_uri_.length());
-                reverse_proxies_[n].matching_uri_processed_len_ = reverse_proxies_[n].matching_uri_len_ + 1;
+                reverse_proxies_[n].matching_method_and_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].matching_method_and_uri_.length());
+                reverse_proxies_[n].matching_method_and_uri_processed_len_ = reverse_proxies_[n].matching_method_and_uri_len_ + 1;
 
                 // Loading proxied servers.
                 sockaddr_in* server_addr = &reverse_proxies_[n].destination_addr_;
@@ -1408,10 +1408,10 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         reverse_proxies_[i].sc_proxy_port_,
-                        reverse_proxies_[i].matching_uri_.c_str(),
-                        reverse_proxies_[i].matching_uri_len_,
-                        reverse_proxies_[i].matching_uri_processed_.c_str(),
-                        reverse_proxies_[i].matching_uri_processed_len_,
+                        reverse_proxies_[i].matching_method_and_uri_.c_str(),
+                        reverse_proxies_[i].matching_method_and_uri_len_,
+                        reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
+                        reverse_proxies_[i].matching_method_and_uri_processed_len_,
                         NULL,
                         0,
                         bmx::BMX_INVALID_HANDLER_INFO,
