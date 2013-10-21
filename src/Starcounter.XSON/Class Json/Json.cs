@@ -296,26 +296,23 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property</param>
         public void Refresh(Template property) {
-			throw new NotImplementedException("TODO!");
-
-			// TODO:
-			// Should be rewritten to getter/setter delegates.
-
-			//if (property is TObjArr) {	
-			//	//TObjArr apa = (TObjArr)property;
-			//	//this.Set(apa, this.GetBound(apa));
-			//}
-			//else if (property is TObject) {
-			//	var at = (TObject)property;
-			//	IBindable v = (IBindable)this.GetBound(at);
-			//	this.Set(at, v);
-			//}
-			//else {
-			//	TValue p = property as TValue;
-			//	if (p != null) {
-			//		HasChanged(p);
-			//	}
-			//}
+			if (property is TObjArr) {
+				TObjArr tarr = (TObjArr)property;
+				if (tarr.UseBinding(this)) {
+					var jsonArr = (Json)_list[tarr.TemplateIndex];
+					jsonArr.CheckBoundArray(tarr.BoundGetter(this));
+				}
+			} else if (property is TObject) {
+				var at = (TObject)property;
+				if (at.UseBinding(this)) {
+					CheckBoundObject(at.BoundGetter(this));
+				}
+			} else {
+				TValue p = property as TValue;
+				if (p != null) {
+					HasChanged(p);
+				}
+			}
         }
 
         /// <summary>
