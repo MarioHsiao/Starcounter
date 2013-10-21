@@ -96,7 +96,9 @@
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
     <Compile Include="TemplateDelegateGenerator.cs" />
-    <Compile Include="Templates\Schema.cs" />
+    <Compile Include="Templates\Foundation\TValue.cs" />
+    <Compile Include="Templates\TArray.cs" />
+    <Compile Include="Templates\TObject.cs" />
     <Compile Include="Sessions\JSON-Patch\Change.cs" />
     <Compile Include="Sessions\JSON-Patch\HttpPatchBuilder.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
@@ -105,13 +107,13 @@
     <Compile Include="Sessions\Session.ChangeLog.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
-    <Compile Include="Templates\Schema.Expando.cs" />
+    <Compile Include="Templates\TObject.Expando.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
     <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="JSON-By-Example\Module2.cs" />
-    <Compile Include="Binding\DataBindingFactory.cs" />
+    <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Interfaces\IDebugInfo.cs" />
     <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
@@ -135,7 +137,7 @@
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
     <Compile Include="Templates\Foundation\TContainer.cs" />
     <Compile Include="Templates\Foundation\Template.cs" />
-    <Compile Include="Templates\TArr.cs" />
+    <Compile Include="Templates\TObjArr.cs" />
     <Compile Include="Templates\TBool.cs" />
     <Compile Include="Templates\TDecimal.cs" />
     <Compile Include="Templates\TDouble.cs" />
