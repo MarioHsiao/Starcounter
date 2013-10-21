@@ -8,6 +8,7 @@ using PostSharp.Sdk.CodeModel;
 using Sc.Server.Weaver.Schema;
 
 namespace Starcounter.Internal.Weaver {
+    using System.Collections.Generic;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -49,7 +50,7 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseClass">The database class.</param>
         /// <returns>TypeDefDeclaration.</returns>
         public static TypeDefDeclaration GetTypeDefinition(this DatabaseClass databaseClass) {
-            return (TypeDefDeclaration)databaseClass.Tags["TypeDef"];
+            return ReadTagFromElement<TypeDefDeclaration>(databaseClass, "TypeDef");
         }
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseAttribute">The database attribute.</param>
         /// <returns>FieldDefDeclaration.</returns>
         public static FieldDefDeclaration GetFieldDefinition(this DatabaseAttribute databaseAttribute) {
-            return (FieldDefDeclaration)databaseAttribute.Tags["FieldDef"];
+            return ReadTagFromElement<FieldDefDeclaration>(databaseAttribute, "FieldDef");
         }
 
         /// <summary>
@@ -85,7 +86,29 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseAttribute">The database attribute.</param>
         /// <returns>PropertyDeclaration.</returns>
         public static PropertyDeclaration GetPropertyDefinition(this DatabaseAttribute databaseAttribute) {
-            return (PropertyDeclaration)databaseAttribute.Tags["PropertyDef"];
+            return ReadTagFromElement<PropertyDeclaration>(databaseAttribute, "PropertyDef");
+        }
+
+        static T ReadTagFromElement<T>(DatabaseSchemaElement e, string tag) {
+            try {
+                return (T) e.Tags[tag];
+            } catch (KeyNotFoundException notFound) {
+                var databaseClass = e as DatabaseClass;
+                if (databaseClass == null) {
+                    var a = e as DatabaseAttribute;
+                    if (a != null) databaseClass = a.DeclaringClass;
+                }
+                if (databaseClass == null)
+                    throw;
+                if (!databaseClass.Assembly.GetIsLoadedFromCache())
+                    throw;
+
+                // The problem is that we have tried reading a tag from an
+                // assembly that was cached, something we currently don't support,
+                // and we report this as an internal error.
+
+                throw ErrorCode.ToException(Error.SCERRWEAVERCANTUSECACHE, notFound, string.Format("Assembly: {0}", databaseClass.Assembly));
+            }
         }
     }
 }
