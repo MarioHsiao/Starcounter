@@ -7,34 +7,102 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
 using Modules;
-using Starcounter.Internal.XSON.DeserializerCompiler;
-using Starcounter.Internal.XSON;
 using System.Collections;
 using TJson = Starcounter.Templates.TObject;
-using Module = Modules.Starcounter_XSON_JsonByExample;
+using Starcounter.XSON;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
     public partial class TObject : TContainer {
+#if DEBUG
+		internal string DebugBoundSetter;
+		internal string DebugBoundGetter;
+		internal string DebugUnboundSetter;
+		internal string DebugUnboundGetter;
+#endif
+
+		public readonly Action<Json, object> Setter;
+		public readonly Func<Json, object> Getter;
+		internal Action<Json, object> BoundSetter;
+		internal Func<Json, object> BoundGetter;
+		internal Action<Json, object> UnboundSetter;
+		internal Func<Json, object> UnboundGetter;
+
+		private PropertyList _PropertyTemplates;
+		private string instanceDataTypeName;
+		private BindingStrategy bindChildren = BindingStrategy.Auto;
+		protected Type _JsonType;
+		public bool HasAtLeastOneBoundProperty = true; // TODO!
+		
+		/// <summary>
+		/// Static constructor to automatically initialize XSON.
+		/// </summary>
+		static TObject() {
+			HelperFunctions.LoadNonGACDependencies();
+			Starcounter_XSON_JsonByExample.Initialize();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TObj" /> class.
+		/// </summary>
+		public TObject() {
+			_PropertyTemplates = new PropertyList(this);
+			Getter = BoundOrUnboundGet;
+			Setter = BoundOrUnboundSet;
+		}
+
+		internal override void InvalidateBoundGetterAndSetter() {
+			BoundGetter = null;
+			BoundSetter = null;
+			dataTypeForBinding = null;
+		}
+
+		internal override bool GenerateBoundGetterAndSetter(Json json) {
+			TemplateDelegateGenerator.GenerateBoundDelegates(this, json);
+			return (BoundGetter != null);
+		}
+
+		internal override void GenerateUnboundGetterAndSetter(Json json) {
+			TemplateDelegateGenerator.GenerateUnboundDelegates(this, json, false);
+		}
+
+		private object BoundOrUnboundGet(Json json) {
+			if (UseBinding(json))
+				return BoundGetter(json);
+			return UnboundGetter(json);
+		}
+
+		private void BoundOrUnboundSet(Json json, object value) {
+			if (UseBinding(json))
+				BoundSetter(json, value);
+			else
+				UnboundSetter(json, value);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// 
+		/// </remarks>
+		public BindingStrategy BindChildren {
+			get { return bindChildren; }
+			set {
+				if (value == Templates.BindingStrategy.UseParent)
+					throw new Exception("Cannot specify Bound.UseParent on this property.");
+				bindChildren = value;
+			}
+		}
+
         public override Type MetadataType {
             get { return typeof(ObjMetadata<TObject, Json>); }
         }
-        /// <summary>
-        /// Static constructor to automatically initialize XSON.
-        /// </summary>
-        static TObject() {
-            HelperFunctions.LoadNonGACDependencies();
-//            XSON.CodeGeneration.Initializer.InitializeXSON();
-            Starcounter_XSON_JsonByExample.Initialize();
-        }
-
+       
         /// <summary>
         /// CreateFromMarkup
         /// </summary>
@@ -58,7 +126,6 @@ namespace Starcounter.Templates {
             return reader.CompileMarkup<TypeObj,TypeTObj>(markup,origin);
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -68,31 +135,11 @@ namespace Starcounter.Templates {
             return CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", json, null);
         }
 
-        private string instanceDataTypeName;
-
-
         /// <summary>
         /// 
         /// </summary>
         /// <value></value>
         public string Include { get; set; }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private PropertyList _PropertyTemplates;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TObj" /> class.
-        /// </summary>
-        public TObject() {
-            _PropertyTemplates = new PropertyList(this);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected Type _JsonType;
 
 		/// <summary>
 		/// Creates a new Message using the schema defined by this template
@@ -131,7 +178,7 @@ namespace Starcounter.Templates {
             set {
                 instanceDataTypeName = value;
                 if (!string.IsNullOrEmpty(value))
-					BindChildren = Bound.Yes;
+					BindChildren = BindingStrategy.Bound;
             }
         }
 
@@ -165,9 +212,6 @@ namespace Starcounter.Templates {
             return this.Add(typeof(T), name);
         }
 
-
-
-
         /// <summary>
         /// Creates a new typed array property (template) with the specified name and type.
         /// </summary>
@@ -186,10 +230,6 @@ namespace Starcounter.Templates {
 
             return t;
         }
-
-
-        
-
 
         internal static readonly Dictionary<Type, Func<TObject,string,TValue>> @switch = new Dictionary<Type, Func<TObject,string,TValue>> {
                     { typeof(byte), (TObject t, string name) => { return t.Add<TLong>(name); }},

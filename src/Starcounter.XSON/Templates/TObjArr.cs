@@ -7,59 +7,73 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Starcounter.Advanced;
-using Starcounter.Advanced.XSON;
-using Starcounter.Internal.XSON;
 using System.Reflection;
+using Starcounter.XSON;
 
 namespace Starcounter.Templates {
-
     /// <summary>
     /// 
     /// </summary>
-    /// <typeparam name="OT"></typeparam>
-    public class TArray<OT> : TObjArr
-        where OT : Json, new()
-    {
-        public override Type MetadataType {
-            get { return typeof(ArrMetadata<OT,Json>); }
-        }
-
-        /// <summary>
-        /// Creates the instance.
-        /// </summary>
-        /// <param name="parent">The parent.</param>
-        /// <returns>System.Object.</returns>
-        public override object CreateInstance(Json parent) {
-            return new Arr<OT>((Json)parent, this);
-        }
-
-        /// <summary>
-        /// The .NET type of the instance represented by this template.
-        /// </summary>
-        /// <value>The type of the instance.</value>
-        public override System.Type InstanceType {
-            get { return typeof(Arr<OT>); }
-        }
-
-
-
-
-    }
-
-    /// <summary>
-    /// Class TArr
-    /// </summary>
-    public class TObjArr : TContainer
-#if IAPP
-//        , ITObjArr
+    public class TObjArr : TContainer {
+#if DEBUG
+		internal string DebugBoundSetter;
+		internal string DebugBoundGetter;
+		internal string DebugUnboundSetter;
+		internal string DebugUnboundGetter;
 #endif
-    {
+
+		public readonly Action<Json, IEnumerable> Setter;
+		public readonly Func<Json, IEnumerable> Getter;
+		internal Action<Json, IEnumerable> BoundSetter;
+		internal Func<Json, IEnumerable> BoundGetter;
+		internal Action<Json, IEnumerable> UnboundSetter;
+		internal Func<Json, IEnumerable> UnboundGetter;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		internal TObject[] _Single = new TObject[0];
+		private string instanceDataTypeName;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public TObjArr() {
+			Getter = BoundOrUnboundGet;
+			Setter = BoundOrUnboundSet;
+		}
+
+		internal override void InvalidateBoundGetterAndSetter() {
+			BoundGetter = null;
+			BoundSetter = null;
+			dataTypeForBinding = null;
+		}
+
+		internal override bool GenerateBoundGetterAndSetter(Json json) {
+			TemplateDelegateGenerator.GenerateBoundDelegates(this, json);
+			return (BoundGetter != null);
+		}
+
+		internal override void GenerateUnboundGetterAndSetter(Json json) {
+			TemplateDelegateGenerator.GenerateUnboundDelegates(this, json, false);
+		}
+
+		private IEnumerable BoundOrUnboundGet(Json json) {
+			if (UseBinding(json))
+				return BoundGetter(json);
+			return UnboundGetter(json);
+		}
+
+		private void BoundOrUnboundSet(Json json, IEnumerable value) {
+			if (UseBinding(json))
+				BoundSetter(json, value);
+			else
+				UnboundSetter(json, value);
+		}
 
         public override Type MetadataType {
             get { return typeof(ArrMetadata<Json, Json>); }
         }
-
 
         public override void ProcessInput(Json obj, byte[] rawValue) {
             throw new System.NotImplementedException();
@@ -72,9 +86,9 @@ namespace Starcounter.Templates {
 		}
 
         /// <summary>
-        /// Gets the children.
+        /// 
         /// </summary>
-        /// <value>The children.</value>
+        /// <value></value>
         public override IEnumerable<Template> Children {
             get {
                 return (IEnumerable<Template>)_Single;
@@ -85,16 +99,6 @@ namespace Starcounter.Templates {
             get { return _Single; }
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal TObject[] _Single = new TObject[0];
-
-
-       // internal DataValueBinding<IEnumerable> dataBinding;
-        private string instanceDataTypeName;
-    
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.
@@ -143,23 +147,6 @@ namespace Starcounter.Templates {
             set {
                 throw new System.NotImplementedException();
             }
-        }
-
-        internal override bool UseBinding(IBindable data) {
-			if (data == null)
-				return false;
-            return DataBindingFactory.VerifyOrCreateBinding(this, data);
-        }
-
-        internal override object GetBoundValueAsObject(Json obj) {
-			return obj.GetBound(this);
-        }
-
-        internal override void SetBoundValueAsObject(Json obj, object value) {
-			// TODO:
-			// Check this. What do we set as bound value on an array? The IEnumerable?
-			// or is the value we get the array itself?
-			obj.SetBound(this, value as IEnumerable);
         }
 
         public override object CreateInstance(Json parent) {

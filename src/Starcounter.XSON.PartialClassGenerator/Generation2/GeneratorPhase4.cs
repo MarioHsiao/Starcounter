@@ -299,7 +299,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AstProperty property;
             string propertyName;
 
-            if (!(ntApp.BindChildren == Bound.Yes))
+            if (!(ntApp.BindChildren == BindingStrategy.Bound))
                 return;
 
             foreach (AstBase nb in ntApp.Children) {
@@ -316,7 +316,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         childTApp = property.Type as AstSchemaClass;
 
                     if (childTApp != null) {
-                        if (!(childTApp.BindChildren == Bound.Yes)) {
+                        if (!(childTApp.BindChildren == BindingStrategy.Bound)) {
                             // We have a property which is an array or an object that should be bound but 
                             // AutoBindProperties is false which means that we have no type information.
 

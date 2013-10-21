@@ -1,5 +1,7 @@
 ﻿
 using System.Diagnostics;
+using Starcounter.Templates;
+
 namespace Starcounter {
     public partial class Json {
 
