@@ -561,7 +561,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add("        : base() {");
 
 //            a.Prefix.Add("        Template = new st::TJson();");
-            if (a.BindChildren != Bound.Auto) {
+            if (a.BindChildren != BindingStrategy.Auto) {
                 a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
             }
 
@@ -595,7 +595,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     sb.Append('"');
 
                     TValue tv = mn.Template as TValue;
-					if (tv != null && tv._Bound != Bound.UseParent && tv._Bound != Bound.Auto){
+					if (tv != null && tv.BindingStrategy != BindingStrategy.UseParent && tv.BindingStrategy != BindingStrategy.Auto){
                         if (tv.Bind == null) {
                             sb.Append(", bind:null");
                         } else {

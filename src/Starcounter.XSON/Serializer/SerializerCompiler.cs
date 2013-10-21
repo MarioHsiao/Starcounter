@@ -1,8 +1,7 @@
-﻿using Mono.CSharp;
+﻿using System;
+using Mono.CSharp;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
-using System;
-using Starcounter.XSON.Serializer.Ast;
 using Starcounter.XSON.Serializer;
 
 namespace Starcounter.Internal.XSON.DeserializerCompiler {    
@@ -22,7 +21,7 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             }
         }
 
-        public TypedJsonSerializer CreateStandardJsonSerializer(TObject jsonTemplate) {
+        internal TypedJsonSerializer CreateStandardJsonSerializer(TObject jsonTemplate) {
 			StdDomGenerator domGenerator;
 			StdCSharpGenerator codeGenerator;
 			string code;
@@ -39,7 +38,7 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             return GenerateJsonSerializer(code, fullTypeName);
         }
 
-		public TypedJsonSerializer CreateFTJSerializer(TObject jsonTemplate) {
+		internal TypedJsonSerializer CreateFTJSerializer(TObject jsonTemplate) {
 			FTJDomGenerator domGenerator;
 			FTJCSharpGenerator codeGenerator;
 			string code;

@@ -39,7 +39,7 @@ namespace Starcounter {
                     var property = tjson.Properties[t];
                     if (property is TValue) {
                         var tval = property as TValue;
-                        if (!(tval is TContainer) && tval.UseBinding(json.DataAsBindable)) {
+                        if (!(tval is TContainer) && tval.UseBinding(json)) {
                             values[t] = json.GetBound(tval);
                         }
                     }
@@ -168,7 +168,7 @@ namespace Starcounter {
                             }
                             else {
                                 var j = this as Json;
-                                if (((TValue)p).UseBinding(j.DataAsBindable)) {
+                                if (((TValue)p).UseBinding(j)) {
                                     var val = j.GetBound((TValue)p);
 									if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
                                         list[p.TemplateIndex] = val;
@@ -195,7 +195,7 @@ namespace Starcounter {
                             var j = this as Json;
                             var templ = j.Template as TObject;
                             var p = exposed[t] as TValue;
-                            if (p != null && p.UseBinding(j.DataAsBindable)) {
+                            if (p != null && p.UseBinding(j)) {
                                 var val = j.GetBound(p);
 
 								if ((val == null && list[p.TemplateIndex] != null) || (val != null && !val.Equals(list[p.TemplateIndex]))) {
@@ -222,7 +222,6 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
-				var dataObj = DataAsBindable;
 				var valueList = list;
 				TObject tobj = (TObject)Template;
 				for (int i = 0; i < tobj.Properties.Count; i++) {
@@ -231,7 +230,7 @@ namespace Starcounter {
 						if (vt is TContainer) {
 							var childJson = (Json)Get(vt);
 							childJson.SetBoundValuesInTuple();
-						} else if (vt != null && vt.UseBinding(dataObj)) {
+						} else if (vt != null && vt.UseBinding(this)) {
 							valueList[i] = GetBound(vt);
 						}
 					}

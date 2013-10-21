@@ -1,19 +1,19 @@
 ﻿using System;
 
 namespace Starcounter.Templates {
-    public enum Bound {
+    public enum BindingStrategy {
 		UseParent,
-        Yes,
-        No,
+        Bound,
+        Unbound,
         Auto
     }
 
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 	public class BindChildrenAttribute : Attribute {
-		public BindChildrenAttribute(Bound bound) {
-			Bound = bound;
+		public BindChildrenAttribute(BindingStrategy strategy) {
+			Strategy = strategy;
 		}
 
-		public Bound Bound { get; set; }
+		public BindingStrategy Strategy { get; set; }
 	}
 }
