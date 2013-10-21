@@ -3,26 +3,13 @@
   <!-- IP address of the master node -->
   <MasterIP></MasterIP>
 
-  <!--
-  List of local interfaces to bind to.
-  Declare them when you expect the number of outgoing
-  connections(e.g. due to proxying) to be more than 64K.
-  -->
-  <!--
-  <BindingIP>10.0.0.1</BindingIP>
-  <BindingIP>10.0.0.2</BindingIP>
-  <BindingIP>10.0.0.3</BindingIP>
-  <BindingIP>10.0.0.4</BindingIP>
-  <BindingIP>10.0.0.5</BindingIP>
-  -->
-
   <!-- Number of worker threads -->
   <WorkersNumber>2</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>100100</MaxConnections>
 
-  <!-- Inactive connection life time in seconds -->
+  <!-- Inactive connections life time in seconds -->
   <InactiveConnectionTimeout>1200</InactiveConnectionTimeout>
 
   <!-- Gateway global statistics port -->
@@ -37,20 +24,33 @@
   <ReverseProxies>
       
      <ReverseProxy>
-      <ServerIP>www.starcounter.com</ServerIP>
-      <ServerPort>80</ServerPort>
-      <GatewayProxyPort>8181</GatewayProxyPort>
-      <ServiceUri>GET /forum@w</ServiceUri>
+      <DestinationIP>www.starcounter.com</DestinationIP>
+      <DestinationPort>80</DestinationPort>
+      <StarcounterProxyPort>8181</StarcounterProxyPort>
+      <MatchingUri>GET /forum@w</MatchingUri>
     </ReverseProxy>
 
     <ReverseProxy>
-      <ServerDNS>www.starcounter.com</ServerDNS>
-      <ServerPort>80</ServerPort>
-      <GatewayProxyPort>8080</GatewayProxyPort>
-      <ServiceUri>GET /oldwiki@w</ServiceUri>
+      <DestinationDNS>www.starcounter.com</DestinationDNS>
+      <DestinationPort>80</DestinationPort>
+      <StarcounterProxyPort>8080</StarcounterProxyPort>
+      <MatchingUri>GET /oldwiki@w</MatchingUri>
     </ReverseProxy>
      
   </ReverseProxies>
+  -->
+  
+  <!--
+  List of local interfaces to bind to.
+  Declare them when you expect the number of outgoing
+  connections(e.g. due to proxying) to be more than 64K.
+  -->
+  <!--
+  <BindingIP>10.0.0.1</BindingIP>
+  <BindingIP>10.0.0.2</BindingIP>
+  <BindingIP>10.0.0.3</BindingIP>
+  <BindingIP>10.0.0.4</BindingIP>
+  <BindingIP>10.0.0.5</BindingIP>
   -->
   
 </NetworkGateway>
