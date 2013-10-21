@@ -3,26 +3,13 @@
   <!-- IP address of the master node -->
   <MasterIP></MasterIP>
 
-  <!--
-  List of local interfaces to bind to.
-  Declare them when you expect the number of outgoing
-  connections(e.g. due to proxying) to be more than 64K.
-  -->
-  <!--
-  <BindingIP>10.0.0.1</BindingIP>
-  <BindingIP>10.0.0.2</BindingIP>
-  <BindingIP>10.0.0.3</BindingIP>
-  <BindingIP>10.0.0.4</BindingIP>
-  <BindingIP>10.0.0.5</BindingIP>
-  -->
-
   <!-- Number of worker threads -->
   <WorkersNumber>3</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>100100</MaxConnections>
 
-  <!-- Inactive connection life time in seconds -->
+  <!-- Inactive connections life time in seconds -->
   <InactiveConnectionTimeout>1200</InactiveConnectionTimeout>
 
   <!-- Gateway global statistics port -->
@@ -36,12 +23,25 @@
   <ReverseProxies>
       
     <ReverseProxy>
-      <ServerIP>127.0.0.1</ServerIP>
-      <ServerPort>8181</ServerPort>
-      <GatewayProxyPort>8080</GatewayProxyPort>
-      <ServiceUri>POST /echotest@w</ServiceUri>
+      <DestinationIP>127.0.0.1</DestinationIP>
+      <DestinationPort>8181</DestinationPort>
+      <StarcounterProxyPort>8080</StarcounterProxyPort>
+      <MatchingUri>POST /echotest@w</MatchingUri>
     </ReverseProxy>
       
   </ReverseProxies>
   
+  <!--
+  List of local interfaces to bind to.
+  Declare them when you expect the number of outgoing
+  connections(e.g. due to proxying) to be more than 64K.
+  -->
+  <!--
+  <BindingIP>10.0.0.1</BindingIP>
+  <BindingIP>10.0.0.2</BindingIP>
+  <BindingIP>10.0.0.3</BindingIP>
+  <BindingIP>10.0.0.4</BindingIP>
+  <BindingIP>10.0.0.5</BindingIP>
+  -->
+ 
 </NetworkGateway>

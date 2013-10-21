@@ -832,16 +832,16 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             while (proxy_node)
             {
                 // Filling reverse proxy information.
-                node_elem = proxy_node->first_node("ServerDNS");
+                node_elem = proxy_node->first_node("DestinationDNS");
                 if (!node_elem)
                 {
-                    node_elem = proxy_node->first_node("ServerIP");
+                    node_elem = proxy_node->first_node("DestinationIP");
                     if (!node_elem)
                     {
-                        g_gateway.LogWriteCritical(L"Gateway XML: Can't read ServerIP property. Either ServerDNS or ServerIP property should be specified.");
+                        g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationIP property. Either DestinationDNS or DestinationIP property should be specified.");
                         return SCERRGWCANTLOADXMLSETTINGS;
                     }
-                    reverse_proxies_[n].server_ip_ = node_elem->value();
+                    reverse_proxies_[n].destination_ip_ = node_elem->value();
                 }
                 else
                 {
@@ -875,50 +875,50 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
                     }
 
                     // Getting the first IP address.
-                    reverse_proxies_[n].server_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
+                    reverse_proxies_[n].destination_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
                 }
 
-                node_elem = proxy_node->first_node("ServerPort");
+                node_elem = proxy_node->first_node("DestinationPort");
                 if (!node_elem)
                 {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read ServerPort property.");
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationPort property.");
                     return SCERRGWCANTLOADXMLSETTINGS;
                 }
 
-                reverse_proxies_[n].server_port_ = atoi(node_elem->value());
-                if (reverse_proxies_[n].server_port_ <= 0 || reverse_proxies_[n].server_port_  >= 65536)
+                reverse_proxies_[n].destination_port_ = atoi(node_elem->value());
+                if (reverse_proxies_[n].destination_port_ <= 0 || reverse_proxies_[n].destination_port_  >= 65536)
                 {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect ServerPort number.");
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect DestinationPort number.");
                     return SCERRGWCANTLOADXMLSETTINGS;
                 }
 
-                node_elem = proxy_node->first_node("GatewayProxyPort");
+                node_elem = proxy_node->first_node("StarcounterProxyPort");
                 if (!node_elem)
                 {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read GatewayProxyPort property.");
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read StarcounterProxyPort property.");
                     return SCERRGWCANTLOADXMLSETTINGS;
                 }
 
-                reverse_proxies_[n].gw_proxy_port_ = atoi(node_elem->value());
-                if (reverse_proxies_[n].gw_proxy_port_ <= 0 || reverse_proxies_[n].gw_proxy_port_  >= 65536)
+                reverse_proxies_[n].sc_proxy_port_ = atoi(node_elem->value());
+                if (reverse_proxies_[n].sc_proxy_port_ <= 0 || reverse_proxies_[n].sc_proxy_port_  >= 65536)
                 {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect GatewayProxyPort number.");
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect StarcounterProxyPort number.");
                     return SCERRGWCANTLOADXMLSETTINGS;
                 }
 
-                node_elem = proxy_node->first_node("ServiceUri");
-                reverse_proxies_[n].service_uri_ = node_elem->value();
-                reverse_proxies_[n].service_uri_processed_ = reverse_proxies_[n].service_uri_ + " ";
+                node_elem = proxy_node->first_node("MatchingUri");
+                reverse_proxies_[n].matching_uri_ = node_elem->value();
+                reverse_proxies_[n].matching_uri_processed_ = reverse_proxies_[n].matching_uri_ + " ";
 
-                reverse_proxies_[n].service_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].service_uri_.length());
-                reverse_proxies_[n].service_uri_processed_len_ = reverse_proxies_[n].service_uri_len_ + 1;
+                reverse_proxies_[n].matching_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].matching_uri_.length());
+                reverse_proxies_[n].matching_uri_processed_len_ = reverse_proxies_[n].matching_uri_len_ + 1;
 
                 // Loading proxied servers.
-                sockaddr_in* server_addr = &reverse_proxies_[n].addr_;
+                sockaddr_in* server_addr = &reverse_proxies_[n].destination_addr_;
                 memset(server_addr, 0, sizeof(sockaddr_in));
                 server_addr->sin_family = AF_INET;
-                server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].server_ip_.c_str());
-                server_addr->sin_port = htons(reverse_proxies_[n].server_port_);
+                server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].destination_ip_.c_str());
+                server_addr->sin_port = htons(reverse_proxies_[n].destination_port_);
 
                 // Getting next reverse proxy information.
                 proxy_node = proxy_node->next_sibling("ReverseProxy");
@@ -1407,11 +1407,11 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     err_code = AddUriHandler(
                         &gw_workers_[0],
                         gw_handlers_,
-                        reverse_proxies_[i].gw_proxy_port_,
-                        reverse_proxies_[i].service_uri_.c_str(),
-                        reverse_proxies_[i].service_uri_len_,
-                        reverse_proxies_[i].service_uri_processed_.c_str(),
-                        reverse_proxies_[i].service_uri_processed_len_,
+                        reverse_proxies_[i].sc_proxy_port_,
+                        reverse_proxies_[i].matching_uri_.c_str(),
+                        reverse_proxies_[i].matching_uri_len_,
+                        reverse_proxies_[i].matching_uri_processed_.c_str(),
+                        reverse_proxies_[i].matching_uri_processed_len_,
                         NULL,
                         0,
                         bmx::BMX_INVALID_HANDLER_INFO,

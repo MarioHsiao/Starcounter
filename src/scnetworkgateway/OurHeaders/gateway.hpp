@@ -1398,24 +1398,24 @@ public:
 struct ReverseProxyInfo
 {
     // Uri that is being proxied.
-    std::string service_uri_;
-    int32_t service_uri_len_;
+    std::string matching_uri_;
+    int32_t matching_uri_len_;
 
     // Uri that is being proxied.
-    std::string service_uri_processed_;
-    int32_t service_uri_processed_len_;
+    std::string matching_uri_processed_;
+    int32_t matching_uri_processed_len_;
 
     // IP address of the destination server.
-    std::string server_ip_;
+    std::string destination_ip_;
 
-    // Port on which proxied service sits on.
-    uint16_t server_port_;
+    // Port of the destination server.
+    uint16_t destination_port_;
 
     // Source port which to used for redirection to proxied service.
-    uint16_t gw_proxy_port_;
+    uint16_t sc_proxy_port_;
 
     // Proxied service address socket info.
-    sockaddr_in addr_;
+    sockaddr_in destination_addr_;
 };
 
 class GatewayLogWriter

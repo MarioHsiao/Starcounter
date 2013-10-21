@@ -1314,7 +1314,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
         ReverseProxyInfo* proxy_info = hl->get_reverse_proxy_info();
 
         // Connecting to the server.
-        return gw->Connect(sd, &proxy_info->addr_);
+        return gw->Connect(sd, &proxy_info->destination_addr_);
     }
 
     return SCERRGWHTTPPROCESSFAILED;
