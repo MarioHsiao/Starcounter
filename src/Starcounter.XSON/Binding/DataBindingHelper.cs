@@ -158,6 +158,14 @@ namespace Starcounter.XSON {
 			}
 			return type;
 		}
+
+		internal static bool HasSetter(MemberInfo mInfo) {
+			var pInfo = mInfo as PropertyInfo;
+			if (pInfo != null) {
+				return (pInfo.GetSetMethod() != null);
+			}
+			return true;
+		}
     }
 
 }
