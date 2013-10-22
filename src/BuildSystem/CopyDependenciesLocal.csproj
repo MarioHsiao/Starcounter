@@ -72,6 +72,6 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- <Target Name="Build" DependsOnTargets="CopyLocalFiles" /> -->
+  <Target Name="Build" />
   <Target Name="AfterBuild" DependsOnTargets="CopyLocalFiles" />
 </Project>
