@@ -3528,6 +3528,9 @@
 	<code hex="0020" severity="Error" name="ScErrTooManyIndexColumns">
 	  <message>Too many columns for compound index.</message>
 	</code>
+	<code hex="0021" severity="Error" name="ScErrInvalidCurrent">
+	  <message>Calling current is invalid, since enumerator has not started or has already finished.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">

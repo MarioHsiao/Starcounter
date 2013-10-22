@@ -112,9 +112,7 @@ namespace Starcounter
                 {
                     throw new ObjectDisposedException(null);
                 }
-                throw new InvalidOperationException(
-                    "The enumerator is positioned before the first element of the collection or after the last element."
-                );
+                throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m, e) => new InvalidOperationException(m));
             }
         }
 
@@ -401,9 +399,7 @@ namespace Starcounter
                 if (_verify == 0) {
                     throw new ObjectDisposedException(null);
                 }
-                throw new InvalidOperationException(
-                    "The enumerator is positioned before the first element of the collection or after the last element."
-                );
+                throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m, e) => new InvalidOperationException(m));
             }
         }
 
