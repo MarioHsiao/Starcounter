@@ -470,28 +470,28 @@ internal class ExtentNode : IOptimizationNode
         return EXTENT_SCAN_COST;
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+    public IExecutionEnumerator CreateExecutionEnumerator<T>(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
         Boolean topNode, ref Byte nodeId) {
         if (hintedIndexInfo != null) {
-            return CreateIndexScan(nodeId++, hintedIndexInfo, SortOrder.Ascending,
+            return CreateIndexScan<T>(nodeId++, hintedIndexInfo, SortOrder.Ascending,
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
         if (sortIndexInfo != null) {
-            return CreateIndexScan(nodeId++, sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering,
+            return CreateIndexScan<T>(nodeId++, sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering,
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
         if (refLookUpExpression != null) {
-            return new ReferenceLookup(nodeId++, rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, fetchOffsetKeyExpr, variableArr, query);
+            return new ReferenceLookup<T>(nodeId++, rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, fetchOffsetKeyExpr, variableArr, query);
         }
 
         if (identityExpression != null)
-            return new ObjectIdentityLookup(nodeId++, rowTypeBind, extentNumber, identityExpression, GetCondition(),
+            return new ObjectIdentityLookup<T>(nodeId++, rowTypeBind, extentNumber, identityExpression, GetCondition(),
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, variableArr, query, topNode);
 
         if (bestIndexInfo != null) {
-            return CreateIndexScan(nodeId++, bestIndexInfo, SortOrder.Ascending,
+            return CreateIndexScan<T>(nodeId++, bestIndexInfo, SortOrder.Ascending,
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
@@ -499,7 +499,7 @@ internal class ExtentNode : IOptimizationNode
             if (conditionList.Count > 0 && canCodeGen) {
                 // Trying to create a scan which uses native filter code generation.
                 try {
-                    IExecutionEnumerator exec_enum = new FullTableScan(nodeId, rowTypeBind,
+                    IExecutionEnumerator exec_enum = new FullTableScan<T>(nodeId, rowTypeBind,
                         extentNumber,
                         extentIndexInfo,
                         GetCondition(),
@@ -520,13 +520,13 @@ internal class ExtentNode : IOptimizationNode
             }
 
             // Proceeding with the worst case: full table scan on managed code level.
-            return CreateIndexScan(nodeId++, extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
+            return CreateIndexScan<T>(nodeId++, extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
         ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
-    private IExecutionEnumerator CreateIndexScan(byte nodeId, IndexInfo indexInfo, SortOrder sortOrdering, 
+    private IExecutionEnumerator CreateIndexScan<T>(byte nodeId, IndexInfo indexInfo, SortOrder sortOrdering, 
         INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
         Boolean topNode)
     {
@@ -595,7 +595,7 @@ internal class ExtentNode : IOptimizationNode
         }
 
         // Creating index scan enumerator.
-        return new IndexScan(nodeId, rowTypeBind,
+        return new IndexScan<T>(nodeId, rowTypeBind,
                              extentNumber,
                              indexInfo,
                              strPathList,

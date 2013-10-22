@@ -21,11 +21,6 @@ namespace Starcounter
     {
 
         /// <summary>
-        /// Gets the current item (row) in the result of the query.
-        /// </summary>
-        new dynamic Current { get; }
-
-        /// <summary>
         /// The SQL query this SQL enumerator executes.
         /// </summary>
         String Query { get; }

@@ -15,7 +15,7 @@ using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
-internal class Join : ExecutionEnumerator, IExecutionEnumerator
+internal class Join<T> : ExecutionEnumerator<T>, IExecutionEnumerator
 {
     JoinType joinType;
     IExecutionEnumerator leftEnumerator;
@@ -461,7 +461,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         if (postFilterCondition != null)
             postFilterConditionClone = postFilterCondition.Clone(varArrClone);
 
-        return new Join(nodeId, rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
+        return new Join<T>(nodeId, rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
             rightEnumerator.Clone(rowTypeBindClone, varArrClone), postFilterConditionClone, 
             fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
             varArrClone, query, TopNode);

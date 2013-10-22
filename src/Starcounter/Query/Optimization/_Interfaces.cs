@@ -12,7 +12,7 @@ namespace Starcounter.Query.Optimization
 {
 internal interface IOptimizationNode
 {
-    IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr, 
+    IExecutionEnumerator CreateExecutionEnumerator<T>(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr, 
         Boolean topNode, ref Byte nodeId);
 
     void InstantiateExtentOrder(List<Int32> extentOrder);

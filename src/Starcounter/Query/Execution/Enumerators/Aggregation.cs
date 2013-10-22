@@ -16,7 +16,7 @@ using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
-internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
+internal class Aggregation<T> : ExecutionEnumerator<T>, IExecutionEnumerator
 {
     TemporaryTypeBinding tempTypeBinding;
     Int32 extentNumber;
@@ -88,7 +88,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         if (this.comparer.ComparerCount == 0) {
             this.enumerator = this.subEnumerator;
         } else {
-            this.enumerator = new Sort(nodeId, subEnumerator.RowTypeBinding, subEnumerator, 
+            this.enumerator = new Sort<T>(nodeId, subEnumerator.RowTypeBinding, subEnumerator, 
                 comparer, variableArray, query, null, null, null, topNode);
         }
         cursorObject = null;
@@ -352,7 +352,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetExpr != null)
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
         
-        return new Aggregation(nodeId, rowTypeBindClone, extentNumber,
+        return new Aggregation<T>(nodeId, rowTypeBindClone, extentNumber,
                                subEnumerator.Clone(rowTypeBindClone, varArrClone),
                                comparer.Clone(varArrClone), setFuncListClone,
                                condition.Clone(varArrClone), varArrClone, query,
