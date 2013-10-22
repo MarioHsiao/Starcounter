@@ -367,6 +367,16 @@ namespace QueryProcessingTest {
             var res4 = Db.SQL<Decimal>("select amount from account").First;
             var res5 = Db.SQL<Decimal>("select accountid from account").First;
 
+            wasException = false;
+            try {
+                var astrs = Db.SQL<String>("select name from user").GetEnumerator();
+                var decsres = astrs.Current;
+            } catch (Exception exc) {
+                if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRINVALIDCURRENT)
+                    throw exc;
+                wasException = true;
+            }
+            Trace.Assert(wasException);
             HelpMethods.LogEvent("Finished testing query result mismatch errors.");
         }
 
