@@ -37,10 +37,10 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <summary>
         /// Calls original optimizer on results of analyzer.
         /// </summary>
-        internal void Optimize() {
+        internal void Optimize<T>() {
             Debug.Assert(JoinTree != null && WhereCondition != null && HintSpec != null, "Query should parsed and analyzed before optimization");
-            OptimizedPlan = Optimizer.Optimize(new OptimizerInput(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec));
-            ((ExecutionEnumerator)OptimizedPlan).IsBisonParserUsed = true;
+            OptimizedPlan = Optimizer.Optimize<T>(new OptimizerInput(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec));
+            ((ExecutionEnumerator<T>)OptimizedPlan).IsBisonParserUsed = true;
         }
         
         /// <summary>

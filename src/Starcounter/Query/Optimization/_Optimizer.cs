@@ -24,7 +24,7 @@ internal static class Optimizer
     /// <param name="fetchOffsetKeyExpr">An offset-key expression.</param>
     /// <param name="hintSpec">A hint specification given by the user on how to execute the query.</param>
     /// <returns>An execution enumerator corresponding to an optimized query execution plan.</returns>
-    internal static IExecutionEnumerator Optimize(OptimizerInput args) {
+    internal static IExecutionEnumerator Optimize<T>(OptimizerInput args) {
         IOptimizationNode nodeTree = args.NodeTree;
         ConditionDictionary conditionDict = args.ConditionDict;
         INumericalExpression fetchNumExpr = args.FetchNumExpr;
@@ -57,11 +57,11 @@ internal static class Optimizer
         }
         FlagInnermostExtent(bestOptimizationTree);
         // Return the corresponding execution enumerator.
-        IExecutionEnumerator createdEnumerator = bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        IExecutionEnumerator createdEnumerator = bestOptimizationTree.CreateExecutionEnumerator<T>(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
 
         // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
         if (((createdEnumerator.VarArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (createdEnumerator.QueryString[0] != ' '))
-            createdEnumerator = new LikeExecEnumerator(0, createdEnumerator.QueryString, null, null);
+            createdEnumerator = new LikeExecEnumerator<T>(0, createdEnumerator.QueryString, null, null);
         //Console.WriteLine((createdEnumerator.NodeId+1) + " " + createdEnumerator.Query);
         return createdEnumerator;
     }

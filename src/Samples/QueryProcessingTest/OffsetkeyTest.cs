@@ -55,7 +55,7 @@ namespace QueryProcessingTest {
             string f = "fetch ?";
             dynamic n = 4;
             String query = "select u from user u ";
-            IRowEnumerator<dynamic> e = Db.SQL(query + f, n).GetEnumerator();
+            IRowEnumerator<Object> e = Db.SQL(query + f, n).GetEnumerator();
             byte[] k = e.GetOffsetKey();
             Trace.Assert(k == null);
             e.Dispose();
@@ -90,13 +90,13 @@ namespace QueryProcessingTest {
             // Test using offset key for queries with different query plans but the same extent.
             // Obtain on index scan and try on full table scan
             e = Db.SQL("select a from account a").GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(IndexScan));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(IndexScan<Object>));
             Trace.Assert(e.MoveNext());
             k = e.GetOffsetKey();
             e.Dispose();
             Trace.Assert(k != null);
             e = Db.SQL("select a from account a where amount > ? offsetkey ?", 10, k).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(FullTableScan));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(FullTableScan<Object>));
             bool isException = false;
             try {
                 e.MoveNext();
@@ -109,13 +109,13 @@ namespace QueryProcessingTest {
             Trace.Assert(isException);
             // Obtain on full table scan and try on index scan
             e = Db.SQL("select a from account a where amount > ?", 10).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(FullTableScan));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(FullTableScan<Object>));
             Trace.Assert(e.MoveNext());
             k = e.GetOffsetKey();
             e.Dispose();
             Trace.Assert(k != null);
             e = Db.SQL("select a from account a where accountid < ? offsetkey ?", 10, k).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(IndexScan));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(IndexScan<Object>));
             isException = false;
             try {
                 e.MoveNext();
@@ -128,16 +128,16 @@ namespace QueryProcessingTest {
             Trace.Assert(isException);
             // Obtain on index scan and try on object identity lookup
             e = Db.SQL("select a from account a, account a2 where a.accountid = ? and a.accountid < a2.accountid", 10).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
-            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).LeftEnumerator.GetType() == typeof(IndexScan));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(Join<Object>));
+            Trace.Assert(((Join<Object>)((SqlEnumerator<Object>)e).subEnumerator).LeftEnumerator.GetType() == typeof(IndexScan<Object>));
             Trace.Assert(e.MoveNext());
             objectno = ((Account)e.Current).GetObjectNo();
             k = e.GetOffsetKey();
             e.Dispose();
             Trace.Assert(k != null);
             e = Db.SQL("select a from account a, account a2 where a.objectno = ? and a.accountid < a2.accountid offsetkey ?", objectno, k).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
-            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).LeftEnumerator.GetType() == typeof(ObjectIdentityLookup));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(Join<Object>));
+            Trace.Assert(((Join<Object>)((SqlEnumerator<dynamic>)e).subEnumerator).LeftEnumerator.GetType() == typeof(ObjectIdentityLookup<Object>));
             isException = false;
             try {
                 e.MoveNext();
@@ -150,15 +150,15 @@ namespace QueryProcessingTest {
             Trace.Assert(isException);
             // Obtain on index scan and try on refernce lookup
             e = Db.SQL("select a from account a, user u where a.accountid = ? and u.useridnr = ?", 10, 2).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
-            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).RightEnumerator.GetType() == typeof(FullTableScan));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(Join<Object>));
+            Trace.Assert(((Join<Object>)((SqlEnumerator<Object>)e).subEnumerator).RightEnumerator.GetType() == typeof(FullTableScan<Object>));
             Trace.Assert(e.MoveNext());
             k = e.GetOffsetKey();
             e.Dispose();
             Trace.Assert(k != null);
             e = Db.SQL("select a from account a, user u where a.accountid = ? and a.client = u offsetkey ?", 10, k).GetEnumerator();
-            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
-            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).RightEnumerator.GetType() == typeof(ReferenceLookup));
+            Trace.Assert(((SqlEnumerator<Object>)e).subEnumerator.GetType() == typeof(Join<Object>));
+            Trace.Assert(((Join<Object>)((SqlEnumerator<Object>)e).subEnumerator).RightEnumerator.GetType() == typeof(ReferenceLookup<Object>));
             isException = false;
             try {
                 e.MoveNext();

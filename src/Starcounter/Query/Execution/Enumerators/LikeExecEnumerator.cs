@@ -12,7 +12,7 @@ using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
-    internal class LikeExecEnumerator : ExecutionEnumerator, IExecutionEnumerator
+    internal class LikeExecEnumerator<T> : ExecutionEnumerator<T>, IExecutionEnumerator
     {
         IExecutionEnumerator[] subExecEnums = null; // Execution enumerators of converted queries.
         IExecutionEnumerator currentExecEnum = null; // Current underlying converted execution enumerator.
@@ -69,7 +69,7 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Creates an array of converted START WITH strings.
         /// </summary>
-        internal void CreateLikeCombinations<T>()
+        internal void CreateLikeCombinations()
         {
             String[] likeAndStartWith = { " like ", " starts with " };
             String lowerQuery = query.ToLower();
@@ -303,7 +303,7 @@ namespace Starcounter.Query.Execution
                     subExecEnumsClone[i] = subExecEnums[i].CloneCached();
             }
 
-            return new LikeExecEnumerator(nodeId, query, subExecEnumsClone, likeVarIndexes);
+            return new LikeExecEnumerator<T>(nodeId, query, subExecEnumsClone, likeVarIndexes);
         }
 
         public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

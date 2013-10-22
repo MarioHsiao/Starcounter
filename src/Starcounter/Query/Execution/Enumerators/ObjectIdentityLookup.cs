@@ -9,7 +9,7 @@ namespace Starcounter.Query.Execution {
     /// Enumerator with unique access for an object based on ObjectId, which
     /// either given numerical as ObjectNo or string as ObjectID.
     /// </summary>
-    internal class ObjectIdentityLookup : ExecutionEnumerator, IExecutionEnumerator {
+    internal class ObjectIdentityLookup<T> : ExecutionEnumerator<T>, IExecutionEnumerator {
         Int32 extentNumber;
         Row contextObject;
         ulong currectObjectId;
@@ -328,7 +328,7 @@ namespace Starcounter.Query.Execution {
             else
                 expressionClone = (expression as IStringExpression).CloneToString(varArrClone);
 
-            return new ObjectIdentityLookup(nodeId, rowTypeBindClone, extentNumber, expressionClone,
+            return new ObjectIdentityLookup<T>(nodeId, rowTypeBindClone, extentNumber, expressionClone,
                 condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
                 varArrClone, query, TopNode);
         }

@@ -191,10 +191,10 @@ internal class OptimizationTree
         }
     }
 
-    internal IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
+    internal IExecutionEnumerator CreateExecutionEnumerator<T>(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         byte nodeId = 0;
-        IExecutionEnumerator enumerator = topNode.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, true, ref nodeId);
+        IExecutionEnumerator enumerator = topNode.CreateExecutionEnumerator<T>(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, true, ref nodeId);
         enumerator.RowTypeBinding.ExtentOrder = extentOrder;
         if (topNode is SortNode)
             enumerator.VarArray.QueryFlags = enumerator.VarArray.QueryFlags | QueryFlags.IncludesSorting;
