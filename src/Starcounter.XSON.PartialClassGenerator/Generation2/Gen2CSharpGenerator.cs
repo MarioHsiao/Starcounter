@@ -398,7 +398,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                          " template) { Template = template; }");
 
             a.Prefix.Add("    " + markAsCodegen);
-            a.Prefix.Add("    protected override Template GetDefaultTemplate() { return DefaultTemplate; }");
+            a.Prefix.Add("    protected override _ScTemplate_ GetDefaultTemplate() { return DefaultTemplate; }");
 
             a.Prefix.Add("    " + markAsCodegen);
             a.Prefix.Add(
@@ -757,6 +757,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 				defaultUsings.Add("s=Starcounter");
 				defaultUsings.Add("_GEN1_=System.Diagnostics.DebuggerNonUserCodeAttribute");
 				defaultUsings.Add("_GEN2_=System.CodeDom.Compiler.GeneratedCodeAttribute");
+				defaultUsings.Add("_ScTemplate_=Starcounter.Templates.Template");
 			}
 
             h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");

@@ -34,7 +34,6 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
     private readonly string name;
     private readonly string fullName;
     private readonly DatabaseClassCollection databaseClasses;
-    private bool isCached;
     private bool isTransformed;
     private bool hasDebuggingSymbols;
     private readonly Dictionary<string, string> dependencies = new Dictionary<string, string>();
@@ -93,21 +92,6 @@ public sealed class DatabaseAssembly : DatabaseSchemaElement
         get
         {
             return this.databaseClasses;
-        }
-    }
-
-    /// <summary>
-    /// Determines whether the current assembly was taken from cache.
-    /// </summary>
-    public bool IsCached
-    {
-        get
-        {
-            return isCached;
-        }
-        set
-        {
-            isCached = value;
         }
     }
 

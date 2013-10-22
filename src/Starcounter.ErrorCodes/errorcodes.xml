@@ -3411,6 +3411,12 @@
     <code hex="004C" severity="Error" name="ScErrTupleIncomplete">
       <message>TupleWriter cannot safely seal tuple, since not all values were written.</message>
     </code>
+    <code hex="004D" severity="Error" name="ScErrWeaverCantUseCache">
+      <message>
+        The weaver was unable to weave the application because of an internal problem
+        with the weaver cache. Run the weaver with the --nocache option to remedy.
+      </message>
+    </code>
  </facility>
 
   <!-- Error codes related to query processing. -->
