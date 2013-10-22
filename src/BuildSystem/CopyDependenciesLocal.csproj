@@ -49,7 +49,7 @@
   <ItemGroup>
     <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />	
   </ItemGroup>
-  <Target Name="CopyLocalFiles">
+  <Target Name="CopyLocalFiles" AfterTargets="Build">
     <!-- Building Blue solution if any. -->
     <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True' AND Exists('$(LocalBlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     <!-- Creating dynamic copied files lists. -->
@@ -72,6 +72,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Name="Build" />
-  <Target Name="AfterBuild" DependsOnTargets="CopyLocalFiles" />
+  <Target Name="Build">
+    <Message Text="Running Build Target!" />
+  </Target>
 </Project>
