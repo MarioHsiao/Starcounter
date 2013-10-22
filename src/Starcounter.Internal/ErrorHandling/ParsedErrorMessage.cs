@@ -93,6 +93,10 @@ namespace Starcounter.Internal
             code = 0;
             index = ErrorMessage.IndexOfHeaderBodyDelimiter(errorMessage);
             header = errorMessage.Substring(0, index);
+            if (!header.Contains("(") || !header.Contains(")")) {
+                throw ToParsingException(errorMessage);
+            }
+
 
             // Get the error code from the header
 

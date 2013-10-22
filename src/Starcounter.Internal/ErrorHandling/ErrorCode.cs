@@ -319,12 +319,21 @@ namespace Starcounter
             if (exception == null)
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS);
 
-            if (exception.Data.Contains(ErrorCode.EC_TRANSPORT_KEY))
+            uint code;
+            if (TryGetCode(exception, out code))
             {
                 try
                 {
                     message = ErrorMessage.Parse(exception.Message);
-                    return true;
+                    if (message.Code == code) {
+                        // We do this check as an extra safety measure to assure
+                        // we detect any future problem parsing a certain message
+                        // that might look like an error message but really isnt.
+                        // If the error code comes out correct, we at least know
+                        // there is no risk of a serious damage (i.e. the will at
+                        // least represent the same error).
+                        return true;
+                    }
                 }
                 catch { }
             }
