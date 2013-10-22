@@ -284,7 +284,7 @@ internal abstract class ExecutionEnumerator
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
             }
         }
-        throw new InvalidOperationException("Enumerator has not started or has already finished.");
+        throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m, e) => new InvalidOperationException(m));
     }
 
     public dynamic Current {
