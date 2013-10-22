@@ -78,70 +78,11 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public dynamic Current
-    {
-        get
-        {
-            if (enumerator != null)
-            {
-                switch (projectionTypeCode)
-                {
-                    case null:
-                        return enumerator.Current;
-
-                    case DbTypeCode.Binary:
-                        return enumerator.Current.GetBinary(0);
-
-                    case DbTypeCode.Boolean:
-                        return enumerator.Current.GetBoolean(0);
-
-                    case DbTypeCode.Byte:
-                        return enumerator.Current.GetByte(0);
-
-                    case DbTypeCode.DateTime:
-                        return enumerator.Current.GetDateTime(0);
-
-                    case DbTypeCode.Decimal:
-                        return enumerator.Current.GetDecimal(0);
-
-                    case DbTypeCode.Double:
-                        return enumerator.Current.GetDouble(0);
-
-                    case DbTypeCode.Int16:
-                        return enumerator.Current.GetInt16(0);
-
-                    case DbTypeCode.Int32:
-                        return enumerator.Current.GetInt32(0);
-
-                    case DbTypeCode.Int64:
-                        return enumerator.Current.GetInt64(0);
-
-                    case DbTypeCode.Object:
-                        return enumerator.Current.GetObject(0);
-
-                    case DbTypeCode.SByte:
-                        return enumerator.Current.GetSByte(0);
-
-                    case DbTypeCode.Single:
-                        return enumerator.Current.GetSingle(0);
-
-                    case DbTypeCode.String:
-                        return enumerator.Current.GetString(0);
-
-                    case DbTypeCode.UInt16:
-                        return enumerator.Current.GetUInt16(0);
-
-                    case DbTypeCode.UInt32:
-                        return enumerator.Current.GetUInt32(0);
-
-                    case DbTypeCode.UInt64:
-                        return enumerator.Current.GetUInt64(0);
-
-                    default:
-                        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect projectionTypeCode.");
-                }
+    public new dynamic Current {
+        get {
+            if (enumerator != null) {
+                return ProjectObject(enumerator.Current, projectionTypeCode);
             }
-
             throw new InvalidOperationException("Enumerator has not started or has already finished.");
         }
     }
