@@ -83,7 +83,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
             if (enumerator != null) {
                 return ProjectObject(enumerator.Current, projectionTypeCode);
             }
-            throw new InvalidOperationException("Enumerator has not started or has already finished.");
+            throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m,e) => new InvalidOperationException(m));
         }
     }
 
