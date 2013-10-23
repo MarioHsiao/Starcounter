@@ -85,11 +85,11 @@ namespace Starcounter.Query {
 #endif
             // Call to optimizer of Prolog result
             if (optArgsProlog != null)
-                prologParsedQueryPlan = Optimizer.Optimize<T>(optArgsProlog);
+                prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
 
             // Call to optimizer of Bison result
             if (newAnalyzer != null)
-                newAnalyzer.Optimize<T>();
+                newAnalyzer.Optimize();
 
             // Check equality
 #if DEBUG
@@ -104,8 +104,8 @@ namespace Starcounter.Query {
             IExecutionEnumerator newEnum = newAnalyzer != null ? newAnalyzer.OptimizedPlan : prologParsedQueryPlan;
 
             // Checking if its LikeExecEnumerator.
-            if (newEnum is LikeExecEnumerator<T>) {
-                (newEnum as LikeExecEnumerator<T>).CreateLikeCombinations();
+            if (newEnum is LikeExecEnumerator) {
+                (newEnum as LikeExecEnumerator).CreateLikeCombinations<T>();
             }
             MatchEnumeratorResultAndExpectedType<T>(newEnum);
             return newEnum;

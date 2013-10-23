@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
-internal class Sort<T> : ExecutionEnumerator<T>, IExecutionEnumerator
+internal class Sort : ExecutionEnumerator, IExecutionEnumerator
 {
     IExecutionEnumerator subEnumerator;
     IQueryComparer comparer;
@@ -78,10 +78,10 @@ internal class Sort<T> : ExecutionEnumerator<T>, IExecutionEnumerator
         }
     }
 
-    public new T Current {
+    public new dynamic Current {
         get {
             if (enumerator != null) {
-                return (T)ProjectObject(enumerator.Current, projectionTypeCode);
+                return ProjectObject(enumerator.Current, projectionTypeCode);
             }
             throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m,e) => new InvalidOperationException(m));
         }
@@ -216,7 +216,7 @@ internal class Sort<T> : ExecutionEnumerator<T>, IExecutionEnumerator
         if (fetchOffsetExpr != null)
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
 
-        return new Sort<T>(nodeId, rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
+        return new Sort(nodeId, rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
             fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
             TopNode);
     }

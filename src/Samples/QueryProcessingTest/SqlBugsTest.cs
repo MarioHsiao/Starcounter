@@ -383,8 +383,7 @@ namespace QueryProcessingTest {
         public static void TestIndexQueryOptimization() {
             HelpMethods.LogEvent("Test query optimization with indexes");
             // Issue #563
-            Trace.Assert(((SqlEnumerator<User>)Db.SQL<User>("select u from user u where nickname = ?", "Nk1").
-                GetEnumerator()).subEnumerator.GetType() == typeof(Starcounter.Query.Execution.IndexScan<User>));
+            Trace.Assert(((SqlEnumerator<User>)Db.SQL<User>("select u from user u where nickname = ?", "Nk1").GetEnumerator()).subEnumerator.GetType() == typeof(Starcounter.Query.Execution.IndexScan));
 
             // Issue #645
             var query = Db.SQL<User>("select u from user u where nickname = ? and lastname = ?", "Nk2", "Ln2");

@@ -16,7 +16,7 @@ using System.Diagnostics;
 namespace Starcounter.Query.Execution
 {
 // Implementation for base execution enumerator class.
-internal abstract class ExecutionEnumerator<T>
+internal abstract class ExecutionEnumerator
 {
     protected static int OFFSETELEMNETSIZE = 2; // Initial size of offset element in tuple writer
     protected static byte OffsetRootHeaderLength; // Length of the header of offset key tuple.
@@ -226,7 +226,7 @@ internal abstract class ExecutionEnumerator<T>
         internal set { isBisonParserUsed = value; }
     }
 
-    public dynamic ProjectObject(Row currentObject, DbTypeCode? projectionTypeCode) {
+    public Object ProjectObject(Row currentObject, DbTypeCode? projectionTypeCode) {
         if (currentObject != null) {
             switch (projectionTypeCode) {
                 case null:
@@ -287,10 +287,9 @@ internal abstract class ExecutionEnumerator<T>
         throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m, e) => new InvalidOperationException(m));
     }
 
-    public T Current {
+    public dynamic Current {
         get {
-            dynamic projection = ProjectObject(currentObject, projectionTypeCode);
-            return (T)projection;
+            return ProjectObject(currentObject, projectionTypeCode);
         }
     }
 

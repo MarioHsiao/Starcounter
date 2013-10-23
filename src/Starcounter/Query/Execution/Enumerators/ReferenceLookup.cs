@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
-internal class ReferenceLookup<T> : ExecutionEnumerator<T>, IExecutionEnumerator
+internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
 {
     Int32 extentNumber;
     Row contextObject;
@@ -301,7 +301,7 @@ internal class ReferenceLookup<T> : ExecutionEnumerator<T>, IExecutionEnumerator
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
 
-        return new ReferenceLookup<T>(nodeId, rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
+        return new ReferenceLookup(nodeId, rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
             condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetKeyExprClone, varArrClone, query);
     }
 
