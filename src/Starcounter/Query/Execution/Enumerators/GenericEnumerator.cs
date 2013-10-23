@@ -178,7 +178,7 @@ namespace Starcounter {
         public T Current {
             get {
                 if (subEnumerator != null)
-                    return (T)subEnumerator.Current;
+                    return subEnumerator.Current;
                 else
                     throw new ObjectDisposedException("Enumerator");
             }

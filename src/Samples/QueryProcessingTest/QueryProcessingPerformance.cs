@@ -21,7 +21,7 @@ namespace QueryProcessingTest {
             Stopwatch timer = new Stopwatch();
             timer.Start();
             try {
-                Starcounter.Query.QueryPreparation.PrepareQuery<Object>(query);
+                Starcounter.Query.QueryPreparation.PrepareQuery<dynamic>(query);
             } catch (Exception e) {
                 if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINTERNALERROR)
                     throw e;
@@ -32,7 +32,7 @@ namespace QueryProcessingTest {
             timer.Start();
             for (int i = 0; i < nrPrologIterations; i++)
                 try {
-                    Starcounter.Query.QueryPreparation.PrepareQuery<Object>(query);
+                    Starcounter.Query.QueryPreparation.PrepareQuery<dynamic>(query);
                 } catch (Exception e) { 
                     if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINTERNALERROR)
                         throw e;
@@ -58,7 +58,7 @@ namespace QueryProcessingTest {
             IExecutionEnumerator prologParsedQueryPlan = null;
             timer.Start();
             for (int i = 0; i < nrIterations; i++)
-                prologParsedQueryPlan = Optimizer.Optimize<Object>(optArgsProlog);
+                prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
             timer.Stop();
             Console.WriteLine(String.Format("Optimizing the query tree took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
 

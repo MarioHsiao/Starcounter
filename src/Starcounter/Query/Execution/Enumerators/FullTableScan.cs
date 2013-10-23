@@ -20,7 +20,7 @@ using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
-internal class FullTableScan<T> : ExecutionEnumerator<T>, IExecutionEnumerator
+internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 {
     Int32 extentNumber = -1; // To which table this enumerator belongs to.
     UInt64 indexHandle = 0; // Handle to the related index.
@@ -756,7 +756,7 @@ internal class FullTableScan<T> : ExecutionEnumerator<T>, IExecutionEnumerator
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
 
-        return new FullTableScan<T>(nodeId, typeBindingClone,
+        return new FullTableScan(nodeId, typeBindingClone,
             extentNumber,
             indexInfo,
             conditionClone,
