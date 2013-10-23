@@ -570,6 +570,7 @@ namespace Starcounter.Binding
                         case DbTypeCode.UInt32:
                         case DbTypeCode.UInt16:
                         case DbTypeCode.Object:
+                        case DbTypeCode.Key:
                             *((ulong*)h) = ulong.MaxValue; h += 8;
                             break;
                         case DbTypeCode.Decimal:
@@ -586,7 +587,6 @@ namespace Starcounter.Binding
                             uint sl = *((uint*)s) + 4;
                             for (uint si = 0; si < sl; si++) *h++ = *s++;
                             break;
-                        case DbTypeCode.Key: break;
                         case DbTypeCode.Binary:
                             throw new NotImplementedException();
                         default:
