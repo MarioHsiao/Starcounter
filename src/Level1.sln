@@ -220,7 +220,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesRemote", "B
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Starcounter.SqlParser", "Starcounter.SqlParser\Starcounter.SqlParser.vcxproj", "{D0026211-2592-42FD-AD67-BF609803D2DB}"
 	ProjectSection(ProjectDependencies) = postProject
-		{EC69526F-72FB-4E26-AD8D-7CF22B145C93} = {EC69526F-72FB-4E26-AD8D-7CF22B145C93}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.SqlParser.Tests", "Starcounter.SqlParser.Tests\Starcounter.SqlParser.Tests.csproj", "{84C29D6B-3FD3-4806-BDC8-A9C9426EF093}"
