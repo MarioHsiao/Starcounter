@@ -163,5 +163,5 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Import Condition="Exists('../packages/UnmanagedExports.1.2.4.23262')" Project="../packages/UnmanagedExports.1.2.4.23262/tools/RGiesecke.DllExport.targets" />
+  
 </Project>
