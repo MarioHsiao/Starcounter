@@ -313,16 +313,18 @@ internal static class SqlProcessor
 
         TypeBinding typeBind;
         // Obtain correct table name
+        Exception exc = null;
         try {
             typeBind = Bindings.GetTypeBindingInsensitive(typePath);
         } catch (DbException e) {
-            if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
+            if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH) {
                 typeBind = null;
-            else
+                exc = e;
+            } else
                 throw;
         }
         if (typeBind == null)
-            throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
+            throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found", exc);
 
         // Call kernel
         UInt32 errorCode;

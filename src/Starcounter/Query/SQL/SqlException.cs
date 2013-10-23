@@ -200,6 +200,10 @@ public class SqlException : Exception
         return ErrorCode.ToException(errorCode, messagePostfix, (m, e) => new SqlException(m));
     }
 
+    internal static Exception GetSqlException(uint errorCode, string messagePostfix, Exception exc) {
+        return ErrorCode.ToException(errorCode, messagePostfix, (m, e) => new SqlException(m, exc));
+    }
+
     internal static Exception GetSqlException(uint errorCode, string messagePostfix, String token) {
         return ErrorCode.ToException(errorCode, messagePostfix, (m, e) => new SqlException(m, token));
     }
