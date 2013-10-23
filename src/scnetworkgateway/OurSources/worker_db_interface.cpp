@@ -609,8 +609,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
     // Getting the response part of the chunk.
     response_chunk_part* resp_chunk = smc->get_response_chunk();
     uint32_t response_size = resp_chunk->get_offset();
-    if (0 == response_size)
-        return SCERRGWBMXCHUNKWRONGFORMAT;
+    GW_ASSERT (0 != response_size);
 
     uint32_t err_code = 0;
     uint32_t offset = 0;

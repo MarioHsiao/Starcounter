@@ -24,7 +24,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <LocalBlueSolution>..\..\..\Level0\msbuild\Blue.sln</LocalBlueSolution>
+    <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
   </PropertyGroup>
 
   <Target Name="CopyRemoteFiles">
@@ -35,8 +35,8 @@
     
     <!-- Creating copied files lists. -->
     <ItemGroup>
-      <RemoteBlueBinFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)\*" />
-      <RemoteBlueIncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
+      <RemoteLevel0BinFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)\*" />
+      <RemoteLevel0IncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />
       <RemoteParserToolsBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\ParserTools\**\*" />
@@ -46,8 +46,8 @@
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueBinFiles)" DestinationFiles="@(RemoteBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteBlueIncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0BinFiles)" DestinationFiles="@(RemoteLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0IncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemotePostSharpBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCecilBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteParserToolsBinaries)" DestinationFiles="@(RemoteParserToolsBinaries->'..\packages\ParserTools\%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -57,5 +57,5 @@
 
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Name="Build" DependsOnTargets="CopyRemoteFiles" />
+  <Target Name="AfterBuild" DependsOnTargets="CopyRemoteFiles" />
 </Project>
