@@ -53,45 +53,45 @@ namespace Starcounter {
         }
 
 
-		/// <summary>
-		/// Gets the bound value from the dataobject.
-		/// </summary>
-		/// <typeparam name="TVal"></typeparam>
-		/// <param name="template"></param>
-		/// <returns></returns>
-		internal TVal GetBound<TVal>(Property<TVal> template) {
-			if (template.UseBinding(this))
-				return template.BoundGetter(this);
-			return default(TVal);
-		}
+		///// <summary>
+		///// Gets the bound value from the dataobject.
+		///// </summary>
+		///// <typeparam name="TVal"></typeparam>
+		///// <param name="template"></param>
+		///// <returns></returns>
+		//internal TVal GetBound<TVal>(Property<TVal> template) {
+		//	if (template.UseBinding(this))
+		//		return template.BoundGetter(this);
+		//	return default(TVal);
+		//}
 
-		/// <summary>
-		/// Sets the value to the dataobject.
-		/// </summary>
-		/// <param name="template"></param>
-		/// <param name="value"></param>
-		internal void SetBound<TVal>(Property<TVal> template, TVal value) {
-			if (template.UseBinding(this))
-				template.BoundSetter(this, value);
-		}
+		///// <summary>
+		///// Sets the value to the dataobject.
+		///// </summary>
+		///// <param name="template"></param>
+		///// <param name="value"></param>
+		//internal void SetBound<TVal>(Property<TVal> template, TVal value) {
+		//	if (template.UseBinding(this))
+		//		template.BoundSetter(this, value);
+		//}
 
-		internal object GetBound(TValue template) {
-			IBindable data = DataAsBindable;
-			var thisj = AssertIsObject();
-			if (data == null)
-				return null;
+		//internal object GetBound(TValue template) {
+		//	IBindable data = DataAsBindable;
+		//	var thisj = AssertIsObject();
+		//	if (data == null)
+		//		return null;
 
-			return template.GetBoundValueAsObject(thisj);
-		}
+		//	return template.GetBoundValueAsObject(thisj);
+		//}
 
-		internal void SetBound(TValue template, object value) {
-			var thisj = AssertIsObject();
-			IBindable data = DataAsBindable;
-			if (data == null)
-				return;
+		//internal void SetBound(TValue template, object value) {
+		//	var thisj = AssertIsObject();
+		//	IBindable data = DataAsBindable;
+		//	if (data == null)
+		//		return;
 
-			template.SetBoundValueAsObject(thisj, value);
-		}
+		//	template.SetBoundValueAsObject(thisj, value);
+		//}
 
         /// <summary>
         /// For public API functions that does not operate on templates, this
@@ -203,7 +203,7 @@ namespace Starcounter {
 							Refresh(child);
 					} else {
                         var thisj = AssertIsObject();
-						var arr = (Json)thisj.Get(child);
+						var arr = (Json)child.Getter(thisj);
 						arr.Clear();
 					}
                 }

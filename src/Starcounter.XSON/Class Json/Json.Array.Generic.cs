@@ -105,27 +105,27 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public new T this[int index] {
-            get {
-#if QUICKTUPLE
-                return (T)list[index];
-#else
-            throw new NotImplementedException();
-#endif
-            }
-            set {
-                list[index] = value;
-                var s = Session;
-                if (Session != null) {
-                    if (ArrayAddsAndDeletes == null) {
-                        ArrayAddsAndDeletes = new List<Change>();
-                    }
-                    this._CallHasChanged((TObjArr)this.Template, index);
-//                    this._
-//                    Changes.Add(Change.Add((Obj)this.Parent, (TObjArr)this.Template, index));
-                }
-            }
-        }
+//		public new T this[int index] {
+//			get {
+//#if QUICKTUPLE
+//				return (T)list[index];
+//#else
+//			throw new NotImplementedException();
+//#endif
+//			}
+//			set {
+//				list[index] = value;
+//				var s = Session;
+//				if (Session != null) {
+//					if (ArrayAddsAndDeletes == null) {
+//						ArrayAddsAndDeletes = new List<Change>();
+//					}
+//					this._CallHasChanged((TObjArr)this.Template, index);
+////                    this._
+////                    Changes.Add(Change.Add((Obj)this.Parent, (TObjArr)this.Template, index));
+//				}
+//			}
+//		}
 
 
     }
