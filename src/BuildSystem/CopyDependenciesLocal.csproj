@@ -59,6 +59,8 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalLevel0BinFiles)" DestinationFiles="@(LocalLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(KillAllScript)" DestinationFolder="$(OutputPath)" />
@@ -75,4 +77,5 @@
   </Target>
   
   <Target Name="Rebuild" DependsOnTargets="CopyLocalFiles" />
+  
 </Project>

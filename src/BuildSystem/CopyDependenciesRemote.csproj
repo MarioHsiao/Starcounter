@@ -27,6 +27,8 @@
     <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  
   <Target Name="CopyRemoteFiles">
 
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
