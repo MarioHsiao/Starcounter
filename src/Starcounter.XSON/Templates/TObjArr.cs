@@ -22,12 +22,12 @@ namespace Starcounter.Templates {
 		internal string DebugUnboundGetter;
 #endif
 
-		public readonly Action<Json, IEnumerable> Setter;
-		public readonly Func<Json, IEnumerable> Getter;
+		public readonly Action<Json, Json> Setter;
+		public readonly Func<Json, Json> Getter;
 		internal Action<Json, IEnumerable> BoundSetter;
 		internal Func<Json, IEnumerable> BoundGetter;
-		internal Action<Json, IEnumerable> UnboundSetter;
-		internal Func<Json, IEnumerable> UnboundGetter;
+		internal Action<Json, Json> UnboundSetter;
+		internal Func<Json, Json> UnboundGetter;
 
 		/// <summary>
 		/// 
@@ -58,17 +58,44 @@ namespace Starcounter.Templates {
 			TemplateDelegateGenerator.GenerateUnboundDelegates(this, json, false);
 		}
 
-		private IEnumerable BoundOrUnboundGet(Json json) {
-			if (UseBinding(json))
-				return BoundGetter(json);
-			return UnboundGetter(json);
+		internal override void Checkpoint(Json json) {
+
+
+			//for (int t = 0; t < values.Count; t++) {
+			//	CheckpointAt(t);
+			//	var value = values[t];
+			//	if (value is Json) {
+			//		((Json)value).CheckpointChangeLog();
+			//	}
+			//}
+
+			base.Checkpoint(json);
+		}
+
+		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
+			throw new NotImplementedException();
+		}
+
+		internal override Json GetValue(Json parent) {
+			return UnboundGetter(parent);
+		}
+
+		private Json BoundOrUnboundGet(Json json) {
+			Json arr = UnboundGetter(json);
+
+			if (UseBinding(json)) {
+				var data = BoundGetter(json);
+				arr.CheckBoundArray(data);
+			}
+			return arr;
 		}
 
 		private void BoundOrUnboundSet(Json json, IEnumerable value) {
-			if (UseBinding(json))
-				BoundSetter(json, value);
-			else
-				UnboundSetter(json, value);
+			Json arr = UnboundGetter(json);
+			if (UseBinding(json)) {
+				arr.CheckBoundArray(value);
+			} else
+				throw new NotSupportedException("TODO!");
 		}
 
         public override Type MetadataType {

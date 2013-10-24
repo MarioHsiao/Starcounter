@@ -80,8 +80,8 @@ namespace Starcounter.XSON {
 			if (useBackingField)
 				throw new NotImplementedException();
 
-			var getLambda = GenerateUnboundGetExpression<object>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<object>(typeof(Json), property.TemplateIndex);
+			var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
+			var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex);
 
 			property.UnboundGetter = getLambda.Compile();
 			property.UnboundSetter = setLambda.Compile();
@@ -104,8 +104,32 @@ namespace Starcounter.XSON {
 			if (useBackingField)
 				throw new NotImplementedException();
 
-			var getLambda = GenerateUnboundGetExpression<IEnumerable>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<IEnumerable>(typeof(Json), property.TemplateIndex);
+			var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
+			var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex);
+
+			property.UnboundGetter = getLambda.Compile();
+			property.UnboundSetter = setLambda.Compile();
+
+#if DEBUG
+			property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+			property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+#endif
+		}
+
+		/// <summary>
+		/// Generates an expression-tree for getting and setting unbound values on a json object. The
+		/// expression will be compiled to a delegate and set on the property. If useBackingField is true
+		/// the expression will use a backing field instead of accessing a list.
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="json"></param>
+		/// <param name="directAccess"></param>
+		internal static void GenerateUnboundDelegates<T>(TArray<T> property, Json json, bool useBackingField) where T : Json, new() {
+			if (useBackingField)
+				throw new NotImplementedException();
+
+			var getLambda = GenerateUnboundGetExpression<Arr<T>>(typeof(Json), property.TemplateIndex);
+			var setLambda = GenerateUnboundSetExpression<Arr<T>>(typeof(Json), property.TemplateIndex);
 
 			property.UnboundGetter = getLambda.Compile();
 			property.UnboundSetter = setLambda.Compile();

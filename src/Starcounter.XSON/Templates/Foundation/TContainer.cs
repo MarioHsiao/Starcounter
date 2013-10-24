@@ -65,6 +65,8 @@ namespace Starcounter.Templates {
 			set { shouldUseCodegeneratedSerializer = value; }
 		}
 
+		internal abstract Json GetValue(Json parent);
+
 		/// <summary>
 		/// If set to true the codegeneration for the serializer will not be done in a background
 		/// and execution will wait until the generated serializer is ready to be used. This is 

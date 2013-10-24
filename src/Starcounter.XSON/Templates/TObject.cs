@@ -27,11 +27,11 @@ namespace Starcounter.Templates {
 #endif
 
 		public readonly Action<Json, object> Setter;
-		public readonly Func<Json, object> Getter;
+		public readonly Func<Json, Json> Getter;
 		internal Action<Json, object> BoundSetter;
 		internal Func<Json, object> BoundGetter;
-		internal Action<Json, object> UnboundSetter;
-		internal Func<Json, object> UnboundGetter;
+		internal Action<Json, Json> UnboundSetter;
+		internal Func<Json, Json> UnboundGetter;
 
 		private PropertyList _PropertyTemplates;
 		private string instanceDataTypeName;
@@ -62,26 +62,41 @@ namespace Starcounter.Templates {
 			dataTypeForBinding = null;
 		}
 
-		internal override bool GenerateBoundGetterAndSetter(Json json) {
-			TemplateDelegateGenerator.GenerateBoundDelegates(this, json);
+		internal override bool GenerateBoundGetterAndSetter(Json parent) {
+			TemplateDelegateGenerator.GenerateBoundDelegates(this, parent);
 			return (BoundGetter != null);
 		}
 
-		internal override void GenerateUnboundGetterAndSetter(Json json) {
-			TemplateDelegateGenerator.GenerateUnboundDelegates(this, json, false);
+		internal override void GenerateUnboundGetterAndSetter(Json parent) {
+			TemplateDelegateGenerator.GenerateUnboundDelegates(this, parent, false);
 		}
 
-		private object BoundOrUnboundGet(Json json) {
+		internal override void Checkpoint(Json parent) {
+			((Json)UnboundGetter(parent)).CheckpointChangeLog();
+			base.Checkpoint(parent);
+		}
+
+		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
+			Json value = UnboundGetter(parent);
+			value.SetBoundValuesInTuple();
+		}
+
+		internal override Json GetValue(Json parent) {
+			return UnboundGetter(parent);
+		}
+
+		private Json BoundOrUnboundGet(Json json) {
+			Json value = UnboundGetter(json);
 			if (UseBinding(json))
-				return BoundGetter(json);
-			return UnboundGetter(json);
+				value.CheckBoundObject(BoundGetter(json));
+			return value;
 		}
 
 		private void BoundOrUnboundSet(Json json, object value) {
 			if (UseBinding(json))
 				BoundSetter(json, value);
 			else
-				UnboundSetter(json, value);
+				throw new NotImplementedException("TODO!");
 		}
 
 		/// <summary>
