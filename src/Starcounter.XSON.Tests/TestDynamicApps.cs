@@ -94,13 +94,13 @@ namespace Starcounter.Internal.XSON.Tests {
             var jocke = new Json() { Template = personSchema };
             var tim = new Json() { Template = personSchema };
 
-            jocke.Set(firstName, "Joachim");
-            jocke.Set(lastName, "Wester");
-            jocke.Set(age, 30);
+            firstName.Setter(jocke, "Joachim");
+            lastName.Setter(jocke, "Wester");
+            age.Setter(jocke, 30);
 
-            tim.Set(firstName, "Timothy");
-            tim.Set(lastName, "Wester");
-            tim.Set(age, 16);
+            firstName.Setter(tim, "Timothy");
+            lastName.Setter(tim, "Wester");
+            age.Setter(tim, 16);
 
             Assert.AreEqual(0, firstName.TemplateIndex);
             Assert.AreEqual(1, lastName.TemplateIndex);
@@ -108,10 +108,10 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(3, phoneNumbers.TemplateIndex);
             Assert.AreEqual(0, number.TemplateIndex);
 
-            Assert.AreEqual("Joachim", jocke.Get(firstName));
-            Assert.AreEqual("Wester", jocke.Get(lastName));
-            Assert.AreEqual("Timothy", tim.Get(firstName));
-            Assert.AreEqual("Wester", tim.Get(lastName));
+            Assert.AreEqual("Joachim", firstName.Getter(jocke));
+            Assert.AreEqual("Wester", lastName.Getter(jocke));
+            Assert.AreEqual("Timothy", firstName.Getter(tim));
+            Assert.AreEqual("Wester", lastName.Getter(tim));
 
             var ret = new List<Json>();
             ret.Add(jocke);
@@ -452,8 +452,9 @@ namespace Starcounter.Internal.XSON.Tests {
 #endif
 
 			var pn = new PhoneNumberObject();
-
-			pnProperty.UnboundSetter(json, pn);
+			Json pnJson = (Json)pnProperty.CreateInstance();
+			pnJson.Data = pn;
+			pnProperty.UnboundSetter(json, pnJson);
 			Assert.AreEqual(pn, pnProperty.UnboundGetter(json));
 
 			if (bound) {

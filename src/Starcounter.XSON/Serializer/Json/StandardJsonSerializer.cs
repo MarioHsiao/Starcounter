@@ -77,7 +77,7 @@ restart:
 						// Property value.
 						if (tProperty is TObject) {
 							if (childObjArr == null) {
-								childObj = obj.Get((TObject)tProperty);
+								childObj = ((TObject)tProperty).Getter(obj);
 								if (childObj != null) {
 									valueSize = childObj.ToJsonUtf8(out childObjArr);
 								} else {
@@ -99,7 +99,7 @@ restart:
 							} else
 								goto restart;
 						} else if (tProperty is TObjArr) {
-							Json arr = obj.Get((TObjArr)tProperty);
+							Json arr = ((TObjArr)tProperty).Getter(obj);
 							if (buf.Length < (offset + arr.Count * 2 + 2))
 								goto restart;
 
@@ -111,7 +111,7 @@ restart:
 							}
 							for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
 								if (childObjArr == null) {
-									valueSize = (arr[arrPos] as Json).ToJsonUtf8(out childObjArr);
+									valueSize = (arr._GetAt(arrPos) as Json).ToJsonUtf8(out childObjArr);
 									if (valueSize == -1)
 										goto restart;
 									if (buf.Length < (offset + valueSize + 2))
@@ -134,15 +134,15 @@ restart:
 							posInArray = -1;
 						} else {
 							if (tProperty is TBool) {
-								valueSize = JsonHelper.WriteBool((IntPtr)pfrag, buf.Length - offset, obj.Get((TBool)tProperty));
+								valueSize = JsonHelper.WriteBool((IntPtr)pfrag, buf.Length - offset, ((TBool)tProperty).Getter(obj));
 							} else if (tProperty is TDecimal) {
-								valueSize = JsonHelper.WriteDecimal((IntPtr)pfrag, buf.Length - offset, obj.Get((TDecimal)tProperty));
+								valueSize = JsonHelper.WriteDecimal((IntPtr)pfrag, buf.Length - offset, ((TDecimal)tProperty).Getter(obj));
 							} else if (tProperty is TDouble) {
-								valueSize = JsonHelper.WriteDouble((IntPtr)pfrag, buf.Length - offset, obj.Get((TDouble)tProperty));
+								valueSize = JsonHelper.WriteDouble((IntPtr)pfrag, buf.Length - offset, ((TDouble)tProperty).Getter(obj));
 							} else if (tProperty is TLong) {
-								valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, obj.Get((TLong)tProperty));
+								valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, ((TLong)tProperty).Getter(obj));
 							} else if (tProperty is TString) {
-								valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.Get((TString)tProperty));
+								valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, ((TString)tProperty).Getter(obj));
 							} else if (tProperty is TTrigger) {
 								valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
 							}
@@ -213,21 +213,21 @@ restart:
                 reader.GotoValue();
                 try {
                     if (tProperty is TBool) {
-                        obj.Set((TBool)tProperty, reader.ReadBool());
+                        ((TBool)tProperty).Setter(obj, reader.ReadBool());
                     } else if (tProperty is TDecimal) {
-                        obj.Set((TDecimal)tProperty, reader.ReadDecimal());
+                        ((TDecimal)tProperty).Setter(obj, reader.ReadDecimal());
                     } else if (tProperty is TDouble) {
-                        obj.Set((TDouble)tProperty, reader.ReadDouble());
+                        ((TDouble)tProperty).Setter(obj, reader.ReadDouble());
                     } else if (tProperty is TLong) {
-                        obj.Set((TLong)tProperty, reader.ReadLong());
+                        ((TLong)tProperty).Setter(obj, reader.ReadLong());
                     } else if (tProperty is TString) {
-                        obj.Set((TString)tProperty, reader.ReadString());
+                        ((TString)tProperty).Setter(obj, reader.ReadString());
                     }
                     else if (tProperty is TObject) {
-                        childObj = obj.Get((TObject)tProperty);
+                        childObj = ((TObject)tProperty).Getter(obj);
                         reader.PopulateObject(childObj);
                     } else if (tProperty is TObjArr) {
-                        arr = obj.Get((TObjArr)tProperty);
+                        arr = ((TObjArr)tProperty).Getter(obj);
                         while (reader.GotoNextObjectInArray()) {
                             childObj = arr.Add();
                             reader.PopulateObject(childObj);

@@ -74,7 +74,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var temp = (Json)j;
 
             Assert.AreEqual("Joachim", p.FirstName); // Get firstname using data object
-            Assert.AreEqual("Joachim", temp.Get(prop)); // Get firstname using JSON data binding using API
+            Assert.AreEqual("Joachim", prop.Getter(temp)); // Get firstname using JSON data binding using API
             Assert.AreEqual("Joachim", j.FirstName); // Get firstname using JSON data binding using dynamic code-gen
 
             j.FirstName = "Douglas";

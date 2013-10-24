@@ -103,19 +103,27 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             friendSchema.Add<TString>("FirstName");
 
-            var j = new Json() { Template = schema };
-            var nicke = new Json() { Template = friendSchema };
+            dynamic j = new Json() { Template = schema };
+            dynamic nicke = new Json() { Template = friendSchema };
 
             Session.Data = j;
-            j["FirstName"] = "Jack";
-            nicke["FirstName"] = "Nicke";
-            (j["Friends"] as Json).Add( nicke );
+			j.FirstName = "Jack";
+			nicke.FirstName = "Nicke";
+			j.Friends.Add(nicke);
+			//j["FirstName"] = "Jack";
+			//nicke["FirstName"] = "Nicke";
+			//(j["Friends"] as Json).Add( nicke );
 
             Session.Current.CreateJsonPatch(true);
 
             dynamic henrik = new Json() { Template = friendSchema };
-            henrik["FirstName"] = "Henrik";
-            (j["Friends"] as Json)[0] = henrik;
+
+			// TODO:
+			// Readd this[string key].
+			//henrik.FirstName = "Henrik";
+			//j.Friends
+            //henrik["FirstName"] = "Henrik";
+            //(j["Friends"] as Json)[0] = henrik;
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
