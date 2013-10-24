@@ -517,6 +517,9 @@ namespace bmx
         // Is push to gateway already possible?
         bool is_push_ready();
 
+        // Number of remaining push channels.
+        int32_t get_num_remaining_push_channels();
+
         // Clones current BMX data.
         BmxData* Clone()
         {
@@ -641,7 +644,7 @@ namespace bmx
 }; // namespace starcounter
 
 // Waits for BMX manager to be ready.
-EXTERN_C uint32_t __stdcall sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms);
+EXTERN_C int32_t __stdcall sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms);
 
 // Handles all incoming chunks.
 EXTERN_C uint32_t __stdcall sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
