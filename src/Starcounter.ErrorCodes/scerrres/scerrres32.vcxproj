@@ -20,10 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AD78AE53-5B4C-4C20-B66E-78D42008DCE3}</ProjectGuid>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <RootNamespace>scerrres</RootNamespace>
-    <!-- Specifying .NET platform we are targeting. -->
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <!-- Setting the Visual Studio Build Toolset. -->
     <PlatformToolset>v110</PlatformToolset>
     <AssemblyName>scerrres</AssemblyName>
   </PropertyGroup>
@@ -72,6 +70,31 @@
     <Media Include="Format.h" />
     <Media Include="Format.def" />
   </ItemGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>true</TreatWarningAsError>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>true</TreatWarningAsError>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\ErrorCodeCompiler\scerrcc\scerrcc.csproj">
       <Project>{9e8d97fc-87a3-4a7c-b318-9414b5eea60e}</Project>
@@ -79,6 +102,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  
   <!-- Building error codes manually. -->
   <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(Platform)\$(Configuration)\$(AssemblyName).dll">
     <MakeDir Directories="$(OutDir)" />

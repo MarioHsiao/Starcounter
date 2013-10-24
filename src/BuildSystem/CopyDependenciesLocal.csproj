@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="CopyLocalFiles" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <OutputPath>..\..\bin\Release\</OutputPath>
   </PropertyGroup>
@@ -58,6 +58,8 @@
     <!-- Copying to Level1 output. -->
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalLevel0BinFiles)" DestinationFiles="@(LocalLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
+
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
@@ -74,7 +76,6 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
   </Target>
   
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Name="AfterBuild" DependsOnTargets="CopyLocalFiles" />
- 
+  <Target Name="Rebuild" DependsOnTargets="CopyLocalFiles" />
+  
 </Project>
