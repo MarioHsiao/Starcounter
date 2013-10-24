@@ -51,11 +51,7 @@ namespace Starcounter.Server {
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.sccorelog_connect_to_logs(ScUri.MakeServerUri(Environment.MachineName, c.Name), null, &hlogs);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            string logDirectory = c.LogDirectory;
-            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, logDirectory);
+            e = sccorelog.sccorelog_connect_to_logs(ScUri.MakeServerUri(Environment.MachineName, c.Name), c.LogDirectory, null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);
