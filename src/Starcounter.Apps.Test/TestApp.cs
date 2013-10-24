@@ -25,8 +25,8 @@ namespace Starcounter.Internal.Test {
             var at = new TJson();
             var st = new TString() { TemplateName = "FirstName", Parent = at };
             var app = new Json() { Template = at };
-            app.Set(st, "Joachim");
-            Assert.AreEqual("Joachim", app.Get(st));
+			st.Setter(app, "Joachim");
+			Assert.AreEqual("Joachim", st.Getter(app));
             Console.WriteLine(app.ToJson());
         }
 
@@ -40,8 +40,8 @@ namespace Starcounter.Internal.Test {
             var search = new TJson() { TemplateName = "Search", Parent = main };
             var app = new Json() { Template = main };
             var app2 = new Json() { Template = search };
-            app.Set(userId, "Jocke");
-            app.Set(search, app2);
+            userId.Setter(app, "Jocke");
+            search.Setter(app, app2);
             Console.WriteLine(app.ToJson()); //, IncludeView.Never));
         }
 
@@ -63,18 +63,19 @@ namespace Starcounter.Internal.Test {
 
             var obj = new Json() { Template = appTemplate };
             var jocke = new Json() { Template = person };
-            jocke.Set(firstName, "Joachim");
-            jocke.Set(lastName, "Wester");
-            obj.Get(persons).Add(jocke);
+
+            firstName.Setter(jocke, "Joachim");
+            lastName.Setter(jocke, "Wester");
+            persons.Getter(obj).Add(jocke);
 
             var addie = new Json() { Template = person };
-            addie.Set(firstName, "Adrienne");
-            addie.Set(lastName, "Wester");
-            obj.Get(persons).Add(addie);
+            firstName.Setter(addie, "Adrienne");
+            lastName.Setter(addie, "Wester");
+            persons.Getter(obj).Add(addie);
 
             //	     Assert.AreEqual("[[[\"Joachim\",\"Wester\",null],[\"Adrienne\",\"Wester\",null]],null]",//
             //	                     app.QuickAndDirtyObject.DebugDump());
-            Assert.AreEqual("Adrienne", obj.Get(persons)[1].Get(firstName));
+            Assert.AreEqual("Adrienne", firstName.Getter((Json)(persons.Getter(obj)._GetAt(1))));
 
             Console.WriteLine("Raw tuple:");
             //	     Console.WriteLine(app.QuickAndDirtyObject.DebugDump());

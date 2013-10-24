@@ -140,19 +140,19 @@ namespace Starcounter.Internal.JsonPatch.Test
                 dynamic app = aat.App;
 
                 AppAndTemplate obj = JsonPatch.Evaluate(app, "/FirstName");
-                String value = obj.App.Get((Property<string>)obj.Template);
+                String value = ((Property<string>)obj.Template).Getter(obj.App);
                 Assert.AreEqual(value, "Cliff");
 
                 obj = JsonPatch.Evaluate(app, "/LastName");
-                value = obj.App.Get((Property<string>)obj.Template);
+                value = ((Property<string>)obj.Template).Getter(obj.App);
                 Assert.AreEqual(value, "Barnes");
 
                 obj = JsonPatch.Evaluate(app, "/Items/0/Description");
-                value = obj.App.Get((Property<string>)obj.Template);
+                value = ((Property<string>)obj.Template).Getter(obj.App);
                 Assert.AreEqual(value, "Take a nap!");
 
                 obj = JsonPatch.Evaluate(app, "/Items/1/IsDone");
-                bool b = obj.App.Get((TBool)obj.Template);
+                bool b = ((TBool)obj.Template).Getter(obj.App);
                 Assert.AreEqual(b, true);
 
                 obj = JsonPatch.Evaluate(app, "/Items/1");
@@ -186,7 +186,7 @@ namespace Starcounter.Internal.JsonPatch.Test
 
             var appt = (TJson)aat.Template;
             from = appt.Properties[0];
-            str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, from, "Hmmz", -1);
+            str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, (TValue)from, -1);
             Console.WriteLine(str);
 
             Assert.AreEqual("{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Hmmz\"}", str);
@@ -205,7 +205,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             {
                 //                    str = JsonPatch.BuildJsonPatch(JsonPatchType.replace, app, app.Template.FirstName, "Hmmz");
                 //                    str = JsonPatchHelper.BuildJsonPatch("replace", item, item.Template.Description, "Hmmz");
-                str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, from, "Hmmz", -1);
+                str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, (TValue)from, -1);
             }
             DateTime stop = DateTime.Now;
 
@@ -226,16 +226,16 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
             TJson anotherAppt = (TJson)appt.Properties[3];
-            Json nearestApp = aat.App.Get(anotherAppt);
+			Json nearestApp = anotherAppt.Getter(aat.App);
 
             var desc = (Property<string>)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
             TObjArr itemProperty = (TObjArr)appt.Properties[2];
-            Json items = aat.App.Get(itemProperty);
+            Json items = itemProperty.Getter(aat.App);
 
-            nearestApp = (Json)items[1];
+            nearestApp = (Json)items._GetAt(1);
             anotherAppt = (TJson)nearestApp.Template;
 
             TBool delete = (TBool)anotherAppt.Properties[2];
