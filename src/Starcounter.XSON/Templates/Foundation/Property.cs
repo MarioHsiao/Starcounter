@@ -77,13 +77,48 @@ namespace Starcounter.Templates {
 			TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, json, false);
 		}
 
-		internal override object GetBoundValueAsObject(Json json) {
-			return BoundGetter(json);
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		internal override void Checkpoint(Json json) {
+			if (UseBinding(json))
+				UnboundSetter(json, BoundGetter(json));
+			base.Checkpoint(json);
 		}
 
-		internal override void SetBoundValueAsObject(Json json, object value) {
-			BoundSetter(json, (T)value);
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		/// <param name="addToChangeLog"></param>
+		internal override void CheckAndSetBoundValue(Json json, bool addToChangeLog) {
+			if (UseBinding(json)) {
+				T boundValue = BoundGetter(json);
+				T oldValue = UnboundGetter(json);
+
+				// Since all values except string are valuetypes (and cannot be null),
+				// the default implementation does no nullchecks. This method is overriden
+				// in TString where we check for null as well.
+				if (!boundValue.Equals(oldValue)) {
+					UnboundSetter(json, boundValue);
+					if (addToChangeLog)
+						json.Session.UpdateValue(json, this);
+				}
+			}
 		}
+
+		internal override string ValueToJsonString(Json parent) {
+			return Getter(parent).ToString();
+		}
+
+		//internal override object GetBoundValueAsObject(Json json) {
+		//	return BoundGetter(json);
+		//}
+
+		//internal override void SetBoundValueAsObject(Json json, object value) {
+		//	BoundSetter(json, (T)value);
+		//}
 
         /// <summary>
         /// Adds an inputhandler to this property.

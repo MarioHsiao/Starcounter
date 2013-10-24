@@ -341,9 +341,9 @@ namespace Starcounter {
 
             foreach (Template child in ((TContainer)json.Template).Children) {
                 if (child is TObject) {
-                    DisposeJsonRecursively(json.Get((TObject)child));
+                    DisposeJsonRecursively(((TObject)child).Getter(json));
                 } else if (child is TObjArr) {
-                    Json listing = json.Get((TObjArr)child);
+                    Json listing = ((TObjArr)child).Getter(json);
                     foreach (Json listApp in listing) {
                         DisposeJsonRecursively(listApp);
                     }

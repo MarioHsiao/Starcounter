@@ -52,5 +52,31 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get { return typeof(string); }
         }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="addToChangeLog"></param>
+		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
+			if (UseBinding(parent)) {
+				string boundValue = BoundGetter(parent);
+				string oldValue = UnboundGetter(parent);
+
+				if ((boundValue == null && oldValue != null) 
+					|| (boundValue != null && !boundValue.Equals(oldValue))) {
+					UnboundSetter(parent, boundValue);
+					if (addToChangeLog)
+						parent.Session.UpdateValue(parent, this);
+				}
+			}	
+		}
+
+		internal override string ValueToJsonString(Json parent) {
+			string value = Getter(parent);
+			if (value != null)
+				return '"' + value + '"';
+			return "null";
+		}
     }
 }

@@ -340,12 +340,12 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Json list = mainApp.Get((TObjArr)current);
-                    current = list[index];
+                    Json list = ((TObjArr)current).Getter(mainApp);
+                    current = list._GetAt(index);
                 }
                 else {
                     if (currentIsTApp) {
-                        mainApp = (Json)mainApp.Get((TObject)current);
+                        mainApp = ((TObject)current).Getter(mainApp);
                         currentIsTApp = false;
                     }
 

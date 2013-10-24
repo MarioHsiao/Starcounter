@@ -93,15 +93,37 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		internal abstract bool GenerateBoundGetterAndSetter(Json json);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
 		internal abstract void GenerateUnboundGetterAndSetter(Json json);
 
-		internal virtual void SetBoundValueAsObject(Json obj, object value) {
-			throw new NotSupportedException();
+		/// <summary>
+		/// 
+		/// </summary>
+		internal abstract void CheckAndSetBoundValue(Json json, bool addToChangeLog);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="json"></param>
+		internal virtual void Checkpoint(Json json) {
+			json.CheckpointAt(TemplateIndex);
 		}
 
-		internal virtual object GetBoundValueAsObject(Json obj) {
-			throw new NotSupportedException();
+		internal virtual string ValueToJsonString(Json parent) {
+			return "";
 		}
+
+		//internal virtual void SetBoundValueAsObject(Json obj, object value) {
+		//	throw new NotSupportedException();
+		//}
+
+		//internal virtual object GetBoundValueAsObject(Json obj) {
+		//	throw new NotSupportedException();
+		//}
 
 		/// <summary>
 		/// 

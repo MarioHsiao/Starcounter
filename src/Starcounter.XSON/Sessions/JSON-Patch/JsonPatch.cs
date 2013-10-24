@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
 
@@ -99,12 +98,12 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="patchType">Type of the patch.</param>
         /// <param name="nearestApp">The nearest app.</param>
         /// <param name="from">From.</param>
-        /// <param name="value">The value.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        public static String BuildJsonPatch(Int32 patchType, Json nearestApp, Template from, Object value, Int32 index) {
+        public static String BuildJsonPatch(Int32 patchType, Json nearestApp, TValue from, Int32 index) {
             List<String> pathList = new List<String>();
             StringBuilder sb = new StringBuilder(40);
+			Json childJson = null;
 
             sb.Append("{\"op\":\"");
             sb.Append(PatchTypeToString(patchType));
@@ -114,7 +113,7 @@ namespace Starcounter.Internal.JsonPatch {
 				IndexPathToString(sb, from, nearestApp);
 			} else {
 				sb.Append('/');
-				value = nearestApp;
+				childJson = nearestApp;
 			}
 
           if (index != -1) {
@@ -126,12 +125,15 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (patchType != REMOVE) {
                 sb.Append(",\"value\":");
-				if (value is Json) {
-					var oo = (Json)value;
-					sb.Append(oo.ToJson());
-					oo.SetBoundValuesInTuple();
+				if (childJson == null && from is TContainer) {
+					childJson = ((TContainer)from).GetValue(nearestApp);
+				}
+
+				if (childJson != null) {
+					sb.Append(childJson.ToJson());
+					childJson.SetBoundValuesInTuple();
 				} else {
-                    sb.Append(JsonConvert.SerializeObject(value));
+                    sb.Append(from.ValueToJsonString(nearestApp));
                 }
             }
             sb.Append('}');
@@ -165,8 +167,8 @@ namespace Starcounter.Internal.JsonPatch {
             for (Int32 i = 0; i < path.Length; i++) {
                 if (nextIndexIsPositionInList) {
                     nextIndexIsPositionInList = false;
-                    list = (Json)app.Get(listProp);
-                    app = (Json)list[path[i]];
+					list = listProp.GetValue(app);
+                    app = (Json)list._GetAt(path[i]);
                     sb.Append('/');
                     sb.Append(path[i]);
                 } else {
@@ -183,7 +185,7 @@ namespace Starcounter.Internal.JsonPatch {
                         nextIndexIsPositionInList = true;
                     }
                     else if (template is TObject) {
-                        app = app.Get((TObject)template);
+                        app = ((TObject)template).Getter(app);
                     }
                 }
             }
