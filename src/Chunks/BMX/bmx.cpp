@@ -541,8 +541,13 @@ static uint8_t g_schedulers_count = 0;
 // Is push to gateway already possible?
 bool BmxData::is_push_ready()
 {
-    return (g_schedulers_count > 0) &&
-        (num_registered_push_channels_ >= g_schedulers_count);
+    return (g_schedulers_count > 0) && (num_registered_push_channels_ >= g_schedulers_count);
+}
+
+// Number of remaining push channels.
+int32_t BmxData::get_num_remaining_push_channels()
+{
+    return g_schedulers_count - num_registered_push_channels_;
 }
 
 // Registers push channel and send the response.
