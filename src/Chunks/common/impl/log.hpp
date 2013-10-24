@@ -54,11 +54,7 @@ try {
 			throw log_exception(err);
 		}
 		
-		if ((err = ::sccorelog_connect_to_logs(&host_name[0], 0, &handle_)) != 0) {
-			throw log_exception(err);
-		}
-		
-		if ((err = ::sccorelog_bind_logs_to_dir(handle_, server_log_dir)) != 0) {
+		if ((err = ::sccorelog_connect_to_logs(&host_name[0], server_log_dir, 0, &handle_)) != 0) {
 			throw log_exception(err);
 		}
 	}

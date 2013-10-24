@@ -3364,10 +3364,7 @@ uint32_t Gateway::OpenStarcounterLog()
 		err_code = sccorelog_init(0);
 		if (err_code) goto err;
 
-		err_code = sccorelog_connect_to_logs(host_name, NULL, &sc_log_handle_);
-		if (err_code) goto err;
-
-		err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_server_output_dir_.c_str());
+		err_code = sccorelog_connect_to_logs(host_name, setting_server_output_dir_.c_str(), NULL, &sc_log_handle_);
 		if (err_code) goto err;
 
 		goto end;
