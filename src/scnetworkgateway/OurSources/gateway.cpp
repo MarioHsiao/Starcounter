@@ -3509,9 +3509,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (err_code)
         return err_code;
 
-    // Setting I/O as low priority.
-    SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);
-
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();
     if (err_code)
