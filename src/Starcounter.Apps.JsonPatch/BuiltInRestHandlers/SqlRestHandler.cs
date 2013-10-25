@@ -144,12 +144,6 @@ namespace Starcounter.Internal {
                     response.Body = nex.Message;
                     return response;
                 }
-                catch (Exception ex) {
-                    var response = new Response();
-                    response.StatusCode = 400;
-                    response.Body = ex.Message;
-                    return response;
-                }
             });
         }
 
