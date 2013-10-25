@@ -320,7 +320,8 @@ namespace Starcounter.Server {
             // alive. Start a code host process.
 
             var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps);
-            process = DoStartEngineProcess(startInfo, database);
+            process = DoStartEngineProcess(startInfo, database, (sender, e) => { database.CodeHostErrorOutput.Add(e.Data); });
+            process.BeginErrorReadLine();
             database.CodeHostProcess = process;
             database.SupposedToBeStarted = true;
             database.CodeHostArguments = startInfo.Arguments;
@@ -414,6 +415,7 @@ namespace Starcounter.Server {
         internal void ResetToCodeHostNotRunning(Database database) {
             database.CodeHostProcess = null;
             database.CodeHostArguments = null;
+            database.CodeHostErrorOutput.Clear();
             database.Apps.Clear();
             database.SupposedToBeStarted = false;
         }
@@ -422,10 +424,15 @@ namespace Starcounter.Server {
             try { p.Close(); } catch { }
         }
 
-        Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database) {
-            Process p = null;
+        Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database, DataReceivedEventHandler errorDataRecevied = null) {
+            Process p = new Process();
+            p.StartInfo = startInfo;
+            if (errorDataRecevied != null) {
+                p.ErrorDataReceived += errorDataRecevied;
+            }
+
             try {
-                p = Process.Start(startInfo);
+                p.Start();
             } catch (Exception e) {
                 var postfix = string.Format("Engine executable: \"{0}\"", startInfo.FileName);
                 ServerLogSources.Default.LogException(e, postfix);
