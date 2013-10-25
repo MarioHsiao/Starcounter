@@ -12,19 +12,20 @@ enum SOCKET_DATA_FLAGS
 {
     SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
     SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
-    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
+    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 2 << 1,
     SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
-    SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
+    SOCKET_DATA_FLAGS_ACTIVE_CONN = 2 << 3,
     SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
     SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
-    SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048,
+    SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 2 << 7,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2 << 8,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2 << 9,
     HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
-    SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 8192,
-    SOCKET_DATA_FLAGS_AGGREGATION_SD = 8192 * 2,
-    SOCKET_DATA_FLAGS_AGGREGATED = MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED
+    SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 2 << 11,
+    SOCKET_DATA_FLAGS_AGGREGATION_SD = 2 << 12,
+    SOCKET_DATA_FLAGS_AGGREGATED = MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED,
+    SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = MixedCodeConstants::SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION
 };
 
 // Socket data chunk.
@@ -496,6 +497,21 @@ public:
         flags_ &= ~SOCKET_DATA_FLAGS_AGGREGATED;
     }
 
+    bool get_on_host_accumulation_flag()
+    {
+        return (flags_ & SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION) != 0;
+    }
+
+    void set_on_host_accumulation_flag()
+    {
+        flags_ |= SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
+    }
+
+    void reset_on_host_accumulation_flag()
+    {
+        flags_ &= ~SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
+    }
+
     bool get_aggregation_sd_flag()
     {
         return (flags_ & SOCKET_DATA_FLAGS_AGGREGATION_SD) != 0;
@@ -714,7 +730,10 @@ public:
     // Returns port index.
     int32_t GetPortIndex()
     {
-        return g_gateway.GetPortIndex(socket_info_index_);
+        int32_t port_index = g_gateway.GetPortIndex(socket_info_index_);
+        GW_ASSERT ((port_index != INVALID_PORT_INDEX) && (port_index < g_gateway.get_num_server_ports_slots()));
+
+        return port_index;
     }
 
     // Returns scheduler id.

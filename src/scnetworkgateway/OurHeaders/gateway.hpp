@@ -176,6 +176,9 @@ const int32_t MAX_FETCHED_OVLS = 10;
 // Maximum size of HTTP content.
 const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
 
+// Maximum size of HTTP content requiring accumulation on host.
+const int32_t CONTENT_SIZE_HOST_ACCUMULATION = 1024 * 64;
+
 // Aggregation buffer size.
 const int32_t AGGREGATION_BUFFER_SIZE = 1024 * 1024 * 16;
 
@@ -1086,13 +1089,15 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Resets the session struct.
     void Reset()
     {
+        unique_socket_id_ = INVALID_SESSION_SALT;
         session_.Reset();
 
-        port_index_ = INVALID_PORT_INDEX;
+        // NOTE: Fields that stays the same for the same socket.
+        //socket_ = INVALID_SOCKET;
+        //port_index_ = INVALID_PORT_INDEX;
+
         ResetTimestamp();
-        unique_socket_id_ = INVALID_SESSION_SALT;
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
-        socket_ = INVALID_SOCKET;
         saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
         flags_ = 0;
         matched_uri_index_ = INVALID_URI_INDEX;
