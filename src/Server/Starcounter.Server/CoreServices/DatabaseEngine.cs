@@ -491,7 +491,9 @@ namespace Starcounter.Server {
             StringBuilder args;
 
             args = new StringBuilder();
-            // args.Append("--FLAG:attachdebugger ");  // Apply to attach a debugger to the boot sequence.
+            if (Debugger.IsAttached) {
+                args.Append("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
+            }
             args.Append(database.Name.ToUpper());
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
