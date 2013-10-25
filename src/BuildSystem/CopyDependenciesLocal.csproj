@@ -44,18 +44,6 @@
 
   </ItemGroup>
   
-  <ItemGroup>
-    <ProjectReference Include="..\Starcounter.ErrorCodes\scerrres\scerrres.vcxproj">
-      <Project>{5A65D606-6613-4139-8853-B5F26313E4DF}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    
-    <ProjectReference Include="..\Starcounter.ErrorCodes\scerrres\scerrres32.vcxproj">
-      <Project>{AD78AE53-5B4C-4C20-B66E-78D42008DCE3}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
-  
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="BuildLevel0" Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True' AND Exists('$(LocalLevel0Solution)')" >
   
