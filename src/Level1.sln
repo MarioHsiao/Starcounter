@@ -26,8 +26,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1a. External Packages", "1a
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesLocal", "BuildSystem\CopyDependenciesLocal.csproj", "{8B599BFF-B414-41A3-A270-96CDA0C522AF}"
 	ProjectSection(ProjectDependencies) = postProject
-		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
-		{AD78AE53-5B4C-4C20-B66E-78D42008DCE3} = {AD78AE53-5B4C-4C20-B66E-78D42008DCE3}
 		{EC69526F-72FB-4E26-AD8D-7CF22B145C93} = {EC69526F-72FB-4E26-AD8D-7CF22B145C93}
 	EndProjectSection
 EndProject
@@ -50,9 +48,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scerrcc", "Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc\scerrcc.csproj", "{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scerrres", "Starcounter.ErrorCodes\scerrres\scerrres.vcxproj", "{5A65D606-6613-4139-8853-B5F26313E4DF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{AD78AE53-5B4C-4C20-B66E-78D42008DCE3} = {AD78AE53-5B4C-4C20-B66E-78D42008DCE3}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Errors", "Starcounter.ErrorCodes\Starcounter.Errors\Starcounter.Errors.csproj", "{1F4D1E72-C615-42B1-9B29-D5A9CEDE09E0}"
 EndProject
