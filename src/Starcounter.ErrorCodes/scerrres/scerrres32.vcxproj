@@ -55,14 +55,14 @@
   <PropertyGroup>
     <!-- We need to set the path explicitely because of the compilation error. -->
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\bin\$(Configuration)\32BitComponents\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\bin\$(Configuration)\32BitComponents\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\bin\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\bin\$(Configuration)\32BitComponents\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\bin\$(Configuration)\32BitComponents\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\bin\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemGroup>
     <Media Include="..\errorcodes.xml" />
@@ -106,7 +106,7 @@
   </ImportGroup>
   
   <!-- Building error codes manually. -->
-  <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(Platform)\$(Configuration)\$(AssemblyName).dll">
+  <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll">
     <MakeDir Directories="$(OutDir)" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -mc $(OutDir)\$(AssemblyName).mc" />
     <Exec Command="&quot;c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\x64\mc.exe&quot; -r $(OutDir) -v $(OutDir)\$(AssemblyName).mc" />

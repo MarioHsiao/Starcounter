@@ -273,7 +273,7 @@ namespace Starcounter
                     Request http_request = new Request(
                         raw_chunk,
                         is_single_chunk,
-                        task_info->chunk_index,
+                        chunk_index,
                         task_info->handler_id,
                         p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
                         p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
