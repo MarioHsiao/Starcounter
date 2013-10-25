@@ -209,9 +209,9 @@ namespace Starcounter.Internal.Test
                 {
                     fixed (MixedCodeConstants.UserDelegateParamInfo* p2 = paramsInfo)
                     {
-                        Byte[] requestStrNoContent = Encoding.ASCII.GetBytes("GET /dashboard/123\r\n\r\n");
+                        Byte[] requestStrNoContent = Encoding.ASCII.GetBytes("GET /dashboard/123\r\nCrazyHeader: FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE\r\n\r\n");
                         Byte[] requestStrWithContent =
-                            Encoding.ASCII.GetBytes("GET /dashboard/123\r\nContent-Length:" 
+                            Encoding.ASCII.GetBytes("GET /dashboard/123\r\nCrazyHeader: FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE\r\nContent-Length:" 
                             + Encoding.ASCII.GetByteCount(jsonContent) 
                             + "\r\n\r\n" 
                             + jsonContent);
