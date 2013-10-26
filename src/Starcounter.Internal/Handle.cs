@@ -20,6 +20,11 @@ namespace Starcounter {
     public partial class Handle {
 
         /// <summary>
+        /// Indicator of parameter in URI.
+        /// </summary>
+        public const String UriParameterIndicator = "{?}";
+
+        /// <summary>
         /// Inject REST handler function provider here
         /// </summary>
         public static volatile IREST _REST;
