@@ -35,10 +35,7 @@ uint32_t OpenStarcounterLog(const char *server_name, const wchar_t *server_log_d
 		err_code = sccorelog_init(0);
 		if (err_code) goto err;
 
-		err_code = sccorelog_connect_to_logs(host_name, NULL, &g_sc_log_handle_);
-		if (err_code) goto err;
-
-		err_code = sccorelog_bind_logs_to_dir(g_sc_log_handle_, server_log_dir);
+		err_code = sccorelog_connect_to_logs(host_name, server_log_dir, NULL, &g_sc_log_handle_);
 		if (err_code) goto err;
 
 		goto end;
