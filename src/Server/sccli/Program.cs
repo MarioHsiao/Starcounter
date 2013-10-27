@@ -424,7 +424,7 @@ namespace star {
         /// <summary>
         /// Kills all Starcounter processes and waits for them to shutdown.
         /// </summary>
-        static void KillAllScProcesses(Int32 msToWait = 5000)
+        static void KillAllScProcesses(Int32 msToWait = 15000)
         {
             foreach (String procName in ScProcessesList)
             {
