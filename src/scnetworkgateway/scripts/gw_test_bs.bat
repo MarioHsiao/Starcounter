@@ -5,7 +5,7 @@
 CMD /C "kill_all.bat" 2>NUL
 
 :: Sleeping some time using ping.
-ping -n 10 127.0.0.1 > nul
+ping -n 15 127.0.0.1 > nul
 
 :: Some predefined constants.
 SET DB_DIR=.db
