@@ -442,6 +442,10 @@ namespace star {
 
                             throw new Exception(processCantBeKilled);
                         }
+                        else
+                        {
+                            Console.WriteLine("Process '" + procName + "' successfully killed!");
+                        }
                     }
                     catch { }
                     finally { proc.Close(); }
