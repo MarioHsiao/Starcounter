@@ -424,7 +424,7 @@ namespace star {
         /// <summary>
         /// Kills all Starcounter processes and waits for them to shutdown.
         /// </summary>
-        static void KillAllScProcesses(Int32 msToWait = 15000)
+        static void KillAllScProcesses(Int32 msToWait = 20000)
         {
             foreach (String procName in ScProcessesList)
             {
@@ -447,7 +447,6 @@ namespace star {
                             Console.WriteLine("Process '" + procName + "' successfully killed!");
                         }
                     }
-                    catch { }
                     finally { proc.Close(); }
                 }
             }
