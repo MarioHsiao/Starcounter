@@ -2,10 +2,7 @@
 :: gw_test_bs.bat 1 "MODE_GATEWAY_SMC_RAW 1000 10000000 100 BSStatsBlaBla" 1 MODE_GATEWAY_SMC_RAW 81 131072 --FLAG:NoDb
 
 :: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
-
-:: Sleeping some time using ping.
-ping -n 15 127.0.0.1 > nul
+star -killall
 
 :: Some predefined constants.
 SET DB_DIR=.db
