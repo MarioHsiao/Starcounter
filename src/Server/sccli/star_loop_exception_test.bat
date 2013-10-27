@@ -16,3 +16,8 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    star s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_THROW_EXCEPTION
 )
 
+:: Success message.
+ECHO Star.exe loop exception test finished successfully!
+
+CMD /C "kill_all.bat" 2>NUL
+GOTO :EOF
