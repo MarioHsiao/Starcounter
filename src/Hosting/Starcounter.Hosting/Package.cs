@@ -297,15 +297,7 @@ namespace Starcounter.Hosting {
                     var entrypointException = te.InnerException;
                     if (entrypointException == null) throw;
 
-                    // Check the inner exception and see if it's one of
-                    // ours. If not, we wrap it inside our general entrypoint
-                    // error.
-                    uint code;
-                    if (ErrorCode.TryGetCode(entrypointException, out code)) {
-                        throw entrypointException;
-                    } else {
-                        throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, entrypointException.ToString());
-                    }
+                    throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, entrypointException.ToString());
                 } finally {
                     Application.CurrentAssigned = null;
                 }

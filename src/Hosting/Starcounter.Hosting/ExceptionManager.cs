@@ -11,6 +11,7 @@ using System;
 
 namespace StarcounterInternal.Hosting
 {
+    using Error = Starcounter.Internal.Error;
 
     /// <summary>
     /// Class ExceptionManager
@@ -24,8 +25,10 @@ namespace StarcounterInternal.Hosting
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public static bool HandleUnhandledException(Exception ex)
         {
-            string message = Starcounter.Logging.ExceptionFormatter.ExceptionToString(ex);
+            // We begin formatting and logging the exception just
+            // as it arrives, no modifications or analysis at all.
 
+            string message = Starcounter.Logging.ExceptionFormatter.ExceptionToString(ex);
             sccoreapp.sccoreapp_log_critical_message(message);
 
             if (!Console.IsInputRedirected)
@@ -35,22 +38,35 @@ namespace StarcounterInternal.Hosting
 
             uint e = 0;
             Exception current = ex;
+            Exception entrypointException = null;
 
             // Might be that the real exception is an inner exception wrapped in some 
             // other exception that does not contain the errorcode so we traverse all 
             // exceptions until we find an errorcode or no more innerexceptions exist.
+
             while (current != null) {
-                if (ErrorCode.TryGetCode(current, out e))
-                    break;
+                if (ErrorCode.TryGetCode(current, out e)) {
+                    if (e == Error.SCERRFAILINGENTRYPOINT) {
+                        entrypointException = current;
+                        e = 0;
+                    } else {
+                        break;
+                    }
+                }
                 current = current.InnerException;
             }
 
             if (e == 0) { // No errorcode is found.
-                current = ex;
-                e = 1;
+                if (entrypointException != null) {
+                    current = entrypointException;
+                    e = Error.SCERRFAILINGENTRYPOINT;
+                } else {
+                    current = ex;
+                    e = 1;
+                }
             }
 
-            CodeHostError.Report(current.Message);
+            CodeHostError.Report(current);
 
             Kernel32.ExitProcess(e);
             return true;
