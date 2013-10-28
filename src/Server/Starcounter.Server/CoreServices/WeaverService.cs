@@ -102,7 +102,7 @@ namespace Starcounter.Server {
             try {
                 ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments), true);
             } catch (ToolInvocationException e) {
-                if (e.ExitCode == Error.SCERRWEAVERCANTUSECACHE && !retriedWithoutCache) {
+                if (ShouldTryWeaveWithoutCache(e.ExitCode) && !retriedWithoutCache) {
                     // If we detect that the weaver can not weave because of a problem with
                     // the cache, we retry once without using any cached code.
                     retriedWithoutCache = true;
@@ -114,6 +114,10 @@ namespace Starcounter.Server {
             }
 
             return Path.Combine(runtimeDirectory, Path.GetFileName(givenAssembly));
+        }
+
+        internal static bool ShouldTryWeaveWithoutCache(int error) {
+            return error == Error.SCERRWEAVERCANTUSECACHE || error == Error.SCERRUNHANDLEDWEAVEREXCEPTION;
         }
 
         public static void ExtractParcelledErrors(string[] content, string parcelID, List<string> errors, int maxCount = -1) {
