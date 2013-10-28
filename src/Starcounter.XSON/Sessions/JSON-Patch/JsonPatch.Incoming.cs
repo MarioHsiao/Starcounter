@@ -303,13 +303,9 @@ namespace Starcounter.Internal.JsonPatch {
 			// This is needed if the dirtycheck is enabled, since every time
 			// we retrieve a value or another json object, the check is triggered.
 			// Maybe this needs to be changed to avoid checks when handling incoming patches.
-			rootApp.ResumeTransaction();
-
+			// Right now we activate the transaction on each jsonobject we find when evaluating.
+			rootApp.ResumeTransaction(false);
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
-
-            // Resuming transaction if it exists up the tree.
-            aat.App.ResumeTransaction();
-
             ((TValue)aat.Template).ProcessInput(aat.App, value);
         }
 
@@ -351,6 +347,7 @@ namespace Starcounter.Internal.JsonPatch {
                 else {
                     if (currentIsTApp) {
                         mainApp = (Json)mainApp.Get((TObject)current);
+						mainApp.ResumeTransaction(false);
                         currentIsTApp = false;
                     }
 
@@ -373,6 +370,7 @@ namespace Starcounter.Internal.JsonPatch {
 
                 if (current is Json && !(current as Json).IsArray) {
                     mainApp = current as Json;
+					mainApp.ResumeTransaction(false);
                 }
                 else if (current is TObject) {
                     currentIsTApp = true;
