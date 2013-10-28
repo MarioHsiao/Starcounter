@@ -49,7 +49,6 @@ public class DatabaseSchema
         DatabaseAssembly databaseAssembly;
 
         databaseAssembly = new DatabaseAssembly("Starcounter", System.Reflection.Assembly.GetExecutingAssembly().FullName);
-        databaseAssembly.IsCached = true;
         databaseAssembly.SetSchema(this);
         Assemblies.Add(databaseAssembly);
     }

@@ -18,9 +18,14 @@ namespace Starcounter {
         public const Int32 PrivateBufferSize = 8192;
 
         /// <summary>
-        /// Maximum number of pending asynchronous calls.
+        /// Maximum number of pending asynchronous tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 8192 * 2;
+        public const Int32 MaxNumPendingAsyncTasks = 64;
+
+        /// <summary>
+        /// Maximum number of pending aggregated tasks.
+        /// </summary>
+        public const Int32 MaxNumPendingAggregatedTasks = 8192;
 
         /// <summary>
         /// Tcp client.
@@ -31,6 +36,11 @@ namespace Starcounter {
         /// Connection socket.
         /// </summary>
         public Socket SocketObj = null;
+
+        /// <summary>
+        /// Buffer used for accumulation.
+        /// </summary>
+        internal Byte[] AccumBuffer = null;
 
         /// <summary>
         /// Timer used for receive timeout.
@@ -127,6 +137,9 @@ namespace Starcounter {
         public NodeTask(Node nodeInst)
         {
             NodeInst = nodeInst;
+
+            if (!NodeInst.UsesAggregation())
+                AccumBuffer = new Byte[NodeTask.PrivateBufferSize];
         }
 
         /// <summary>
@@ -135,19 +148,6 @@ namespace Starcounter {
         public Boolean IsConnectionEstablished()
         {
             return (null != TcpClientObj);
-        }
-
-        /// <summary>
-        /// Attaching existing connection or reconnecting synchronously.
-        /// </summary>
-        public void AttachConnection(TcpClient existingTcpClient)
-        {
-            if (null == existingTcpClient)
-                TcpClientObj = new TcpClient(NodeInst.HostName, NodeInst.PortNumber);
-            else
-                TcpClientObj = existingTcpClient;
-
-            SocketObj = TcpClientObj.Client;
         }
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace Starcounter {
                     try
                     {
                         // Trying to parse the response.
-                        Resp = new Response(NodeInst.AccumBuffer, 0, recievedBytes, OrigReq, false);
+                        Resp = new Response(AccumBuffer, 0, recievedBytes, OrigReq, false);
 
                         // Getting the whole response size.
                         ResponseSizeBytes = Resp.ResponseLength;
@@ -215,7 +215,7 @@ namespace Starcounter {
                 }
 
                 // Writing received data to memory stream.
-                MemStream.Write(NodeInst.AccumBuffer, 0, recievedBytes);
+                MemStream.Write(AccumBuffer, 0, recievedBytes);
                 TotallyReceivedBytes += recievedBytes;
 
                 // Checking if we have received everything.
@@ -233,7 +233,7 @@ namespace Starcounter {
                 else
                 {
                     // Read again. This callback will be called again.
-                    SocketObj.BeginReceive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
+                    SocketObj.BeginReceive(AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
                 }
             }
             catch (Exception exc)
@@ -275,7 +275,7 @@ namespace Starcounter {
                 }
 
                 // Starting read operation.
-                IAsyncResult res = SocketObj.BeginReceive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
+                IAsyncResult res = SocketObj.BeginReceive(AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
 
                 // Checking if receive is not completed immediately.
                 if(!res.IsCompleted)
@@ -322,10 +322,6 @@ namespace Starcounter {
         {
             try
             {
-                // Checking if we already have an active connection.
-                if (NodeInst.CoreTaskInfo.IsConnectionEstablished())
-                    AttachConnection(NodeInst.CoreTaskInfo.TcpClientObj);
-
                 // Obtaining existing or creating new connection.
                 if (null == SocketObj)
                 {
@@ -418,7 +414,10 @@ namespace Starcounter {
 #endif
                     // Checking if we are connected.
                     if (null == SocketObj)
-                        AttachConnection(null);
+                    {
+                        TcpClientObj = new TcpClient(NodeInst.HostName, NodeInst.PortNumber);
+                        SocketObj = TcpClientObj.Client;
+                    }
 
                     // Sending the request.
                     Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
@@ -433,7 +432,8 @@ namespace Starcounter {
 
                     // Assuming that existing TCP connection is down.
                     // So we need to create a new one.
-                    AttachConnection(null);
+                    TcpClientObj = new TcpClient(NodeInst.HostName, NodeInst.PortNumber);
+                    SocketObj = TcpClientObj.Client;
 
                     SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
                 }
@@ -448,7 +448,7 @@ namespace Starcounter {
                 while (true)
                 {
                     // Reading the response into predefined buffer.
-                    recievedBytes = SocketObj.Receive(NodeInst.AccumBuffer, 0, PrivateBufferSize, SocketFlags.None);
+                    recievedBytes = SocketObj.Receive(AccumBuffer, 0, PrivateBufferSize, SocketFlags.None);
                     if (recievedBytes <= 0)
                     {
                         SocketObj = null;
@@ -460,7 +460,7 @@ namespace Starcounter {
                         try
                         {
                             // Trying to parse the response.
-                            Resp = new Response(NodeInst.AccumBuffer, 0, recievedBytes, OrigReq, false);
+                            Resp = new Response(AccumBuffer, 0, recievedBytes, OrigReq, false);
 
                             // Getting the whole response size.
                             ResponseSizeBytes = Resp.ResponseLength;
@@ -486,7 +486,7 @@ namespace Starcounter {
                         }
                     }
 
-                    MemStream.Write(NodeInst.AccumBuffer, 0, recievedBytes);
+                    MemStream.Write(AccumBuffer, 0, recievedBytes);
                     TotallyReceivedBytes += recievedBytes;
 
                     // Checking if we have received everything.

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="CopyLocalFiles" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <OutputPath>..\..\bin\Release\</OutputPath>
   </PropertyGroup>
@@ -16,62 +16,54 @@
     <RootNamespace>CopyDependenciesLocal</RootNamespace>
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup>
-    <LocalBlueSolution>..\..\..\Level0\msbuild\Blue.sln</LocalBlueSolution>
-    <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
-    <NodeUploadTool>..\BuildSystem\Tools\NodeUploadTool.exe</NodeUploadTool>
-    <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
-    <LocalGatewayXMLProxyTest>..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml</LocalGatewayXMLProxyTest>
-    <ScerrresDll>
-        ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll;
-        ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.pdb;
-        ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.lib
-    </ScerrresDll>
-	<ScerrresDll32>
-        ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.dll;
-        ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.pdb;
-        ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.lib
-    </ScerrresDll32>
-    
-    <LocalPrologSQLParserBinary>..\Starcounter\Query\PrologBinary\scsqlparser.exe</LocalPrologSQLParserBinary>
-    <LocalClangGatewayUriMatcherBinary>..\scnetworkgateway\GatewayClang.dll</LocalClangGatewayUriMatcherBinary>
-    <MonoCsharpBinary>..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll</MonoCsharpBinary>
-    
-  </PropertyGroup>
-  <PropertyGroup>
-    <LocalBlueBinariesDir>..\..\..\Level0\msbuild\x64\$(Configuration)</LocalBlueBinariesDir>
+    <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
   </PropertyGroup>
   <ItemGroup>
-    <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
-    <GacScripts Include="..\BuildSystem\Scripts\gac_*" />
+    
+    <KillAllScript Include="..\BuildSystem\Scripts\kill_all.bat" />
+    <NodeUploadTool Include="..\BuildSystem\Tools\NodeUploadTool.exe" />
+    <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
+    
+    <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
+    <ClangGatewayUriMatcherBinary Include="..\scnetworkgateway\GatewayClang.dll" />
+    <MonoCsharpBinary Include="..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll" />
+    
+    <GatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
+    <GACScripts Include="..\BuildSystem\Scripts\gac_*" />
+    <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
+
   </ItemGroup>
-  <ItemGroup>
-    <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />	
-  </ItemGroup>
-  <Target Name="CopyLocalFiles">
-    <!-- Building Blue solution if any. -->
-    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True' AND Exists('$(LocalBlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+  
+  <!-- Builds Level0 if necessary and copies output files. -->
+  <Target Name="BuildLevel0" Condition="Exists('$(LocalLevel0Solution)')" >
+  
+    <!-- Building Level0 solution if any. -->
+    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalLevel0Solution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
-      <LocalBlueBinFiles Include="$(LocalBlueBinariesDir)\*" />
+      <LocalLevel0BinFiles Include="..\..\..\Level0\msbuild\x64\$(Configuration)\*" />
     </ItemGroup>
-    <!-- Local files. -->
-    <Copy Condition="Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalKillAllScript)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(NodeUploadTool)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalTestRunScripts)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXMLProxyTest)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GacScripts)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll32)" DestinationFolder="$(OutputPath32)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalPrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
+    
+    <!-- Copying to Level1 output. -->
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalLevel0BinFiles)" DestinationFiles="@(LocalLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
+
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- <Target Name="Build" DependsOnTargets="CopyLocalFiles" /> -->
-  <Target Name="AfterBuild" DependsOnTargets="CopyLocalFiles" />
+  
+  <!-- Builds Level0 if necessary and copies output files. -->
+  <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(KillAllScript)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(NodeUploadTool)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(TestRunScripts)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayTestFiles)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GACScripts)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
+  </Target>
+  
+  <Target Name="Rebuild" DependsOnTargets="CopyLocalFiles" />
+  
 </Project>

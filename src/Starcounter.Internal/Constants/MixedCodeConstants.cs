@@ -57,27 +57,32 @@ namespace Starcounter.Internal
         /// <summary>
         /// Just send flag.
         /// </summary>
-        public const int SOCKET_DATA_FLAGS_JUST_SEND = 64;
+        public const int SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4;
 
         /// <summary>
         /// Disconnect after send flag.
         /// </summary>
-        public const int SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16;
+        public const int SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 2 << 2;
 
         /// <summary>
         /// Just disconnect flag.
         /// </summary>
-        public const int SOCKET_DATA_FLAGS_DISCONNECT = 128;
+        public const int SOCKET_DATA_FLAGS_DISCONNECT = 2 << 5;
 
         /// <summary>
         /// Gracefully close flag.
         /// </summary>
-        public const int HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 4096;
+        public const int HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 2 << 10;
 
         /// <summary>
         /// Is socket data aggregated.
         /// </summary>
-        public const int SOCKET_DATA_FLAGS_AGGREGATED = 8192 * 4;
+        public const int SOCKET_DATA_FLAGS_AGGREGATED = 2 << 13;
+
+        /// <summary>
+        /// Is socket data in host accumulation.
+        /// </summary>
+        public const int SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 14;
 
         /// <summary>
         /// Invalid chunk index.

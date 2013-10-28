@@ -92,19 +92,35 @@ namespace Starcounter.Server {
         internal string Weave(string givenAssembly, string runtimeDirectory) {
             string weaverExe;
             string arguments;
+            bool retriedWithoutCache;
 
+            retriedWithoutCache = false;
             weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
-            arguments = string.Format(
-                "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"", 
-                WeaverErrorParcelId, givenAssembly, runtimeDirectory);
+            arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory);
 
+            runweaver:
             try {
-                ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
+                ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments), true);
             } catch (ToolInvocationException e) {
+                if (ShouldTryWeaveWithoutCache(e.ExitCode) && !retriedWithoutCache) {
+                    // If we detect that the weaver can not weave because of a problem with
+                    // the cache, we retry once without using any cached code.
+                    // We log this as a notice, since we should eventually try figuring out
+                    // a better way to solve this.
+                    log.LogNotice("Weaving {0} failed with code {1}. Retrying without the cache.", givenAssembly, e.ExitCode);
+                    retriedWithoutCache = true;
+                    arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, false);
+                    goto runweaver;
+                }
+
                 LogAndRaiseExceptionFromFailingWeaver(e);
             }
 
             return Path.Combine(runtimeDirectory, Path.GetFileName(givenAssembly));
+        }
+
+        internal static bool ShouldTryWeaveWithoutCache(int error) {
+            return error == Error.SCERRWEAVERCANTUSECACHE || error == Error.SCERRUNHANDLEDWEAVEREXCEPTION;
         }
 
         public static void ExtractParcelledErrors(string[] content, string parcelID, List<string> errors, int maxCount = -1) {
@@ -160,6 +176,17 @@ namespace Starcounter.Server {
                     }
                 }
             }
+        }
+
+        string CreateWeaverCommandLine(string givenAssembly, string outputDirectory, bool useCache = true) {
+            var arguments = string.Format(
+                "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"", 
+                WeaverErrorParcelId, givenAssembly, outputDirectory);
+            if (!useCache) {
+                arguments = "--nocache " + arguments;
+            }
+
+            return arguments;
         }
 
         void LogAndRaiseExceptionFromFailingWeaver(ToolInvocationException e) {

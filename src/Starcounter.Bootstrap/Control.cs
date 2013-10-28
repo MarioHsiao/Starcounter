@@ -212,9 +212,9 @@ namespace StarcounterInternal.Bootstrap
             // Waiting until BMX component is ready.
             if (!configuration.NoNetworkGateway)
             {
-                UInt32 errCode = bmx.sc_wait_for_bmx_ready(60000);
-                if (errCode != 0)
-                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, "sc_wait_for_bmx_ready didn't finish within given time interval.");
+                Int32 numRemainingPushChannels = bmx.sc_wait_for_bmx_ready(10000);
+                if (numRemainingPushChannels != 0)
+                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, "sc_wait_for_bmx_ready didn't finish within given time interval. Number of remaining push channels: " + numRemainingPushChannels);
 
                 OnNetworkGatewayConnected();
             }
@@ -416,12 +416,10 @@ namespace StarcounterInternal.Bootstrap
             ulong hlogs;
             e = sccorelog.sccorelog_connect_to_logs(
                 ScUri.MakeDatabaseUri(ScUri.GetMachineName(), c.ServerName, c.Name),
+                c.OutputDirectory,
                 null,
                 &hlogs
                 );
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);

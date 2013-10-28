@@ -420,6 +420,7 @@ namespace Starcounter.InstallerEngine
         internal static String[] ScProcessesList = new String[]
         {
             StarcounterConstants.ProgramNames.ScService,
+            StarcounterConstants.ProgramNames.ScAdminServer,
             StarcounterConstants.ProgramNames.ScCode,
             StarcounterConstants.ProgramNames.ScData,
             StarcounterConstants.ProgramNames.ScDbLog,

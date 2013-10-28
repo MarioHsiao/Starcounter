@@ -53,6 +53,11 @@ namespace Starcounter
         static DoLocalNodeRest DoLocalNodeRest_;
 
         /// <summary>
+        /// Pending async tasks.
+        /// </summary>
+        LockFreeQueue<NodeTask> aggr_pending_async_tasks_ = new LockFreeQueue<NodeTask>();
+
+        /// <summary>
         /// The Node log source for logging exceptions.
         /// </summary>
         internal static NodeLogException NodeLogException_;
@@ -147,14 +152,13 @@ namespace Starcounter
         TcpClient aggrTcpClient_;
 
         /// <summary>
-        /// Pending async tasks.
+        /// Returns True if this node uses aggregation.
         /// </summary>
-        LockFreeQueue<NodeTask> pending_async_tasks_ = new LockFreeQueue<NodeTask>();
-
-        /// <summary>
-        /// Is asynchronous task running.
-        /// </summary>
-        volatile Boolean is_async_task_running_;
+        /// <returns></returns>
+        public Boolean UsesAggregation()
+        {
+            return (null != aggrTcpClient_);
+        }
 
         /// <summary>
         /// Finished async tasks.
@@ -167,9 +171,9 @@ namespace Starcounter
         LockFreeQueue<Int32> free_task_indexes_ = new LockFreeQueue<Int32>();
 
         /// <summary>
-        /// Awaiting tasks array.
+        /// Aggregation awaiting tasks array.
         /// </summary>
-        NodeTask[] awaiting_tasks_array_;
+        NodeTask[] aggregation_awaiting_tasks_array_;
 
         /// <summary>
         /// Number of created tasks.
@@ -177,19 +181,9 @@ namespace Starcounter
         Int32 num_tasks_created_ = 0;
 
         /// <summary>
-        /// Buffer used for accumulation.
+        /// Node synchronous task.
         /// </summary>
-        internal Byte[] AccumBuffer = new Byte[NodeTask.PrivateBufferSize];
-
-        /// <summary>
-        /// Node core task information.
-        /// </summary>
-        NodeTask core_task_info_ = null;
-
-        /// <summary>
-        /// Core task info accessor.
-        /// </summary>
-        internal NodeTask CoreTaskInfo { get { return core_task_info_; } }
+        NodeTask sync_task_info_ = null;
 
         /// <summary>
         /// Delegate to process the results of calling user delegate.
@@ -269,7 +263,8 @@ namespace Starcounter
             portNumber_ = portNumber;
             DefaultReceiveTimeoutMs = defaultReceiveTimeoutMs;
 
-            core_task_info_ = new NodeTask(this);
+            sync_task_info_ = new NodeTask(this);
+            num_tasks_created_ = 1;
            
             // Checking that code is not hosted in Starcounter.
             if (StarcounterEnvironment.IsCodeHosted)
@@ -283,8 +278,8 @@ namespace Starcounter
 
                 aggregate_send_blob_ = new Byte[AggregationBlobSizeBytes];
                 aggregate_receive_blob_ = new Byte[AggregationBlobSizeBytes];
-                awaiting_tasks_array_ = new NodeTask[NodeTask.MaxNumPendingAsyncTasks];
-                for (Int32 i = 0; i < NodeTask.MaxNumPendingAsyncTasks; i++)
+                aggregation_awaiting_tasks_array_ = new NodeTask[NodeTask.MaxNumPendingAggregatedTasks];
+                for (Int32 i = 0; i < NodeTask.MaxNumPendingAggregatedTasks; i++)
                     free_task_indexes_.Enqueue(i);
 
                 this_node_aggr_struct_.port_number_ = portNumber_;
@@ -727,8 +722,8 @@ namespace Starcounter
         /// </summary>
         ~Node()
         {
-            if (core_task_info_.IsConnectionEstablished())
-                core_task_info_.Close();
+            if (sync_task_info_.IsConnectionEstablished())
+                sync_task_info_.Close();
         }
 
         /// <summary>
@@ -739,25 +734,8 @@ namespace Starcounter
             // Checking if we are called from async request.
             if (!isSyncCall)
             {
-                // Attaching the connection since it could already be reconnected.
-                if (null != nt.TcpClientObj)
-                    core_task_info_.AttachConnection(nt.TcpClientObj);
-
                 // Pushing to finished queue.
                 finished_async_tasks_.Enqueue(nt);
-
-                lock (AccumBuffer)
-                {
-                    // Checking if any pending tasks exist.
-                    if (pending_async_tasks_.Dequeue(out nt))
-                    {
-                        nt.PerformAsyncRequest();
-                    }
-                    else
-                    {
-                        is_async_task_running_ = false;
-                    }
-                }
             }
         }
 
@@ -925,40 +903,28 @@ namespace Starcounter
                 nt.Reset(requestBytes, requestBytesLength, origReq, userDelegate, userObject, receiveTimeoutMs);
 
                 // Checking if we don't use aggregation.
-                if (null == aggrTcpClient_)
+                if (!UsesAggregation())
                 {
-                    lock (AccumBuffer)
-                    {
-                        // Starting task if none is running now.
-                        if (!is_async_task_running_)
-                        {
-                            is_async_task_running_ = true;
-                            nt.PerformAsyncRequest();
-                        }
-                        else
-                        {
-                            pending_async_tasks_.Enqueue(nt);
-                        }
-                    }
+                    // Starting async request on that node task.
+                    nt.PerformAsyncRequest();
                 }
                 else
                 {
-                    // Putting to async queue.
-                    pending_async_tasks_.Enqueue(nt);
+                    // Putting to aggregation queue.
+                    aggr_pending_async_tasks_.Enqueue(nt);
                 }
 
                 return null;
             }
 
-            // Checking if there are any pending async operations.
-            while (is_async_task_running_)
-                Thread.Sleep(1);
+            lock (finished_async_tasks_)
+            {
+                // Initializing connection.
+                sync_task_info_.Reset(requestBytes, requestBytesLength, origReq, userDelegate, userObject, receiveTimeoutMs);
 
-            // Initializing connection.
-            core_task_info_.Reset(requestBytes, requestBytesLength, origReq, userDelegate, userObject, receiveTimeoutMs);
-
-            // Doing synchronous request and returning response.
-            return core_task_info_.PerformSyncRequest();
+                // Doing synchronous request and returning response.
+                return sync_task_info_.PerformSyncRequest();
+            }
         }
 
         /// <summary>
@@ -1058,7 +1024,7 @@ START_RECEIVING:
                                 }
 
                                 // Getting from awaiting task.
-                                NodeTask nt = awaiting_tasks_array_[ags->unique_aggr_index_];
+                                NodeTask nt = aggregation_awaiting_tasks_array_[ags->unique_aggr_index_];
 
                                 //Console.WriteLine("Dequeued from sent: " + nt.RequestBytes.Length);
                                 Interlocked.Decrement(ref sent_received_balance_);
@@ -1107,7 +1073,7 @@ START_RECEIVING:
                             NodeTask nt;
 
                             // While we have pending tasks to send.
-                            while (pending_async_tasks_.Dequeue(out nt))
+                            while (aggr_pending_async_tasks_.Dequeue(out nt))
                             {
                                 // Getting free task index.
                                 Int32 free_task_index;
@@ -1115,7 +1081,7 @@ START_RECEIVING:
                                 Debug.Assert(success);
 
                                 // Putting task to awaiting array.
-                                awaiting_tasks_array_[free_task_index] = nt;
+                                aggregation_awaiting_tasks_array_[free_task_index] = nt;
 
                                 //Console.WriteLine("Enqueued to send: " + nt.RequestBytes.Length);
                                 Interlocked.Increment(ref sent_received_balance_);

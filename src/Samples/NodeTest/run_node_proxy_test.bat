@@ -1,7 +1,8 @@
 :: Checking if test should be run.
 IF "%SC_RUN_NODE_TEST_PROXY%"=="False" GOTO :EOF
 
-CMD /C "kill_all.bat" 2>NUL
+:: Killing all processes.
+star -killall
 
 :: Creating repository if it does not exist.
 IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
