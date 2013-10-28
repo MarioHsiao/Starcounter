@@ -105,6 +105,9 @@ namespace Starcounter.Server {
                 if (ShouldTryWeaveWithoutCache(e.ExitCode) && !retriedWithoutCache) {
                     // If we detect that the weaver can not weave because of a problem with
                     // the cache, we retry once without using any cached code.
+                    // We log this as a notice, since we should eventually try figuring out
+                    // a better way to solve this.
+                    log.LogNotice("Weaving {0} failed with code {1}. Retrying without the cache.", givenAssembly, e.ExitCode);
                     retriedWithoutCache = true;
                     arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, false);
                     goto runweaver;
