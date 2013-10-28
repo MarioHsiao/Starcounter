@@ -169,11 +169,6 @@ namespace Starcounter.Server.Commands {
             codeHostProcess.Refresh();
 
             if (codeHostProcess.HasExited) {
-                foreach (var error in database.CodeHostErrorOutput) {
-                    if (!string.IsNullOrEmpty(error)) {
-                        Log.Debug(error);
-                    }
-                }
 
                 // The code host has exited, most likely because something
                 // in the bootstrap sequence or in the exec handler has gone
