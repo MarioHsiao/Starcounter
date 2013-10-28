@@ -109,7 +109,7 @@
   <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll">
     <MakeDir Directories="$(OutDir)" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -mc $(OutDir)\$(AssemblyName).mc" />
-    <Exec Command="&quot;c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\x64\mc.exe&quot; -r $(OutDir) -v $(OutDir)\$(AssemblyName).mc" />
+    <Exec Command="&quot;$(FrameworkSdkDir)\Bin\x64\mc.exe&quot; -r $(OutDir) -v $(OutDir)\$(AssemblyName).mc" />
     <RC Source="$(OutDir)\$(AssemblyName).rc" AdditionalOptions="/V" />
     <CL Sources="Format.cpp" AdditionalOptions="/c /D FORMATMESSAGE_EXPORTS /Fo$(OutDir)\$(AssemblyName).obj /DEBUG /Zi /Fd$(OutDir)\$(AssemblyName).pdb" />
     <LINK Sources="$(OutDir)\$(AssemblyName).res;$(OutDir)\$(AssemblyName).obj" AdditionalOptions="/MACHINE:X86 /DLL /DEBUG /PDB:$(OutDir)\$(AssemblyName).pdb /DEF:format.def /OUT:$(OutDir)\$(AssemblyName).dll" />
