@@ -156,12 +156,12 @@ namespace Starcounter.Server.Rest {
         /// replaced with values from <paramref name="args"/>.</returns>
         public string FormatUri(string uri, params object[] args) {
             for (int i = 0; args != null && i < args.Length; i++) {
-                int index = uri.IndexOf("{?}");
+                int index = uri.IndexOf(Handle.UriParameterIndicator);
                 if (index == -1) throw new ArgumentOutOfRangeException("args");
                 uri = uri.Remove(index, 3);
                 uri = uri.Insert(index, args[i].ToString());
             }
-            if (uri.Contains("{?}"))
+            if (uri.Contains(Handle.UriParameterIndicator))
                 throw new ArgumentOutOfRangeException("args");
 
             return uri;

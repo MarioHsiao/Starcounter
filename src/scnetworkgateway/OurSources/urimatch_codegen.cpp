@@ -18,10 +18,10 @@ void CodegenUriMatcher::Init()
     uri_matching_code_ = new char[MAX_URI_MATCHING_CODE_BYTES];
 
     // Loading managed URI matching codegen DLL.
-    HINSTANCE rest_dll = LoadLibrary(L"Starcounter.Rest.dll");
-    GW_ASSERT(rest_dll != NULL);
+    HINSTANCE dll = LoadLibrary(L"GatewayToClrProxy.dll");
+    GW_ASSERT(dll != NULL);
 
-    generate_uri_matcher_ = (MixedCodeConstants::GenerateNativeUriMatcherType) GetProcAddress(rest_dll, "GenerateNativeUriMatcher");
+    generate_uri_matcher_ = (MixedCodeConstants::GenerateNativeUriMatcherType) GetProcAddress(dll, "GenerateUriMatcher");
     GW_ASSERT(generate_uri_matcher_ != NULL);
 
     // Pre-loading the .NET CLR with the following fake URI data.

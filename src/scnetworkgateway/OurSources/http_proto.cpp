@@ -841,6 +841,10 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                     // Enabling accumulative state.
                     sd->set_accumulating_flag();
 
+                    // Checking if content should be accumulated on host.
+                    if (http_request_.content_len_bytes_ >= CONTENT_SIZE_HOST_ACCUMULATION)
+                        sd->set_on_host_accumulation_flag();
+
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->StartAccumulation(
                         accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
@@ -1314,7 +1318,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
         ReverseProxyInfo* proxy_info = hl->get_reverse_proxy_info();
 
         // Connecting to the server.
-        return gw->Connect(sd, &proxy_info->addr_);
+        return gw->Connect(sd, &proxy_info->destination_addr_);
     }
 
     return SCERRGWHTTPPROCESSFAILED;

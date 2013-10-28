@@ -11,6 +11,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Internal.Web;
+using TJson = Starcounter.Templates.TObject;
+using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.Test
 {
@@ -1104,6 +1107,101 @@ namespace Starcounter.Internal.Test
 
             resp = localNode.POST(testInfos54.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos54.ReturnStr == resp.Body);
+        }
+
+        public class PersonMessage : Json
+        {
+            private static TJson Schema;
+
+            static PersonMessage()
+            {
+                Schema = new TJson() { ClassName = "PersonMessage", InstanceType = typeof(PersonMessage) };
+                Schema.Add<TString>("FirstName");
+                Schema.Add<TString>("LastName");
+                Schema.Add<TLong>("Age");
+
+                var phoneNumber = new TJson();
+                phoneNumber.Add<TString>("Number");
+                Schema.Add<TArr>("PhoneNumbers", phoneNumber);
+            }
+
+            public PersonMessage()
+            {
+                Template = Schema;
+            }
+        }
+
+        /// <summary>
+        /// Tests wrong handler URIs registrations.
+        /// </summary>
+        [Test]
+        public void TestWrongUrisAndParameters()
+        {
+            Handle.GET("/{?}", (String p1, Session s) =>
+            {
+                Assert.IsTrue(false);
+
+                return null;
+            });
+
+            Handle.GET("/{?}/{?}", (String p1, Session s) =>
+            {
+                Assert.IsTrue(false);
+
+                return null;
+            });
+
+            Handle.GET("/{?}", (String p1, PersonMessage j) =>
+            {
+                Assert.IsTrue(false);
+
+                return null;
+            });
+
+            Assert.Throws<ArgumentException>(() => 
+                Handle.GET("/{?}", (String p1, Int32 p2) =>
+                {
+                    Assert.IsTrue(false);
+
+                    return null;
+                })
+            );
+
+            Assert.Throws<ArgumentException>(() =>
+                Handle.GET("/{?}", (String p1, Int32 p2, Session s) =>
+                {
+                    Assert.IsTrue(false);
+
+                    return null;
+                })
+            );
+
+            Assert.Throws<ArgumentException>(() =>
+                Handle.GET("/{?}/{?}", (String p1, PersonMessage j) =>
+                {
+                    Assert.IsTrue(false);
+
+                    return null;
+                })
+            );
+
+            Assert.Throws<ArgumentException>(() =>
+                Handle.GET("/{?}/{?", (String p1, Int32 p2, Session s) =>
+                {
+                    Assert.IsTrue(false);
+
+                    return null;
+                })
+            );
+
+            Assert.Throws<ArgumentException>(() =>
+                Handle.GET("/{?/{?}", (String p1, Int32 p2) =>
+                {
+                    Assert.IsTrue(false);
+
+                    return null;
+                })
+            );
         }
     }
 }

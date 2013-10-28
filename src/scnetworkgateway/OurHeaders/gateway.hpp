@@ -118,7 +118,6 @@ typedef int8_t db_index_type;
 #define SCERRGWHANDLERNOTFOUND 12358
 #define SCERRGWPORTNOTHANDLED 12359
 #define SCERRGWNONHTTPPROTOCOL 12362
-#define SCERRGWBMXCHUNKWRONGFORMAT 12369
 #define SCERRGWHTTPNONWEBSOCKETSUPGRADE 12370
 #define SCERRGWHTTPWRONGWEBSOCKETSVERSION 12371
 #define SCERRGWHTTPINCORRECTDATA 12372
@@ -176,6 +175,9 @@ const int32_t MAX_FETCHED_OVLS = 10;
 
 // Maximum size of HTTP content.
 const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
+
+// Maximum size of HTTP content requiring accumulation on host.
+const int32_t CONTENT_SIZE_HOST_ACCUMULATION = 1024 * 64;
 
 // Aggregation buffer size.
 const int32_t AGGREGATION_BUFFER_SIZE = 1024 * 1024 * 16;
@@ -1087,13 +1089,15 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Resets the session struct.
     void Reset()
     {
+        unique_socket_id_ = INVALID_SESSION_SALT;
         session_.Reset();
 
-        port_index_ = INVALID_PORT_INDEX;
+        // NOTE: Fields that stays the same for the same socket.
+        //socket_ = INVALID_SOCKET;
+        //port_index_ = INVALID_PORT_INDEX;
+
         ResetTimestamp();
-        unique_socket_id_ = INVALID_SESSION_SALT;
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
-        socket_ = INVALID_SOCKET;
         saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
         flags_ = 0;
         matched_uri_index_ = INVALID_URI_INDEX;
@@ -1398,24 +1402,24 @@ public:
 struct ReverseProxyInfo
 {
     // Uri that is being proxied.
-    std::string service_uri_;
-    int32_t service_uri_len_;
+    std::string matching_method_and_uri_;
+    int32_t matching_method_and_uri_len_;
 
     // Uri that is being proxied.
-    std::string service_uri_processed_;
-    int32_t service_uri_processed_len_;
+    std::string matching_method_and_uri_processed_;
+    int32_t matching_method_and_uri_processed_len_;
 
     // IP address of the destination server.
-    std::string server_ip_;
+    std::string destination_ip_;
 
-    // Port on which proxied service sits on.
-    uint16_t server_port_;
+    // Port of the destination server.
+    uint16_t destination_port_;
 
     // Source port which to used for redirection to proxied service.
-    uint16_t gw_proxy_port_;
+    uint16_t sc_proxy_port_;
 
     // Proxied service address socket info.
-    sockaddr_in addr_;
+    sockaddr_in destination_addr_;
 };
 
 class GatewayLogWriter

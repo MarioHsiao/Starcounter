@@ -74,10 +74,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="RGiesecke.DllExport.Metadata">
-      <HintPath>..\packages\UnmanagedExports.1.2.4.23262\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Web" />
     <Reference Include="System.Net.Http" />
@@ -163,5 +159,5 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Import Condition="Exists('../packages/UnmanagedExports.1.2.4.23262')" Project="../packages/UnmanagedExports.1.2.4.23262/tools/RGiesecke.DllExport.targets" />
+  
 </Project>
