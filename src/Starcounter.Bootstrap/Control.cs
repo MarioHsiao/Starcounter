@@ -420,12 +420,10 @@ namespace StarcounterInternal.Bootstrap
             ulong hlogs;
             e = sccorelog.sccorelog_connect_to_logs(
                 ScUri.MakeDatabaseUri(ScUri.GetMachineName(), c.ServerName, c.Name),
+                c.OutputDirectory,
                 null,
                 &hlogs
                 );
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);

@@ -3,6 +3,11 @@
 :: Checking if test should be run.
 IF "%SC_RUN_STAR_LOOP_TEST%"=="False" GOTO :EOF
 
+:: Checking if number of cycles parameter is supplied.
+set LOOP_TIMES=%1
+IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
+ECHO Test is going to loop %LOOP_TIMES% times:
+
 CMD /C "kill_all.bat" 2>NUL
 
 :: Creating repository if it does not exist.
@@ -12,7 +17,7 @@ COPY /Y scnetworkgateway.xml .srv\personal\scnetworkgateway.xml
 :: Setting StarcounterBin as current directory.
 SET StarcounterBin=%CD%
 
-for /l %%x in (1, 1, 100) do (
+for /l %%x in (1, 1, %LOOP_TIMES%) do (
 
    :: Printing iteration number.
    echo %%x

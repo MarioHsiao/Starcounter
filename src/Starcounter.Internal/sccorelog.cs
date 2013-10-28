@@ -69,16 +69,7 @@ namespace Starcounter.Internal
         /// <param name="phlogs">The phlogs.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe uint sccorelog_connect_to_logs(string host_name, void* ignore, ulong* phlogs);
-
-        /// <summary>
-        /// SCs the bind logs to dir.
-        /// </summary>
-        /// <param name="hlogs">The hlogs.</param>
-        /// <param name="directory">The directory.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_bind_logs_to_dir(ulong hlogs, string directory);
+        public static extern unsafe uint sccorelog_connect_to_logs(string host_name, string directory, void* ignore, ulong* phlogs);
 
         /// <summary>
         /// SCs the write to logs.
