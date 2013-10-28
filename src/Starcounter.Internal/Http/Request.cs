@@ -499,6 +499,11 @@ namespace Starcounter.Advanced {
         Byte[] customBytes_;
 
         /// <summary>
+        /// Length in bytes for custom bytes array.
+        /// </summary>
+        Int32 customBytesLen_;
+
+        /// <summary>
         /// Content type.
         /// </summary>
         String contentType_;
@@ -769,6 +774,14 @@ namespace Starcounter.Advanced {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        internal Int32 CustomBytesLength
+        {
+            get {return customBytesLen_;}
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -802,27 +815,26 @@ namespace Starcounter.Advanced {
         }
 
 		private int EstimateNeededSize() {
-			int strMult = 2;
 			int size = HttpHeadersUtf8.TotalByteSize;
 
-			size += methodString_.Length * strMult;
-			size += uriString_.Length * strMult;
-			size += hostNameString_.Length * strMult;
+			size += methodString_.Length;
+			size += uriString_.Length;
+			size += hostNameString_.Length;
 			
 			if (null != headersString_)
-				size += headersString_.Length * strMult;
+				size += headersString_.Length;
 
 			if (null != contentType_)
-				size += contentType_.Length * strMult;
+				size += contentType_.Length;
 
 			if (null != contentEncoding_)
-				size += contentEncoding_.Length * strMult;
+				size += contentEncoding_.Length;
 
 			if (null != cookieString_)
-				size += cookieString_.Length * strMult;
+				size += cookieString_.Length;
 
 			if (null != bodyString_)
-				size += bodyString_.Length * strMult;
+				size += bodyString_.Length << 1;
 			else if (null != bodyBytes_) 
 				size += bodyBytes_.Length;
 
@@ -901,13 +913,9 @@ namespace Starcounter.Advanced {
 						writer.Write(HttpHeadersUtf8.CRLFCRLF);
 					}
 
-					// TODO: 
-					// We should be able to set the size so we don't have to do an extra copy here.
-					byte[] sizedBuffer = new byte[writer.Written];
-					Marshal.Copy((IntPtr)p, sizedBuffer, 0, writer.Written);
-
 					// Finally setting the request bytes.
-					customBytes_ = sizedBuffer;
+					customBytes_ = buf;
+                    customBytesLen_ = writer.Written;
 				}
 			}
 			customFields_ = false;
@@ -962,6 +970,7 @@ namespace Starcounter.Advanced {
 
             // Finally setting the request bytes.
             customBytes_ = Encoding.UTF8.GetBytes(str);
+            customBytesLen_ = str.Length << 1;
             customFields_ = false;
             readOnly_ = true;
         }
@@ -1099,14 +1108,24 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Writes the response.
+        /// Sends the response.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
+        /// <param name="buffer">The buffer to send.</param>
+        /// <param name="offset">The offset within buffer.</param>
+        /// <param name="length">The length of the data to send.</param>
+        /// <param name="length">The connection flags.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
             unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags); }
+        }
+
+        /// <summary>
+        /// Sends response on this request.
+        /// </summary>
+        /// <param name="resp">Response object to send.</param>
+        public void SendResponse(Response resp)
+        {
+            SendResponse(resp.Uncompressed, 0, resp.UncompressedLength, resp.ConnFlags);
         }
 
         /// <summary>

@@ -330,12 +330,12 @@ namespace NodeTest
                     {
                         if (useNodeX_)
                         {
-                            Response resp = X.POST(Settings.CompleteHttpUri, body_bytes_, null, null);
+                            Response resp = X.POST(Settings.CompleteHttpUri, body_bytes_, null);
                             return CheckResponse(resp);
                         }
                         else
                         {
-                            Response resp = node.POST(Settings.CompleteHttpUri, body_bytes_, null, null);
+                            Response resp = node.POST(Settings.CompleteHttpUri, body_bytes_, null);
                             return CheckResponse(resp);
                         }
                     }
@@ -364,18 +364,16 @@ namespace NodeTest
             {
                 if (useNodeX_)
                 {
-                    X.POST(Settings.CompleteHttpUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    X.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
-                        return null;
                     });
                 }
                 else
                 {
-                    node.POST(Settings.CompleteHttpUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    node.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
-                        return null;
                     });
                 }
 

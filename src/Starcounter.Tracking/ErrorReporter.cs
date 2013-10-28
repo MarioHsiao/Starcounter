@@ -90,7 +90,7 @@ namespace Starcounter.ErrorReporting {
 
 			Node n = new Node(trackingServerHost, trackingServerPort);
 
-			Response resp = n.PUT("/api/usage/errorreport", report.ToJsonUtf8(), null, null);
+			Response resp = n.PUT("/api/usage/errorreport", report.ToJsonUtf8(), null);
 			if (resp.StatusCode != 200) {
                 string msg;
                 try {
