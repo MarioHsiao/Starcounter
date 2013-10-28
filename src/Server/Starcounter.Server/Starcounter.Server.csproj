@@ -149,6 +149,10 @@
     <Compile Include="ToolInvocationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj">
+      <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
+      <Name>Starcounter.Hosting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
       <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
       <Name>Starcounter.Bootstrap</Name>
