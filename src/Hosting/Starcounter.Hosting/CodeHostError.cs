@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.Text;
 
 namespace Starcounter.Hosting {
     /// <summary>
@@ -20,6 +21,19 @@ namespace Starcounter.Hosting {
         /// <param name="error">The error to report.</param>
         internal static void Report(string error) {
             Console.Error.Write(ParcelledError.Format(CodeHostError.ErrorParcelID, error));
+        }
+
+        /// <summary>
+        /// Reports <paramref name="exception"/> as a code host error.
+        /// </summary>
+        /// <param name="exception">The error to report.</param>
+        internal static void Report(Exception exception) {
+            var sb = new StringBuilder();
+            sb.AppendLine(exception.Message);
+            if (exception.StackTrace != null) {
+                sb.AppendLine(exception.StackTrace);
+            }
+            Report(sb.ToString());
         }
     }
 }
