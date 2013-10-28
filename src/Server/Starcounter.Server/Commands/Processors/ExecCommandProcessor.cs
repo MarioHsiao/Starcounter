@@ -111,19 +111,18 @@ namespace Starcounter.Server.Commands {
                     if (exe.RunEntrypointAsynchronous) {
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
                     } else {
                         // Make a asynchronous call, where we let the callback
                         // set the event whenever the code host is done. Until
                         // then, we wait for this, and check that the code host
-                        // is running perodically.
+                        // is running periodically.
                         var confirmed = new ManualResetEvent(false);
                         Response codeHostResponse = null;
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, confirmed, (Response resp, object userObject) => {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, confirmed, (Response resp, object userObject) => {
                             var done = (ManualResetEvent)userObject;
                             codeHostResponse = resp;
                             done.Set();
-                            return resp;
                         });
 
                         var timeout = 500;
