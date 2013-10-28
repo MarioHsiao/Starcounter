@@ -66,7 +66,21 @@ namespace StarcounterInternal.Hosting
                 }
             }
 
-            CodeHostError.Report(current);
+            // Report the stacktrace for any Starcounter-based exception
+            // wrapped in an entrypoint exception. For non-Starcounter
+            // exceptions in such a case, we have the stack trace as part
+            // of the entrypoint exception message. And for all "clean"
+            // Starcounter-based exceptions, we never give the stack-trace,
+            // since it's pure Starcounter source code.
+            
+            bool reportStackTrace = false;
+            if (entrypointException != null && !object.ReferenceEquals(current, entrypointException)) {
+                if (ErrorCode.IsFromErrorCode(current)) {
+                    reportStackTrace = true;
+                }
+            }
+
+            CodeHostError.Report(current, reportStackTrace);
 
             Kernel32.ExitProcess(e);
             return true;
