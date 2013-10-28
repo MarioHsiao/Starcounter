@@ -2,7 +2,7 @@
 IF "%SC_RUN_NODE_TEST_PROXY%"=="False" GOTO :EOF
 
 :: Killing all processes.
-star -killall
+staradmin -killall
 
 :: Creating repository if it does not exist.
 IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
@@ -26,11 +26,12 @@ IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 :: Success message.
 ECHO Test finished successfully!
 
-CMD /C "kill_all.bat" 2>NUL
+:: Killing all processes.
+staradmin -killall
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the test! 1>&2
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 EXIT 1

@@ -5,8 +5,7 @@ SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
 SET DB_NAME=MYDB
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
@@ -106,12 +105,11 @@ IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 :: Success message.
 ECHO All gateway performance tests finished successfully!
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the performance test! 1>&2
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 EXIT 1
