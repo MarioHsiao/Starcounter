@@ -8,10 +8,11 @@ namespace Starcounter {
         /// Start usage of given session.
         /// </summary>
         /// <param name="jsonNode"></param>
-        internal void ResumeTransaction() {
+        internal void ResumeTransaction(bool searchParents) {
             // Starting using current transaction if any.
-            if (Transaction != null)
-                StarcounterBase._DB.SetCurrentTransaction(Transaction);
+			var t = (searchParents == true) ? Transaction : _transaction;
+            if (t != null)
+                StarcounterBase._DB.SetCurrentTransaction(t);
         }
 
         /// <summary>
