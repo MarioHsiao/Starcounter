@@ -300,6 +300,11 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The value.</param>
         /// <exception cref="System.Exception">TODO:</exception>
         private static void HandleParsedPatch(Json rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
+			// This is needed if the dirtycheck is enabled, since every time
+			// we retrieve a value or another json object, the check is triggered.
+			// Maybe this needs to be changed to avoid checks when handling incoming patches.
+			rootApp.ResumeTransaction();
+
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
 
             // Resuming transaction if it exists up the tree.

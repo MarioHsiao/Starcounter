@@ -3134,6 +3134,11 @@
         Failed to execute DDL statement, since a transaction cannot be created for the execution. This can happen if the statement was called in a user-specified transaction scope.
       </message>
     </code>
+    <code hex="010B" severity="Error" name="ScErrTransactionSizeLimitReached">
+      <message>
+        Transaction size limit reached.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

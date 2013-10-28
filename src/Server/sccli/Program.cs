@@ -74,6 +74,11 @@ namespace star {
                 return;
             }
 
+            if (appArgs.ContainsFlag(StarOption.KillAll, CommandLineSection.GlobalOptions)) {
+                KillAllScProcesses();
+                return;
+            }
+
             if (appArgs.ContainsFlag(StarOption.Info, CommandLineSection.GlobalOptions)) {
                 ShowInfoAboutStarcounter();
                 return;
@@ -252,6 +257,12 @@ namespace star {
                 new string[] { "hx" }
                 );
             appSyntax.DefineFlag(
+                StarOption.KillAll,
+                "Kills all Starcounter-related processes.",
+                OptionAttributes.Default,
+                new string[] { StarOption.KillAll }
+                );
+            appSyntax.DefineFlag(
                 StarOption.Version,
                 "Prints the version of Starcounter.",
                 OptionAttributes.Default,
@@ -390,6 +401,55 @@ namespace star {
 
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("New repository \"{0}\" created at {1}", serverName, repositoryPath), ConsoleColor.Green);
+        }
+
+        /// <summary>
+        /// List of Starcounter processes that should be killed.
+        /// </summary>
+        internal static String[] ScProcessesList = new String[]
+        {
+            StarcounterConstants.ProgramNames.ScService,
+            StarcounterConstants.ProgramNames.ScAdminServer,
+            StarcounterConstants.ProgramNames.ScCode,
+            StarcounterConstants.ProgramNames.ScData,
+            StarcounterConstants.ProgramNames.ScDbLog,
+            StarcounterConstants.ProgramNames.ScIpcMonitor,
+            StarcounterConstants.ProgramNames.ScNetworkGateway,
+            "scnetworkgatewayloopedtest",
+            StarcounterConstants.ProgramNames.ScWeaver,
+            StarcounterConstants.ProgramNames.ScSqlParser,
+            "ServerLogTail"
+        };
+
+        /// <summary>
+        /// Kills all Starcounter processes and waits for them to shutdown.
+        /// </summary>
+        static void KillAllScProcesses(Int32 msToWait = 20000)
+        {
+            foreach (String procName in ScProcessesList)
+            {
+                Process[] procs = Process.GetProcessesByName(procName);
+                foreach (Process proc in procs)
+                {
+                    try
+                    {
+                        proc.Kill();
+                        proc.WaitForExit(msToWait);
+                        if (!proc.HasExited)
+                        {
+                            String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
+                                "Please shutdown the corresponding application explicitly.";
+
+                            throw new Exception(processCantBeKilled);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Process '" + procName + "' successfully killed!");
+                        }
+                    }
+                    finally { proc.Close(); }
+                }
+            }
         }
     }
 }

@@ -195,7 +195,8 @@ namespace NetworkIoTestApp
             MODE_APPS_URIS_SESSION,
             MODE_HTTP_REST_CLIENT,
             MODE_WEBSOCKETS_URIS,
-            MODE_NODE_TESTS
+            MODE_NODE_TESTS,
+            MODE_THROW_EXCEPTION
         }
 
         // Performance related counters.
@@ -235,6 +236,10 @@ namespace NetworkIoTestApp
                     break;
                 }
             }
+
+            // Checking if we need to throw an exception.
+            if (test_type == TestTypes.MODE_THROW_EXCEPTION)
+                throw new Exception("Oh no, I'm crashing the host!");
             
             if (!String.IsNullOrWhiteSpace(db_number_string))
                 db_number = Int32.Parse(db_number_string);

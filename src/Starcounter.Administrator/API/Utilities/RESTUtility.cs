@@ -178,7 +178,7 @@ namespace Starcounter.Administrator.API.Utilities {
                 }
             }
 
-            switch (uri.CountOccurrences("{?}")) {
+            switch (uri.CountOccurrences(Handle.UriParameterIndicator)) {
                 case 0:
                     Register0(restHandler, uri, port, methodsToRegisterFor.ToArray(), response);
                     break;
