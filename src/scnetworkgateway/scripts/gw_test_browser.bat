@@ -3,8 +3,7 @@ SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
 SET DB_NAME=MYDB
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% (
