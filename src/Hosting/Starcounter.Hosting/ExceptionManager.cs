@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter;
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using System;
 
@@ -16,7 +17,6 @@ namespace StarcounterInternal.Hosting
     /// </summary>
     public static class ExceptionManager
     {
-
         /// <summary>
         /// Handles the unhandled exception.
         /// </summary>
@@ -45,8 +45,12 @@ namespace StarcounterInternal.Hosting
                 current = current.InnerException;
             }
 
-            if (e == 0) // No errorcode is found.
+            if (e == 0) { // No errorcode is found.
+                current = ex;
                 e = 1;
+            }
+
+            CodeHostError.Report(current.Message);
 
             Kernel32.ExitProcess(e);
             return true;
