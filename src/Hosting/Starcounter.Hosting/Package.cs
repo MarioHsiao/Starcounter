@@ -297,10 +297,7 @@ namespace Starcounter.Hosting {
                     var entrypointException = te.InnerException;
                     if (entrypointException == null) throw;
 
-                    throw ErrorCode.ToException(
-                        Error.SCERRFAILINGENTRYPOINT,
-                        te,
-                        string.Format("Message: \"{0}\". Entrypoint assembly: \"{1}\"", entrypointException.Message, assembly_.FullName));
+                    throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, entrypointException.ToString());
                 } finally {
                     Application.CurrentAssigned = null;
                 }
