@@ -27,10 +27,12 @@ namespace Starcounter.Hosting {
         /// Reports <paramref name="exception"/> as a code host error.
         /// </summary>
         /// <param name="exception">The error to report.</param>
-        internal static void Report(Exception exception) {
+        /// <param name="includeStackTrace"><c>true</c> if the stacktrace should be
+        /// part of the report; <c>false</c> otherwise.</param>
+        internal static void Report(Exception exception, bool includeStackTrace = false) {
             var sb = new StringBuilder();
             sb.AppendLine(exception.Message);
-            if (exception.StackTrace != null) {
+            if (exception.StackTrace != null && includeStackTrace) {
                 sb.AppendLine(exception.StackTrace);
             }
             Report(sb.ToString());
