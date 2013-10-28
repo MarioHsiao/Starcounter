@@ -5,10 +5,12 @@
 // ***********************************************************************
 
 using Starcounter.Bootstrap.Management;
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -574,6 +576,19 @@ namespace Starcounter.Server {
         }
 
         internal static Exception CreateCodeHostTerminated(Process codeHostProcess, Database database, Exception serverException = null) {
+            // Check the error output: if we can find an error there that
+            // match our exit process, we make the swap.
+            var errors = new List<string>();
+            ParcelledError.ExtractParcelledErrors(database.CodeHostErrorOutput.ToArray(), CodeHostError.ErrorParcelID, errors, 1);
+            if (errors.Count == 1) {
+                try {
+                    var detail = ErrorMessage.Parse(errors[0]);
+                    return detail.ToException();
+                } catch {
+                    // Let the fallback kick in.
+                }
+            }
+
             return CreateEngineProcessTerminated(
                 codeHostProcess,
                 database,
