@@ -10,7 +10,7 @@ namespace Starcounter.XSON {
 	internal static class TemplateDelegateGenerator {
 		private static MethodInfo dateTimeToStringInfo = typeof(DateTime).GetMethod("ToString", new Type[] { typeof(string) });
 		private static MethodInfo dateTimeParseInfo = typeof(DateTime).GetMethod("Parse", new Type[] { typeof(string) });
-		private static FieldInfo valueListInfo = typeof(Json).GetField("_list", BindingFlags.NonPublic | BindingFlags.Instance);
+		private static MethodInfo valueListInfo = typeof(Json).GetMethod("get_list", BindingFlags.NonPublic | BindingFlags.Instance);
 		private static MethodInfo listGetMethodInfo = typeof(IList).GetMethod("get_Item");
 		private static MethodInfo listSetMethodInfo = typeof(IList).GetMethod("set_Item");
 		private static MethodInfo jsonGetDataInfo = typeof(Json).GetMethod("get_Data");
@@ -50,9 +50,8 @@ namespace Starcounter.XSON {
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="property"></param>
-		/// <param name="json"></param>
 		/// <param name="directAccess"></param>
-		internal static void GenerateUnboundDelegates<T>(Property<T> property, Json json, bool useBackingField) {
+		internal static void GenerateUnboundDelegates<T>(Property<T> property, bool useBackingField) {
 			if (useBackingField)
 				throw new NotImplementedException();
 
@@ -74,9 +73,8 @@ namespace Starcounter.XSON {
 		/// the expression will use a backing field instead of accessing a list.
 		/// </summary>
 		/// <param name="property"></param>
-		/// <param name="json"></param>
 		/// <param name="directAccess"></param>
-		internal static void GenerateUnboundDelegates(TObject property, Json json, bool useBackingField) {
+		internal static void GenerateUnboundDelegates(TObject property, bool useBackingField) {
 			if (useBackingField)
 				throw new NotImplementedException();
 
@@ -98,9 +96,8 @@ namespace Starcounter.XSON {
 		/// the expression will use a backing field instead of accessing a list.
 		/// </summary>
 		/// <param name="property"></param>
-		/// <param name="json"></param>
 		/// <param name="directAccess"></param>
-		internal static void GenerateUnboundDelegates(TObjArr property, Json json, bool useBackingField) {
+		internal static void GenerateUnboundDelegates(TObjArr property, bool useBackingField) {
 			if (useBackingField)
 				throw new NotImplementedException();
 
@@ -122,9 +119,8 @@ namespace Starcounter.XSON {
 		/// the expression will use a backing field instead of accessing a list.
 		/// </summary>
 		/// <param name="property"></param>
-		/// <param name="json"></param>
 		/// <param name="directAccess"></param>
-		internal static void GenerateUnboundDelegates<T>(TArray<T> property, Json json, bool useBackingField) where T : Json, new() {
+		internal static void GenerateUnboundDelegates<T>(TArray<T> property, bool useBackingField) where T : Json, new() {
 			if (useBackingField)
 				throw new NotImplementedException();
 
@@ -262,7 +258,7 @@ namespace Starcounter.XSON {
 		private static Expression<Func<Json, T>> GenerateUnboundGetExpression<T>(Type jsonType, int templateIndex) {
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
-			Expression expr = Expression.Field(jsonParam, valueListInfo);
+			Expression expr = Expression.Call(jsonParam, valueListInfo);
 
 			expr = Expression.Call(expr, listGetMethodInfo, Expression.Constant(templateIndex));
 			expr = Expression.Convert(expr, typeof(T));
@@ -273,7 +269,7 @@ namespace Starcounter.XSON {
 		private static Expression<Action<Json, T>> GenerateUnboundSetExpression<T>(Type jsonType, int templateIndex) {
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
-			Expression expr = Expression.Field(jsonParam, valueListInfo);
+			Expression expr = Expression.Call(jsonParam, valueListInfo);
 
 			expr = Expression.Call(expr, 
 								   listSetMethodInfo, 

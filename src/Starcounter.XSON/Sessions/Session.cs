@@ -231,8 +231,10 @@ namespace Starcounter {
         /// </summary>
         internal static void End()
         {
-            _Current.Clear();
-            Session._Current = null;
+			if (_Current != null) {
+				_Current.Clear();
+				Session._Current = null;
+			}
 
             // Resetting current transaction if any exists.
             if (StarcounterBase._DB != null && StarcounterBase._DB.GetCurrentTransaction() != null)

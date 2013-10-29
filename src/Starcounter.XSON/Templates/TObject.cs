@@ -26,7 +26,7 @@ namespace Starcounter.Templates {
 		internal string DebugUnboundGetter;
 #endif
 
-		public readonly Action<Json, object> Setter;
+		public readonly Action<Json, Json> Setter;
 		public readonly Func<Json, Json> Getter;
 		internal Action<Json, object> BoundSetter;
 		internal Func<Json, object> BoundGetter;
@@ -67,8 +67,8 @@ namespace Starcounter.Templates {
 			return (BoundGetter != null);
 		}
 
-		internal override void GenerateUnboundGetterAndSetter(Json parent) {
-			TemplateDelegateGenerator.GenerateUnboundDelegates(this, parent, false);
+		internal override void GenerateUnboundGetterAndSetter() {
+			TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
 
 		internal override void Checkpoint(Json parent) {
@@ -85,18 +85,18 @@ namespace Starcounter.Templates {
 			return UnboundGetter(parent);
 		}
 
-		private Json BoundOrUnboundGet(Json json) {
-			Json value = UnboundGetter(json);
-			if (UseBinding(json))
-				value.CheckBoundObject(BoundGetter(json));
+		private Json BoundOrUnboundGet(Json parent) {
+			Json value = UnboundGetter(parent);
+			if (UseBinding(parent))
+				value.CheckBoundObject(BoundGetter(parent));
 			return value;
 		}
 
-		private void BoundOrUnboundSet(Json json, object value) {
-			if (UseBinding(json))
-				BoundSetter(json, value);
+		private void BoundOrUnboundSet(Json parent, object value) {
+			if (UseBinding(parent))
+				BoundSetter(parent, value);
 			else
-				throw new NotImplementedException("TODO!");
+				UnboundSetter(parent, (Json)value);
 		}
 
 		/// <summary>
@@ -364,6 +364,9 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="property"></param>
         internal void OnPropertyAdded(Template property) {
+			var tv = property as TValue;
+			if (tv != null)
+				tv.GenerateUnboundGetterAndSetter();
         }
 
         /// <summary>

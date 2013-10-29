@@ -98,7 +98,7 @@ namespace Starcounter.Templates {
 			return false;
 		}
 
-		internal override void GenerateUnboundGetterAndSetter(Json json) {
+		internal override void GenerateUnboundGetterAndSetter() {
 		}
 
 		internal override void CheckAndSetBoundValue(Json json, bool addToChangeLog) {

@@ -92,38 +92,38 @@ namespace Starcounter.Templates {
 		/// <summary>
 		/// 
 		/// </summary>
-		internal abstract bool GenerateBoundGetterAndSetter(Json json);
+		internal abstract bool GenerateBoundGetterAndSetter(Json parent);
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="json"></param>
-		internal abstract void GenerateUnboundGetterAndSetter(Json json);
+		internal abstract void GenerateUnboundGetterAndSetter();
 
 		/// <summary>
 		/// 
 		/// </summary>
-		internal abstract void CheckAndSetBoundValue(Json json, bool addToChangeLog);
+		internal abstract void CheckAndSetBoundValue(Json parent, bool addToChangeLog);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		internal virtual void OnPropertySet(Json parent) {
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="json"></param>
-		internal virtual void Checkpoint(Json json) {
-			json.CheckpointAt(TemplateIndex);
+		internal virtual void Checkpoint(Json parent) {
+			parent.CheckpointAt(TemplateIndex);
 		}
 
 		internal virtual string ValueToJsonString(Json parent) {
 			return "";
 		}
-
-		//internal virtual void SetBoundValueAsObject(Json obj, object value) {
-		//	throw new NotSupportedException();
-		//}
-
-		//internal virtual object GetBoundValueAsObject(Json obj) {
-		//	throw new NotSupportedException();
-		//}
 
 		/// <summary>
 		/// 
@@ -139,11 +139,11 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="data"></param>
 		/// <returns></returns>
-		internal bool UseBinding(Json json) {
+		internal bool UseBinding(Json parent) {
 			BindingStrategy strategy;
 			object data;
 
-			data = json.Data;
+			data = parent.Data;
 			strategy = BindingStrategy;
 			if (data == null || strategy == BindingStrategy.Unbound)
 				return false;
@@ -153,7 +153,7 @@ namespace Starcounter.Templates {
 			if (dataTypeForBinding != null && VerifyBinding(data.GetType(), false))
 				return true;
 
-			GenerateBoundGetterAndSetter(json);
+			GenerateBoundGetterAndSetter(parent);
 			return true;
 		}
 

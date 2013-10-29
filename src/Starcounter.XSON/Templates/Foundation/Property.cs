@@ -38,17 +38,17 @@ namespace Starcounter.Templates {
 			Setter = BoundOrUnboundSet;
 		}
 
-		private T BoundOrUnboundGet(Json json) {
-			if (UseBinding(json))
-				return BoundGetter(json);
-			return UnboundGetter(json);
+		private T BoundOrUnboundGet(Json parent) {
+			if (UseBinding(parent))
+				return BoundGetter(parent);
+			return UnboundGetter(parent);
 		}
 
-		private void BoundOrUnboundSet(Json json, T value) {
-			if (UseBinding(json))
-				BoundSetter(json, value);
+		private void BoundOrUnboundSet(Json parent, T value) {
+			if (UseBinding(parent))
+				BoundSetter(parent, value);
 			else 
-				UnboundSetter(json, value);
+				UnboundSetter(parent, value);
 		}
 
 		/// <summary>
@@ -64,46 +64,45 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		/// <param name="data"></param>
-		internal override bool GenerateBoundGetterAndSetter(Json json) {
-			TemplateDelegateGenerator.GenerateBoundDelegates<T>(this, json);
+		internal override bool GenerateBoundGetterAndSetter(Json parent) {
+			TemplateDelegateGenerator.GenerateBoundDelegates<T>(this, parent);
 			return (BoundGetter != null);
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="json"></param>
-		internal override void GenerateUnboundGetterAndSetter(Json json) {
-			TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, json, false);
+		internal override void GenerateUnboundGetterAndSetter() {
+			TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="json"></param>
-		internal override void Checkpoint(Json json) {
-			if (UseBinding(json))
-				UnboundSetter(json, BoundGetter(json));
-			base.Checkpoint(json);
+		/// <param name="parent"></param>
+		internal override void Checkpoint(Json parent) {
+			if (UseBinding(parent))
+				UnboundSetter(parent, BoundGetter(parent));
+			base.Checkpoint(parent);
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="json"></param>
+		/// <param name="parent"></param>
 		/// <param name="addToChangeLog"></param>
-		internal override void CheckAndSetBoundValue(Json json, bool addToChangeLog) {
-			if (UseBinding(json)) {
-				T boundValue = BoundGetter(json);
-				T oldValue = UnboundGetter(json);
+		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
+			if (UseBinding(parent)) {
+				T boundValue = BoundGetter(parent);
+				T oldValue = UnboundGetter(parent);
 
 				// Since all values except string are valuetypes (and cannot be null),
 				// the default implementation does no nullchecks. This method is overriden
 				// in TString where we check for null as well.
 				if (!boundValue.Equals(oldValue)) {
-					UnboundSetter(json, boundValue);
+					UnboundSetter(parent, boundValue);
 					if (addToChangeLog)
-						json.Session.UpdateValue(json, this);
+						parent.Session.UpdateValue(parent, this);
 				}
 			}
 		}
@@ -111,14 +110,6 @@ namespace Starcounter.Templates {
 		internal override string ValueToJsonString(Json parent) {
 			return Getter(parent).ToString();
 		}
-
-		//internal override object GetBoundValueAsObject(Json json) {
-		//	return BoundGetter(json);
-		//}
-
-		//internal override void SetBoundValueAsObject(Json json, object value) {
-		//	BoundSetter(json, (T)value);
-		//}
 
         /// <summary>
         /// Adds an inputhandler to this property.

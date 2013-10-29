@@ -364,7 +364,6 @@ namespace Starcounter.Internal.XSON.Tests {
 			Assert.IsNotNull(property);
 			
 			bound = (property.Bind != null);
-			property.GenerateUnboundGetterAndSetter(json);
 			if (bound)
 				property.GenerateBoundGetterAndSetter(json);
 #if DEBUG
@@ -390,7 +389,6 @@ namespace Starcounter.Internal.XSON.Tests {
 			Assert.IsNotNull(property);
 			
 			bound = (property.Bind != null);
-			property.GenerateUnboundGetterAndSetter(json);
 			if (bound)
 				property.GenerateBoundGetterAndSetter(json);
 #if DEBUG
@@ -417,7 +415,6 @@ namespace Starcounter.Internal.XSON.Tests {
 			Assert.IsNotNull(ageProperty);
 			
 			bound = (ageProperty.Bind != null);
-			ageProperty.GenerateUnboundGetterAndSetter(json);
 			if (bound)
 				ageProperty.GenerateBoundGetterAndSetter(json);
 #if DEBUG
@@ -444,7 +441,6 @@ namespace Starcounter.Internal.XSON.Tests {
 			Assert.IsNotNull(pnProperty);
 
 			bound = (pnProperty.Bind != null);
-			pnProperty.GenerateUnboundGetterAndSetter(json);
 			if (bound)
 				pnProperty.GenerateBoundGetterAndSetter(json);
 #if DEBUG
