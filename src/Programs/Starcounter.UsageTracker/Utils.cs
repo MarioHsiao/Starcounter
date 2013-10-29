@@ -259,7 +259,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
                 string uri = string.Format("/json/{0}", ipAddress);
 
-                Response response = node.GET(uri, null, null);
+                Response response = node.GET(uri, null);
                 // Example call: http://freegeoip.net/json/85.89.70.180
                 // Example response
                 //{

@@ -24,7 +24,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                     try {
                         string bodyData = req.Body;   // Retrieve the message
 
-                        Response response = Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", name), null, null);
+                        Response response = Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", name), null);
 
                         if (response == null) {
 

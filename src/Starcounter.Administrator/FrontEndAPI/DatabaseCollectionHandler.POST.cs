@@ -23,7 +23,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                         String content = req.Body;
 
-                        Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/databaseproperties", content, null, null);
+                        Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/databaseproperties", content, null);
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
 
