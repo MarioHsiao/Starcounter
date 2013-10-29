@@ -24,8 +24,9 @@ namespace Starcounter.Templates {
 			get { return typeof(ArrMetadata<OT, Json>); }
 		}
 
-		internal override void GenerateUnboundGetterAndSetter(Json json) {
-			TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, json, false);
+		internal override void GenerateUnboundGetterAndSetter() {
+			TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, false);
+			base.GenerateUnboundGetterAndSetter();
 		}
 
 		private Arr<OT> BoundOrUnboundGet(Json parent) {
@@ -44,6 +45,10 @@ namespace Starcounter.Templates {
 				arr.CheckBoundArray(value);
 			} else
 				throw new NotSupportedException("TODO!");
+		}
+
+		internal override Json GetValue(Json parent) {
+			return UnboundGetter(parent);
 		}
 
 		/// <summary>

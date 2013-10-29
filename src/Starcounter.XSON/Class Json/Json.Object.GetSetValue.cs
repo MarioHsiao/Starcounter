@@ -51,25 +51,25 @@ namespace Starcounter {
 //		//	return ret;
 //		//}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <typeparam name="TVal"></typeparam>
-//		/// <param name="property"></param>
-//		/// <returns></returns>
-//		public TVal Get<TVal>(Property<TVal> property) {
-//			return (TVal)Get((TValue)property);
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="TVal"></typeparam>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		public TVal Get<TVal>(Property<TVal> property) {
+			return property.Getter(this);
+		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <typeparam name="TVal"></typeparam>
-//		/// <param name="property"></param>
-//		/// <param name="value"></param>
-//		public void Set<TVal>(Property<TVal> property, TVal value) {
-//			this[property.TemplateIndex] = value;
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="TVal"></typeparam>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		public void Set<TVal>(Property<TVal> property, TVal value) {
+			property.Setter(this, value);
+		}
 
 		/// <summary>
 		/// 
@@ -85,93 +85,85 @@ namespace Starcounter {
 			this.HasChanged(property);
 		}
 
-//		/// <summary>
-//		/// Gets the value for the specified template. If the property
-//		/// is bound the value will be retrived from the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to retrieve the value for.</param>
-//		/// <returns>The value.</returns>
-//		public bool Get(TBool property) { return Get<bool>(property); }
+		/// <summary>
+		/// Gets the value for the specified template. If the property
+		/// is bound the value will be retrived from the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to retrieve the value for.</param>
+		/// <returns>The value.</returns>
+		public bool Get(TBool property) { return Get<bool>(property); }
 
-//		/// <summary>
-//		/// Sets the value for the specified template. If the property
-//		/// is bound the value will be set in the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to set the value to.</param>
-//		/// <param name="value">The value to set.</param>
-//		public void Set(TBool property, bool value) { Set<bool>(property, value); }
+		/// <summary>
+		/// Sets the value for the specified template. If the property
+		/// is bound the value will be set in the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to set the value to.</param>
+		/// <param name="value">The value to set.</param>
+		public void Set(TBool property, bool value) { Set<bool>(property, value); }
 
-//		/// <summary>
-//		/// Gets the value for the specified template. If the property
-//		/// is bound the value will be retrived from the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to retrieve the value for.</param>
-//		/// <returns>The value.</returns>
-//		public decimal Get(Property<decimal> property) { return Get<decimal>(property); }
+		/// <summary>
+		/// Gets the value for the specified template. If the property
+		/// is bound the value will be retrived from the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to retrieve the value for.</param>
+		/// <returns>The value.</returns>
+		public decimal Get(Property<decimal> property) { return Get<decimal>(property); }
 
-//		/// <summary>
-//		/// Sets the value for the specified template. If the property
-//		/// is bound the value will be set in the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to set the value to.</param>
-//		/// <param name="value">The value to set.</param>
-//		public void Set(Property<decimal> property, decimal value) { Set<decimal>(property, value); }
+		/// <summary>
+		/// Sets the value for the specified template. If the property
+		/// is bound the value will be set in the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to set the value to.</param>
+		/// <param name="value">The value to set.</param>
+		public void Set(Property<decimal> property, decimal value) { Set<decimal>(property, value); }
 
-//		/// <summary>
-//		/// Gets the value for the specified template. If the property
-//		/// is bound the value will be retrived from the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to retrieve the value for.</param>
-//		/// <returns>The value.</returns>
-//		public double Get(TDouble property) { return Get<double>(property); }
+		/// <summary>
+		/// Sets the value for the specified template. If the property
+		/// is bound the value will be set in the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to set the value to.</param>
+		/// <param name="value">The value to set.</param>
+		public void Set(TDouble property, double value) { Set<double>(property, value); }
 
-//		/// <summary>
-//		/// Sets the value for the specified template. If the property
-//		/// is bound the value will be set in the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to set the value to.</param>
-//		/// <param name="value">The value to set.</param>
-//		public void Set(TDouble property, double value) { Set<double>(property, value); }
+		/// <summary>
+		/// Gets the value for the specified template. If the property
+		/// is bound the value will be retrived from the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to retrieve the value for.</param>
+		/// <returns>The value.</returns>
+		public long Get(TLong property) { return Get<long>(property); }
 
-//		/// <summary>
-//		/// Gets the value for the specified template. If the property
-//		/// is bound the value will be retrived from the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to retrieve the value for.</param>
-//		/// <returns>The value.</returns>
-//		public long Get(TLong property) { return Get<long>(property); }
+		/// <summary>
+		/// Sets the value for the specified template. If the property
+		/// is bound the value will be set in the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to set the value to.</param>
+		/// <param name="value">The value to set.</param>
+		public void Set(TLong property, long value) { Set<long>(property, value); }
 
-//		/// <summary>
-//		/// Sets the value for the specified template. If the property
-//		/// is bound the value will be set in the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to set the value to.</param>
-//		/// <param name="value">The value to set.</param>
-//		public void Set(TLong property, long value) { Set<long>(property, value); }
+		/// <summary>
+		/// Gets the value for the specified template. If the property
+		/// is bound the value will be retrived from the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to retrieve the value for.</param>
+		/// <returns>The value.</returns>
+		public string Get(TString property) { return Get<string>(property); }
 
-//		/// <summary>
-//		/// Gets the value for the specified template. If the property
-//		/// is bound the value will be retrived from the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to retrieve the value for.</param>
-//		/// <returns>The value.</returns>
-//		public string Get(TString property) { return Get<string>(property); }
+		/// <summary>
+		/// Sets the value for the specified template. If the property
+		/// is bound the value will be set in the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to set the value to.</param>
+		/// <param name="value">The value to set.</param>
+		public void Set(TString property, string value) { Set<string>(property, value); }
 
-//		/// <summary>
-//		/// Sets the value for the specified template. If the property
-//		/// is bound the value will be set in the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to set the value to.</param>
-//		/// <param name="value">The value to set.</param>
-//		public void Set(TString property, string value) { Set<string>(property, value); }
-
-//		/// <summary>
-//		/// Gets the value for the specified template. If the property
-//		/// is bound the value will be retrived from the underlying dataobject.
-//		/// </summary>
-//		/// <param name="property">The template to retrieve the value for.</param>
-//		/// <returns>The value.</returns>
-//		public ulong Get(TOid property) { return Get<ulong>(property); }
+		/// <summary>
+		/// Gets the value for the specified template. If the property
+		/// is bound the value will be retrived from the underlying dataobject.
+		/// </summary>
+		/// <param name="property">The template to retrieve the value for.</param>
+		/// <returns>The value.</returns>
+		public ulong Get(TOid property) { return Get<ulong>(property); }
 
 ////        /// <summary>
 ////        /// Gets the value for a given property in this Obj. This method returns all values boxed
@@ -213,81 +205,89 @@ namespace Starcounter {
 ////            this.HasChanged(property);
 ////        }
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <returns></returns>
-//		public JsonType Get<JsonType>(TObject property)
-//			where JsonType : Json, new() {
-//				return (JsonType)this[property.TemplateIndex];
-//		}
-        
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <returns></returns>
-//		public Json Get(TObject property) {
-//			return Get<Json>(property);
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		public JsonType Get<JsonType>(TObject property)
+			where JsonType : Json, new() {
+				return (JsonType)property.Getter(this);
+		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <param name="value"></param>
-//		public void Set(TObject property, Json value) {
-//			this[property.TemplateIndex] = value;
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		public Json Get(TObject property) {
+			return property.Getter(this);
+		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <param name="value"></param>
-//		public void Set(TObject property, IBindable value) {
-//			this[property.TemplateIndex] = value;
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		public void Set(TObject property, Json value) {
+			property.Setter(this, value);
+		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <returns></returns>
-//		public Arr<ElementType> Get<ElementType>(TArray<ElementType> property) 
-//			where ElementType : Json, new()
-//		{
-//			return (Arr<ElementType>)this[property.TemplateIndex];
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		public void Set(TObject property, IBindable value) {
+			Json current = property.UnboundGetter(this);
+			current.AttachData(value);
+//			property.Setter(this, value);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		public Arr<ElementType> Get<ElementType>(TArray<ElementType> property)
+			where ElementType : Json, new() {
+				return property.Getter(this);
+		}
 
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <returns></returns>
-//		public Json Get( TObjArr property) {
-//			return (Json)this[property.TemplateIndex];
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		public Json Get(TObjArr property) {
+			return property.Getter(this);
+		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <param name="value"></param>
-//		public void Set(TObjArr property, Json value) {
-//			this[property.TemplateIndex] = value;
-//		}
-        
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <param name="data"></param>
-//		public void Set(TObjArr property, IEnumerable data) {
-//			this[property.TemplateIndex] = data;
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		public void Set(TObjArr property, Json value) {
+			property.Setter(this, value);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="data"></param>
+		public void Set(TObjArr property, IEnumerable data) {
+			// TODO:
+			// Check this code...it's not implemented as it should be.
+			Json current = property.UnboundGetter(this);
+			current.Clear();
+			current._PendingEnumeration = true;
+			current._data = data;
+			current.Array_InitializeAfterImplicitConversion(this, property);
+//			throw new NotImplementedException();
+		}
 
 //		/// <summary>
 //		/// 
@@ -308,25 +308,25 @@ namespace Starcounter {
 //			vals[property.TemplateIndex] = newList;
 //		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <typeparam name="T"></typeparam>
-//		/// <param name="property"></param>
-//		/// <returns></returns>
-//		public Arr<T> Get<T>(TObjArr property) where T : Json, new() {
-//			return (Arr<T>)(this[property.TemplateIndex]);
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		public Arr<T> Get<T>(TObjArr property) where T : Json, new() {
+			return (Arr<T>)property.Getter(this);
+		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <typeparam name="T"></typeparam>
-//		/// <param name="templ"></param>
-//		/// <param name="data"></param>
-//		public void Set<T>(TObjArr templ, Arr<T> data) where T : Json, new() {
-//			this[templ.TemplateIndex] = data;
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="templ"></param>
+		/// <param name="data"></param>
+		public void Set<T>(TObjArr templ, Arr<T> data) where T : Json, new() {
+			templ.Setter(this, data);
+		}
 
 //		/// <summary>
 //		/// Gets the value.

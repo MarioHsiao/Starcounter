@@ -127,6 +127,8 @@ namespace Starcounter.Internal.JsonPatch {
                 sb.Append(",\"value\":");
 				if (childJson == null && from is TContainer) {
 					childJson = ((TContainer)from).GetValue(nearestApp);
+					if (index != -1)
+						childJson = (Json)childJson._GetAt(index);
 				}
 
 				if (childJson != null) {
