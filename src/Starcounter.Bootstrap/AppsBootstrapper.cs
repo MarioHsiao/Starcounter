@@ -68,7 +68,6 @@ namespace Starcounter.Internal {
 
             // Injecting required hosted Node functionality.
             Node.InjectHostedImpl(
-                AppServer_.OnResponse,
                 UserHandlerCodegen.DoLocalNodeRest,
                 NodeErrorLogSource.LogException);
 
@@ -170,10 +169,17 @@ namespace Starcounter.Internal {
         private static Boolean OnHttpMessageRoot(Request request) {
             Response response = AppServer_.HandleRequest(request);
 
-            if (response != null)
-                request.SendResponse(response.Uncompressed, 0, response.UncompressedLength, response.ConnFlags);
-
-            request.Destroy();
+            // Determining what we should do with response.
+            switch (response.HandlingStatus)
+            {
+                case HandlerStatus.Done:
+                {
+                    // Standard response send.
+                    request.SendResponse(response.Uncompressed, 0, response.UncompressedLength, response.ConnFlags);
+                    request.Destroy();
+                    break;
+                }
+            }
 
             return true;
         }
