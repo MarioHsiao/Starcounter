@@ -1,4 +1,4 @@
-CMD /C "kill_all.bat"
+staradmin -killall
 
 timeout 1
 

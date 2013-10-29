@@ -145,7 +145,10 @@ namespace Starcounter.Internal.Tests {
 			request.SetCustomFieldsFlag();
 			request.ConstructFromFields();
 			arr2 = request.CustomBytes;
-			Assert.AreEqual(arr1, arr2);
+
+			for (Int32 i = 0; i < request.CustomBytesLength; i++) {
+                Assert.AreEqual(arr1[i], arr2[i], "Arrays differ at position " + i);
+            }
 		}
 
 		[Test]

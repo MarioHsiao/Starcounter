@@ -21,8 +21,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         Response response = Node.LocalhostSystemPortNode.POST(
                             string.Format("/__{0}/sql", database.Name),
                             bodyData,
-                            "MyHeader1: 123\r\nMyHeader2: 456\r\n",
-                            null);
+                            "MyHeader1: 123\r\nMyHeader2: 456\r\n");
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
                             return response.Body;
