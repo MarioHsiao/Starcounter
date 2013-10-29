@@ -83,6 +83,47 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
 		[Test]
+		public static void TestSimpleBindingWithoutIBindable() {
+			var o = new ObjectWOBindable();
+			o.FirstName = "Joachim";
+			o.LastName = "Wester";
+
+			var child = new ObjectWOBindable();
+			child.FirstName = "Apa";
+			child.LastName = "Papa";
+			
+			o.Items = new List<ObjectWOBindable>();
+			o.Items.Add(child);
+
+
+			dynamic j = new Json();
+			var t = new TJson();
+			var prop = t.Add<TString>("FirstName");
+			prop.Bind = "FirstName";
+			prop.BindingStrategy = BindingStrategy.Bound;
+
+			var arrType = new TJson();
+			arrType.Add<TString>("LastName");
+			var prop2 = t.Add<TObjArr>("Items");
+			prop2.ElementType = arrType;
+
+			j.Template = t;
+			j.Data = o;
+
+//			var temp = (Json)j;
+
+			Assert.AreEqual("Joachim", o.FirstName); // Get firstname using data object
+			Assert.AreEqual("Joachim", prop.Getter(j)); // Get firstname using JSON data binding using API
+			Assert.AreEqual("Joachim", j.FirstName); // Get firstname using JSON data binding using dynamic code-gen
+
+			j.FirstName = "Douglas";
+			Assert.AreEqual("Douglas", o.FirstName);
+			Assert.AreEqual("Douglas", j.FirstName);
+
+			Assert.AreEqual(1, j.Items.Count);
+		}
+
+		[Test]
 		public static void TestAutoBinding() {
 			var p = new Person();
 			p.FirstName = "Joachim";

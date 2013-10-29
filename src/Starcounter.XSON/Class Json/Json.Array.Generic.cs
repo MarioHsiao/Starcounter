@@ -92,7 +92,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public T Add(IBindable data) {
+        public new T Add(object data) {
             TObjArr template = (TObjArr)Template;
             var app = (T)template.ElementType.CreateInstance(this);
             app.Data = data;
