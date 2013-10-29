@@ -66,6 +66,7 @@
     <AssemblyOriginatorKeyFile>..\..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CodeHostError.cs" />
     <Compile Include="ExceptionManager.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="orange.cs" />
