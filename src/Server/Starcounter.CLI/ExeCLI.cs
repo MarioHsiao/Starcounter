@@ -170,7 +170,7 @@ namespace Starcounter.CLI {
             // GET or START the engine
             ShowStatus("Retreiving engine status", true);
 
-            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
             statusCode = response.FailIfNotSuccessOr(404);
 
             if (statusCode == 404) {
@@ -195,10 +195,10 @@ namespace Starcounter.CLI {
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                 engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
 
-                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null);
                 response.FailIfNotSuccess();
 
-                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
                 response.FailIfNotSuccess();
             }
 
@@ -219,10 +219,10 @@ namespace Starcounter.CLI {
                     engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                     engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
 
-                    response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                    response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null);
                     response.FailIfNotSuccess();
 
-                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
                     response.FailIfNotSuccess();
 
                     engine.PopulateFromJson(response.Body);
@@ -250,10 +250,10 @@ namespace Starcounter.CLI {
                 }
 
                 ShowStatus(status);
-                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null, null);
+                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null);
                 response.FailIfNotSuccessOr(404);
 
-                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
                 response.FailIfNotSuccess();
 
                 engine.PopulateFromJson(response.Body);
@@ -292,7 +292,7 @@ namespace Starcounter.CLI {
             exe.WorkingDirectory = defaultResourceDir;
             exe.WorkingDirectory = Path.GetFullPath(exe.WorkingDirectory);
 
-            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
+            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null);
             response.FailIfNotSuccess();
             exe.PopulateFromJson(response.Body);
         }
@@ -306,7 +306,7 @@ namespace Starcounter.CLI {
 
             ShowStatus("Retreiving engine status", true);
 
-            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
             statusCode = response.FailIfNotSuccessOr(404);
 
             if (statusCode == 404) {
@@ -339,7 +339,7 @@ namespace Starcounter.CLI {
                     status += string.Format(" (and {0} other executable(s))", fellowCount);
                 }
                 ShowStatus(status);
-                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null, null);
+                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null);
                 response.FailIfNotSuccessOr();
             }
         }
@@ -347,7 +347,7 @@ namespace Starcounter.CLI {
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
             var db = new Database();
             db.Name = databaseName;
-            var response = node.POST(uris.Databases, db.ToJson(), null, null);
+            var response = node.POST(uris.Databases, db.ToJson(), null);
             response.FailIfNotSuccess();
         }
 
@@ -356,9 +356,6 @@ namespace Starcounter.CLI {
             int exitCode = response.StatusCode;
 
             Console.WriteLine();
-            ConsoleUtil.ToConsoleWithColor("Unexpected response from server - unable to continue.", red);
-            ConsoleUtil.ToConsoleWithColor(string.Format("  Response status code: {0}", response.StatusCode), red);
-
             // Try extracting an error detail from the body, but make
             // sure that if we fail doing so, we just dump out the full
             // content in it's rawest format (dictated by the
@@ -366,11 +363,14 @@ namespace Starcounter.CLI {
             try {
                 var detail = new ErrorDetail();
                 detail.PopulateFromJson(response.Body);
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Starcounter error code: {0}", detail.ServerCode), red);
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Error message: {0}", detail.Text), red);
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Help link: {0}", detail.Helplink), red);
+                //ConsoleUtil.ToConsoleWithColor(string.Format("  Starcounter error code: {0}", detail.ServerCode), red);
+                ConsoleUtil.ToConsoleWithColor(detail.Text, red);
+                Console.WriteLine();
+                SharedCLI.ShowHints((uint)detail.ServerCode);
                 exitCode = (int)detail.ServerCode;
             } catch {
+                ConsoleUtil.ToConsoleWithColor("Unexpected response from server - unable to continue.", red);
+                ConsoleUtil.ToConsoleWithColor(string.Format("  Response status code: {0}", response.StatusCode), red);
                 ConsoleUtil.ToConsoleWithColor("  Response:", red);
                 ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
             } finally {

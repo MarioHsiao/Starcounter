@@ -8,7 +8,7 @@ set LOOP_TIMES=%1
 IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
 ECHO Test is going to loop %LOOP_TIMES% times:
 
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 
 :: Creating repository if it does not exist.
 IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
@@ -32,11 +32,11 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
 :: Success message.
 ECHO Star.exe loop tests finished successfully!
 
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the star.exe loop test! 1>&2
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 EXIT 1
