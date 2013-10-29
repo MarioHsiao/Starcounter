@@ -9,8 +9,7 @@ SET DB_NAME=LOADANDLATENCY
 SET TEST_NAME=LoadAndLatency
 SET TEST_ARGS=--UserArguments="SpecificTestType=0 %*"
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 
 :: Checking for existing dirs.
 IF EXIST .db (

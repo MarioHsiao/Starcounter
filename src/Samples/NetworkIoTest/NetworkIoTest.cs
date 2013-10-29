@@ -390,10 +390,6 @@ namespace NetworkIoTestApp
                 {
                     AppsBootstrapper.Bootstrap();
 
-                    handler_uri = "/";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnRestClient, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
                     handler_uri = "/testrest";
                     GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
@@ -1009,40 +1005,6 @@ namespace NetworkIoTestApp
         }
 
         static Node someNode = new Node("127.0.0.1");
-
-        private static Boolean OnRestClient(Request req)
-        {
-            someNode.GET("/testrest", null, req, null, (Response resp, Object userObject) => {
-                if (resp["Content-Type"] == "text/html; charset=UTF-8") {
-                    dynamic jsonData = DynamicJson.Parse(resp.Body);
-                    string htmlFileName = jsonData.FirstName;
-                    return htmlFileName;
-                } else {
-                    return resp;
-                }
-            });
-
-            /*
-            Response httpResponse;
-
-            someNode.GET("/testrest", httpRequest, out httpResponse);
-
-            Int32 contentLength = httpResponse.ContentLength;
-            String contentType = httpResponse["Content-Type"];
-
-            try
-            {
-                // Writing back the response.
-                httpRequest.SendResponse(httpResponse.ResponseBytes, 0, httpResponse.ResponseLength);
-            }
-            catch
-            {
-                // Writing back the error status.
-                httpRequest.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
-            }*/
-
-            return true;
-        }
 
         private static Boolean OnTestRest(Request p)
         {

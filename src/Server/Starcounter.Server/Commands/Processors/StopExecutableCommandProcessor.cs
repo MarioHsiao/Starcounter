@@ -105,9 +105,9 @@ namespace Starcounter.Server.Commands {
                         Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.OriginalExecutablePath, database.Name);
 
                         if (exe.RunEntrypointAsynchronous) {
-                            node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                            node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
                         } else {
-                            var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                            var response = node.POST(serviceUris.Executables, exe.ToJson(), null);
                             response.FailIfNotSuccess();
                         }
 

@@ -9,8 +9,7 @@ SET DB_NAME=SQLCACHETRASHER
 SET TEST_NAME=SqlCacheTrasher
 ::SET TEST_ARGS=--UserArguments="param12345"
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+staradmin -killall
 
 :: Checking for existing dirs.
 IF EXIST .db (

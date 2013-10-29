@@ -33,12 +33,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             // Add public static resource
             String body = publicPort.ToString() + "\r\n" + System.IO.Path.Combine(folder, "public");
 
-            Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, null, (Response resp, Object userObject) => {
+            Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
                 String respString = resp.Body;
                 if ("Success!" != respString) {
                     throw new Exception(string.Format("Failed to register the static resources directory ({0}).", body));
                 }
-                return "Success!";
             });
 
 
@@ -49,12 +48,10 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             }
             String publicDocfolder = publicPort.ToString() + "\r\n" + publicDocumentationFolder;
 
-            Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", publicDocfolder, null, null, null, (Response resp, Object userObject) => {
+            Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", publicDocfolder, null, null, (Response resp, Object userObject) => {
                 String respString = resp.Body;
-                if ("Success!" != respString) {
+                if ("Success!" != respString)
                     throw new Exception(string.Format("Failed to register the static resources directory {0} on port {1} for the documentation.", publicDocumentationFolder, publicPort));
-                }
-                return "Success!";
             });
 
 

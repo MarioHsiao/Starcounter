@@ -78,14 +78,9 @@ namespace Starcounter {
         public Int32 RequestBytesLength = 0;
 
         /// <summary>
-        /// Original request.
-        /// </summary>
-        public Request OrigReq = null;
-
-        /// <summary>
         /// User delegate.
         /// </summary>
-        public Func<Response, Object, Response> UserDelegate = null;
+        public Action<Response, Object> UserDelegate = null;
 
         /// <summary>
         /// User object.
@@ -110,7 +105,7 @@ namespace Starcounter {
         /// <summary>
         /// Resets the connection details.
         /// </summary>
-        public void Reset(Byte[] requestBytes, Int32 requestBytesLength, Request origReq, Func<Response, Object, Response> userDelegate, Object userObject, Int32 receiveTimeoutMs)
+        public void Reset(Byte[] requestBytes, Int32 requestBytesLength,Action<Response, Object> userDelegate, Object userObject, Int32 receiveTimeoutMs)
         {
             Resp = null;
             TotallyReceivedBytes = 0;
@@ -118,7 +113,6 @@ namespace Starcounter {
 
             RequestBytes = requestBytes;
             RequestBytesLength = requestBytesLength;
-            OrigReq = origReq;
 
             UserDelegate = userDelegate;
             UserObject = userObject;
@@ -193,7 +187,7 @@ namespace Starcounter {
                     try
                     {
                         // Trying to parse the response.
-                        Resp = new Response(AccumBuffer, 0, recievedBytes, OrigReq, false);
+                        Resp = new Response(AccumBuffer, 0, recievedBytes, null, false);
 
                         // Getting the whole response size.
                         ResponseSizeBytes = Resp.ResponseLength;
@@ -225,7 +219,7 @@ namespace Starcounter {
                     Resp.SetResponseBuffer(MemStream.GetBuffer(), MemStream, TotallyReceivedBytes);
 
                     // Invoking user delegate.
-                    Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
+                    NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject);
 
                     // Freeing connection resources.
                     NodeInst.FreeConnection(this, false);
@@ -366,7 +360,7 @@ namespace Starcounter {
             try
             {
                 // Trying to parse the response.
-                Resp = new Response(bytes, offset, resp_len_bytes, OrigReq, false);
+                Resp = new Response(bytes, offset, resp_len_bytes, null, false);
 
                 // Getting the whole response size.
                 ResponseSizeBytes = Resp.ResponseLength;
@@ -397,7 +391,7 @@ namespace Starcounter {
             Resp.SetResponseBuffer(resp_bytes, null, resp_len_bytes);
 
             // Invoking user delegate.
-            Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
+            NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject);
         }
 
         /// <summary>
@@ -460,7 +454,7 @@ namespace Starcounter {
                         try
                         {
                             // Trying to parse the response.
-                            Resp = new Response(AccumBuffer, 0, recievedBytes, OrigReq, false);
+                            Resp = new Response(AccumBuffer, 0, recievedBytes, null, false);
 
                             // Getting the whole response size.
                             ResponseSizeBytes = Resp.ResponseLength;
@@ -532,7 +526,7 @@ namespace Starcounter {
 
             // Invoking user delegate.
             if (null != UserDelegate)
-                Node.CallUserDelegate(OrigReq, Resp, UserDelegate, UserObject);
+                NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject);
 
             // Freeing connection resources.
             NodeInst.FreeConnection(this, isSyncCall);

@@ -26,7 +26,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             // Show download page
             Handle.GET(port, "/download/{?}", (string res, Request request) => {
                 Node node = new Node("127.0.0.1", port);
-                return node.GET("/downloads.html", null, null);
+                return node.GET("/downloads.html", null);
             });
 
 
