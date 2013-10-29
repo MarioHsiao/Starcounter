@@ -59,7 +59,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Internal network data stream.
         /// </summary>
-        public NetworkDataStream data_stream_;
+        internal NetworkDataStream data_stream_;
 
         /// <summary>
         /// Network port number.
@@ -320,7 +320,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Destroys the instance of Request.
         /// </summary>
-        public void Destroy()
+        internal void Destroy(Boolean garbageCollected = false)
         {
             unsafe
             {
@@ -340,7 +340,7 @@ namespace Starcounter.Advanced {
                 else
                 {
                     // Releasing data stream resources like chunks, etc.
-                    data_stream_.Destroy();
+                    data_stream_.Destroy(garbageCollected);
                 }
 
                 http_request_struct_ = null;
@@ -352,7 +352,7 @@ namespace Starcounter.Advanced {
         /// Checks if HttpStructs is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
-        public bool IsDestroyed()
+        internal bool IsDestroyed()
         {
             unsafe
             {
@@ -365,7 +365,7 @@ namespace Starcounter.Advanced {
         /// </summary>
         ~Request()
         {
-            Destroy();
+            Destroy(true);
         }
 
         // TODO

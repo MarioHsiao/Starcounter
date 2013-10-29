@@ -31,6 +31,16 @@ namespace Starcounter.Advanced
     }
 
     /// <summary>
+    /// Handler response status.
+    /// </summary>
+    public enum HandlerStatus
+    {
+        Done,
+        Pending,
+        NotHandled
+    }
+
+    /// <summary>
     /// Represents an HTTP response.
     /// </summary>
     /// <remarks>
@@ -217,6 +227,20 @@ namespace Starcounter.Advanced
         /// Indicates that response is sealed and can't be modified.
         /// </summary>
         Boolean readOnly_;
+
+        /// <summary>
+        /// Handling status for this response.
+        /// </summary>
+        internal HandlerStatus HandlingStatus
+        {
+            get { return handlingStatus_; }
+            set { handlingStatus_ = value; }
+        }
+
+        /// <summary>
+        /// Handling status.
+        /// </summary>
+        HandlerStatus handlingStatus_;
 
         /// <summary>
         /// WebSocket close codes.
@@ -1403,7 +1427,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Destroys the instance of Response.
         /// </summary>
-        public void Destroy()
+        internal void Destroy()
         {
             unsafe
             {
@@ -1433,11 +1457,6 @@ namespace Starcounter.Advanced
                     // Releasing internal resources here.
                     BitsAndBytes.Free((IntPtr)http_response_struct_);
                 }
-                else
-                {
-                    // Releasing data stream resources like chunks, etc.
-                    data_stream_.Destroy();
-                }
 
                 http_response_struct_ = null;
                 session_ = null;
@@ -1465,32 +1484,6 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Response" /> class.
-        /// </summary>
-        /// <param name="chunk_data">The chunk_data.</param>
-        /// <param name="single_chunk">The single_chunk.</param>
-        /// <param name="chunk_index">The chunk_index.</param>
-        /// <param name="http_response_begin">The http_response_begin.</param>
-        /// <param name="socket_data">The socket_data.</param>
-        /// <param name="data_stream">The data_stream.</param>
-        public unsafe Response(
-            Byte* chunk_data,
-            Boolean single_chunk,
-            UInt32 chunk_index,
-            UInt16 handler_id,
-            Byte* http_response_begin,
-            Byte* socket_data,
-            NetworkDataStream data_stream)
-        {
-            http_response_struct_ = (HttpResponseInternal*) http_response_begin;
-            session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
-            http_response_struct_->socket_data_ = socket_data;
-            data_stream_ = data_stream;
-            data_stream_.Init(chunk_data, single_chunk, chunk_index);
-            handlerId_ = handler_id;
-        }
-
-        /// <summary>
         /// Debugs the specified message.
         /// </summary>
         /// <param name="message">The message.</param>
@@ -1513,15 +1506,6 @@ namespace Starcounter.Advanced
         {
             get { return needsScriptInjection_; }
             set { needsScriptInjection_ = value; }
-        }
-
-        /// <summary>
-        /// Linear index for this handler.
-        /// </summary>
-        UInt16 handlerId_;
-        public UInt16 HandlerId
-        {
-            get { return handlerId_; }
         }
 
         /// <summary>

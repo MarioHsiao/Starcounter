@@ -193,11 +193,17 @@ namespace Starcounter
         /// <summary>
         /// Frees all data stream resources like chunks.
         /// </summary>
-        public void Destroy()
+        public void Destroy(Boolean garbageCollected = false)
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
+
+            // Checking if this request is garbage collected.
+            if (garbageCollected)
+            {
+
+            }
 
             // Returning linked chunks to pool.
             UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunk_index_);
