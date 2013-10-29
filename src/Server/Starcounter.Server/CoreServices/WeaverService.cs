@@ -123,61 +123,6 @@ namespace Starcounter.Server {
             return error == Error.SCERRWEAVERCANTUSECACHE || error == Error.SCERRUNHANDLEDWEAVEREXCEPTION;
         }
 
-        public static void ExtractParcelledErrors(string[] content, string parcelID, List<string> errors, int maxCount = -1) {
-            string currentParcel;
-
-            currentParcel = null;
-
-            foreach (var inputString in content) {
-                if (inputString == null)
-                    continue;
-
-                // Are we currently parsing a multi-line parcel?
-
-                if (currentParcel != null) {
-                    // Yes we are.
-                    // Check if we have reached the final line.
-
-                    if (inputString.EndsWith(parcelID)) {
-                        // End the parcel.
-
-                        currentParcel += " " + inputString.Substring(0, inputString.Length - parcelID.Length);
-                        errors.Add(currentParcel);
-                        if (errors.Count == maxCount)
-                            return;
-
-                        currentParcel = null;
-                    } else {
-                        // Append the current line to the already
-                        // identified parcel content and continue.
-
-                        currentParcel += " " + inputString;
-                    }
-                } else {
-                    // We are currently not in the middle of parsing a
-                    // parcel. Check the input.
-
-                    if (inputString.StartsWith(parcelID)) {
-                        // Beginning of a new parcel. Create it.
-
-                        currentParcel = inputString.Substring(parcelID.Length);
-
-                        // Check if it's a one-line parcel and if it is,
-                        // terminate it.
-
-                        if (inputString.EndsWith(parcelID)) {
-                            currentParcel = currentParcel.Substring(0, currentParcel.Length - parcelID.Length);
-                            errors.Add(currentParcel);
-                            if (errors.Count == maxCount)
-                                return;
-
-                            currentParcel = null;
-                        }
-                    }
-                }
-            }
-        }
-
         string CreateWeaverCommandLine(string givenAssembly, string outputDirectory, bool useCache = true) {
             var arguments = string.Format(
                 "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"", 
@@ -221,7 +166,7 @@ namespace Starcounter.Server {
 
             Exception result = null;
             try {
-                ExtractParcelledErrors(e.Result.GetErrorOutput(), WeaverErrorParcelId, errors, 1);
+                ParcelledError.ExtractParcelledErrors(e.Result.GetErrorOutput(), WeaverErrorParcelId, errors, 1);
                 if (errors.Count == 1) {
                     result = ErrorMessage.Parse(errors[0]).ToException();
                 }

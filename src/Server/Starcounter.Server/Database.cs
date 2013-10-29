@@ -72,6 +72,16 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets the error output buffer, containing all error
+        /// output that has been captured from the code host process
+        /// currently attached to this database.
+        /// </summary>
+        internal List<string> CodeHostErrorOutput {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the counter used to determine when automatic restart
         /// no longer is viable on failure.
         /// </summary>
@@ -119,6 +129,7 @@ namespace Starcounter.Server {
             this.Name = this.Configuration.Name;
             this.Uri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), server.Name, this.Name).ToString();
             this.Apps = new List<DatabaseApp>();
+            this.CodeHostErrorOutput = new List<string>();
         }
 
         /// <summary>

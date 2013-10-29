@@ -98,6 +98,10 @@ namespace StarcounterInternal.Bootstrap
             ProgramCommandLine.TryGetProgramArguments(args, out arguments);
             OnCommandLineParsed();
 
+            if (arguments.ContainsFlag("attachdebugger")) {
+                Debugger.Launch();
+            }
+
             configuration = Configuration.Load(arguments);
             OnConfigurationLoaded();
 
