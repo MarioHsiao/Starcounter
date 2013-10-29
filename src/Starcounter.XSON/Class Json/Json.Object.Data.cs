@@ -43,12 +43,12 @@ namespace Starcounter {
                     if (Template == null) {
                         (this as Json).CreateDynamicTemplate(); // If there is no template, we'll create a template
                     }
-                    InternalSetData((IBindable)value, (TObject)Template, false);
+                    InternalSetData(value, (TObject)Template, false);
                 }
             }
         }
 
-        internal void AttachData(IBindable data) {
+        internal void AttachData(object data) {
             InternalSetData(data, (TObject)Template, true);
         }
 
@@ -175,7 +175,7 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data, TObject template, bool readOperation ) {
+        protected virtual void InternalSetData(object data, TObject template, bool readOperation ) {
             this._data = data;
 
 			if (template.BindingStrategy != BindingStrategy.Unbound) {

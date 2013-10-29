@@ -238,7 +238,8 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="property"></param>
 		/// <param name="value"></param>
-		public void Set(TObject property, IBindable value) {
+		public void Set(TObject property, object value) {
+			// TODO:
 			Json current = property.UnboundGetter(this);
 			current.AttachData(value);
 //			property.Setter(this, value);
