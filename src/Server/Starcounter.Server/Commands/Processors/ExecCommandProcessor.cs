@@ -94,6 +94,7 @@ namespace Starcounter.Server.Commands {
             });
 
             WithinTask(Task.Run, (task) => {
+                Exception codeHostExited = null;
                 try {
 
                     var node = Node.LocalhostSystemPortNode;
@@ -111,24 +112,27 @@ namespace Starcounter.Server.Commands {
                     if (exe.RunEntrypointAsynchronous) {
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
                     } else {
                         // Make a asynchronous call, where we let the callback
                         // set the event whenever the code host is done. Until
                         // then, we wait for this, and check that the code host
-                        // is running perodically.
+                        // is running periodically.
                         var confirmed = new ManualResetEvent(false);
                         Response codeHostResponse = null;
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, confirmed, (Response resp, object userObject) => {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, confirmed, (Response resp, object userObject) => {
                             var done = (ManualResetEvent)userObject;
                             codeHostResponse = resp;
                             done.Set();
-                            return resp;
                         });
 
                         var timeout = 500;
                         while (!confirmed.WaitOne(timeout)) {
-                            RaiseExceptionIfCodeHostTerminated(codeHostProcess, database);
+                            codeHostExited = CreateExceptionIfCodeHostTerminated(codeHostProcess, database);
+                            if (codeHostExited != null) {
+                                throw codeHostExited;
+                            }
+
                             timeout = 20;
                         }
                         confirmed.Dispose();
@@ -143,7 +147,12 @@ namespace Starcounter.Server.Commands {
                     OnDatabaseAppRegistered();
 
                 } catch (Exception ex) {
-                    RaiseExceptionIfCodeHostTerminated(codeHostProcess, database, ex);
+                    if (codeHostExited != null && ex.Equals(codeHostExited)) {
+                        throw;
+                    }
+                    codeHostExited = CreateExceptionIfCodeHostTerminated(codeHostProcess, database, ex);
+                    if (codeHostExited != null)
+                        throw codeHostExited;
                     throw ex;
                 }
             });
@@ -154,9 +163,12 @@ namespace Starcounter.Server.Commands {
             OnDatabaseStatusUpdated();
         }
 
-        void RaiseExceptionIfCodeHostTerminated(Process codeHostProcess, Database database, Exception ex = null) {
+        Exception CreateExceptionIfCodeHostTerminated(Process codeHostProcess, Database database, Exception ex = null) {
+            Exception result = null;
             codeHostProcess.Refresh();
+
             if (codeHostProcess.HasExited) {
+
                 // The code host has exited, most likely because something
                 // in the bootstrap sequence or in the exec handler has gone
                 // wrong. 
@@ -168,8 +180,10 @@ namespace Starcounter.Server.Commands {
                 // have any good strategy figured out. We start with just
                 // logging it and nothing else.
 
-                throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, ex);
+                result = DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, ex);
             }
+
+            return result;
         }
 
         /// <summary>

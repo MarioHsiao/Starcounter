@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         String content = req.Body;
 
                         // Validate settings
-                        Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/serverproperties",content, null, null);
+                        Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/serverproperties",content, null);
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
 
@@ -33,7 +33,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
                             if (serverInfo == null) {
-                                throw new InvalidProgramException("Could not retrive server informaiton");
+                                throw new InvalidProgramException("Could not retrieve server information");
                             }
 
                             // Port number
@@ -51,7 +51,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             // Get new database settings
                             serverInfo = Master.ServerInterface.GetServerInfo();
                             if (serverInfo == null) {
-                                throw new InvalidProgramException("Could not retrive server informaiton");
+                                throw new InvalidProgramException("Could not retrieve server information");
                             }
 
                             resultJson.settings = new {

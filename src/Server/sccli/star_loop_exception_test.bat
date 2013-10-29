@@ -19,5 +19,6 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
 :: Success message.
 ECHO Star.exe loop exception test finished successfully!
 
-CMD /C "kill_all.bat" 2>NUL
+:: Killing all processes.
+staradmin -killall
 GOTO :EOF
