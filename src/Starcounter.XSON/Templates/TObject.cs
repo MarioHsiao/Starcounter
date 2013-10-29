@@ -92,11 +92,21 @@ namespace Starcounter.Templates {
 			return value;
 		}
 
-		private void BoundOrUnboundSet(Json parent, object value) {
-			if (UseBinding(parent))
-				BoundSetter(parent, value);
-			else
-				UnboundSetter(parent, (Json)value);
+		private void BoundOrUnboundSet(Json parent, Json value) {
+			Json oldValue = UnboundGetter(parent);
+
+			if (oldValue != null) {
+				oldValue.SetParent(null);
+				oldValue._cacheIndexInArr = -1;
+			}
+
+			if (value != null) {
+				if (UseBinding(parent))
+					BoundSetter(parent, value);
+				value.Parent = parent;
+				value._cacheIndexInArr = TemplateIndex;
+			}
+			UnboundSetter(parent, value);
 		}
 
 		/// <summary>
