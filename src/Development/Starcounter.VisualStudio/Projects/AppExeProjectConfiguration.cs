@@ -264,7 +264,8 @@ namespace Starcounter.VisualStudio.Projects {
                 }
             }
 
-            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
+            bool attachDebugger = (flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0;
+            if (attachDebugger) {
                 this.WriteDebugLaunchStatus("Attaching debugger");
                 if (!AttachDebugger(engine)) {
                     return false;
@@ -273,13 +274,23 @@ namespace Starcounter.VisualStudio.Projects {
 
             this.WriteDebugLaunchStatus("Starting executable");
             var exe = new Executable();
-            exe.IsTool = false;
             exe.Path = debugConfig.AssemblyPath;
             exe.WorkingDirectory = debugConfig.WorkingDirectory;
-            exe.StartedBy = "Per Samuelsson (per@starcounter.com)";
+            exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;
             }
+
+            // If the debugger is not attached, we run the executable
+            // as a "tool", meaning that the we will not regain control
+            // until the whole code host boot sequence, including the
+            // entrypoint, has finished running.
+            //
+            // When the debbuger IS attatched, we can't do this, because
+            // we need to let VS start stepping the entrypoint, something
+            // it does not do if the debugger is attached and we have the
+            // VS thread wait for it.
+            exe.IsTool = !attachDebugger;
             
             // To run the whole starting of the executable asynchrnously,
             // enable the following header:

@@ -465,7 +465,7 @@ namespace Starcounter.CLI {
             if (exit) Environment.Exit((int)errorCode);
         }
 
-        static void ShowHints(uint error, string specificHint = null, bool showStandardHints = true, ConsoleColor color = ConsoleColor.Yellow) {
+        internal static void ShowHints(uint error, string specificHint = null, bool showStandardHints = true, ConsoleColor color = ConsoleColor.Yellow) {
             if (specificHint != null) {
                 ConsoleUtil.ToConsoleWithColor(specificHint, color);
             }

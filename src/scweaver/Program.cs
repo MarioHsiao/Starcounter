@@ -1,18 +1,17 @@
 ﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PostSharp.Extensibility;
 using Starcounter;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
-using System.IO;
-using System.Diagnostics;
-using PostSharp.Extensibility;
+using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Weaver {
+    using Error = Starcounter.Error;
 
     class Program {
 
@@ -618,7 +617,7 @@ namespace Weaver {
             TextWriter stream,
             string message,
             params object[] parameters) {
-            message = string.Format("{0}{1}{2}", parcelID, message, parcelID);
+            message = ParcelledError.Format(parcelID, message);
             WriteWithColor(
                 stream,
                 ConsoleColor.DarkBlue,
