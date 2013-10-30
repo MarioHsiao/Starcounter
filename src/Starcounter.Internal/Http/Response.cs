@@ -1247,11 +1247,6 @@ namespace Starcounter.Advanced
         unsafe ScSessionStruct* session_;
 
         /// <summary>
-        /// Internal network data stream.
-        /// </summary>
-        public NetworkDataStream data_stream_;
-
-        /// <summary>
         /// Indicates if this Response is internally constructed from Apps.
         /// </summary>
         Boolean is_internal_response_ = false;
@@ -1682,17 +1677,6 @@ namespace Starcounter.Advanced
 
                 return http_response_struct_->GetHeadersStringUtf8_Slow();
             }
-        }
-
-        /// <summary>
-        /// Writes the response.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
-        {
-            unsafe { data_stream_.SendResponse(buffer, offset, length, connectionFlags_); }
         }
 
         /// <summary>

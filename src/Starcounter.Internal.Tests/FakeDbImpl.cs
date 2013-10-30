@@ -6,6 +6,10 @@ namespace Starcounter.XSON.Tests {
         [ThreadStatic]
         private static ITransaction current;
 
+        void IDb.RunAsync(Action action, Byte schedId) {
+            // Do nothing.
+        }
+
         Rows<dynamic> IDb.SQL(string query, params object[] args) {
             return null;
         }
