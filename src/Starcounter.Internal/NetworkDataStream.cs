@@ -202,14 +202,14 @@ namespace Starcounter
         /// <summary>
         /// Frees all data stream resources like chunks.
         /// </summary>
-        public void Destroy(Boolean garbageCollected = false)
+        public void Destroy(Boolean isStarcounterThread)
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
 
             // Checking if this request is garbage collected.
-            if (garbageCollected)
+            if (!isStarcounterThread)
             {
                 NetworkDataStream thisInst = this;
                 StarcounterBase._DB.RunAsync(() => { thisInst.ReleaseChunk(); });

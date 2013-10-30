@@ -320,7 +320,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Destroys the instance of Request.
         /// </summary>
-        internal void Destroy(Boolean garbageCollected = false)
+        internal void Destroy(Boolean isStarcounterThread = true)
         {
             unsafe
             {
@@ -340,7 +340,7 @@ namespace Starcounter.Advanced {
                 else
                 {
                     // Releasing data stream resources like chunks, etc.
-                    data_stream_.Destroy(garbageCollected);
+                    data_stream_.Destroy(isStarcounterThread);
                 }
 
                 http_request_struct_ = null;
@@ -365,7 +365,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         ~Request()
         {
-            Destroy(true);
+            // Not on Starcounter thread.
+            Destroy(false);
         }
 
         // TODO
@@ -1125,7 +1126,7 @@ namespace Starcounter.Advanced {
         /// <param name="buffer">The buffer to send.</param>
         /// <param name="offset">The offset within buffer.</param>
         /// <param name="length">The length of the data to send.</param>
-        /// <param name="length">The connection flags.</param>
+        /// <param name="connFlags">The connection flags.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
             unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, false); }
