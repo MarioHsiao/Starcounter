@@ -643,12 +643,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -677,12 +677,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -762,12 +762,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -807,12 +807,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -852,12 +852,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -886,12 +886,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -927,12 +927,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -980,12 +980,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1010,12 +1010,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             // Counting performance.
@@ -1042,12 +1042,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1077,12 +1077,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1104,12 +1104,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1136,12 +1136,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
