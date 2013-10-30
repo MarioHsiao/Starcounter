@@ -3,6 +3,12 @@ using Starcounter.Advanced;
 
 namespace Starcounter.Internal {
     internal class DbImpl : IDb {
+        void IDb.RunAsync(Action action, Byte schedId) {
+            unsafe {
+                TaskScheduler.Run(new Task(action, null), schedId);
+            }
+        }
+
         Rows<dynamic> IDb.SQL(string query, params object[] args) {
             return Db.SQL(query, args);
         }

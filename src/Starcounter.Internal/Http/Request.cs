@@ -59,7 +59,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Internal network data stream.
         /// </summary>
-        internal NetworkDataStream data_stream_;
+        NetworkDataStream data_stream_;
 
         /// <summary>
         /// Network port number.
@@ -1114,9 +1114,21 @@ namespace Starcounter.Advanced {
         /// <param name="offset">The offset within buffer.</param>
         /// <param name="length">The length of the data to send.</param>
         /// <param name="length">The connection flags.</param>
+        internal void SendResponseInternal(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
+        {
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, true); }
+        }
+
+        /// <summary>
+        /// Sends the response.
+        /// </summary>
+        /// <param name="buffer">The buffer to send.</param>
+        /// <param name="offset">The offset within buffer.</param>
+        /// <param name="length">The length of the data to send.</param>
+        /// <param name="length">The connection flags.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
-            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, false); }
         }
 
         /// <summary>
