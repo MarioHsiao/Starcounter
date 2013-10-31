@@ -111,7 +111,7 @@ namespace Starcounter {
         /// <remarks>
         /// <para>
         /// If the calling thread is attached to a Starcounter scheduler, the
-        /// thread simply calls the action delegate represetning the task. If
+        /// thread simply calls the action delegate representing the task. If
         /// the calling thread is not a Starcounter thread, the task is
         /// scheduled on a Starcounter thread and the current thread blocks
         /// waiting for the task to complete.
