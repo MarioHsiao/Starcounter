@@ -59,7 +59,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Internal network data stream.
         /// </summary>
-        public NetworkDataStream data_stream_;
+        NetworkDataStream data_stream_;
 
         /// <summary>
         /// Network port number.
@@ -320,7 +320,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Destroys the instance of Request.
         /// </summary>
-        public void Destroy()
+        internal void Destroy(Boolean isStarcounterThread = true)
         {
             unsafe
             {
@@ -340,7 +340,7 @@ namespace Starcounter.Advanced {
                 else
                 {
                     // Releasing data stream resources like chunks, etc.
-                    data_stream_.Destroy();
+                    data_stream_.Destroy(isStarcounterThread);
                 }
 
                 http_request_struct_ = null;
@@ -352,7 +352,7 @@ namespace Starcounter.Advanced {
         /// Checks if HttpStructs is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
-        public bool IsDestroyed()
+        internal bool IsDestroyed()
         {
             unsafe
             {
@@ -365,7 +365,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         ~Request()
         {
-            Destroy();
+            // Not on Starcounter thread.
+            Destroy(false);
         }
 
         // TODO
@@ -1114,9 +1115,21 @@ namespace Starcounter.Advanced {
         /// <param name="offset">The offset within buffer.</param>
         /// <param name="length">The length of the data to send.</param>
         /// <param name="length">The connection flags.</param>
+        internal void SendResponseInternal(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
+        {
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, true); }
+        }
+
+        /// <summary>
+        /// Sends the response.
+        /// </summary>
+        /// <param name="buffer">The buffer to send.</param>
+        /// <param name="offset">The offset within buffer.</param>
+        /// <param name="length">The length of the data to send.</param>
+        /// <param name="connFlags">The connection flags.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
-            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, false); }
         }
 
         /// <summary>

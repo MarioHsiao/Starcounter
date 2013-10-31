@@ -57,6 +57,10 @@ namespace Starcounter.Advanced {
             return new Response() { StatusCode = (UInt16) wsCode };
         }
 
+        public static implicit operator Response(HandlerStatus status) {
+            return new Response() { HandlingStatus = status };
+        }
+
         public static implicit operator Response(HttpStatusCodeAndReason codeAndReason) {
             var response = new Response() {
 				StatusCode = (ushort)codeAndReason.StatusCode,

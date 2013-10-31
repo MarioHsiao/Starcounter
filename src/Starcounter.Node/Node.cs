@@ -43,11 +43,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Handle responses delegate.
-        /// </summary>
-        static HandleResponse HandleResponse_;
-
-        /// <summary>
         /// Performs local Node REST call.
         /// </summary>
         static DoLocalNodeRest DoLocalNodeRest_;
@@ -68,14 +63,10 @@ namespace Starcounter
         /// <param name="rest"></param>
         /// <param name="logSource"></param>
         internal static void InjectHostedImpl(
-            HandleResponse handleResponse_,
             DoLocalNodeRest doLocalNodeRest_,
             NodeLogException nodeLogException_)
         {
-            HandleResponse_ = handleResponse_;
-
             DoLocalNodeRest_ = doLocalNodeRest_;
-
             NodeLogException_ = nodeLogException_;
         }
 
