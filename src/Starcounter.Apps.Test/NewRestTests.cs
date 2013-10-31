@@ -35,7 +35,7 @@ namespace Starcounter.Internal.Test
             AppRestServer appServer = new AppRestServer(fileServer);
 
             UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
-            Node.InjectHostedImpl(null, UserHandlerCodegen.DoLocalNodeRest, null);
+            Node.InjectHostedImpl(UserHandlerCodegen.DoLocalNodeRest, null);
         }
     }
 
