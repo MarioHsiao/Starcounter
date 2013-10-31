@@ -56,13 +56,25 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// Generates the cs.
         /// </summary>
         [Test]
-        public static void GenerateCs() {
+        public static void GenerateCsGen1() {
             TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TJson), actual);
             Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.GenerateCode());
         }
+
+		/// <summary>
+		/// Generates the cs.
+		/// </summary>
+		[Test]
+		public static void GenerateCsGen2() {
+			TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
+			Assert.IsInstanceOf(typeof(TJson), actual);
+			Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
+			var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+			Console.WriteLine(codegen.GenerateCode());
+		}
 
         /// <summary>
         /// </summary>
