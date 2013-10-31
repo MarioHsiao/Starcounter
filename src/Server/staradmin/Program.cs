@@ -10,21 +10,28 @@ namespace staradmin {
             try {
                 string command = args.Length > 0 ? args[0] : string.Empty;
                 command = command.ToLowerInvariant();
+                command = command.TrimStart('-', '/');
                 switch (command) {
-                    case "-killall":
+                    case "killall":
                         ProcessUtilities.KillAllScProcesses();
                         break;
-                    default:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        var e = ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED);
-                        Console.WriteLine(e);
+                    case "installservice":
+                        SystemServiceInstall.Install();
                         break;
+                    case "uninstallservice":
+                        SystemServiceInstall.Uninstall();
+                        break;
+                    default:
+                        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
                 }
 
+            } catch(Exception e) {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine(e.Message);
+                Environment.ExitCode = 1;
             } finally {
                 Console.ResetColor();
             }
         }
-
     }
 }
