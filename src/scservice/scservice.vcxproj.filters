@@ -20,5 +20,6 @@
     <None Include="config\personal.xml">
       <Filter>config</Filter>
     </None>
+    <None Include="scservice.def" />
   </ItemGroup>
 </Project>

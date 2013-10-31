@@ -1,0 +1,5 @@
+
+LIBRARY	"scservice"
+
+EXPORTS
+	wmain
