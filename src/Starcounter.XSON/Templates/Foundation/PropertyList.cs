@@ -262,6 +262,13 @@ namespace Starcounter.Templates {
             {
                 props.propertyNameLookup.Remove(existing.PropertyName);
                 props.ChildPropertyNameIsSet(newTemplate);
+
+				var index = props.exposedProperties.IndexOf(existing);
+				if (index != -1) {
+					props.exposedPropertyLookup.Remove(newTemplate.PropertyName);
+					props.exposedPropertyLookup.Add(newTemplate.PropertyName, newTemplate);
+					props.exposedProperties[index] = newTemplate;
+				}
             }
             newTemplate._Parent = parent;
             newTemplate.TemplateIndex = existing.TemplateIndex;
