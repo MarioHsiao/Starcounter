@@ -423,10 +423,6 @@ namespace Starcounter.Server.Windows {
             public uint serviceFlags;
         }
 
-        /// <summary>
-        /// Currently, the only valid value for the <paramref name="infoLevel"/>
-        /// parameter of <see cref="QueryServiceStatusEx"/>.
-        /// </summary>
         public const int SC_STATUS_PROCESS_INFO = 0x00;
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
