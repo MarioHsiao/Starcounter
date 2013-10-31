@@ -128,17 +128,25 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                            template);
                         }
                         else if (kid is TObjArr) {
-                            GenerateProperty(
-                                kid, 
-                                (AstJsonClass)appClassParent, 
-                                (AstSchemaClass)templParent, 
-                                metaParent);
+							var tarr = kid as TObjArr;
+							var isUntyped = (tarr.ElementType.Properties.Count == 0);
 
-                            GenerateForApp(((TObjArr)kid).ElementType,
-                                           appClassParent,
-                                           templParent,
-                                           metaParent,
-                                           template);
+							if (isUntyped)
+								GenerateClassesForDefaultArray(tarr);
+
+							GenerateProperty(
+								kid,
+								(AstJsonClass)appClassParent,
+								(AstSchemaClass)templParent,
+								metaParent);
+							
+							if (!isUntyped){
+								GenerateForApp(((TObjArr)kid).ElementType,
+											   appClassParent,
+											   templParent,
+											   metaParent,
+											   template);
+							}
                         }
                         else {
                             throw new Exception();
@@ -170,6 +178,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+		private void GenerateClassesForDefaultArray(TObjArr template) {
+			var acn = Generator.GetDefaultJsonArrayClass();
+			template.ElementType = (TJson)acn.NTemplateClass.Template;
+
+			Generator.ValueClasses[template] = acn;
+			Generator.TemplateClasses[template] = acn.NTemplateClass;
+			Generator.MetaClasses[template] = acn.NMetadataClass;
+		}
 
         /// <summary>
         /// 
