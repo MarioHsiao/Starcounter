@@ -65,6 +65,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +98,13 @@
     <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="DatabaseApp.cs" />
+    <Compile Include="Windows\LocalWindowsServiceHandle.cs" />
+    <Compile Include="Windows\LocalWindowsServiceManager.cs" />
+    <Compile Include="Windows\StartupType.cs" />
+    <Compile Include="Windows\Win32Error.cs" />
+    <Compile Include="Windows\Win32Service.cs" />
+    <Compile Include="Windows\WindowsExceptionHelper.cs" />
+    <Compile Include="Windows\WindowsServiceHelper.cs" />
     <Compile Include="PublicModel\AppInfo.cs" />
     <Compile Include="PublicModel\Commands\ActionCommand.cs">
       <SubType>Code</SubType>
@@ -186,6 +194,7 @@
     <Content Include="Backlog.txt" />
     <Content Include="PublicModel\About.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
