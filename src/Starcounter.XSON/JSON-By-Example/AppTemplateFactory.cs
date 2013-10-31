@@ -169,6 +169,7 @@ namespace Starcounter.Internal.JsonTemplate
 
                 var parent = (TObject)oldProperty.Parent;
                 parent.Properties.Replace(newProperty);
+				_template = newProperty;
             }
             else if (upperName == "REUSE")
             {
@@ -327,14 +328,15 @@ namespace Starcounter.Internal.JsonTemplate
                 = new MetaTemplate<OT,OTT>(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
             foreach (KeyValuePair<String, Object> value in rt.Values)
             {
+
                 strVal = value.Value as String;
-                if (strVal != null)
+                if (value.Value == null || strVal != null)
                 {
                     tm.Set(value.Key, strVal);
                     continue;
                 }
 
-                boolVal = (Boolean)value.Value;
+				boolVal = (bool)value.Value;
                 tm.Set(value.Key, boolVal);
             }
         }
