@@ -50,6 +50,12 @@
     <Compile Include="SqlProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.SqlProcessor\Starcounter.SqlProcessor.csproj">
+      <Project>{656d0b79-1f6d-429b-b179-b4b7c4dea020}</Project>
+      <Name>Starcounter.SqlProcessor</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

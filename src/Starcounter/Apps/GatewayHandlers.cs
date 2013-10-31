@@ -292,7 +292,7 @@ namespace Starcounter
                 /*if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_AGGREGATED) != 0)
                 {
                     data_stream.Init(raw_chunk, true, chunk_index);
-                    data_stream.SendResponse(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                    data_stream.SendResponseInternal(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
 
                     return 0;
                 }*/
