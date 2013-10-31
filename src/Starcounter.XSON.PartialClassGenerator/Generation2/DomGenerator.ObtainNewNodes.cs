@@ -8,9 +8,8 @@ using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     public partial class Gen2DomGenerator {
-
-
         private AstJsonClass DefaultJson;
+		private AstInstanceClass DefaultJsonArray;
 
         public AstJsonClass GetDefaultJson() {
             if (DefaultJson == null) {
@@ -32,6 +31,39 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             return DefaultJson;
         }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		public AstInstanceClass GetDefaultJsonArrayClass() {
+			if (DefaultJsonArray == null) {
+				DefaultJsonArray = new AstInstanceClass(this);
+				var json = GetDefaultJson();
+
+				DefaultJsonArray.Generic = new AstClass[] {
+					json
+				};
+				DefaultJsonArray.ClassStemIdentifier = "Arr";
+				DefaultJsonArray.Namespace = "Starcounter";
+
+				DefaultJsonArray.NTemplateClass = new AstTemplateClass(this) {
+					NValueClass = DefaultJsonArray,
+					ClassStemIdentifier = "TArray",
+					Namespace = "Starcounter.Templates",
+					Generic = new AstClass[] {
+						json
+					},
+					Template = DefaultObjTemplate
+				};
+
+				DefaultJsonArray.NMetadataClass = new AstMetadataClass(this) {
+					NValueClass = DefaultJsonArray,
+					ClassStemIdentifier = "Metadata"
+				};
+			}
+			return DefaultJsonArray;
+		}
 
         /// <summary>
         /// 
