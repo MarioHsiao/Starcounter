@@ -43,6 +43,8 @@ namespace Starcounter.Advanced.XSON {
 			recreateBuffer = false;
 			valueSize = -1;
 
+			obj.ResumeTransaction(false);
+
 			unsafe {
 				buf[0] = (byte)'{';
 				offset = 1;
