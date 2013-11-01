@@ -377,7 +377,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.SqlProcessor", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.SqlProcessor.Tests", "Starcounter.SqlProcessor.Tests\Starcounter.SqlProcessor.Tests.csproj", "{519CC9FA-7F9D-4908-A191-A31D1B07965F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scservice-exe", "Server\scservice-exe\scservice-exe.csproj", "{56437006-A468-43B7-9D8A-F580CC07AD50}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scservice", "Server\scservice\scservice.csproj", "{56437006-A468-43B7-9D8A-F580CC07AD50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
