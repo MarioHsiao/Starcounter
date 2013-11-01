@@ -227,7 +227,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.SqlParser.Tests
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HttpParser", "HTTP\HttpParser\HttpParser.vcxproj", "{594FE78A-A893-4757-A946-5ED350D383D2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scservice", "scservice\scservice.vcxproj", "{C4F742BA-53B7-40B2-816E-F337B1ECDDD2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scservicelib", "scservicelib\scservicelib.vcxproj", "{C4F742BA-53B7-40B2-816E-F337B1ECDDD2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection

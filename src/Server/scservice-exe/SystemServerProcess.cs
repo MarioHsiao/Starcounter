@@ -13,10 +13,10 @@ namespace scservice {
     internal sealed class SystemServerProcess : ServiceBase {
         Thread monitorThread;
 
-        [DllImport("scservice.dll", EntryPoint = "Start", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("scservicelib.dll", EntryPoint = "Start", CallingConvention = CallingConvention.StdCall)]
         static extern unsafe int StartMonitor(string server, bool logSteps);
 
-        [DllImport("scservice.dll", EntryPoint = "Stop", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("scservicelib.dll", EntryPoint = "Stop", CallingConvention = CallingConvention.StdCall)]
         static extern unsafe int StopMonitor();
 
         /// <summary>
