@@ -44,12 +44,6 @@
     <DocumentationFile>..\..\..\bin\Release\programs\usagetracker.import\Import.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=AMD64" />
-    <Reference Include="Starcounter.Apps.JsonPatch, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=AMD64" />
-    <Reference Include="Starcounter.HyperMedia, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=AMD64" />
-    <Reference Include="Starcounter.Internal, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL" />
-    <Reference Include="Starcounter.Node, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL" />
-    <Reference Include="Starcounter.XSON, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
@@ -81,6 +75,14 @@
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
+      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
+      <Name>Starcounter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
       <Name>Newtonsoft.Json</Name>
