@@ -17,6 +17,11 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public string IP;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public DateTime Date;
+
 		/// <summary>
 		/// 
 		/// </summary>
