@@ -127,6 +127,8 @@ namespace Starcounter {
             var template = (TObject)Template;
 			var exposed = template.Properties.ExposedProperties;
 
+			ResumeTransaction(false);
+
             if (_Dirty) {
                 for (int t = 0; t < exposed.Count; t++) {
                     if (WasReplacedAt(exposed[t].TemplateIndex)) {
@@ -222,6 +224,8 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
+				ResumeTransaction(false);
+
 				var dataObj = DataAsBindable;
 				var valueList = list;
 				TObject tobj = (TObject)Template;

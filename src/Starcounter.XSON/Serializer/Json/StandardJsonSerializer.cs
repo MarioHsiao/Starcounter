@@ -78,6 +78,7 @@ restart:
 						if (tProperty is TObject) {
 							if (childObjArr == null) {
 								childObj = obj.Get((TObject)tProperty);
+								childObj.ResumeTransaction(false);
 								if (childObj != null) {
 									valueSize = childObj.ToJsonUtf8(out childObjArr);
 								} else {
@@ -100,6 +101,7 @@ restart:
 								goto restart;
 						} else if (tProperty is TObjArr) {
 							Json arr = obj.Get((TObjArr)tProperty);
+							arr.ResumeTransaction(false);
 							if (buf.Length < (offset + arr.Count * 2 + 2))
 								goto restart;
 
