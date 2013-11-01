@@ -73,6 +73,7 @@ restart:
 						if (tProperty is TObject) {
 							if (childObjArr == null) {
 								childObj = obj.Get((TObject)tProperty);
+								childObj.ResumeTransaction(false);
 								valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
 							}
 							if (valueSize != -1) {
@@ -88,6 +89,7 @@ restart:
 								goto restart;
 						} else if (tProperty is TObjArr) {
 							Json arr = obj.Get((TObjArr)tProperty);
+							arr.ResumeTransaction(false);
 							if (posInArray == -1) {
 								if (MAX_INT_SIZE > (buf.Length - writer.Length))
 									goto restart;
