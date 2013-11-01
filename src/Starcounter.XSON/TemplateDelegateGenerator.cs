@@ -170,6 +170,8 @@ namespace Starcounter.XSON {
 				if (setLambda != null)
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
+			} else {
+				property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
 			property.dataTypeForBinding = dataType;
 		}
@@ -206,6 +208,8 @@ namespace Starcounter.XSON {
 				if (setLambda != null)
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
+			} else {
+				property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
 			property.dataTypeForBinding = dataType;
 		}
@@ -243,6 +247,8 @@ namespace Starcounter.XSON {
 				if (setLambda != null)
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
+			} else {
+				property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
 			property.dataTypeForBinding = dataType;
 		}
