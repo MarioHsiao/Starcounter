@@ -18,12 +18,16 @@ namespace Starcounter.Internal {
             foreach (var p in Process.GetProcesses()) {
                 if (serviceName.Equals(p.ProcessName)) {
                     // We have the a process with the correct name, lets check if it's the system or personal service.
-                    if (p.SessionId != 0) {
+                    // If it's running in the current interactive session, we wait for it to come online. Else (if its
+                    // running as a service), this should be guranteed by the startup of the server service bootstrap
+                    // itself).
+                    if (p.SessionId != 0) {    
                         WaitUntilServerIsOnline(p);
-                        return true;
                     }
+                    return true;
                 }
             }
+
             return false;
         }
 
