@@ -93,8 +93,15 @@ namespace Starcounter {
         /// <param name="data"></param>
         /// <returns></returns>
         public new T Add(object data) {
+			T app;
             TObjArr template = (TObjArr)Template;
-            var app = (T)template.ElementType.CreateInstance(this);
+
+			if (template.ElementType == null) {
+				app = new T();
+				app.CreateDynamicTemplate();
+			} else {
+				app = (T)template.ElementType.CreateInstance(this);
+			}
             app.Data = data;
             Add(app);
             return app;

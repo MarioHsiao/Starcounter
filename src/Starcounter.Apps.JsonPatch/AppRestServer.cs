@@ -47,11 +47,15 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
-        public Response OnResponse(Request request, Response response) {
+        public Response OnResponseHttp(Request request, Response response) {
             try {
                 // Checking if we need to resolve static resource.
-                if (response == null) {
-                    response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+                if ((response == null) || (response.HandlingStatus == HandlerStatus.NotHandled)) {
+                    response = new Response() {
+                        Uncompressed = ResolveAndPrepareFile(request.Uri, request),
+                        HandlingStatus = HandlerStatus.Done
+                    };
+
                     return response;
                 }
 
@@ -59,6 +63,7 @@ namespace Starcounter.Internal.Web {
                 if (request.IsInternal)
                     return response;
 
+                // Checking if JSON object is attached.
                 if (response.Hypermedia is Json) {
 
                     Json r = (Json)response.Hypermedia;
@@ -82,6 +87,49 @@ namespace Starcounter.Internal.Web {
 				errResp.ContentType = "text/plain";
 				errResp.ConstructFromFields();
 				return errResp;
+            }
+        }
+
+        /// <summary>
+        /// Handles the response returned from the user handler.
+        /// </summary>
+        /// <param name="request">Incomming HTTP request.</param>
+        /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
+        /// <returns>The same object as provide in the response parameter</returns>
+        public Response OnResponseWebSockets(Request request, Response response)
+        {
+            try
+            {
+                // NOTE: Checking if its internal request then just returning response without modification.
+                if (request.IsInternal)
+                    return response;
+
+                // Checking if JSON object is attached.
+                if (response.Hypermedia is Json)
+                {
+
+                    Json r = (Json)response.Hypermedia;
+
+                    while (r.Parent != null)
+                        r = r.Parent;
+
+                    response.Hypermedia = (Json)r;
+                }
+
+                response.Request = request;
+                response.ConstructFromFields();
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                // Logging the exception to server log.
+                LogSources.Hosting.LogException(ex);
+                var errResp = Response.FromStatusCode(500);
+                errResp.Body = GetExceptionString(ex);
+                errResp.ContentType = "text/plain";
+                errResp.ConstructFromFields();
+                return errResp;
             }
         }
 
@@ -128,7 +176,7 @@ namespace Starcounter.Internal.Web {
                                     response.AppsSession = Session.Current.InternalSession;
 
                                     // Handling and returning the HTTP response.
-                                    response = OnResponse(request, response);
+                                    response = OnResponseHttp(request, response);
 
                                     return response;
                                 }
@@ -143,6 +191,10 @@ namespace Starcounter.Internal.Web {
                         Json rootJsonObj = Session.Data;
                         Json curJsonObj = null;
                         if (null != response) {
+
+                            // Checking if response is processed later.
+                            if (response.HandlingStatus == HandlerStatus.Pending)
+                                return response;
 
                             // Setting session on result only if its original request.
                             if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
@@ -161,7 +213,7 @@ namespace Starcounter.Internal.Web {
                         }
 
                         // Handling and returning the HTTP response.
-                        response = OnResponse(request, response);
+                        response = OnResponseHttp(request, response);
 
                         return response;
                     }
@@ -219,12 +271,27 @@ namespace Starcounter.Internal.Web {
                         if (null == response)
                         {
                             // Simply disconnecting if response is null.
-                            response = new Response() { ConnFlags = Response.ConnectionFlags.DisconnectImmediately };
+                            response = new Response()
+                            {
+                                ConnFlags = Response.ConnectionFlags.DisconnectImmediately,
+                                HandlingStatus = HandlerStatus.Done
+                            };
+                        }
+                        else
+                        {
+                            // Checking if WebSockets response status is unhandled.
+                            if (response.HandlingStatus == HandlerStatus.NotHandled)
+                            {
+                                response.ConnFlags = Response.ConnectionFlags.DisconnectImmediately;
+                                response.HandlingStatus = HandlerStatus.Done;
+                            }
                         }
 
-                        // Handling and returning the HTTP response.
                         response.ProtocolType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
-                        response = OnResponse(request, response);
+
+                        // Checking if response is processed later.
+                        if (response.HandlingStatus == HandlerStatus.Done)
+                            response = OnResponseWebSockets(request, response);
 
                         return response;
                     }

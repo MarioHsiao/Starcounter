@@ -1,0 +1,6 @@
+
+LIBRARY	"scservice"
+
+EXPORTS
+	Start
+	Stop

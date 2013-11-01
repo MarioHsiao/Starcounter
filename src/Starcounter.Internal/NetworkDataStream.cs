@@ -139,30 +139,28 @@ namespace Starcounter
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length_bytes">The length in bytes.</param>
-        public void SendResponse(UInt64[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
+        /// <param name="isStarcounterThread">Is Starcounter thread.</param>
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags, Boolean isStarcounterThread)
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
 
-            fixed (UInt64* p = buffer)
+            // Checking if we are not on Starcounter thread now.
+            if (!isStarcounterThread)
             {
-                SendResponseBufferInternal((Byte*)p, offset, length_bytes, conn_flags);
-            }
-        }
+                NetworkDataStream thisInst = this;
 
-        /// <summary>
-        /// Writes the specified buffer.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length_bytes">The length in bytes.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
-        {
-            // Checking if already destroyed.
-            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+                StarcounterBase._DB.RunAsync(() => {
+                    fixed (Byte* p = buffer) {
+                        thisInst.SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
+                    }
+                });
+
                 return;
+            }
 
+            // Running on current Starcounter thread.
             fixed (Byte* p = buffer)
             {
                 SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
@@ -184,21 +182,14 @@ namespace Starcounter
 
             // Checking if any error occurred.
             if (ec != 0)
-            {
-                Console.WriteLine("Failed to obtain chunk!");
                 throw ErrorCode.ToException(ec);
-            }
         }
 
         /// <summary>
-        /// Frees all data stream resources like chunks.
+        /// Releases chunk.
         /// </summary>
-        public void Destroy()
+        void ReleaseChunk()
         {
-            // Checking if already destroyed.
-            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
-                return;
-
             // Returning linked chunks to pool.
             UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunk_index_);
             Debug.Assert(ec == 0);
@@ -206,6 +197,27 @@ namespace Starcounter
             // This data stream becomes unusable.
             unmanaged_chunk_ = null;
             chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
+        }
+
+        /// <summary>
+        /// Frees all data stream resources like chunks.
+        /// </summary>
+        public void Destroy(Boolean isStarcounterThread)
+        {
+            // Checking if already destroyed.
+            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+                return;
+
+            // Checking if this request is garbage collected.
+            if (!isStarcounterThread)
+            {
+                NetworkDataStream thisInst = this;
+                StarcounterBase._DB.RunAsync(() => { thisInst.ReleaseChunk(); });
+                return;
+            }
+
+            // Request is not garbage collected meaning that we are on Starcounter thread.
+            ReleaseChunk();
         }
     }
 }

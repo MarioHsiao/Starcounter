@@ -625,7 +625,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
                     }
 
-                    if (mn.Template is TObjArr) {
+					var tArr = mn.Template as TObjArr;
+                    if (tArr != null && tArr.ElementType.Properties.Count != 0) {
                         sb.Clear();
                         sb.Append("        ");
                          sb.Append(mn.MemberName);
