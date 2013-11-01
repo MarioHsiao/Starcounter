@@ -130,6 +130,8 @@ namespace Starcounter.Server {
             // that we wait for, and that the core service
             // set it?
 
+            WaitUntilServerIsOnline(Process.GetCurrentProcess());
+
             base.OnStart(args);
         }
 
