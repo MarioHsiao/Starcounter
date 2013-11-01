@@ -6,7 +6,7 @@
    $doubleToInt: {Type:"int", Editable:false},
    $doubleToString: {Editable:false, Type:"string"},
 
-   $decimalToDouble: {Type:"double"},
+   $decimalToDouble: {Type:"double", Bind: null},
    $decimalToInt: {Type:"int"},
    $decimalToString: {Type:"string"},
 
@@ -36,7 +36,7 @@
 
    login: event,
 
-   $doubleToDecimal: {Type:"decimal"},
+   $doubleToDecimal: {Type:"decimal", Bind: null},
 
    child: {
        test:"",
