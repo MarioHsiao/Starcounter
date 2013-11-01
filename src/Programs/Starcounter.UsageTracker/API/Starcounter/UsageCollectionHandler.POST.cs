@@ -37,7 +37,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
                             Int64 installationNo = (Int64)data.installationNo;
 
                             Installation installation = StarcounterCollectionHandler.AssureInstallation(installationNo, serial);
-                            StarcounterUsage item = new StarcounterUsage(installation);
+                            StarcounterUsage item = new StarcounterUsage();
+                            item.Installation = installation;
 
                             // Header
                             item.Date = DateTime.UtcNow;

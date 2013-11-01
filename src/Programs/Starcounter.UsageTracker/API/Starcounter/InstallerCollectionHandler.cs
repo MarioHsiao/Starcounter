@@ -17,7 +17,18 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
             if (installation == null) {
                 // Create installation
                 Db.Transaction(() => {
-                    installation = new Installation(serial, installationNo);
+//                    installation = new Installation(serial, installationNo);
+                    installation = new Installation();
+
+                    installation.Serial = serial;
+                    installation.Date = DateTime.UtcNow;
+
+                    DateTime d = new DateTime(2000, 1, 1);
+
+                    installation.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
+                    installation.PreviousInstallationNo = installationNo;
+
+
                 });
 
             }
