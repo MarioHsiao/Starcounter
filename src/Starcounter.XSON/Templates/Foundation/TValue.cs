@@ -8,6 +8,7 @@ namespace Starcounter.Templates {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
 		internal Type dataTypeForBinding;
+		internal bool isVerifiedUnbound;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has instance value on client.
@@ -87,11 +88,6 @@ namespace Starcounter.Templates {
 		/// <summary>
 		/// 
 		/// </summary>
-		internal abstract void InvalidateBoundGetterAndSetter();
-
-		/// <summary>
-		/// 
-		/// </summary>
 		internal abstract bool GenerateBoundGetterAndSetter(Json parent);
 
 		/// <summary>
@@ -104,6 +100,14 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		internal abstract void CheckAndSetBoundValue(Json parent, bool addToChangeLog);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		internal virtual void InvalidateBoundGetterAndSetter() {
+			isVerifiedUnbound = false;
+			dataTypeForBinding = null;
+		}
 
 		/// <summary>
 		/// 
@@ -148,13 +152,10 @@ namespace Starcounter.Templates {
 			if (data == null || strategy == BindingStrategy.Unbound)
 				return false;
 
-			// TODO:
-			// Need to handle Auto bound that should not be bound.
 			if (dataTypeForBinding != null && VerifyBinding(data.GetType(), false))
-				return true;
+				return !isVerifiedUnbound;
 
-			GenerateBoundGetterAndSetter(parent);
-			return true;
+			return GenerateBoundGetterAndSetter(parent);
 		}
 
 		/// <summary>

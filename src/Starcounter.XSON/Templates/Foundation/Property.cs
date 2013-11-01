@@ -57,7 +57,7 @@ namespace Starcounter.Templates {
 		internal override void InvalidateBoundGetterAndSetter() {
 			BoundGetter = null;
 			BoundSetter = null;
-			dataTypeForBinding = null;
+			base.InvalidateBoundGetterAndSetter();
 		}
 
 		/// <summary>
