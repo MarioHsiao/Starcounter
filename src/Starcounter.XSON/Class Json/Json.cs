@@ -516,9 +516,8 @@ namespace Starcounter {
 				boundBindable = value as IBindable;
 
 				if (_list.Count <= index) {
-					newJson = (Json)tArr.ElementType.CreateInstance();
+					newJson = (Json)Add();
 					newJson.Data = value;
-					Add(newJson);
 					hasChanged = true;
 				} else {
 					oldJson = (Json)_list[index];
@@ -542,8 +541,5 @@ namespace Starcounter {
 			if (hasChanged)
 				this.Parent.HasChanged(tArr);
 		}
-
-
-
     }
 }
