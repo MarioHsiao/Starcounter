@@ -40,7 +40,7 @@ namespace Starcounter.Internal {
         /// This method does not check for an existing running server. If the server is already 
         /// running an exception will be thrown.
         /// </remarks>
-        public static void Start() {
+        public static void StartInteractiveOnDemand() {
             string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
             string exePath = Path.Combine(scBin, StarcounterConstants.ProgramNames.ScService) + ".exe";
             

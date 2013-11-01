@@ -81,7 +81,7 @@ namespace Starcounter.CLI {
                     ShowStatus("Retrieving server status", true);
                     if (!PersonalServerProcess.IsOnline()) {
                         ShowStatus("Starting server");
-                        PersonalServerProcess.Start();
+                        PersonalServerProcess.StartInteractiveOnDemand();
                     }
                     ShowStatus("Server is online", true);
                 }
