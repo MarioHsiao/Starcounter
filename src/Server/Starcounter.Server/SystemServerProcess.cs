@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading;
 
-namespace scservice {
+namespace Starcounter.Server {
     /// <summary>
     /// Represents a running instance of the server, hosted in a
     /// Windows service process.
     /// </summary>
-    internal sealed class SystemServerProcess : ServiceBase {
+    public sealed class SystemServerProcess : ServiceBase {
         Thread monitorThread;
 
         [DllImport("scservicelib.dll", EntryPoint = "Start", CallingConvention = CallingConvention.StdCall)]
