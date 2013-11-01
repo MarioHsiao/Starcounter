@@ -1,6 +1,9 @@
 ﻿
+using Starcounter.Internal;
 using Starcounter.Server.Service;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading;
@@ -11,6 +14,7 @@ namespace Starcounter.Server {
     /// Windows service process.
     /// </summary>
     public sealed class SystemServerProcess : ServiceBase {
+        const string serverOnlineEventName = "SCCODE_EXE_ADMINISTRATOR";
         Thread monitorThread;
 
         [DllImport("scservicelib.dll", EntryPoint = "Start", CallingConvention = CallingConvention.StdCall)]
@@ -38,6 +42,46 @@ namespace Starcounter.Server {
         /// same name.
         /// </summary>
         public bool LogSteps { get; set; }
+
+        /// <summary>
+        /// Checks if the personal server is up and running and is available for new requests.
+        /// </summary>
+        /// <returns><c>true</c> if the server is running and considered online; <c>false</c>
+        /// if not running.</returns>
+        public static bool IsOnline() {
+            string serviceName = StarcounterConstants.ProgramNames.ScService;
+            foreach (var p in Process.GetProcesses()) {
+                if (serviceName.Equals(p.ProcessName)) {
+                    // We have the a process with the correct name, lets check if it's the system or personal service.
+                    // If it's running in the current interactive session, we wait for it to come online. Else (if its
+                    // running as a service), this should be guranteed by the startup of the server service bootstrap
+                    // itself).
+                    if (p.SessionId != 0) {
+                        WaitUntilServerIsOnline(p);
+                    }
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Starts the server in interactive mode, on demand. When the method returns it is assured
+        /// that the server is running and available for new requests. Exception will be thrown for
+        /// any failure that happens during startup.
+        /// </summary>
+        /// <remarks>
+        /// This method does not check for an existing running server. If the server is already 
+        /// running an exception will be thrown.
+        /// </remarks>
+        public static void StartInteractiveOnDemand() {
+            string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+            string exePath = Path.Combine(scBin, StarcounterConstants.ProgramNames.ScService) + ".exe";
+
+            Process p = Process.Start(exePath);
+            WaitUntilServerIsOnline(p);
+        }
         
         /// <summary>
         /// Initialize a <see cref="SystemServerProcess"/> with default
@@ -102,6 +146,54 @@ namespace Starcounter.Server {
         void RunUntilStopped() {
             int x = StartMonitor(ServerName, LogSteps);
             Environment.ExitCode = x;
+        }
+
+        /// <summary>
+        /// Listens to the online event for the administrator server. If the server is already 
+        /// online the method will return immediately. 
+        /// </summary>
+        /// <param name="serverProcess"></param>
+        private static void WaitUntilServerIsOnline(Process serverProcess) {
+            int retries = 60;
+            int timeout = 1000; // timeout per wait for signal, not total timeout wait.
+            bool signaled;
+            uint errorCode = 0;
+            EventWaitHandle serverOnlineEvent = null;
+
+            try {
+                while (true) {
+                    retries--;
+                    if (retries == 0)
+                        throw ErrorCode.ToException(Error.SCERRWAITTIMEOUT);
+
+                    if (serverOnlineEvent == null && !EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
+                        Thread.Sleep(100);
+                    } else {
+                        signaled = serverOnlineEvent.WaitOne(timeout);
+                        if (signaled)
+                            break;
+                    }
+
+                    if (serverProcess.HasExited) {
+
+                        try {
+                            // Sometimes we are not allowed to read the exitcode. In that case 
+                            // we just ignore it and send a general starcounter error.
+                            errorCode = (uint)serverProcess.ExitCode;
+                        } catch (InvalidOperationException) { }
+
+
+                        if (errorCode != 0) {
+                            throw ErrorCode.ToException(errorCode);
+                        }
+                        throw ErrorCode.ToException(Error.SCERRSERVERNOTRUNNING);
+                    }
+                }
+            } finally {
+                if (serverOnlineEvent != null) {
+                    serverOnlineEvent.Close();
+                }
+            }
         }
     }
 }
