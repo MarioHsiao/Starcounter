@@ -14,6 +14,7 @@ namespace Starcounter.VisualStudio.Projects {
     using Starcounter.CommandLine;
     using Starcounter.CommandLine.Syntax;
     using Starcounter.Rest.ExtensionMethods;
+    using Starcounter.Server;
     using Starcounter.Server.Rest;
     using Starcounter.Server.Rest.Representations.JSON;
     using System.Net.Sockets;
@@ -96,11 +97,11 @@ namespace Starcounter.VisualStudio.Projects {
                 System.Diagnostics.Debugger.Launch();
             }
 
-            this.debugLaunchDescription = "Checking personal server";
-            if (!PersonalServerProcess.IsOnline()) {
+            this.debugLaunchDescription = "Checking server";
+            if (!SystemServerProcess.IsOnline()) {
                 this.WriteDebugLaunchStatus("starting");
                 this.WriteLine("Starting personal server.");
-                PersonalServerProcess.StartInteractiveOnDemand();
+                SystemServerProcess.StartInteractiveOnDemand();
             }
             this.WriteDebugLaunchStatus("online");
             
