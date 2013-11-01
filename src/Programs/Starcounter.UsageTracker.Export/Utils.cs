@@ -8,15 +8,27 @@ using FastReflectionLib;
 using System.Collections;
 
 namespace Starcounter.Applications.UsageTrackerApp.Export {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Utils {
 
         private static Hashtable propertyCache = new Hashtable();  // TODO: Clear the Hashtable when new itemssource is set or when Items.Length is 0
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void ClearCache() {
             FastReflectionCaches.ClearAllCaches();
             propertyCache.Clear();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
         public static object GetValue(object item, string propertyName) {
 
             PropertyInfo propertyInfo;
@@ -40,6 +52,12 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="propertyName"></param>
+        /// <param name="value"></param>
         public static void SetValue(object item, string propertyName, object value) {
 
             PropertyInfo propertyInfo;
