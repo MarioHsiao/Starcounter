@@ -41,7 +41,6 @@
       <RemoteLevel0IncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />
-      <RemoteParserToolsBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\ParserTools\**\*" />
       <RemoteCRT64BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
       <RemoteCRT32BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\Win32\$(Configuration)\*" />
       <RemoteMixedRootExecutables Include="$(BinariesFTP)\SCDev\ThirdParty\*.exe" />
@@ -52,7 +51,6 @@
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0IncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemotePostSharpBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCecilBinaries)" DestinationFolder="$(OutputPath)" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteParserToolsBinaries)" DestinationFiles="@(RemoteParserToolsBinaries->'..\packages\ParserTools\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT64BitBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT32BitBinaries)" DestinationFolder="$(OutputPath)\32BitComponents" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMixedRootExecutables)" DestinationFolder="$(OutputPath)" />
