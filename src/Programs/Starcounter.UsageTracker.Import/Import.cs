@@ -10,12 +10,19 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Starcounter.Applications.UsageTrackerApp.Import {
+    /// <summary>
+    /// 
+    /// </summary>
     public class ImportManager {
 
         bool SetProperties = false;
 
         Dictionary<ulong, ulong> IndexTable = new Dictionary<ulong, ulong>();   // old objectNo, new ObjectNo
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
         public void Import(string file) {
 
             if (string.IsNullOrEmpty(file)) {

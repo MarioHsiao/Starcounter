@@ -10,6 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Starcounter.Applications.UsageTrackerApp.Export {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Export {
 
 
