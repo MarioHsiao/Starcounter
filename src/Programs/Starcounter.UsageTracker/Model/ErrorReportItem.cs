@@ -11,6 +11,11 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 		/// </summary>
 		public ErrorReport Report;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public DateTime ReportDate;
+
 		/// <summary>
 		/// 
 		/// </summary>

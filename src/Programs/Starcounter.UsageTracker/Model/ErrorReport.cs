@@ -12,6 +12,11 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 		/// </summary>
 		public Installation Installation;
 
+        /// <summary>
+        /// IP Address of the reporter
+        /// </summary>
+        public string IP;
+
 		/// <summary>
 		/// 
 		/// </summary>
