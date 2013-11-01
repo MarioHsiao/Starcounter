@@ -612,7 +612,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
 
 					var tArr = mn.Template as TObjArr;
-                    if (tArr != null && tArr.ElementType.InstanceType != typeof(Json)) {
+                    if (tArr != null && tArr.ElementType.Properties.Count != 0) {
                         sb.Clear();
                         sb.Append("        ");
                          sb.Append(mn.MemberName);
