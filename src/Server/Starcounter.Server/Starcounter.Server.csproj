@@ -102,6 +102,9 @@
     <Compile Include="Setup\SystemServiceSetup.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SystemServerProcess.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Windows\LocalWindowsServiceHandle.cs" />
     <Compile Include="Windows\LocalWindowsServiceManager.cs" />
     <Compile Include="Windows\StartupType.cs" />
