@@ -18,16 +18,16 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Test
 {
     /// <summary>
-    /// Used for HttpStructs tests initialization/shutdown.
+    /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
-    public class HttpStructsTestsSetup
+    class RestTestsSetup
     {
         /// <summary>
         /// HttpStructs tests initialization.
         /// </summary>
         [SetUp]
-        public void InitHttpStructsTests()
+        void InitRestTestsSetup()
         {
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
 
