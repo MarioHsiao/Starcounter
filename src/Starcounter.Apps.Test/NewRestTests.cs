@@ -21,13 +21,13 @@ namespace Starcounter.Internal.Test
     /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
-    class RestTestsSetup
+    public class RestTestsSetup
     {
         /// <summary>
         /// HttpStructs tests initialization.
         /// </summary>
         [SetUp]
-        void InitRestTestsSetup()
+        public void InitRestTestsSetup()
         {
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
 
