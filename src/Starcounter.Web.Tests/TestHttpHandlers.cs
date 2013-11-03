@@ -23,13 +23,13 @@ namespace Starcounter.Internal.Test {
     /// Used for HttpStructs tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
-    public class HttpStructsTestsSetup
+    class TestHttpHandlersSetup
     {
         /// <summary>
         /// HttpStructs tests initialization.
         /// </summary>
         [SetUp]
-        public void InitHttpStructsTests()
+        public void InitTestHttpHandlersSetup()
         {
             Request.sc_init_http_parser();
         }

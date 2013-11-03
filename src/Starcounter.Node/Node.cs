@@ -655,14 +655,7 @@ namespace Starcounter
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
         {
-            if (null != req.Body)
-            {
-                Byte[] bodyBytes = Encoding.UTF8.GetBytes(req.Body);
-                DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
-                return;
-            }
-
-            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, true);
         }
 
         /// <summary>
@@ -677,13 +670,7 @@ namespace Starcounter
         /// <returns>HTTP response.</returns>
         public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0)
         {
-            if (null != req.Body)
-            {
-                Byte[] bodyBytes = Encoding.UTF8.GetBytes(req.Body);
-                return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, bodyBytes, null, null, receiveTimeoutMs);
-            }
-
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, true);
         }
 
         /// <summary>
@@ -772,11 +759,14 @@ namespace Starcounter
             Byte[] bodyBytes,
             Action<Response, Object> userDelegate,
             Object userObject,
-            Int32 receiveTimeoutMs)
+            Int32 receiveTimeoutMs,
+            Boolean dontModifyHeaders = false)
         {
             Utf8Writer writer;
 
             Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
+
+            Int32 requestBytesLength;
 
             String methodAndUriPlusSpace = method + " " + relativeUri + " ";
 
@@ -787,37 +777,44 @@ namespace Starcounter
                     writer = new Utf8Writer(p);
 
                     writer.Write(methodAndUriPlusSpace);
-                    writer.Write("HTTP/1.1");
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-                    writer.Write("Host: ");
-                    writer.Write(hostName_);
+                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
                     writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
+                    // Checking if headers should be sent as-is.
+                    if (!dontModifyHeaders)
+                    {
+                        writer.Write(HttpHeadersUtf8.HostStart);
+                        writer.Write(hostName_);
+                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        if (bodyBytes != null)
+                            writer.Write(bodyBytes.Length);
+                        else
+                            writer.Write(0);
+
+                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+                    }
+
+                    // Checking if headers already supplied.
                     if (customHeaders != null)
                     {
                         // Checking for correct custom headers format.
-                        if (!customHeaders.EndsWith("\r\n"))
+                        if (!customHeaders.EndsWith(StarcounterConstants.NetworkConstants.CRLF))
                             throw new ArgumentException("Each custom header should be in following form: \"<HeaderName>:<space><value>\\r\\n\" For example: \"MyNewHeader: value123\\r\\n\"");
 
                         writer.Write(customHeaders);
                     }
 
-                    writer.Write("Content-Length: ");
-                    if (bodyBytes != null)
-                        writer.Write(bodyBytes.Length);
-                    else
-                        writer.Write(0);
-
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
                     writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
                     if (bodyBytes != null)
                         writer.Write(bodyBytes);
                 }
+
+                requestBytesLength = writer.Written;
             }
-
-            Int32 requestBytesLength = writer.Written;
-
+            
             // No response initially.
             Response resp = null;
 

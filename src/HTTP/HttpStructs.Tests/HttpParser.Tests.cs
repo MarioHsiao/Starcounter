@@ -21,13 +21,13 @@ namespace HttpStructs.Tests
     /// Used for HttpStructs tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
-    public class HttpStructsTestsSetup
+    class HttpParserTestsSetup
     {
         /// <summary>
         /// HttpStructs tests initialization.
         /// </summary>
         [SetUp]
-        public void InitHttpStructsTests()
+        void InitHttpParserTestsSetup()
         {
             Request.sc_init_http_parser();
         }

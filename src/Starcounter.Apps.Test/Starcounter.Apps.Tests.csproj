@@ -84,6 +84,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvancedRequestResponseUsage.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="JsonPatchTest.cs" />
     <Compile Include="NewRestTests.cs" />
