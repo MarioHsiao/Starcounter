@@ -104,36 +104,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="serial"></param>
-        public Installation(string serial) {
-
-            this.Serial = serial;
-
-            DateTime d = new DateTime(2000, 1, 1);
-
-            this.Date = DateTime.UtcNow;
-            this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
-            this.PreviousInstallationNo = -1;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="serial"></param>
-        /// <param name="previousInstallationNo"></param>
-        public Installation(string serial, Int64 previousInstallationNo) {
-
-            this.Serial = serial;
-            this.Date = DateTime.UtcNow;
-
-            DateTime d = new DateTime(2000, 1, 1);
-
-            this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
-            this.PreviousInstallationNo = previousInstallationNo;
-        }
 
         /// <summary>
         /// Get Next installation

@@ -40,7 +40,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
                             Int64 installationNo = (Int64)data.installationNo;
 
                             Installation installation = StarcounterCollectionHandler.AssureInstallation(installationNo, serial);
-                            InstallerException item = new InstallerException(installation);
+                            InstallerException item = new InstallerException();
+                            item.Installation = installation;
 
                             // Header
                             item.Date = DateTime.UtcNow;

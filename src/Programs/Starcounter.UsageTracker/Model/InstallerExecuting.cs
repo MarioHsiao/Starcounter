@@ -52,15 +52,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public bool VS2012Extention;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="installation"></param>
-        public InstallerExecuting(Installation installation) {
-            this.Installation = installation;
-        }
     }
-
-
-
+    
 }

@@ -56,25 +56,11 @@ VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
 	LogWriteCritical(str);
 }
 
-VOID PrintCommandHelp() {
-    wprintf(L"scservice.exe [ServerName] [--logsteps]\n");
-	wprintf(L"Example: scservice.exe personal\n");
-	wprintf(L"When no ServerName argument is supplied 'personal' is used.\n\n");
-	wprintf(L"How it works:\n");
-	wprintf(L"scservice will load XML-file called [ServerName].xml\n");
-	wprintf(L"from the same directory as scservice.exe and\n");
-	wprintf(L"will fetch corresponding server directory from it.\n");
-	wprintf(L"From obtained directory it will load [ServerName].config.xml\n");
-	wprintf(L"to read server-related settings.\n");
-	wprintf(L"scservice will then start and monitor all required\n");
-	wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
-}
-
-int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
-{
-    BOOL exit_code_is_scerr;
+int Start(wchar_t* serverName, BOOL logSteps) {
+	BOOL exit_code_is_scerr;
     DWORD process_exit_code;
 	wchar_t logmessagebuffer[LOG_BUFFER_MESSAGE_SIZE];
+	logsteps = logSteps;
 
 	// Catching all unhandled exceptions in this thread.
 	_SC_BEGIN_FUNC
@@ -85,31 +71,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	const char *srv_name_ascii = "PERSONAL";
 
     process_exit_code = 0;
-
-	if (argc > 1)
-	{
-		// Checking if help is needed.
-		if ((0 == wcscmp(argv[1], L"?")) ||
-            (0 == wcscmp(argv[1], L"-h")) ||
-            (0 == wcscmp(argv[1], L"--help")) ||
-            (argc > 3))
-		{
-			PrintCommandHelp();
-			return 0;
-		}
-
-		for (int i = 1; i < argc; i++)
-		{
-			if (0 == wcscmp(argv[i], L"--logsteps"))
-			{
-				logsteps = 1;
-			}
-            else
-            {
-                srv_name = argv[i];
-            }
-		}
-	}
 
 	if(logsteps != 0 ) { 
 		LogVerboseMessage(L"Have entered scservice.exe");
@@ -838,4 +799,9 @@ end:
 
 	// Catching all unhandled exceptions in this thread.
 	_SC_END_FUNC
+}
+
+int Stop() {
+	__shutdown_event_handler();
+	return 0;
 }

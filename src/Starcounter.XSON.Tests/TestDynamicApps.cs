@@ -345,6 +345,41 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("SubClass3", virtualValue);
         }
 
+		[Test]
+		public static void TestUntypedObjectArray() {
+			var schema = new TJson();
+			schema.Add<TArray<Json>>("Items");
+			schema.Add<TArray<Json>>("Items2");
+
+			dynamic json = (Json)schema.CreateInstance();
+			dynamic item = new Json();
+			item.Header = "Apa papa";
+			json.Items.Add(item);
+
+			item = new Json();
+			item.Name = "La la la";
+			json.Items.Add(item);
+
+			item = json.Items.Add();
+			item.AProp = 19;
+
+			Person p = new Person();
+			item = json.Items.Add(p);
+
+			var persons = new List<Person>();
+			persons.Add(new Person() { FirstName = "Apa" });
+			persons.Add(new Person() { FirstName = "Papa" });
+			persons.Add(new Person() { FirstName = "Qwerty" });
+			json.Items2 = persons;
+
+			item = new Json();
+			item.Value = 27;
+			Assert.Throws<Exception>(() => json.Items2.Add(item));
+
+			string str = json.ToJson();
+			Console.WriteLine(str);
+		}
+
         private static TJson CreateSimplePersonTemplateWithDataBinding() {
             var personSchema = new TJson() { BindChildren = Bound.Yes };
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
