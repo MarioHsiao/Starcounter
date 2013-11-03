@@ -23,7 +23,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <LocalServiceConfig>..\scservice\config\personal.xml</LocalServiceConfig>
+    <LocalServiceConfig>..\scservicelib\config\personal.xml</LocalServiceConfig>
   </PropertyGroup>
   
   <Target Name="CopyBuildServerFiles">
