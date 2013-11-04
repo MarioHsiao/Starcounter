@@ -39,16 +39,44 @@ namespace Starcounter.Templates {
 			return arr;
 		}
 
-		private void BoundOrUnboundSet(Json json, IEnumerable value) {
-			Json arr = UnboundGetter(json);
-			if (UseBinding(json)) {
-				arr.CheckBoundArray(value);
-			} else
-				throw new NotSupportedException("TODO!");
+		private void BoundOrUnboundSet(Json parent, Arr<OT> value) {
+			Arr<OT> oldArr = UnboundGetter(parent);
+			if (oldArr != null) {
+				oldArr.SetParent(null);
+				oldArr._cacheIndexInArr = -1;
+			}
+
+			if (UseBinding(parent)) {
+				BoundSetter(parent, (IEnumerable)value.Data);
+			}
+			UnboundSetter(parent, value);
+
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+
+			parent._CallHasChanged(this);
 		}
 
 		internal override Json GetValue(Json parent) {
 			return UnboundGetter(parent);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		internal override object GetValueAsObject(Json parent) {
+			return Getter(parent);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="value"></param>
+		internal override void SetValueAsObject(Json parent, object value) {
+			Setter(parent, (Arr<OT>)value);
 		}
 
 		/// <summary>

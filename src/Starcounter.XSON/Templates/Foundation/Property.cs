@@ -49,6 +49,11 @@ namespace Starcounter.Templates {
 				BoundSetter(parent, value);
 			else 
 				UnboundSetter(parent, value);
+
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+
+			parent._CallHasChanged(this);
 		}
 
 		/// <summary>
@@ -74,6 +79,24 @@ namespace Starcounter.Templates {
 		/// </summary>
 		internal override void GenerateUnboundGetterAndSetter() {
 			TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		internal override object GetValueAsObject(Json parent) {
+			return Getter(parent);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="value"></param>
+		internal override void SetValueAsObject(Json parent, object value) {
+			Setter(parent, (T)value);
 		}
 
 		/// <summary>

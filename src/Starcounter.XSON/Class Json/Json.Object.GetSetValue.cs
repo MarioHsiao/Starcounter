@@ -239,10 +239,7 @@ namespace Starcounter {
 		/// <param name="property"></param>
 		/// <param name="value"></param>
 		public void Set(TObject property, object value) {
-			// TODO:
-			Json current = property.UnboundGetter(this);
-			current.AttachData(value);
-//			property.Setter(this, value);
+			property.SetValue(this, value);
 		}
 
 		/// <summary>
@@ -280,34 +277,18 @@ namespace Starcounter {
 		/// <param name="property"></param>
 		/// <param name="data"></param>
 		public void Set(TObjArr property, IEnumerable data) {
-			// TODO:
-			// Check this code...it's not implemented as it should be.
-			Json current = property.UnboundGetter(this);
-			current.Clear();
-			current._PendingEnumeration = true;
-			current._data = data;
-			current.Array_InitializeAfterImplicitConversion(this, property);
-//			throw new NotImplementedException();
+			property.SetValue(this, data);			
 		}
 
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <typeparam name="T"></typeparam>
-//		/// <param name="property"></param>
-//		/// <param name="data"></param>
-//		public void Set<T>(TObjArr property, Rows<object> data) where T : Json, new() {
-//			Arr<T> newList;
-//			var vals = list;
-//			var current = (Arr<T>)vals[property.TemplateIndex];
-//			if (current != null)
-//				current.Clear();
-
-//			newList = data;
-//			newList.Array_InitializeAfterImplicitConversion(this, property);
-
-//			vals[property.TemplateIndex] = newList;
-//		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="property"></param>
+		/// <param name="data"></param>
+		public void Set<T>(TObjArr property, Rows<object> data) where T : Json, new() {
+			property.SetValue(this, data);
+		}
 
 		/// <summary>
 		/// 
@@ -323,10 +304,10 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="templ"></param>
+		/// <param name="property"></param>
 		/// <param name="data"></param>
-		public void Set<T>(TObjArr templ, Arr<T> data) where T : Json, new() {
-			templ.Setter(this, data);
+		public void Set<T>(TObjArr property, Arr<T> data) where T : Json, new() {
+			property.Setter(this, data);
 		}
 
 //		/// <summary>
