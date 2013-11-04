@@ -228,6 +228,10 @@ namespace Starcounter.InstallerEngine
                     proc.StartInfo.FileName = exePath;
                     proc.StartInfo.Arguments = exeArgs;
                     proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
+                    if (exePath.Contains(ConstantsBank.SCServiceExeName)) {
+                        proc.StartInfo.UseShellExecute = false;
+                        proc.StartInfo.CreateNoWindow = true;
+                    }
                     proc.Start();
                     proc.Close();
 
