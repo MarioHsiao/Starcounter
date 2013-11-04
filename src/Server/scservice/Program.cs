@@ -1,8 +1,7 @@
 ﻿
+using Starcounter.Server;
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.ServiceProcess;
 
 namespace scservice {
 

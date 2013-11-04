@@ -79,14 +79,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public long Databases;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="installation"></param>
-        public StarcounterUsage(Installation installation) {
-            this.Installation = installation;
-        }
-
     }
 
 }

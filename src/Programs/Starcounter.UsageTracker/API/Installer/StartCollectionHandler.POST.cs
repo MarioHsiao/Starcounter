@@ -37,8 +37,18 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
                             string serial = data.downloadId;
                             Int64 previousInstallationNo = (Int64)data.installationNo;
 
-                            Installation installation = new Installation(serial, previousInstallationNo);
-                            InstallerStart item = new InstallerStart(installation);
+                            //Installation installation = new Installation(serial, previousInstallationNo);
+                            Installation installation = new Installation();
+                            installation.Serial = serial;
+                            installation.Date = DateTime.UtcNow;
+
+                            DateTime d = new DateTime(2000, 1, 1);
+
+                            installation.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
+                            installation.PreviousInstallationNo = previousInstallationNo;
+
+                            InstallerStart item = new InstallerStart();
+                            item.Installation = installation;
 
                             // Header
                             item.Date = DateTime.UtcNow;
