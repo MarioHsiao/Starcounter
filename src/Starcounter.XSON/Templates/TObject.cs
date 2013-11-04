@@ -85,6 +85,29 @@ namespace Starcounter.Templates {
 			return UnboundGetter(parent);
 		}
 
+		internal void SetValue(Json parent, object value) {
+			Json current = UnboundGetter(parent);
+			current.AttachData(value);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		internal override object GetValueAsObject(Json parent) {
+			return Getter(parent);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="value"></param>
+		internal override void SetValueAsObject(Json parent, object value) {
+			Setter(parent, (Json)value);
+		}
+
 		private Json BoundOrUnboundGet(Json parent) {
 			Json value = UnboundGetter(parent);
 			if (UseBinding(parent))
@@ -107,6 +130,11 @@ namespace Starcounter.Templates {
 				value._cacheIndexInArr = TemplateIndex;
 			}
 			UnboundSetter(parent, value);
+
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+
+			parent._CallHasChanged(this);
 		}
 
 		/// <summary>

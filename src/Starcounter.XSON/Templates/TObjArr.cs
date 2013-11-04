@@ -79,22 +79,72 @@ namespace Starcounter.Templates {
 			return UnboundGetter(parent);
 		}
 
-		private Json BoundOrUnboundGet(Json json) {
-			Json arr = UnboundGetter(json);
+		internal void SetValue(Json parent, IEnumerable value) {
+			Json newArr = (Json)CreateInstance(parent);
+			Json current = UnboundGetter(parent);
 
-			if (UseBinding(json)) {
-				var data = BoundGetter(json);
+			if (current != null) {
+				current.InternalClear();
+				current.SetParent(null);
+			}
+			newArr._PendingEnumeration = true;
+			newArr._data = value;
+			newArr.Array_InitializeAfterImplicitConversion(parent, this);
+
+			if (UseBinding(parent))
+				BoundSetter(parent, value);
+			UnboundSetter(parent, newArr);
+
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+
+			parent._CallHasChanged(this);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		internal override object GetValueAsObject(Json parent) {
+			return Getter(parent);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="value"></param>
+		internal override void SetValueAsObject(Json parent, object value) {
+			Setter(parent, (Json)value);
+		}
+
+		private Json BoundOrUnboundGet(Json parent) {
+			Json arr = UnboundGetter(parent);
+
+			if (UseBinding(parent)) {
+				var data = BoundGetter(parent);
 				arr.CheckBoundArray(data);
 			}
 			return arr;
 		}
 
-		private void BoundOrUnboundSet(Json parent, IEnumerable value) {
-			Json arr = UnboundGetter(parent);
+		private void BoundOrUnboundSet(Json parent, Json value) {
+			Json oldArr = UnboundGetter(parent);
+			if (oldArr != null) {
+				oldArr.SetParent(null);
+				oldArr._cacheIndexInArr = -1;
+			}
+
 			if (UseBinding(parent)) {
-				arr.CheckBoundArray(value);
-			} else
-				throw new NotSupportedException("TODO!");
+				BoundSetter(parent, (IEnumerable)value.Data);
+			}
+			UnboundSetter(parent, value);
+
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+
+			parent._CallHasChanged(this);
 		}
 
         public override Type MetadataType {
