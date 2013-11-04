@@ -429,7 +429,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 foreach (VersionBuild build in result) {
                     string file = build.File;
                     build.Delete();
-                    LogWriter.WriteLine(string.Format("NOTICE: Removed build {0} from database, Build have not source.", file));
+                    LogWriter.WriteLine(string.Format("NOTICE: Removed build {0} from database, Build have not a source reference.", file));
                 }
             });
 

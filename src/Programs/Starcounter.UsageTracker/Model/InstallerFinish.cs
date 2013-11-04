@@ -46,14 +46,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public bool Success;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="installation"></param>
-        public InstallerFinish(Installation installation) {
-            this.Installation = installation;
-        }
-
     }
 
   
