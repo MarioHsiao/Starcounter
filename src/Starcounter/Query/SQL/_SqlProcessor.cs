@@ -83,6 +83,45 @@ internal static class SqlProcessor
             return SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, message + " But no token is found (end of the query).");
     }
 
+    internal static Boolean ParseNonSelectQuery(String query, params Object[] values) {
+        if (query.Length == 0)
+            return false;
+        switch (query[0]) {
+            case 'C':
+            case 'c':
+                SqlProcessor.ProcessCreateIndex(query);
+                return true;
+            case 'D':
+            case 'd':
+                if (SqlProcessor.ProcessDQuery(false, query, values))
+                    return true;
+                else
+                    return false;
+            case ' ':
+            case '\t':
+                query = query.TrimStart(' ', '\t');
+                if (query.Length == 0)
+                    return false;
+                switch (query[0]) {
+                    case 'C':
+                    case 'c':
+                        SqlProcessor.ProcessCreateIndex(query);
+                        return true;
+                    case 'D':
+                    case 'd':
+                        if (SqlProcessor.ProcessDQuery(false, query, values))
+                            return true;
+                        else
+                            return false;
+                    default:
+                        return false;
+                }
+
+            default:
+                return false;
+        }
+    }
+
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
