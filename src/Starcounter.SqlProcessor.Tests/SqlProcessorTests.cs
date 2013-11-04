@@ -7,6 +7,7 @@ namespace Starcounter.SqlProcessor.Tests {
     public class SqlProcessorTests {
         [Test]
         public static void HelloProcessor() {
+            Assert.AreEqual(0, SqlProcessor.CallSqlProcessor("select * from user where col = 1"));
             Assert.AreEqual(7021, SqlProcessor.CallSqlProcessor(""));
             Assert.AreEqual(7021, SqlProcessor.CallSqlProcessor("select"));
             Assert.AreEqual(0, SqlProcessor.CallSqlProcessor("select * from user"));
