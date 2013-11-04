@@ -10,6 +10,7 @@ using System.Net.Sockets;
 
 namespace Starcounter.CLI {
     using Starcounter.Rest.ExtensionMethods;
+    using Starcounter.Server;
     using EngineReference = EngineCollection.EnginesElementJson;
     using ExecutableReference = Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
@@ -79,9 +80,9 @@ namespace Starcounter.CLI {
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
                     ShowStatus("Retrieving server status", true);
-                    if (!PersonalServerProcess.IsOnline()) {
+                    if (!SystemServerProcess.IsOnline()) {
                         ShowStatus("Starting server");
-                        PersonalServerProcess.Start();
+                        SystemServerProcess.StartInteractiveOnDemand();
                     }
                     ShowStatus("Server is online", true);
                 }
@@ -138,7 +139,7 @@ namespace Starcounter.CLI {
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
                     ShowStatus("Retrieving server status", true);
-                    if (!PersonalServerProcess.IsOnline()) {
+                    if (!SystemServerProcess.IsOnline()) {
                         SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
                     }
                 }
