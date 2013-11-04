@@ -339,6 +339,19 @@ namespace CheckBuildSystem
 
                 PolicyDescription = "All managed projects must have an XML documentation file."
             },
+
+            new BuildSystemPolicy
+            {
+                FileTypes = new String[] { "*.csproj", "*.vcxproj" },
+
+                IncorrectPatterns = new String[] { "A1EFDB162FD7" },
+
+                RequiredPatterns = null,
+
+                FileExceptions = new String[] { "ApplicationProjectTemplate.csproj", "ClassLibraryProjectTemplate.csproj" },
+
+                PolicyDescription = "Starcounter Application projects are not allowed in Level1."
+            },
         };
 
         /// <summary>

@@ -18,28 +18,6 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Test
 {
     /// <summary>
-    /// Used for tests initialization/shutdown.
-    /// </summary>
-    [SetUpFixture]
-    class RequestResponseUsageTestsSetup
-    {
-        /// <summary>
-        /// HttpStructs tests initialization.
-        /// </summary>
-        [SetUp]
-        public void InitRequestResponseUsageTestsSetup()
-        {
-            Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
-
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
-            AppRestServer appServer = new AppRestServer(fileServer);
-
-            UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
-            Node.InjectHostedImpl(UserHandlerCodegen.DoLocalNodeRest, null);
-        }
-    }
-
-    /// <summary>
     /// Tests user HTTP delegates registration and usage with custom responses.
     /// </summary>
     [TestFixture]
