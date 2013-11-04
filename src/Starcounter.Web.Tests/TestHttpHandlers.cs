@@ -62,6 +62,7 @@ namespace Starcounter.Internal.Test {
         }
 
         public static void Main() {
+            UserHandlerCodegen.ResetHandlersManager();
             Reset();
 
 /*            GET("/@s/viewmodels/subs/@s", (string app, string vm) => {
@@ -249,6 +250,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void GenerateSimpleCsAstTreeOverview() {
 
+            UserHandlerCodegen.ResetHandlersManager();
             Reset();
 
             RegisterSimpleHandlers(); // Register some handlers
@@ -319,7 +321,6 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void GenerateCppRequestProcessor() {
 
-
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
@@ -338,6 +339,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void GenerateSimpleCppRequestProcessor() {
 
+            UserHandlerCodegen.ResetHandlersManager();
             var file = new System.IO.StreamReader("facit.cpp.txt");
             var facit = file.ReadToEnd();
             file.Close();
@@ -367,6 +369,7 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public void GenerateSimpleCsRequestProcessor() {
+            UserHandlerCodegen.ResetHandlersManager();
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 

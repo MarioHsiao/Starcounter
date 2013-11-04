@@ -21,13 +21,13 @@ namespace Starcounter.Internal.Test
     /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
-    public class RestTestsSetup
+    public class NewRestTestsSetup
     {
         /// <summary>
         /// HttpStructs tests initialization.
         /// </summary>
         [SetUp]
-        public void InitRestTestsSetup()
+        public void NewRestTestsSetupInit()
         {
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
 
@@ -278,6 +278,8 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestLocalNode()
         {
+            UserHandlerCodegen.ResetHandlersManager();
+
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
@@ -394,6 +396,8 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestLocalNode()
         {
+            UserHandlerCodegen.ResetHandlersManager();
+
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
@@ -1137,6 +1141,8 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestWrongUrisAndParameters()
         {
+            UserHandlerCodegen.ResetHandlersManager();
+
             Handle.GET("/{?}", (String p1, Session s) =>
             {
                 Assert.IsTrue(false);
@@ -1151,12 +1157,14 @@ namespace Starcounter.Internal.Test
                 return null;
             });
 
-            Handle.GET("/{?}", (String p1, PersonMessage j) =>
+            Handle.GET("/{?}", (Int32 p1, PersonMessage j) =>
             {
                 Assert.IsTrue(false);
 
                 return null;
             });
+
+            UserHandlerCodegen.ResetHandlersManager();
 
             Assert.Throws<ArgumentException>(() => 
                 Handle.GET("/{?}", (String p1, Int32 p2) =>
