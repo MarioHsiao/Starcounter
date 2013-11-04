@@ -9,7 +9,6 @@ using System;
 using System.Reflection;
 //using Sc.Server.Weaver;
 using Starcounter.Query.Execution;
-using Starcounter.Query.Sql;
 using Starcounter.Binding;
 using System.Text;
 using Starcounter.Advanced;
@@ -98,7 +97,7 @@ namespace Starcounter
                 enumerableResult.CacheExecutionEnumerator();
             } catch (Exception) {
                 try {
-                    if (ParseNonSelectQuery(query, values))
+                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, values))
                         return null;
                 } catch (Exception e) {
                     if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
@@ -115,45 +114,6 @@ namespace Starcounter
             else
                 return new SqlResult<T>(0, query, false, values);
 #endif
-        }
-
-        private static Boolean ParseNonSelectQuery(String query, params Object[] values) {
-            if (query.Length == 0)
-                return false;
-            switch (query[0]) {
-                case 'C':
-                case 'c':
-                    SqlProcessor.ProcessCreateIndex(query);
-                    return true;
-                case 'D':
-                case 'd':
-                    if (SqlProcessor.ProcessDQuery(false, query, values))
-                        return true;
-                    else
-                        return false;
-                case ' ':
-                case '\t':
-                    query = query.TrimStart(' ', '\t');
-                    if (query.Length == 0)
-                        return false;
-                    switch (query[0]) {
-                        case 'C':
-                        case 'c':
-                            SqlProcessor.ProcessCreateIndex(query);
-                            return true;
-                        case 'D':
-                        case 'd':
-                            if (SqlProcessor.ProcessDQuery(false, query, values))
-                                return true;
-                            else
-                                return false;
-                        default:
-                            return false;
-                    }
-
-                default:
-                    return false;
-            }
         }
 
         /// <summary>
@@ -175,8 +135,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<T> SlowSQL<T>(String query, params Object[] values)
-        {
+        public static SqlResult<T> SlowSQL<T>(String query, params Object[] values) {
             if (query == null)
                 throw new ArgumentNullException("query");
 
@@ -187,54 +146,11 @@ namespace Starcounter
 #endif
 
             if (query == "")
-				return new SqlResult<T>(transactionId, query, true, values);
-
-            switch (query[0])
-            {
-                case 'S':
-                case 's':
-                    return new SqlResult<T>(transactionId, query, true, values);
-
-                case 'C':
-                case 'c':
-                    SqlProcessor.ProcessCreateIndex(query);
-                    return null;
-
-                case 'D':
-                case 'd':
-                    if (SqlProcessor.ProcessDQuery(true, query, values))
-                        return null;
-                    else
-                        return new SqlResult<T>(transactionId, query, true, values);
-
-                case ' ':
-                case '\t':
-                    query = query.TrimStart(' ', '\t');
-                    switch (query[0])
-                    {
-                        case 'S':
-                        case 's':
-                            return new SqlResult<T>(transactionId, query, true, values);
-
-                        case 'C':
-                        case 'c':
-                            SqlProcessor.ProcessCreateIndex(query);
-                            return null;
-
-                        case 'D':
-                        case 'd':
-                            if (SqlProcessor.ProcessDQuery(true, query, values))
-                                return null;
-                            else
-                                return new SqlResult<T>(transactionId, query, true, values);
-
-                        default:
-                            return new SqlResult<T>(transactionId, query, true, values);
-                    }
-
-                default:
-                    return new SqlResult<T>(transactionId, query, true, values);
-            }
+                return new SqlResult<T>(transactionId, query, true, values);
+            if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, values))
+                return null;
+            else
+                return new SqlResult<T>(transactionId, query, true, values);
         }
     }
 
