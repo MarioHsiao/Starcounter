@@ -89,7 +89,7 @@ namespace Starcounter {
         /// <value>The name of the property to bind.</value>
         public string Bind {
             get {
-                if (_Bind == null) {
+                if (_Bind == null && Bound != Bound.No) {
                     return this.PropertyName;
                 }
                 return _Bind;
@@ -167,7 +167,8 @@ namespace Starcounter {
         /// <param name="toTemplate"></param>
         public override void CopyTo(Template toTemplate) {
             base.CopyTo(toTemplate);
-            ((TValue)toTemplate).Bind = Bind;
+			if (Bound != Templates.Bound.No)
+				((TValue)toTemplate).Bind = Bind;
         }
 
         /// <summary>

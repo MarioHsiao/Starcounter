@@ -58,14 +58,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public string Os;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="installation"></param>
-        public InstallerStart(Installation installation) {
-            this.Installation = installation;
-        }
-
     }
   
 }
