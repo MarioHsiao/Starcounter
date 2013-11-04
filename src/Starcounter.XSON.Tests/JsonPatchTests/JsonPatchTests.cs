@@ -36,7 +36,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             var before = ((Json)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
-            Session.Current.CreateJsonPatch(true);
+            string str = Session.Current.CreateJsonPatch(true);
 
             j.Daughter = daughter;
             j.FirstName = "Timothy";
