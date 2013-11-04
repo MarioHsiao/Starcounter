@@ -486,7 +486,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			Json pnJson = (Json)pnProperty.CreateInstance();
 			pnJson.Data = pn;
 			pnProperty.UnboundSetter(json, pnJson);
-			Assert.AreEqual(pn, pnProperty.UnboundGetter(json));
+			Assert.AreEqual(pn, pnProperty.UnboundGetter(json).Data);
 
 			if (bound) {
 				Assert.AreEqual(person.Number, pnProperty.BoundGetter(json));

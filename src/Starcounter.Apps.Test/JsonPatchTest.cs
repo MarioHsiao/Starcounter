@@ -109,22 +109,22 @@ namespace Starcounter.Internal.JsonPatch.Test
             PrintPointer(jsonPtr, strPtr);
         }
 
-        /// <summary>
-        /// Tests the read json patch BLOB.
-        /// </summary>
-        [Test]
-        public static void TestReadJsonPatchBlob()
-        {
-            String patchBlob;
-            patchBlob = "[";
-            patchBlob += "{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\": \"Hmmz\"},";
-            patchBlob += "{\"path\" :\"/FirstName\",  \"value\":    \"apapapapapapa\", \"op\": \"replace\"},";
-            patchBlob += "{  \"op\":\"replace\", \"value\": \"Abc123\",    \"path\"  :   \"/FirstName\"}";
-            patchBlob += "]";
+		///// <summary>
+		///// Tests the read json patch BLOB.
+		///// </summary>
+		//[Test]
+		//public static void TestReadJsonPatchBlob()
+		//{
+		//	String patchBlob;
+		//	patchBlob = "[";
+		//	patchBlob += "{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\": \"Hmmz\"},";
+		//	patchBlob += "{\"path\" :\"/FirstName\",  \"value\":    \"apapapapapapa\", \"op\": \"replace\"},";
+		//	patchBlob += "{  \"op\":\"replace\", \"value\": \"Abc123\",    \"path\"  :   \"/FirstName\"}";
+		//	patchBlob += "]";
 
-            Json rootApp = CreateSampleApp().App;
-            JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
-        }
+		//	Json rootApp = CreateSampleApp().App;
+		//	JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
+		//}
 
         /// <summary>
         /// Tests the read json patch.
@@ -189,7 +189,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, (TValue)from, -1);
             Console.WriteLine(str);
 
-            Assert.AreEqual("{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Hmmz\"}", str);
+            Assert.AreEqual("{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Cliff\"}", str);
 
             //from = aat.Template.Children[2].Children[0].Children[0];
             //str = JsonPatch.BuildJsonPatch(JsonPatchType.replace, item, from, "Hmmz", -1);

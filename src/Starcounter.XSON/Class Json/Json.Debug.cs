@@ -156,15 +156,14 @@ namespace Starcounter {
 						sb.Append("(bound)");
 					}
 				}
-				// TODO: 
-
-				//var tv = (TValue)template;
-				//if ((this as Json).Get(tv) != value) {
-				//	var dbgVal = _list[index];
-				//	if (dbgVal == null)
-				//		dbgVal = "notsent";
-				//	sb.Append("(indirect-set old=" + dbgVal + ")");
-				//}
+				
+				var tv = (TValue)template;
+				if (tv.GetValueAsObject(this) != value) {
+					var dbgVal = _list[index];
+					if (dbgVal == null)
+						dbgVal = "notsent";
+					sb.Append("(indirect-set old=" + dbgVal + ")");
+				}
 			}
 		}
 	}
