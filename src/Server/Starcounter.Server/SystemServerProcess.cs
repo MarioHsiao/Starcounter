@@ -75,11 +75,20 @@ namespace Starcounter.Server {
         /// This method does not check for an existing running server. If the server is already 
         /// running an exception will be thrown.
         /// </remarks>
-        public static void StartInteractiveOnDemand() {
+        /// <param name="withNoWindow">
+        /// Specifies if the about-to-be-started server should be started in a new window or not.
+        /// </param>
+        public static void StartInteractiveOnDemand(bool withNoWindow = true) {
             string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
             string exePath = Path.Combine(scBin, StarcounterConstants.ProgramNames.ScService) + ".exe";
 
-            Process p = Process.Start(exePath);
+            var startInfo = new ProcessStartInfo(exePath);
+            if (withNoWindow) {
+                startInfo.UseShellExecute = false;
+                startInfo.CreateNoWindow = true;
+            }
+
+            Process p = Process.Start(startInfo);
             WaitUntilServerIsOnline(p);
         }
         
