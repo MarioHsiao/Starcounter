@@ -11,7 +11,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
         static void Main(string[] args) {
 
-            Console.WriteLine("Starcounter Usage Tracking Software v0.2");
+            Console.WriteLine("Starcounter Usage Tracking Software v0.3");
 
             // We accept to arguments, the first is the port number where the backend gui will answer to,
             // The second parameter is the resource folder (where html/javascript/images/etc... is located)

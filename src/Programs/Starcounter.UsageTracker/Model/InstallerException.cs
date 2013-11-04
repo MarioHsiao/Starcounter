@@ -50,13 +50,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         public string HelpLink;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="installation"></param>
-        public InstallerException(Installation installation) {
-            this.Installation = installation;
-        }
     }
 
 

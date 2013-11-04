@@ -487,43 +487,28 @@ namespace Starcounter {
             }
         }
 
-		private void CheckBoundObject(object boundValue) {
-			// TODO:
-			// If not IBindable do an equals comparison.
-			IBindable boundBindable = boundValue as IBindable;
-			IBindable existingBindable = DataAsBindable;
-
-			if ((existingBindable == null && boundBindable != null)
-					|| (existingBindable != null && boundBindable == null)
-					|| (existingBindable.Identity != boundBindable.Identity)) {
-						AttachData(boundBindable);
-			}
+		internal void CheckBoundObject(object boundValue) {
+			if (!CompareDataObjects(boundValue, Data))
+				AttachData((IBindable)boundValue);
 		}
 
-		private void CheckBoundArray(IEnumerable boundValue) {
+		internal void CheckBoundArray(IEnumerable boundValue) {
 			Json oldJson;
 			Json newJson;
-			IBindable boundBindable;
-			IBindable existingBindable;
 			int index = 0;
 			TObjArr tArr = Template as TObjArr;
 			bool hasChanged = false;
 
-			// TODO:
-			// If not IBindable do an equals comparison.
-
 			foreach (object value in boundValue) {
-				boundBindable = value as IBindable;
-
 				if (_list.Count <= index) {
-					newJson = (Json)Add();
+					newJson = (Json)tArr.ElementType.CreateInstance();
 					newJson.Data = value;
+					Add(newJson);
 					hasChanged = true;
 				} else {
 					oldJson = (Json)_list[index];
-					existingBindable = oldJson.Data as IBindable;
-					if (existingBindable.Identity != boundBindable.Identity) {
-						oldJson.Data = boundBindable;
+					if (!CompareDataObjects(oldJson.Data, value)) {
+						oldJson.Data = value;
 						if (ArrayAddsAndDeletes == null)
 							ArrayAddsAndDeletes = new List<Change>();
 						ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
@@ -540,6 +525,25 @@ namespace Starcounter {
 
 			if (hasChanged)
 				this.Parent.HasChanged(tArr);
+		}
+
+		private bool CompareDataObjects(object obj1, object obj2) {
+			if (obj1 == null && obj2 == null)
+				return true;
+
+			if (obj1 == null && obj2 != null)
+				return false;
+
+			if (obj1 != null && obj2 == null)
+				return false;
+
+			var bind1 = obj1 as IBindable;
+			var bind2 = obj2 as IBindable;
+
+			if (bind1 == null || bind2 == null)
+				return obj1.Equals(obj2);
+
+			return (bind1.Identity == bind2.Identity);
 		}
     }
 }
