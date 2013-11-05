@@ -12,7 +12,7 @@ namespace staradmin {
 
         internal static void Install(bool forceStart = false) {
             PreInstall();
-            var setup = new SystemServiceSetup();
+            var setup = new ServerServiceSetup();
             setup.StartupType = StartupType.Manual;
             setup.Execute();
             PostInstall(setup.ServiceName, forceStart ? StartupType.Automatic : setup.StartupType);
