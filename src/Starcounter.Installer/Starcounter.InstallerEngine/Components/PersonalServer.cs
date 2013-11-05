@@ -10,6 +10,7 @@ using Starcounter.Server.Setup;
 using System.Xml;
 using Starcounter.Advanced.Configuration;
 using Starcounter.Server.Service;
+using System.Threading;
 
 namespace Starcounter.InstallerEngine
 {
@@ -134,10 +135,52 @@ public class CPersonalServer : CComponentBase
     ServerServiceSetup CreateWindowsService() {
         var setup = new ServerServiceSetup();
 
-        Utilities.ReportSetupEvent("Creating Windows server service...");
+        Utilities.ReportSetupEvent("Adding Starcounter server service...");
         setup.Execute();
 
         return setup;
+    }
+
+    void DeleteWindowsService() {
+        Utilities.ReportSetupEvent("Removing Starcounter server service...");
+
+        ServerService.Stop(ServerService.Name, 60 * 1000);
+        ServerService.Delete();
+
+        // Checking for Starcounter service existence.
+        Boolean serviceStillFound = false;
+        for (Int32 i = 0; i < 5; i++) {
+            var allServices = ServiceController.GetServices();
+            foreach (ServiceController someService in allServices) {
+                if (ServerService.IsServerService(someService)) {
+                    serviceStillFound = true;
+                    break;
+                }
+            }
+
+            // If service does not exist we are stopping the search procedure.
+            if (!serviceStillFound)
+                break;
+
+            Thread.Sleep(1000);
+        }
+
+        // If service is still found - panic!
+        var servicePanicMsg = 
+            "Starcounter system service still exists in the system and can not be completely removed." + Environment.NewLine +
+            "Please check that Starcounter service is not blocked by any application or restart the system.";
+
+        if (serviceStillFound) {
+            if (InstallerMain.SilentFlag) {
+                // Printing a console message.
+                Utilities.ConsoleMessage(servicePanicMsg);
+            } else {
+                Utilities.MessageBoxInfo(servicePanicMsg, "Starcounter service still exists in the system...");
+            }
+        }
+
+        // Disabling service start at the end.
+        InstallerMain.StartService = false;
     }
 
     /// <summary>
@@ -350,6 +393,8 @@ public class CPersonalServer : CComponentBase
                     return;
             }
         }
+
+        DeleteWindowsService();
 
         // Logging event.
         Utilities.ReportSetupEvent("Removing Personal Server environment variables...");
