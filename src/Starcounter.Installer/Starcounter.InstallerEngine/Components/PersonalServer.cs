@@ -127,6 +127,19 @@ public class CPersonalServer : CComponentBase
     }
 
     /// <summary>
+    /// Creates the windows service that can optionally run the server.
+    /// </summary>
+    /// <returns>The setup used when the server was created.</returns>
+    ServerServiceSetup CreateWindowsService() {
+        var setup = new ServerServiceSetup();
+
+        Utilities.ReportSetupEvent("Creating Windows server service...");
+        setup.Execute();
+
+        return setup;
+    }
+
+    /// <summary>
     /// Starts personal server if demanded.
     /// </summary>
     void StartPersonalServer()
@@ -184,6 +197,8 @@ public class CPersonalServer : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for personal database engine...");
 
+        // Obsolete: there is no longer need for such a variable.
+        // TODO:
         // Setting the default server environment variable.
         Environment.SetEnvironmentVariable(
             ConstantsBank.SCEnvVariableDefaultServer,
@@ -191,7 +206,7 @@ public class CPersonalServer : CComponentBase
             EnvironmentVariableTarget.User);
 
         // Logging event.
-        Utilities.ReportSetupEvent("Installing personal database engine...");
+        Utilities.ReportSetupEvent("Installing server...");
 
         // Checking that server path is in user's personal directory.
         if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", serverOuterDir))
@@ -205,7 +220,7 @@ public class CPersonalServer : CComponentBase
         }
 
         // Logging event.
-        Utilities.ReportSetupEvent("Creating structure for personal database engine...");
+        Utilities.ReportSetupEvent("Creating structure for the server...");
 
         // Creating new server repository.
         RepositorySetup setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.PersonalServer);
@@ -268,6 +283,9 @@ public class CPersonalServer : CComponentBase
         InstallerMain.CopyGatewayConfig(
             serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort));
+
+        // Creating service
+        CreateWindowsService();
 
         // Creating shortcuts.
         CreatePersonalServerShortcuts();
