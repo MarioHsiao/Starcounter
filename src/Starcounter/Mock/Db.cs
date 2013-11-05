@@ -97,7 +97,7 @@ namespace Starcounter
                 enumerableResult.CacheExecutionEnumerator();
             } catch (Exception) {
                 try {
-                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, values))
+                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, false, values))
                         return null;
                 } catch (Exception e) {
                     if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
@@ -145,12 +145,15 @@ namespace Starcounter
 				transactionId = Starcounter.Transaction.Current.TransactionId;
 #endif
 
-            if (query == "")
-                return new SqlResult<T>(transactionId, query, true, values);
-            if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, values))
+            //if (query == "")
+            //    return new SqlResult<T>(transactionId, query, true, values);
+            if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, true, values))
                 return null;
-            else
-                return new SqlResult<T>(transactionId, query, true, values);
+            else {
+                SqlResult<T> enumerableResult = new SqlResult<T>(transactionId, query, true, values);
+                enumerableResult.CacheExecutionEnumerator();
+                return enumerableResult;
+            }
         }
     }
 
