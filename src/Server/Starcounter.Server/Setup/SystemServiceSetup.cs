@@ -56,7 +56,7 @@ namespace Starcounter.Server.Setup {
         /// </summary>
         public SystemServiceSetup() {
             InstallationPath = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
-            ServiceName = SystemServerService.Name;
+            ServiceName = ServerService.Name;
             DisplayName = "Starcounter System Service";
             StartupType = StartupType.Manual;
             AccountName = null;
@@ -76,7 +76,7 @@ namespace Starcounter.Server.Setup {
             commandLine.Append("SYSTEM");
 
             using (var manager = LocalWindowsServiceManager.Open(Win32Service.SERVICE_ACCESS.SERVICE_CHANGE_CONFIG)) {
-                return SystemServerService.Create(
+                return ServerService.Create(
                     manager.Handle,
                     this.DisplayName,
                     this.ServiceName,

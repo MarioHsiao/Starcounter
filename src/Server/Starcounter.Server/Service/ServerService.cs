@@ -10,7 +10,7 @@ namespace Starcounter.Server.Service {
     /// Expose a set of methods that is used to manage the Starcounter
     /// service when installed as a platform service on a given OS.
     /// </summary>
-    public static class SystemServerService {
+    public static class ServerService {
         /// <summary>
         /// Gets the name we use for the configured service.
         /// </summary>
@@ -18,7 +18,7 @@ namespace Starcounter.Server.Service {
 
         /// <summary>
         /// Gets a value indicating if <paramref name="service"/> represents
-        /// the configuration of a Starcounter system server.
+        /// the configuration of a Starcounter server service.
         /// </summary>
         /// <param name="service">
         /// The service to check.
@@ -27,9 +27,8 @@ namespace Starcounter.Server.Service {
         /// <see langword="true"/> if <paramref name="service"/> is identified
         /// as a configured system service, <see langword="false"/> if not.
         /// </returns>
-        public static bool IsSystemServerService(ServiceController service) {
-            return service.ServiceName.StartsWith(SystemServerService.Name,
-                StringComparison.InvariantCultureIgnoreCase);
+        public static bool IsServerService(ServiceController service) {
+            return service.ServiceName.Equals(ServerService.Name, StringComparison.InvariantCultureIgnoreCase);
         }
 
         /// <summary>
@@ -153,7 +152,7 @@ namespace Starcounter.Server.Service {
             if (service == null) throw new ArgumentNullException("service");
 
             using (var manager = LocalWindowsServiceManager.Open(Win32Service.SERVICE_ACCESS.SERVICE_CHANGE_CONFIG)) {
-                SystemServerService.Delete(manager.Handle, service);
+                ServerService.Delete(manager.Handle, service);
             }
         }
 

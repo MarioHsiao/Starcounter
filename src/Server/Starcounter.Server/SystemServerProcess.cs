@@ -103,7 +103,7 @@ namespace Starcounter.Server {
             }
 
             ServerName = serverName;
-            ServiceName = SystemServerService.Name;
+            ServiceName = ServerService.Name;
             CanStop = true;
             CanPauseAndContinue = false;
         }
