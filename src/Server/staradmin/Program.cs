@@ -16,7 +16,8 @@ namespace staradmin {
                         ProcessUtilities.KillAllScProcesses();
                         break;
                     case "installservice":
-                        SystemServiceInstall.Install();
+                        bool start = args.Length > 1 && args[1] == "start";
+                        SystemServiceInstall.Install(start);
                         break;
                     case "uninstallservice":
                         SystemServiceInstall.Uninstall();
