@@ -381,24 +381,70 @@ namespace Starcounter.Internal.Test
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
 
-            Handle.CUSTOM("{?} /response1", (String method) =>
+            Handle.CUSTOM("{?} /{?}", (String method, String p1) =>
             {
-                Console.WriteLine("Method: " + method);
-
-                return 213;
+                return "CUSTOM method " + method + " with " + p1;
             });
 
-            Response resp = localNode.GET("/response1", null);
-            Assert.IsTrue(213 == resp.StatusCode);
+            Handle.CUSTOM("{?} /{?}", (String method, Int32 p1) =>
+            {
+                return "CUSTOM method "  + method + " with " + p1;
+            });
 
-            resp = localNode.PUT("/response1", "Body!", null);
-            Assert.IsTrue(213 == resp.StatusCode);
+            Handle.CUSTOM("{?} /{?}/{?}", (String method, String p1, String p2) =>
+            {
+                return "CUSTOM method " + method + " with " + p1 + " and " + p2;
+            });
 
-            resp = localNode.POST("/response1", "Body!", null);
-            Assert.IsTrue(213 == resp.StatusCode);
+            Handle.CUSTOM("{?} /", (String method) =>
+            {
+                return "CUSTOM method " + method;
+            });
 
-            resp = localNode.PATCH("/response1", "Body!", null);
-            Assert.IsTrue(213 == resp.StatusCode);
+            Handle.GET("/", () =>
+            {
+                return "Simple GET!";
+            });
+
+            Handle.GET("/{?}", (String p1) =>
+            {
+                return "Simple GET with " + p1;
+            });
+
+            Handle.POST("/", () =>
+            {
+                return "Simple POST!";
+            });
+
+            Response resp = localNode.GET("/", null);
+            Assert.IsTrue("Simple GET!" == resp.Body);
+
+            resp = localNode.POST("/", "Body!", null);
+            Assert.IsTrue("Simple POST!" == resp.Body);
+
+            resp = localNode.GET("/param1", null);
+            Assert.IsTrue("Simple GET with param1" == resp.Body);
+
+            resp = localNode.PUT("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT" == resp.Body);
+
+            resp = localNode.PATCH("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PATCH" == resp.Body);
+
+            resp = localNode.DELETE("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE" == resp.Body);
+
+            resp = localNode.DELETE("/param1", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1" == resp.Body);
+
+            resp = localNode.PUT("/param123", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT with param123" == resp.Body);
+
+            resp = localNode.POST("/12345", "Body!", null);
+            Assert.IsTrue("CUSTOM method POST with 12345" == resp.Body);
+
+            resp = localNode.DELETE("/param1/param2", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1 and param2" == resp.Body);
         }
     }
 
@@ -756,8 +802,9 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
+            // TODO Alexey: Fix datetime (decide datetime format!).
+
             /*
-            TODO: Fix datetime.
             Handle.GET(testInfos25.TemplateUri, (DateTime val) =>
             {
                 DateTime expected;
@@ -929,7 +976,8 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
-            // Uncomment for calling the wrong above handler.
+            // TODO Jocke: Uncomment for calling the wrong above handler.
+
             /*
             Handle.GET(testInfos38.TemplateUri, (string p1, string p2, string p3) =>
             {
@@ -940,7 +988,7 @@ namespace Starcounter.Internal.Test
                 return testInfos38.ReturnStr;
             });
 
-            resp = localNode.GET(testInfos38.TestUri, null, null);
+            resp = localNode.GET(testInfos38.TestUri, null);
             Assert.IsTrue(testInfos38.ReturnStr == resp.Body);
            
             ///////////////////////////////////////////
@@ -954,7 +1002,7 @@ namespace Starcounter.Internal.Test
                 return testInfos39.ReturnStr;
             });
 
-            resp = localNode.GET(testInfos39.TestUri, null, null);
+            resp = localNode.GET(testInfos39.TestUri, null);
             Assert.IsTrue(testInfos39.ReturnStr == resp.Body);
             */
 
@@ -1143,6 +1191,53 @@ namespace Starcounter.Internal.Test
 
             resp = localNode.POST(testInfos54.TestUri, (String)null, null);
             Assert.IsTrue(testInfos54.ReturnStr == resp.Body);
+
+            ///////////////////////////////////////////
+
+            Handle.CUSTOM("{?} /{?}", (String method, String p1) =>
+            {
+                return "CUSTOM method " + method + " with " + p1;
+            });
+
+            Handle.CUSTOM("{?} /{?}", (String method, Int32 p1) =>
+            {
+                return "CUSTOM method " + method + " with " + p1;
+            });
+
+            Handle.CUSTOM("{?} /{?}/{?}", (String method, String p1, String p2) =>
+            {
+                return "CUSTOM method " + method + " with " + p1 + " and " + p2;
+            });
+
+            Handle.CUSTOM("{?} /", (String method) =>
+            {
+                return "CUSTOM method " + method;
+            });
+
+            // TODO Jocke: Uncomment to see the truncated method name problem.
+
+            /*
+            resp = localNode.PUT("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT" == resp.Body);
+
+            resp = localNode.PATCH("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PATCH" == resp.Body);
+
+            resp = localNode.DELETE("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE" == resp.Body);
+
+            resp = localNode.DELETE("/param1", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1" == resp.Body);
+
+            resp = localNode.PUT("/param123", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT with param123" == resp.Body);
+
+            resp = localNode.POST("/12345", "Body!", null);
+            Assert.IsTrue("CUSTOM method POST with 12345" == resp.Body);
+
+            resp = localNode.DELETE("/param1/param2", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1 and param2" == resp.Body);
+            */
         }
 
         public class PersonMessage : Json
