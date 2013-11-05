@@ -443,6 +443,11 @@ namespace NetworkIoTestApp
                         };
                     });
 
+                    Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>
+                    {
+                        return "CUSTOM method " + method + " with parameter " + p1;
+                    });
+
                     break;
                 }
 
