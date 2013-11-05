@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MultiThreadedMemoryLeakTests.cs" />
+    <Compile Include="PerformanceTest.cs" />
     <Compile Include="SqlProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
