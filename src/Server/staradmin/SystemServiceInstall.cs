@@ -19,9 +19,9 @@ namespace staradmin {
         }
 
         internal static void Uninstall() {
-            var name = SystemServerService.Name;
+            var name = ServerService.Name;
             PreUnInstall(name);
-            SystemServerService.Delete(name);
+            ServerService.Delete(name);
             PostUnInstall();
         }
 

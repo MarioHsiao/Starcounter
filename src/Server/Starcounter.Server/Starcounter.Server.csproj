@@ -104,7 +104,7 @@
     <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="DatabaseApp.cs" />
-    <Compile Include="Service\SystemServerService.cs" />
+    <Compile Include="Service\ServerService.cs" />
     <Compile Include="Setup\SystemServiceSetup.cs">
       <SubType>Code</SubType>
     </Compile>
