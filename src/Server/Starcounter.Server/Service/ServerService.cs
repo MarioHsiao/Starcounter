@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace Starcounter.Server.Service {
     /// <summary>
@@ -136,10 +137,46 @@ namespace Starcounter.Server.Service {
         /// given it's service name.
         /// </summary>
         /// <param name="serviceName">Name of the service to delete.</param>
-        public static void Delete(string serviceName) {
+        public static void Delete(string serviceName = ServerService.Name) {
             if (string.IsNullOrEmpty(serviceName)) throw new ArgumentNullException("serviceName");
 
             Delete(new ServiceController(serviceName));
+        }
+
+        /// <summary>
+        /// Starts the Starcounter server service.
+        /// </summary>
+        /// <param name="serviceName">The name of the service.</param>
+        /// <param name="millisecondsTimeout">Optional timeout to wait for it to become running.</param>
+        public static void Start(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
+            var timeout = millisecondsTimeout == Timeout.Infinite ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(millisecondsTimeout);
+            using (var controller = new ServiceController(serviceName)) {
+                if (controller.Status != ServiceControllerStatus.Running) {
+                    try {
+                        controller.Start();
+                    } finally {
+                        controller.WaitForStatus(ServiceControllerStatus.Running, timeout);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stops the Starcounter server service.
+        /// </summary>
+        /// <param name="serviceName">The name of the service.</param>
+        /// <param name="millisecondsTimeout">Optional timeout to wait for it to stop.</param>
+        public static void Stop(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
+            var timeout = millisecondsTimeout == Timeout.Infinite ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(millisecondsTimeout);
+            using (var controller = new ServiceController(serviceName)) {
+                if (controller.Status != ServiceControllerStatus.Stopped) {
+                    try {
+                        controller.Stop();
+                    } finally {
+                        controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+                    }
+                }
+            }
         }
 
         /// <summary>
