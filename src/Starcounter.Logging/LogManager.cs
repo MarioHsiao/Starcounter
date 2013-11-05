@@ -72,7 +72,9 @@ namespace Starcounter.Logging
                     message = string.Concat(message, " ", message2);
                 }
             }
-            sccorelog.sccorelog_write_to_logs(_hlogs, type, source, errorCode, message);
+
+            if (0 != _hlogs)
+                sccorelog.sccorelog_write_to_logs(_hlogs, type, source, errorCode, message);
         }
     }
 }

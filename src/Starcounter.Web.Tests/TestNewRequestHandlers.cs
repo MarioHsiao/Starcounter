@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc4!";
         }
 
-        public static Response UserFunc5(Int64 p1, Decimal p2, Int32 p3, Int32 p4)
+        public static Response UserFunc5(Int32 p1, Decimal p2, Int32 p3, Int32 p4)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -93,7 +93,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc6!";
         }
 
-        public static Response UserFunc7(PersonMessage m, Int64 p1, Decimal p2, Int32 p3, Int32 p4, Request r)
+        public static Response UserFunc7(PersonMessage m, Int64 p1, Decimal p2, Int64 p3, Int32 p4, Request r)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -109,7 +109,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc7!";
         }
 
-        public static Response UserFunc8(PersonMessage m, dynamic dj, Int64 p1, Decimal p2, Int32 p3, Int32 p4, Request r)
+        public static Response UserFunc8(PersonMessage m, dynamic dj, Int64 p1, Decimal p2, Int32 p3, Int64 p4, Request r)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -195,13 +195,13 @@ namespace Starcounter.Internal.Test
             Func<Request, IntPtr, IntPtr, Response> genDel2 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int32, Int64, String, Decimal, Response>(UserHttpDelegateTests.UserFunc2));
             Func<Request, IntPtr, IntPtr, Response> genDel3 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}/{?}/{?}", new Func<Int32, Int64, String, Request, Decimal, Double, Boolean, Response>(UserHttpDelegateTests.UserFunc3));
             Func<Request, IntPtr, IntPtr, Response> genDel4 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}/{?}/{?}/{?}", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Request, Response>(UserHttpDelegateTests.UserFunc4));
-            Func<Request, IntPtr, IntPtr, Response> genDel5 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int64, Decimal, Int32, Int32, Response>(UserHttpDelegateTests.UserFunc5));
+            Func<Request, IntPtr, IntPtr, Response> genDel5 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int32, Decimal, Int32, Int32, Response>(UserHttpDelegateTests.UserFunc5));
             Func<Request, IntPtr, IntPtr, Response> genDel6 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int64, Decimal, Int32, Int32, PersonMessage, Response>(UserHttpDelegateTests.UserFunc6));
-            Func<Request, IntPtr, IntPtr, Response> genDel7 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<PersonMessage, Int64, Decimal, Int32, Int32, Request, Response>(UserHttpDelegateTests.UserFunc7));
-            Func<Request, IntPtr, IntPtr, Response> genDel8 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int32, Request, Response>(UserHttpDelegateTests.UserFunc8));
+            Func<Request, IntPtr, IntPtr, Response> genDel7 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<PersonMessage, Int64, Decimal, Int64, Int32, Request, Response>(UserHttpDelegateTests.UserFunc7));
+            Func<Request, IntPtr, IntPtr, Response> genDel8 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int64, Request, Response>(UserHttpDelegateTests.UserFunc8));
 
-            Func<Request, IntPtr, IntPtr, Response> genDel9 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Object, Request, Response>(UserHttpDelegateTests.UserFunc9));
-            Func<Request, IntPtr, IntPtr, Response> genDel10 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Request, Response>(UserHttpDelegateTests.UserFunc10));
+            Func<Request, IntPtr, IntPtr, Response> genDel9 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /a", new Func<Object, Request, Response>(UserHttpDelegateTests.UserFunc9));
+            Func<Request, IntPtr, IntPtr, Response> genDel10 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /b", new Func<PersonMessage, Request, Response>(UserHttpDelegateTests.UserFunc10));
 
             unsafe
             {
