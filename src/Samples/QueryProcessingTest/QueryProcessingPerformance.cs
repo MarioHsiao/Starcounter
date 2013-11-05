@@ -8,7 +8,6 @@ using Starcounter;
 using Starcounter.Query;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
-using Starcounter.Query.RawParserAnalyzer;
 using Starcounter.Query.Sql;
 using Starcounter.Query.SQL;
 
@@ -63,11 +62,9 @@ namespace QueryProcessingTest {
             Console.WriteLine(String.Format("Optimizing the query tree took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
 
             timer.Reset();
-            ParserTreeWalker treeWalker = null;
             timer.Start();
             for (int i = 0; i < nrIterations; i++) {
-                treeWalker = new ParserTreeWalker();
-                treeWalker.ParseQuery(query);
+                Starcounter.SqlProcessor.SqlProcessor.CallSqlProcessor(query);
             }
             timer.Stop();
             Console.WriteLine(String.Format("Parsing query in Bison took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
