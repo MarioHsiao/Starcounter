@@ -10,10 +10,11 @@ using System.Threading;
 
 namespace Starcounter.Server {
     /// <summary>
-    /// Represents a running instance of the server, hosted in a
-    /// Windows service process.
+    /// Represents a running instance of the server service, 
+    /// hosted in a Windows service- or interactive, user-mode
+    /// process.
     /// </summary>
-    public sealed class SystemServerProcess : ServiceBase {
+    public sealed class ServerServiceProcess : ServiceBase {
         const string serverOnlineEventName = "SCCODE_EXE_ADMINISTRATOR";
         Thread monitorThread;
         volatile uint monitorExitCode;
@@ -94,10 +95,10 @@ namespace Starcounter.Server {
         }
         
         /// <summary>
-        /// Initialize a <see cref="SystemServerProcess"/> with default
+        /// Initialize a <see cref="ServerServiceProcess"/> with default
         /// values.
         /// </summary>
-        public SystemServerProcess(string serverName) {
+        public ServerServiceProcess(string serverName) {
             if (string.IsNullOrEmpty(serverName)) {
                 throw new ArgumentNullException("serverName");
             }
