@@ -368,6 +368,38 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(201 == resp.StatusCode);
             Assert.IsTrue("OK" == resp.StatusDescription);
         }
+
+        /// <summary>
+        /// Tests any method handlers.
+        /// </summary>
+        [Test]
+        public void CustomMethodTest()
+        {
+            UserHandlerCodegen.ResetHandlersManager();
+
+            // Node that is used for tests.
+            Node localNode = new Node("127.0.0.1", 8080);
+            localNode.LocalNode = true;
+
+            Handle.CUSTOM("{?} /response1", (String method) =>
+            {
+                Console.WriteLine("Method: " + method);
+
+                return 213;
+            });
+
+            Response resp = localNode.GET("/response1", null);
+            Assert.IsTrue(213 == resp.StatusCode);
+
+            resp = localNode.PUT("/response1", "Body!", null);
+            Assert.IsTrue(213 == resp.StatusCode);
+
+            resp = localNode.POST("/response1", "Body!", null);
+            Assert.IsTrue(213 == resp.StatusCode);
+
+            resp = localNode.PATCH("/response1", "Body!", null);
+            Assert.IsTrue(213 == resp.StatusCode);
+        }
     }
 
     /// <summary>
