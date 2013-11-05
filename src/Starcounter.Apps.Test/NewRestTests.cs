@@ -1032,7 +1032,7 @@ namespace Starcounter.Internal.Test
                 return testInfos41.ReturnStr;
             });
 
-            resp = localNode.GET(testInfos41.TestUri, null, null);
+            resp = localNode.GET(testInfos41.TestUri, null);
             Assert.IsTrue(testInfos41.ReturnStr == resp.Body);
             */
 
