@@ -376,6 +376,11 @@ public class CInstallationBase : CComponentBase
             EnvironmentVariableTarget.User);
         PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.User);
 
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+            null,
+            EnvironmentVariableTarget.Machine);
+        PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.Machine);
+
         // Logging event.
         Utilities.ReportSetupEvent("Deleting Starcounter entry from the 'Add/Remove Programs' list...");
 
