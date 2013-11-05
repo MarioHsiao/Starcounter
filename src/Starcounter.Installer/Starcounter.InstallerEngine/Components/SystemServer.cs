@@ -64,32 +64,32 @@ public class CSystemServer : CComponentBase
     /// </summary>
     internal static void StartStarcounterServices()
     {
-        // Logging event.
-        Utilities.ReportSetupEvent("Starting Starcounter services...");
+        //// Logging event.
+        //Utilities.ReportSetupEvent("Starting Starcounter services...");
 
-        // Obtaining a list of all services in the system.
-        ServiceController[] allServices = ServiceController.GetServices();
-        foreach (ServiceController someService in allServices)
-        {
-            // Selecting the service which starts with Starcounter keyword.
-            if (someService.ServiceName.StartsWith(ConstantsBank.SCProductName, StringComparison.CurrentCultureIgnoreCase))
-            {
-                // We have found Starcounter service so checking if its started.
-                if (someService.Status != ServiceControllerStatus.Running &&
-                    someService.Status != ServiceControllerStatus.StartPending &&
-                    someService.Status != ServiceControllerStatus.ContinuePending)
-                {
-                    // Starting the service.
-                    someService.Start();
-                }
+        //// Obtaining a list of all services in the system.
+        //ServiceController[] allServices = ServiceController.GetServices();
+        //foreach (ServiceController someService in allServices)
+        //{
+        //    // Selecting the service which starts with Starcounter keyword.
+        //    if (someService.ServiceName.StartsWith(ConstantsBank.SCProductName, StringComparison.CurrentCultureIgnoreCase))
+        //    {
+        //        // We have found Starcounter service so checking if its started.
+        //        if (someService.Status != ServiceControllerStatus.Running &&
+        //            someService.Status != ServiceControllerStatus.StartPending &&
+        //            someService.Status != ServiceControllerStatus.ContinuePending)
+        //        {
+        //            // Starting the service.
+        //            someService.Start();
+        //        }
 
-                // Now waiting for the stop status for the server.
-                someService.WaitForStatus(ServiceControllerStatus.Running);
+        //        // Now waiting for the stop status for the server.
+        //        someService.WaitForStatus(ServiceControllerStatus.Running);
 
-                // Releasing service resources.
-                someService.Close();
-            }
-        }
+        //        // Releasing service resources.
+        //        someService.Close();
+        //    }
+        //}
     }
 
     public void InstallSMMonitor(String serviceAccountName, String serviceAccountPassword, String pathToResources)
@@ -150,137 +150,137 @@ public class CSystemServer : CComponentBase
     /// </summary>
     public override void Install()
     {
-        // Checking if component should be installed in this session.
-        if (!ShouldBeInstalled())
-            return;
+        //// Checking if component should be installed in this session.
+        //if (!ShouldBeInstalled())
+        //    return;
 
-        // Checking that component is not already installed.
-        if (!CanBeInstalled())
-            return;
+        //// Checking that component is not already installed.
+        //if (!CanBeInstalled())
+        //    return;
 
-        // Server related directories.
-        String serverOuterDir = ComponentPath;
+        //// Server related directories.
+        //String serverOuterDir = ComponentPath;
 
-        // Checking for existing server directory.
-        CPersonalServer.CheckExistingServerDirectory(serverOuterDir);
+        //// Checking for existing server directory.
+        //CPersonalServer.CheckExistingServerDirectory(serverOuterDir);
 
-        // Logging event.
-        Utilities.ReportSetupEvent("Creating environment variables for system server...");
+        //// Logging event.
+        //Utilities.ReportSetupEvent("Creating environment variables for system server...");
 
-        // Setting the installation path environment variable.
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            InstallerMain.InstallationBaseComponent.ComponentPath,
-            EnvironmentVariableTarget.Machine);
+        //// Setting the installation path environment variable.
+        //Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+        //    InstallerMain.InstallationBaseComponent.ComponentPath,
+        //    EnvironmentVariableTarget.Machine);
 
-        // Setting the default server environment variable.
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
-            ConstantsBank.SCSystemServerName,
-            EnvironmentVariableTarget.Machine);
+        //// Setting the default server environment variable.
+        //Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
+        //    ConstantsBank.SCSystemServerName,
+        //    EnvironmentVariableTarget.Machine);
 
-        // Logging event.
-        Utilities.ReportSetupEvent("Installing system server and service...");
+        //// Logging event.
+        //Utilities.ReportSetupEvent("Installing system server and service...");
 
-        String serviceAccountName, serviceAccountPassword,
-               installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
+        //String serviceAccountName, serviceAccountPassword,
+        //       installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
-        // Creating new server repository.
-        var setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.SystemServer);
+        //// Creating new server repository.
+        //var setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.SystemServer);
 
-        setup.Execute();
+        //setup.Execute();
 
-        String serverInnerDir = setup.Structure.RepositoryDirectory;
-        String serverConfigPath = setup.ServerConfiguration.ConfigurationFilePath;
+        //String serverInnerDir = setup.Structure.RepositoryDirectory;
+        //String serverConfigPath = setup.ServerConfiguration.ConfigurationFilePath;
 
-        // Replacing default server parameters.
-        if (!Utilities.ReplaceXMLParameterInFile(
-            serverConfigPath,
-            StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerUserHttpPort)))
-        {
-            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
-                "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
-        }
+        //// Replacing default server parameters.
+        //if (!Utilities.ReplaceXMLParameterInFile(
+        //    serverConfigPath,
+        //    StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort,
+        //    InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerUserHttpPort)))
+        //{
+        //    throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+        //        "Can't replace default Apps port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        //}
 
-        // Replacing default server parameters.
-        if (!Utilities.ReplaceXMLParameterInFile(
-            serverConfigPath,
-            ServerConfiguration.SystemHttpPortString,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort)))
-        {
-            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
-                "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
-        }
+        //// Replacing default server parameters.
+        //if (!Utilities.ReplaceXMLParameterInFile(
+        //    serverConfigPath,
+        //    ServerConfiguration.SystemHttpPortString,
+        //    InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort)))
+        //{
+        //    throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+        //        "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        //}
 
-        // Replacing default server parameters.
-        if (!Utilities.ReplaceXMLParameterInFile(
-            serverConfigPath,
-            StarcounterConstants.BootstrapOptionNames.SQLProcessPort,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemPrologSqlProcessPort)))
-        {
-            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
-                "Can't replace Prolog SQL TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
-        }
+        //// Replacing default server parameters.
+        //if (!Utilities.ReplaceXMLParameterInFile(
+        //    serverConfigPath,
+        //    StarcounterConstants.BootstrapOptionNames.SQLProcessPort,
+        //    InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemPrologSqlProcessPort)))
+        //{
+        //    throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+        //        "Can't replace Prolog SQL TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        //}
 
-        // Setting the given system server system HTTP port on the machine
-        int serverSystemPort;
-        var serverSystemPortString = InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort);
-        if (string.IsNullOrEmpty(serverSystemPortString) || !int.TryParse(serverSystemPortString, out serverSystemPort)) {
-            throw ErrorCode.ToException(
-                Error.SCERRINSTALLERINTERNALPROBLEM,
-                "Unable to properly access given server HTTP port value: " + serverSystemPortString ?? "NULL");
-        }
-        Environment.SetEnvironmentVariable(
-            ConstantsBank.SCEnvVariableDefaultSystemPort,
-            serverSystemPortString,
-            EnvironmentVariableTarget.Machine);
+        //// Setting the given system server system HTTP port on the machine
+        //int serverSystemPort;
+        //var serverSystemPortString = InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort);
+        //if (string.IsNullOrEmpty(serverSystemPortString) || !int.TryParse(serverSystemPortString, out serverSystemPort)) {
+        //    throw ErrorCode.ToException(
+        //        Error.SCERRINSTALLERINTERNALPROBLEM,
+        //        "Unable to properly access given server HTTP port value: " + serverSystemPortString ?? "NULL");
+        //}
+        //Environment.SetEnvironmentVariable(
+        //    ConstantsBank.SCEnvVariableDefaultSystemPort,
+        //    serverSystemPortString,
+        //    EnvironmentVariableTarget.Machine);
 
-        // Creating server config.
-        InstallerMain.CreateServerConfig(
-            StarcounterEnvironment.ServerNames.SystemServer,
-            ComponentPath,
-            SystemServerConfigPath);
+        //// Creating server config.
+        //InstallerMain.CreateServerConfig(
+        //    StarcounterEnvironment.ServerNames.SystemServer,
+        //    ComponentPath,
+        //    SystemServerConfigPath);
 
-        // Testing if service account exists or creating a new one.
-        SystemServerAccount.ChangeInstallationPlatform(true);
-        SystemServerAccount.AssureAccount(
-            installPath,
-            serverOuterDir,
-            out serviceAccountName,
-            out serviceAccountPassword);
+        //// Testing if service account exists or creating a new one.
+        //SystemServerAccount.ChangeInstallationPlatform(true);
+        //SystemServerAccount.AssureAccount(
+        //    installPath,
+        //    serverOuterDir,
+        //    out serviceAccountName,
+        //    out serviceAccountPassword);
 
-        // Creating system database server in default path.
-        SystemServerAccount.CreateService(
-            installPath,
-            StarcounterEnvironment.ServerNames.SystemServerServiceName,
-            serviceAccountName,
-            serviceAccountPassword);
+        //// Creating system database server in default path.
+        //SystemServerAccount.CreateService(
+        //    installPath,
+        //    StarcounterEnvironment.ServerNames.SystemServerServiceName,
+        //    serviceAccountName,
+        //    serviceAccountPassword);
 
-        // Copying gateway configuration.
-        InstallerMain.CopyGatewayConfig(
-            serverInnerDir,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort));
+        //// Copying gateway configuration.
+        //InstallerMain.CopyGatewayConfig(
+        //    serverInnerDir,
+        //    InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort));
 
-        // Creating Administrator database.
-        // TODO: Recover if in need of a database for Administrator.
-        /*InstallerMain.CreateDatabaseSynchronous(
-            StarcounterEnvironment.ServerNames.SystemServer,
-            ComponentPath,
-            ConstantsBank.SCAdminDatabaseName);*/
+        //// Creating Administrator database.
+        //// TODO: Recover if in need of a database for Administrator.
+        ///*InstallerMain.CreateDatabaseSynchronous(
+        //    StarcounterEnvironment.ServerNames.SystemServer,
+        //    ComponentPath,
+        //    ConstantsBank.SCAdminDatabaseName);*/
 
-        // Calling external tool to create Administrator shortcut.
-        Utilities.CreateShortcut(
-            "http://127.0.0.1:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort),
-            SystemServerAdminDesktopShortcutPath,
-            "",
-            installPath,
-            "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.SystemServer + " Administrator.",
-            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
+        //// Calling external tool to create Administrator shortcut.
+        //Utilities.CreateShortcut(
+        //    "http://127.0.0.1:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort),
+        //    SystemServerAdminDesktopShortcutPath,
+        //    "",
+        //    installPath,
+        //    "Starts " + ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.SystemServer + " Administrator.",
+        //    Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCIconFilename));
 
-        // Starting the service.
-        StartStarcounterServices();
+        //// Starting the service.
+        //StartStarcounterServices();
 
-        // Updating progress.
-        InstallerMain.ProgressIncrement();
+        //// Updating progress.
+        //InstallerMain.ProgressIncrement();
     }
 
     /// <summary>
@@ -415,78 +415,78 @@ public class CSystemServer : CComponentBase
     /// </summary>
     public override void Uninstall()
     {
-        if (!UninstallEngine.CompleteCleanupSetting)
-        {
-            if (UninstallEngine.RollbackSetting)
-            {
-                // Checking if component was installed in this session.
-                if (!ShouldBeInstalled())
-                    return;
-            }
-            else // Standard removal.
-            {
-                // Checking if component is selected to be removed.
-                if (!ShouldBeRemoved())
-                    return;
+        //if (!UninstallEngine.CompleteCleanupSetting)
+        //{
+        //    if (UninstallEngine.RollbackSetting)
+        //    {
+        //        // Checking if component was installed in this session.
+        //        if (!ShouldBeInstalled())
+        //            return;
+        //    }
+        //    else // Standard removal.
+        //    {
+        //        // Checking if component is selected to be removed.
+        //        if (!ShouldBeRemoved())
+        //            return;
 
-                // Checking if component can be removed.
-                if (!CanBeRemoved())
-                    return;
-            }
-        }
+        //        // Checking if component can be removed.
+        //        if (!CanBeRemoved())
+        //            return;
+        //    }
+        //}
 
-        // Deleting Starcounter services and user.
-        DeleteServicesAndUser();
+        //// Deleting Starcounter services and user.
+        //DeleteServicesAndUser();
 
-        // Logging event.
-        Utilities.ReportSetupEvent("Deleting system server environment variables...");
+        //// Logging event.
+        //Utilities.ReportSetupEvent("Deleting system server environment variables...");
 
-        // Removing installation environment variable.
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            null,
-            EnvironmentVariableTarget.Machine);
+        //// Removing installation environment variable.
+        //Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+        //    null,
+        //    EnvironmentVariableTarget.Machine);
 
-        // Removing default server environment variable.
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
-            null,
-            EnvironmentVariableTarget.Machine);
+        //// Removing default server environment variable.
+        //Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
+        //    null,
+        //    EnvironmentVariableTarget.Machine);
 
-        Environment.SetEnvironmentVariable(
-            ConstantsBank.SCEnvVariableDefaultSystemPort,
-            null,
-            EnvironmentVariableTarget.Machine);
+        //Environment.SetEnvironmentVariable(
+        //    ConstantsBank.SCEnvVariableDefaultSystemPort,
+        //    null,
+        //    EnvironmentVariableTarget.Machine);
 
-        // Logging event.
-        Utilities.ReportSetupEvent("Deleting system server registry entries...");
+        //// Logging event.
+        //Utilities.ReportSetupEvent("Deleting system server registry entries...");
 
-        RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE", true);
+        //RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE", true);
 
-        // Looking if 'Starcounter' key exists and trying to delete it.
-        if ((registryKey != null) && (registryKey.OpenSubKey(ConstantsBank.SCProductName, true) != null))
-            registryKey.DeleteSubKeyTree(ConstantsBank.SCProductName);
+        //// Looking if 'Starcounter' key exists and trying to delete it.
+        //if ((registryKey != null) && (registryKey.OpenSubKey(ConstantsBank.SCProductName, true) != null))
+        //    registryKey.DeleteSubKeyTree(ConstantsBank.SCProductName);
 
-        // Deleting personal server configuration folder if demanded.
-        Utilities.ReportSetupEvent("Deleting system database server configuration...");
+        //// Deleting personal server configuration folder if demanded.
+        //Utilities.ReportSetupEvent("Deleting system database server configuration...");
 
-        // Getting the server installation path.
-        try
-        {
-            String systemServerPath = ComponentPath;
+        //// Getting the server installation path.
+        //try
+        //{
+        //    String systemServerPath = ComponentPath;
 
-            if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(systemServerPath)))
-            {
-                InstallerMain.FinalSetupMessage += "You can find and manually delete the System Server databases directory in: '" +
-                    systemServerPath + "'" + Environment.NewLine;
-            }
-        }
-        catch { }
+        //    if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(systemServerPath)))
+        //    {
+        //        InstallerMain.FinalSetupMessage += "You can find and manually delete the System Server databases directory in: '" +
+        //            systemServerPath + "'" + Environment.NewLine;
+        //    }
+        //}
+        //catch { }
 
-        // Deleting the config file.
-        if (File.Exists(SystemServerConfigPath))
-            File.Delete(SystemServerConfigPath);
+        //// Deleting the config file.
+        //if (File.Exists(SystemServerConfigPath))
+        //    File.Delete(SystemServerConfigPath);
 
-        // Updating progress.
-        InstallerMain.ProgressIncrement();
+        //// Updating progress.
+        //InstallerMain.ProgressIncrement();
     }
 
     /// <summary>
@@ -495,44 +495,6 @@ public class CSystemServer : CComponentBase
     /// <returns>True if already installed.</returns>
     public override Boolean IsInstalled()
     {
-        // Checking for Starcounter environment variables existence.
-        String envVar = ComponentsCheck.CheckServerEnvVars(false, true);
-        if (envVar != null)
-            return true;
-
-        // Open necessary registry keys.
-        RegistryKey rkSettings = Registry.LocalMachine.OpenSubKey("SOFTWARE");
-
-        // Checking if Starcounter settings (system-wide installation) exist in registry.
-        if ((rkSettings != null) && (rkSettings.OpenSubKey(ConstantsBank.SCProductName) != null))
-            return true;
-
-        // Checking if Starcounter user exists.
-        try
-        {
-            DirectoryEntry localMachine = new DirectoryEntry("WinNT://" + Environment.MachineName + ",computer");
-            localMachine.Children.Find(SystemServerAccount.UserName);
-            return true;
-        }
-        catch
-        {
-            // Need to catch an exception when the user is not found.
-        }
-
-        // Checking for Starcounter service existence.
-        ServiceController[] allServices = ServiceController.GetServices();
-        foreach (ServiceController someService in allServices)
-        {
-            if (someService.ServiceName.StartsWith(ConstantsBank.SCProductName, StringComparison.CurrentCultureIgnoreCase))
-                return true;
-        }
-
-        // Checking for Starcounter server configuration file.
-        String serverDir = Utilities.ReadServerInstallationPath(SystemServerConfigPath);
-        if (Directory.Exists(serverDir))
-            return true;
-
-        // Didn't find any component footprints.
         return false;
     }
 
@@ -542,7 +504,7 @@ public class CSystemServer : CComponentBase
     /// <returns>True if can.</returns>
     public override Boolean CanBeInstalled()
     {
-        return !IsInstalled();
+        return false;
     }
 
     /// <summary>
@@ -561,7 +523,7 @@ public class CSystemServer : CComponentBase
     /// <returns>True if component should be installed.</returns>
     public override Boolean ShouldBeInstalled()
     {
-        return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallSystemServer, ConstantsBank.Setting_True);
+        return false;
     }
 
     /// <summary>
@@ -571,7 +533,7 @@ public class CSystemServer : CComponentBase
     /// <returns>True if component should be uninstalled.</returns>
     public override Boolean ShouldBeRemoved()
     {
-        return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveSystemServer, ConstantsBank.Setting_True);
+        return false;
     }
 }
 }
