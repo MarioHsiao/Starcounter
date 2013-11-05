@@ -61,6 +61,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "Starcounter.Rest\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.App.Server", "Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj", "{828ECAC2-9748-4E7F-BDC0-6D154C90B9C3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Apps.Tests", "Starcounter.Apps.Test\Starcounter.Apps.Tests.csproj", "{B7C456DA-CF64-4689-9389-82E912F84F23}"
 EndProject
@@ -303,8 +306,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Tests", "Starcounter.XSON.Tests\Starcounter.XSON.Tests.csproj", "{265D58EF-871E-4E67-947C-C46B84FF63F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Tracking", "Starcounter.Tracking\Starcounter.Tracking.csproj", "{8D37C0B3-3557-4300-9E73-A2ADD0BA3CBB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.UsageTracker", "Programs\Starcounter.UsageTracker\Starcounter.UsageTracker.csproj", "{773CF89D-D530-4350-8C83-C7C01BB61D47}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PMail", "Samples\SPA\PMail.csproj", "{699183D9-6ACF-44C9-B922-CE7FE487206D}"
 EndProject
@@ -367,8 +376,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scservice", "Server\scservice\scservice.csproj", "{56437006-A468-43B7-9D8A-F580CC07AD50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.UsageTracker.Export", "Programs\Starcounter.UsageTracker.Export\Starcounter.UsageTracker.Export.csproj", "{4C2E0DC8-BFE7-48D6-A2D1-384240B02EFD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.UsageTracker.Import", "Programs\Starcounter.UsageTracker.Import\Starcounter.UsageTracker.Import.csproj", "{143EDFA1-A513-42AE-962F-1D256E739825}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
