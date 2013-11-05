@@ -22,6 +22,12 @@ namespace staradmin {
                     case "uninstallservice":
                         ServerServiceUtilities.Uninstall();
                         break;
+                    case "startservice":
+                        ServerServiceUtilities.Start();
+                        break;
+                    case "stopservice":
+                        ServerServiceUtilities.Stop();
+                        break;
                     default:
                         throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
                 }
