@@ -17,10 +17,10 @@ namespace staradmin {
                         break;
                     case "installservice":
                         bool start = args.Length > 1 && args[1] == "start";
-                        SystemServiceInstall.Install(start);
+                        ServerServiceUtilities.Install(start);
                         break;
                     case "uninstallservice":
-                        SystemServiceInstall.Uninstall();
+                        ServerServiceUtilities.Uninstall();
                         break;
                     default:
                         throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);

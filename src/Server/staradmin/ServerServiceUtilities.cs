@@ -8,7 +8,7 @@ using System.ServiceProcess;
 
 namespace staradmin {
 
-    internal static class SystemServiceInstall {
+    internal static class ServerServiceUtilities {
 
         internal static void Install(bool forceStart = false) {
             PreInstall();
@@ -25,6 +25,14 @@ namespace staradmin {
             PostUnInstall();
         }
 
+        internal static void Start(string serviceName = ServerService.Name) {
+            ServerService.Start(serviceName);
+        }
+
+        internal static void Stop(string serviceName = ServerService.Name) {
+            ServerService.Stop(serviceName);
+        }
+
         static void PreInstall() {
             var installDir = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
             if (string.IsNullOrEmpty(installDir)) {
@@ -35,24 +43,12 @@ namespace staradmin {
 
         static void PostInstall(string serviceName, StartupType startupType) {
             if (startupType == StartupType.Automatic) {
-                var controller = new ServiceController(serviceName);
-                try {
-                    controller.Start();
-                } finally {
-                    controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
-                }
+                Start();
             }
         }
 
         static void PreUnInstall(string serviceName) {
-            var controller = new ServiceController(serviceName);
-            if (controller.Status != ServiceControllerStatus.Stopped) {
-                try {
-                    controller.Stop();
-                } finally {
-                    controller.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
-                }
-            }
+            Stop(serviceName);
         }
 
         static void PostUnInstall() {
