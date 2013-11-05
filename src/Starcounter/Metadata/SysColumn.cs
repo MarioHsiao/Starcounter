@@ -18,9 +18,14 @@ namespace Starcounter.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 0;
-            internal static int columnHandle_index = 1;
-            internal static int columnHandle_name = 2;
+            internal static int columnHandle_table_id = 1;
+            internal static int columnHandle_table = 2;
+            internal static int columnHandle_index = 3;
+            internal static int columnHandle_name = 4;
+            internal static int columnHandle_base_type = 5;
+            internal static int columnHandle_unique = 6;
+            internal static int columnHandle_null = 7;
+            internal static int columnHandle_inherited = 8;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -38,13 +43,18 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             var systemTableDef = new TableDef(
-                "sys_column",
+                "materialized_column",
                 new ColumnDef[]
                 {
                     new ColumnDef("__id", DbTypeCode.Key, false, false),
                     new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("table", DbTypeCode.Object, true, false),
                     new ColumnDef("index", DbTypeCode.UInt64, false, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("base_type", DbTypeCode.String, true, false),
+                    new ColumnDef("unique", DbTypeCode.Boolean, false, false),
+                    new ColumnDef("null", DbTypeCode.Boolean, false, false),
+                    new ColumnDef("inherited", DbTypeCode.Boolean, false, false),
                 }
                 );
 
@@ -54,8 +64,13 @@ namespace Starcounter.Metadata {
                 new PropertyDef[]
                 {
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
+                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Metadata.SysTable") { ColumnName = "table" },
                     new PropertyDef("Index", DbTypeCode.UInt64, false) { ColumnName = "index" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("BaseType", DbTypeCode.String, true) { ColumnName = "base_type" },
+                    new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
+                    new PropertyDef("Null", DbTypeCode.Boolean, false) { ColumnName = "null" },
+                    new PropertyDef("Inherited", DbTypeCode.Boolean, false) { ColumnName = "inherited" },
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysColumn"),
                 systemTableDef
@@ -76,6 +91,12 @@ namespace Starcounter.Metadata {
 
         /// <summary>
         /// </summary>
+        public SysTable Table {
+            get { return (SysTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table); }
+        }
+
+        /// <summary>
+        /// </summary>
         public ulong Index {
             get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_index); }
         }
@@ -84,6 +105,30 @@ namespace Starcounter.Metadata {
         /// </summary>
         public string Name {
             get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public string BaseType {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_type); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public bool Unique {
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_unique); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public bool Null {
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_null); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public bool Inherited {
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_inherited); }
         }
     }
 }
