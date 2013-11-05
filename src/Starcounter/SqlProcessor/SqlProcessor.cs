@@ -11,11 +11,13 @@ namespace Starcounter.SqlProcessor {
         public static unsafe extern ScError* scsql_get_error();
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern uint scsql_free_memory();
+        [DllImport("scsqlprocessor.dll")]
+        public static unsafe extern uint scsql_dump_memory_leaks();
 
-        public static unsafe void CallSqlProcessor(String query) {
+        public static unsafe uint CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
             if (err == 0)
-                return;
+                return err;
             Exception ex = GetSqlException(err, query);
             // create the exception
             scsql_free_memory();
@@ -33,6 +35,8 @@ namespace Starcounter.SqlProcessor {
         internal static Exception GetSqlException(uint scErrorCode, String query) {
             unsafe {
                 ScError* scerror = scsql_get_error();
+                if (scerror == null)
+                    throw ErrorCode.ToException(Error.SCERRUNEXPERRUNAVAILABLE);
                 String message = new String(scerror->scerrmessage);
                 uint errorCode = (uint)scerror->scerrorcode;
                 Debug.Assert(scErrorCode == errorCode);
