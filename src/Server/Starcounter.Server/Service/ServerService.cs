@@ -149,14 +149,14 @@ namespace Starcounter.Server.Service {
         /// <param name="serviceName">The name of the service.</param>
         /// <param name="millisecondsTimeout">Optional timeout to wait for it to become running.</param>
         public static void Start(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
-            var timeout = millisecondsTimeout == Timeout.Infinite ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(millisecondsTimeout);
+            var timeout = millisecondsTimeout == Timeout.Infinite ? TimeSpan.FromHours(24) : TimeSpan.FromMilliseconds(millisecondsTimeout);
             using (var controller = new ServiceController(serviceName)) {
-                if (controller.Status != ServiceControllerStatus.Running) {
-                    try {
+                var status = controller.Status;
+                if (status != ServiceControllerStatus.Running) {
+                    if (status != ServiceControllerStatus.StartPending) {
                         controller.Start();
-                    } finally {
-                        controller.WaitForStatus(ServiceControllerStatus.Running, timeout);
                     }
+                    controller.WaitForStatus(ServiceControllerStatus.Running, timeout);
                 }
             }
         }
@@ -167,14 +167,14 @@ namespace Starcounter.Server.Service {
         /// <param name="serviceName">The name of the service.</param>
         /// <param name="millisecondsTimeout">Optional timeout to wait for it to stop.</param>
         public static void Stop(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
-            var timeout = millisecondsTimeout == Timeout.Infinite ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(millisecondsTimeout);
+            var timeout = millisecondsTimeout == Timeout.Infinite ? TimeSpan.FromHours(24) : TimeSpan.FromMilliseconds(millisecondsTimeout);
             using (var controller = new ServiceController(serviceName)) {
-                if (controller.Status != ServiceControllerStatus.Stopped) {
-                    try {
+                var status = controller.Status;
+                if (status != ServiceControllerStatus.Stopped) {
+                    if (status != ServiceControllerStatus.StopPending) {
                         controller.Stop();
-                    } finally {
-                        controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
                     }
+                    controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
                 }
             }
         }
