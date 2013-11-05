@@ -283,6 +283,11 @@ public class CInstallationBase : CComponentBase
             EnvironmentVariableTarget.Process);
         PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Process);
 
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+            ComponentPath,
+            EnvironmentVariableTarget.Machine);
+        PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Machine);
+
         // Logging event.
         Utilities.ReportSetupEvent("Creating base Start Menu items...");
 
