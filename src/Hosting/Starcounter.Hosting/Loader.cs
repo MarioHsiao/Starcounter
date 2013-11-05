@@ -139,9 +139,10 @@ namespace StarcounterInternal.Hosting
             var sysTableTypeDef = SysTable.CreateTypeDef();
             var sysColumnTypeDef = SysColumn.CreateTypeDef();
             var sysIndexTypeDef = SysIndex.CreateTypeDef();
+            var sysIndexColumnTypeDef = SysIndexColumn.CreateTypeDef();
 
             Package package = new Package(
-                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef },
+                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef },
                 null,
                 stopwatch_,
                 true
