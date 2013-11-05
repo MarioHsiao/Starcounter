@@ -54,32 +54,6 @@ public class CPersonalServer : CComponentBase
         }
     }
 
-    /// <summary>
-    /// Kills all Starcounter server processes (except Starcounter service).
-    /// </summary>
-    internal static void KillServersButNotService()
-    {
-        if (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
-            InstallerMain.SystemServerComponent.ShouldBeInstalled())
-        {
-            Process[] procs = Process.GetProcessesByName(StarcounterConstants.ProgramNames.ScService);
-            foreach (Process proc in procs)
-            {
-                // Checking if its not a service.
-                if (proc.SessionId != 0)
-                {
-                    try
-                    {
-                        proc.Kill();
-                        proc.WaitForExit(30000);
-                    }
-                    catch { }
-                    finally { proc.Close(); }
-                }
-            }
-        }
-    }
-
     // Desktop shortcut.
     readonly String PersonalServerDesktopShortcutPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
@@ -294,9 +268,6 @@ public class CPersonalServer : CComponentBase
         InstallerMain.CopyGatewayConfig(
             serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort));
-
-        // Killing server process (in order to later start it with normal privileges).
-        KillServersButNotService();
 
         // Creating shortcuts.
         CreatePersonalServerShortcuts();
