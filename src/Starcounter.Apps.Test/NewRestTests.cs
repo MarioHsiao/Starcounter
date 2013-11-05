@@ -1021,7 +1021,8 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
-            // Uncomment for test failure.
+            // TODO Jocke: Uncomment for test failure.
+
             /*
             Handle.GET(testInfos41.TemplateUri, (string p1, string p2) =>
             {
@@ -1215,6 +1216,8 @@ namespace Starcounter.Internal.Test
             });
 
             // TODO Jocke: Uncomment to see the truncated method name problem.
+            // E.g. method name should be "POST" but its "OST", or for "PUT" its "UT"
+            // (method parameter offset is +1 and length is -1)
 
             /*
             resp = localNode.PUT("/", "Body!", null);
