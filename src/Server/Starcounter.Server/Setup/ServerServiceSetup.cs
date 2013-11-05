@@ -57,7 +57,7 @@ namespace Starcounter.Server.Setup {
         public ServerServiceSetup() {
             InstallationPath = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
             ServiceName = ServerService.Name;
-            DisplayName = "Starcounter System Service";
+            DisplayName = "Starcounter Server Service";
             StartupType = StartupType.Manual;
             AccountName = null;
             Password = null;
@@ -72,8 +72,6 @@ namespace Starcounter.Server.Setup {
             var commandLine = new StringBuilder();
             var executable = Path.Combine(this.InstallationPath, "scservice.exe");
             commandLine.Append("\"" + executable + "\"");
-            commandLine.Append(" ");
-            commandLine.Append("SYSTEM");
 
             using (var manager = LocalWindowsServiceManager.Open(Win32Service.SERVICE_ACCESS.SERVICE_CHANGE_CONFIG)) {
                 return ServerService.Create(
