@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using Starcounter.Server.Setup;
 using System.Xml;
 using Starcounter.Advanced.Configuration;
+using Starcounter.Server.Service;
 
 namespace Starcounter.InstallerEngine
 {
@@ -418,7 +419,7 @@ public class CPersonalServer : CComponentBase
     public override Boolean IsInstalled()
     {
         // Checking for Starcounter environment variables existence.
-        String envVar = ComponentsCheck.CheckServerEnvVars(true, false);
+        String envVar = ComponentsCheck.CheckServerEnvVars(true, true);
         if (envVar != null)
             return true;
 
@@ -433,6 +434,13 @@ public class CPersonalServer : CComponentBase
         String serverDir = Utilities.ReadServerInstallationPath(PersonalServerConfigPath);
         if (Directory.Exists(serverDir))
             return true;
+
+        // Check if the Windows service is installed and configured.
+        foreach (var service in ServiceController.GetServices()) {
+            if (ServerService.IsServerService(service)) {
+                return true;
+            }
+        }
 
         // None of evidence found.
         return false;
