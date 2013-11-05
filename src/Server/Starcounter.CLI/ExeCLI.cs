@@ -80,9 +80,9 @@ namespace Starcounter.CLI {
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
                     ShowStatus("Retrieving server status", true);
-                    if (!SystemServerProcess.IsOnline()) {
+                    if (!ServerServiceProcess.IsOnline()) {
                         ShowStatus("Starting server");
-                        SystemServerProcess.StartInteractiveOnDemand();
+                        ServerServiceProcess.StartInteractiveOnDemand();
                     }
                     ShowStatus("Server is online", true);
                 }
@@ -139,7 +139,7 @@ namespace Starcounter.CLI {
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
                     ShowStatus("Retrieving server status", true);
-                    if (!SystemServerProcess.IsOnline()) {
+                    if (!ServerServiceProcess.IsOnline()) {
                         SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
                     }
                 }

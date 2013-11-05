@@ -34,7 +34,7 @@ namespace scservice {
                 }
             }
 
-            var serviceProcess = new SystemServerProcess(serverName) {
+            var serviceProcess = new ServerServiceProcess(serverName) {
                 LogSteps = logSteps
             };
             serviceProcess.Launch(startedAsService);
