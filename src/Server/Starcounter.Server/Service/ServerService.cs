@@ -169,12 +169,19 @@ namespace Starcounter.Server.Service {
         public static void Stop(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
             var timeout = millisecondsTimeout == Timeout.Infinite ? TimeSpan.FromHours(24) : TimeSpan.FromMilliseconds(millisecondsTimeout);
             using (var controller = new ServiceController(serviceName)) {
-                var status = controller.Status;
-                if (status != ServiceControllerStatus.Stopped) {
-                    if (status != ServiceControllerStatus.StopPending) {
-                        controller.Stop();
+                try {
+                    var status = controller.Status;
+                    if (status != ServiceControllerStatus.Stopped) {
+                        if (status != ServiceControllerStatus.StopPending) {
+                            controller.Stop();
+                        }
+                        controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
                     }
-                    controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+                } catch (InvalidOperationException invalidOperation) {
+                    var win32 = invalidOperation.InnerException as Win32Exception;
+                    if (win32 == null || win32.NativeErrorCode != Win32Error.ERROR_SERVICE_DOES_NOT_EXIST) {
+                        throw;
+                    }
                 }
             }
         }
