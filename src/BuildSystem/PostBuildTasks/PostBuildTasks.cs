@@ -60,6 +60,7 @@ namespace PostBuildTasks
             "perfmon.*",
             "sccorelog_test.*",
             "stream_buffer_test.*",
+            "sunflower_perftest.*",
             "testapp1.*",
             "tpca_client.*",
             "TurboTextTest.*"

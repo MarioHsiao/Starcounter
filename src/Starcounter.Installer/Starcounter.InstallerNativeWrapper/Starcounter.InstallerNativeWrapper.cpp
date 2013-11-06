@@ -51,7 +51,7 @@ static bool IsNet45Installed()
 /// <param name="exeFilePath"></param>
 /// <param name="args"></param>
 /// <returns></returns>
-static int32_t RunAndWaitForProgram(const wchar_t* exe_path, const wchar_t* args, bool elevate, bool wait)
+static int32_t RunAndWaitForProgram(const wchar_t* exe_path, const wchar_t* args, bool elevate, bool wait, bool show_window)
 {
     SHELLEXECUTEINFO process_info = {0};
     process_info.cbSize = sizeof(process_info);
@@ -64,7 +64,10 @@ static int32_t RunAndWaitForProgram(const wchar_t* exe_path, const wchar_t* args
     process_info.lpFile = exe_path;
     process_info.lpParameters = args;
     process_info.lpDirectory = 0;
-    process_info.nShow = SW_SHOW;
+    
+    if (show_window)
+        process_info.nShow = SW_SHOW;
+
     process_info.hInstApp = 0;
 
     if (ShellExecuteEx(&process_info))
@@ -198,7 +201,7 @@ static uint32_t StartScService()
     else
     {
         // Starting Starcounter service.
-        RunAndWaitForProgram(path_to_scservice, L"", false, false);
+        RunAndWaitForProgram(path_to_scservice, L"", false, false, false);
     }
 
     return 0;
@@ -279,7 +282,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         GetModuleFileName(NULL, cur_exe_path, MAX_PATH_LEN);
         
         // Running elevated wrapper.
-        err_code = RunAndWaitForProgram(cur_exe_path, ElevatedParam, true, true);
+        err_code = RunAndWaitForProgram(cur_exe_path, ElevatedParam, true, true, true);
         if (err_code)
             goto SETUP_FAILED;
 
@@ -323,7 +326,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             // Extracting .NET 4.5 setup file.
             if (0 == (err_code = ExtractResourceToFile(IDR_EXE2, temp_net45_exe_path)))
             {
-                if (0 == (err_code = RunAndWaitForProgram(temp_net45_exe_path, L"", true, true)))
+                if (0 == (err_code = RunAndWaitForProgram(temp_net45_exe_path, L"", true, true, true)))
                 {
                     // Double checking that now .NET version has really installed.
                     if (!IsNet45Installed())
@@ -345,7 +348,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         if (0 == (err_code = ExtractResourceToFile(IDR_EXE1, temp_setup_exe_path)))
         {
             // Skipping waiting for installer, just quiting.
-            if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true)))
+            if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true, true)))
             {
                 // Cleaning temporary extract folder.
                 // NOTE: last file should be double null-terminated.

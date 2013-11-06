@@ -6,7 +6,7 @@ namespace Starcounter.SqlProcessor.Tests {
     [TestFixture]
     public class SqlProcessorTests {
 
-        private static unsafe void ProcessQuery(uint expectedError, string query) {
+        public static unsafe void ProcessQuery(uint expectedError, string query) {
             uint err = SqlProcessor.scsql_process_query(query);
             if (err != 0) {
                 ScError* fullError = SqlProcessor.scsql_get_error();
