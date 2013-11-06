@@ -11,6 +11,7 @@ using System.Xml;
 using Starcounter.Advanced.Configuration;
 using Starcounter.Server.Service;
 using System.Threading;
+using Starcounter.Server.Windows;
 
 namespace Starcounter.InstallerEngine
 {
@@ -145,6 +146,21 @@ public class CPersonalServer : CComponentBase
         setup.Execute();
 
         return setup;
+    }
+
+    internal static void StartServiceIfAutomatic() {
+        var service = ServerService.Find();
+        if (service != null) {
+            // Only start it if it's automatic start type.
+            // Otherwise, start the personal server?
+            // TODO:
+
+            var config = WindowsServiceHelper.GetServiceConfig(service.ServiceName);
+            if (config.dwStartType == (uint) Win32Service.SERVICE_START.SERVICE_AUTO_START) {
+                Utilities.ReportSetupEvent("Starting Starcounter service...");
+                ServerService.Start(service.ServiceName);
+            }
+        }
     }
 
     void DeleteWindowsService() {

@@ -864,7 +864,7 @@ namespace Starcounter.InstallerEngine
                 finally
                 {
                     // Restarting Starcounter service if needed.
-                    CSystemServer.StartStarcounterServices();
+                    CPersonalServer.StartServiceIfAutomatic();
                 }
 
                 // Adding last progress update.
