@@ -130,7 +130,7 @@ namespace Starcounter.Server.Windows {
                     );
                 if (br == false) {
                     lastError = Marshal.GetLastWin32Error();
-                    if (lastError != (int)Win32Error.ERROR_INSUFFICIENT_BUFFER)
+                    if (lastError != Win32Error.ERROR_INSUFFICIENT_BUFFER)
                         throw new Win32Exception(lastError);
 
                     Marshal.FreeHGlobal(buffer);
@@ -179,9 +179,8 @@ namespace Starcounter.Server.Windows {
 
                 if (br == false) {
                     lastError = Marshal.GetLastWin32Error();
-                    if (lastError != (int)Win32Error.ERROR_INSUFFICIENT_BUFFER)
-                        throw
-                            new Win32Exception(lastError);
+                    if (lastError != Win32Error.ERROR_INSUFFICIENT_BUFFER)
+                        throw new Win32Exception(lastError);
 
                     Marshal.FreeHGlobal(buffer);
                     bufferSize = bytesNeeded;
