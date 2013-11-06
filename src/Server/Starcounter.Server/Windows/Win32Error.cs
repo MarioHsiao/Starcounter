@@ -10,6 +10,7 @@ namespace Starcounter.Server.Windows {
         public const int ERROR_INSUFFICIENT_BUFFER = 122;
         public const int ERROR_NO_MORE_ITEMS = 259;
         public const int ERROR_SERVICE_DOES_NOT_EXIST = 1060;
+        public const int ERROR_SERVICE_MARKED_FOR_DELETE = 1072;
         public const int ERROR_NONE_MAPPED = 1332;
     }
 }
