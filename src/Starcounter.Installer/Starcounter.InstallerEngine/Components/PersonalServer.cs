@@ -134,7 +134,13 @@ public class CPersonalServer : CComponentBase
     /// <returns>The setup used when the server was created.</returns>
     ServerServiceSetup CreateWindowsService() {
         var setup = new ServerServiceSetup();
+        setup.StartupType = Server.Windows.StartupType.Automatic;
 
+        var vsComponent = InstallerMain.VS2012IntegrationComponent;
+        if (vsComponent.IsInstalled() || vsComponent.ShouldBeInstalled()) {
+            setup.StartupType = Server.Windows.StartupType.Manual;
+        }
+        
         Utilities.ReportSetupEvent("Adding Starcounter server service...");
         setup.Execute();
 
