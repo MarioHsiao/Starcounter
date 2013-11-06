@@ -51,18 +51,10 @@
 # define ELEM_AT(a, i, v) ((unsigned int) (i) < ARRAY_SIZE(a) ? (a)[(i)] : (v))
 #endif
 
-#if HTTP_PARSER_DEBUG
-#define SET_ERRNO(e)                                                 \
-do {                                                                 \
-  parser->http_errno = (e);                                          \
-  parser->error_lineno = __LINE__;                                   \
-} while (0)
-#else
 #define SET_ERRNO(e)                                                 \
 do {                                                                 \
   parser->http_errno = (e);                                          \
 } while(0)
-#endif
 
 
 /* Run the notify callback FOR, returning ER if it fails */
@@ -642,7 +634,17 @@ size_t http_parser_execute (http_parser *parser,
 
     if (PARSING_HEADER(parser->state)) {
       ++parser->nread;
-      /* Buffer overflow attack */
+      /* Don't allow the total size of the HTTP headers (including the status
+       * line) to exceed HTTP_MAX_HEADER_SIZE.  This check is here to protect
+       * embedders against denial-of-service attacks where the attacker feeds
+       * us a never-ending header that the embedder keeps buffering.
+       *
+       * This check is arguably the responsibility of embedders but we're doing
+       * it on the embedder's behalf because most won't bother and this way we
+       * make the web a little safer.  HTTP_MAX_HEADER_SIZE is still far bigger
+       * than any reasonable request or response so this should never affect
+       * day-to-day operation.
+       */
       if (parser->nread > HTTP_MAX_HEADER_SIZE) {
         SET_ERRNO(HPE_HEADER_OVERFLOW);
         goto error;
@@ -874,6 +876,7 @@ size_t http_parser_execute (http_parser *parser,
       case s_res_line_almost_done:
         STRICT_CHECK(ch != LF);
         parser->state = s_header_field_start;
+        CALLBACK_NOTIFY(status_complete);
         break;
 
       case s_start_req:
@@ -936,6 +939,7 @@ size_t http_parser_execute (http_parser *parser,
           } else if (parser->index == 2  && ch == 'P') {
             parser->method = HTTP_COPY;
           } else {
+            SET_ERRNO(HPE_INVALID_METHOD);
             goto error;
           }
         } else if (parser->method == HTTP_MKCOL) {
@@ -948,12 +952,14 @@ size_t http_parser_execute (http_parser *parser,
           } else if (parser->index == 2 && ch == 'A') {
             parser->method = HTTP_MKACTIVITY;
           } else {
+            SET_ERRNO(HPE_INVALID_METHOD);
             goto error;
           }
         } else if (parser->method == HTTP_SUBSCRIBE) {
           if (parser->index == 1 && ch == 'E') {
             parser->method = HTTP_SEARCH;
           } else {
+            SET_ERRNO(HPE_INVALID_METHOD);
             goto error;
           }
         } else if (parser->index == 1 && parser->method == HTTP_POST) {
@@ -964,13 +970,27 @@ size_t http_parser_execute (http_parser *parser,
           } else if (ch == 'A') {
             parser->method = HTTP_PATCH;
           } else {
+            SET_ERRNO(HPE_INVALID_METHOD);
             goto error;
           }
         } else if (parser->index == 2) {
           if (parser->method == HTTP_PUT) {
-            if (ch == 'R') parser->method = HTTP_PURGE;
+            if (ch == 'R') {
+              parser->method = HTTP_PURGE;
+            } else {
+              SET_ERRNO(HPE_INVALID_METHOD);
+              goto error;
+            }
           } else if (parser->method == HTTP_UNLOCK) {
-            if (ch == 'S') parser->method = HTTP_UNSUBSCRIBE;
+            if (ch == 'S') {
+              parser->method = HTTP_UNSUBSCRIBE;
+            } else {
+              SET_ERRNO(HPE_INVALID_METHOD);
+              goto error;
+            }
+          } else {
+            SET_ERRNO(HPE_INVALID_METHOD);
+            goto error;
           }
         } else if (parser->index == 4 && parser->method == HTTP_PROPFIND && ch == 'P') {
           parser->method = HTTP_PROPPATCH;
@@ -1970,7 +1990,7 @@ http_parse_host_char(enum http_host_state s, const char ch) {
 
     /* FALLTHROUGH */
     case s_http_host_v6_start:
-      if (IS_HEX(ch) || ch == ':') {
+      if (IS_HEX(ch) || ch == ':' || ch == '.') {
         return s_http_host_v6;
       }
 
@@ -2011,21 +2031,21 @@ http_parse_host(const char * buf, struct http_parser_url *u, int found_at) {
     switch(new_s) {
       case s_http_host:
         if (s != s_http_host) {
-          u->field_data[UF_HOST].off = (uint16_t) (p - buf);
+          u->field_data[UF_HOST].off = (uint16_t)(p - buf);
         }
         u->field_data[UF_HOST].len++;
         break;
 
       case s_http_host_v6:
         if (s != s_http_host_v6) {
-          u->field_data[UF_HOST].off = (uint16_t) (p - buf);
+          u->field_data[UF_HOST].off = (uint16_t)(p - buf);
         }
         u->field_data[UF_HOST].len++;
         break;
 
       case s_http_host_port:
         if (s != s_http_host_port) {
-          u->field_data[UF_PORT].off = (uint16_t) (p - buf);
+          u->field_data[UF_PORT].off = (uint16_t)(p - buf);
           u->field_data[UF_PORT].len = 0;
           u->field_set |= (1 << UF_PORT);
         }
@@ -2034,7 +2054,7 @@ http_parse_host(const char * buf, struct http_parser_url *u, int found_at) {
 
       case s_http_userinfo:
         if (s != s_http_userinfo) {
-          u->field_data[UF_USERINFO].off = (uint16_t) (p - buf);
+          u->field_data[UF_USERINFO].off = (uint16_t)(p - buf);
           u->field_data[UF_USERINFO].len = 0;
           u->field_set |= (1 << UF_USERINFO);
         }
@@ -2127,7 +2147,7 @@ http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
       continue;
     }
 
-    u->field_data[uf].off = (uint16_t) (p - buf);
+    u->field_data[uf].off = (uint16_t)(p - buf);
     u->field_data[uf].len = 1;
 
     u->field_set |= (1 << uf);
@@ -2179,4 +2199,11 @@ http_parser_pause(http_parser *parser, int paused) {
 int
 http_body_is_final(const struct http_parser *parser) {
     return parser->state == s_message_done;
+}
+
+unsigned long
+http_parser_version(void) {
+  return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
+         HTTP_PARSER_VERSION_MINOR * 0x00100 |
+         HTTP_PARSER_VERSION_PATCH * 0x00001;
 }
