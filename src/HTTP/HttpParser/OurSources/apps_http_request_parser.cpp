@@ -109,7 +109,7 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
-            http->http_request_->content_len_bytes_ = ParseStringToUint(at, length);
+            http->http_request_->content_len_bytes_ = (int32_t) p->content_length;
 
             break;
         }
@@ -188,7 +188,7 @@ EXTERN_C uint32_t __stdcall sc_parse_http_request(
 
     // Executing HTTP parser.
     size_t bytes_parsed = http_parser_execute(
-        (http_parser *)&thread_http_request_parser,
+        &thread_http_request_parser.http_parser_,
         g_http_request_parser_settings,
         (const char *)request_buf,
         request_size_bytes);

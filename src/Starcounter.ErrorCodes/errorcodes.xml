@@ -3536,6 +3536,9 @@
 	<code hex="0021" severity="Error" name="ScErrInvalidCurrent">
 	  <message>Calling current is invalid, since enumerator has not started or has already finished.</message>
 	</code>
+	<code hex="0022" severity="Error" name="ScErrUnexpErrUnavailable">
+	  <message>Internal error in SQL Processor. Error cannot be retrieved.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">

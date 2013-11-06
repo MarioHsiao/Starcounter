@@ -406,7 +406,7 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating content length.
-            g_ts_http_request_->content_len_bytes_ = ParseStringToUint(at, length);
+            g_ts_http_request_->content_len_bytes_ = (int32_t) p->content_length;
 
             break;
         }
