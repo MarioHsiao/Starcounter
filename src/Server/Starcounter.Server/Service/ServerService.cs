@@ -33,6 +33,22 @@ namespace Starcounter.Server.Service {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public static ServiceController Find(string serviceName = ServerService.Name) {
+            ServiceController result = null;
+            foreach (var item in ServiceController.GetServices()) {
+                if (IsServerService(item)) {
+                    result = item;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Creates a Starcounter server service using the supplied parameters
         /// and internal knowledge.
         /// </summary>
