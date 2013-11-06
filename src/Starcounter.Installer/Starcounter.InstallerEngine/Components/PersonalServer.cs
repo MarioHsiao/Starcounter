@@ -464,7 +464,7 @@ public class CPersonalServer : CComponentBase
     public override Boolean IsInstalled()
     {
         // Checking for Starcounter environment variables existence.
-        String envVar = ComponentsCheck.CheckServerEnvVars(true, true);
+        String envVar = ComponentsCheck.CheckServerEnvVars(true, false);
         if (envVar != null)
             return true;
 
