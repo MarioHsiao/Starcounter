@@ -231,17 +231,34 @@ namespace Starcounter.Server.Service {
             if (serviceManagerHandle == IntPtr.Zero) throw new ArgumentNullException("serviceManagerHandle");
             if (service == null) throw new ArgumentNullException("service");
 
-            using (var opened = LocalWindowsServiceHandle.Open(serviceManagerHandle, service.ServiceName, Win32Service.SERVICE_ACCESS.DELETE)) {
-                var result = Win32Service.DeleteService(opened.Handle);
-                if (!result) {
-                    // 1072 - ERROR_SERVICE_MARKED_FOR_DELETE.
-                    // Got it once when the service was disabled, because it didn't
-                    // answer to the service manager in time (i.e. I ran scservice.exe
-                    // "as is"), and then the service was marked "disabled" by the
-                    // SCM. Then I deleted it, and got this error.
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            int win32Error = 0;
+            Exception original = null;
+            try {
+                using (var opened = LocalWindowsServiceHandle.Open(serviceManagerHandle, service.ServiceName, Win32Service.SERVICE_ACCESS.DELETE)) {
+                    var result = Win32Service.DeleteService(opened.Handle);
+                    if (!result) {
+                        win32Error = Marshal.GetLastWin32Error();
+                    }
                 }
+            } catch (InvalidOperationException invalid) {
+                var innerWin32 = invalid.InnerException as Win32Exception;
+                if (innerWin32 == null) {
+                    throw;
+                }
+                original = invalid;
+                win32Error = innerWin32.NativeErrorCode;
+            } catch (Win32Exception win32ex) {
+                original = win32ex;
+                win32Error = win32ex.NativeErrorCode;
             }
+
+            if (win32Error != 0) {
+                // Ignore a few: 1072 and 1060.
+                if (win32Error != Win32Error.ERROR_SERVICE_DOES_NOT_EXIST && win32Error != Win32Error.ERROR_SERVICE_MARKED_FOR_DELETE) {
+                    var x = original ?? new Win32Exception(win32Error);
+                    throw x;
+                }
+            }                        
         }
 
         private static unsafe void ConfigureService(IntPtr serviceHandle, string description) {
