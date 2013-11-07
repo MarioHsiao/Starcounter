@@ -27,10 +27,20 @@ namespace Starcounter.CommandLine
         public static readonly string[] OptionPrefixes = { "-", "--" };
 
         /// <summary>
+        /// Gets the standard option prefix.
+        /// </summary>
+        public static readonly string StandardOptionPrefix = OptionPrefixes[1];
+
+        /// <summary>
         /// Known option suffixes.
         /// </summary>
         public static char[] OptionSuffixes = new char[] { ':', '=' };
 
+        /// <summary>
+        /// Gets the standard option suffix.
+        /// </summary>
+        public static readonly string StandardOptionSuffix = OptionSuffixes[1].ToString();
+        
         /// <summary>
         /// Keyword used to distinguish a flag from a property.
         /// </summary>
