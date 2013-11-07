@@ -489,42 +489,41 @@ namespace Starcounter.Server {
         }
 
         ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false) {
-            ProcessStartInfo processStart;
-            StringBuilder args;
-
-            args = new StringBuilder();
-            if (Debugger.IsAttached) {
-                args.Append("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
-            }
-            args.Append(database.Name.ToUpper());
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);
+            var args = new List<string>(16);
             
-            if (startWithNoDb) {
-                args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);
+            if (Debugger.IsAttached) {
+                args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
-            // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
+            args.Add(database.Name.ToUpper());
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort));
+            args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort));
+
+            if (startWithNoDb) {
+                args.Add(" --" + StarcounterConstants.BootstrapOptionNames.NoDb);
+            }
+            // args.Add(" --" + ProgramCommandLine.OptionNames.NoNetworkGateway);
             if (applyLogSteps) {
-                args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
+                args.Add(" --" + StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
             }
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
-                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value);
+                args.Add(string.Format(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value));
             }
-            
-            processStart = new ProcessStartInfo(this.CodeHostExePath, args.ToString().Trim());
+
+            var arguments = string.Join(" ", args);
+            var processStart = new ProcessStartInfo(this.CodeHostExePath, arguments.Trim());
             processStart.CreateNoWindow = true;
             processStart.UseShellExecute = false;
             processStart.RedirectStandardInput = true;
             processStart.RedirectStandardOutput = true;
-            processStart.RedirectStandardError = true;    
-            
+            processStart.RedirectStandardError = true;
+
             return processStart;
         }
 
