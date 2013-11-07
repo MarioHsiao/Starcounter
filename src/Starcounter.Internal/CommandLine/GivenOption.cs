@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.CommandLine.Syntax;
+using System;
 
 namespace Starcounter.CommandLine
 {
@@ -44,6 +45,41 @@ namespace Starcounter.CommandLine
             get {
                 return (Option.Attributes & OptionAttributes.Flag) != 0;
             }
+        }
+        
+        /// <summary>
+        /// Converts the value of the current <see cref="GivenOption"/> 
+        /// to a string representation using the specified format.
+        /// </summary>
+        /// <param name="format">The format to use when formatting.</param>
+        /// <returns>A string representation of the current <see cref="GivenOption"/>
+        /// using the specified format.</returns>
+        public string ToString(string format) {
+            format = format ?? string.Empty;
+            string result;
+
+            format = format.ToLowerInvariant();
+            switch (format) {
+                case "":
+                    result = base.ToString();
+                    break;
+                case "standard":
+                    result = string.Concat(Parser.StandardOptionPrefix, Option.Name);
+                    if (!IsFlag) {
+                        result += string.Concat(Parser.StandardOptionSuffix, Value);
+                    }
+                    break;
+                case "given":
+                    result = string.Concat(Parser.StandardOptionPrefix, SpecifiedName);
+                    if (!IsFlag) {
+                        result += string.Concat(Parser.StandardOptionSuffix, Value);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("format");
+            }
+
+            return result;
         }
     }
 }
