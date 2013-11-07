@@ -714,7 +714,8 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
-        if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
             // Checking if any space left in chunk.
             GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
@@ -998,7 +999,8 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
-        if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);

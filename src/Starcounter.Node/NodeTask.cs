@@ -63,6 +63,11 @@ namespace Starcounter {
         public Int32 TotallyReceivedBytes = 0;
 
         /// <summary>
+        /// Current receive offset.
+        /// </summary>
+        public Int32 ReceiveOffsetBytes = 0;
+
+        /// <summary>
         /// Response size bytes.
         /// </summary>
         public Int32 ResponseSizeBytes = 0;
@@ -109,6 +114,7 @@ namespace Starcounter {
         {
             Resp = null;
             TotallyReceivedBytes = 0;
+            ReceiveOffsetBytes = 0;
             ResponseSizeBytes = 0;
 
             RequestBytes = requestBytes;
@@ -181,13 +187,22 @@ namespace Starcounter {
                 if (0 == recievedBytes)
                     throw new IOException("Remote host closed the connection.");
 
+                // Dumping data to memory stream.
+                MemStream.Write(AccumBuffer, ReceiveOffsetBytes, recievedBytes);
+
+                // Adding to total received size.
+                TotallyReceivedBytes += recievedBytes;
+
                 // Process the bytes here.
                 if (Resp == null)
                 {
                     try
                     {
                         // Trying to parse the response.
-                        Resp = new Response(AccumBuffer, 0, recievedBytes, null, false);
+                        Resp = new Response(AccumBuffer, 0, TotallyReceivedBytes, null, false);
+
+                        // Setting offset bytes to 0.
+                        ReceiveOffsetBytes = 0;
 
                         // Getting the whole response size.
                         ResponseSizeBytes = Resp.ResponseLength;
@@ -196,6 +211,7 @@ namespace Starcounter {
                     {
                         // Continue to receive when there is not enough data.
                         Resp = null;
+                        ReceiveOffsetBytes = TotallyReceivedBytes;
 
                         // Trying to fetch recognized error code.
                         UInt32 code;
@@ -207,10 +223,6 @@ namespace Starcounter {
                         }
                     }
                 }
-
-                // Writing received data to memory stream.
-                MemStream.Write(AccumBuffer, 0, recievedBytes);
-                TotallyReceivedBytes += recievedBytes;
 
                 // Checking if we have received everything.
                 if ((Resp != null) && (TotallyReceivedBytes == ResponseSizeBytes))
@@ -227,7 +239,7 @@ namespace Starcounter {
                 else
                 {
                     // Read again. This callback will be called again.
-                    SocketObj.BeginReceive(AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
+                    SocketObj.BeginReceive(AccumBuffer, ReceiveOffsetBytes, PrivateBufferSize - ReceiveOffsetBytes, SocketFlags.None, NetworkOnReceiveCallback, null);
                 }
             }
             catch (Exception exc)
@@ -433,7 +445,7 @@ namespace Starcounter {
                 }
 #endif
 
-                Int32 recievedBytes;
+                Int32 recievedBytes = 0;
 
                 // Setting the receive timeout.
                 SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
@@ -442,19 +454,28 @@ namespace Starcounter {
                 while (true)
                 {
                     // Reading the response into predefined buffer.
-                    recievedBytes = SocketObj.Receive(AccumBuffer, 0, PrivateBufferSize, SocketFlags.None);
+                    recievedBytes = SocketObj.Receive(AccumBuffer, ReceiveOffsetBytes, PrivateBufferSize - ReceiveOffsetBytes, SocketFlags.None);
                     if (recievedBytes <= 0)
                     {
                         SocketObj = null;
                         throw new IOException("Remote host closed the connection.");
                     }
 
+                    // Dumping data to memory stream.
+                    MemStream.Write(AccumBuffer, ReceiveOffsetBytes, recievedBytes);
+
+                    // Adding to total received size.
+                    TotallyReceivedBytes += recievedBytes;
+
                     if (Resp == null)
                     {
                         try
                         {
                             // Trying to parse the response.
-                            Resp = new Response(AccumBuffer, 0, recievedBytes, null, false);
+                            Resp = new Response(AccumBuffer, 0, TotallyReceivedBytes, null, false);
+
+                            // Setting offset bytes to 0.
+                            ReceiveOffsetBytes = 0;
 
                             // Getting the whole response size.
                             ResponseSizeBytes = Resp.ResponseLength;
@@ -463,6 +484,7 @@ namespace Starcounter {
                         {
                             // Continue to receive when there is not enough data.
                             Resp = null;
+                            ReceiveOffsetBytes = TotallyReceivedBytes;
 
                             // Trying to fetch recognized error code.
                             UInt32 code;
@@ -479,9 +501,6 @@ namespace Starcounter {
                             }
                         }
                     }
-
-                    MemStream.Write(AccumBuffer, 0, recievedBytes);
-                    TotallyReceivedBytes += recievedBytes;
 
                     // Checking if we have received everything.
                     if ((Resp != null) && (TotallyReceivedBytes == ResponseSizeBytes))

@@ -159,8 +159,13 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
     }
 
     HttpResponse* http_response = thread_http_response_parser.http_response_;
-    if (http_response->content_len_bytes_ > 0)
-        assert(http_response->content_offset_ > 0);
+
+    // Checking for special case when body is not yet received.
+    if (http_response->content_offset_ <= 0)
+    {
+        if (http_response->content_len_bytes_ > 0)
+            return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
+    }
 
     // TODO: Check body length.
 
