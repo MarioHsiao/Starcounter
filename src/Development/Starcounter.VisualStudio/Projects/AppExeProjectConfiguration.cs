@@ -98,10 +98,10 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             this.debugLaunchDescription = "Checking server";
-            if (!SystemServerProcess.IsOnline()) {
+            if (!ServerServiceProcess.IsOnline()) {
                 this.WriteDebugLaunchStatus("starting");
                 this.WriteLine("Starting personal server.");
-                SystemServerProcess.StartInteractiveOnDemand();
+                ServerServiceProcess.StartInteractiveOnDemand();
             }
             this.WriteDebugLaunchStatus("online");
             

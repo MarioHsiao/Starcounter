@@ -10,12 +10,14 @@ using System.Threading;
 
 namespace Starcounter.Server {
     /// <summary>
-    /// Represents a running instance of the server, hosted in a
-    /// Windows service process.
+    /// Represents a running instance of the server service, 
+    /// hosted in a Windows service- or interactive, user-mode
+    /// process.
     /// </summary>
-    public sealed class SystemServerProcess : ServiceBase {
+    public sealed class ServerServiceProcess : ServiceBase {
         const string serverOnlineEventName = "SCCODE_EXE_ADMINISTRATOR";
         Thread monitorThread;
+        volatile uint monitorExitCode;
 
         [DllImport("scservicelib.dll", EntryPoint = "Start", CallingConvention = CallingConvention.StdCall)]
         static extern unsafe int StartMonitor(string server, bool logSteps);
@@ -93,16 +95,16 @@ namespace Starcounter.Server {
         }
         
         /// <summary>
-        /// Initialize a <see cref="SystemServerProcess"/> with default
+        /// Initialize a <see cref="ServerServiceProcess"/> with default
         /// values.
         /// </summary>
-        public SystemServerProcess(string serverName) {
+        public ServerServiceProcess(string serverName) {
             if (string.IsNullOrEmpty(serverName)) {
                 throw new ArgumentNullException("serverName");
             }
 
             ServerName = serverName;
-            ServiceName = SystemServerService.Name;
+            ServiceName = ServerService.Name;
             CanStop = true;
             CanPauseAndContinue = false;
         }
@@ -131,15 +133,11 @@ namespace Starcounter.Server {
         }
 
         protected override void OnStart(string[] args) {
+            monitorExitCode = 0;
             monitorThread = new Thread(new ThreadStart(MonitorThreadProcedure));
             monitorThread.Start();
 
-            // Should we wait for the principal startup to
-            // be considered succeeded? I.e. have some event
-            // that we wait for, and that the core service
-            // set it?
-
-            WaitUntilServerIsOnline(Process.GetCurrentProcess());
+            WaitUntilServerIsOnlineOrSignalExit((ignored) => { return monitorExitCode; }, Process.GetCurrentProcess());
 
             base.OnStart(args);
         }
@@ -157,14 +155,33 @@ namespace Starcounter.Server {
         void RunUntilStopped() {
             int x = StartMonitor(ServerName, LogSteps);
             Environment.ExitCode = x;
+            monitorExitCode = (uint)x;
         }
 
         /// <summary>
         /// Listens to the online event for the administrator server. If the server is already 
         /// online the method will return immediately. 
         /// </summary>
-        /// <param name="serverProcess"></param>
+        /// <param name="serverProcess">The process to wait for, hosting the admin server.</param>
         private static void WaitUntilServerIsOnline(Process serverProcess) {
+            WaitUntilServerIsOnlineOrSignalExit<Process>((proc) => {
+                uint result = 0;
+                proc.Refresh();
+                if (proc.HasExited) {
+                    try {
+                        // Sometimes we are not allowed to read the exitcode. In that case 
+                        // we just ignore it and send a general starcounter error.
+                        result = (uint)serverProcess.ExitCode;
+                    } catch (InvalidOperationException) {
+                        result = Error.SCERRSERVERNOTRUNNING;
+                    }
+
+                }
+                return result;
+            }, serverProcess);        
+        }
+
+        static void WaitUntilServerIsOnlineOrSignalExit<T>(Func<T, uint> checkExited, T context) {
             int retries = 60;
             int timeout = 1000; // timeout per wait for signal, not total timeout wait.
             bool signaled;
@@ -185,19 +202,9 @@ namespace Starcounter.Server {
                             break;
                     }
 
-                    if (serverProcess.HasExited) {
-
-                        try {
-                            // Sometimes we are not allowed to read the exitcode. In that case 
-                            // we just ignore it and send a general starcounter error.
-                            errorCode = (uint)serverProcess.ExitCode;
-                        } catch (InvalidOperationException) { }
-
-
-                        if (errorCode != 0) {
-                            throw ErrorCode.ToException(errorCode);
-                        }
-                        throw ErrorCode.ToException(Error.SCERRSERVERNOTRUNNING);
+                    errorCode = checkExited(context);
+                    if (errorCode != 0) {
+                        throw ErrorCode.ToException(errorCode);
                     }
                 }
             } finally {
