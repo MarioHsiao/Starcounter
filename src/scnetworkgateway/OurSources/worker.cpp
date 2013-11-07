@@ -383,7 +383,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
-    GW_ASSERT(0 == sd->get_db_index());
+    // Checking that only database zero chunk is for this operation.
+    GW_ASSERT(sd->get_db_index() == 0);
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
@@ -489,7 +490,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     GW_PRINT_WORKER << "FinishReceive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    GW_ASSERT(0 == sd->get_db_index());
+    // Checking that only database zero chunk is for this operation.
+    GW_ASSERT(sd->get_db_index() == 0);
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
@@ -715,11 +717,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
-    {
-        sd->set_socket_trigger_disconnect_flag();
-
         return SCERRGWDISCONNECTAFTERSENDFLAG;
-    }
 
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
@@ -838,7 +836,6 @@ uint32_t GatewayWorker::DisconnectSocket(session_index_type socket_index)
         return err_code;
 
     temp_sd->AssignSession(global_socket_info_copy.session_);
-    temp_sd->set_socket_trigger_disconnect_flag();
 
     DisconnectAndReleaseChunk(temp_sd);
 
@@ -875,15 +872,22 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    uint32_t err_code;
-
-    // Checking if its just a trigger for disconnect.
-    if (sd->get_socket_trigger_disconnect_flag())
-        goto DISCONNECT_OPERATION;
-
-    // Checking if its not receiving socket data.
-    if (!sd->get_socket_representer_flag())
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
+
+    // Checking if socket data belongs to different database.
+    if (sd->get_db_index() != 0)
+    {
+        DisconnectSocket(sd->get_socket_info_index());
+        goto RELEASE_CHUNK_TO_POOL;
+    }
+
+    // Setting socket representer.
+    sd->set_socket_representer_flag();
+    sd->set_socket_diag_active_conn_flag();
+
+    uint32_t err_code;
 
     // We have to return attached chunks.
     if (1 != sd->get_num_chunks())
@@ -907,8 +911,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
     // Setting unique socket id.
     sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
-
-DISCONNECT_OPERATION:
 
     // Calling DisconnectEx.
     err_code = sd->Disconnect(this);
@@ -950,18 +952,13 @@ DISCONNECT_OPERATION:
         // The disconnect operation is pending.
         return;
     }
-    else
-    {
-        // Finish disconnect operation.
-        // (e.g. returning to pool or starting accept).
-        if (FinishDisconnect(sd))
-            goto RELEASE_CHUNK_TO_POOL;
-
-        return;
-    }
 
     // Returning the chunk to pool.
 RELEASE_CHUNK_TO_POOL:
+
+    // Resetting socket representer flags.
+    sd->reset_socket_representer_flag();
+    sd->reset_socket_diag_active_conn_flag();
 
     // Returning chunks to pool.
     ReturnSocketDataChunksToPool(sd);
@@ -974,14 +971,8 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Checking if its just a trigger for disconnect.
-    if (sd->get_socket_trigger_disconnect_flag())
-    {
-        // Returning chunks to pool.
-        ReturnSocketDataChunksToPool(sd);
-
-        return 0;
-    }
+    // Checking that only database zero chunk is for this operation.
+    GW_ASSERT(sd->get_db_index() == 0);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
@@ -1147,6 +1138,9 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishConnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking that only database zero chunk is for this operation.
+    GW_ASSERT(sd->get_db_index() == 0);
+
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
 
@@ -1241,6 +1235,9 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     profiler_.Start("Accept()", 5);
 #endif
 
+    // Checking that only database zero chunk is for this operation.
+    GW_ASSERT(sd->get_db_index() == 0);
+
     // Tracking corresponding socket.
     TrackSocket(sd->get_db_index(), sd->get_socket_info_index());
 
@@ -1269,9 +1266,6 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     // Checking if IOCP event was scheduled.
     if (WSA_IO_PENDING != wsa_err_code)
     {
-        // Updating number of accepting sockets.
-        ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
-
 #ifdef GW_WARNINGS_DIAG
         GW_PRINT_WORKER << "Failed AcceptEx: socket index " << sd->get_socket_info_index() << ":" <<
             sd->get_chunk_index() << " Disconnecting socket..." << GW_ENDL;
@@ -1279,6 +1273,12 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
         PrintLastError();
 #endif
         
+
+        GW_ASSERT(false);
+
+        // Updating number of accepting sockets.
+        ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
+
         // Returning chunks to pool.
         ReturnSocketDataChunksToPool(sd);
 
@@ -1467,10 +1467,6 @@ uint32_t GatewayWorker::WorkerRoutine()
                 GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
                 GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
                 GW_ASSERT(INVALID_CHUNK_INDEX != sd->get_chunk_index());
-
-                // Checking if its not receiving socket data.
-                if ((!sd->get_socket_representer_flag()) && (!sd->get_socket_trigger_disconnect_flag()))
-                    GW_ASSERT(sd->get_type_of_network_oper() > DISCONNECT_SOCKET_OPER);
 
 #ifdef GW_LOOPED_TEST_MODE
                 oper_num_bytes = fetched_ovls[i].dwNumberOfBytesTransferred;

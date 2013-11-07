@@ -306,15 +306,25 @@ namespace NodeTest
                 NodeTest.WorkersMonitor.FailTest();
             };
 
+            Boolean closedGracefully = false;
+
+            ws.Closed += (s, e) =>
+            {
+                if (!closedGracefully)
+                    throw new Exception("WebSocket connection was closed unexpectedly!");
+            };
+
             // Starting the handshake.
             ws.Open();
 
             // Waiting for all tests to finish.
             if (!allDataReceivedEvent.WaitOne(1000))
             {
-                ws.Close();
                 throw new Exception("Failed to get WebSocket response in time!");
             }
+
+            // If we are here that means the connection is closed properly.
+            closedGracefully = true;
 
             ws.Close();
         }
