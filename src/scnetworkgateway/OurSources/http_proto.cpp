@@ -946,11 +946,7 @@ ALL_DATA_ACCUMULATED:
 
         // Checking if we want to disconnect the socket.
         if (sd->get_disconnect_socket_flag())
-        {
-            sd->set_socket_trigger_disconnect_flag();
-
             return SCERRGWDISCONNECTFLAG;
-        }
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
