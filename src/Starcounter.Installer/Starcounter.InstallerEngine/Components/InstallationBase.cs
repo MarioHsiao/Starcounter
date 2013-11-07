@@ -253,9 +253,7 @@ public class CInstallationBase : CComponentBase
         // Checking that components directories are different.
         if (!Utilities.RunningOnBuildServer())
         {
-            if (Path.GetDirectoryName(InstallerMain.PersonalServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.InstallationBaseComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase) ||
-                Path.GetDirectoryName(InstallerMain.PersonalServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.SystemServerComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase) ||
-                Path.GetDirectoryName(InstallerMain.SystemServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.InstallationBaseComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase))
+            if (Path.GetDirectoryName(InstallerMain.PersonalServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.InstallationBaseComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase))
             {
                 Utilities.MessageBoxError("At least two components have equal installation directories. All components should be installed in different directories.", "Equal installation directories...");
                 throw ErrorCode.ToException(Error.SCERRINSTALLERSAMEDIRECTORIES);
