@@ -4,6 +4,8 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.CommandLine.Syntax;
+
 namespace Starcounter.CommandLine
 {
     /// <summary>
@@ -11,6 +13,12 @@ namespace Starcounter.CommandLine
     /// </summary>
     internal class GivenOption
     {
+        /// <summary>
+        /// Gets or sets the information about the option, in the
+        /// form of an <see cref="OptionInfo"/> instance.
+        /// </summary>
+        internal OptionInfo Option { get; set; }
+
         /// <summary>
         /// The name by which the option was given.
         /// </summary>
@@ -30,7 +38,12 @@ namespace Starcounter.CommandLine
         /// Gets a value indicating if the given option represents
         /// a flag.
         /// </summary>
-        /// <value><c>true</c> if this instance is flag; otherwise, <c>false</c>.</value>
-        internal bool IsFlag;
+        /// <value><c>true</c> if this instance is a flag; <c>false</c> 
+        /// otherwise.</value>
+        internal bool IsFlag {
+            get {
+                return (Option.Attributes & OptionAttributes.Flag) != 0;
+            }
+        }
     }
 }
