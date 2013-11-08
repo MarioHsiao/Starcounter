@@ -117,6 +117,13 @@ namespace Starcounter.CLI {
             /// debugger to be attached to the active CLI client.
             /// </summary>
             public const string Debug = "sc-debug";
+
+            /// <summary>
+            /// Gets the option name of the option that allows customized,
+            /// extra parametes to be sent to the code host processes when
+            /// spawned by the admin server.
+            /// </summary>
+            public const string CodeHostCommandLineOptions = "sc-codehostargs";
         }
 
         /// <summary>
@@ -222,6 +229,10 @@ namespace Starcounter.CLI {
                 definition.DefineFlag(
                     UnofficialOptions.Debug,
                     "Attaches a debugger to the target program just after the parsing of the command-line is complete."
+                    );
+                definition.DefineProperty(
+                    UnofficialOptions.CodeHostCommandLineOptions,
+                    "Allows for the passing of custom code host command-line arguments"
                     );
             }
         }
