@@ -210,6 +210,7 @@ namespace star {
             }
             if (unofficial) {
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.Debug), "Attaches a debugger to the star.exe process.");
+                Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.CodeHostCommandLineOptions), "Allows for the passing of custom code host parameters");
             }
             Console.WriteLine();
             if (extended) {
