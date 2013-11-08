@@ -6,6 +6,7 @@ namespace star {
     static class StarOption {
         public const string Help = "help";
         public const string HelpEx = "helpextended";
+        public const string HelpUnofficial = "helpunofficial";
         public const string Version = "version";
         public const string Info = "info";
         public const string Serverport = "serverport";
