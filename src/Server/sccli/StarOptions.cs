@@ -23,6 +23,5 @@ namespace star {
         public const string Async = SharedCLI.Option.Async;
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
-        public const string AttatchCodeHostDebugger = "debug";
     }
 }

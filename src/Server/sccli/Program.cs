@@ -211,8 +211,7 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
-                Console.WriteLine(formatting, string.Format("--{0}", StarOption.AttatchCodeHostDebugger), "Attaches a debugger to the code host process.");
-                Console.WriteLine(formatting, string.Format("-hxx, --{0}", StarOption.HelpUnofficial), "Shows unofficial help about star.exe.");
+                Console.WriteLine(formatting, string.Format("-hxx, -{0}", StarOption.HelpUnofficial), "Shows unofficial help about star.exe.");
             }
             if (unofficial) {
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.Debug), "Attaches a debugger to the star.exe process.");
@@ -286,10 +285,6 @@ namespace star {
             appSyntax.DefineFlag(
                 StarOption.NoColor,
                 "Instructs star.exe to turn off colorizing output."
-                );
-            appSyntax.DefineFlag(
-                StarOption.AttatchCodeHostDebugger,
-                "Attaches a debugger to the code host process after it has started."
                 );
 
             // NOTE:
