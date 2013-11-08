@@ -122,6 +122,7 @@
     <Compile Include="Mock\StarcounterEnvironment.cs" />
     <Compile Include="ScUri.cs" />
     <Compile Include="StarcounterBase.cs" />
+    <Compile Include="StringListExtensions.cs" />
     <Compile Include="TestLogger.cs" />
     <Compile Include="TreeHelper.cs" />
     <Compile Include="UnsupportedMimeTypeException.cs" />

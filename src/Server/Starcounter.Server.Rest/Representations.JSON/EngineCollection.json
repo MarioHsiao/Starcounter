@@ -4,7 +4,8 @@
             "Uri": "http://example.com/api/engines/foo",
             "Name": "Foo",
             "NoDb": false,
-            "LogSteps": false
+            "LogSteps": false,
+			"CodeHostCommandLineAdditions": "--flags --and=parameters --possible --to --sendto=codehost"
         }
     ]
 }
