@@ -6,7 +6,7 @@ namespace star {
     static class StarOption {
         public const string Help = "help";
         public const string HelpEx = "helpextended";
-        public const string KillAll = "killall";
+        public const string HelpUnofficial = "helpunofficial";
         public const string Version = "version";
         public const string Info = "info";
         public const string Serverport = "serverport";
@@ -23,6 +23,5 @@ namespace star {
         public const string Async = SharedCLI.Option.Async;
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
-        public const string AttatchCodeHostDebugger = "debug";
     }
 }
