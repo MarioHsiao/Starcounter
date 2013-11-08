@@ -649,8 +649,11 @@ namespace Starcounter.CommandLine
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
+        /// <param name="set">Instructs the method to set the option rather
+        /// than adding it. If <c>true</c>, an old value will be overwritten
+        /// if it exist.</param>
         /// <exception cref="System.ArgumentNullException">name</exception>
-        internal void AddProperty(string name, string value)
+        internal void AddProperty(string name, string value, bool set = false)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
@@ -658,20 +661,23 @@ namespace Starcounter.CommandLine
             if (value == null)
                 throw new ArgumentNullException("value");
 
-            AddOptionToDictionary(name, value);
+            AddOptionToDictionary(name, value, set);
         }
 
         /// <summary>
         /// Adds the flag.
         /// </summary>
         /// <param name="name">The name.</param>
+        /// <param name="set">Instructs the method to set the option rather
+        /// than adding it. If <c>true</c>, an old value will be overwritten
+        /// if it exist.</param>
         /// <exception cref="System.ArgumentNullException">name</exception>
-        internal void AddFlag(string name)
+        internal void AddFlag(string name, bool set = false)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
 
-            AddOptionToDictionary(name, string.Empty);
+            AddOptionToDictionary(name, string.Empty, set);
         }
 
         /// <summary>
@@ -692,7 +698,10 @@ namespace Starcounter.CommandLine
         /// </summary>
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
-        void AddOptionToDictionary(string key, string value)
+        /// <param name="set">Instructs the method to set the option rather
+        /// than adding it. If <c>true</c>, an old value will be overwritten
+        /// if it exist.</param>
+        void AddOptionToDictionary(string key, string value, bool set = false)
         {
             Dictionary<string, string> dictionary;
 
@@ -700,7 +709,11 @@ namespace Starcounter.CommandLine
                 ? CommandOptions
                 : GlobalOptions;
 
-            dictionary.Add(key, value);
+            if (set) {
+                dictionary[key] = value;
+            } else {
+                dictionary.Add(key, value);
+            }
         }
 
         #endregion
