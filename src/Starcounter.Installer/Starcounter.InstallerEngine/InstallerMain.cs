@@ -748,7 +748,6 @@ namespace Starcounter.InstallerEngine
                     ResetProgressStep();
 
                     // Mapping boolean flags to settings.
-                    if (PersonalServerComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (VS2012IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (PersonalServerComponent.ShouldBeInstalled())
                     {
