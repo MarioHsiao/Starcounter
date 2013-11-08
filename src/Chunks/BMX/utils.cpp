@@ -247,6 +247,9 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
         assert(err_code == 0);
 
         // Copying memory.
+        assert(num_bytes_to_write >= left_bytes_to_write);
+        assert(left_bytes_to_write > 0);
+        assert(num_bytes_to_write_in_chunk > 0 && num_bytes_to_write_in_chunk <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
 

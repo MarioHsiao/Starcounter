@@ -211,6 +211,13 @@ EXTERN_C uint32_t __stdcall sc_parse_http_request(
 
     HttpRequest* http_request = thread_http_request_parser.http_request_;
 
+    // Checking for special case when body is not yet received.
+    if (http_request->content_offset_ <= 0)
+    {
+        if (http_request->content_len_bytes_ > 0)
+            return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
+    }
+
     // Getting the HTTP method.
     http_method method = (http_method)thread_http_request_parser.http_parser_.method;
     switch (method)
