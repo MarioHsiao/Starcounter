@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using Starcounter;
 
 namespace StarcounterInternal.Bootstrap {
+    using Error = Starcounter.Internal.Error;
 
     /// <summary>
     /// Contains a set of utility methods responsible for defining, parsing
@@ -44,21 +46,36 @@ namespace StarcounterInternal.Bootstrap {
         internal static void TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
             Parser parser;
 
-            // If no arguments are given, use the syntax to create a Usage
-            // message, just as is expected when giving /help or /? to a program.
-            // Only do this when the console hasn't been redirected though.
-            // And exit instantly thereafter.
-            if (args.Length == 0 && !Console.IsInputRedirected) {
-                Usage(syntax, null);
-                Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
-            }
+            try {
+                // If no arguments are given, use the syntax to create a Usage
+                // message, just as is expected when giving /help or /? to a program.
+                // Only do this when the console hasn't been redirected though.
+                // And exit instantly thereafter.
+                if (args.Length == 0 && !Console.IsInputRedirected) {
+                    Usage(syntax, null);
+                    Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
+                }
 
-            // Parse and evaluate the given input.
-            // If parsing fails, an exception will be raised that pinpoints
-            // the error and has an error code indicating what is wrong. Let
-            // that exception slip through to the top-level handler.
-            parser = new Parser(args);
-            arguments = parser.Parse(syntax);
+                // Parse and evaluate the given input.
+                // If parsing fails, an exception will be raised that pinpoints
+                // the error and has an error code indicating what is wrong. Let
+                // that exception slip through to the top-level handler.
+                parser = new Parser(args);
+                arguments = parser.Parse(Syntax);
+
+            } catch (Exception e) {
+                // Since this method is normally called by the code host
+                // even before the logging system is bound, we need to be
+                // extra careful here, trying our best to at least provide
+                // some kind of information that could be useful.
+                uint error;
+                if (ErrorCode.TryGetCode(e, out error)) {
+                    throw;
+                }
+
+                error = Error.SCERRBADCOMMANDLINESYNTAX;
+                throw ErrorCode.ToException(error, e);
+            }
         }
 
         /// <summary>
