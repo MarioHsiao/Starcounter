@@ -131,21 +131,38 @@ namespace Starcounter.CommandLine
         ApplicationArguments InternalParse(IApplicationSyntax syntax)
         {
             ApplicationArguments parsedArguments;
-            string[] args;
-            string token;
-            string optionName;
-            string optionValue;
-            OptionAttributes optionAttributes;
 
             parsedArguments = new ApplicationArguments();
-            args = this.Arguments;
+            ParseAndApplyArguments(syntax, this.Arguments, parsedArguments);
             
-            for (int i = 0; args != null && i < args.Length; i++)
-            {
-                token = args[i];
+            // If we still have not found a command and we have a default command
+            // specified in the syntax, apply that before enforcing the syntax.
 
-                if (StartsWithOptionPrefix(token))
-                {
+            if (!parsedArguments.HasCommmand && !string.IsNullOrEmpty(syntax.DefaultCommand))
+            {
+                parsedArguments.Command = syntax.DefaultCommand;
+            }
+
+            // Before enforcing the syntax, apply any additions if such
+            // should exist.
+            foreach (var setOfAdditions in Additions) {
+                ParseAndApplyArguments(syntax, setOfAdditions, parsedArguments, true);
+            }
+            
+            parsedArguments.EnforceSyntax(syntax);
+
+            return parsedArguments;
+        }
+
+        void ParseAndApplyArguments(IApplicationSyntax syntax, string[] args, ApplicationArguments parsedArguments, bool set = false) {
+            OptionAttributes optionAttributes;
+            string optionName;
+            string optionValue;
+
+            for (int i = 0; args != null && i < args.Length; i++) {
+                var token = args[i];
+
+                if (StartsWithOptionPrefix(token)) {
                     // Parse the token and assure the name.
 
                     ParseOptionString(token, i, out optionName, out optionValue, out optionAttributes);
@@ -154,52 +171,40 @@ namespace Starcounter.CommandLine
                     // place depending on what section we are parsing.
 
                     if ((optionAttributes & OptionAttributes.Flag) != 0)
-                        parsedArguments.AddFlag(optionName);
+                        parsedArguments.AddFlag(optionName, set);
                     else
-                        parsedArguments.AddProperty(optionName, optionValue);
-                }
-                else
-                {
+                        parsedArguments.AddProperty(optionName, optionValue, set);
+                } else {
                     // The token didn't start with any known option prefix.
                     // This is either the command, or it is a parameter to the
                     // command.
 
-                    if (parsedArguments.HasCommmand)
-                    {
+                    if (parsedArguments.HasCommmand) {
                         parsedArguments.AddParameter(token);
-                    }
-                    else
-                    {
+                    } else {
                         // Either this is a command or it is the first parameter to
                         // the "default", implicit command. We must consult the syntax
                         // to figure out which.
 
-                        if (string.IsNullOrEmpty(syntax.DefaultCommand))
-                        {
+                        if (string.IsNullOrEmpty(syntax.DefaultCommand)) {
                             // If no default command exist, we treat the token as
                             // the command.
-                            
+
                             parsedArguments.Command = token;
-                        }
-                        else
-                        {
+                        } else {
                             // There is a default command specification. We must check
                             // the precense of this command.
 
-                            var commandSyntax = syntax.Commands.FirstOrDefault<ICommandSyntax>(delegate(ICommandSyntax candidate)
-                            {
+                            var commandSyntax = syntax.Commands.FirstOrDefault<ICommandSyntax>(delegate(ICommandSyntax candidate) {
                                 return candidate.Name.Equals(token, StringComparison.InvariantCultureIgnoreCase);
                             });
 
-                            if (commandSyntax != null)
-                            {
+                            if (commandSyntax != null) {
                                 // The specified token was part of the commandset defined by
                                 // the syntax. Treat it as such.
 
                                 parsedArguments.Command = token;
-                            }
-                            else
-                            {
+                            } else {
                                 // There was not representation of this token defined as a command
                                 // in the syntax but the syntax specified a default command. We treat
                                 // the given token as a parameter to the default command after first
@@ -212,18 +217,6 @@ namespace Starcounter.CommandLine
                     }
                 }
             }
-
-            // If we still have not found a command and we have a default command
-            // specified in the syntax, apply that before enforcing the syntax.
-
-            if (!parsedArguments.HasCommmand && !string.IsNullOrEmpty(syntax.DefaultCommand))
-            {
-                parsedArguments.Command = syntax.DefaultCommand;
-            }
-
-            parsedArguments.EnforceSyntax(syntax);
-
-            return parsedArguments;
         }
 
         /// <summary>
