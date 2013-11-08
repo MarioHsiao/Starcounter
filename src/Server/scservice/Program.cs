@@ -2,6 +2,7 @@
 using Starcounter.Server;
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace scservice {
 
@@ -11,6 +12,7 @@ namespace scservice {
             var startedAsService = IsStartedAsService(args);
             string serverName = "Personal";
             bool logSteps = false;
+            var debug = false;
 
             if (args.Length > 2) {
                 if (!startedAsService) {
@@ -29,8 +31,22 @@ namespace scservice {
                         Usage();
                     }
                     return;
+                }else if (arg.Equals("--sc-debug", ignoreCase)) {
+                    debug = true;
                 } else {
                     Console.WriteLine("Ignoring parameter \"{0}\"", arg);
+                }
+            }
+
+            if (debug) {
+                int seconds = 20;
+                Console.WriteLine("Waiting {0} seconds, or until a debugger is attached...", seconds);
+                for (int i = 0; i < seconds; i++) {
+                    Thread.Sleep(1000);
+                    if (Debugger.IsAttached) {
+                        Debugger.Break();
+                        break;
+                    }
                 }
             }
 
