@@ -733,7 +733,7 @@ namespace Starcounter.CommandLine
             CommandLineSection currentSection;
             string value;
 
-            resolvedOptions = new Dictionary<string, GivenOption>();
+            resolvedOptions = new Dictionary<string, GivenOption>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (var dictionary in new Dictionary<string, string>[] { this.GlobalOptions, this.CommandOptions })
             {
