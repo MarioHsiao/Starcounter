@@ -134,7 +134,7 @@ namespace BuildSystemHelper
             exceptionText += Environment.NewLine;
 
             // Outputting the exception in several places.
-            Console.Error.Write("Build utility exception:" + Environment.NewLine + exceptionText);
+            Console.Write("Build utility exception:" + Environment.NewLine + exceptionText);
 
             // Attempting to write to log.
             for (Int32 i = 0; i < 10; i++)
@@ -729,6 +729,7 @@ namespace BuildSystemHelper
             ProcessStartInfo signToolInfo = new ProcessStartInfo();
             signToolInfo.FileName = @"c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\SignTool.exe";
             signToolInfo.RedirectStandardError = true;
+            signToolInfo.RedirectStandardOutput = true;
             signToolInfo.UseShellExecute = false;
 
             String allFilesSpaced = "";
@@ -741,11 +742,14 @@ namespace BuildSystemHelper
             signToolInfo.Arguments = "sign /s MY /n \"" + companyName + "\" /d \"" + productName + "\" /v /ac \"" + pathToCertificate +
                                      "\" /t http://timestamp.verisign.com/scripts/timstamp.dll " + allFilesSpaced;
 
-            Console.WriteLine("Sign arguments: " + signToolInfo.Arguments);
+            Console.WriteLine("Signing: \"" + signToolInfo.FileName + "\" " + signToolInfo.Arguments);
 
             // Launch signing for this individual file.
             Process signProcess = Process.Start(signToolInfo);
             signProcess.WaitForExit(30000);
+
+            String output = signProcess.StandardOutput.ReadToEnd();
+            Console.WriteLine(output);
 
             // Checking if the process exited within given time interval.
             if (!signProcess.HasExited)
