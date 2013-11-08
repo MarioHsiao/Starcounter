@@ -8,7 +8,9 @@ using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace Starcounter.CommandLine
 {
@@ -28,6 +30,21 @@ namespace Starcounter.CommandLine
         /// <summary>
         /// The option index
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In the option index, every alternative of a certain option
+        /// is present. That is, if the syntax define an option "Database"
+        /// with the alternative name "d", the option index will contain
+        /// two entries if "d" where given, i.e:
+        /// var given = new GivenOption("d", "default", property, "global|command", IsFlag);
+        /// optionIndex["d"] = given;
+        /// optionIndex["Database"] = given;
+        ///</para>
+        ///<para>
+        /// Say this was a global option, then GlobalOptions would contain:
+        /// global["d"] = "default"
+        /// </para>
+        /// </remarks>
         Dictionary<string, GivenOption> OptionIndex;
 
         #region Standard API, used by clients to consult given input
@@ -183,6 +200,57 @@ namespace Starcounter.CommandLine
         {
             GivenOption option;
             return TryGetOptionFromIndex(name, OptionAttributes.Flag, section, out option);
+        }
+
+        /// <summary>
+        /// Converts the value of the current <see cref="ApplicationArguments"/> 
+        /// to a string representation using the specified format.
+        /// </summary>
+        /// <param name="format">The format to use when formatting.</param>
+        /// <returns>A string representation of the current <see cref="ApplicationArguments"/>
+        /// using the specified format.</returns>
+        public string ToString(string format) {
+            format = format ?? string.Empty;
+            string result;
+
+            format = format.ToLowerInvariant();
+            switch (format) {
+                case "":
+                    result = base.ToString();
+                    break;
+                case "standard":
+                case "given":
+                    result = ToStringWithFormat(format);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("format");
+            }
+
+            return result;
+        }
+
+        string ToStringWithFormat(string format) {
+            var builder = new List<string>(GlobalOptions.Count + CommandOptions.Count + 4);
+
+            foreach (var key in GlobalOptions.Keys) {
+                var given = OptionIndex[key];
+                Debug.Assert(given.Section == CommandLineSection.GlobalOptions);
+                Debug.Assert(given.SpecifiedName.Equals(key));
+                builder.Add(given.ToString(format));
+            }
+
+            if (HasCommmand) {
+                builder.Add(this.Command);
+                builder.AddRange(this.CommandParameters);
+                foreach (var key in CommandOptions.Keys) {
+                    var given = OptionIndex[key];
+                    Debug.Assert(given.Section == CommandLineSection.CommandParametersAndOptions);
+                    Debug.Assert(given.SpecifiedName.Equals(key));
+                    builder.Add(given.ToString(format));
+                }
+            }
+
+            return builder.ToStringFromValues();
         }
 
         /// <summary>
@@ -581,8 +649,11 @@ namespace Starcounter.CommandLine
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
+        /// <param name="set">Instructs the method to set the option rather
+        /// than adding it. If <c>true</c>, an old value will be overwritten
+        /// if it exist.</param>
         /// <exception cref="System.ArgumentNullException">name</exception>
-        internal void AddProperty(string name, string value)
+        internal void AddProperty(string name, string value, bool set = false)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
@@ -590,20 +661,23 @@ namespace Starcounter.CommandLine
             if (value == null)
                 throw new ArgumentNullException("value");
 
-            AddOptionToDictionary(name, value);
+            AddOptionToDictionary(name, value, set);
         }
 
         /// <summary>
         /// Adds the flag.
         /// </summary>
         /// <param name="name">The name.</param>
+        /// <param name="set">Instructs the method to set the option rather
+        /// than adding it. If <c>true</c>, an old value will be overwritten
+        /// if it exist.</param>
         /// <exception cref="System.ArgumentNullException">name</exception>
-        internal void AddFlag(string name)
+        internal void AddFlag(string name, bool set = false)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
 
-            AddOptionToDictionary(name, string.Empty);
+            AddOptionToDictionary(name, string.Empty, set);
         }
 
         /// <summary>
@@ -624,7 +698,10 @@ namespace Starcounter.CommandLine
         /// </summary>
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
-        void AddOptionToDictionary(string key, string value)
+        /// <param name="set">Instructs the method to set the option rather
+        /// than adding it. If <c>true</c>, an old value will be overwritten
+        /// if it exist.</param>
+        void AddOptionToDictionary(string key, string value, bool set = false)
         {
             Dictionary<string, string> dictionary;
 
@@ -632,7 +709,11 @@ namespace Starcounter.CommandLine
                 ? CommandOptions
                 : GlobalOptions;
 
-            dictionary.Add(key, value);
+            if (set) {
+                dictionary[key] = value;
+            } else {
+                dictionary.Add(key, value);
+            }
         }
 
         #endregion
@@ -652,7 +733,7 @@ namespace Starcounter.CommandLine
             CommandLineSection currentSection;
             string value;
 
-            resolvedOptions = new Dictionary<string, GivenOption>();
+            resolvedOptions = new Dictionary<string, GivenOption>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (var dictionary in new Dictionary<string, string>[] { this.GlobalOptions, this.CommandOptions })
             {
@@ -691,11 +772,11 @@ namespace Starcounter.CommandLine
                             "Option \"{0}\" is a property, it must have a value. Use \"{0}=[value]\".", key);
 
                     givenValue = new GivenOption();
+                    givenValue.Option = matchingInfo;
                     givenValue.SpecifiedName = key;
                     givenValue.Value = value;
                     givenValue.Section = currentSection;
-                    givenValue.IsFlag = (matchingInfo.Attributes & OptionAttributes.Flag) != 0;
-
+                    
                     foreach (string validName in matchingInfo.AllNames)
                     {
                         resolvedOptions[validName] = givenValue;
