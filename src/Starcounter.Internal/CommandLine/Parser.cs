@@ -18,15 +18,15 @@ namespace Starcounter.CommandLine
     public sealed class Parser
     {
         /// <summary>
-        /// The array of arguments the parser parses.
-        /// </summary>
-        public readonly string[] Arguments;
-
-        /// <summary>
         /// Set of additions, applied to the parser after it has
         /// been created but before actually parsed.
         /// </summary>
-        public List<string[]> Additions { get; private set; }
+        List<string[]> Additions { get; set; }
+
+        /// <summary>
+        /// The array of arguments the parser parses.
+        /// </summary>
+        public readonly string[] Arguments;
 
         /// <summary>
         /// Known option prefixes.
@@ -145,8 +145,10 @@ namespace Starcounter.CommandLine
 
             // Before enforcing the syntax, apply any additions if such
             // should exist.
-            foreach (var setOfAdditions in Additions) {
-                ParseAndApplyArguments(syntax, setOfAdditions, parsedArguments, true);
+            if (Additions != null) {
+                foreach (var setOfAdditions in Additions) {
+                    ParseAndApplyArguments(syntax, setOfAdditions, parsedArguments, true);
+                }
             }
             
             parsedArguments.EnforceSyntax(syntax);
