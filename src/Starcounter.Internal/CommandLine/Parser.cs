@@ -7,6 +7,7 @@
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Starcounter.CommandLine
@@ -20,6 +21,12 @@ namespace Starcounter.CommandLine
         /// The array of arguments the parser parses.
         /// </summary>
         public readonly string[] Arguments;
+
+        /// <summary>
+        /// Set of additions, applied to the parser after it has
+        /// been created but before actually parsed.
+        /// </summary>
+        public List<string[]> Additions { get; private set; }
 
         /// <summary>
         /// Known option prefixes.
@@ -72,6 +79,34 @@ namespace Starcounter.CommandLine
         {
             if (args == null) throw new ArgumentNullException("args");
             this.Arguments = args;
+        }
+
+        /// <summary>
+        /// Applies a set of arguments on top of the arguments given
+        /// when the parser was created.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// All arguments applied with this method will be applied on
+        /// top of the already parsed original arguments, replacing any
+        /// previous occurance if exist, and adding if not.
+        /// </para>
+        /// <para>
+        /// Arguments are applied on a first-in-first-applied basis,
+        /// meaning that the any call (n) to this method will be
+        /// overwritten by subsequent call(s) (n+1).
+        /// </para>
+        /// </remarks>
+        /// <param name="args">Set of arguments to apply.</param>
+        public void Apply(string[] args) {
+            if (args == null) {
+                throw new ArgumentNullException("args");
+            }
+            if (Additions == null) {
+                Additions = new List<string[]>(2);
+            }
+
+            Additions.Add(args);
         }
 
         /// <summary>
