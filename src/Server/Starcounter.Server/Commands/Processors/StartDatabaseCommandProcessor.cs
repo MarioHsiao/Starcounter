@@ -73,7 +73,7 @@ namespace Starcounter.Server.Commands.Processors {
 
                 ProgressTask(task, 1);
                 started = Engine.DatabaseEngine.StartCodeHostProcess(
-                    database, command.NoDb, command.LogSteps, out codeHostProcess);
+                    database, command.NoDb, command.LogSteps, out codeHostProcess, command.CodeHostCommandLineAdditions);
                 return started;
             });
 
