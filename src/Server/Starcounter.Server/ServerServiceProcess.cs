@@ -84,7 +84,13 @@ namespace Starcounter.Server {
             string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
             string exePath = Path.Combine(scBin, StarcounterConstants.ProgramNames.ScService) + ".exe";
 
-            var startInfo = new ProcessStartInfo(exePath);
+            var arguments = string.Empty;
+            if (Debugger.IsAttached) {
+                Debugger.Break();
+                arguments += "--sc-debug";
+            }
+
+            var startInfo = new ProcessStartInfo(exePath, arguments);
             if (withNoWindow) {
                 startInfo.UseShellExecute = false;
                 startInfo.CreateNoWindow = true;
