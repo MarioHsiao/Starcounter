@@ -5,14 +5,17 @@
 // ***********************************************************************
 
 using Starcounter.Bootstrap.Management;
+using Starcounter.CommandLine;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
+using StarcounterInternal.Bootstrap;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -309,11 +312,11 @@ namespace Starcounter.Server {
             return database.GetRunningCodeHostProcess() != null;
         }
 
-        internal bool StartCodeHostProcess(Database database, out Process process) {
+        internal bool StartCodeHostProcess(Database database, out Process process, string commandLineAdditions = null) {
             return StartCodeHostProcess(database, false, false, out process);
         }
 
-        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, bool applyLogSteps, out Process process) {
+        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, bool applyLogSteps, out Process process, string commandLineAdditions = null) {
             process = database.GetRunningCodeHostProcess();
             if (process != null) 
                 return false;
@@ -321,7 +324,7 @@ namespace Starcounter.Server {
             // No process referenced, or the referenced process was not
             // alive. Start a code host process.
 
-            var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps);
+            var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps, commandLineAdditions);
             process = DoStartEngineProcess(startInfo, database, (sender, e) => { database.CodeHostErrorOutput.Add(e.Data); });
             process.BeginErrorReadLine();
             database.CodeHostProcess = process;
@@ -488,7 +491,7 @@ namespace Starcounter.Server {
             return processStartInfo;
         }
 
-        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false) {
+        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false, string commandLineAdditions = null) {
             var args = new List<string>(16);
             
             if (Debugger.IsAttached) {
@@ -517,6 +520,15 @@ namespace Starcounter.Server {
             }
 
             var arguments = args.ToStringFromValues();
+            if (!string.IsNullOrEmpty(commandLineAdditions)) {
+                var syntax = ProgramCommandLine.Syntax;
+                var additions = CommandLineStringParser.SplitCommandLine(commandLineAdditions).ToArray();
+                var parser = new Parser(CommandLineStringParser.SplitCommandLine(arguments).ToArray());
+                parser.Apply(additions);
+                var parsed = parser.Parse(syntax);
+                arguments = parsed.ToString("standard");
+            }
+
             var processStart = new ProcessStartInfo(this.CodeHostExePath, arguments.Trim());
             processStart.CreateNoWindow = true;
             processStart.UseShellExecute = false;
