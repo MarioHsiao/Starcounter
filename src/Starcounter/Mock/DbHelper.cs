@@ -61,7 +61,7 @@ namespace Starcounter {
                 }
                 return null;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
