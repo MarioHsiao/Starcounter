@@ -131,11 +131,17 @@ namespace Starcounter.Internal
         public const byte Mdb_Type_ObjectKey = (0x10 | SC_BASETYPE_OBJKEY);
 
         /// <summary>
-        /// MDB_s the get last error.
         /// </summary>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint Mdb_GetLastError();
+        public static extern unsafe uint star_get_last_error(char **padditional_error_infomation);
+
+        /// <summary>
+        /// </summary>
+        public static uint star_get_last_error() {
+            unsafe {
+                return star_get_last_error((char **)0);
+            }
+        }
 
         /// <summary>
         /// Delegate ON_NEW_SCHEMA
