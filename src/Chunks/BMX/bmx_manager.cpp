@@ -183,8 +183,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     uint8_t* param_types,
     uint8_t num_params,
     GENERIC_HANDLER_CALLBACK callback, 
+    starcounter::MixedCodeConstants::NetworkProtocolType proto_type,
     BMX_HANDLER_TYPE* handler_id,
-    starcounter::MixedCodeConstants::NetworkProtocolType proto_type
+    int32_t* max_num_entries
     )
 {
     _SC_BEGIN_FUNC
@@ -207,6 +208,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
         callback,
         handler_id,
         proto_type);
+
+    *max_num_entries = g_bmx_data_copy->get_max_num_entries();
 
     LeaveSafeBmxManagement(g_bmx_data_copy);
 

@@ -419,10 +419,6 @@ namespace Starcounter
         /// <summary>
         /// Registers the URI handler.
         /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="uri_string">The uri_string.</param>
-        /// <param name="uriCallback">The URI callback.</param>
-        /// <param name="handlerId">The handler id.</param>
         public static void RegisterUriHandler(
             UInt16 port,
             String originalUriInfo,
@@ -430,8 +426,10 @@ namespace Starcounter
             Byte[] paramTypes,
             HandlersManagement.UriCallbackDelegate uriCallback,
             MixedCodeConstants.NetworkProtocolType protoType,
-            out UInt16 handlerId)
+            out UInt16 handlerId,
+            out Int32 maxNumEntries)
         {
+            Int32 maxNumEntriesTemp;
             UInt64 handler_id;
             Byte numParams = 0;
             if (null != paramTypes)
@@ -451,8 +449,9 @@ namespace Starcounter
                             pp,
                             numParams,
                             uri_outer_handler_,
+                            protoType,
                             &handler_id,
-                            protoType);
+                            &maxNumEntriesTemp);
 
                         if (errorCode != 0)
                             throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
@@ -460,9 +459,10 @@ namespace Starcounter
                 }
 
                 uri_handlers_[handler_id] = uriCallback;
+                maxNumEntries = maxNumEntriesTemp;
 
                 // TODO
-                handlerId = (UInt16)handler_id;
+                handlerId = (UInt16) handler_id;
             }
         }
 

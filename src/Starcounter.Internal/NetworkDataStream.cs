@@ -144,7 +144,7 @@ namespace Starcounter
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
-                return;
+                throw new ArgumentNullException("Response was already sent on this Request!");
 
             // Checking if we are not on Starcounter thread now.
             if (!isStarcounterThread)

@@ -81,7 +81,7 @@ namespace Starcounter.Administrator {
 
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
-                return null;
+                return HandlerStatus.NotHandled;
             });
 
             // Redirecting root to index.html.
@@ -107,7 +107,7 @@ namespace Starcounter.Administrator {
                 try {
                     // Registering static handler on given port.
                     GET(port, "/{?}", (string res) => {
-                        return null;
+                        return HandlerStatus.NotHandled;
                     });
                 }
                 catch (Exception exc) {

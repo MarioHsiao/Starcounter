@@ -705,6 +705,13 @@ namespace Starcounter
             try
             {
                 userDelegate.Invoke(resp, userObject);
+
+                // Checking if response should be sent.
+                if (resp.Request != null)
+                {
+                    resp.Request.SendResponse(resp);
+                    resp.Request = null;
+                }
             }
             catch (Exception exc)
             {
@@ -829,6 +836,13 @@ namespace Starcounter
                     {
                         // Invoking user delegate.
                         userDelegate.Invoke(resp, userObject);
+
+                        // Checking if response should be sent.
+                        if (resp.Request != null)
+                        {
+                            resp.Request.SendResponse(resp);
+                            resp.Request = null;
+                        }
 
                         return null;
                     }
