@@ -67,6 +67,7 @@
     <Compile Include="API\Handlers\ExecutableHandler.cs" />
     <Compile Include="API\Handlers\ExecutableHandler.GET.cs" />
     <Compile Include="API\Handlers\ServerHandler.cs" />
+    <Compile Include="API\Handlers\ServerHandler.GET.cs" />
     <Compile Include="API\RestAPI.cs" />
     <Compile Include="API\Utilities\ApplicationLayerExtensions.cs" />
     <Compile Include="API\Utilities\RESTUtility.cs" />

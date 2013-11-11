@@ -11,7 +11,9 @@ namespace Starcounter.Administrator.API.Handlers {
         /// </summary>
         internal static void Setup() {
             var uri = RootHandler.API.Uris.Server;
-            RootHandler.Register405OnAllUnsupported(uri, new string[] {});
+
+            Handle.GET<Request>(uri, OnGET);
+            RootHandler.Register405OnAllUnsupported(uri, new string[] {"GET"});
         }
     }
 }
