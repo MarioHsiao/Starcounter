@@ -43,92 +43,47 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_STRING = 0x01;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_UINT64 = 0x02;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_BINARY = 0x03;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_SINT64 = 0x04;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_LBINARY = 0x05;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_DECIMAL = 0x06;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_OBJREF = 0x08;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_OBJKEY = 0x0A;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_SINGLE = 0x0C;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_DOUBLE = 0x0E;
+        public const byte STAR_TYPE_STRING = 0x01;
 
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_Boolean = (0x10 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_LSTRING = 0x02;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_Byte = (0x20 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_BINARY = 0x03;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_UInt16 = (0x30 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_LBINARY = 0x04;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_UInt32 = (0x40 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_LONG = 0x05;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_UInt64 = (0x50 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_ULONG = 0x06;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_DateTime = (0x60 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_DECIMAL = 0x07;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_TimeSpan = (0x70 | SC_BASETYPE_UINT64);
+        public const byte STAR_TYPE_FLOAT = 0x08;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_SByte = (0x10 | SC_BASETYPE_SINT64);
+        public const byte STAR_TYPE_DOUBLE = 0x09;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_Int16 = (0x20 | SC_BASETYPE_SINT64);
+        public const byte STAR_TYPE_REFERENCE = 0x0A;
+
         /// <summary>
         /// </summary>
-        public const byte Mdb_Type_Int32 = (0x30 | SC_BASETYPE_SINT64);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_Int64 = (0x40 | SC_BASETYPE_SINT64);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_Single = (0x10 | SC_BASETYPE_SINGLE);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_Double = (0x10 | SC_BASETYPE_DOUBLE);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_Binary = (0x10 | SC_BASETYPE_BINARY);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_String = (0x10 | SC_BASETYPE_STRING);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_Decimal = (0x10 | SC_BASETYPE_DECIMAL);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_ObjectID = (0x10 | SC_BASETYPE_OBJREF);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_LargeBinary = (0x10 | SC_BASETYPE_LBINARY);
-        /// <summary>
-        /// </summary>
-        public const byte Mdb_Type_ObjectKey = (0x10 | SC_BASETYPE_OBJKEY);
+        public const byte STAR_TYPE_KEY = 0x0B;
 
         /// <summary>
         /// </summary>

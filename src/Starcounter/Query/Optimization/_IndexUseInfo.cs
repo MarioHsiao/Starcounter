@@ -14,10 +14,10 @@ namespace Starcounter.Query.Optimization
     // Holds informaton about which index to use and which sort-ordering to use on the index.
     internal class IndexUseInfo
     {
-        internal IndexInfo IndexInfo;
+        internal IndexInfo2 IndexInfo;
         internal SortOrder SortOrdering;
 
-        internal IndexUseInfo(IndexInfo indexInfo, SortOrder sortOrdering)
+        internal IndexUseInfo(IndexInfo2 indexInfo, SortOrder sortOrdering)
         {
             IndexInfo = indexInfo;
             SortOrdering = sortOrdering;

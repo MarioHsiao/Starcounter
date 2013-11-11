@@ -20,7 +20,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// The type
         /// </summary>
-        public DbTypeCode Type;
+        public byte Type;
         /// <summary>
         /// The is nullable
         /// </summary>
@@ -37,7 +37,7 @@ namespace Starcounter.Binding
         /// <param name="type">The type.</param>
         /// <param name="isNullable">if set to <c>true</c> [is nullable].</param>
         /// <param name="isInherited">if set to <c>true</c> [is inherited].</param>
-        public ColumnDef(string name, DbTypeCode type, bool isNullable, bool isInherited)
+        public ColumnDef(string name, byte type, bool isNullable, bool isInherited)
         {
             Name = name;
             Type = type;

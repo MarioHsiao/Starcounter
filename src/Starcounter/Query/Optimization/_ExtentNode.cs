@@ -69,12 +69,12 @@ internal class ExtentNode : IOptimizationNode
     /// <summary>
     /// Index to be used for an index scan specified by an index hint in the query.
     /// </summary>
-    IndexInfo hintedIndexInfo;
+    IndexInfo2 hintedIndexInfo;
 
     /// <summary>
     /// Index to be used for an index scan selected by the optimizer.
     /// </summary>
-    IndexInfo bestIndexInfo;
+    IndexInfo2 bestIndexInfo;
 
     /// <summary>
     /// The arity used of the selected index. It might be the case that not all the
@@ -90,7 +90,7 @@ internal class ExtentNode : IOptimizationNode
     /// <summary>
     /// Index to be used for an extent scan (index scan over the whole extent).
     /// </summary>
-    IndexInfo extentIndexInfo;
+    IndexInfo2 extentIndexInfo;
 
     /// <summary>
     /// List of conditions, where scan can/should be done on type of IsTypePredicate.
@@ -136,7 +136,7 @@ internal class ExtentNode : IOptimizationNode
         this.query = query;
     }
 
-    internal IndexInfo HintedIndexInfo
+    internal IndexInfo2 HintedIndexInfo
     {
         get
         {
@@ -373,7 +373,8 @@ internal class ExtentNode : IOptimizationNode
                     comparisonList.Add(conditionList[j] as IComparison);
         }
         // Get all index infos for the current type.
-        IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllInheritedIndexInfos();
+        TypeBinding extentTypeBinding = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
+        IndexInfo[] indexInfoArr = extentTypeBinding.GetAllInheritedIndexInfos();
 
         // Select an index determined by the order the conditions occur in the query.
         Int32 bestValue = 0;
@@ -382,14 +383,14 @@ internal class ExtentNode : IOptimizationNode
         for (Int32 k = 0; k < indexInfoArr.Length; k++) {
             currentValue = EvaluateIndex(indexInfoArr[k], comparisonList, out usedArity);
             if (currentValue > bestValue) {
-                bestIndexInfo = indexInfoArr[k];
+                bestIndexInfo = new IndexInfo2(indexInfoArr[k], extentTypeBinding.TypeDef);
                 bestIndexInfoUsedArity = usedArity;
                 bestValue = currentValue;
             }
         }
         // Save an index to be used for an extent scan (index scan over the whole extent).
         if (indexInfoArr.Length > 0) {
-            extentIndexInfo = indexInfoArr[0]; // Currently, it is always auto-generated index
+            extentIndexInfo = new IndexInfo2(indexInfoArr[0], extentTypeBinding.TypeDef); // Currently, it is always auto-generated index
         }
 
         // If the extent type is supertype to type in IS predicate, then try to find index on the type of IS predicate.
@@ -526,7 +527,7 @@ internal class ExtentNode : IOptimizationNode
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
-    private IExecutionEnumerator CreateIndexScan(byte nodeId, IndexInfo indexInfo, SortOrder sortOrdering, 
+    private IExecutionEnumerator CreateIndexScan(byte nodeId, IndexInfo2 indexInfo, SortOrder sortOrdering, 
         INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
         Boolean topNode)
     {
@@ -623,7 +624,7 @@ internal class ExtentNode : IOptimizationNode
     }
 #endif
 
-    internal IndexInfo GetIndexInfo(String indexName)
+    internal IndexInfo2 GetIndexInfo(String indexName)
     {
         return (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetInheritedIndexInfo(indexName);
     }

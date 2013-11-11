@@ -44,10 +44,10 @@ namespace Starcounter.Metadata {
                 "materialized_table",
                 new ColumnDef[]
                 {
-                    new ColumnDef("__id", DbTypeCode.Key, false, false),
-                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("base_table", DbTypeCode.Object, true, false),
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
+                    new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("base_table", sccoredb.STAR_TYPE_REFERENCE, true, false),
                 }
                 );
 
