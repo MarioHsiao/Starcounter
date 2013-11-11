@@ -1025,7 +1025,7 @@ namespace Starcounter.Binding
                     return value;
                 }
             }
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -1049,7 +1049,7 @@ namespace Starcounter.Binding
                 {
                     return;
                 }
-                throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+                throw ErrorCode.ToException(sccoredb.star_get_last_error());
             }
         }
     }

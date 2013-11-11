@@ -106,8 +106,10 @@ namespace GenerateInstaller
             String signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, CompanyName, ProductName, pathToCertificateFile);
 
             // Checking if there are any errors during signing process.
-            if (signingError != null)
+            if (signingError != null) {
+                Console.WriteLine(signingError);
                 throw new Exception("Failed to sign static Starcounter setup file...");
+            }
 
             Console.WriteLine("Updating consolidated Archive.zip with new unique empty setup EXE and tracking DLL...");
 

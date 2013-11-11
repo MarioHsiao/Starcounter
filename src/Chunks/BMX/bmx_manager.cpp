@@ -77,6 +77,8 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
 // Waits for BMX component to be ready.
 int32_t sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms)
 {
+    _SC_BEGIN_FUNC
+
     uint32_t num_ms_elapsed = 0;
 
     // Looping until all push channels are initialized.
@@ -92,6 +94,8 @@ int32_t sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms)
     }
 
     return 0;    
+
+    _SC_END_FUNC
 }
 
 // Main message loop for incoming requests. Handles the 
@@ -99,7 +103,11 @@ int32_t sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms)
 // well as sending any responses back.
 uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 {
+    _SC_BEGIN_FUNC
+
     return g_bmx_data->HandleBmxChunk(task_data);
+
+    _SC_END_FUNC
 }
 
 // Registers port handler.
@@ -109,6 +117,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    _SC_BEGIN_FUNC
+
     assert(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
@@ -128,6 +138,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredPortHandler(g_bmx_data);
 
     return err_code;
+
+    _SC_END_FUNC
 };
 
 // Registers sub-port handler.
@@ -138,6 +150,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    _SC_BEGIN_FUNC
+
     assert(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
@@ -157,6 +171,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
     err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredSubportHandler(g_bmx_data);
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 // Registers raw port handler.
@@ -171,6 +187,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     starcounter::MixedCodeConstants::NetworkProtocolType proto_type
     )
 {
+    _SC_BEGIN_FUNC
+
     assert(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
@@ -199,11 +217,15 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredUriHandler(g_bmx_data);
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 // Unregisters a handler.
 uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
 {
+    _SC_BEGIN_FUNC
+
     bool is_empty_handler;
 
     // Checking if handler exists.
@@ -223,10 +245,14 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
         err_code = g_bmx_data->PushHandlerUnregistration(handler_index);
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 uint32_t sc_bmx_unregister_uri(uint16_t port_num, char* processed_uri_info)
 {
+    _SC_BEGIN_FUNC
+
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code;
 
@@ -237,10 +263,14 @@ uint32_t sc_bmx_unregister_uri(uint16_t port_num, char* processed_uri_info)
     err_code = sc_bmx_unregister_handler(handler_index);
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 uint32_t sc_bmx_unregister_port(uint16_t port_num)
 {
+    _SC_BEGIN_FUNC
+
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code;
 
@@ -251,11 +281,15 @@ uint32_t sc_bmx_unregister_port(uint16_t port_num)
     err_code = sc_bmx_unregister_handler(handler_index);
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 // Unregisters a handler.
 uint32_t sc_bmx_unregister_subport(uint16_t port_num, BMX_SUBPORT_TYPE subport_num)
 {
+    _SC_BEGIN_FUNC
+
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code;
 
@@ -266,6 +300,8 @@ uint32_t sc_bmx_unregister_subport(uint16_t port_num, BMX_SUBPORT_TYPE subport_n
     err_code = sc_bmx_unregister_handler(handler_index);
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 // Construct BMX Ping message.

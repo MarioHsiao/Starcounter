@@ -15,17 +15,14 @@ namespace Starcounter
     /// </summary>
     public partial class Transaction
     {
-        internal static void Commit(int tran_locked_on_thread, int detach_and_free)
-        {
+        internal static void Commit(int tran_locked_on_thread, int detach_and_free) {
             uint r;
             ulong hiter;
             ulong viter;
 
-            for (; ; )
-            {
+            for (; ; ) {
                 r = sccoredb.sccoredb_begin_commit(tran_locked_on_thread, out hiter, out viter);
-                if (r == 0)
-                {
+                if (r == 0) {
                     // TODO: Handle triggers. Call abort commit on failure.
                     // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
 
@@ -34,8 +31,20 @@ namespace Starcounter
                             );
                     if (r == 0) break;
                 }
-                
+
+#if true
+                String additionalErrorInfo = null;
+                unsafe {
+                    char* unsafeAdditionalErrorInfo;
+                    r = sccoredb.star_get_last_error(&unsafeAdditionalErrorInfo);
+                    if (unsafeAdditionalErrorInfo != null) {
+                        additionalErrorInfo = string.Concat(new string(unsafeAdditionalErrorInfo), ".");
+                    }
+                }
+                throw ErrorCode.ToException(r, additionalErrorInfo);
+#else
                 throw ErrorCode.ToException(r);
+#endif
             }
         }
     }
@@ -130,7 +139,7 @@ namespace Starcounter
                             sccoredb.sccoredb_set_current_transaction(0, 0, 0) != 0 ||
                             sccoredb.sccoredb_free_transaction(handle, verify) != 0
                             ) {
-                            ExceptionManager.HandleInternalFatalError(sccoredb.Mdb_GetLastError());
+                            ExceptionManager.HandleInternalFatalError(sccoredb.star_get_last_error());
                         }
                         throw;
                     }
