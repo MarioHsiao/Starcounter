@@ -175,6 +175,22 @@ namespace Starcounter.Advanced {
         /// </summary>
         public HTTP_METHODS MethodEnum { get; set; }
 
+        Response response_;
+
+        /// <summary>
+        /// Set or get the Response object attached to this request.
+        /// Used to declare response object that should be returned to the original request.
+        /// </summary>
+        public Response Response
+        {
+            get { return response_; }
+            set
+            {
+                response_ = value;
+                response_.Request = this;
+            }
+        }
+
         /// <summary>
         /// Returns True if method is idempotent.
         /// </summary>
@@ -216,7 +232,7 @@ namespace Starcounter.Advanced {
         {
             unsafe
             {
-                Init(buf, buf_len, null);
+                InternalInit(buf, buf_len, null);
             }
         }
 
@@ -227,7 +243,7 @@ namespace Starcounter.Advanced {
         /// <param name="params_info"></param>
         public unsafe Request(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
-            Init(buf, buf_len, params_info_ptr);
+            InternalInit(buf, buf_len, params_info_ptr);
         }
 
         /// <summary>
@@ -264,10 +280,13 @@ namespace Starcounter.Advanced {
         /// Initializes request structure.
         /// </summary>
         /// <param name="buf"></param>
-        unsafe void Init(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
+        unsafe void InternalInit(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
             unsafe
             {
+                // Indicating that request is internal.
+                is_internal_request_ = true;
+
                 // Allocating space for Request contents and structure.
                 Int32 alloc_size = buf_len + sizeof(HttpRequestInternal);
                 if (params_info_ptr != null)
@@ -294,7 +313,6 @@ namespace Starcounter.Advanced {
                 }
                 
                 // Indicating that we internally constructing Request.
-                is_internal_request_ = true;
                 protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
 
                 // NOTE: No internal sessions support.
@@ -1017,7 +1035,7 @@ namespace Starcounter.Advanced {
         /// <param name="offset">The offset within buffer.</param>
         /// <param name="length">The length of the data to send.</param>
         /// <param name="length">The connection flags.</param>
-        internal void SendResponseInternal(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
+        internal void SendResponseScThread(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
             unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, true); }
         }
@@ -1040,6 +1058,7 @@ namespace Starcounter.Advanced {
         /// <param name="resp">Response object to send.</param>
         public void SendResponse(Response resp)
         {
+            resp.ConstructFromFields();
             SendResponse(resp.Uncompressed, 0, resp.UncompressedLength, resp.ConnFlags);
         }
 
