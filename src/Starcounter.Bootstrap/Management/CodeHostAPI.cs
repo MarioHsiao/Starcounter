@@ -19,6 +19,13 @@ namespace Starcounter.Bootstrap.Management {
             Uris = new ResourceUris(hostIdentity);
         }
 
+        /// <summary>
+        /// Initiates shutdown of the current code host.
+        /// </summary>
+        public static void Shutdown() {
+            ManagementService.Shutdown();
+        }
+
         public static ResourceUris CreateServiceURIs(string hostIdentity) {
             return new ResourceUris(hostIdentity);
         }
