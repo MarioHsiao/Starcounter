@@ -58,7 +58,7 @@ namespace Starcounter.Advanced {
         }
 
         public static implicit operator Response(HandlerStatus status) {
-            return new Response() { HandlingStatus = status };
+            return new Response() { HandlingStatus = (HandlerStatusInternal) status };
         }
 
         public static implicit operator Response(HttpStatusCodeAndReason codeAndReason) {
