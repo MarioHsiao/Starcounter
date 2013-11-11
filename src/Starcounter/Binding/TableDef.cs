@@ -44,7 +44,7 @@ namespace Starcounter.Binding
                 if (r == 0) {
                     columns[i] = new ColumnDef(
                         new string(columnInfo.name),
-                        BindingHelper.ConvertScTypeCodeToDbTypeCode(columnInfo.type),
+                        columnInfo.type,
                         (columnInfo.flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
                         (columnInfo.flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
                         );
@@ -162,33 +162,6 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Returns the position of the first indexable column.
-        /// </summary>
-        /// <returns>
-        /// The position of the first column that can be indexed or -1 
-        /// if none is found.
-        /// </returns>
-        public short GetFirstIndexableColumnIndex() {
-            for (short i = 0; i < ColumnDefs.Length; i++) {
-                switch (ColumnDefs[i].Type){
-                    case DbTypeCode.Binary:
-                    case DbTypeCode.LargeBinary:
-                    case DbTypeCode.Double:
-                    case DbTypeCode.Single:
-                        continue;
-                    default:
-                        return i;
-                }
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <returns></returns>
-        public bool HasIndex() { return GetAllIndexInfos().Length != 0; }
-
-        /// <summary>
         /// Gets all index infos.
         /// </summary>
         /// <returns>IndexInfo[][].</returns>
@@ -266,6 +239,7 @@ namespace Starcounter.Binding
             short attributeCount;
             ushort tempSortMask;
             SortOrder[] sortOrderings;
+            int[] columnIndexes;
             ColumnDef[] columnDefs;
 
             name = new String(pii->name);
@@ -291,47 +265,59 @@ namespace Starcounter.Binding
                 tempSortMask = (UInt16)(tempSortMask >> 1);
             }
             // Get the column definitions.
+            columnIndexes = new int[attributeCount];
             columnDefs = new ColumnDef[attributeCount];
             for (Int32 j = 0; j < attributeCount; j++)
             {
                 switch (j)
                 {
                     case 0:
+                        columnIndexes[j] = pii->attrIndexArr_0;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_0];
                         break;
                     case 1:
+                        columnIndexes[j] = pii->attrIndexArr_1;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_1];
                         break;
                     case 2:
+                        columnIndexes[j] = pii->attrIndexArr_2;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_2];
                         break;
                     case 3:
+                        columnIndexes[j] = pii->attrIndexArr_3;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_3];
                         break;
                     case 4:
+                        columnIndexes[j] = pii->attrIndexArr_4;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_4];
                         break;
                     case 5:
+                        columnIndexes[j] = pii->attrIndexArr_5;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_5];
                         break;
                     case 6:
+                        columnIndexes[j] = pii->attrIndexArr_6;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_6];
                         break;
                     case 7:
+                        columnIndexes[j] = pii->attrIndexArr_7;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_7];
                         break;
                     case 8:
+                        columnIndexes[j] = pii->attrIndexArr_8;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_8];
                         break;
                     case 9:
+                        columnIndexes[j] = pii->attrIndexArr_9;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_9];
                         break;
                     case 10:
+                        columnIndexes[j] = pii->attrIndexArr_10;
                         columnDefs[j] = ColumnDefs[pii->attrIndexArr_10];
                         break;
                 }
             }
-            return new IndexInfo(pii->handle, TableId, name, columnDefs, sortOrderings);
+            return new IndexInfo(pii->handle, TableId, name, columnIndexes, columnDefs, sortOrderings);
         }
     }
 }

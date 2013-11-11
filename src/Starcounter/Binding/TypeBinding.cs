@@ -205,15 +205,6 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Gets all index infos.
-        /// </summary>
-        /// <returns>IndexInfo[][].</returns>
-        internal IndexInfo[] GetAllIndexInfos()
-        {
-            return TypeDef.TableDef.GetAllIndexInfos();
-        }
-
-        /// <summary>
         /// Gets all index infos including base classes.
         /// </summary>
         /// <returns>Array of index infos.</returns>
@@ -234,19 +225,19 @@ namespace Starcounter.Binding
         /// Gets the index info.
         /// </summary>
         /// <param name="name">The name.</param>
-        /// <returns>IndexInfo.</returns>
-        internal IndexInfo GetIndexInfo(string name)
+        /// <returns>IndexInfo2.</returns>
+        internal IndexInfo2 GetIndexInfo(string name)
         {
-            return TypeDef.TableDef.GetIndexInfo(name);
+            return TypeDef.GetIndexInfo(name);
         }
 
         /// <summary>
         /// Gets the index info for the given index in this type or its supertypes.
         /// </summary>
         /// <param name="name">The name.</param>
-        /// <returns>IndexInfo.</returns>
-        internal IndexInfo GetInheritedIndexInfo(string name) {
-            IndexInfo indx = TypeDef.TableDef.GetIndexInfo(name);
+        /// <returns>IndexInfo2.</returns>
+        internal IndexInfo2 GetInheritedIndexInfo(string name) {
+            IndexInfo2 indx = TypeDef.GetIndexInfo(name);
             if (indx != null)
                 return indx;
             if (TypeDef.BaseName == null)

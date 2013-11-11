@@ -92,7 +92,7 @@ namespace Starcounter
                     for (int cc = column_definitions.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++)
                     {
                         column_definitions[di].name = (char *)Marshal.StringToCoTaskMemUni(columns[ci].Name);
-                        column_definitions[di].type = BindingHelper.ConvertDbTypeCodeToScTypeCode(columns[ci].Type);
+                        column_definitions[di].type = columns[ci].Type;
                         column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
                     name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);

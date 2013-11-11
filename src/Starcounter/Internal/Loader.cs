@@ -117,7 +117,7 @@ namespace Starcounter.Internal
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
 
             // Add column definition for implicit key column.
-            columnDefs.Add(new ColumnDef("__id", DbTypeCode.Key, false, baseName == null ? false : true));
+            columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
             var columnDefArray = columnDefs.ToArray();
@@ -214,7 +214,7 @@ namespace Starcounter.Internal
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
                                 DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(databaseAttribute.Name),
-                                type,
+                                BindingHelper.ConvertDbTypeCodeToScTypeCode(type),
                                 isNullable,
                                 subClass
                                 ));

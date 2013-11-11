@@ -43,12 +43,12 @@ namespace Starcounter.Metadata {
                 "materialized_index",
                 new ColumnDef[]
                 {
-                    new ColumnDef("__id", DbTypeCode.Key, false, false),
-                    new ColumnDef("index_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("table", DbTypeCode.Object, true, false),
-                    new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("unique", DbTypeCode.Boolean, false, false),
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
+                    new ColumnDef("index_id", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("unique", sccoredb.STAR_TYPE_ULONG, false, false),
                 }
                 );
 
@@ -144,11 +144,11 @@ namespace Starcounter.Metadata {
                 "materialized_index_column",
                 new ColumnDef[]
                 {
-                    new ColumnDef("__id", DbTypeCode.Key, false, false),
-                    new ColumnDef("index", DbTypeCode.Object, true, false),
-                    new ColumnDef("place", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("column", DbTypeCode.Object, true, false),
-                    new ColumnDef("order", DbTypeCode.UInt64, false, false)
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
+                    new ColumnDef("index", sccoredb.STAR_TYPE_REFERENCE, true, false),
+                    new ColumnDef("place", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("column", sccoredb.STAR_TYPE_REFERENCE, true, false),
+                    new ColumnDef("order", sccoredb.STAR_TYPE_ULONG, false, false)
                 }
                 );
 

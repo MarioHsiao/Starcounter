@@ -80,5 +80,13 @@ namespace Starcounter.Binding
             TypeLoader = typeLoader;
             TableDef = tableDef;
         }
+
+        internal IndexInfo2 GetIndexInfo(string name) {
+            var indexInfo = TableDef.GetIndexInfo(name);
+            if (indexInfo != null) {
+                return new IndexInfo2(indexInfo, this);
+            }
+            return null;
+        }
     }
 }
