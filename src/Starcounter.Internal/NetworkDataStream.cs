@@ -151,7 +151,7 @@ namespace Starcounter
             {
                 NetworkDataStream thisInst = this;
 
-                StarcounterBase._DB.RunAsync(() => {
+                StarcounterBase._DB.RunSync(() => {
                     fixed (Byte* p = buffer) {
                         thisInst.SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
                     }
@@ -212,7 +212,7 @@ namespace Starcounter
             if (!isStarcounterThread)
             {
                 NetworkDataStream thisInst = this;
-                StarcounterBase._DB.RunAsync(() => { thisInst.ReleaseChunk(); });
+                StarcounterBase._DB.RunSync(() => { thisInst.ReleaseChunk(); });
                 return;
             }
 
