@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -79,9 +79,6 @@ namespace Starcounter.InstallerEngine
             {
                 if (InstallerMain.PersonalServerComponent.ShouldBeRemoved())
                     remainingComponents[(Int32)ComponentsCheck.Components.PersonalServer] = false;
-
-                if (InstallerMain.SystemServerComponent.ShouldBeRemoved())
-                    remainingComponents[(Int32)ComponentsCheck.Components.SystemServer] = false;
 
                 if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved())
                     remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = false;
@@ -176,7 +173,6 @@ namespace Starcounter.InstallerEngine
 
             // Looking for components that were tried to be installed.
             if (InstallerMain.PersonalServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
-            if (InstallerMain.SystemServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
 
             // Getting percentage step value.
@@ -266,7 +262,6 @@ namespace Starcounter.InstallerEngine
 
                 // Loading settings.
                 if (InstallerMain.PersonalServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
-                if (InstallerMain.SystemServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
 
                 // Getting percentage step value.

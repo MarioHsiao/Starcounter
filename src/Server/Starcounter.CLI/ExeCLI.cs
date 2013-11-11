@@ -14,6 +14,7 @@ namespace Starcounter.CLI {
     using EngineReference = EngineCollection.EnginesElementJson;
     using ExecutableReference = Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
+    using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
 
     /// <summary>
     /// Provides the principal entrypoint to use when a CLI client
@@ -80,9 +81,9 @@ namespace Starcounter.CLI {
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
                     ShowStatus("Retrieving server status", true);
-                    if (!SystemServerProcess.IsOnline()) {
+                    if (!ServerServiceProcess.IsOnline()) {
                         ShowStatus("Starting server");
-                        SystemServerProcess.StartInteractiveOnDemand();
+                        ServerServiceProcess.StartInteractiveOnDemand();
                     }
                     ShowStatus("Server is online", true);
                 }
@@ -139,7 +140,7 @@ namespace Starcounter.CLI {
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
                     ShowStatus("Retrieving server status", true);
-                    if (!SystemServerProcess.IsOnline()) {
+                    if (!ServerServiceProcess.IsOnline()) {
                         SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
                     }
                 }
@@ -195,6 +196,11 @@ namespace Starcounter.CLI {
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                 engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
+                string codeHostCommands;
+                if (args.TryGetProperty(UnofficialOption.CodeHostCommandLineOptions, out codeHostCommands)) {
+                    engineRef.CodeHostCommandLineAdditions = codeHostCommands;
+                }
 
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null);
                 response.FailIfNotSuccess();

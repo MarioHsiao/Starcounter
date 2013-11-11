@@ -8,10 +8,10 @@ using System.Text;
 namespace Starcounter.Server.Setup {
     /// <summary>
     /// Expose the set of properties applicable when installing the
-    /// Starcounter system server platform service and a method to
-    /// execute the setup.
+    /// Starcounter server platform service and a method to execute 
+    /// the setup.
     /// </summary>
-    public sealed class SystemServiceSetup {
+    public sealed class ServerServiceSetup {
         /// <summary>
         /// Gets or sets the Starcounter installation path, needed
         /// to properly resolve the binaries.
@@ -51,13 +51,13 @@ namespace Starcounter.Server.Setup {
         public string Password { get; set; }
 
         /// <summary>
-        /// Initializes an instance of <see cref="SystemServiceSetup"/> with
+        /// Initializes an instance of <see cref="ServerServiceSetup"/> with
         /// all default values.
         /// </summary>
-        public SystemServiceSetup() {
+        public ServerServiceSetup() {
             InstallationPath = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
-            ServiceName = SystemServerService.Name;
-            DisplayName = "Starcounter System Service";
+            ServiceName = ServerService.Name;
+            DisplayName = "Starcounter Server Service";
             StartupType = StartupType.Manual;
             AccountName = null;
             Password = null;
@@ -72,11 +72,9 @@ namespace Starcounter.Server.Setup {
             var commandLine = new StringBuilder();
             var executable = Path.Combine(this.InstallationPath, "scservice.exe");
             commandLine.Append("\"" + executable + "\"");
-            commandLine.Append(" ");
-            commandLine.Append("SYSTEM");
 
             using (var manager = LocalWindowsServiceManager.Open(Win32Service.SERVICE_ACCESS.SERVICE_CHANGE_CONFIG)) {
-                return SystemServerService.Create(
+                return ServerService.Create(
                     manager.Handle,
                     this.DisplayName,
                     this.ServiceName,

@@ -453,6 +453,7 @@ namespace Starcounter.Advanced
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T GetContent<T>() {
+            // TODO Ask Jocke!
             if (typeof(T) == typeof(String)) {
                 return (T)(object)GetContentString();
             }
@@ -1172,9 +1173,6 @@ namespace Starcounter.Advanced
                 // Copying HTTP response data.
                 fixed (Byte* fixed_response_buf = response_buf)
                     BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)response_buf.Length);
-
-                // Setting the final response length.
-                http_response_struct_->response_len_bytes_ = (UInt32)response_len_bytes;
             }
         }
 

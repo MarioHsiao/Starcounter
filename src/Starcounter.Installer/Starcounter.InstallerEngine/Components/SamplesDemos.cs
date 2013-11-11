@@ -170,9 +170,7 @@ public class CSamplesDemos : CComponentBase
 
         // Checking what server type is installed.
         String serverPath = null;
-        if (InstallerMain.SystemServerComponent.ShouldBeInstalled())
-            serverPath = InstallerMain.SystemServerComponent.ComponentPath;
-        else if (InstallerMain.PersonalServerComponent.ShouldBeInstalled())
+        if (InstallerMain.PersonalServerComponent.ShouldBeInstalled())
             serverPath = InstallerMain.PersonalServerComponent.ComponentPath;
 
         if (serverPath == null)
@@ -419,9 +417,6 @@ public class CSamplesDemos : CComponentBase
             if (InstallerMain.PersonalServerComponent.ShouldBeRemoved())
                 remainingComponents[(Int32)ComponentsCheck.Components.PersonalServer] = false;
 
-            if (InstallerMain.SystemServerComponent.ShouldBeRemoved())
-                remainingComponents[(Int32)ComponentsCheck.Components.SystemServer] = false;
-
             if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved())
                 remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = false;
         }
@@ -514,7 +509,6 @@ public class CSamplesDemos : CComponentBase
     public override Boolean ShouldBeInstalled()
     {
         return (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
-            InstallerMain.SystemServerComponent.ShouldBeInstalled() ||
             InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled());
     }
 
