@@ -196,8 +196,7 @@ namespace NetworkIoTestApp
             MODE_HTTP_REST_CLIENT,
             MODE_WEBSOCKETS_URIS,
             MODE_NODE_TESTS,
-            MODE_THROW_EXCEPTION,
-            MODE_POSTPONED_RESPONSE
+            MODE_THROW_EXCEPTION
         }
 
         // Performance related counters.
@@ -271,58 +270,14 @@ namespace NetworkIoTestApp
             String db_postfix = "_db" + db_number;
             UInt16 handler_id;
             String handler_uri;
+            Int32 numEntriesTotal;
 
             switch(test_type)
             {
-                case TestTypes.MODE_STANDARD_BROWSER:
-                {
-                    handler_uri = "GET /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetRoot, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "POST /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpPostRoot, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "GET /users" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUsers, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "OPTIONS /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpOptions, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "GET /session" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "POST /upload";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUpload, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "GET /internal-http-request";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnInternalHttpRequest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "GET /download";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpDownload, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "GET /killsession" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpKillSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "GET /image" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetImage, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    break;
-                }
-
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
                     handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -331,7 +286,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
                     handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
                     break;
@@ -392,7 +347,7 @@ namespace NetworkIoTestApp
                     AppsBootstrapper.Bootstrap();
 
                     handler_uri = "/testrest";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -446,6 +401,64 @@ namespace NetworkIoTestApp
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>
                     {
                         return "CUSTOM method " + method + " with parameter " + p1;
+                    });
+
+                    Handle.GET(8080, "/exc1", (Request req) =>
+                    {
+                        Response resp;
+                        X.GET("/exc2", null, out resp);
+
+                        return resp;
+                    });
+
+                    Handle.GET(8080, "/exc2", (Request req) =>
+                    {
+                        try
+                        {
+                            Response resp;
+                            X.GET("/exc3", null, out resp);
+                            return resp;
+                        }
+                        catch (ResponseException exc)
+                        {
+                            exc.ResponseObject.StatusDescription = "Modified!";
+                            exc.ResponseObject["MyHeader"] = "Super value!";
+                            throw exc;
+                        }
+
+                    });
+
+                    Handle.GET(8080, "/exc3", (Request req) =>
+                    {
+                        Response resp = new Response()
+                        {
+                            StatusCode = 404,
+                            StatusDescription = "Not found!"
+                        };
+                        throw new ResponseException(resp);
+                    });
+
+                    Handle.GET("/postponed", (Request req) =>
+                    {
+                        X.POST("/echotest", "Here we go!", null, null, (Response resp, Object userObject) =>
+                        {
+                            req.Response = resp;
+                        });
+
+                        return HandlerStatus.Handled;
+                    });
+
+                    Handle.GET("/killme", (Request req) =>
+                    {
+                        Response resp = new Response()
+                        {
+                            StatusCode = 213,
+                            StatusDescription = "I am gonna shutdown now.."
+                        };
+
+                        req.SendResponse(resp);
+
+                        return HandlerStatus.Handled;
                     });
 
                     break;
@@ -515,20 +528,6 @@ namespace NetworkIoTestApp
                         String body = req.Body;
                         Console.WriteLine(body);
                         return body;
-                    });
-
-                    break;
-                }
-
-                case TestTypes.MODE_POSTPONED_RESPONSE:
-                {
-                    Handle.GET("/postponed", (Request req) =>
-                    {
-                        X.POST("/echotest", "Here we go!", null, null, (Response resp, Object userObject) => {
-                            req.SendResponse(resp);
-                        });
-
-                        return HandlerStatus.Pending;
                     });
 
                     break;
@@ -648,12 +647,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -682,12 +681,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -767,12 +766,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -812,12 +811,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -857,12 +856,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -891,12 +890,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -932,12 +931,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -985,12 +984,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1015,12 +1014,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             // Counting performance.
@@ -1047,12 +1046,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1082,12 +1081,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1109,12 +1108,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;
@@ -1141,12 +1140,12 @@ namespace NetworkIoTestApp
             try
             {
                 // Writing back the response.
-                p.SendResponseInternal(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
             catch
             {
                 // Writing back the error status.
-                p.SendResponseInternal(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                p.SendResponseScThread(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
             }
 
             return true;

@@ -497,7 +497,7 @@ namespace bmx
     class BmxData
     {
         // Current maximum number of handlers.
-        uint32_t max_num_entries_;
+        int32_t max_num_entries_;
 
         // All registered handlers.
         HandlersList* registered_handlers_;
@@ -514,6 +514,11 @@ namespace bmx
         HandlersList* GetRegisteredHandler(BMX_HANDLER_TYPE handler_id)
         {
             return registered_handlers_ + handler_id;
+        }
+
+        int32_t get_max_num_entries()
+        {
+            return max_num_entries_;
         }
 
         // Is push to gateway already possible?

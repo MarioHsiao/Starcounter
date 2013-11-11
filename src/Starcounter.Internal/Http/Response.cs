@@ -35,9 +35,63 @@ namespace Starcounter.Advanced
     /// </summary>
     public enum HandlerStatus
     {
+        /// <summary>
+        /// The response is handled explicitly by some other means.
+        /// </summary>
+        Handled = 1,
+
+        /// <summary>
+        /// The handler didn't handle the request.
+        /// Request is going to be handled by outer handler, for example, a static files resolver.
+        /// </summary>
+        NotHandled = 2
+    }
+
+    /// <summary>
+    /// Handler response status.
+    /// </summary>
+    internal enum HandlerStatusInternal
+    {
+        /// <summary>
+        /// The response is already sent.
+        /// </summary>
         Done,
-        Pending,
+
+        /// <summary>
+        /// The response was handled by some explicit means.
+        /// </summary>
+        Handled,
+
+        /// <summary>
+        /// The handler didn't handle the request.
+        /// Request is going to be handled by outer handler, for example, a static files resolver.
+        /// </summary>
         NotHandled
+    }
+
+    /// <summary>
+    /// Response exception class which encapsulates the response thrown.
+    /// </summary>
+    public class ResponseException : Exception
+    {
+        Response responseObject_;
+
+        /// <summary>
+        /// Returns encapsulated Response object.
+        /// </summary>
+        public Response ResponseObject
+        {
+            get { return responseObject_; }
+            set { responseObject_ = value; }
+        }
+
+        /// <summary>
+        /// Response exception constructor.
+        /// </summary>
+        /// <param name="respObject"></param>
+        public ResponseException(Response responseObject) {
+            responseObject_ = responseObject;
+        }
     }
 
     /// <summary>
@@ -227,7 +281,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Handling status for this response.
         /// </summary>
-        internal HandlerStatus HandlingStatus
+        internal HandlerStatusInternal HandlingStatus
         {
             get { return handlingStatus_; }
             set { handlingStatus_ = value; }
@@ -236,7 +290,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Handling status.
         /// </summary>
-        HandlerStatus handlingStatus_;
+        HandlerStatusInternal handlingStatus_;
 
         /// <summary>
         /// WebSocket close codes.
@@ -700,19 +754,19 @@ namespace Starcounter.Advanced
 
 			        byte[] bytes = bodyBytes_;
 			        if (_Hypermedia != null) {
-				        var mimetype = http_request_.PreferredMimeType;
+				        var mimetype = request_.PreferredMimeType;
 				        try {
 					        bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
 					        this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
 				        } catch (UnsupportedMimeTypeException exc) {
 					        throw new Exception(
-						        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
+						        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", request_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
 				        }
 
 				        if (bytes == null) {
 					        // The preferred requested mime type was not supported, try to see if there are
 					        // other options.
-					        IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
+					        IEnumerator<MimeType> secondaryChoices = request_.PreferredMimeTypes;
 					        secondaryChoices.MoveNext(); // The first one is already accounted for
 					        while (bytes == null && secondaryChoices.MoveNext()) {
 						        mimetype = secondaryChoices.Current;
@@ -1123,9 +1177,9 @@ namespace Starcounter.Advanced
 //        public long Retrieved { get; set; }
 
         /// <summary>
-        /// Reference to corresponding HTTP request.
+        /// Reference to corresponding request.
         /// </summary>
-        Request http_request_ = null;
+        Request request_ = null;
 
         /// <summary>
         /// A response may be associated with a request. If a response is created without a content type,
@@ -1133,10 +1187,10 @@ namespace Starcounter.Advanced
         /// </summary>
         public Request Request {
             get {
-                return http_request_;
+                return request_;
             }
             set {
-                http_request_ = value;
+                request_ = value;
             }
         }
 
@@ -1153,7 +1207,7 @@ namespace Starcounter.Advanced
         internal void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
         {
             uncompressed_response_ = response_buf;
-			uncompressedResponseLength_ = response_buf.Length;
+			uncompressedResponseLength_ = response_len_bytes;
 
             mem_stream_ = mem_stream;
 
@@ -1168,11 +1222,11 @@ namespace Starcounter.Advanced
                 }
 
                 // Setting the response data pointer.
-                http_response_struct_->socket_data_ = (Byte*) BitsAndBytes.Alloc(response_buf.Length);
+                http_response_struct_->socket_data_ = (Byte*) BitsAndBytes.Alloc(uncompressedResponseLength_);
 
                 // Copying HTTP response data.
                 fixed (Byte* fixed_response_buf = response_buf)
-                    BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)response_buf.Length);
+                    BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)uncompressedResponseLength_);
             }
         }
 
@@ -1257,10 +1311,10 @@ namespace Starcounter.Advanced
                 TryParseResponse(buf, offset, lenBytes, complete);
 
                 // Setting corresponding HTTP request.
-                http_request_ = httpRequest;
+                request_ = httpRequest;
 
-                if (http_request_ != null)
-                    protocol_type_ = http_request_.ProtocolType;
+                if (request_ != null)
+                    protocol_type_ = request_.ProtocolType;
             }
         }
 
