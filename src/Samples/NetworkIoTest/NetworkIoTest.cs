@@ -442,8 +442,11 @@ namespace NetworkIoTestApp
                     {
                         X.POST("/echotest", "Here we go!", null, null, (Response resp, Object userObject) =>
                         {
+                            // Modifying the response object by injecting some data.
+                            resp["MySuperHeader"] = "Here is my header value!";
+                            resp["Set-Cookie"] = "MySuperCookie=CookieValue;" + resp["Set-Cookie"];
                             req.Response = resp;
-                        });
+                        }); // "resp" object will be automatically sent when delegate exits.
 
                         return HandlerStatus.Handled;
                     });

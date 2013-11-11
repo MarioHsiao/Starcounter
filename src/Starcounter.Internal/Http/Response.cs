@@ -76,6 +76,8 @@ namespace Starcounter.Advanced
     {
         Response responseObject_;
 
+        Object userObject_;
+
         /// <summary>
         /// Returns encapsulated Response object.
         /// </summary>
@@ -86,11 +88,30 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Returns encapsulated User object.
+        /// </summary>
+        public Object UserObject
+        {
+            get { return userObject_; }
+            set { userObject_ = value; }
+        }
+
+        /// <summary>
         /// Response exception constructor.
         /// </summary>
         /// <param name="respObject"></param>
         public ResponseException(Response responseObject) {
             responseObject_ = responseObject;
+        }
+
+        /// <summary>
+        /// Response exception constructor.
+        /// </summary>
+        /// <param name="respObject"></param>
+        /// <param name="userObject"></param>
+        public ResponseException(Response responseObject, Object userObject) {
+            responseObject_ = responseObject;
+            userObject_ = userObject;
         }
     }
 
