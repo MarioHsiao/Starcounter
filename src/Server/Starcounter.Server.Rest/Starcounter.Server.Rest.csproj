@@ -45,7 +45,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdminAPI.cs" />
-    <Compile Include="Representations.JSON\Executable.json.cs">
+    <Compile Include="Representations.JSON\Server.json.cs">
+      <DependentUpon>Server.json</DependentUpon>
+    </Compile>
+	<Compile Include="Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
     <Compile Include="Representations.JSON\Engine.json.cs">
@@ -68,7 +71,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="Representations.JSON\Executable.json">
+    <TypedJSON Include="Representations.JSON\Server.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+	<TypedJSON Include="Representations.JSON\Executable.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Representations.JSON\Engine.json">
