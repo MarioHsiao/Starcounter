@@ -148,7 +148,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("index", DbTypeCode.Object, true, false),
                     new ColumnDef("place", DbTypeCode.UInt64, false, false),
                     new ColumnDef("column", DbTypeCode.Object, true, false),
-                    new ColumnDef("order", DbTypeCode.String, true, false)
+                    new ColumnDef("order", DbTypeCode.UInt64, false, false)
                 }
                 );
 
@@ -160,7 +160,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Index", DbTypeCode.Object, true, "Starcounter.Metadata.SysIndex") { ColumnName = "index" },
                     new PropertyDef("Place", DbTypeCode.UInt64, false) { ColumnName = "place" },
                     new PropertyDef("Column", DbTypeCode.Object, true, "Starcounter.Metadata.SysColumn") { ColumnName = "column" },
-                    new PropertyDef("Order", DbTypeCode.String, true) { ColumnName = "order" }
+                    new PropertyDef("Order", DbTypeCode.UInt64, false) { ColumnName = "order" }
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndexColumn"),
                 systemTableDef
@@ -196,8 +196,8 @@ namespace Starcounter.Metadata {
 
         /// <summary>
         /// </summary>
-        public string Order {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_order); }
+        public ulong Order {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_order); }
         }
     }
 }
