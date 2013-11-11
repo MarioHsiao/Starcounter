@@ -4,13 +4,14 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace Starcounter.Server.Service {
     /// <summary>
     /// Expose a set of methods that is used to manage the Starcounter
     /// service when installed as a platform service on a given OS.
     /// </summary>
-    public static class SystemServerService {
+    public static class ServerService {
         /// <summary>
         /// Gets the name we use for the configured service.
         /// </summary>
@@ -18,7 +19,7 @@ namespace Starcounter.Server.Service {
 
         /// <summary>
         /// Gets a value indicating if <paramref name="service"/> represents
-        /// the configuration of a Starcounter system server.
+        /// the configuration of a Starcounter server service.
         /// </summary>
         /// <param name="service">
         /// The service to check.
@@ -27,9 +28,24 @@ namespace Starcounter.Server.Service {
         /// <see langword="true"/> if <paramref name="service"/> is identified
         /// as a configured system service, <see langword="false"/> if not.
         /// </returns>
-        public static bool IsSystemServerService(ServiceController service) {
-            return service.ServiceName.StartsWith(SystemServerService.Name,
-                StringComparison.InvariantCultureIgnoreCase);
+        public static bool IsServerService(ServiceController service) {
+            return service.ServiceName.Equals(ServerService.Name, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public static ServiceController Find(string serviceName = ServerService.Name) {
+            ServiceController result = null;
+            foreach (var item in ServiceController.GetServices()) {
+                if (IsServerService(item)) {
+                    result = item;
+                    break;
+                }
+            }
+            return result;
         }
 
         /// <summary>
@@ -137,10 +153,53 @@ namespace Starcounter.Server.Service {
         /// given it's service name.
         /// </summary>
         /// <param name="serviceName">Name of the service to delete.</param>
-        public static void Delete(string serviceName) {
+        public static void Delete(string serviceName = ServerService.Name) {
             if (string.IsNullOrEmpty(serviceName)) throw new ArgumentNullException("serviceName");
 
             Delete(new ServiceController(serviceName));
+        }
+
+        /// <summary>
+        /// Starts the Starcounter server service.
+        /// </summary>
+        /// <param name="serviceName">The name of the service.</param>
+        /// <param name="millisecondsTimeout">Optional timeout to wait for it to become running.</param>
+        public static void Start(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
+            var timeout = millisecondsTimeout == Timeout.Infinite ? TimeSpan.FromHours(24) : TimeSpan.FromMilliseconds(millisecondsTimeout);
+            using (var controller = new ServiceController(serviceName)) {
+                var status = controller.Status;
+                if (status != ServiceControllerStatus.Running) {
+                    if (status != ServiceControllerStatus.StartPending) {
+                        controller.Start();
+                    }
+                    controller.WaitForStatus(ServiceControllerStatus.Running, timeout);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stops the Starcounter server service.
+        /// </summary>
+        /// <param name="serviceName">The name of the service.</param>
+        /// <param name="millisecondsTimeout">Optional timeout to wait for it to stop.</param>
+        public static void Stop(string serviceName = ServerService.Name, int millisecondsTimeout = Timeout.Infinite) {
+            var timeout = millisecondsTimeout == Timeout.Infinite ? TimeSpan.FromHours(24) : TimeSpan.FromMilliseconds(millisecondsTimeout);
+            using (var controller = new ServiceController(serviceName)) {
+                try {
+                    var status = controller.Status;
+                    if (status != ServiceControllerStatus.Stopped) {
+                        if (status != ServiceControllerStatus.StopPending) {
+                            controller.Stop();
+                        }
+                        controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+                    }
+                } catch (InvalidOperationException invalidOperation) {
+                    var win32 = invalidOperation.InnerException as Win32Exception;
+                    if (win32 == null || win32.NativeErrorCode != Win32Error.ERROR_SERVICE_DOES_NOT_EXIST) {
+                        throw;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -153,7 +212,7 @@ namespace Starcounter.Server.Service {
             if (service == null) throw new ArgumentNullException("service");
 
             using (var manager = LocalWindowsServiceManager.Open(Win32Service.SERVICE_ACCESS.SERVICE_CHANGE_CONFIG)) {
-                SystemServerService.Delete(manager.Handle, service);
+                ServerService.Delete(manager.Handle, service);
             }
         }
 
@@ -188,17 +247,34 @@ namespace Starcounter.Server.Service {
             if (serviceManagerHandle == IntPtr.Zero) throw new ArgumentNullException("serviceManagerHandle");
             if (service == null) throw new ArgumentNullException("service");
 
-            using (var opened = LocalWindowsServiceHandle.Open(serviceManagerHandle, service.ServiceName, Win32Service.SERVICE_ACCESS.DELETE)) {
-                var result = Win32Service.DeleteService(opened.Handle);
-                if (!result) {
-                    // 1072 - ERROR_SERVICE_MARKED_FOR_DELETE.
-                    // Got it once when the service was disabled, because it didn't
-                    // answer to the service manager in time (i.e. I ran scservice.exe
-                    // "as is"), and then the service was marked "disabled" by the
-                    // SCM. Then I deleted it, and got this error.
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            int win32Error = 0;
+            Exception original = null;
+            try {
+                using (var opened = LocalWindowsServiceHandle.Open(serviceManagerHandle, service.ServiceName, Win32Service.SERVICE_ACCESS.DELETE)) {
+                    var result = Win32Service.DeleteService(opened.Handle);
+                    if (!result) {
+                        win32Error = Marshal.GetLastWin32Error();
+                    }
                 }
+            } catch (InvalidOperationException invalid) {
+                var innerWin32 = invalid.InnerException as Win32Exception;
+                if (innerWin32 == null) {
+                    throw;
+                }
+                original = invalid;
+                win32Error = innerWin32.NativeErrorCode;
+            } catch (Win32Exception win32ex) {
+                original = win32ex;
+                win32Error = win32ex.NativeErrorCode;
             }
+
+            if (win32Error != 0) {
+                // Ignore a few: 1072 and 1060.
+                if (win32Error != Win32Error.ERROR_SERVICE_DOES_NOT_EXIST && win32Error != Win32Error.ERROR_SERVICE_MARKED_FOR_DELETE) {
+                    var x = original ?? new Win32Exception(win32Error);
+                    throw x;
+                }
+            }                        
         }
 
         private static unsafe void ConfigureService(IntPtr serviceHandle, string description) {

@@ -253,9 +253,7 @@ public class CInstallationBase : CComponentBase
         // Checking that components directories are different.
         if (!Utilities.RunningOnBuildServer())
         {
-            if (Path.GetDirectoryName(InstallerMain.PersonalServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.InstallationBaseComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase) ||
-                Path.GetDirectoryName(InstallerMain.PersonalServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.SystemServerComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase) ||
-                Path.GetDirectoryName(InstallerMain.SystemServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.InstallationBaseComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase))
+            if (Path.GetDirectoryName(InstallerMain.PersonalServerComponent.ComponentPath + "\\").Equals(Path.GetDirectoryName(InstallerMain.InstallationBaseComponent.ComponentPath + "\\"), StringComparison.InvariantCultureIgnoreCase))
             {
                 Utilities.MessageBoxError("At least two components have equal installation directories. All components should be installed in different directories.", "Equal installation directories...");
                 throw ErrorCode.ToException(Error.SCERRINSTALLERSAMEDIRECTORIES);
@@ -282,6 +280,11 @@ public class CInstallationBase : CComponentBase
             ComponentPath,
             EnvironmentVariableTarget.Process);
         PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Process);
+
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+            ComponentPath,
+            EnvironmentVariableTarget.Machine);
+        PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Machine);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating base Start Menu items...");
@@ -370,6 +373,11 @@ public class CInstallationBase : CComponentBase
             null,
             EnvironmentVariableTarget.User);
         PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.User);
+
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
+            null,
+            EnvironmentVariableTarget.Machine);
+        PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.Machine);
 
         // Logging event.
         Utilities.ReportSetupEvent("Deleting Starcounter entry from the 'Add/Remove Programs' list...");

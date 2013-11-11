@@ -24,6 +24,8 @@
 #include <cassert>
 #include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
+
+#include <sccoredbg2.h>
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
 //#include "sccorensm.h"

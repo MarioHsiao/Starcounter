@@ -10,6 +10,10 @@ namespace Starcounter.XSON.Tests {
             // Do nothing.
         }
 
+        void IDb.RunSync(Action action) {
+            // Do nothing.
+        }
+
         Rows<dynamic> IDb.SQL(string query, params object[] args) {
             return null;
         }

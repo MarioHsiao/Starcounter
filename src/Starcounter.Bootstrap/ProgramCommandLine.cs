@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using Starcounter;
 
 namespace StarcounterInternal.Bootstrap {
+    using Error = Starcounter.Internal.Error;
 
     /// <summary>
     /// Contains a set of utility methods responsible for defining, parsing
@@ -21,80 +23,59 @@ namespace StarcounterInternal.Bootstrap {
     /// program.
     /// </summary>
     public static class ProgramCommandLine {
+        static IApplicationSyntax syntax;
+
+        /// <summary>
+        /// Gets the command-line syntax of the code host bootstrapping
+        /// program
+        /// </summary>
+        public static IApplicationSyntax Syntax {
+            get {
+                if (syntax == null) {
+                    syntax = CreateSyntax();
+                }
+                return syntax;
+            }
+        }
+
         /// <summary>
         /// Tries the get program arguments.
         /// </summary>
         /// <param name="args">The args.</param>
         /// <param name="arguments">The arguments.</param>
         internal static void TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
-            ApplicationSyntaxDefinition syntaxDefinition;
-            CommandSyntaxDefinition commandDefinition;
-            IApplicationSyntax syntax;
             Parser parser;
 
-            // Define the general program syntax and specify the
-            // default command.
+            try {
+                // If no arguments are given, use the syntax to create a Usage
+                // message, just as is expected when giving /help or /? to a program.
+                // Only do this when the console hasn't been redirected though.
+                // And exit instantly thereafter.
+                if (args.Length == 0 && !Console.IsInputRedirected) {
+                    Usage(syntax, null);
+                    Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
+                }
 
-            syntaxDefinition = new ApplicationSyntaxDefinition();
-            syntaxDefinition.ProgramDescription = "Runs the database user code worker process";
-            syntaxDefinition.DefaultCommand = StarcounterConstants.BootstrapCommandNames.Start;
+                // Parse and evaluate the given input.
+                // If parsing fails, an exception will be raised that pinpoints
+                // the error and has an error code indicating what is wrong. Let
+                // that exception slip through to the top-level handler.
+                parser = new Parser(args);
+                arguments = parser.Parse(Syntax);
 
-            // Define the global flag allowing a debugger to be attached
-            // to the process when starting. Undocumented, internal flag.
+            } catch (Exception e) {
+                // Since this method is normally called by the code host
+                // even before the logging system is bound, we need to be
+                // extra careful here, trying our best to at least provide
+                // some kind of information that could be useful.
+                uint error;
+                if (ErrorCode.TryGetCode(e, out error)) {
+                    throw;
+                }
 
-            syntaxDefinition.DefineFlag(
-                "attachdebugger",
-                "Attaches a debugger to the process during startup."
-                );
-
-            // Define the Start command. Exactly one parameter - the database identity - is
-            // expected. From this, the minimum command line will be:
-            // > prog.exe mydatabase
-            // (where we have omitted Start, since its the default).
-
-            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 1);
-
-            // Specifies the property set we accept.
-            // A full command line could look like
-            // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp"
-            // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
-
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, "Specifies the database directory to use.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.OutputDir, "Specifies the output directory to use.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.TempDir, "Specifies the temporary directory to use.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber, "Specifies the number of gateway workers.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort, "Specifies default HTTP port for user code.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort, "Specifies system HTTP port for user code.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, "Specifies the number of schedulers.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, "User command line arguments.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, "Working directory for applet.");
-
-            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
-            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
-            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging, "Instructs the host to write anything being traced to the log.");
-
-            // Create the syntax, validating it
-            syntax = syntaxDefinition.CreateSyntax();
-
-            // If no arguments are given, use the syntax to create a Usage
-            // message, just as is expected when giving /help or /? to a program.
-            // Only do this when the console hasn't been redirected though.
-            // And exit instantly thereafter.
-            if (args.Length == 0 && !Console.IsInputRedirected) {
-                Usage(syntax, null);
-                Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
+                error = Error.SCERRBADCOMMANDLINESYNTAX;
+                throw ErrorCode.ToException(error, e);
             }
-
-            // Parse and evaluate the given input.
-            // If parsing fails, an exception will be raised that pinpoints
-            // the error and has an error code indicating what is wrong. Let
-            // that exception slip through to the top-level handler.
-            parser = new Parser(args);
-            arguments = parser.Parse(syntax);
         }
 
         /// <summary>
@@ -151,6 +132,59 @@ namespace StarcounterInternal.Bootstrap {
             }
 
             Console.WriteLine();
+        }
+
+        static IApplicationSyntax CreateSyntax() {
+            ApplicationSyntaxDefinition syntaxDefinition;
+            CommandSyntaxDefinition commandDefinition;
+            
+            // Define the general program syntax and specify the
+            // default command.
+
+            syntaxDefinition = new ApplicationSyntaxDefinition();
+            syntaxDefinition.ProgramDescription = "Runs the database user code worker process";
+            syntaxDefinition.DefaultCommand = StarcounterConstants.BootstrapCommandNames.Start;
+
+            // Define the global flag allowing a debugger to be attached
+            // to the process when starting. Undocumented, internal flag.
+
+            syntaxDefinition.DefineFlag(
+                "attachdebugger",
+                "Attaches a debugger to the process during startup."
+                );
+
+            // Define the Start command. Exactly one parameter - the database identity - is
+            // expected. From this, the minimum command line will be:
+            // > prog.exe mydatabase
+            // (where we have omitted Start, since its the default).
+
+            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 1);
+
+            // Specifies the property set we accept.
+            // A full command line could look like
+            // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp"
+            // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
+
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, "Specifies the database directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.OutputDir, "Specifies the output directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.TempDir, "Specifies the temporary directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber, "Specifies the number of gateway workers.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort, "Specifies default HTTP port for user code.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort, "Specifies system HTTP port for user code.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, "Specifies the number of schedulers.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, "User command line arguments.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, "Working directory for applet.");
+
+            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
+            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
+            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging, "Instructs the host to write anything being traced to the log.");
+
+            // Create the syntax, validating it
+            return syntaxDefinition.CreateSyntax();
         }
     }
 }

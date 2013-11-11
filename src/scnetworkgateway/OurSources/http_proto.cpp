@@ -406,7 +406,7 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating content length.
-            g_ts_http_request_->content_len_bytes_ = ParseStringToUint(at, length);
+            g_ts_http_request_->content_len_bytes_ = (int32_t) p->content_length;
 
             break;
         }
@@ -714,7 +714,8 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
-        if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
             // Checking if any space left in chunk.
             GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
@@ -946,11 +947,7 @@ ALL_DATA_ACCUMULATED:
 
         // Checking if we want to disconnect the socket.
         if (sd->get_disconnect_socket_flag())
-        {
-            sd->set_socket_trigger_disconnect_flag();
-
             return SCERRGWDISCONNECTFLAG;
-        }
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
@@ -1002,7 +999,8 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
             accum_buf->get_accum_len_bytes());
 
         // Checking if we have complete data.
-        if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
+            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);

@@ -166,7 +166,7 @@ namespace Starcounter
             UInt32 local_time;
             UInt32 err = sccoredb.sccoredb_iterator_get_local_time(_handle, _verify, &local_time);
             if (err != 0)
-                throw TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                throw TranslateErrorCode(sccoredb.star_get_last_error());
 
             return local_time;
         }
@@ -261,7 +261,7 @@ namespace Starcounter
             return false;
 
         err:
-            throw TranslateErrorCode(sccoredb.Mdb_GetLastError());
+            throw TranslateErrorCode(sccoredb.star_get_last_error());
         }
 
 #if false
@@ -448,7 +448,7 @@ namespace Starcounter
             UInt32 local_time;
             UInt32 err = sccoredb.filter_iterator_get_local_time(_handle, _verify, &local_time);
             if (err != 0)
-                throw TranslateErrorCode(sccoredb.Mdb_GetLastError());
+                throw TranslateErrorCode(sccoredb.star_get_last_error());
 
             return local_time;
         }
@@ -524,7 +524,7 @@ namespace Starcounter
             return false;
 
         err:
-            throw TranslateErrorCode(sccoredb.Mdb_GetLastError());
+            throw TranslateErrorCode(sccoredb.star_get_last_error());
         }
 
 #if false

@@ -54,6 +54,7 @@ namespace Starcounter.Administrator.API.Handlers {
             startCommand.EnableWaiting = true;
             startCommand.NoDb = engine.NoDb;
             startCommand.LogSteps = engine.LogSteps;
+            startCommand.CodeHostCommandLineAdditions = engine.CodeHostCommandLineAdditions;
 
             var commandInfo = runtime.Execute(startCommand);
             Trace.Assert(commandInfo.ProcessorToken == StartDatabaseCommand.DefaultProcessor.Token);

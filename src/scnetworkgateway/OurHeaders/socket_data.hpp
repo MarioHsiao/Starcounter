@@ -360,8 +360,6 @@ public:
     // Setting socket representer flag.
     void set_socket_representer_flag()
     {
-        GW_ASSERT(false == get_socket_trigger_disconnect_flag());
-
         flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
 
@@ -369,22 +367,6 @@ public:
     void reset_socket_representer_flag()
     {
         flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
-    }
-
-    // Getting socket trigger disconnect flag.
-    bool get_socket_trigger_disconnect_flag()
-    {
-        return (flags_ & SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT) != 0;
-    }
-
-    // Setting socket trigger disconnect flag.
-    void set_socket_trigger_disconnect_flag()
-    {
-        // Do nothing if already a socket representer.
-        if (get_socket_representer_flag())
-            return;
-
-        flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
