@@ -32,6 +32,21 @@ namespace Starcounter {
         /// <summary>
         /// Register the specified uri, with one variable parameter, with a custom verb
         /// </summary>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM(string uri, Func<Response> handler)
+        {
+            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM(ushort port, string uri, Func<Response> handler)
+        {
+            _REST.RegisterHandler(port, uri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with one variable parameter, with a custom verb
+        /// </summary>
         /// <typeparam name="T">The type of the parameter.</typeparam>
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
