@@ -27,14 +27,21 @@ namespace Starcounter.Administrator.API.Handlers {
             server.Uri = admin.Uris.Server.ToAbsoluteUri();
             server.Configuration.FilePath = serverInfo.ServerConfigurationPath;
             server.StartTime = process.StartTime.ToString("s", System.Globalization.CultureInfo.InvariantCulture);
-            try {
-                server.Context = string.Format("{0}@{1}",
-                    Environment.UserName.ToLowerInvariant(),
-                    Environment.MachineName.ToLowerInvariant()
-                    );
-            } catch {
-                server.Context = string.Empty;
+
+            var context = string.Empty;
+            if (Environment.UserInteractive) {
+                try {
+                    context = string.Format("{0}@", Environment.UserName);
+                } catch {
+                    context = "n/n@";
+                }
             }
+            try {
+                context += Environment.MachineName;
+            } catch {
+                context += "system";
+            }
+            server.Context = context;
 
             return server;
         }
