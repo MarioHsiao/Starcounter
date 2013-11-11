@@ -13,7 +13,8 @@ namespace Starcounter.Administrator.API.Handlers {
             var uri = RootHandler.API.Uris.Server;
 
             Handle.GET<Request>(uri, OnGET);
-            RootHandler.Register405OnAllUnsupported(uri, new string[] {"GET"});
+            Handle.DELETE<Request>(uri, OnDELETE);
+            RootHandler.Register405OnAllUnsupported(uri, new string[] { "GET", "DELETE" });
         }
     }
 }
