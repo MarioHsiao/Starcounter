@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -43,6 +44,7 @@ namespace Starcounter.Tools {
             Application.Run(oContext);
         }
 
+
         /// <summary>
         /// 
         /// </summary>
@@ -50,7 +52,6 @@ namespace Starcounter.Tools {
 
             Application.ThreadException += Application_ThreadException;
             Application.ApplicationExit += Application_ApplicationExit;
-
 
             //Instantiate the component Module to hold everything    
             this.applicationContainer = new System.ComponentModel.Container();
@@ -89,14 +90,35 @@ namespace Starcounter.Tools {
             }
         }
 
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void service_Changed(object sender, StatusEventArgs e) {
+
             this.SetStatus(e);
+            
+            //this.mContextMenu.Invoke((MethodInvoker)delegate {
+
+            //    //someLabel.Text = newText; // runs on UI thread
+            //});
+
+            //this.SetStatus(e);
         }
+
+
+        //private delegate void SetControlPropertyThreadSafeDelegate(Control control, string propertyName, object propertyValue);
+
+        //public static void SetControlPropertyThreadSafe(Control control, string propertyName, object propertyValue) {
+        //    if (control.InvokeRequired) {
+        //        control.Invoke(new SetControlPropertyThreadSafeDelegate(SetControlPropertyThreadSafe), new object[] { control, propertyName, propertyValue });
+        //    }
+        //    else {
+        //        control.GetType().InvokeMember(propertyName, BindingFlags.SetProperty, null, control, new object[] { propertyValue });
+        //    }
+        //}
 
         /// <summary>
         /// 
@@ -163,6 +185,8 @@ namespace Starcounter.Tools {
 
             mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
 
+            this.mDisplayForm.Enabled = statusArgs.Connected;
+
             if (statusArgs.Connected) {
                 mNotifyIcon.Icon = this.Connected;
 
@@ -172,6 +196,8 @@ namespace Starcounter.Tools {
                 else {
                     mNotifyIcon.Text += "Server running";
                 }
+
+
             }
             else {
                 mNotifyIcon.Icon = this.Disconnected;
