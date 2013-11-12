@@ -384,6 +384,20 @@ namespace BuildSystemHelper
             File.WriteAllText(filePath, fileContents);
         }
 
+        // Finds string in file.
+        public static String FindStringInFile(String filePath, String origStringRegex)
+        {
+            String fileContents = File.ReadAllText(filePath);
+
+            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
+
+            // Trying to find this exact string in file.
+            if (!match.Success)
+                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
+
+            return match.Value;
+        }
+
         /// <summary>
         /// Helping function to copy folders recursively.
         /// </summary>
