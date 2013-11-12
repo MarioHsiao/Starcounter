@@ -39,7 +39,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
             Console.WriteLine(string.Format("NOTICE: Exporting to: {0} ", file));
 
 
-            SqlResult<Starcounter.Metadata.SysTable> result = Db.SlowSQL<Starcounter.Metadata.SysTable>("SELECT o FROM SYSTABLE o");
+            SqlResult<Starcounter.Metadata.materialized_table> result = Db.SlowSQL<Starcounter.Metadata.materialized_table>("SELECT o FROM MATERIALIZED_TABLE o");
             int tableCnt = 0;
 
             try {
@@ -49,15 +49,15 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                     writer.WriteLine("{");
                     writer.Write("    \"Tables\": [");
 
-                    foreach (Starcounter.Metadata.SysTable table in result) {
+                    foreach (Starcounter.Metadata.materialized_table table in result) {
 
                         // Exclude system tables from export.
 
                         if (
                             // Old system tables.
-                            table.Name == "sys_table" || table.Name == "sys_index" || table.Name == "sys_column" ||
+                            table.name == "sys_table" || table.name == "sys_index" || table.name == "sys_column" ||
                             // New system tables.
-                            table.Name == "materialized_table" || table.Name == "materialized_index" || table.Name == "materialized_column" || table.Name == "materialized_index_column"
+                            table.name == "materialized_table" || table.name == "materialized_index" || table.name == "materialized_column" || table.name == "materialized_index_column"
                             ) continue;
 
                         // Begin Table
@@ -67,7 +67,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
 
                         int itemCnt = ExportTable(table, writer);
                         tableCnt++;
-                        Console.WriteLine(string.Format("NOTICE: Exported table {0} ({1} items)", table.Name, itemCnt));
+                        Console.WriteLine(string.Format("NOTICE: Exported table {0} ({1} items)", table.name, itemCnt));
 
                     }
 
@@ -91,35 +91,35 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
 
         }
 
-        private static int ExportTable(Starcounter.Metadata.SysTable table, TextWriter writer) {
+        private static int ExportTable(Starcounter.Metadata.materialized_table table, TextWriter writer) {
 
             FastReflectionCaches.ClearAllCaches();
             Utils.ClearCache();
 
             writer.Write("{0}        ", writer.NewLine);
             writer.WriteLine("{");
-            writer.Write("            \"{0}\": [", table.Name);
+            writer.Write("            \"{0}\": [", table.name);
 
-            Starcounter.Binding.TableDef tableDef = Db.LookupTable(table.Name);
+            Starcounter.Binding.TableDef tableDef = Db.LookupTable(table.name);
 
             if (tableDef == null) {
-                throw new KeyNotFoundException(string.Format("Failed to get definition for table: {0}", table.Name));
+                throw new KeyNotFoundException(string.Format("Failed to get definition for table: {0}", table.name));
                 //writer.WriteLine("]");
                 //writer.Write("        }");
                 //return;
             }
 
-            SqlResult<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.Name));
+            SqlResult<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.name));
             TypeDef typeDef = null;
             try {
-                typeDef = Bindings.GetTypeDef((int)table.TableId);
+                typeDef = Bindings.GetTypeDef((int)table.table_id);
             }
             catch (IndexOutOfRangeException) {
-                throw new KeyNotFoundException(string.Format("Failed to get type definition for table: {0}, Is Host Executable running?", table.Name));
+                throw new KeyNotFoundException(string.Format("Failed to get type definition for table: {0}, Is Host Executable running?", table.name));
             }
 
             if (typeDef == null) {
-                throw new KeyNotFoundException(string.Format("Failed to get type definition for table: {0}", table.Name));
+                throw new KeyNotFoundException(string.Format("Failed to get type definition for table: {0}", table.name));
                 // Table removed?
                 //writer.WriteLine("]");
                 //writer.Write("        }");
@@ -225,7 +225,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                         }
                         #endregion
 
-                        string newValue = FixDatabaseErrors(table.Name, propertyName, propertyValue);
+                        string newValue = FixDatabaseErrors(table.name, propertyName, propertyValue);
                         if (newValue != null) {
                             value = newValue;
                         }

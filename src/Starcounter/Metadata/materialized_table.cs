@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="SysTable.cs" company="Starcounter AB">
+// <copyright file="materialized_table.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -11,10 +11,10 @@ using System.Reflection;
 namespace Starcounter.Metadata {
 
     /// <summary>
-    /// Class SysTable
+    /// Class materialized_table
     /// </summary>
     [Database]
-    public sealed class SysTable : Entity {
+    public sealed class materialized_table : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {
@@ -33,7 +33,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <remarks>
         /// Developer note: if you extend or change this class in any way, make
-        /// sure to keep the <see cref="SysTable.__starcounterTypeSpecification"/>
+        /// sure to keep the <see cref="materialized_table.__starcounterTypeSpecification"/>
         /// class in sync with what is returned by this method.
         /// </remarks>
         /// <returns>A <see cref="TypeDef"/> representing the current
@@ -52,15 +52,15 @@ namespace Starcounter.Metadata {
                 );
 
             var sysTableTypeDef = new TypeDef(
-                "Starcounter.Metadata.SysTable",
+                "Starcounter.Metadata.materialized_table",
                 null,
                 new PropertyDef[]
                 {
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("BaseTable", DbTypeCode.Object, true, "Starcounter.Metadata.SysTable") { ColumnName = "base_table" }
+                    new PropertyDef("table_id", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
+                    new PropertyDef("name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("base_table", DbTypeCode.Object, true, "Starcounter.Metadata.materialized_table") { ColumnName = "base_table" }
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.materialized_table"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.String, DbTypeCode.Object
@@ -71,15 +71,16 @@ namespace Starcounter.Metadata {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SysTable" /> class.
+        /// Initializes a new instance of the <see cref="materialized_table" /> class.
         /// </summary>
         /// <param name="u">The u.</param>
-        public SysTable(Uninitialized u) : base(u) {
+        public materialized_table(Uninitialized u)
+            : base(u) {
         }
 
         /// <summary>
         /// </summary>
-        public ulong TableId {
+        public ulong table_id {
             get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_id); }
         }
 
@@ -87,14 +88,14 @@ namespace Starcounter.Metadata {
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name {
+        public string name {
             get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
         }
 
         /// <summary>
         /// </summary>
-        public SysTable BaseTable {
-            get { return (SysTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_table); }
+        public materialized_table base_table {
+            get { return (materialized_table)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_table); }
         }
     }
 }
