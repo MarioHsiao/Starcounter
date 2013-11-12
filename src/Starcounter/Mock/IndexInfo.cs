@@ -185,42 +185,21 @@ namespace Starcounter.Binding
     /// </summary>
     internal class IndexInfo2 : IndexInfo {
 
-        private DbTypeCode[] _typeCode;
+        private readonly DbTypeCode[] _columnRuntimeTypes;
 
         internal IndexInfo2(IndexInfo indexInfo)
             : base(indexInfo) {
-            _typeCode = new DbTypeCode[indexInfo.AttributeCount];
+            _columnRuntimeTypes = new DbTypeCode[indexInfo.AttributeCount];
             for (var i = 0; i < indexInfo.AttributeCount; i++) {
-                _typeCode[i] = BindingHelper.ConvertScTypeCodeToDbTypeCode(GetColumnType(i));
+                _columnRuntimeTypes[i] = BindingHelper.ConvertScTypeCodeToDbTypeCode(GetColumnType(i));
             }
         }
 
         internal IndexInfo2(IndexInfo indexInfo, TypeDef typeDef)
             : base(indexInfo) {
-
-            // If there is a property mapped to a column we use the type code
-            // for the column. Otherwise we fall back to using the default type
-            // code for the column type.
-
-            _typeCode = new DbTypeCode[indexInfo.AttributeCount];
-            var propertyDefs = typeDef.PropertyDefs;
-            for (var c = 0; c < indexInfo.AttributeCount; c++) {
-                var columnIndex = GetColumnIndex(c);
-
-                // TODO: Optimize!
-                PropertyDef propertyDef = null;
-                for (var p = 0; p < propertyDefs.Length; p++) {
-                    propertyDef = propertyDefs[p];
-                    if (propertyDef.ColumnIndex == columnIndex) break;
-                    propertyDef = null;
-                }
-
-                if (propertyDef != null) {
-                    _typeCode[c] = propertyDef.Type;
-                }
-                else {
-                    _typeCode[c] = BindingHelper.ConvertScTypeCodeToDbTypeCode(GetColumnType(c));
-                }
+            _columnRuntimeTypes = new DbTypeCode[indexInfo.AttributeCount];
+            for (var i = 0; i < indexInfo.AttributeCount; i++) {
+                _columnRuntimeTypes[i] = typeDef.ColumnRuntimeTypes[GetColumnIndex(i)];
             }
         }
 
@@ -230,7 +209,7 @@ namespace Starcounter.Binding
         /// <param name="index">An index number within the combined index.</param>
         /// <returns>The type code of the path with the input index number.</returns>
         public DbTypeCode GetTypeCode(Int32 index) {
-            return _typeCode[index];
+            return _columnRuntimeTypes[index];
         }
     }
 }
