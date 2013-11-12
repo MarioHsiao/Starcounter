@@ -45,7 +45,6 @@ namespace Starcounter.Administrator {
             this.DatabaseId = Master.EncodeTo64(databaseInfo.Uri);
             this.Uri = databaseInfo.Uri; 
 
-            this.MaxImageSize = (int)databaseInfo.MaxImageSize;
             this.TransactionLogSize = (int)databaseInfo.TransactionLogSize;
             this.CollationFile = databaseInfo.CollationFile;
             this.SupportReplication = databaseInfo.SupportReplication;
