@@ -209,7 +209,7 @@ namespace Starcounter.Binding
                     _typeCode[c] = propertyDef.Type;
                 }
                 else {
-                    BindingHelper.ConvertScTypeCodeToDbTypeCode(GetColumnType(c));
+                    _typeCode[c] = BindingHelper.ConvertScTypeCodeToDbTypeCode(GetColumnType(c));
                 }
             }
         }
