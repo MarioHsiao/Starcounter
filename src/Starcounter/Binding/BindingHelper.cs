@@ -51,7 +51,6 @@ namespace Starcounter.Binding
         internal static DbTypeCode ConvertScTypeCodeToDbTypeCode(byte t) {
             switch (t) {
             case sccoredb.STAR_TYPE_STRING: return DbTypeCode.String;
-            case sccoredb.STAR_TYPE_LSTRING: return DbTypeCode.String;
             case sccoredb.STAR_TYPE_BINARY: return DbTypeCode.Binary;
             case sccoredb.STAR_TYPE_LBINARY: return DbTypeCode.LargeBinary;
             case sccoredb.STAR_TYPE_LONG: return DbTypeCode.Int64;
