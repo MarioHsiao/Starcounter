@@ -753,7 +753,7 @@ namespace BuildSystemHelper
                 allFilesSpaced += "\"" + fileToSign + "\" ";
             }
 
-            signToolInfo.Arguments = "sign /s MY /n \"" + companyName + "\" /d \"" + productName + "\" /v /ac \"" + pathToCertificate +
+            signToolInfo.Arguments = "sign /sm /s MY /n \"" + companyName + "\" /d \"" + productName + "\" /v /ac \"" + pathToCertificate +
                                      "\" /t http://timestamp.verisign.com/scripts/timstamp.dll " + allFilesSpaced;
 
             Console.WriteLine("Signing: \"" + signToolInfo.FileName + "\" " + signToolInfo.Arguments);
