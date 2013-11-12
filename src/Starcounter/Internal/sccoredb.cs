@@ -47,43 +47,39 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_LSTRING = 0x02;
+        public const byte STAR_TYPE_BINARY = 0x02;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_BINARY = 0x03;
+        public const byte STAR_TYPE_LBINARY = 0x03;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_LBINARY = 0x04;
+        public const byte STAR_TYPE_LONG = 0x04;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_LONG = 0x05;
+        public const byte STAR_TYPE_ULONG = 0x05;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_ULONG = 0x06;
+        public const byte STAR_TYPE_DECIMAL = 0x06;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_DECIMAL = 0x07;
+        public const byte STAR_TYPE_FLOAT = 0x07;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_FLOAT = 0x08;
+        public const byte STAR_TYPE_DOUBLE = 0x08;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_DOUBLE = 0x09;
+        public const byte STAR_TYPE_REFERENCE = 0x09;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_REFERENCE = 0x0A;
-
-        /// <summary>
-        /// </summary>
-        public const byte STAR_TYPE_KEY = 0x0B;
+        public const byte STAR_TYPE_KEY = 0x0A;
 
         /// <summary>
         /// </summary>
