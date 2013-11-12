@@ -36,7 +36,6 @@ namespace Starcounter.Server {
             internal static extern Int32 GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
         }
 
-        private const long MIN_DEFAULT_MAX_IMAGE_SIZE = 1024;
         private const long MIN_DEFAULT_TRANSACTION_LOG_SIZE = 256;
 
         /// <summary>
@@ -45,30 +44,17 @@ namespace Starcounter.Server {
         /// </summary>
         private const string StaticDefaultCollationFile = "TurboText_en-GB_3.dll";
 
-        private readonly long CalculatedMaxImageSize;
         private readonly long InitialDefaultTransactionLogSize;
         private readonly string InitialDefaultCollationFile;
 
-        internal long? ConfiguredMaxImageSize { get; private set; }
         internal long? ConfiguredTransactionLogSize { get; private set; }
         internal string ConfiguredCollationFile { get; private set; }
 
         internal DatabaseDefaults() {
-            CalculatedMaxImageSize = CalculateDefaultMaxImageSize();
             InitialDefaultTransactionLogSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
             InitialDefaultCollationFile = StaticDefaultCollationFile;
         }
 
-        /// <summary>
-        /// Gets the default maximum image size to use.
-        /// </summary>
-        internal long MaxImageSize {
-            get {
-                return ConfiguredMaxImageSize.HasValue ?
-                    ConfiguredMaxImageSize.Value :
-                    CalculatedMaxImageSize;
-            }
-        }
 
         /// <summary>
         /// Gets the default transaction log size to use.
@@ -97,13 +83,10 @@ namespace Starcounter.Server {
         internal void Update(ServerConfiguration configuration) {
             DatabaseStorageConfiguration storageConfiguration = configuration.DefaultDatabaseStorageConfiguration; 
             if (storageConfiguration != null) {
-                this.ConfiguredMaxImageSize = storageConfiguration.MaxImageSize;
-                if (this.ConfiguredMaxImageSize.HasValue && this.ConfiguredMaxImageSize.Value < MIN_DEFAULT_MAX_IMAGE_SIZE)
-                    this.ConfiguredMaxImageSize = MIN_DEFAULT_MAX_IMAGE_SIZE;
 
                 this.ConfiguredTransactionLogSize = storageConfiguration.TransactionLogSize;
                 if (this.ConfiguredTransactionLogSize.HasValue && this.ConfiguredTransactionLogSize.Value < MIN_DEFAULT_TRANSACTION_LOG_SIZE)
-                    this.ConfiguredMaxImageSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
+                    this.ConfiguredTransactionLogSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
 
                 // NOTE:
                 // Check if the file is present in the installation directory and
@@ -112,26 +95,6 @@ namespace Starcounter.Server {
             }
         }
 
-        private long CalculateDefaultMaxImageSize() {
-            Int64 v;
-            Int32 br;
-            Win32.MEMORYSTATUSEX m;
 
-            v = 0;
-
-            m = new Win32.MEMORYSTATUSEX();
-            m.dwLength = (UInt32)Marshal.SizeOf(m);
-            br = Win32.GlobalMemoryStatusEx(ref m);
-            if (br != 0) {
-                v = (long)(((decimal)(m.ullTotalPhys / 1048576)) * 1.5m);
-            } else {
-                // Unable to fetch memory information for some reason. Go with
-                // default.
-            }
-
-            if (v < MIN_DEFAULT_MAX_IMAGE_SIZE) v = MIN_DEFAULT_MAX_IMAGE_SIZE;
-
-            return v;
-        }
     }
 }
