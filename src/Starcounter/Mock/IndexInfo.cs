@@ -17,10 +17,11 @@ namespace Starcounter.Binding
         private UInt64 _handle;
         private UInt64 _tableId;
         private String _name;
+        private int[] _columnIndexes;
         private ColumnDef[] _columnDefs;
         private SortOrder[] _sortOrderings;
 
-        internal IndexInfo(UInt64 handle, UInt64 tableid, String name, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
+        internal IndexInfo(UInt64 handle, UInt64 tableid, String name, int[] columnIndexes, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
         {
 #if false
             if (columnDefs.Length != sortOrderings.Length)
@@ -31,9 +32,13 @@ namespace Starcounter.Binding
             _handle = handle;
             _tableId = tableid;
             _name = name;
+            _columnIndexes = columnIndexes;
             _columnDefs = columnDefs;
             _sortOrderings = sortOrderings;
         }
+
+        internal IndexInfo(IndexInfo indexInfo) :
+            this(indexInfo._handle, indexInfo._tableId, indexInfo._name, indexInfo._columnIndexes, indexInfo._columnDefs, indexInfo._sortOrderings) { }
 
         /// <summary>
         /// Index handle. Used to access the index.
@@ -84,13 +89,24 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// </summary>
+        public int GetColumnIndex(Int32 index) {
+            return _columnIndexes[index];
+        }
+
+        /// <summary>
         /// Returns the name of the path with the specified index number within the combined index.
         /// </summary>
         /// <param name="index">An index number within the combined index.</param>
         /// <returns>The name of the path with the input index number.</returns>
-        public String GetColumnName(Int32 index)
-        {
+        public String GetColumnName(Int32 index) {
             return _columnDefs[index].Name;
+        }
+
+        /// <summary>
+        /// </summary>
+        internal byte GetColumnType(int index) {
+            return _columnDefs[index].Type;
         }
 
         /// <summary>
@@ -101,16 +117,6 @@ namespace Starcounter.Binding
         public SortOrder GetSortOrdering(Int32 index)
         {
             return _sortOrderings[index];
-        }
-
-        /// <summary>
-        /// Returns the database type code of the path with the specified index number within the combined index.
-        /// </summary>
-        /// <param name="index">An index number within the combined index.</param>
-        /// <returns>The type code of the path with the input index number.</returns>
-        public DbTypeCode GetTypeCode(Int32 index)
-        {
-            return _columnDefs[index].Type;
         }
 
 #if DEBUG
@@ -165,5 +171,45 @@ namespace Starcounter.Binding
             return areEquals;
         }
 #endif
+    }
+
+    /// <summary>
+    /// <para>
+    /// Extension of index info representing an index info mapped to a type
+    /// (rather then to the underlying table).
+    /// </para>
+    /// <para>
+    /// Maps column type codes to that of type properties mapping the columns
+    /// part of the key rather then the types of underlying columns.
+    /// </para>
+    /// </summary>
+    internal class IndexInfo2 : IndexInfo {
+
+        private readonly DbTypeCode[] _columnRuntimeTypes;
+
+        internal IndexInfo2(IndexInfo indexInfo)
+            : base(indexInfo) {
+            _columnRuntimeTypes = new DbTypeCode[indexInfo.AttributeCount];
+            for (var i = 0; i < indexInfo.AttributeCount; i++) {
+                _columnRuntimeTypes[i] = BindingHelper.ConvertScTypeCodeToDbTypeCode(GetColumnType(i));
+            }
+        }
+
+        internal IndexInfo2(IndexInfo indexInfo, TypeDef typeDef)
+            : base(indexInfo) {
+            _columnRuntimeTypes = new DbTypeCode[indexInfo.AttributeCount];
+            for (var i = 0; i < indexInfo.AttributeCount; i++) {
+                _columnRuntimeTypes[i] = typeDef.ColumnRuntimeTypes[GetColumnIndex(i)];
+            }
+        }
+
+        /// <summary>
+        /// Returns the database type code of the path with the specified index number within the combined index.
+        /// </summary>
+        /// <param name="index">An index number within the combined index.</param>
+        /// <returns>The type code of the path with the input index number.</returns>
+        public DbTypeCode GetTypeCode(Int32 index) {
+            return _columnRuntimeTypes[index];
+        }
     }
 }

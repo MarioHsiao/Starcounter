@@ -46,15 +46,15 @@ namespace Starcounter.Metadata {
                 "materialized_column",
                 new ColumnDef[]
                 {
-                    new ColumnDef("__id", DbTypeCode.Key, false, false),
-                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("table", DbTypeCode.Object, true, false),
-                    new ColumnDef("index", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("base_type", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("always_unique", DbTypeCode.Boolean, false, false),
-                    new ColumnDef("nullable", DbTypeCode.Boolean, false, false),
-                    new ColumnDef("inherited", DbTypeCode.Boolean, false, false),
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
+                    new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
+                    new ColumnDef("index", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("base_type", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("always_unique", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("nullable", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("inherited", sccoredb.STAR_TYPE_ULONG, false, false),
                 }
                 );
 
@@ -73,7 +73,12 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Inherited", DbTypeCode.Boolean, false) { ColumnName = "inherited" },
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysColumn"),
-                systemTableDef
+                systemTableDef,
+                new DbTypeCode[] {
+                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.Object, DbTypeCode.UInt64,
+                    DbTypeCode.String, DbTypeCode.UInt64, DbTypeCode.UInt64, DbTypeCode.UInt64,
+                    DbTypeCode.UInt64
+                }
                 );
 
             return sysColumnTypeDef;
