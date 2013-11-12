@@ -18,11 +18,10 @@ namespace Starcounter.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_index_id = 0;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
-            internal static int columnHandle_table_name = 3;
-            internal static int columnHandle_description = 4;
+            internal static int columnHandle_index_id = 1;
+            internal static int columnHandle_table_id = 2;
+            internal static int columnHandle_table = 3;
+            internal static int columnHandle_name = 4;
             internal static int columnHandle_unique = 5;
         }
 #pragma warning disable 0628, 0169
@@ -41,15 +40,14 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             var systemTableDef = new TableDef(
-                "sys_index",
+                "materialized_index",
                 new ColumnDef[]
                 {
                     new ColumnDef("__id", DbTypeCode.Key, false, false),
                     new ColumnDef("index_id", DbTypeCode.UInt64, false, false),
                     new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("table", DbTypeCode.Object, true, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("table_name", DbTypeCode.String, true, false),
-                    new ColumnDef("description", DbTypeCode.String, true, false),
                     new ColumnDef("unique", DbTypeCode.Boolean, false, false),
                 }
                 );
@@ -59,10 +57,10 @@ namespace Starcounter.Metadata {
                 null,
                 new PropertyDef[]
                 {
+                    new PropertyDef("IndexId", DbTypeCode.UInt64, false) { ColumnName = "index_id" },
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
+                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Metadata.SysTable") { ColumnName = "table" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("TableName", DbTypeCode.String, true) { ColumnName = "table_name" },
-                    new PropertyDef("Description", DbTypeCode.String, true) { ColumnName = "description" },
                     new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
@@ -80,8 +78,20 @@ namespace Starcounter.Metadata {
 
         /// <summary>
         /// </summary>
+        public ulong IndexId {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_index_id); }
+        }
+
+        /// <summary>
+        /// </summary>
         public ulong TableId {
             get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_id); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public SysTable Table {
+            get { return (SysTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table); }
         }
 
         /// <summary>
@@ -93,27 +103,101 @@ namespace Starcounter.Metadata {
         }
 
         /// <summary>
-        /// Gets the name of the table.
-        /// </summary>
-        /// <value>The name of the table.</value>
-        public string TableName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_name); }
-        }
-
-        /// <summary>
-        /// Gets the description.
-        /// </summary>
-        /// <value>The description.</value>
-        public string Description {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_description); }
-        }
-
-        /// <summary>
         /// Gets a value indicating whether this <see cref="SysIndex" /> is unique.
         /// </summary>
         /// <value><c>true</c> if unique; otherwise, <c>false</c>.</value>
         public bool Unique {
             get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_unique); }
+        }
+    }
+
+    /// <summary>
+    /// Class SysIndexColumn
+    /// </summary>
+    public sealed class SysIndexColumn : Entity {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal sealed class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_index = 1;
+            internal static int columnHandle_place = 2;
+            internal static int columnHandle_column = 3;
+            internal static int columnHandle_order = 4;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        /// <summary>
+        /// Creates the database binding <see cref="TypeDef"/> representing
+        /// the type in the database and holding its table- and column defintions.
+        /// </summary>
+        /// <remarks>
+        /// Developer note: if you extend or change this class in any way, make
+        /// sure to keep the <see cref="SysTable.__starcounterTypeSpecification"/>
+        /// class in sync with what is returned by this method.
+        /// </remarks>
+        /// <returns>A <see cref="TypeDef"/> representing the current
+        /// type.</returns>
+        static internal TypeDef CreateTypeDef() {
+            var systemTableDef = new TableDef(
+                "materialized_index_column",
+                new ColumnDef[]
+                {
+                    new ColumnDef("__id", DbTypeCode.Key, false, false),
+                    new ColumnDef("index", DbTypeCode.Object, true, false),
+                    new ColumnDef("place", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("column", DbTypeCode.Object, true, false),
+                    new ColumnDef("order", DbTypeCode.UInt64, false, false)
+                }
+                );
+
+            var sysIndexTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysIndexColumn",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("Index", DbTypeCode.Object, true, "Starcounter.Metadata.SysIndex") { ColumnName = "index" },
+                    new PropertyDef("Place", DbTypeCode.UInt64, false) { ColumnName = "place" },
+                    new PropertyDef("Column", DbTypeCode.Object, true, "Starcounter.Metadata.SysColumn") { ColumnName = "column" },
+                    new PropertyDef("Order", DbTypeCode.UInt64, false) { ColumnName = "order" }
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndexColumn"),
+                systemTableDef
+                );
+
+            return sysIndexTypeDef;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SysIndex" /> class.
+        /// </summary>
+        /// <param name="u">The u.</param>
+        public SysIndexColumn(Uninitialized u) : base(u) { }
+
+        /// <summary>
+        /// </summary>
+        public SysIndex Index {
+            get { return (SysIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_index); }
+        }
+
+
+        /// <summary>
+        /// </summary>
+        public ulong Place {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_place); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public SysColumn Column {
+            get { return (SysColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_column); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public ulong Order {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_order); }
         }
     }
 }

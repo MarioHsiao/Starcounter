@@ -20,9 +20,9 @@ namespace Starcounter.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 0;
-            internal static int columnHandle_name = 1;
-            internal static int columnHandle_base_name = 2;
+            internal static int columnHandle_table_id = 1;
+            internal static int columnHandle_name = 2;
+            internal static int columnHandle_base_table = 3;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -41,13 +41,13 @@ namespace Starcounter.Metadata {
         static internal TypeDef CreateTypeDef() {
 
             var systemTableDef = new TableDef(
-                "sys_table",
+                "materialized_table",
                 new ColumnDef[]
                 {
                     new ColumnDef("__id", DbTypeCode.Key, false, false),
                     new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("base_name", DbTypeCode.String, true, false),
+                    new ColumnDef("base_table", DbTypeCode.Object, true, false),
                 }
                 );
 
@@ -58,7 +58,7 @@ namespace Starcounter.Metadata {
                 {
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("BaseName", DbTypeCode.String, true) { ColumnName = "base_name" }
+                    new PropertyDef("BaseTable", DbTypeCode.Object, true, "Starcounter.Metadata.SysTable") { ColumnName = "base_table" }
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
                 systemTableDef
@@ -89,11 +89,9 @@ namespace Starcounter.Metadata {
         }
 
         /// <summary>
-        /// Gets the name of the base.
         /// </summary>
-        /// <value>The name of the base.</value>
-        public string BaseName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_name); }
+        public SysTable BaseTable {
+            get { return (SysTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_table); }
         }
     }
 }
