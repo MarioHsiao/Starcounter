@@ -173,6 +173,16 @@ namespace Starcounter.Binding
 #endif
     }
 
+    /// <summary>
+    /// <para>
+    /// Extension of index info representing an index info mapped to a type
+    /// (rather then to the underlying table).
+    /// </para>
+    /// <para>
+    /// Maps column type codes to that of type properties mapping the columns
+    /// part of the key rather then the types of underlying columns.
+    /// </para>
+    /// </summary>
     internal class IndexInfo2 : IndexInfo {
 
         private DbTypeCode[] _typeCode;
