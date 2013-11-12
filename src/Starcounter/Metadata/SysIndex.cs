@@ -64,7 +64,11 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
-                systemTableDef
+                systemTableDef,
+                new DbTypeCode[] {
+                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.UInt64, DbTypeCode.Object,
+                    DbTypeCode.String, DbTypeCode.UInt64
+                }
                 );
 
             return sysIndexTypeDef;
@@ -163,7 +167,11 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Order", DbTypeCode.UInt64, false) { ColumnName = "order" }
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndexColumn"),
-                systemTableDef
+                systemTableDef,
+                new DbTypeCode[] {
+                    DbTypeCode.Key, DbTypeCode.Object, DbTypeCode.UInt64, DbTypeCode.Object,
+                    DbTypeCode.UInt64
+                }
                 );
 
             return sysIndexTypeDef;

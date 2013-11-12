@@ -73,7 +73,12 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Inherited", DbTypeCode.Boolean, false) { ColumnName = "inherited" },
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysColumn"),
-                systemTableDef
+                systemTableDef,
+                new DbTypeCode[] {
+                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.Object, DbTypeCode.UInt64,
+                    DbTypeCode.String, DbTypeCode.UInt64, DbTypeCode.UInt64, DbTypeCode.UInt64,
+                    DbTypeCode.UInt64
+                }
                 );
 
             return sysColumnTypeDef;

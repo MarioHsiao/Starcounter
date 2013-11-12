@@ -61,7 +61,10 @@ namespace Starcounter.Metadata {
                     new PropertyDef("BaseTable", DbTypeCode.Object, true, "Starcounter.Metadata.SysTable") { ColumnName = "base_table" }
                 },
                 new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
-                systemTableDef
+                systemTableDef,
+                new DbTypeCode[] {
+                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.String, DbTypeCode.Object
+                }
                 );
 
             return sysTableTypeDef;
