@@ -51,7 +51,14 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
 
                     foreach (Starcounter.Metadata.SysTable table in result) {
 
-                        if (table.Name == "sys_table" || table.Name == "sys_index" || table.Name == "sys_column") continue;
+                        // Exclude system tables from export.
+
+                        if (
+                            // Old system tables.
+                            table.Name == "sys_table" || table.Name == "sys_index" || table.Name == "sys_column" ||
+                            // New system tables.
+                            table.Name == "materialized_table" || table.Name == "materialized_index" || table.Name == "materialized_column" || table.Name == "materialized_index_column"
+                            ) continue;
 
                         // Begin Table
                         if (tableCnt > 0) {
