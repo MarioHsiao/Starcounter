@@ -57,7 +57,6 @@ namespace Starcounter.Server {
             // server defaults (fetched either from default configuration or
             // from computed/static server defaults).
             this.StorageConfiguration = new DatabaseStorageConfiguration();
-            this.StorageConfiguration.MaxImageSize = engine.DatabaseDefaultValues.MaxImageSize;
             this.StorageConfiguration.TransactionLogSize = engine.DatabaseDefaultValues.TransactionLogSize;
             this.StorageConfiguration.SupportReplication = false;
             this.StorageConfiguration.CollationFile = engine.DatabaseDefaultValues.CollationFile;
