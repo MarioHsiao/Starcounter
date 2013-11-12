@@ -253,17 +253,17 @@ namespace QueryProcessingTest {
 
         public static void TestComparison() {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
-            var e = Db.SQL<SysTable>("select s from systable s where tableid = ?", 4).GetEnumerator();
+            var e = Db.SQL<SysTable>("select s from systable s where tableid = ?", 5).GetEnumerator();
             Trace.Assert(e.MoveNext());
             SysTable s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
-            Trace.Assert(s.TableId == 4);
+            Trace.Assert(s.TableId == 5);
             e.Dispose();
-            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 4").GetEnumerator();
+            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 5").GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
-            Trace.Assert(s.TableId == 4);
+            Trace.Assert(s.TableId == 5);
             e.Dispose();
             e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 10").GetEnumerator();
             Trace.Assert(e.MoveNext());

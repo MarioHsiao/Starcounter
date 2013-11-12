@@ -25,7 +25,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Int32 extentNumber = -1; // To which table this enumerator belongs to.
     UInt64 indexHandle = 0; // Handle to the related index.
     IteratorHelper iterHelper; // Stores cached iterator helper.
-    IndexInfo indexInfo = null; // Information about index.
+    IndexInfo2 indexInfo = null; // Information about index.
 
     ILogicalExpression condition = null; // Condition tree for the query.
     Boolean descending = false, // Sorting: Ascending or Descending.
@@ -59,7 +59,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
     internal FullTableScan(byte nodeId, 
         RowTypeBinding rowTypeBind,
-        Int32 extentNum, IndexInfo indexInfo,
+        Int32 extentNum, IndexInfo2 indexInfo,
         ILogicalExpression queryCond,
         SortOrder sortingType,
         INumericalExpression fetchNumberExpr,
