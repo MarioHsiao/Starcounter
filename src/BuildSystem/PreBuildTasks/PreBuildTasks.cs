@@ -40,6 +40,7 @@ namespace PreBuildTasks
                 // Replacing version information.
                 String currentVersionFilePath = Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs");
                 BuildSystem.ReplaceStringInFile(currentVersionFilePath, @"String Version = ""[0-9\.]+"";", "String Version = \"" + version + "\";");
+                BuildSystem.ReplaceStringInFile(currentVersionFilePath, @"VersionDate \= DateTime\.Parse\(""[0-9Z\:\-\. ]+"",", "VersionDate = DateTime.Parse(\"" + DateTime.UtcNow.ToUniversalTime().ToString("u") + "\",");
 
                 String installerWrapperDir = Path.Combine(checkoutDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper");
 

@@ -118,7 +118,6 @@ namespace Starcounter.Server.Setup {
             };
 
             databaseStorageConfig = new DatabaseStorageConfiguration() {
-                MaxImageSize = databaseDefaults.MaxImageSize,
                 TransactionLogSize = databaseDefaults.TransactionLogSize,
                 SupportReplication = false,
                 CollationFile = databaseDefaults.CollationFile

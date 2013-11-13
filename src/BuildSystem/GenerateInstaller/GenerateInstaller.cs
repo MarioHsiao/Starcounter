@@ -303,7 +303,9 @@ namespace GenerateInstaller
                 versionFileContents += "  <Configuration>" + configuration + "</Configuration>" + Environment.NewLine;
                 versionFileContents += "  <Platform>" + platform + "</Platform>" + Environment.NewLine;
                 versionFileContents += "  <Version>" + version + "</Version>" + Environment.NewLine;
-                versionFileContents += "  <VersionDate>" + DateTime.UtcNow.ToUniversalTime().ToString("u") + "</VersionDate>" + Environment.NewLine;
+
+                String versionDate = BuildSystem.FindStringInFile(Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs"), @"VersionDate \= DateTime\.Parse\(""[0-9Z\:\-\. ]+"",").Substring("VersionDate = DateTime.Parse(".Length + 1, 20);
+                versionFileContents += "  <VersionDate>" + versionDate + "</VersionDate>" + Environment.NewLine;
                 versionFileContents += "  <Channel>" + channel + "</Channel>" + Environment.NewLine;
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 

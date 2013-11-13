@@ -38,18 +38,6 @@
             </div>
         </div>
 
-        <div class="control-group" ng-class="{error: myForm.maxImageSize.$invalid}">
-            <label class="control-label" for="maxImageSize">Max Image Size</label>
-            <div class="controls">
-                <div class="input-append">
-                    <input ng-disabled="isBusy == true" type="number" min="0" name="maxImageSize" id="maxImageSize" placeholder="Max Image Size" ng-model="settings.maxImageSize" required>
-                    <span class="add-on">MB</span>
-                </div>
-                <span ng-show="myForm.maxImageSize.$error.validationError" class="help-inline">Invalid format</span>
-                <span ng-show="myForm.maxImageSize.$error.required" class="help-inline">Required</span>
-            </div>
-        </div>
-
         <div class="control-group" ng-class="{error: myForm.imageDirectory.$invalid}">
             <label class="control-label" for="imageDirectory">Image Directory</label>
             <div class="controls">

@@ -11,12 +11,12 @@ namespace staradmin {
         static String[] ScProcessesList = new String[]
         {
             StarcounterConstants.ProgramNames.ScService,
+            StarcounterConstants.ProgramNames.ScIpcMonitor,
+            StarcounterConstants.ProgramNames.ScNetworkGateway,
             StarcounterConstants.ProgramNames.ScAdminServer,
             StarcounterConstants.ProgramNames.ScCode,
             StarcounterConstants.ProgramNames.ScData,
             StarcounterConstants.ProgramNames.ScDbLog,
-            StarcounterConstants.ProgramNames.ScIpcMonitor,
-            StarcounterConstants.ProgramNames.ScNetworkGateway,
             "scnetworkgatewayloopedtest",
             StarcounterConstants.ProgramNames.ScWeaver,
             StarcounterConstants.ProgramNames.ScSqlParser,
