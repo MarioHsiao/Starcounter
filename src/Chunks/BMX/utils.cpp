@@ -117,7 +117,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
 }
 
 // Clones the existing chunk into a new one by copying the specified header.
-__forceinline uint32_t __stdcall sc_bmx_clone_chunk(
+uint32_t __stdcall sc_bmx_clone_chunk(
     starcounter::core::chunk_index src_chunk_index,
     int32_t offset,
     int32_t num_bytes_to_copy,
@@ -144,7 +144,7 @@ __forceinline uint32_t __stdcall sc_bmx_clone_chunk(
 }
 
 // Writes given big linear buffer into obtained linked chunks.
-__forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
+uint32_t __stdcall sc_bmx_write_to_chunks(
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index cur_chunk_index,
@@ -173,6 +173,8 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {
         // Writing to first chunk.
+        assert(first_chunk_offset < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+        assert(buf_len_bytes < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         memcpy(cur_chunk_buf + first_chunk_offset, buf, buf_len_bytes);
 
         // Setting the number of written bytes.
@@ -222,6 +224,8 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     int32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
     
     // Writing to first chunk.
+    assert(first_chunk_offset < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+    assert(num_bytes_left_first_chunk < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
     left_bytes_to_write -= num_bytes_left_first_chunk;
     assert(left_bytes_to_write >= 0);
@@ -255,6 +259,7 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
         assert(num_bytes_to_write >= left_bytes_to_write);
         assert(left_bytes_to_write > 0);
         assert(num_bytes_to_write_in_chunk > 0 && num_bytes_to_write_in_chunk <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+        assert(num_bytes_to_write - left_bytes_to_write < buf_len_bytes);
         memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
         assert(left_bytes_to_write >= 0);
@@ -277,7 +282,7 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
 }
 
 // Does everything to send the small linear user buffer to the client.
-__forceinline uint32_t __stdcall sc_bmx_send_small_buffer(
+uint32_t __stdcall sc_bmx_send_small_buffer(
     uint8_t* buf,
     int32_t buf_len_bytes,
     int32_t chunk_user_data_offset,
@@ -299,7 +304,7 @@ __forceinline uint32_t __stdcall sc_bmx_send_small_buffer(
 }
 
 // Does everything to send the big linear user buffer to the client.
-__forceinline uint32_t __stdcall sc_bmx_send_big_buffer(
+uint32_t __stdcall sc_bmx_send_big_buffer(
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index src_chunk_index,
@@ -384,6 +389,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     // Points to user data offset in chunk.
     uint16_t chunk_user_data_offset = *(uint16_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA) +
         starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
+
+    assert(chunk_user_data_offset < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
 
     // Adding connection flags.
     (*(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= conn_flags;
