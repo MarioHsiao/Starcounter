@@ -17,6 +17,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
         internal static UnpackerWorker UnpackWorker;
         internal static BuildWorker BuildkWorker;
         internal static VersionHandlerSettings Settings;
+#if ANDWAH
+        internal static String StarcounterTrackerUrl = "192.168.8.183";
+#else
+        internal static String StarcounterTrackerUrl = "downloads.starcounter.com";
+#endif
 
         /// <summary>
         /// 

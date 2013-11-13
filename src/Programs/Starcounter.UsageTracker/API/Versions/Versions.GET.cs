@@ -47,10 +47,11 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                             currentChannelItem = allVersionItems.channels.Add();
                             currentChannelItem.name = versionSource.Channel;
 
-                            string latestVersion = VersionSource.GetLatestVersion(versionSource.Channel);
+                            VersionSource latestVersion = VersionSource.GetLatestVersion(versionSource.Channel);
                             if (latestVersion != null) {
-                                currentChannelItem.latestVersion = latestVersion.ToString();
-                                currentChannelItem.downloadUrl = string.Format("http://downloads.starcounter.com/archive/{0}/{1}", versionSource.Channel, versionSource.Version);
+                                currentChannelItem.latestVersion = latestVersion.Version;
+                                currentChannelItem.latestVersionDate = latestVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                                currentChannelItem.downloadUrl = string.Format("http://{0}/archive/{1}/{2}", VersionHandlerApp.StarcounterTrackerUrl, latestVersion.Channel, latestVersion.Version);
                             }
 
                         }
@@ -62,7 +63,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                         // Send the UTC DateTime
                         versionItem.versionDate = versionSource.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                        versionItem.downloadUrl = string.Format("http://downloads.starcounter.com/archive/{0}/{1}", versionSource.Channel, versionSource.Version);
+                        versionItem.downloadUrl = string.Format("http://{0}/archive/{1}/{2}", VersionHandlerApp.StarcounterTrackerUrl, versionSource.Channel, versionSource.Version);
                     }
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = allVersionItems.ToJsonUtf8() };
@@ -101,7 +102,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         var item = versions.versions.Add();
                         item.channel = versionSource.Channel;
                         item.version = versionSource.Version;
-                        item.downloadUrl = string.Format("http://downloads.starcounter.com/archive/{0}/{1}", channel, versionSource.Version);
+                        item.versionDate = versionSource.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                        item.downloadUrl = string.Format("http://{0}/archive/{1}/{2}", VersionHandlerApp.StarcounterTrackerUrl, channel, versionSource.Version);
                         //item.buildDate =
                     }
 
@@ -132,7 +134,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     Version versionItem = new Version();
                     versionItem.version = versionSource.Version;
-                    versionItem.downloadUrl = string.Format("http://downloads.starcounter.com/archive/{0}/{1}", versionSource.Channel, versionSource.Version);
+                    versionItem.versionDate = versionSource.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                    versionItem.downloadUrl = string.Format("http://{0}/archive/{1}/{2}", VersionHandlerApp.StarcounterTrackerUrl, versionSource.Channel, versionSource.Version);
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = versionItem.ToJsonUtf8() };
 

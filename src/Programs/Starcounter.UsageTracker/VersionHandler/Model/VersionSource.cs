@@ -57,13 +57,13 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// </summary>
         /// <param name="channel">Channel name</param>
         /// <returns>Version or null if no valid versions was found in the specified channel</returns>
-        internal static string GetLatestVersion(string channel) {
+        internal static VersionSource GetLatestVersion(string channel) {
 
             // Get latest version source
             VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=? ORDER BY o.VersionDate DESC", channel, false).First;
             if (versionSource == null) return null;
 
-            return versionSource.Version;
+            return versionSource;
         }
 
 

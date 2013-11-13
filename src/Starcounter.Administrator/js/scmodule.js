@@ -255,11 +255,10 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     $scope.alerts = [];
     $scope.jobs = [];           // { message:"default" }
-    //$scope.engines = [];        // { uri:"http://localhost:8181/api/engines/default", name:"default" }
-    //$scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, engineUri:"http://headsutv19:8181/api/engines/default" }
     $scope.databases = [];      // { "name": "foo", "uri": "http://example.com/api/databases/foo", "engineUri":"http://example.com/api/engines/foo", "codeHostProcessUri":"http://example.com/api/engines/foo/host",    "databaseProcessUri":"http://example.com/api/engines/foo/db", "running": false}
     $scope.executables = [];    // { path:"c:\tmp\some.exe", databaseName:"default" }
 
+    $scope.newVersion = null;
 
     $scope.queryState = {
         selectedDatabaseName: "",
@@ -281,6 +280,19 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     // Close alert box
     $scope.closeAlert = function (index) {
         $scope.alerts.splice(index, 1);
+    };
+
+    // Close version check alert box
+    $scope.closeVersionNotice = function () {
+        $scope.newVersion = null;
+
+        if (typeof (Storage) !== "undefined") {
+            localStorage.lastVersionCheckUtcDate = (new Date()).toUTCString();
+        }
+        else {
+            // No web storage support.. (this wont be called)
+        }
+
     };
 
     // Show Client Error dialog
@@ -1531,6 +1543,76 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     }
 
+    // Check Latest version
+    $scope._CheckLatestVersionInfo = function () {
+
+        $http.get('/api/admin/versioncheck').then(function (response) {
+            // success handler
+            var versionCheck = response.data.VersionCheck;
+
+            var currentDate = new Date(versionCheck.currentVersionDate);
+            var currentDate_utc = new Date(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), currentDate.getUTCHours(), currentDate.getUTCMinutes(), currentDate.getUTCSeconds());
+
+            var latestDate = new Date(versionCheck.latestVersionDate);
+            var latestDate_utc = new Date(latestDate.getUTCFullYear(), latestDate.getUTCMonth(), latestDate.getUTCDate(), latestDate.getUTCHours(), latestDate.getUTCMinutes(), latestDate.getUTCSeconds());
+
+            var days = Math.floor((latestDate_utc.getTime() - currentDate_utc.getTime()) / (1000 * 3600 * 24));
+
+            // If version is more then 7 days old, notify the user
+            if (days >= 7) {
+                $scope.newVersion = {
+                    days: days,
+                    version: versionCheck.latestVersion,
+                    downloadUri: versionCheck.latestVersionDownloadUri
+                };
+            }
+
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 503) {
+                // ServiceUnavailable
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+        });
+    }
+
+    $scope._VersionCheck = function () {
+
+        if (typeof (Storage) !== "undefined") {
+
+            if (typeof (localStorage.lastVersionCheckUtcDate) !== "undefined") {
+
+                var now = new Date();
+                var now_utc = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
+
+                var lastCheck = new Date(localStorage.lastVersionCheckUtcDate);
+                var lastCheck_utc = new Date(lastCheck.getUTCFullYear(), lastCheck.getUTCMonth(), lastCheck.getUTCDate(), lastCheck.getUTCHours(), lastCheck.getUTCMinutes(), lastCheck.getUTCSeconds());
+
+                var days = Math.floor((now_utc.getTime() - lastCheck_utc.getTime()) / (1000 * 3600 * 24));
+
+                // Next check is 7 days after last check (until the user closes the notice
+                if (days >= 7) {
+                    $scope._CheckLatestVersionInfo();
+                }
+            }
+            else {
+                $scope._CheckLatestVersionInfo();
+            }
+
+        }
+        else {
+            // No web storage support..
+            console.log("VersionCheck is disabled due to no web storage support..");
+        }
+    }
+   
+    $scope._VersionCheck();
+
 }]);
 
 
@@ -1796,7 +1878,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
  */
 adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function ($scope, $dialog, $http) {
 
-//    $scope.alerts.length = 0;
+    //    $scope.alerts.length = 0;
 
     $scope.startDatabase = function (database) {
 
