@@ -242,7 +242,6 @@ namespace Starcounter.Server {
         internal ServerInfo ToPublicModel() {
             var info = new ServerInfo() {
                 Configuration = this.Configuration.Clone(),
-                DefaultMaxImageSize = this.DatabaseDefaultValues.MaxImageSize,
                 DefaultTransactionLogSize = this.DatabaseDefaultValues.TransactionLogSize,
                 IsMonitoringSupported = false,
                 ServerConfigurationPath = this.Configuration.ConfigurationFilePath,

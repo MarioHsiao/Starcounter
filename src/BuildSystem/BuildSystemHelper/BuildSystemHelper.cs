@@ -384,6 +384,20 @@ namespace BuildSystemHelper
             File.WriteAllText(filePath, fileContents);
         }
 
+        // Finds string in file.
+        public static String FindStringInFile(String filePath, String origStringRegex)
+        {
+            String fileContents = File.ReadAllText(filePath);
+
+            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
+
+            // Trying to find this exact string in file.
+            if (!match.Success)
+                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
+
+            return match.Value;
+        }
+
         /// <summary>
         /// Helping function to copy folders recursively.
         /// </summary>
@@ -739,7 +753,7 @@ namespace BuildSystemHelper
                 allFilesSpaced += "\"" + fileToSign + "\" ";
             }
 
-            signToolInfo.Arguments = "sign /s MY /n \"" + companyName + "\" /d \"" + productName + "\" /v /ac \"" + pathToCertificate +
+            signToolInfo.Arguments = "sign /sm /s MY /n \"" + companyName + "\" /d \"" + productName + "\" /v /ac \"" + pathToCertificate +
                                      "\" /t http://timestamp.verisign.com/scripts/timstamp.dll " + allFilesSpaced;
 
             Console.WriteLine("Signing: \"" + signToolInfo.FileName + "\" " + signToolInfo.Arguments);

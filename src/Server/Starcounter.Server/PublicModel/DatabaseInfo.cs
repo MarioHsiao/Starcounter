@@ -23,18 +23,6 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public readonly string Name;
 
-        /// <summary>
-        /// Gets or sets the size of the database max image file size
-        /// configuration.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Notice that Starcounter currently maintains two copies of the
-        /// image file (one for checkpointing). By doubling this value, the
-        /// approximate size of the database on disk is obtained.
-        /// </para>
-        /// </remarks>
-        public readonly long MaxImageSize;
 
         /// <summary>
         /// Gets or sets the size of the database log file(s). The
@@ -89,10 +77,9 @@ namespace Starcounter.Server.PublicModel {
         /// Initializes a <see cref="DatabaseInfo"/>.
         /// </summary>
         internal DatabaseInfo(
-            string uri, string name, long imageSize, long logSize, string exeBasePath, EngineInfo engine, DatabaseConfiguration config, string collation) {
+            string uri, string name, long logSize, string exeBasePath, EngineInfo engine, DatabaseConfiguration config, string collation) {
             this.Uri = uri;
             this.Name = name;
-            this.MaxImageSize = imageSize;
             this.TransactionLogSize = logSize;
             this.ExecutableBasePath = exeBasePath;
             this.Engine = engine;

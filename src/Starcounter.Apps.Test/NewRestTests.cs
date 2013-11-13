@@ -381,7 +381,7 @@ namespace Starcounter.Internal.Test
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
 
-            Handle.CUSTOM("{?} /{?}", (String method, String p1) =>
+            Handle.CUSTOM("{?} /prefix/{?}", (String method, String p1) =>
             {
                 return "CUSTOM method " + method + " with " + p1;
             });
@@ -399,6 +399,21 @@ namespace Starcounter.Internal.Test
             Handle.CUSTOM("{?} /", (String method) =>
             {
                 return "CUSTOM method " + method;
+            });
+
+            Handle.CUSTOM("REPORT /", () =>
+            {
+                return "CUSTOM REPORT!";
+            });
+
+            Handle.CUSTOM("SEARCH /", () =>
+            {
+                return "CUSTOM SEARCH!";
+            });
+
+            Handle.CUSTOM("{?}", (String methodAndUri) =>
+            {
+                return "CUSTOM EVERYTHING!";
             });
 
             Handle.GET("/", () =>
@@ -434,17 +449,29 @@ namespace Starcounter.Internal.Test
             resp = localNode.DELETE("/", "Body!", null);
             Assert.IsTrue("CUSTOM method DELETE" == resp.Body);
 
-            resp = localNode.DELETE("/param1", "Body!", null);
+            resp = localNode.DELETE("/prefix/param1", "Body!", null);
             Assert.IsTrue("CUSTOM method DELETE with param1" == resp.Body);
 
-            resp = localNode.PUT("/param123", "Body!", null);
+            resp = localNode.PUT("/prefix/param123", "Body!", null);
             Assert.IsTrue("CUSTOM method PUT with param123" == resp.Body);
 
-            resp = localNode.POST("/12345", "Body!", null);
+            resp = localNode.POST("/prefix/12345", "Body!", null);
             Assert.IsTrue("CUSTOM method POST with 12345" == resp.Body);
 
             resp = localNode.DELETE("/param1/param2", "Body!", null);
             Assert.IsTrue("CUSTOM method DELETE with param1 and param2" == resp.Body);
+
+            resp = localNode.CustomRESTRequest("REPORT", "/", (String)null, null);
+            Assert.IsTrue("CUSTOM REPORT!" == resp.Body);
+
+            resp = localNode.CustomRESTRequest("SEARCH", "/", (String)null, null);
+            Assert.IsTrue("CUSTOM SEARCH!" == resp.Body);
+
+            resp = localNode.PUT("/haha", (String)null, null);
+            Assert.IsTrue("CUSTOM EVERYTHING!" == resp.Body);
+
+            resp = localNode.POST("/prefix%20string", (String)null, null);
+            Assert.IsTrue("CUSTOM EVERYTHING!" == resp.Body);
         }
     }
 

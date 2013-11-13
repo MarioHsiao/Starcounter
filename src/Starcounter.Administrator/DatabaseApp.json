@@ -2,7 +2,6 @@
 	"DatabaseName": "Database 3",
 	"DatabaseId": "DatabaseID 123",
 	"Uri": "Database uri",
-	"MaxImageSize":0,
 	"TransactionLogSize":0,
 	"CollationFile":"CollationFile",
 	"SupportReplication": false,

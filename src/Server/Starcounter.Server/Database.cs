@@ -162,7 +162,6 @@ namespace Starcounter.Server {
                 this.Uri, 
                 this.Name,
                 0, 
-                0, 
                 ExecutableBasePath, 
                 engine, 
                 this.Configuration.Clone(this.Configuration.ConfigurationFilePath),

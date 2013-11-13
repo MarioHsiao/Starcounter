@@ -224,12 +224,13 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     // Writing to first chunk.
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
     left_bytes_to_write -= num_bytes_left_first_chunk;
+    assert(left_bytes_to_write >= 0);
 
     // Checking how many bytes to write next time.
     if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
     {
         // Checking if we copied everything.
-        if (left_bytes_to_write <= 0)
+        if (left_bytes_to_write == 0)
         {
             // Setting number of total written bytes.
             *actual_written_bytes = num_bytes_to_write;
@@ -256,12 +257,13 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
         assert(num_bytes_to_write_in_chunk > 0 && num_bytes_to_write_in_chunk <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
+        assert(left_bytes_to_write >= 0);
 
         // Checking how many bytes to write next time.
         if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
         {
             // Checking if we copied everything.
-            if (left_bytes_to_write <= 0)
+            if (left_bytes_to_write == 0)
                 break;
 
             num_bytes_to_write_in_chunk = left_bytes_to_write;

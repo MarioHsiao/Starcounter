@@ -403,7 +403,7 @@ namespace NetworkIoTestApp
                         return "CUSTOM method " + method + " with parameter " + p1;
                     });
 
-                    Handle.GET(8080, "/exc1", (Request req) =>
+                    Handle.GET("/exc1", (Request req) =>
                     {
                         Response resp;
                         X.GET("/exc2", null, out resp);
@@ -411,7 +411,7 @@ namespace NetworkIoTestApp
                         return resp;
                     });
 
-                    Handle.GET(8080, "/exc2", (Request req) =>
+                    Handle.GET("/exc2", (Request req) =>
                     {
                         try
                         {
@@ -423,12 +423,13 @@ namespace NetworkIoTestApp
                         {
                             exc.ResponseObject.StatusDescription = "Modified!";
                             exc.ResponseObject["MyHeader"] = "Super value!";
+                            exc.UserObject = "My user object!";
                             throw exc;
                         }
 
                     });
 
-                    Handle.GET(8080, "/exc3", (Request req) =>
+                    Handle.GET("/exc3", (Request req) =>
                     {
                         Response resp = new Response()
                         {
@@ -442,8 +443,11 @@ namespace NetworkIoTestApp
                     {
                         X.POST("/echotest", "Here we go!", null, null, (Response resp, Object userObject) =>
                         {
+                            // Modifying the response object by injecting some data.
+                            resp["MySuperHeader"] = "Here is my header value!";
+                            resp["Set-Cookie"] = "MySuperCookie=CookieValue;" + resp["Set-Cookie"];
                             req.Response = resp;
-                        });
+                        }); // "resp" object will be automatically sent when delegate exits.
 
                         return HandlerStatus.Handled;
                     });

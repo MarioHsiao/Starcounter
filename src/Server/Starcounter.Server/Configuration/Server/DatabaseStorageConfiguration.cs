@@ -37,17 +37,6 @@ namespace Starcounter.Advanced.Configuration {
     public class DatabaseStorageConfiguration : ConfigurationElement {
 
         /// <summary>
-        /// Gets or sets the database maximum image size.
-        /// </summary>
-        /// <remarks>
-        /// Expressed in megabytes.
-        /// </remarks>
-        public long? MaxImageSize {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets the database transaction log size.
         /// </summary>
         /// <remarks>
