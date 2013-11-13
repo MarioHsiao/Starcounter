@@ -2,7 +2,11 @@
 #ifndef HTTP_COMMON_HPP
 #define HTTP_COMMON_HPP
 
+#pragma warning(push)
+#pragma warning(disable: 4163)
 #include "../../../Chunks/bmx/bmx.hpp"
+#pragma warning(pop)
+
 #include "../../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 
 namespace starcounter {

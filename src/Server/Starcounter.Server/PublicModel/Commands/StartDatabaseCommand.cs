@@ -51,5 +51,16 @@ namespace Starcounter.Server.PublicModel.Commands {
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets a value that allows the caller to apply extra
+        /// or custom command-line parameters to the code host process,
+        /// applied on top of the options and parameters passed by the
+        /// server engine.
+        /// </summary>
+        public string CodeHostCommandLineAdditions {
+            get;
+            set;
+        }
     }
 }

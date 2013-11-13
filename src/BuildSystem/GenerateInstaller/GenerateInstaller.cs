@@ -106,8 +106,10 @@ namespace GenerateInstaller
             String signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, CompanyName, ProductName, pathToCertificateFile);
 
             // Checking if there are any errors during signing process.
-            if (signingError != null)
+            if (signingError != null) {
+                Console.WriteLine(signingError);
                 throw new Exception("Failed to sign static Starcounter setup file...");
+            }
 
             Console.WriteLine("Updating consolidated Archive.zip with new unique empty setup EXE and tracking DLL...");
 
@@ -301,7 +303,9 @@ namespace GenerateInstaller
                 versionFileContents += "  <Configuration>" + configuration + "</Configuration>" + Environment.NewLine;
                 versionFileContents += "  <Platform>" + platform + "</Platform>" + Environment.NewLine;
                 versionFileContents += "  <Version>" + version + "</Version>" + Environment.NewLine;
-                versionFileContents += "  <VersionDate>" + DateTime.UtcNow.ToUniversalTime().ToString("u") + "</VersionDate>" + Environment.NewLine;
+
+                String versionDate = BuildSystem.FindStringInFile(Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs"), @"VersionDate \= DateTime\.Parse\(""[0-9Z\:\-\. ]+"",").Substring("VersionDate = DateTime.Parse(".Length + 1, 20);
+                versionFileContents += "  <VersionDate>" + versionDate + "</VersionDate>" + Environment.NewLine;
                 versionFileContents += "  <Channel>" + channel + "</Channel>" + Environment.NewLine;
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 

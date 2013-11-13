@@ -5,14 +5,17 @@
 // ***********************************************************************
 
 using Starcounter.Bootstrap.Management;
+using Starcounter.CommandLine;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
+using StarcounterInternal.Bootstrap;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -309,11 +312,11 @@ namespace Starcounter.Server {
             return database.GetRunningCodeHostProcess() != null;
         }
 
-        internal bool StartCodeHostProcess(Database database, out Process process) {
+        internal bool StartCodeHostProcess(Database database, out Process process, string commandLineAdditions = null) {
             return StartCodeHostProcess(database, false, false, out process);
         }
 
-        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, bool applyLogSteps, out Process process) {
+        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, bool applyLogSteps, out Process process, string commandLineAdditions = null) {
             process = database.GetRunningCodeHostProcess();
             if (process != null) 
                 return false;
@@ -321,7 +324,7 @@ namespace Starcounter.Server {
             // No process referenced, or the referenced process was not
             // alive. Start a code host process.
 
-            var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps);
+            var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps, commandLineAdditions);
             process = DoStartEngineProcess(startInfo, database, (sender, e) => { database.CodeHostErrorOutput.Add(e.Data); });
             process.BeginErrorReadLine();
             database.CodeHostProcess = process;
@@ -488,43 +491,51 @@ namespace Starcounter.Server {
             return processStartInfo;
         }
 
-        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false) {
-            ProcessStartInfo processStart;
-            StringBuilder args;
-
-            args = new StringBuilder();
-            if (Debugger.IsAttached) {
-                args.Append("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
-            }
-            args.Append(database.Name.ToUpper());
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);
+        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false, string commandLineAdditions = null) {
+            var args = new List<string>(16);
             
-            if (startWithNoDb) {
-                args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);
+            if (Debugger.IsAttached) {
+                args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
-            // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
+            args.Add(database.Name.ToUpper());
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);
+
+            if (startWithNoDb) {
+                args.Add(" --" + StarcounterConstants.BootstrapOptionNames.NoDb);
+            }
+            // args.Add(" --" + ProgramCommandLine.OptionNames.NoNetworkGateway);
             if (applyLogSteps) {
-                args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
+                args.Add(" --" + StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
             }
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
-                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value);
+                args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value);
             }
-            
-            processStart = new ProcessStartInfo(this.CodeHostExePath, args.ToString().Trim());
+
+            var arguments = args.ToStringFromValues();
+            if (!string.IsNullOrEmpty(commandLineAdditions)) {
+                var syntax = ProgramCommandLine.Syntax;
+                var additions = CommandLineStringParser.SplitCommandLine(commandLineAdditions).ToArray();
+                var parser = new Parser(CommandLineStringParser.SplitCommandLine(arguments).ToArray());
+                parser.Apply(additions);
+                var parsed = parser.Parse(syntax);
+                arguments = parsed.ToString("standard");
+            }
+
+            var processStart = new ProcessStartInfo(this.CodeHostExePath, arguments.Trim());
             processStart.CreateNoWindow = true;
             processStart.UseShellExecute = false;
             processStart.RedirectStandardInput = true;
             processStart.RedirectStandardOutput = true;
-            processStart.RedirectStandardError = true;    
-            
+            processStart.RedirectStandardError = true;
+
             return processStart;
         }
 

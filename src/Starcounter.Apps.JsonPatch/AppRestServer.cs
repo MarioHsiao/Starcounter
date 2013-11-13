@@ -50,10 +50,10 @@ namespace Starcounter.Internal.Web {
         public Response OnResponseHttp(Request request, Response response) {
             try {
                 // Checking if we need to resolve static resource.
-                if ((response == null) || (response.HandlingStatus == HandlerStatus.NotHandled)) {
+                if (response.HandlingStatus == HandlerStatusInternal.NotHandled) {
                     response = new Response() {
                         Uncompressed = ResolveAndPrepareFile(request.Uri, request),
-                        HandlingStatus = HandlerStatus.Done
+                        HandlingStatus = HandlerStatusInternal.Done
                     };
 
                     return response;
@@ -193,7 +193,7 @@ namespace Starcounter.Internal.Web {
                         if (null != response) {
 
                             // Checking if response is processed later.
-                            if (response.HandlingStatus == HandlerStatus.Pending)
+                            if (response.HandlingStatus == HandlerStatusInternal.Handled)
                                 return response;
 
                             // Setting session on result only if its original request.
@@ -210,6 +210,12 @@ namespace Starcounter.Internal.Web {
                             {
                                 Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
                             }
+                        } else {
+                            // Null equals 404.
+                            response = Response.FromStatusCode(404);
+                            response["Connection"] = "close";
+                            response.ConstructFromFields();
+                            return response;
                         }
 
                         // Handling and returning the HTTP response.
@@ -217,21 +223,31 @@ namespace Starcounter.Internal.Web {
 
                         return response;
                     }
+                    catch (ResponseException exc)
+                    {
+                        // NOTE: if internal request then throw the exception up.
+                        if (request.IsInternal)
+                            throw exc;
+
+                        response = exc.ResponseObject;
+                        response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
+                        response.ConstructFromFields();
+                        return response;
+                    }
+                    catch (HandlersManagement.IncorrectSessionException)
+                    {
+                        response = Response.FromStatusCode(400);
+                        response["Connection"] = "close";
+                        response.ConstructFromFields();
+                        return response;
+                    }
                     catch (Exception exc)
                     {
-                        // Checking if session is incorrect.
-						if (exc is HandlersManagement.IncorrectSessionException) {
-							response = Response.FromStatusCode(400);
-							response["Connection"] = "close";
-						} else {
-
-							// Logging the exception to server log.
-							LogSources.Hosting.LogException(exc);
-							response = Response.FromStatusCode(500);
-							response.Body = GetExceptionString(exc);
-							response.ContentType = "text/plain";
-						}
-
+						// Logging the exception to server log.
+						LogSources.Hosting.LogException(exc);
+						response = Response.FromStatusCode(500);
+						response.Body = GetExceptionString(exc);
+						response.ContentType = "text/plain";
 						response.ConstructFromFields();
 						return response;
                     }
@@ -274,25 +290,32 @@ namespace Starcounter.Internal.Web {
                             response = new Response()
                             {
                                 ConnFlags = Response.ConnectionFlags.DisconnectImmediately,
-                                HandlingStatus = HandlerStatus.Done
+                                HandlingStatus = HandlerStatusInternal.Done
                             };
                         }
                         else
                         {
                             // Checking if WebSockets response status is unhandled.
-                            if (response.HandlingStatus == HandlerStatus.NotHandled)
+                            if (response.HandlingStatus == HandlerStatusInternal.NotHandled)
                             {
                                 response.ConnFlags = Response.ConnectionFlags.DisconnectImmediately;
-                                response.HandlingStatus = HandlerStatus.Done;
+                                response.HandlingStatus = HandlerStatusInternal.Done;
                             }
                         }
 
                         response.ProtocolType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
 
                         // Checking if response is processed later.
-                        if (response.HandlingStatus == HandlerStatus.Done)
+                        if (response.HandlingStatus == HandlerStatusInternal.Done)
                             response = OnResponseWebSockets(request, response);
 
+                        return response;
+                    }
+                    catch (ResponseException exc)
+                    {
+                        response = exc.ResponseObject;
+                        response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
+                        response.ConstructFromFields();
                         return response;
                     }
                     finally

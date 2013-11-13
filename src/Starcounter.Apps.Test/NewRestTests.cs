@@ -18,16 +18,16 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Test
 {
     /// <summary>
-    /// Used for HttpStructs tests initialization/shutdown.
+    /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
-    public class HttpStructsTestsSetup
+    public class NewRestTestsSetup
     {
         /// <summary>
         /// HttpStructs tests initialization.
         /// </summary>
         [SetUp]
-        public void InitHttpStructsTests()
+        public void NewRestTestsSetupInit()
         {
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
 
@@ -278,6 +278,8 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestLocalNode()
         {
+            UserHandlerCodegen.ResetHandlersManager();
+
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
@@ -366,6 +368,111 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(201 == resp.StatusCode);
             Assert.IsTrue("OK" == resp.StatusDescription);
         }
+
+        /// <summary>
+        /// Tests any method handlers.
+        /// </summary>
+        [Test]
+        public void CustomMethodTest()
+        {
+            UserHandlerCodegen.ResetHandlersManager();
+
+            // Node that is used for tests.
+            Node localNode = new Node("127.0.0.1", 8080);
+            localNode.LocalNode = true;
+
+            Handle.CUSTOM("{?} /prefix/{?}", (String method, String p1) =>
+            {
+                return "CUSTOM method " + method + " with " + p1;
+            });
+
+            Handle.CUSTOM("{?} /{?}", (String method, Int32 p1) =>
+            {
+                return "CUSTOM method "  + method + " with " + p1;
+            });
+
+            Handle.CUSTOM("{?} /{?}/{?}", (String method, String p1, String p2) =>
+            {
+                return "CUSTOM method " + method + " with " + p1 + " and " + p2;
+            });
+
+            Handle.CUSTOM("{?} /", (String method) =>
+            {
+                return "CUSTOM method " + method;
+            });
+
+            Handle.CUSTOM("REPORT /", () =>
+            {
+                return "CUSTOM REPORT!";
+            });
+
+            Handle.CUSTOM("SEARCH /", () =>
+            {
+                return "CUSTOM SEARCH!";
+            });
+
+            Handle.CUSTOM("{?}", (String methodAndUri) =>
+            {
+                return "CUSTOM EVERYTHING!";
+            });
+
+            Handle.GET("/", () =>
+            {
+                return "Simple GET!";
+            });
+
+            Handle.GET("/{?}", (String p1) =>
+            {
+                return "Simple GET with " + p1;
+            });
+
+            Handle.POST("/", () =>
+            {
+                return "Simple POST!";
+            });
+
+            Response resp = localNode.GET("/", null);
+            Assert.IsTrue("Simple GET!" == resp.Body);
+
+            resp = localNode.POST("/", "Body!", null);
+            Assert.IsTrue("Simple POST!" == resp.Body);
+
+            resp = localNode.GET("/param1", null);
+            Assert.IsTrue("Simple GET with param1" == resp.Body);
+
+            resp = localNode.PUT("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT" == resp.Body);
+
+            resp = localNode.PATCH("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PATCH" == resp.Body);
+
+            resp = localNode.DELETE("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE" == resp.Body);
+
+            resp = localNode.DELETE("/prefix/param1", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1" == resp.Body);
+
+            resp = localNode.PUT("/prefix/param123", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT with param123" == resp.Body);
+
+            resp = localNode.POST("/prefix/12345", "Body!", null);
+            Assert.IsTrue("CUSTOM method POST with 12345" == resp.Body);
+
+            resp = localNode.DELETE("/param1/param2", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1 and param2" == resp.Body);
+
+            resp = localNode.CustomRESTRequest("REPORT", "/", (String)null, null);
+            Assert.IsTrue("CUSTOM REPORT!" == resp.Body);
+
+            resp = localNode.CustomRESTRequest("SEARCH", "/", (String)null, null);
+            Assert.IsTrue("CUSTOM SEARCH!" == resp.Body);
+
+            resp = localNode.PUT("/haha", (String)null, null);
+            Assert.IsTrue("CUSTOM EVERYTHING!" == resp.Body);
+
+            resp = localNode.POST("/prefix%20string", (String)null, null);
+            Assert.IsTrue("CUSTOM EVERYTHING!" == resp.Body);
+        }
     }
 
     /// <summary>
@@ -394,6 +501,8 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestLocalNode()
         {
+            UserHandlerCodegen.ResetHandlersManager();
+
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
@@ -720,8 +829,9 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
+            // TODO Alexey: Fix datetime (decide datetime format!).
+
             /*
-            TODO: Fix datetime.
             Handle.GET(testInfos25.TemplateUri, (DateTime val) =>
             {
                 DateTime expected;
@@ -893,7 +1003,8 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
-            // Uncomment for calling the wrong above handler.
+            // TODO Jocke: Uncomment for calling the wrong above handler.
+
             /*
             Handle.GET(testInfos38.TemplateUri, (string p1, string p2, string p3) =>
             {
@@ -904,7 +1015,7 @@ namespace Starcounter.Internal.Test
                 return testInfos38.ReturnStr;
             });
 
-            resp = localNode.GET(testInfos38.TestUri, null, null);
+            resp = localNode.GET(testInfos38.TestUri, null);
             Assert.IsTrue(testInfos38.ReturnStr == resp.Body);
            
             ///////////////////////////////////////////
@@ -918,7 +1029,7 @@ namespace Starcounter.Internal.Test
                 return testInfos39.ReturnStr;
             });
 
-            resp = localNode.GET(testInfos39.TestUri, null, null);
+            resp = localNode.GET(testInfos39.TestUri, null);
             Assert.IsTrue(testInfos39.ReturnStr == resp.Body);
             */
 
@@ -937,7 +1048,8 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
-            // Uncomment for test failure.
+            // TODO Jocke: Uncomment for test failure.
+
             /*
             Handle.GET(testInfos41.TemplateUri, (string p1, string p2) =>
             {
@@ -947,7 +1059,7 @@ namespace Starcounter.Internal.Test
                 return testInfos41.ReturnStr;
             });
 
-            resp = localNode.GET(testInfos41.TestUri, null, null);
+            resp = localNode.GET(testInfos41.TestUri, null);
             Assert.IsTrue(testInfos41.ReturnStr == resp.Body);
             */
 
@@ -1107,6 +1219,55 @@ namespace Starcounter.Internal.Test
 
             resp = localNode.POST(testInfos54.TestUri, (String)null, null);
             Assert.IsTrue(testInfos54.ReturnStr == resp.Body);
+
+            ///////////////////////////////////////////
+
+            Handle.CUSTOM("{?} /{?}", (String method, String p1) =>
+            {
+                return "CUSTOM method " + method + " with " + p1;
+            });
+
+            Handle.CUSTOM("{?} /{?}", (String method, Int32 p1) =>
+            {
+                return "CUSTOM method " + method + " with " + p1;
+            });
+
+            Handle.CUSTOM("{?} /{?}/{?}", (String method, String p1, String p2) =>
+            {
+                return "CUSTOM method " + method + " with " + p1 + " and " + p2;
+            });
+
+            Handle.CUSTOM("{?} /", (String method) =>
+            {
+                return "CUSTOM method " + method;
+            });
+
+            // TODO Jocke: Uncomment to see the truncated method name problem.
+            // E.g. method name should be "POST" but its "OST", or for "PUT" its "UT"
+            // (method parameter offset is +1 and length is -1)
+
+            /*
+            resp = localNode.PUT("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT" == resp.Body);
+
+            resp = localNode.PATCH("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method PATCH" == resp.Body);
+
+            resp = localNode.DELETE("/", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE" == resp.Body);
+
+            resp = localNode.DELETE("/param1", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1" == resp.Body);
+
+            resp = localNode.PUT("/param123", "Body!", null);
+            Assert.IsTrue("CUSTOM method PUT with param123" == resp.Body);
+
+            resp = localNode.POST("/12345", "Body!", null);
+            Assert.IsTrue("CUSTOM method POST with 12345" == resp.Body);
+
+            resp = localNode.DELETE("/param1/param2", "Body!", null);
+            Assert.IsTrue("CUSTOM method DELETE with param1 and param2" == resp.Body);
+            */
         }
 
         public class PersonMessage : Json
@@ -1137,6 +1298,8 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestWrongUrisAndParameters()
         {
+            UserHandlerCodegen.ResetHandlersManager();
+
             Handle.GET("/{?}", (String p1, Session s) =>
             {
                 Assert.IsTrue(false);
@@ -1151,12 +1314,14 @@ namespace Starcounter.Internal.Test
                 return null;
             });
 
-            Handle.GET("/{?}", (String p1, PersonMessage j) =>
+            Handle.GET("/{?}", (Int32 p1, PersonMessage j) =>
             {
                 Assert.IsTrue(false);
 
                 return null;
             });
+
+            UserHandlerCodegen.ResetHandlersManager();
 
             Assert.Throws<ArgumentException>(() => 
                 Handle.GET("/{?}", (String p1, Int32 p2) =>

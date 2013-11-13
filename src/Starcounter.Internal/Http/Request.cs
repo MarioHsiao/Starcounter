@@ -41,9 +41,13 @@ namespace Starcounter.Advanced {
             return new Request(reqBytes, reqBytes.Length);
         }
 
-        public Request()
+        /// <summary>
+        /// Request constructor.
+        /// </summary>
+        /// <param name="protocol_type">Type of network protocol. Default HTTP v1.</param>
+        public Request(MixedCodeConstants.NetworkProtocolType protocol_type = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-
+            protocol_type_ = protocol_type;
         }
 
         /// <summary>
@@ -75,11 +79,6 @@ namespace Starcounter.Advanced {
             set { port_number_ = value; }
         }
 
-        /// <summary>
-        /// Indicates that response is sealed and can't be modified.
-        /// </summary>
-        Boolean readOnly_;
-
         /// Returns the single most preferred mime type according to the Accept header of the request amongst a 
         /// set of common mime types. If the mime type is not in the enum of known common mime types, the
         /// value MimeType.Other is returned. If there is no Accept header or if the Accept header is empty,
@@ -90,7 +89,9 @@ namespace Starcounter.Advanced {
         /// </remarks>
         public MimeType PreferredMimeType {
             get {
-                var a = this["Accept"];
+                EnsureHttpV1IsUsed();
+
+                var a = this[HttpHeadersUtf8.GetAcceptHeader];
                 if (a != null) {
                     a = a.ToUpper();
                     if (a.StartsWith("APPLICATION/JSON-PATCH+JSON")) {
@@ -123,6 +124,8 @@ namespace Starcounter.Advanced {
         /// </remarks>
         public IEnumerator<MimeType> PreferredMimeTypes {
             get {
+                EnsureHttpV1IsUsed();
+
                 var l = new List<MimeType>();
                 l.Add( PreferredMimeType );
                 return l.GetEnumerator();
@@ -137,7 +140,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Returns True if request is internal.
         /// </summary>
-        public Boolean IsInternal
+        internal Boolean IsInternal
         {
             get { return is_internal_request_; }
         }
@@ -161,7 +164,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Setting message object type.
         /// </summary>
-        public Type ArgMessageObjectType
+        internal Type ArgMessageObjectType
         {
             get { return message_object_type_; }
             set { message_object_type_ = value; }
@@ -171,6 +174,22 @@ namespace Starcounter.Advanced {
         /// Accessors to HTTP method.
         /// </summary>
         public HTTP_METHODS MethodEnum { get; set; }
+
+        Response response_;
+
+        /// <summary>
+        /// Set or get the Response object attached to this request.
+        /// Used to declare response object that should be returned to the original request.
+        /// </summary>
+        public Response Response
+        {
+            get { return response_; }
+            set
+            {
+                response_ = value;
+                response_.Request = this;
+            }
+        }
 
         /// <summary>
         /// Returns True if method is idempotent.
@@ -213,7 +232,7 @@ namespace Starcounter.Advanced {
         {
             unsafe
             {
-                Init(buf, buf_len, null);
+                InternalInit(buf, buf_len, null);
             }
         }
 
@@ -224,7 +243,7 @@ namespace Starcounter.Advanced {
         /// <param name="params_info"></param>
         public unsafe Request(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
-            Init(buf, buf_len, params_info_ptr);
+            InternalInit(buf, buf_len, params_info_ptr);
         }
 
         /// <summary>
@@ -238,7 +257,7 @@ namespace Starcounter.Advanced {
         /// <param name="socket_data">The socket_data.</param>
         /// <param name="data_stream">The data_stream.</param>
         /// <param name="protocol_type">Type of network protocol.</param>
-        public unsafe Request(
+        internal unsafe Request(
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
@@ -261,10 +280,13 @@ namespace Starcounter.Advanced {
         /// Initializes request structure.
         /// </summary>
         /// <param name="buf"></param>
-        unsafe void Init(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
+        unsafe void InternalInit(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
             unsafe
             {
+                // Indicating that request is internal.
+                is_internal_request_ = true;
+
                 // Allocating space for Request contents and structure.
                 Int32 alloc_size = buf_len + sizeof(HttpRequestInternal);
                 if (params_info_ptr != null)
@@ -291,7 +313,6 @@ namespace Starcounter.Advanced {
                 }
                 
                 // Indicating that we internally constructing Request.
-                is_internal_request_ = true;
                 protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
 
                 // NOTE: No internal sessions support.
@@ -311,9 +332,6 @@ namespace Starcounter.Advanced {
 
                     throw ErrorCode.ToException(err_code);
                 }
-
-                // This request can't be modified anymore.
-                readOnly_ = true;
             }
         }
 
@@ -399,7 +417,7 @@ namespace Starcounter.Advanced {
         /// Linear index for this handler.
         /// </summary>
         UInt16 handler_id_;
-        public UInt16 HandlerId
+        internal UInt16 HandlerId
         {
             get { return handler_id_; }
             set { handler_id_ = value; } 
@@ -431,23 +449,14 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public IntPtr GetRawMethodAndUri()
         {
-            switch (protocol_type_)
+            EnsureHttpV1IsUsed();
+
+            unsafe
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
 
-                        return http_request_struct_->GetRawMethodAndUri();
-                    }
-                }
-
-                default:
-                {
-                    return IntPtr.Zero;
-                }
+                return http_request_struct_->GetRawMethodAndUri();
             }
         }
 
@@ -507,32 +516,23 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Content type.
         /// </summary>
-        String contentType_;
-
-        /// <summary>
-        /// Content type.
-        /// </summary>
         public String ContentType
         {
             get
             {
-                if (null == contentType_)
-                    contentType_ = this["Content-Type"];
+                EnsureHttpV1IsUsed();
 
-                return contentType_;
+                return this[HttpHeadersUtf8.ContentTypeHeader];
             }
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+                EnsureHttpV1IsUsed();
 
                 customFields_ = true;
-                contentType_ = value;
+                this[HttpHeadersUtf8.ContentTypeHeader] = value;
             }
         }
-
-        String contentEncoding_;
 
         /// <summary>
         /// Content encoding.
@@ -541,19 +541,17 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                if (null == contentEncoding_)
-                    contentEncoding_ = this["Content-Encoding"];
+                EnsureHttpV1IsUsed();
 
-                return contentEncoding_;
+                return this[HttpHeadersUtf8.ContentEncodingHeader];
             }
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+                EnsureHttpV1IsUsed();
 
                 customFields_ = true;
-                contentEncoding_ = value;
+                this[HttpHeadersUtf8.ContentEncodingHeader] = value;
             }
         }
 
@@ -566,20 +564,17 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                if (is_internal_request_)
+                if (null == bodyString_)
                 {
-                    if (null == bodyString_)
+                    if (null != bodyBytes_)
                     {
-                        if (null != bodyBytes_)
-                        {
-                            bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
-                            return bodyString_;
-                        }
-                    }
-                    else
-                    {
+                        bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
                         return bodyString_;
                     }
+                }
+                else
+                {
+                    return bodyString_;
                 }
 
                 unsafe
@@ -593,9 +588,6 @@ namespace Starcounter.Advanced {
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
-
                 customFields_ = true;
                 bodyString_ = value;
             }
@@ -611,16 +603,18 @@ namespace Starcounter.Advanced {
             get
             {
                 if (null == bodyBytes_)
-                    bodyBytes_ = GetBodyBytes_Slow();
+                {
+                    if (bodyString_ != null)
+                        bodyBytes_ = Encoding.UTF8.GetBytes(bodyString_);
+                    else
+                        bodyBytes_ = GetBodyBytes_Slow();
+                }
 
                 return bodyBytes_;
             }
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
-
                 customFields_ = true;
                 bodyBytes_ = value;
             }
@@ -633,37 +627,32 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                if (null != headersString_)
-                    return headersString_;
+                EnsureHttpV1IsUsed();
 
-                switch (protocol_type_)
+                unsafe
                 {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    // Concatenating headers from dictionary.
+                    if (null != customHeaderFields_)
                     {
-                        unsafe
+                        headersString_ = "";
+
+                        foreach (KeyValuePair<string, string> h in customHeaderFields_)
                         {
-                            if (null == http_request_struct_)
-                                throw new ArgumentException("HTTP request not initialized.");
-
-                            return http_request_struct_->GetHeadersStringUtf8_Slow();
+                            headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
                         }
+
+                        return headersString_;
                     }
+
+                    if (null == http_request_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
+
+                    headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
+
+                    return headersString_;
                 }
-
-                throw new NotSupportedException("Network protocol does not support this method call.");
-            }
-
-            set
-            {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
-
-                customFields_ = true;
-                headersString_ = value;
             }
         }
-
-        String cookieString_;
 
         /// <summary>
         /// Cookie string.
@@ -672,19 +661,17 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                if (null == cookieString_)
-                    cookieString_ = this["Cookie"];
+                EnsureHttpV1IsUsed();
 
-                return cookieString_;
+                return this[HttpHeadersUtf8.GetCookieHeader];
             }
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+                EnsureHttpV1IsUsed();
 
                 customFields_ = true;
-                cookieString_ = value;
+                this[HttpHeadersUtf8.GetCookieHeader] = value;
             }
         }
 
@@ -697,13 +684,17 @@ namespace Starcounter.Advanced {
         {
             get
             {
+                EnsureHttpV1IsUsed();
+
+                if (null == methodString_)
+                    methodString_ = MethodEnum.ToString();
+
                 return methodString_;
             }
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+                EnsureHttpV1IsUsed();
 
                 customFields_ = true;
                 methodString_ = value;
@@ -719,25 +710,17 @@ namespace Starcounter.Advanced {
         {
             get
             {
+                EnsureHttpV1IsUsed();
+
                 if (null == uriString_)
                 {
-                    switch (protocol_type_)
+                    unsafe
                     {
-                        case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                        {
-                            unsafe
-                            {
-                                if (null == http_request_struct_)
-                                    throw new ArgumentException("HTTP request not initialized.");
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
 
-                                uriString_ = http_request_struct_->Uri;
-                            }
-
-                            return uriString_;
-                        }
+                        uriString_ = http_request_struct_->Uri;
                     }
-
-                    throw new NotSupportedException("Network protocol does not support this method call.");
                 }
 
                 return uriString_;
@@ -745,8 +728,7 @@ namespace Starcounter.Advanced {
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+                EnsureHttpV1IsUsed();
 
                 customFields_ = true;
                 uriString_ = value;
@@ -762,13 +744,14 @@ namespace Starcounter.Advanced {
         {
             get
             {
+                EnsureHttpV1IsUsed();
+
                 return hostNameString_;
             }
 
             set
             {
-                if (readOnly_)
-                    throw new ArgumentException("Incoming HTTP request can't be modified.");
+                EnsureHttpV1IsUsed();
 
                 customFields_ = true;
                 hostNameString_ = value;
@@ -780,7 +763,7 @@ namespace Starcounter.Advanced {
         /// </summary>
         internal Int32 CustomBytesLength
         {
-            get {return customBytesLen_;}
+            get { return customBytesLen_; }
         }
 
 		/// <summary>
@@ -804,12 +787,9 @@ namespace Starcounter.Advanced {
         {
             customFields_ = false;
 
-            cookieString_ = null;
             headersString_ = null;
             bodyString_ = null;
             bodyBytes_ = null;
-            contentType_ = null;
-            contentEncoding_ = null;
             hostNameString_ = null;
             uriString_ = null;
             methodString_ = null;
@@ -825,14 +805,11 @@ namespace Starcounter.Advanced {
 			if (null != headersString_)
 				size += headersString_.Length;
 
-			if (null != contentType_)
-				size += contentType_.Length;
-
-			if (null != contentEncoding_)
-				size += contentEncoding_.Length;
-
-			if (null != cookieString_)
-				size += cookieString_.Length;
+            if (null != customHeaderFields_) {
+                foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                    size += (h.Key.Length + h.Value.Length + 4);
+                }
+            }
 
 			if (null != bodyString_)
 				size += bodyString_.Length << 1;
@@ -846,9 +823,6 @@ namespace Starcounter.Advanced {
 		/// Constructs Response from fields that are set.
 		/// </summary>
 		public void ConstructFromFields() {
-			byte[] buf;
-			Utf8Writer writer;
-
 			// Checking if we have a custom response.
 			if (!customFields_)
 				return;
@@ -862,7 +836,9 @@ namespace Starcounter.Advanced {
 			if (null == methodString_)
 				methodString_ = "GET";
 
-			buf = new byte[EstimateNeededSize()];
+            Utf8Writer writer;
+
+			byte[] buf = new byte[EstimateNeededSize()];
 			unsafe {
 				fixed (byte* p = buf) {
 					writer = new Utf8Writer(p);
@@ -878,25 +854,22 @@ namespace Starcounter.Advanced {
 					writer.Write(HttpHeadersUtf8.CRLF);
 
 					if (null != headersString_)
+                    {
 						writer.Write(headersString_);
-
-					if (null != contentType_) {
-						writer.Write(HttpHeadersUtf8.ContentTypeStart);
-						writer.Write(contentType_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					}
-
-					if (null != contentEncoding_) {
-						writer.Write(HttpHeadersUtf8.ContentEncodingStart);
-						writer.Write(contentEncoding_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					}
-
-					if (null != cookieString_) {
-						writer.Write("Cookie: "); // TODO: Change to static bytearray header.
-						writer.Write(cookieString_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					}
+                    }
+                    else
+                    {
+                        if (null != customHeaderFields_)
+                        {
+                            foreach (KeyValuePair<string, string> h in customHeaderFields_)
+                            {
+                                writer.Write(h.Key);
+                                writer.Write(": ");
+                                writer.Write(h.Value);
+                                writer.Write(HttpHeadersUtf8.CRLF);
+                            }
+                        }
+                    }
 
 					if (null != bodyString_) {
 						writer.Write(HttpHeadersUtf8.ContentLengthStart);
@@ -919,62 +892,9 @@ namespace Starcounter.Advanced {
                     customBytesLen_ = writer.Written;
 				}
 			}
+
 			customFields_ = false;
-			readOnly_ = true;
 		}
-
-        /// <summary>
-        /// Constructs Response from fields that are set.
-        /// </summary>
-        public void ConstructFromFields_Slow()
-        {
-            // Checking if we have a custom response.
-            if (!customFields_)
-                return;
-
-            if (null == uriString_)
-                throw new ArgumentException("Relative URI should be set when creating custom Request.");
-
-            if (null == hostNameString_)
-                throw new ArgumentException("Host name should be set when creating custom Request.");
-
-            if (null == methodString_)
-                methodString_ = "GET";
-
-            String str = methodString_ + " " + uriString_ + " HTTP/1.1" + StarcounterConstants.NetworkConstants.CRLF;
-            str += "Host: " + hostNameString_ + StarcounterConstants.NetworkConstants.CRLF;
-
-            if (null != headersString_)
-                str += headersString_;
-
-            if (null != contentType_)
-                str += "Content-Type: " + contentType_ + StarcounterConstants.NetworkConstants.CRLF;
-
-            if (null != contentEncoding_)
-                str += "Content-Encoding: " + contentEncoding_ + StarcounterConstants.NetworkConstants.CRLF;
-
-            if (null != cookieString_)
-                str += "Cookie: " + cookieString_ + StarcounterConstants.NetworkConstants.CRLF;
-
-			if (null != bodyString_) {
-				str += "Content-Length: " + bodyString_.Length + StarcounterConstants.NetworkConstants.CRLF;
-				str += StarcounterConstants.NetworkConstants.CRLF;
-				str += bodyString_;
-			} else if (null != bodyBytes_) {
-				str += "Content-Length: " + bodyBytes_.Length + StarcounterConstants.NetworkConstants.CRLF;
-				str += StarcounterConstants.NetworkConstants.CRLF;
-				str += Encoding.UTF8.GetString(bodyBytes_);
-			} else {
-				str += "Content-Length: 0" + StarcounterConstants.NetworkConstants.CRLF;
-				str += StarcounterConstants.NetworkConstants.CRLF;
-			}
-
-            // Finally setting the request bytes.
-            customBytes_ = Encoding.UTF8.GetBytes(str);
-            customBytesLen_ = str.Length << 1;
-            customFields_ = false;
-            readOnly_ = true;
-        }
 
         /// <summary>
         /// Gets a value indicating whether this instance can use static response.
@@ -1115,7 +1035,7 @@ namespace Starcounter.Advanced {
         /// <param name="offset">The offset within buffer.</param>
         /// <param name="length">The length of the data to send.</param>
         /// <param name="length">The connection flags.</param>
-        internal void SendResponseInternal(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
+        internal void SendResponseScThread(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
             unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, true); }
         }
@@ -1138,6 +1058,7 @@ namespace Starcounter.Advanced {
         /// <param name="resp">Response object to send.</param>
         public void SendResponse(Response resp)
         {
+            resp.ConstructFromFields();
             SendResponse(resp.Uncompressed, 0, resp.UncompressedLength, resp.ConnFlags);
         }
 
@@ -1179,23 +1100,15 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) 
         {
-            switch (protocol_type_)
+            EnsureHttpV1IsUsed();
+
+            unsafe
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
 
-                        http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
-                    }
-
-                    return;
-                }
+                http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
             }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -1205,24 +1118,17 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes) 
         {
-            switch (protocol_type_)
+            EnsureHttpV1IsUsed();
+
+            unsafe
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
 
-                        http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
-                    }
-
-                    sizeBytes += 1;
-                    return;
-                }
+                http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
             }
 
-            throw new NotSupportedException("Network protocol does not support this method call.");
+            sizeBytes += 1;
         }
 
         /// <summary>
@@ -1232,23 +1138,15 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) 
         {
-            switch (protocol_type_)
+            EnsureHttpV1IsUsed();
+
+            unsafe
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
 
-                        http_request_struct_->GetRawHeaders(out ptr, out sizeBytes);
-                    }
-
-                    return;
-                }
+                http_request_struct_->GetRawHeaders(out ptr, out sizeBytes);
             }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -1275,29 +1173,90 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes) 
         {
-            switch (protocol_type_)
+            EnsureHttpV1IsUsed();
+
+            unsafe
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
 
-                        http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes);
-                    }
-
-                    return;
-                }
+                http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes);
             }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
         /// String containing all headers.
         /// </summary>
         String headersString_;
+
+        /// <summary>
+        /// Dictionary of simple user custom headers.
+        /// </summary>
+        Dictionary<String, String> customHeaderFields_;
+
+        /// <summary>
+        /// Headers dictionary accessors.
+        /// </summary>
+        public Dictionary<String, String> HeadersDictionary
+        {
+            get
+            {
+                EnsureHttpV1IsUsed();
+
+                if (null == customHeaderFields_)
+                {
+                    String headersString = headersString_;
+                    if (headersString == null)
+                    {
+                        unsafe
+                        {
+                            if (null != http_request_struct_)
+                                headersString = http_request_struct_->GetHeadersStringUtf8_Slow();
+                        }
+                    }
+
+                    customHeaderFields_ = Response.CreateHeadersDictionaryFromHeadersString(headersString);
+                }
+
+                return customHeaderFields_;
+            }
+
+            set
+            {
+                EnsureHttpV1IsUsed();
+
+                customHeaderFields_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Ensures that only HTTP v1 protocol is allowed.
+        /// </summary>
+        void EnsureHttpV1IsUsed()
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    return;
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
+        }
+
+        /// <summary>
+        /// Ensures that only HTTP v1 or WebSockets protocol is allowed.
+        /// </summary>
+        void EnsureHttpV1OrWebSocketsIsUsed()
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
+                return;
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
+        }
 
         /// <summary>
         /// Gets the <see cref="String" /> with the specified name.
@@ -1308,21 +1267,47 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                switch (protocol_type_)
+                EnsureHttpV1IsUsed();
+
+                if (null != customHeaderFields_)
                 {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    if (customHeaderFields_.ContainsKey(name))
+                        return customHeaderFields_[name];
+
+                    return null;
+                }
+
+                unsafe
+                {
+                    if (null == http_request_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
+
+                    return http_request_struct_->GetHeaderValue(name, ref headersString_);
+                }
+            }
+
+            set
+            {
+                EnsureHttpV1IsUsed();
+
+                customFields_ = true;
+
+                if (null == customHeaderFields_)
+                {
+                    String headers = headersString_;
+                    if (headers == null)
                     {
                         unsafe
                         {
-                            if (null == http_request_struct_)
-                                throw new ArgumentException("HTTP request not initialized.");
-
-                            return http_request_struct_->GetHeaderValue(name, ref headersString_);
+                            if (null != http_request_struct_)
+                                headers = http_request_struct_->GetHeadersStringUtf8_Slow();
                         }
                     }
+
+                    customHeaderFields_ = Response.CreateHeadersDictionaryFromHeadersString(headers);
                 }
 
-                throw new NotSupportedException("Network protocol does not support this method call.");
+                customHeaderFields_[name] = value;
             }
         }
 
@@ -1557,21 +1542,15 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                switch (protocol_type_)
+                EnsureHttpV1IsUsed();
+
+                unsafe
                 {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                    {
-                        unsafe
-                        {
-                            if (null == http_request_struct_)
-                                throw new ArgumentException("HTTP request not initialized.");
+                    if (null == http_request_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
 
-                            return (http_request_struct_->gzip_accepted_ != 0);
-                        }
-                    }
+                    return (http_request_struct_->gzip_accepted_ != 0);
                 }
-
-                throw new NotSupportedException("Network protocol does not support this method call.");
             }
         }
 

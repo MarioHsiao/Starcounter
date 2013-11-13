@@ -28,6 +28,37 @@ namespace Starcounter {
         /// Inject REST handler function provider here
         /// </summary>
         public static volatile IREST _REST;
+
+        /// <summary>
+        /// Register the specified uri, with one variable parameter, with a custom verb
+        /// </summary>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM(string uri, Func<Response> handler)
+        {
+            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM(ushort port, string uri, Func<Response> handler)
+        {
+            _REST.RegisterHandler(port, uri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with one variable parameter, with a custom verb
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T>(string uri, Func<T, Response> handler)
+        {
+            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM<T>(ushort port, string uri, Func<T, Response> handler)
+        {
+            _REST.RegisterHandler<T>(port, uri, handler);
+        }
    
         /// <summary>
         /// Register the specified uri with a PUT verb.
@@ -78,6 +109,23 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Register the specified uri, with two variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2>(string uri, Func<T1, T2, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2>(ushort port, string uri, Func<T1, T2, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2>(port, uri, handler);
+        }
+
+        /// <summary>
         /// Register the specified uri, with three variable parameters, with a PUT verb
         /// </summary>
         /// <typeparam name="T1">The type of the first parameter.</typeparam>
@@ -93,6 +141,24 @@ namespace Starcounter {
         public static void PUT<T1, T2, T3>(ushort port, string uri, Func<T1, T2, T3, Response> handler)
         {
             _REST.RegisterHandler<T1, T2, T3>(port, "PUT " + uri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with three variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter.</typeparam>
+        /// <param name="uri">The uri to register</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2, T3>(string uri, Func<T1, T2, T3, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2, T3>(ushort port, string uri, Func<T1, T2, T3, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3>(port, uri, handler);
         }
 
         /// <summary>
@@ -115,6 +181,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Register the specified uri, with four variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter.</typeparam>
+        /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2, T3, T4>(ushort port, string uri, Func<T1, T2, T3, T4, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4>(port, uri, handler);
+        }
+
+        /// <summary>
         /// Register the specified uri, with five variable parameters, with a PUT verb
         /// </summary>
         /// <typeparam name="T1">The type of the first parameter.</typeparam>
@@ -132,6 +217,26 @@ namespace Starcounter {
         public static void PUT<T1, T2, T3, T4, T5>(ushort port, string uri, Func<T1, T2, T3, T4, T5, Response> handler)
         {
             _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, "PUT " + uri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with five variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter.</typeparam>
+        /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
+        /// <typeparam name="T5">The type of the fifth parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2, T3, T4, T5>(ushort port, string uri, Func<T1, T2, T3, T4, T5, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, uri, handler);
         }
 
         /// <summary>

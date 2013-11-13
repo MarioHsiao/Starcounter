@@ -83,9 +83,6 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.PersonalServerComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.PersonalServer] = true;
 
-            if (InstallerMain.SystemServerComponent.IsInstalled())
-                cachedInstalledComponents[(Int32)Components.SystemServer] = true;
-
             if (InstallerMain.VS2012IntegrationComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.VS2012Integration] = true;
 

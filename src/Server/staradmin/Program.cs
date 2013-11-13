@@ -16,10 +16,17 @@ namespace staradmin {
                         ProcessUtilities.KillAllScProcesses();
                         break;
                     case "installservice":
-                        SystemServiceInstall.Install();
+                        bool start = args.Length > 1 && args[1] == "start";
+                        ServerServiceUtilities.Install(start);
                         break;
                     case "uninstallservice":
-                        SystemServiceInstall.Uninstall();
+                        ServerServiceUtilities.Uninstall();
+                        break;
+                    case "startservice":
+                        ServerServiceUtilities.Start();
+                        break;
+                    case "stopservice":
+                        ServerServiceUtilities.Stop();
                         break;
                     default:
                         throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);

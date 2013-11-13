@@ -2,6 +2,8 @@
 	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp.API.Versions"},
     "channels": [{
 		"name":"channel name",
-		"latestVersion":"2.0.234.2"
+		"latestVersion":"2.0.234.2",
+		"latestVersionDate":"2013-09-16 10:10:10Z",
+		"downloadUrl":"http://downloads.starcounter.com/nightlybuilds/2.0.567.3"
     }]
 }

@@ -228,55 +228,91 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
         {
-            *is_handled = false;
-
-            UInt32 chunk_index = task_info->chunk_index;
-            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
-
-            // Fetching the callback.
-            HandlersManagement.UriCallbackDelegate user_callback = uri_handlers_[task_info->handler_id];
-            if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
-
-            // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
-
-            // Socket data begin.
-            Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
-
-            // Getting type of network protocol.
-            MixedCodeConstants.NetworkProtocolType protocol_type = 
-                (MixedCodeConstants.NetworkProtocolType)(*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE));
-
-            // Creating network data stream object.
-            NetworkDataStream data_stream = new NetworkDataStream();
-
-            // Checking if we need to process linked chunks.
-            if (!is_single_chunk)
+            try
             {
-                UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS);
+                *is_handled = false;
 
-                Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
+                UInt32 chunk_index = task_info->chunk_index;
+                //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
-                fixed (Byte* p_plain_chunks_data = plain_chunks_data)
+                // Fetching the callback.
+                HandlersManagement.UriCallbackDelegate user_callback = uri_handlers_[task_info->handler_id];
+                if (user_callback == null)
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
+
+                // Determining if chunk is single.
+                Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+
+                // Socket data begin.
+                Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+
+                // Getting type of network protocol.
+                MixedCodeConstants.NetworkProtocolType protocol_type = 
+                    (MixedCodeConstants.NetworkProtocolType)(*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE));
+
+                // Creating network data stream object.
+                NetworkDataStream data_stream = new NetworkDataStream();
+
+                // Checking if we are accumulating on host.
+                if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION) != 0)
                 {
-                    // Copying all chunks data.
-                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                        chunk_index,
-                        raw_chunk,
-                        p_plain_chunks_data);
 
-                    if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode);
+                }
+
+                // Checking if we need to process linked chunks.
+                if (!is_single_chunk)
+                {
+                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS);
+
+                    Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
+
+                    fixed (Byte* p_plain_chunks_data = plain_chunks_data)
+                    {
+                        // Copying all chunks data.
+                        UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                            chunk_index,
+                            raw_chunk,
+                            p_plain_chunks_data);
+
+                        if (errorCode != 0)
+                            throw ErrorCode.ToException(errorCode);
+
+                        // Obtaining Request structure.
+                        Request http_request = new Request(
+                            raw_chunk,
+                            is_single_chunk,
+                            chunk_index,
+                            task_info->handler_id,
+                            p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                            p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
+                            data_stream,
+                            protocol_type);
+
+                        // Checking for the correct session.
+                        http_request.GetAppsSessionInterface();
+
+                        // Calling user callback.
+                        *is_handled = user_callback(http_request);
+                    }
+                }
+                else
+                {
+                    /*if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_AGGREGATED) != 0)
+                    {
+                        data_stream.Init(raw_chunk, true, chunk_index);
+                        data_stream.SendResponseInternal(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+
+                        return 0;
+                    }*/
 
                     // Obtaining Request structure.
                     Request http_request = new Request(
                         raw_chunk,
                         is_single_chunk,
-                        chunk_index,
+                        task_info->chunk_index,
                         task_info->handler_id,
-                        p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                        p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
+                        socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                        socket_data_begin,
                         data_stream,
                         protocol_type);
 
@@ -286,37 +322,15 @@ namespace Starcounter
                     // Calling user callback.
                     *is_handled = user_callback(http_request);
                 }
-            }
-            else
-            {
-                /*if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_AGGREGATED) != 0)
-                {
-                    data_stream.Init(raw_chunk, true, chunk_index);
-                    data_stream.SendResponseInternal(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-
-                    return 0;
-                }*/
-
-                // Obtaining Request structure.
-                Request http_request = new Request(
-                    raw_chunk,
-                    is_single_chunk,
-                    task_info->chunk_index,
-                    task_info->handler_id,
-                    socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                    socket_data_begin,
-                    data_stream,
-                    protocol_type);
-
-                // Checking for the correct session.
-                http_request.GetAppsSessionInterface();
-
-                // Calling user callback.
-                *is_handled = user_callback(http_request);
-            }
             
-            // Reset managed task state before exiting managed task entry point.
-            TaskHelper.Reset();
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
+            }
+            catch (Exception exc)
+            {
+                LogSources.Hosting.LogException(exc);
+                throw exc;
+            }
 
             return 0;
         }
@@ -405,10 +419,6 @@ namespace Starcounter
         /// <summary>
         /// Registers the URI handler.
         /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="uri_string">The uri_string.</param>
-        /// <param name="uriCallback">The URI callback.</param>
-        /// <param name="handlerId">The handler id.</param>
         public static void RegisterUriHandler(
             UInt16 port,
             String originalUriInfo,
@@ -416,8 +426,10 @@ namespace Starcounter
             Byte[] paramTypes,
             HandlersManagement.UriCallbackDelegate uriCallback,
             MixedCodeConstants.NetworkProtocolType protoType,
-            out UInt16 handlerId)
+            out UInt16 handlerId,
+            out Int32 maxNumEntries)
         {
+            Int32 maxNumEntriesTemp;
             UInt64 handler_id;
             Byte numParams = 0;
             if (null != paramTypes)
@@ -437,8 +449,9 @@ namespace Starcounter
                             pp,
                             numParams,
                             uri_outer_handler_,
+                            protoType,
                             &handler_id,
-                            protoType);
+                            &maxNumEntriesTemp);
 
                         if (errorCode != 0)
                             throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
@@ -446,9 +459,10 @@ namespace Starcounter
                 }
 
                 uri_handlers_[handler_id] = uriCallback;
+                maxNumEntries = maxNumEntriesTemp;
 
                 // TODO
-                handlerId = (UInt16)handler_id;
+                handlerId = (UInt16) handler_id;
             }
         }
 

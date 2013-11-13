@@ -9,6 +9,9 @@ using Starcounter.Internal;
 using Starcounter.Server.Setup;
 using System.Xml;
 using Starcounter.Advanced.Configuration;
+using Starcounter.Server.Service;
+using System.Threading;
+using Starcounter.Server.Windows;
 
 namespace Starcounter.InstallerEngine
 {
@@ -51,32 +54,6 @@ public class CPersonalServer : CComponentBase
         get
         {
             return InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_PersonalServerPath);
-        }
-    }
-
-    /// <summary>
-    /// Kills all Starcounter server processes (except Starcounter service).
-    /// </summary>
-    internal static void KillServersButNotService()
-    {
-        if (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
-            InstallerMain.SystemServerComponent.ShouldBeInstalled())
-        {
-            Process[] procs = Process.GetProcessesByName(StarcounterConstants.ProgramNames.ScService);
-            foreach (Process proc in procs)
-            {
-                // Checking if its not a service.
-                if (proc.SessionId != 0)
-                {
-                    try
-                    {
-                        proc.Kill();
-                        proc.WaitForExit(30000);
-                    }
-                    catch { }
-                    finally { proc.Close(); }
-                }
-            }
         }
     }
 
@@ -153,6 +130,82 @@ public class CPersonalServer : CComponentBase
     }
 
     /// <summary>
+    /// Creates the windows service that can optionally run the server.
+    /// </summary>
+    /// <returns>The setup used when the server was created.</returns>
+    ServerServiceSetup CreateWindowsService() {
+        var setup = new ServerServiceSetup();
+        setup.StartupType = Server.Windows.StartupType.Automatic;
+
+        var vsComponent = InstallerMain.VS2012IntegrationComponent;
+        if (vsComponent.IsInstalled() || vsComponent.ShouldBeInstalled()) {
+            setup.StartupType = Server.Windows.StartupType.Manual;
+        }
+        
+        Utilities.ReportSetupEvent("Adding Starcounter server service...");
+        setup.Execute();
+
+        return setup;
+    }
+
+    internal static void StartServiceIfAutomatic() {
+        var service = ServerService.Find();
+        if (service != null) {
+            // Only start it if it's automatic start type.
+            // Otherwise, start the personal server?
+            // TODO:
+
+            var config = WindowsServiceHelper.GetServiceConfig(service.ServiceName);
+            if (config.dwStartType == (uint) Win32Service.SERVICE_START.SERVICE_AUTO_START) {
+                Utilities.ReportSetupEvent("Starting Starcounter service...");
+                ServerService.Start(service.ServiceName);
+            }
+        }
+    }
+
+    void DeleteWindowsService() {
+        Utilities.ReportSetupEvent("Removing Starcounter server service...");
+
+        ServerService.Stop(ServerService.Name, 60 * 1000);
+        ServerService.Delete();
+
+        // Checking for Starcounter service existence.
+        Boolean serviceStillFound = false;
+        for (Int32 i = 0; i < 5; i++) {
+            var allServices = ServiceController.GetServices();
+            foreach (ServiceController someService in allServices) {
+                if (ServerService.IsServerService(someService)) {
+                    serviceStillFound = true;
+                    break;
+                }
+            }
+
+            // If service does not exist we are stopping the search procedure.
+            if (!serviceStillFound)
+                break;
+
+            Thread.Sleep(1000);
+        }
+
+        // If service is still found - panic!
+        var servicePanicMsg = 
+            "Starcounter system service still exists in the system and can not be completely removed." + Environment.NewLine +
+            "Please check that Starcounter service is not blocked by any application or restart the system.";
+
+        if (serviceStillFound) {
+            if (InstallerMain.SilentFlag) {
+                // Printing a console message.
+                Utilities.ConsoleMessage(servicePanicMsg);
+            } else {
+                Utilities.MessageBoxInfo(servicePanicMsg, "Starcounter service still exists in the system...");
+            }
+        }
+
+        // Disabling service start at the end.
+        InstallerMain.StartService = false;
+    }
+
+    /// <summary>
     /// Starts personal server if demanded.
     /// </summary>
     void StartPersonalServer()
@@ -210,6 +263,8 @@ public class CPersonalServer : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for personal database engine...");
 
+        // Obsolete: there is no longer need for such a variable.
+        // TODO:
         // Setting the default server environment variable.
         Environment.SetEnvironmentVariable(
             ConstantsBank.SCEnvVariableDefaultServer,
@@ -217,7 +272,7 @@ public class CPersonalServer : CComponentBase
             EnvironmentVariableTarget.User);
 
         // Logging event.
-        Utilities.ReportSetupEvent("Installing personal database engine...");
+        Utilities.ReportSetupEvent("Installing server...");
 
         // Checking that server path is in user's personal directory.
         if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", serverOuterDir))
@@ -231,7 +286,7 @@ public class CPersonalServer : CComponentBase
         }
 
         // Logging event.
-        Utilities.ReportSetupEvent("Creating structure for personal database engine...");
+        Utilities.ReportSetupEvent("Creating structure for the server...");
 
         // Creating new server repository.
         RepositorySetup setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.PersonalServer);
@@ -295,8 +350,8 @@ public class CPersonalServer : CComponentBase
             serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort));
 
-        // Killing server process (in order to later start it with normal privileges).
-        KillServersButNotService();
+        // Creating service
+        CreateWindowsService();
 
         // Creating shortcuts.
         CreatePersonalServerShortcuts();
@@ -360,6 +415,8 @@ public class CPersonalServer : CComponentBase
                     return;
             }
         }
+
+        DeleteWindowsService();
 
         // Logging event.
         Utilities.ReportSetupEvent("Removing Personal Server environment variables...");
@@ -444,6 +501,13 @@ public class CPersonalServer : CComponentBase
         String serverDir = Utilities.ReadServerInstallationPath(PersonalServerConfigPath);
         if (Directory.Exists(serverDir))
             return true;
+
+        // Check if the Windows service is installed and configured.
+        foreach (var service in ServiceController.GetServices()) {
+            if (ServerService.IsServerService(service)) {
+                return true;
+            }
+        }
 
         // None of evidence found.
         return false;

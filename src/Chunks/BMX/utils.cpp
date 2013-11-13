@@ -16,6 +16,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     uint8_t* buffer
     )
 {
+    _SC_BEGIN_FUNC
+
     uint32_t err_code;
     int32_t cur_offset = 0;
 
@@ -50,6 +52,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     first_smc->terminate_link();
 
     return 0;
+
+    _SC_END_FUNC
 }
 
 // Writing all chunks data to given buffer.
@@ -220,12 +224,13 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     // Writing to first chunk.
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
     left_bytes_to_write -= num_bytes_left_first_chunk;
+    assert(left_bytes_to_write >= 0);
 
     // Checking how many bytes to write next time.
     if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
     {
         // Checking if we copied everything.
-        if (left_bytes_to_write <= 0)
+        if (left_bytes_to_write == 0)
         {
             // Setting number of total written bytes.
             *actual_written_bytes = num_bytes_to_write;
@@ -247,14 +252,18 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
         assert(err_code == 0);
 
         // Copying memory.
+        assert(num_bytes_to_write >= left_bytes_to_write);
+        assert(left_bytes_to_write > 0);
+        assert(num_bytes_to_write_in_chunk > 0 && num_bytes_to_write_in_chunk <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
+        assert(left_bytes_to_write >= 0);
 
         // Checking how many bytes to write next time.
         if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
         {
             // Checking if we copied everything.
-            if (left_bytes_to_write <= 0)
+            if (left_bytes_to_write == 0)
                 break;
 
             num_bytes_to_write_in_chunk = left_bytes_to_write;
@@ -366,6 +375,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint32_t conn_flags
     )
 {
+    _SC_BEGIN_FUNC
+
     assert(buf_len_bytes >= 0);
     assert(NULL != src_chunk_buf);
     assert(shared_memory_chunk::link_terminator != *src_chunk_index);    
@@ -404,6 +415,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     *src_chunk_index = shared_memory_chunk::link_terminator;
 
     return err_code;
+
+    _SC_END_FUNC
 }
 
 // Releases given linked chunks.

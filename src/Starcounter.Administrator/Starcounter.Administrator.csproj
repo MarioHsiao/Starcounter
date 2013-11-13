@@ -66,6 +66,9 @@
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
     <Compile Include="API\Handlers\ExecutableHandler.cs" />
     <Compile Include="API\Handlers\ExecutableHandler.GET.cs" />
+    <Compile Include="API\Handlers\ServerHandler.cs" />
+    <Compile Include="API\Handlers\ServerHandler.DELETE.cs" />
+    <Compile Include="API\Handlers\ServerHandler.GET.cs" />
     <Compile Include="API\RestAPI.cs" />
     <Compile Include="API\Utilities\ApplicationLayerExtensions.cs" />
     <Compile Include="API\Utilities\RESTUtility.cs" />
@@ -81,6 +84,7 @@
       <DependentUpon>DatabasesApp.json</DependentUpon>
     </Compile>
     <Compile Include="FrontEndAPI\ConsoleHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\VersionCheckHandler.GET.cs" />
     <Compile Include="FrontEndAPI\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
     <Compile Include="FrontEndAPI\DatabaseCollectionHandler.POST.cs" />
     <Compile Include="FrontEndAPI\DatabaseCollectionHandler.GET.cs" />
@@ -397,6 +401,11 @@
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="FrontEndAPI\Utilities\executables.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="FrontEndAPI\Utilities\versioncheck.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>

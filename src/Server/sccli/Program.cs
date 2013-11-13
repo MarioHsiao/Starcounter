@@ -74,6 +74,11 @@ namespace star {
                 return;
             }
 
+            if (appArgs.ContainsFlag(StarOption.HelpUnofficial, CommandLineSection.GlobalOptions)) {
+                Usage(syntax, true, true);
+                return;
+            }
+
             if (appArgs.ContainsFlag(StarOption.Info, CommandLineSection.GlobalOptions)) {
                 ShowInfoAboutStarcounter();
                 return;
@@ -184,7 +189,7 @@ namespace star {
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
             Console.WriteLine(formatting, string.Format("-h, --{0}", StarOption.Help), "Shows help about star.exe.");
-            Console.WriteLine(formatting, string.Format("-hx, --{0}", StarOption.HelpEx), "Shows extended/unofficial help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-hx, --{0}", StarOption.HelpEx), "Shows extended help about star.exe.");
             Console.WriteLine(formatting, string.Format("-v, --{0}", StarOption.Version), "Prints the version of Starcounter.");
             Console.WriteLine(formatting, string.Format("-i, --{0}", StarOption.Info), "Prints information about the Starcounter installation.");
             Console.WriteLine(formatting, string.Format("-p=,--{0}=port", StarOption.Serverport), "Port to the admin server.");
@@ -206,10 +211,11 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
-                Console.WriteLine(formatting, string.Format("--{0}", StarOption.AttatchCodeHostDebugger), "Attaches a debugger to the code host process.");
+                Console.WriteLine(formatting, string.Format("-hxx, -{0}", StarOption.HelpUnofficial), "Shows unofficial help about star.exe.");
             }
             if (unofficial) {
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.Debug), "Attaches a debugger to the star.exe process.");
+                Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.CodeHostCommandLineOptions), "Allows for the passing of custom code host parameters");
             }
             Console.WriteLine();
             if (extended) {
@@ -252,6 +258,12 @@ namespace star {
                 new string[] { "hx" }
                 );
             appSyntax.DefineFlag(
+                StarOption.HelpUnofficial,
+                "Prints the star.exe unofficial help message.",
+                OptionAttributes.Default,
+                new string[] { "hxx" }
+                );
+            appSyntax.DefineFlag(
                 StarOption.Version,
                 "Prints the version of Starcounter.",
                 OptionAttributes.Default,
@@ -273,10 +285,6 @@ namespace star {
             appSyntax.DefineFlag(
                 StarOption.NoColor,
                 "Instructs star.exe to turn off colorizing output."
-                );
-            appSyntax.DefineFlag(
-                StarOption.AttatchCodeHostDebugger,
-                "Attaches a debugger to the code host process after it has started."
                 );
 
             // NOTE:
