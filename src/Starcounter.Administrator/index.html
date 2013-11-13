@@ -102,6 +102,13 @@
         </ul>
     </div>
 
+    <div class="alert alert-info" ng-show="newVersion!=null">
+        <button type="button" class="close" ng-click="closeVersionNotice()" data-dismiss="alert">&times;</button>
+        <strong>New Version!</strong>
+        <p>A newer version of Starcounter is available.</p>
+        <a href="{{newVersion.downloadUri}}" target="_blank">Download ({{newVersion.version}})</a>
+    </div>
+
     <div class="progress progress-striped active" ng-repeat="job in jobs">
         <div class="bar" style="width: 100%;">{{job.message}}</div>
     </div>
@@ -111,9 +118,6 @@
             <p>Help page: <a href="{{alert.helpLink}}" target="_blank">{{alert.helpLink}}</a></p>
         </div>
     </alert>
-
-
-
 
     <div ng-view></div>
 
