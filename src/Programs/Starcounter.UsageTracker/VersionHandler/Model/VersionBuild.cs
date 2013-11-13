@@ -86,7 +86,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         internal static VersionBuild GetLatestAvailableBuild(string channel) {
 
             // Get latest version source
-            string version = VersionSource.GetLatestVersion(channel);
+            VersionSource version = VersionSource.GetLatestVersion(channel);
             if (version == null) return null;
 
             // Get version build

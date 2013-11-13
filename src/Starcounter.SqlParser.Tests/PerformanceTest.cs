@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Starcounter;
 using Starcounter.Query.RawParserAnalyzer;
+using NUnit.Framework;
 
 namespace Starcounter.SqlParser.Tests {
     public static class PerformanceTest {
@@ -20,6 +21,8 @@ namespace Starcounter.SqlParser.Tests {
                 (decimal)1000 * timer.ElapsedMilliseconds / nrIterations + " mcs.");
         }
 
+        [Test]
+        [Category("LongRunning")]
         public static void PerformanceTests() {
             MeasureQueryPerformance("SELECT a FROM account a");
         }

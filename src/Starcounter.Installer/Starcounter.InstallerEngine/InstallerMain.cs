@@ -489,7 +489,6 @@ namespace Starcounter.InstallerEngine
         public static CSamplesDemos SamplesDemosComponent = new CSamplesDemos();
         public static CInstallationBase InstallationBaseComponent = new CInstallationBase();
         public static CPersonalServer PersonalServerComponent = new CPersonalServer();
-        public static CSystemServer SystemServerComponent = new CSystemServer();
         public static VS2012Integration VS2012IntegrationComponent = new VS2012Integration();
 
         /// <summary>
@@ -498,7 +497,6 @@ namespace Starcounter.InstallerEngine
         public static CComponentBase[] AllComponentsToUninstall =
         {
             PersonalServerComponent,
-            SystemServerComponent,
             VS2012IntegrationComponent,
             SamplesDemosComponent,
             InstallationBaseComponent
@@ -511,7 +509,6 @@ namespace Starcounter.InstallerEngine
         {
             InstallationBaseComponent,
             PersonalServerComponent,
-            SystemServerComponent,
             SamplesDemosComponent,
             VS2012IntegrationComponent
         };
@@ -751,8 +748,6 @@ namespace Starcounter.InstallerEngine
                     ResetProgressStep();
 
                     // Mapping boolean flags to settings.
-                    if (PersonalServerComponent.ShouldBeInstalled()) AddComponentToProgress();
-                    if (SystemServerComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (VS2012IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (PersonalServerComponent.ShouldBeInstalled())
                     {
@@ -864,7 +859,7 @@ namespace Starcounter.InstallerEngine
                 finally
                 {
                     // Restarting Starcounter service if needed.
-                    CSystemServer.StartStarcounterServices();
+                    CPersonalServer.StartServiceIfAutomatic();
                 }
 
                 // Adding last progress update.

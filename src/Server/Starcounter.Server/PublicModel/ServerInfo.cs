@@ -48,14 +48,6 @@ namespace Starcounter.Server.PublicModel {
             set;
         }
 
-        /// <summary>
-        /// The servers default maximum image size, used when creating
-        /// databases if no maximum size is explicitly given.
-        /// </summary>
-        public long DefaultMaxImageSize {
-            get;
-            set;
-        }
 
         /// <summary>
         /// The servers default transaction log size, used when creating

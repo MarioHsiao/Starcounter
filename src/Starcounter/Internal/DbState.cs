@@ -139,7 +139,7 @@ namespace Starcounter.Internal
                 return (value == 1);
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -165,7 +165,7 @@ namespace Starcounter.Internal
                 return null;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -211,7 +211,7 @@ namespace Starcounter.Internal
                 }
                 return new DateTime((Int64)ticks);
             }
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -236,8 +236,8 @@ namespace Starcounter.Internal
                 }
                 return new DateTime((Int64)ticks);
             }
-            
-            ec = sccoredb.Mdb_GetLastError();
+
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -259,7 +259,7 @@ namespace Starcounter.Internal
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 return X6Decimal.FromRaw(value);
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -284,7 +284,7 @@ namespace Starcounter.Internal
                     return null;
                 }
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -306,7 +306,7 @@ namespace Starcounter.Internal
                 return value;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -332,7 +332,7 @@ namespace Starcounter.Internal
                 return value;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -399,7 +399,7 @@ namespace Starcounter.Internal
                 return value;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -426,7 +426,7 @@ namespace Starcounter.Internal
                 return value;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -462,7 +462,7 @@ namespace Starcounter.Internal
                 return null;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -506,8 +506,8 @@ namespace Starcounter.Internal
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 return value;
             }
-            
-            ec = sccoredb.Mdb_GetLastError();
+
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -534,7 +534,7 @@ namespace Starcounter.Internal
                 return value;
             }
 
-            ec = sccoredb.Mdb_GetLastError();
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -570,7 +570,7 @@ namespace Starcounter.Internal
                     return null;
                 }
 
-                ec = sccoredb.Mdb_GetLastError();
+                ec = sccoredb.star_get_last_error();
                 throw ErrorCode.ToException(ec);
             }
         }
@@ -598,8 +598,8 @@ namespace Starcounter.Internal
                     return Binary.Null;
                 }
             }
-            
-            ec = sccoredb.Mdb_GetLastError();
+
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -624,8 +624,8 @@ namespace Starcounter.Internal
                     return LargeBinary.Null;
                 }
             }
-            
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -655,7 +655,7 @@ namespace Starcounter.Internal
                 flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &ticks);
             }
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) != 0) {
-                ec = sccoredb.Mdb_GetLastError();
+                ec = sccoredb.star_get_last_error();
                 throw ErrorCode.ToException(ec);
             }
             if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
@@ -680,7 +680,7 @@ namespace Starcounter.Internal
                 flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &ticks);
             }
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) != 0) {
-                ec = sccoredb.Mdb_GetLastError();
+                ec = sccoredb.star_get_last_error();
                 throw ErrorCode.ToException(ec);
             }
             if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
@@ -752,8 +752,8 @@ namespace Starcounter.Internal
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 return value;
             }
-            
-            ec = sccoredb.Mdb_GetLastError();
+
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -778,8 +778,8 @@ namespace Starcounter.Internal
                 }
                 return value;
             }
-            
-            ec = sccoredb.Mdb_GetLastError();
+
+            ec = sccoredb.star_get_last_error();
             throw ErrorCode.ToException(ec);
         }
 
@@ -796,8 +796,8 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -885,8 +885,8 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -933,7 +933,7 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -1016,7 +1016,7 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -1063,8 +1063,8 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -1106,7 +1106,7 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -1146,7 +1146,7 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -1199,7 +1199,7 @@ namespace Starcounter.Internal
             if (br) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -1264,7 +1264,7 @@ namespace Starcounter.Internal
         public static void WriteUInt64(ulong oid, ulong address, Int32 index, UInt64 value) {
             var br = sccoredb.Mdb_ObjectWriteUInt64(oid, address, index, value);
             if (!br) {
-                throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+                throw ErrorCode.ToException(sccoredb.star_get_last_error());
             }
         }
 

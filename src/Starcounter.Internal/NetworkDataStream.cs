@@ -144,14 +144,14 @@ namespace Starcounter
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
-                return;
+                throw new ArgumentNullException("Response was already sent on this Request!");
 
             // Checking if we are not on Starcounter thread now.
             if (!isStarcounterThread)
             {
                 NetworkDataStream thisInst = this;
 
-                StarcounterBase._DB.RunAsync(() => {
+                StarcounterBase._DB.RunSync(() => {
                     fixed (Byte* p = buffer) {
                         thisInst.SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
                     }
@@ -212,7 +212,7 @@ namespace Starcounter
             if (!isStarcounterThread)
             {
                 NetworkDataStream thisInst = this;
-                StarcounterBase._DB.RunAsync(() => { thisInst.ReleaseChunk(); });
+                StarcounterBase._DB.RunSync(() => { thisInst.ReleaseChunk(); });
                 return;
             }
 

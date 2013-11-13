@@ -84,8 +84,8 @@ inline int HttpResponseOnHeaderField(http_parser* p, const char *at, size_t leng
     // Setting headers beginning.
     if (!http->http_response_->headers_offset_)
     {
-        http->http_response_->headers_len_bytes_ = (uint32_t)(p->nread - length - 1);
-        http->http_response_->headers_offset_ = (uint32_t)(at - (char*)http->response_buf_);
+        http->http_response_->headers_len_bytes_ = (uint16_t)(p->nread - length - 1);
+        http->http_response_->headers_offset_ = (uint16_t)(at - (char*)http->response_buf_);
     }
 
     return 0;
@@ -101,7 +101,7 @@ inline int HttpResponseOnHeaderValue(http_parser* p, const char *at, size_t leng
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
-            http->http_response_->content_len_bytes_ = ParseStringToUint(at, length);
+            http->http_response_->content_len_bytes_ = (int32_t) p->content_length;
 
             break;
         }
@@ -116,10 +116,10 @@ inline int HttpResponseOnBody(http_parser* p, const char *at, size_t length)
 
     // Setting body parameters.
     if (http->http_response_->content_len_bytes_ < 0)
-        http->http_response_->content_len_bytes_ = (uint32_t)length;
+        http->http_response_->content_len_bytes_ = (int32_t)length;
 
     // Setting body data offset.
-    http->http_response_->content_offset_ = (uint32_t)(at - (char*)http->response_buf_);
+    http->http_response_->content_offset_ = (uint16_t)(at - (char*)http->response_buf_);
 
     return 0;
 }
@@ -137,7 +137,7 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
 
     // Executing HTTP parser.
     size_t bytes_parsed = http_parser_execute(
-        (http_parser *)&thread_http_response_parser,
+        &thread_http_response_parser.http_parser_,
         g_http_response_parser_settings,
         (const char *)response_buf,
         response_size_bytes);
@@ -159,6 +159,13 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
     }
 
     HttpResponse* http_response = thread_http_response_parser.http_response_;
+
+    // Checking for special case when body is not yet received.
+    if (http_response->content_offset_ <= 0)
+    {
+        if (http_response->content_len_bytes_ > 0)
+            return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
+    }
 
     // TODO: Check body length.
 

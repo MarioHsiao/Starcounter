@@ -21,6 +21,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             //      "channels":[{
             //          "name":"NightlyBuilds",
             //          "latestVersion":"2.0.801.3"
+            //       	"latestVersionDate":"2013-09-16 10:10:10Z"
             //      }]
             // }
             Handle.GET(port, "/api/channels", (Request request) => {
@@ -33,12 +34,15 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     foreach (string channel in result) {
 
-                        string latestVersion = VersionSource.GetLatestVersion(channel);
+                        VersionSource latestVersion = VersionSource.GetLatestVersion(channel);
                         if (latestVersion == null) continue;
 
                         var item = channels.channels.Add();
                         item.name = channel;
-                        item.latestVersion = latestVersion.ToString();
+                        item.latestVersion = latestVersion.Version.ToString();
+                        item.latestVersionDate = latestVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                        item.downloadUrl = string.Format("http://{0}/archive/{1}/{2}", VersionHandlerApp.StarcounterTrackerUrl, channel, latestVersion.Version);
+
                     }
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = channels.ToJsonUtf8() };
@@ -67,15 +71,17 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("Channel {0} not found", channel) };
                     }
 
-                    string latestVersion = VersionSource.GetLatestVersion(channel);
+                    VersionSource latestVersion = VersionSource.GetLatestVersion(channel);
                     if (latestVersion == null) {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("There is no available versions in the channel {0}", channel) };
                     }
 
                     Channel channelItem = new Channel();
                     channelItem.name = versionSource.Channel;
-                    channelItem.latestVersion = latestVersion.ToString();
-                    channelItem.downloadUrl = string.Format("http://downloads.starcounter.com/archive/{0}/{1}", channel, latestVersion.ToString());
+                    channelItem.latestVersion = latestVersion.Version;
+                    channelItem.latestVersionDate = latestVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+
+                    channelItem.downloadUrl = string.Format("http://{0}/archive/{1}/{2}", VersionHandlerApp.StarcounterTrackerUrl, channel, latestVersion.Version);
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = channelItem.ToJsonUtf8() };
 

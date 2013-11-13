@@ -2,6 +2,7 @@
 using Starcounter.Server;
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace scservice {
 
@@ -11,6 +12,7 @@ namespace scservice {
             var startedAsService = IsStartedAsService(args);
             string serverName = "Personal";
             bool logSteps = false;
+            var debug = false;
 
             if (args.Length > 2) {
                 if (!startedAsService) {
@@ -29,12 +31,26 @@ namespace scservice {
                         Usage();
                     }
                     return;
+                }else if (arg.Equals("--sc-debug", ignoreCase)) {
+                    debug = true;
                 } else {
-                    serverName = arg;
+                    Console.WriteLine("Ignoring parameter \"{0}\"", arg);
                 }
             }
 
-            var serviceProcess = new SystemServerProcess(serverName) {
+            if (debug) {
+                int seconds = 20;
+                Console.WriteLine("Waiting {0} seconds, or until a debugger is attached...", seconds);
+                for (int i = 0; i < seconds; i++) {
+                    Thread.Sleep(1000);
+                    if (Debugger.IsAttached) {
+                        Debugger.Break();
+                        break;
+                    }
+                }
+            }
+
+            var serviceProcess = new ServerServiceProcess(serverName) {
                 LogSteps = logSteps
             };
             serviceProcess.Launch(startedAsService);
@@ -45,15 +61,13 @@ namespace scservice {
         }
 
         static void Usage() {
-            Console.WriteLine("scservice.exe [ServerName] [--logsteps]");
-            Console.WriteLine("Example: scservice.exe personal");
-            Console.WriteLine("When no ServerName argument is supplied 'personal' is used.");
+            Console.WriteLine("scservice.exe [--logsteps]");
             Console.WriteLine();
             Console.WriteLine("How it works:");
-            Console.WriteLine("scservice will load XML-file called [ServerName].xml");
+            Console.WriteLine("scservice will load XML-file called personal.xml");
             Console.WriteLine("from the same directory as scservice.exe and");
             Console.WriteLine("will fetch corresponding server directory from it.");
-            Console.WriteLine("From obtained directory it will load [ServerName].config.xml");
+            Console.WriteLine("From obtained directory it will load personal.config.xml");
             Console.WriteLine("to read server-related settings.");
             Console.WriteLine("scservice will then start and monitor all required");
             Console.WriteLine("Starcounter components, like scnetworkgateway, scipcmonitor, etc.");

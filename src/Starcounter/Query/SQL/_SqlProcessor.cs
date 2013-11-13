@@ -83,7 +83,7 @@ internal static class SqlProcessor
             return SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, message + " But no token is found (end of the query).");
     }
 
-    internal static Boolean ParseNonSelectQuery(String query, params Object[] values) {
+    internal static Boolean ParseNonSelectQuery(String query, Boolean slowSql, params Object[] values) {
         if (query.Length == 0)
             return false;
         switch (query[0]) {
@@ -93,7 +93,7 @@ internal static class SqlProcessor
                 return true;
             case 'D':
             case 'd':
-                if (SqlProcessor.ProcessDQuery(false, query, values))
+                if (SqlProcessor.ProcessDQuery(slowSql, query, values))
                     return true;
                 else
                     return false;
@@ -109,7 +109,7 @@ internal static class SqlProcessor
                         return true;
                     case 'D':
                     case 'd':
-                        if (SqlProcessor.ProcessDQuery(false, query, values))
+                        if (SqlProcessor.ProcessDQuery(slowSql, query, values))
                             return true;
                         else
                             return false;

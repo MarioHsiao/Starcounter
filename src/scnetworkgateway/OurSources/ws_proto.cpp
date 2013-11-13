@@ -301,11 +301,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
 
     // Checking if we want to disconnect the socket.
     if (sd->get_disconnect_socket_flag())
-    {
-        sd->set_socket_trigger_disconnect_flag();
-
         return SCERRGWDISCONNECTFLAG;
-    }
 
     // Checking if this socket data is for send only.
     if (sd->get_socket_just_send_flag())

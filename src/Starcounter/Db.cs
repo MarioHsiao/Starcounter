@@ -46,7 +46,7 @@ namespace Starcounter
                     return TableDef.ConstructTableDef(tableInfo);
                 }
                 if (r == Error.SCERRTABLENOTFOUND) return null;
-                throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
+                throw ErrorCode.ToException(sccoredb.star_get_last_error());
             }
         }
 
@@ -342,7 +342,7 @@ namespace Starcounter
 
         private static void HandleFatalErrorInTransactionScope()
         {
-            uint e = sccoredb.Mdb_GetLastError();
+            uint e = sccoredb.star_get_last_error();
             ExceptionManager.HandleInternalFatalError(e);
         }
     }
