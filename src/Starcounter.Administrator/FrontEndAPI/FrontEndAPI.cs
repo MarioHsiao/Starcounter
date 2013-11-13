@@ -27,6 +27,9 @@ namespace Starcounter.Administrator.FrontEndAPI {
             FrontEndAPI.Database_POST(port, server);
             FrontEndAPI.DatabaseDefaultSettings_GET(port, server);
 
+
+            FrontEndAPI.VersionCheck_GET(port, server);
+
             FrontEndAPI.VerifyDatabaseProperties_POST(port, server);
 
             FrontEndAPI.Server_GET(port, server);

@@ -86,11 +86,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         internal static VersionBuild GetLatestAvailableBuild(string channel) {
 
             // Get latest version source
-            string version = VersionSource.GetLatestVersion(channel);
-            if (version == null) return null;
+            VersionSource versionSource = VersionSource.GetLatestVersion(channel);
+            if (versionSource == null) return null;
 
             // Get version build
-            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", channel, version, false).First;
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", versionSource.Channel, versionSource.Version, false).First;
         }
 
 
