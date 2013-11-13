@@ -340,7 +340,7 @@ inline int HttpProto::OnHeaderField(http_parser* p, const char *at, size_t lengt
 }
 
 // Processes the session information.
-inline void HttpProto::ProcessSessionString(SocketDataChunk* sd, const char* session_id_start)
+inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start)
 {
     // Parsing the session.
     sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
@@ -667,7 +667,7 @@ uint32_t HttpProto::HttpUriDispatcher(
 }
 
 // Resets the parser related fields.
-void HttpProto::ResetParser(SocketDataChunk* sd)
+void HttpProto::ResetParser(SocketDataChunkRef sd)
 {
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
