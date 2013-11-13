@@ -36,6 +36,12 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
+                    string ipAddress = request.GetClientIpAddress().ToString();
+                    if (Utils.IsBlacklisted(ipAddress)) {
+                        LogWriter.WriteLine(string.Format("WARNING: IP Address {1} is blacklisted", ipAddress));
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden };
+                    }
+
                     VersionBuild versionBuild = VersionBuild.GetLatestAvailableBuild("NightlyBuilds");
                     if (versionBuild == null) {
                         string message = string.Format("The download is not available at the moment. Please try again later.");
@@ -44,9 +50,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     byte[] fileBytes = File.ReadAllBytes(versionBuild.File);
 
+
                     Db.Transaction(() => {
                         versionBuild.DownloadDate = DateTime.UtcNow;
-                        versionBuild.IPAdress = request.GetClientIpAddress().ToString();
+                        versionBuild.IPAdress = ipAddress;
                     });
 
                     VersionHandlerApp.BuildkWorker.Trigger();
@@ -79,6 +86,12 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
+                    string ipAddress = request.GetClientIpAddress().ToString();
+                    if (Utils.IsBlacklisted(ipAddress)) {
+                        LogWriter.WriteLine(string.Format("WARNING: IP Address {1} is blacklisted", ipAddress));
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden };
+                    }
+
                     // Find a valid sombody
                     Somebody somebody = Db.SlowSQL<Somebody>("SELECT o FROM Somebody o WHERE o.DownloadKey=?", downloadkey).First;
                     if (somebody == null) {
@@ -97,7 +110,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                     Db.Transaction(() => {
                         versionBuild.DownloadDate = DateTime.UtcNow;
                         versionBuild.DownloadKey = downloadkey;
-                        versionBuild.IPAdress = request.GetClientIpAddress().ToString();
+                        versionBuild.IPAdress = ipAddress;
                     });
 
                     VersionHandlerApp.BuildkWorker.Trigger();
@@ -129,6 +142,12 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
+                    string ipAddress = request.GetClientIpAddress().ToString();
+                    if (Utils.IsBlacklisted(ipAddress)) {
+                        LogWriter.WriteLine(string.Format("WARNING: IP Address {1} is blacklisted", ipAddress));
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden };
+                    }
+
                     // Check if source exist for specified channel and version.
                     VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", channel, version).First;
                     if (versionSource == null) {
@@ -146,7 +165,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     Db.Transaction(() => {
                         versionBuild.DownloadDate = DateTime.UtcNow;
-                        versionBuild.IPAdress = request.GetClientIpAddress().ToString();
+                        versionBuild.IPAdress = ipAddress;
                     });
 
                     VersionHandlerApp.BuildkWorker.Trigger();
@@ -184,6 +203,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
         }
 
-      
+
     }
 }

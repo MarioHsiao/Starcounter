@@ -84,6 +84,7 @@
       <DependentUpon>DatabasesApp.json</DependentUpon>
     </Compile>
     <Compile Include="FrontEndAPI\ConsoleHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\VersionCheckHandler.GET.cs" />
     <Compile Include="FrontEndAPI\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
     <Compile Include="FrontEndAPI\DatabaseCollectionHandler.POST.cs" />
     <Compile Include="FrontEndAPI\DatabaseCollectionHandler.GET.cs" />
@@ -400,6 +401,11 @@
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="FrontEndAPI\Utilities\executables.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="FrontEndAPI\Utilities\versioncheck.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
