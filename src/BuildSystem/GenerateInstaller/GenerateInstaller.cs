@@ -76,12 +76,9 @@ namespace GenerateInstaller
 
             // Restoring fake archive file if needed.
             String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
-            String tempArchivePath = archivePath + ".old";
+            String savedArchivePath = archivePath + ".saved";
             
             Console.WriteLine("Building empty managed setup EXE...");
-
-            if (File.Exists(tempArchivePath))
-                File.Delete(tempArchivePath);
 
             Console.WriteLine("Building unique Starcounter.Tracking DLL...");
 
@@ -91,7 +88,6 @@ namespace GenerateInstaller
                 configuration,
                 platform);
 
-            File.Move(archivePath, tempArchivePath);
             File.WriteAllText(archivePath, "This is an empty file...");
 
             Console.WriteLine("Building empty Starcounter.InstallerWPF...");
@@ -115,8 +111,8 @@ namespace GenerateInstaller
 
             File.Delete(archivePath);
 
-            // Updating newly built files in Archive.zip.
-            using (FileStream zipToOpen = new FileStream(tempArchivePath, FileMode.Open))
+            // Updating newly built files in archive.
+            using (FileStream zipToOpen = new FileStream(savedArchivePath, FileMode.Open))
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                 {
@@ -143,7 +139,7 @@ namespace GenerateInstaller
                 }
             }
 
-            File.Move(tempArchivePath, archivePath);
+            File.Copy(savedArchivePath, archivePath);
 
             Console.WriteLine("Building complete managed setup EXE...");
 
@@ -335,14 +331,16 @@ namespace GenerateInstaller
                     throw new Exception("Failed to sign files:" + Environment.NewLine + signingError);
                 }
 
-                Console.WriteLine("Creating installer Archive.zip...");
+                Console.WriteLine("Creating installer Archive.zip.saved...");
 
                 // Removing Starcounter-Setup.
                 BuildSystem.DirectoryContainsFilesRegex(outputDir, new String[] { @"Starcounter.+Setup\.exe", @"Starcounter.+Setup\.pdb", @"Starcounter.+Setup\.ilk" }, true);
 
                 // Packing output directory into archive.
-                File.Delete(installerWpfFolder + "\\Resources\\Archive.zip");
-                ZipFile.CreateFromDirectory(outputDir, installerWpfFolder + "\\Resources\\Archive.zip", CompressionLevel.Optimal, false);
+                if (File.Exists(installerWpfFolder + "\\Resources\\Archive.zip"))
+                    File.Delete(installerWpfFolder + "\\Resources\\Archive.zip");
+
+                ZipFile.CreateFromDirectory(outputDir, installerWpfFolder + "\\Resources\\Archive.zip.saved", CompressionLevel.Optimal, false);
 
                 // Removing old standalone package.
                 String tempBuildDir = Path.Combine(checkoutDir, "TempBuild");

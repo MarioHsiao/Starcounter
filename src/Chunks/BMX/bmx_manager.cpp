@@ -364,7 +364,7 @@ uint32_t sc_bmx_parse_pong(
 }
 
 // Send Pong response for initial Ping message.
-inline uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
+uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
     // Original 8-bytes of data.
     uint64_t orig_data = request->read_uint64();
