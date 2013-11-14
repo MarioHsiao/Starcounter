@@ -157,10 +157,13 @@ namespace Starcounter.InstallerWPF.Pages {
 
                 PersonalServer personalServerComponent = config.Components[PersonalServer.Identifier] as PersonalServer;
                 VisualStudio2012Integration vs2012IntegrationComponent = config.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
+                VisualStudio2013Integration vs2013IntegrationComponent = config.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
 
                 Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullUninstallation,
                     personalServerComponent != null && personalServerComponent.IsExecuteCommandEnabled && personalServerComponent.ExecuteCommand,
-                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.IsExecuteCommandEnabled && vs2012IntegrationComponent.ExecuteCommand);
+                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.IsExecuteCommandEnabled && vs2012IntegrationComponent.ExecuteCommand,
+                    vs2013IntegrationComponent != null && vs2013IntegrationComponent.IsExecuteCommandEnabled && vs2013IntegrationComponent.ExecuteCommand
+                    );
 
 
                 config.ExecuteSettings(

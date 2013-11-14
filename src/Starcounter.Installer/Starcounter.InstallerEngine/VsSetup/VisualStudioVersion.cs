@@ -21,6 +21,12 @@ namespace Starcounter.InstallerEngine.VsSetup
         public static readonly VisualStudioVersion VS2012 = new VisualStudioVersion("2012", "11.0");
 
         /// <summary>
+        /// Represents the Visual Studio version 2013 ("12.0").
+        /// </summary>
+        public static readonly VisualStudioVersion VS2013 = new VisualStudioVersion("2013", "12.0");
+
+
+        /// <summary>
         /// Initializes a <see cref="VisualStudioVersion"/>.
         /// </summary>
         /// <param name="year"></param>

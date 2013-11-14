@@ -73,7 +73,8 @@ namespace Starcounter.InstallerEngine
             VisualStudioVersion[] supportedVersions = new VisualStudioVersion[]
             {
                 VisualStudioVersion.VS2010,
-                VisualStudioVersion.VS2012
+                VisualStudioVersion.VS2012,
+                VisualStudioVersion.VS2013
             };
 
             // No matter the OS, and despite us being a 64-bit application, we request
