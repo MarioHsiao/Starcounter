@@ -59,7 +59,14 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                     }
                 }
 //                Column c = Column.LookupColumn(binder.Name);//                Debug.WriteLine("DynamicEntity Binding Get " + binder.Name);                MethodInfo method;                if (templ is TObjArr) {                    // The GetMethod does not deal with generic signatures causing an exception                    // for the ambiguous methods GetValue<T>( TObjArr x ) and GetValue( TObjArr x).                    // We need to call GetMethods instead (probably slower).                    // See http://stackoverflow.com/questions/11566613/how-do-i-distinguish-between-generic-and-non-generic-signatures-using-getmethod
-					method = FindGetMember("TObjArr");                } else if (templ is TObject){					// We have Get methods for both TObject and TValue and since we cannot specify return type					// when searching for methods, we have to look in all methods for the correct one.					// We will get an ambiguous match otherwise.
+
+					var t = templ.GetType();
+					if (t.IsGenericType) {
+						t = t.GetGenericArguments()[0];
+						method = FindGetMember("TArray`1", t);
+					} else {
+						method = FindGetMember("TObjArr");
+					}                } else if (templ is TObject){					// We have Get methods for both TObject and TValue and since we cannot specify return type					// when searching for methods, we have to look in all methods for the correct one.					// We will get an ambiguous match otherwise.
 					method = FindGetMember("TObject");                }else {
                     if (templ == null) {
                         // There is no property with this name, use default late binding mechanism
@@ -70,20 +77,28 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
 			/// 
 			/// </summary>
 			/// <param name="parameterTypeName"></param>
+			/// <param name="genericArgType"></param>
 			/// <returns></returns>
-			private MethodInfo FindGetMember(string parameterTypeName) {
+			private MethodInfo FindGetMember(string parameterTypeName, Type genericArgType = null) {
 				var mis = LimitType.GetMethods().Where(m => {
 					if (m.Name.Equals("Get")) {
 						var paris = m.GetParameters();
 						if (paris.Length == 1) {
 							var pari = paris[0];
-							var found = (pari.ParameterType.Name.Equals(parameterTypeName)) && !m.IsGenericMethod;
+							var found = (pari.ParameterType.Name.Equals(parameterTypeName));
+
+							if (m.IsGenericMethod && genericArgType == null)
+								found = false;
 							return found;
 						}
 					}
 					return false;
 				});
-				return mis.First();
+
+				var mInfo = mis.First();
+				if (genericArgType != null)
+					mInfo = mInfo.MakeGenericMethod(genericArgType);
+				return mInfo;
 			}            /// <summary>
             /// Getter implementation. See DynamicPropertyMetaObject.
             /// </summary>

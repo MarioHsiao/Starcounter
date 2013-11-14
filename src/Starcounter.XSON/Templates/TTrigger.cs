@@ -17,9 +17,7 @@ namespace Starcounter.Templates {
     /// When you create a Json-by-example file with a null property (i.e. "myfield":null),
     /// the schema template for that property becomes an TTrigger.
     /// </remarks>
-    public class TTrigger : TValue
-    {
-
+    public class TTrigger : TValue {
         public override bool IsPrimitive {
             get { return true; }
         }
@@ -27,7 +25,6 @@ namespace Starcounter.Templates {
         public override Type MetadataType {
             get { return typeof(ActionMetadata<Json>); }
         }
-
 
         /// <summary>
         /// </summary>
@@ -93,5 +90,26 @@ namespace Starcounter.Templates {
                 }
             } 
         }
+
+		internal override void InvalidateBoundGetterAndSetter() {
+			base.InvalidateBoundGetterAndSetter();
+		}
+
+		internal override bool GenerateBoundGetterAndSetter(Json json) {
+			return false;
+		}
+
+		internal override void GenerateUnboundGetterAndSetter() {
+		}
+
+		internal override void CheckAndSetBoundValue(Json json, bool addToChangeLog) {
+		}
+
+		internal override object GetValueAsObject(Json parent) {
+			return null;
+		}
+
+		internal override void SetValueAsObject(Json parent, object value) {
+		}
     }
 }

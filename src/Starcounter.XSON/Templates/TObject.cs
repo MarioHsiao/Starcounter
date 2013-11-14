@@ -7,34 +7,161 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
 using Modules;
-using Starcounter.Internal.XSON.DeserializerCompiler;
-using Starcounter.Internal.XSON;
 using System.Collections;
 using TJson = Starcounter.Templates.TObject;
-using Module = Modules.Starcounter_XSON_JsonByExample;
+using Starcounter.XSON;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
     public partial class TObject : TContainer {
+#if DEBUG
+		internal string DebugBoundSetter;
+		internal string DebugBoundGetter;
+		internal string DebugUnboundSetter;
+		internal string DebugUnboundGetter;
+#endif
+
+		public readonly Action<Json, Json> Setter;
+		public readonly Func<Json, Json> Getter;
+		internal Action<Json, object> BoundSetter;
+		internal Func<Json, object> BoundGetter;
+		internal Action<Json, Json> UnboundSetter;
+		internal Func<Json, Json> UnboundGetter;
+
+		private PropertyList _PropertyTemplates;
+		private string instanceDataTypeName;
+		private BindingStrategy bindChildren = BindingStrategy.Auto;
+		protected Type _JsonType;
+		public bool HasAtLeastOneBoundProperty = true; // TODO!
+		
+		/// <summary>
+		/// Static constructor to automatically initialize XSON.
+		/// </summary>
+		static TObject() {
+			HelperFunctions.LoadNonGACDependencies();
+			Starcounter_XSON_JsonByExample.Initialize();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TObj" /> class.
+		/// </summary>
+		public TObject() {
+			_PropertyTemplates = new PropertyList(this);
+			Getter = BoundOrUnboundGet;
+			Setter = BoundOrUnboundSet;
+		}
+
+		internal override void InvalidateBoundGetterAndSetter() {
+			BoundGetter = null;
+			BoundSetter = null;
+			base.InvalidateBoundGetterAndSetter();
+		}
+
+		internal override bool GenerateBoundGetterAndSetter(Json parent) {
+			TemplateDelegateGenerator.GenerateBoundDelegates(this, parent);
+			return (BoundGetter != null);
+		}
+
+		internal override void GenerateUnboundGetterAndSetter() {
+			TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
+		}
+
+		internal override void Checkpoint(Json parent) {
+			((Json)UnboundGetter(parent)).CheckpointChangeLog();
+			base.Checkpoint(parent);
+		}
+
+		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
+			Json value = UnboundGetter(parent);
+			value.SetBoundValuesInTuple();
+		}
+
+		internal override Json GetValue(Json parent) {
+			var json = UnboundGetter(parent);
+
+			if (UseBinding(parent)) {
+				json.CheckBoundObject(BoundGetter(parent));
+			}
+
+			return json;
+		}
+
+		internal void SetValue(Json parent, object value) {
+			Json current = UnboundGetter(parent);
+			current.AttachData(value);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		internal override object GetValueAsObject(Json parent) {
+			return Getter(parent);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="value"></param>
+		internal override void SetValueAsObject(Json parent, object value) {
+			Setter(parent, (Json)value);
+		}
+
+		private Json BoundOrUnboundGet(Json parent) {
+			Json value = UnboundGetter(parent);
+			if (UseBinding(parent))
+				value.CheckBoundObject(BoundGetter(parent));
+			return value;
+		}
+
+		private void BoundOrUnboundSet(Json parent, Json value) {
+			Json oldValue = UnboundGetter(parent);
+
+			if (oldValue != null) {
+				oldValue.SetParent(null);
+				oldValue._cacheIndexInArr = -1;
+			}
+
+			if (value != null) {
+				if (UseBinding(parent))
+					BoundSetter(parent, value);
+				value.Parent = parent;
+				value._cacheIndexInArr = TemplateIndex;
+			}
+			UnboundSetter(parent, value);
+
+			if (parent.HasBeenSent)
+				parent.MarkAsReplaced(TemplateIndex);
+
+			parent._CallHasChanged(this);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// 
+		/// </remarks>
+		public BindingStrategy BindChildren {
+			get { return bindChildren; }
+			set {
+				if (value == Templates.BindingStrategy.UseParent)
+					throw new Exception("Cannot specify Bound.UseParent on this property.");
+				bindChildren = value;
+			}
+		}
+
         public override Type MetadataType {
             get { return typeof(ObjMetadata<TObject, Json>); }
         }
-        /// <summary>
-        /// Static constructor to automatically initialize XSON.
-        /// </summary>
-        static TObject() {
-            HelperFunctions.LoadNonGACDependencies();
-//            XSON.CodeGeneration.Initializer.InitializeXSON();
-            Starcounter_XSON_JsonByExample.Initialize();
-        }
-
+       
         /// <summary>
         /// CreateFromMarkup
         /// </summary>
@@ -58,7 +185,6 @@ namespace Starcounter.Templates {
             return reader.CompileMarkup<TypeObj,TypeTObj>(markup,origin);
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -68,31 +194,11 @@ namespace Starcounter.Templates {
             return CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", json, null);
         }
 
-        private string instanceDataTypeName;
-
-
         /// <summary>
         /// 
         /// </summary>
         /// <value></value>
         public string Include { get; set; }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private PropertyList _PropertyTemplates;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TObj" /> class.
-        /// </summary>
-        public TObject() {
-            _PropertyTemplates = new PropertyList(this);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected Type _JsonType;
 
 		/// <summary>
 		/// Creates a new Message using the schema defined by this template
@@ -131,7 +237,7 @@ namespace Starcounter.Templates {
             set {
                 instanceDataTypeName = value;
                 if (!string.IsNullOrEmpty(value))
-					BindChildren = Bound.Yes;
+					BindChildren = BindingStrategy.Bound;
             }
         }
 
@@ -165,9 +271,6 @@ namespace Starcounter.Templates {
             return this.Add(typeof(T), name);
         }
 
-
-
-
         /// <summary>
         /// Creates a new typed array property (template) with the specified name and type.
         /// </summary>
@@ -186,10 +289,6 @@ namespace Starcounter.Templates {
 
             return t;
         }
-
-
-        
-
 
         internal static readonly Dictionary<Type, Func<TObject,string,TValue>> @switch = new Dictionary<Type, Func<TObject,string,TValue>> {
                     { typeof(byte), (TObject t, string name) => { return t.Add<TLong>(name); }},
@@ -309,6 +408,9 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="property"></param>
         internal void OnPropertyAdded(Template property) {
+			var tv = property as TValue;
+			if (tv != null)
+				tv.GenerateUnboundGetterAndSetter();
         }
 
         /// <summary>

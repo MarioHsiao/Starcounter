@@ -11,22 +11,24 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
     class JsonPatchTests {
+		[TearDown]
+		public static void AfterTest() {
+			// Making sure that we are ending the session even if the test failed.
+			Session.End();
+		}
+
         [Test]
         public static void TestSimpleJsonPatch() {
-
             dynamic j = new Json();
             dynamic nicke = new Json();
             dynamic daughter = new Json();
 
             daughter.FirstName = "Kate";
-
             nicke.FirstName = "Nicke";
 
             j.FirstName = "Joachim";
             j.Age = 43;
             j.Length = 184.7;
-
-
 
             Session.Data = j;
 
@@ -34,7 +36,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             var before = ((Json)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
-            Session.Current.CreateJsonPatch(true);
+            string str = Session.Current.CreateJsonPatch(true);
 
             j.Daughter = daughter;
             j.FirstName = "Timothy";
@@ -50,10 +52,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},\n{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},\n{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
             Assert.AreEqual(facit, result);
-
-			Session.End();
         }
-
 
         protected static void Write(string title, string value) {
             Console.WriteLine();
@@ -62,10 +61,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(value);
         }
 
-
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
-
             TJson.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
@@ -112,20 +109,15 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(str);
 
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"replace\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
-
-			Session.End();
         }
-
 
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
-
             TJson.UseCodegeneratedSerializer = false;
 
             Person nickeDb = new Person();
             Person jockeDb = new Person();
             Person henrikDb = new Person();
-
 
             dynamic jockeJson = new Json();
             jockeJson.Data = jockeDb;
@@ -178,15 +170,10 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(str);
 
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
-
-			Session.End();
         }
-
-
 
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
-
             TJson.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
@@ -204,8 +191,6 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             var before = ((Json)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
-
-
 
             //Session.Current.LogChanges = true;
 
@@ -244,8 +229,6 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 {""op"":""replace"",""path"":""/Friends/0/LastName"",""value"":""Hammarström""}}],
 ";
 Assert.AreEqual(facit, result );
-
-			Session.End();
         }
 
         /// <summary>
@@ -255,7 +238,6 @@ Assert.AreEqual(facit, result );
         /// </summary>
         [Test]
         public static void CreateSimpleDataBoundPatches() {
-
             var p = new Person();
             p.FirstName = "Joachim";
             p.LastName = "Wester";
@@ -305,8 +287,6 @@ Assert.AreEqual(facit, result );
 
             Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Douglas\"}]",patch);
-
-			Session.End();
         }
 
 
@@ -314,7 +294,6 @@ Assert.AreEqual(facit, result );
         public static void TestPatchForBrandNewRoot() {
             dynamic j = new Json();
             dynamic nicke = new Json();
-
 
             Session.Data = j;
 
@@ -344,8 +323,6 @@ Assert.AreEqual(facit, result );
 
             Assert.AreEqual(
                 "[{\"op\":\"replace\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
-
-			Session.End();
         }
     }
 }

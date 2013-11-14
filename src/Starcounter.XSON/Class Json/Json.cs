@@ -102,68 +102,68 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
-        private void _OnSetProperty(TValue property, object value) {
-            var thisj = this as Json;
+//		/// <summary>
+//		/// 
+//		/// </summary>
+//		/// <param name="property"></param>
+//		/// <param name="value"></param>
+//		private void _OnSetProperty(TValue property, object value) {
+//			var thisj = this as Json;
 
 
-            if (property.UseBinding(thisj.DataAsBindable)) {
-                if (property is TObject) {
-                    thisj.SetBound(property, (value as Json).Data);
-                }
-                else {
-                    thisj.SetBound(property, value);
-                }
-            }
-            var index = property.TemplateIndex;
-            if (property is TObjArr) {
-                Json valuearr;
-                if (value is Json) {
-                    valuearr = value as Json;
-                }
-                else {
-					valuearr = (Json)property.CreateInstance(this);// new Json((IEnumerable)value);
-					valuearr._data = value;
-					valuearr._PendingEnumeration = true;
+//			if (property.UseBinding(thisj)) {
+//				if (property is TObject) {
+//					thisj.SetBound(property, (value as Json).Data);
+//				}
+//				else {
+//					thisj.SetBound(property, value);
+//				}
+//			}
+//			var index = property.TemplateIndex;
+//			if (property is TObjArr) {
+//				Json valuearr;
+//				if (value is Json) {
+//					valuearr = value as Json;
+//				}
+//				else {
+//					valuearr = (Json)property.CreateInstance(this);// new Json((IEnumerable)value);
+//					valuearr._data = value;
+//					valuearr._PendingEnumeration = true;
 
-//                    valuearr.Parent = this;
-                    //valuearr._PendingEnumeration = true;
-                }
-                if (index < _list.Count) {
-                    var oldValue = (Json)_list[index];
-                    if (oldValue != null) {
-                        oldValue.InternalClear();
-                        //                oldValue.Clear();
-                        oldValue.SetParent(null);
-                    }
-                }
-                list[index] = valuearr;
+////                    valuearr.Parent = this;
+//					//valuearr._PendingEnumeration = true;
+//				}
+//				if (index < _list.Count) {
+//					var oldValue = (Json)_list[index];
+//					if (oldValue != null) {
+//						oldValue.InternalClear();
+//						//                oldValue.Clear();
+//						oldValue.SetParent(null);
+//					}
+//				}
+//				list[index] = valuearr;
 
-                valuearr.Array_InitializeAfterImplicitConversion(thisj, (TObjArr)property);
-            }
-            else if (property is TObject) {
-                var j = (Json)value;
-                // We need to update the cached index array
-                if (j != null) {
-                    j.Parent = this;
-                    j._cacheIndexInArr = property.TemplateIndex;
-                }
-                var vals = list;
-                var oldValue = (Json)list[index];
-                if (oldValue != null) {
-                    oldValue.SetParent(null);
-                    oldValue._cacheIndexInArr = -1;
-                }
-				list[index] = j;
-            }
-            else {
-                list[index] = value;
-            }
-        }
+//				valuearr.Array_InitializeAfterImplicitConversion(thisj, (TObjArr)property);
+//			}
+//			else if (property is TObject) {
+//				var j = (Json)value;
+//				// We need to update the cached index array
+//				if (j != null) {
+//					j.Parent = this;
+//					j._cacheIndexInArr = property.TemplateIndex;
+//				}
+//				var vals = list;
+//				var oldValue = (Json)list[index];
+//				if (oldValue != null) {
+//					oldValue.SetParent(null);
+//					oldValue._cacheIndexInArr = -1;
+//				}
+//				list[index] = j;
+//			}
+//			else {
+//				list[index] = value;
+//			}
+//		}
 
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
@@ -296,21 +296,23 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property</param>
         public void Refresh(Template property) {
-            if (property is TObjArr) {
-                TObjArr apa = (TObjArr)property;
-                this.Set(apa, this.GetBound(apa));
-            }
-            else if (property is TObject) {
-                var at = (TObject)property;
-                IBindable v = this.GetBound(at);
-                this.Set(at, v);
-            }
-            else {
-                TValue p = property as TValue;
-                if (p != null) {
-                    HasChanged(p);
-                }
-            }
+			if (property is TObjArr) {
+				TObjArr tarr = (TObjArr)property;
+				if (tarr.UseBinding(this)) {
+					var jsonArr = (Json)_list[tarr.TemplateIndex];
+					jsonArr.CheckBoundArray(tarr.BoundGetter(this));
+				}
+			} else if (property is TObject) {
+				var at = (TObject)property;
+				if (at.UseBinding(this)) {
+					CheckBoundObject(at.BoundGetter(this));
+				}
+			} else {
+				TValue p = property as TValue;
+				if (p != null) {
+					HasChanged(p);
+				}
+			}
         }
 
         /// <summary>
@@ -418,78 +420,128 @@ namespace Starcounter {
         //        public virtual void ProcessInput<V>(TValue<V> template, V value) {
         //        }
 
+		public object this[int index] {
+			get {
+				if (this.IsArray) {
+					// TODO: 
+					// Should be delegate on property as well.
+					return _GetAt(index);
+				} else {
+					TValue property = (TValue)((TObject)Template).Properties[index];
+					return property.GetValueAsObject(this);
+				}
+			}
+			set {
+				if (this.IsArray) {
+					// TODO: 
+					// Should be delegate on property as well.
+					_SetAt(index, value);
 
-        public object this[int index] {
-            get {
-                if (this.IsArray) {
-                    return _GetAt(index);
-                }
-                else {
-                    var json = this as Json;
-                    var property = (TValue)((TObject)Template).Properties[index];
-                    if (property.UseBinding(json.DataAsBindable)) {
-                        object ret;
-                        ret = json.GetBound(property);
-                        if (property is TObject) {
-							Json value = (Json)_GetAt(property.TemplateIndex);
-							value.CheckBoundObject(ret);
-							return value;
-                        }
-                        else if (property is TObjArr) {
-							Json value = (Json)_GetAt(property.TemplateIndex);
-							value.CheckBoundArray((IEnumerable)ret);
-							return value;
-                        }
-                        return ret;
-                    }
-                    else {
-                        return _GetAt(property.TemplateIndex);
-                    }
-                }
-            }
-            set {
+				} else {
+					TValue property = (TValue)((TObject)Template).Properties[index];
+					property.SetValueAsObject(this, value);
+				}
+			}
+		}
+
+		public object this[string key] {
+			get {
+				var template = (TObject)this.Template;
+				var prop = template.Properties[key];
+				if (prop == null) {
+					return null;
+				}
+				return this[prop.TemplateIndex];
+			}
+			set {
+				var template = (TObject)this.Template;
+				var prop = template.Properties[key];
+				if (prop == null) {
+					Type type;
+					if (value == null) {
+						type = typeof(Json);
+					} else {
+						type = value.GetType();
+					}
+					template.OnSetUndefinedProperty(key, type);
+					this[key] = value;
+					return;
+				}
+				this[prop.TemplateIndex] = value;
+			}
+		}
+
+		//public object this[int index] {
+		//	get {
+		//		if (this.IsArray) {
+		//			return _GetAt(index);
+		//		}
+		//		else {
+		//			var json = this as Json;
+		//			var property = (TValue)((TObject)Template).Properties[index];
+		//			if (property.UseBinding(json)) {
+		//				object ret;
+		//				ret = json.GetBound(property);
+		//				if (property is TObject) {
+		//					Json value = (Json)_GetAt(property.TemplateIndex);
+		//					value.CheckBoundObject(ret);
+		//					return value;
+		//				}
+		//				else if (property is TObjArr) {
+		//					Json value = (Json)_GetAt(property.TemplateIndex);
+		//					value.CheckBoundArray((IEnumerable)ret);
+		//					return value;
+		//				}
+		//				return ret;
+		//			}
+		//			else {
+		//				return _GetAt(property.TemplateIndex);
+		//			}
+		//		}
+		//	}
+		//	set {
 
 
 
 
-                if (IsArray) {
-                    // We need to update the cached index array
-                    var thisj = this as Json;
-                    var j = value as Json;
-                    if (j != null) {
-                        j.Parent = this;
-                        j._cacheIndexInArr = index;
-                    }
-                    var oldValue = (Json)_list[index];
-                    if (oldValue != null) {
-                        oldValue.SetParent(null);
-                        oldValue._cacheIndexInArr = -1;
-                    }
-                    list[index] = value;
+		//		if (IsArray) {
+		//			// We need to update the cached index array
+		//			var thisj = this as Json;
+		//			var j = value as Json;
+		//			if (j != null) {
+		//				j.Parent = this;
+		//				j._cacheIndexInArr = index;
+		//			}
+		//			var oldValue = (Json)_list[index];
+		//			if (oldValue != null) {
+		//				oldValue.SetParent(null);
+		//				oldValue._cacheIndexInArr = -1;
+		//			}
+		//			list[index] = value;
 
-                }
-                else {
+		//		}
+		//		else {
 
-                    var property = (TValue)((TObject)Template).Properties[index];
-                    this._OnSetProperty(property, value);
-                }
+		//			var property = (TValue)((TObject)Template).Properties[index];
+		//			this._OnSetProperty(property, value);
+		//		}
 
-                if (HasBeenSent) {
-                    MarkAsReplaced(index);
-                }
+		//		if (HasBeenSent) {
+		//			MarkAsReplaced(index);
+		//		}
 
-                if (IsArray) {
-                    (this as Json)._CallHasChanged(this.Template as TObjArr, index);
-                }
-                else {
-                    (this as Json)._CallHasChanged(this.Template as TValue);
-                }
-            }
-        }
+		//		if (IsArray) {
+		//			(this as Json)._CallHasChanged(this.Template as TObjArr, index);
+		//		}
+		//		else {
+		//			(this as Json)._CallHasChanged(this.Template as TValue);
+		//		}
+		//	}
+		//}
 
 		internal void CheckBoundObject(object boundValue) {
 			if (!CompareDataObjects(boundValue, Data))
-				AttachData((IBindable)boundValue);
+				AttachData(boundValue);
 		}
 
 		internal void CheckBoundArray(IEnumerable boundValue) {
@@ -502,8 +554,8 @@ namespace Starcounter {
 			foreach (object value in boundValue) {
 				if (_list.Count <= index) {
 					newJson = (Json)tArr.ElementType.CreateInstance();
-					newJson.Data = value;
 					Add(newJson);
+					newJson.Data = value;
 					hasChanged = true;
 				} else {
 					oldJson = (Json)_list[index];
