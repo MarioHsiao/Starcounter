@@ -226,10 +226,16 @@ namespace Starcounter.InstallerWPF {
                 elem.InnerText = personalServer.DefaultPrologSqlProcessPort.ToString();
                 subRootElem.AppendChild(elem);
 
+                // Send usage statistics and crash reports
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_SendUsageAndCrashReports);
+                elem.InnerText = personalServer.SendUsageAndCrashReports.ToString();
+                subRootElem.AppendChild(elem);
+
                 // Personal server Desktop shortcuts.
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_CreatePersonalServerShortcuts);
                 elem.InnerText = "True";
                 subRootElem.AppendChild(elem);
+
 
                 // SystemServer
                 SystemServer systemServer = this.GetComponent(SystemServer.Identifier) as SystemServer;

@@ -136,17 +136,18 @@
 
                                         </Grid>
 
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="30"/>
-                                                <ColumnDefinition Width="auto"/>
-                                            </Grid.ColumnDefinitions>
+                                        <Grid Margin="0,7.5,0,0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="7.5"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
+                                            <!-- DefaultUserHttpPort -->
                                             <StackPanel>
-
                                                 <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
-
                                                 <ComboBox x:Name="cb_PersonalServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
                                                     <ComboBox.Text>
@@ -165,8 +166,9 @@
                                                     </ComboBoxItem>
                                                 </ComboBox>
                                             </StackPanel>
-                                            
-                                            <StackPanel Grid.Column="2">
+
+                                            <!-- DefaultSystemHttpPort-->
+                                            <StackPanel Grid.Row="2">
                                                 <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _system port"   />
                                                 <ComboBox x:Name="cb_PersonalServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
@@ -186,6 +188,15 @@
                                                     </ComboBoxItem>
                                                 </ComboBox>
                                             </StackPanel>
+
+
+                                            <!-- Devider -->
+                                            <Border Margin="0,7.5,0,7.5" Grid.Row="3" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />
+
+
+                                            <CheckBox Grid.Row="4"  Content="Send usage statistics and crash reports" IsChecked="{Binding Path=SendUsageAndCrashReports}" />
+
+
                                         </Grid>
 
                                         <!--<Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />

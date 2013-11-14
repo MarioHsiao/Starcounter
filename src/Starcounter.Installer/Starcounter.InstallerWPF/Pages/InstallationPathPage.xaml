@@ -5,7 +5,7 @@
     xmlns:rules="clr-namespace:Starcounter.InstallerWPF.Rules"
     xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
     xmlns:main="clr-namespace:Starcounter.InstallerWPF"
-    DisplayName="Installation Path"
+    DisplayName="Installation"
 >
 
     <pages:BasePage.Resources>
@@ -38,15 +38,19 @@
                         <GroupBox.Header>
                             <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
                         </GroupBox.Header>
-                        <TextBlock Text="Choose a directory to install in." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                        <TextBlock Text="General settings." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
                     </GroupBox>
 
                     <!-- Content -->
-                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}" DataContext="{Binding Components[StarcounterInstallation]}">
 
-
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <!-- MainInstallationPath -->
-                        <Grid Grid.IsSharedSizeScope="True" DataContext="{Binding Components[StarcounterInstallation]}">
+                        <Grid Grid.IsSharedSizeScope="True" >
 
                             <StackPanel  Margin="0,7.5,0,7.5" Grid.Row="1" Grid.Column="1"  Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
 
@@ -78,6 +82,7 @@
                             </StackPanel>
 
                         </Grid>
+
 
                     </Grid>
                 </Grid>

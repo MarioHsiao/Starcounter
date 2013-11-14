@@ -7,50 +7,54 @@ using Starcounter.InstallerEngine;
 using System.Collections;
 using Starcounter.Internal;
 
-namespace Starcounter.InstallerWPF.Components
-{
-    public class PersonalServer : BaseComponent
-    {
+namespace Starcounter.InstallerWPF.Components {
+    public class PersonalServer : BaseComponent {
 
         public const string Identifier = "PersonalServer";
 
-        public override string ComponentIdentifier
-        {
-            get
-            {
+        public override string ComponentIdentifier {
+            get {
                 return PersonalServer.Identifier;
             }
         }
 
-        public override string Name
-        {
-            get
-            {
+        public override string Name {
+            get {
                 return "Server";
             }
         }
 
+        private bool _SendUsageAndCrashReports;
+        public bool SendUsageAndCrashReports {
+            get {
+                return this._SendUsageAndCrashReports;
+            }
+            set {
+                if (this._SendUsageAndCrashReports == value) return;
+                this._SendUsageAndCrashReports = value;
+                this.OnPropertyChanged("SendUsageAndCrashReports");
+            }
+        }
+
         private readonly string[] _Dependencys = new string[] { InstallationBase.Identifier };
-        public override string[] Dependencys
-        {
-            get
-            {
+        public override string[] Dependencys {
+            get {
                 return this._Dependencys;
             }
         }
 
-        protected override void SetDefaultValues()
-        {
+        protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 
+            this.SendUsageAndCrashReports = true;
 #if SIMULATE_CLEAN_INSTALLATION
             this.IsInstalled = false;
 #endif
 
             string basePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                                                     Configuration.StarcounterCommonPath );
+                                                     Configuration.StarcounterCommonPath);
 
             this.Path = basePath;
 
@@ -58,8 +62,7 @@ namespace Starcounter.InstallerWPF.Components
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
             this.DefaultPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort;
 
-            switch (this.Command)
-            {
+            switch (this.Command) {
                 case ComponentCommand.Install:
                     this.ExecuteCommand = !this.IsInstalled;
                     break;
@@ -75,23 +78,18 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
-        public bool HasPath
-        {
-            get
-            {
+        public bool HasPath {
+            get {
                 return !string.IsNullOrEmpty(this.Path);
             }
         }
 
         private string _Path;
-        public string Path
-        {
-            get
-            {
+        public string Path {
+            get {
                 return this._Path;
             }
-            set
-            {
+            set {
                 if (string.Compare(this._Path, value) == 0) return;
                 this._Path = value;
                 this.OnPropertyChanged("Path");
@@ -99,15 +97,12 @@ namespace Starcounter.InstallerWPF.Components
         }
 
         private UInt16 _DefaultUserHttpPort;
-        public UInt16 DefaultUserHttpPort
-        {
-            get
-            {
+        public UInt16 DefaultUserHttpPort {
+            get {
                 return _DefaultUserHttpPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultUserHttpPort == value)
                     return;
 
@@ -117,15 +112,12 @@ namespace Starcounter.InstallerWPF.Components
         }
 
         private UInt16 _DefaultSystemHttpPort;
-        public UInt16 DefaultSystemHttpPort
-        {
-            get
-            {
+        public UInt16 DefaultSystemHttpPort {
+            get {
                 return _DefaultSystemHttpPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultSystemHttpPort == value)
                     return;
 
@@ -135,15 +127,12 @@ namespace Starcounter.InstallerWPF.Components
         }
 
         private UInt16 _DefaultPrologSqlProcessPort;
-        public UInt16 DefaultPrologSqlProcessPort
-        {
-            get
-            {
+        public UInt16 DefaultPrologSqlProcessPort {
+            get {
                 return _DefaultPrologSqlProcessPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultPrologSqlProcessPort == value)
                     return;
 
@@ -153,12 +142,10 @@ namespace Starcounter.InstallerWPF.Components
         }
 
         public PersonalServer(ObservableCollection<BaseComponent> components)
-            : base(components)
-        {
+            : base(components) {
         }
 
-        public override IList<System.Collections.DictionaryEntry> GetProperties()
-        {
+        public override IList<System.Collections.DictionaryEntry> GetProperties() {
 
             List<DictionaryEntry> properties = new List<DictionaryEntry>();
 
