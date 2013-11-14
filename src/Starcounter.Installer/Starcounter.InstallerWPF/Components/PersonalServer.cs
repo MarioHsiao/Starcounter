@@ -26,7 +26,7 @@ namespace Starcounter.InstallerWPF.Components
         {
             get
             {
-                return "Personal Server";
+                return "Server";
             }
         }
 

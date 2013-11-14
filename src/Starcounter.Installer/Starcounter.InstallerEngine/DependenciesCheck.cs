@@ -190,5 +190,19 @@ namespace Starcounter.InstallerEngine
 
             return false;
         }
+
+        /// <summary>
+        /// Simply checks if Visual Studio 2013 is installed.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean VStudio2013Installed() {
+
+            foreach (var installedEditon in VSIntegration.GetInstalledVSEditionsSupported()) {
+                if (installedEditon.Version.BuildNumber.Equals(VisualStudioVersion.VS2013.BuildNumber))
+                    return true;
+            }
+
+            return false;
+        }
      }
 }

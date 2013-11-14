@@ -23,6 +23,7 @@ namespace Starcounter.InstallerEngine
 
         public const String Setting_InstallVS2010Integration = "InstallVS2010Integration";
         public const String Setting_InstallVS2012Integration = "InstallVS2012Integration";
+        public const String Setting_InstallVS2013Integration = "InstallVS2013Integration";
 
         public const String Setting_CreatePersonalServerShortcuts = "CreatePersonalServerShortcuts";
         public const String Setting_AddStarcounterToStartMenu = "AddStarcounterToStartMenu";
@@ -47,6 +48,7 @@ namespace Starcounter.InstallerEngine
         public const String Setting_RemoveSystemServer = "RemoveSystemServer";
         public const String Setting_RemoveVS2010Integration = "RemoveVS2010Integration";
         public const String Setting_RemoveVS2012Integration = "RemoveVS2012Integration";
+        public const String Setting_RemoveVS2013Integration = "RemoveVS2013Integration";
 
         // Other constants.
         public const String SCIconFilename = "sc.ico";

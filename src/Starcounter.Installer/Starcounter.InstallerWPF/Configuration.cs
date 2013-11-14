@@ -21,10 +21,8 @@ using System.IO.Compression;
 using System.Xml;
 using System.Diagnostics;
 
-namespace Starcounter.InstallerWPF
-{
-    public class Configuration : INotifyPropertyChanged
-    {
+namespace Starcounter.InstallerWPF {
+    public class Configuration : INotifyPropertyChanged {
         #region Properties
 
         /// <summary>
@@ -33,8 +31,7 @@ namespace Starcounter.InstallerWPF
         public static string StarcounterCommonPath;
 
         private Hashtable _Components = new Hashtable();
-        public Hashtable Components
-        {
+        public Hashtable Components {
             get { return this._Components; }
         }
 
@@ -42,21 +39,17 @@ namespace Starcounter.InstallerWPF
         /// Gets a value indicating whether this instance can execute.
         /// </summary>
         /// <value>
-        /// <c>true</c> if there is comething to execute; otherwise, <c>false</c>.
+        /// <c>true</c> if there is something to execute; otherwise, <c>false</c>.
         /// </value>
-        public bool CanExecute
-        {
-            get
-            {
+        public bool CanExecute {
+            get {
                 bool bSomethingToExecute = false;
                 IDictionaryEnumerator _enumerator = this.Components.GetEnumerator();
 
-                while (_enumerator.MoveNext())
-                {
+                while (_enumerator.MoveNext()) {
                     BaseComponent component = _enumerator.Value as BaseComponent;
 
-                    if (component != null && component.ExecuteCommand && component.IsExecuteCommandEnabled)
-                    {
+                    if (component != null && component.ExecuteCommand && component.IsExecuteCommandEnabled) {
                         bSomethingToExecute = true;
                         break;
                     }
@@ -69,8 +62,25 @@ namespace Starcounter.InstallerWPF
         #endregion
 
 
-        public Configuration()
-        {
+        /// <summary>
+        /// 
+        /// </summary>
+        private SetupOptions _SetupOptions;
+        /// <summary>
+        /// 
+        /// </summary>
+        public SetupOptions SetupOptions {
+            get {
+
+                return this._SetupOptions;
+            }
+            private set {
+                this._SetupOptions = value;
+            }
+        }
+
+
+        public Configuration() {
             StarcounterCommonPath = System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version);
         }
 
@@ -78,13 +88,13 @@ namespace Starcounter.InstallerWPF
         /// Sets the default values.
         /// </summary>
         /// <param name="setupOptions">The setup options.</param>
-        public void SetDefaultValues(SetupOptions setupOptions)
-        {
+        public void SetDefaultValues(SetupOptions setupOptions) {
+
+            this.SetupOptions = setupOptions;
 
             Samples samples = this.GetComponent(Samples.Identifier) as Samples;
 
-            switch (setupOptions)
-            {
+            switch (setupOptions) {
                 case SetupOptions.Ask:
                     break;
 
@@ -93,8 +103,7 @@ namespace Starcounter.InstallerWPF
 
                 case SetupOptions.Install:
 
-                    if (samples != null)
-                    {
+                    if (samples != null) {
                         samples.SetCanBeInstalled(true);
                         samples.SetCanBeUnInstalled(true);
                     }
@@ -103,8 +112,7 @@ namespace Starcounter.InstallerWPF
 
                 case SetupOptions.AddComponents:
 
-                    if (samples != null)
-                    {
+                    if (samples != null) {
                         samples.SetCanBeInstalled(true);
                     }
 
@@ -112,8 +120,7 @@ namespace Starcounter.InstallerWPF
 
                 case SetupOptions.RemoveComponents:
 
-                    if (samples != null)
-                    {
+                    if (samples != null) {
                         samples.SetCanBeUnInstalled(false);
                     }
 
@@ -121,8 +128,7 @@ namespace Starcounter.InstallerWPF
 
                 case SetupOptions.Uninstall:
 
-                    if (samples != null)
-                    {
+                    if (samples != null) {
                         samples.SetCanBeInstalled(true);
                         samples.SetCanBeUnInstalled(true);
                     }
@@ -138,35 +144,29 @@ namespace Starcounter.InstallerWPF
         /// adding new components to existing installation.
         /// </summary>
         /// <returns>True if yes :)</returns>
-        Boolean InstallingOrAddingComponents()
-        {
+        Boolean InstallingOrAddingComponents() {
             bool installing = false;
 
             // Check if we are installing or uninstalling
             IDictionaryEnumerator item = this.Components.GetEnumerator();
-            while (item.MoveNext())
-            {
+            while (item.MoveNext()) {
                 BaseComponent component = item.Value as BaseComponent;
 
-                if (component.Command == ComponentCommand.None || component.Command == ComponentCommand.Update)
-                {
+                if (component.Command == ComponentCommand.None || component.Command == ComponentCommand.Update) {
                     // TODO: We do not support "Updates" yet.
                     continue;
                 }
 
-                if (component.ExecuteCommand == false)
-                {
+                if (component.ExecuteCommand == false) {
                     // Ignore commands that is not to be "Executed"
                     continue;
                 }
-                if (component.Command == ComponentCommand.Install)
-                {
+                if (component.Command == ComponentCommand.Install) {
                     installing = true;
                     break;
                 }
 
-                if (component.Command == ComponentCommand.Uninstall)
-                {
+                if (component.Command == ComponentCommand.Uninstall) {
                     installing = false;
                     break;
                 }
@@ -175,14 +175,12 @@ namespace Starcounter.InstallerWPF
             return installing;
         }
 
-        private void GenerateSetupXmlFile()
-        {
+        private void GenerateSetupXmlFile() {
             // Checking if we are installing or adding components.
             bool installingOrAdding = InstallingOrAddingComponents();
 
             InstallationBase installationBase = this.GetComponent(InstallationBase.Identifier) as InstallationBase;
-            if (installationBase == null || string.IsNullOrEmpty(installationBase.Path))
-            {
+            if (installationBase == null || string.IsNullOrEmpty(installationBase.Path)) {
                 MessageBox.Show("Corrupt Installation", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
@@ -198,8 +196,7 @@ namespace Starcounter.InstallerWPF
             XmlDocument xmlDoc = new XmlDocument();
             XmlElement rootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Root);
 
-            if (installingOrAdding)
-            {
+            if (installingOrAdding) {
                 XmlElement subRootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Install);
                 rootElem.AppendChild(subRootElem);
 
@@ -261,9 +258,15 @@ namespace Starcounter.InstallerWPF
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2012Integration);
                 elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
+
+                // VisualStudio2013
+                VisualStudio2013Integration visualStudio2013Integration = this.GetComponent(VisualStudio2013Integration.Identifier) as VisualStudio2013Integration;
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2013Integration);
+                elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
+                subRootElem.AppendChild(elem);
+
             }
-            else
-            {
+            else {
                 XmlElement subRootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Uninstall);
                 rootElem.AppendChild(subRootElem);
 
@@ -284,6 +287,14 @@ namespace Starcounter.InstallerWPF
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2012Integration);
                 elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
+
+
+                // VisualStudio2013Integration
+                VisualStudio2013Integration visualStudio2013Integration = this.GetComponent(VisualStudio2013Integration.Identifier) as VisualStudio2013Integration;
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2013Integration);
+                elem.InnerText = visualStudio2013Integration.ExecuteCommand.ToString();
+                subRootElem.AppendChild(elem);
+
             }
 
             // Saving setup setting to file.
@@ -292,14 +303,11 @@ namespace Starcounter.InstallerWPF
             xmlDoc.Save(configPath);
         }
 
-        private BaseComponent GetComponent(string identifier)
-        {
+        private BaseComponent GetComponent(string identifier) {
             IDictionaryEnumerator item = this.Components.GetEnumerator();
-            while (item.MoveNext())
-            {
+            while (item.MoveNext()) {
                 BaseComponent component = item.Value as BaseComponent;
-                if (string.Equals(component.ComponentIdentifier, identifier))
-                {
+                if (string.Equals(component.ComponentIdentifier, identifier)) {
                     return component;
                 }
 
@@ -311,10 +319,8 @@ namespace Starcounter.InstallerWPF
         static Stream archiveZipStream = null;
 
         // Reads once Zip archive from embedded resources and returns its data stream.
-        public static Stream ArchiveZipStream
-        {
-            get
-            {
+        public static Stream ArchiveZipStream {
+            get {
                 // Checking if we have already loaded the archive.
                 if (archiveZipStream != null)
                     return archiveZipStream;
@@ -334,8 +340,7 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         public void RunInstallerEngine(
             EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
-            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
-        {
+            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback) {
             bool installingOrAdding = InstallingOrAddingComponents();
             String[] args = null;
 
@@ -351,29 +356,23 @@ namespace Starcounter.InstallerWPF
             Environment.CurrentDirectory = installationPath;
 
             // Checking if we are installing.
-            if (installingOrAdding)
-            {
+            if (installingOrAdding) {
                 // Checking if its first time installation so we copy binaries.
-                if (!installationBase.IsInstalled)
-                {
+                if (!installationBase.IsInstalled) {
                     // Getting directory from where installer EXE is running.
                     String currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
                     // Checking if we are in developer mode.
-                    if (File.Exists(Path.Combine(currentDirectory, ConstantsBank.SCInstallerEngine + ".dll")))
-                    {
+                    if (File.Exists(Path.Combine(currentDirectory, ConstantsBank.SCInstallerEngine + ".dll"))) {
                         // Checking if we are not installing in the same directory as we run this installer from.
-                        if (!Utilities.EqualDirectories(installationPath, currentDirectory))
-                        {
+                        if (!Utilities.EqualDirectories(installationPath, currentDirectory)) {
                             // Copying all files to destination.
                             Utilities.CopyFilesRecursively(new DirectoryInfo(currentDirectory), new DirectoryInfo(installationPath));
                         }
                     }
-                    else
-                    {
+                    else {
                         // Checking if there are any files in the target installation directory.
-                        if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath)))
-                        {
+                        if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath))) {
                             // Setting normal attributes for all files and folders in installation directory.
                             Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
 
@@ -395,8 +394,7 @@ namespace Starcounter.InstallerWPF
 
                             // Looping until directory is empty.
                             Int32 cleaningAttempts = 10;
-                            while (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath)) && (cleaningAttempts > 0))
-                            {
+                            while (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath)) && (cleaningAttempts > 0)) {
                                 Thread.Sleep(1000);
                                 cleaningAttempts--;
                             }
@@ -407,8 +405,7 @@ namespace Starcounter.InstallerWPF
                         }
 
                         // Extracting all files to installation directory, and overwriting old files.
-                        using (ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read))
-                        {
+                        using (ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read)) {
                             zipArchive.ExtractToDirectory(installationPath);
                             /*foreach (ZipArchiveEntry entry in zipArchive.Entries)
                             {
@@ -418,8 +415,7 @@ namespace Starcounter.InstallerWPF
                     }
                 }
             }
-            else
-            {
+            else {
                 // Creating new uninstall file.
                 args = new String[] { "--uninstall" };
             }
@@ -439,11 +435,9 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         public void ExecuteSettings(
             EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
-            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
-        {
+            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback) {
             Utilities.InstallerProgressEventArgs args = new Utilities.InstallerProgressEventArgs();
-            try
-            {
+            try {
 
                 // Simulate installation....
 #if SIMULATE_INSTALLATION
@@ -497,8 +491,7 @@ namespace Starcounter.InstallerWPF
 #endif
 
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 throw e;
             }
 
@@ -507,10 +500,8 @@ namespace Starcounter.InstallerWPF
         #region INotifyPropertyChanged Members
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string fieldName)
-        {
-            if (PropertyChanged != null)
-            {
+        protected virtual void OnPropertyChanged(string fieldName) {
+            if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
             }
         }
@@ -522,8 +513,7 @@ namespace Starcounter.InstallerWPF
     /// <summary>
     /// Component action command
     /// </summary>
-    public enum ComponentCommand
-    {
+    public enum ComponentCommand {
         /// <summary>
         /// No action is taken
         /// </summary>

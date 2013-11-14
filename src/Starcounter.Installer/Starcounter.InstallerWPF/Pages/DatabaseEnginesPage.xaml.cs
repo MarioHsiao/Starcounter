@@ -40,18 +40,18 @@ namespace Starcounter.InstallerWPF.Pages {
             foreach (ValidationRule rule in personalPathBinding.ValidationRules) {
                 if (rule is DuplicatPathCheckRule) {
                     ((DuplicatPathCheckRule)rule).InstallationPath = installationBaseComponent.Path;
-                    ((DuplicatPathCheckRule)rule).SystemServerPath = this.tb_SystemServerPath.Text;
+                    //((DuplicatPathCheckRule)rule).SystemServerPath = this.tb_SystemServerPath.Text;
                 }
             }
 
             // System Server DUP path check
-            Binding systemPathBinding = BindingOperations.GetBinding(this.tb_SystemServerPath, TextBox.TextProperty);
-            foreach (ValidationRule rule in systemPathBinding.ValidationRules) {
-                if (rule is DuplicatPathCheckRule) {
-                    ((DuplicatPathCheckRule)rule).InstallationPath = installationBaseComponent.Path;
-                    ((DuplicatPathCheckRule)rule).PersonalServerPath = this.tb_PersonalServerPath.Text;
-                }
-            }
+            //Binding systemPathBinding = BindingOperations.GetBinding(this.tb_SystemServerPath, TextBox.TextProperty);
+            //foreach (ValidationRule rule in systemPathBinding.ValidationRules) {
+            //    if (rule is DuplicatPathCheckRule) {
+            //        ((DuplicatPathCheckRule)rule).InstallationPath = installationBaseComponent.Path;
+            //        ((DuplicatPathCheckRule)rule).PersonalServerPath = this.tb_PersonalServerPath.Text;
+            //    }
+            //}
 
             // Workaround to get the validation work (the adoner layer can not be shown bug)
             object dataContext = this.DataContext;
