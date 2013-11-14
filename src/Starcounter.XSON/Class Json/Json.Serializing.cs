@@ -98,7 +98,7 @@ namespace Starcounter {
 
                 for (int i = lastArrayPos; i < Count; i++) {
                     if (itemJson == null) {
-                        itemSize = (this[i] as Json).ToJsonUtf8(out itemJson);
+                        itemSize = (this._GetAt(i) as Json).ToJsonUtf8(out itemJson);
                         if ((buf.Length - offset - 2) < itemSize)
                             goto restart;
                     }

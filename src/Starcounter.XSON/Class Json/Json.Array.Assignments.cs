@@ -27,7 +27,9 @@ namespace Starcounter {
             if (_PendingEnumeration) {
                 var notEnumeratedResult = (IEnumerable)_data;
                 foreach (var entity in notEnumeratedResult) {
-                    if (entity is IBindable) {
+                    if (entity is Json) {
+						Add(entity);
+					} else {
                         var tobj = template.ElementType;
                         if (tobj == null) {
                             template.CreateElementTypeFromDataObject(entity);
@@ -35,14 +37,7 @@ namespace Starcounter {
                         }
                         newApp = (Json)tobj.CreateInstance(this);
 						Add(newApp);
-						newApp.Data = (IBindable)entity;
-                    }
-                    else if (entity is Json) {
-                        Add((Json)entity);
-                    }
-                    else {
-                        throw new Exception(String.Format(
-                            "Cannot add a {0} to a Json array",entity.GetType().Name));
+						newApp.Data = entity;
                     }
                 }
                 _PendingEnumeration = false;
