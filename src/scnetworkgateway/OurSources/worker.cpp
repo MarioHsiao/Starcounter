@@ -921,37 +921,34 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 #endif
 
     // Checking if operation completed immediately. 
-    if (FALSE == err_code)
-    {
-        int32_t wsa_err_code = WSAGetLastError();
+    int32_t wsa_err_code = WSAGetLastError();
 
 #ifdef GW_LOOPED_TEST_MODE
-        wsa_err_code = WSA_IO_PENDING;
+    wsa_err_code = WSA_IO_PENDING;
 #endif
 
-        // Checking if IOCP event was scheduled.
-        if (WSA_IO_PENDING != wsa_err_code)
-        {
+    // Checking if IOCP event was scheduled.
+    if (WSA_IO_PENDING != wsa_err_code)
+    {
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
-            PrintLastError();
+        GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+        PrintLastError();
 #endif
 
-            // Finish disconnect operation.
-            // (e.g. returning to pool or starting accept).
-            if (FinishDisconnect(sd))
-                goto RELEASE_CHUNK_TO_POOL;
+        // Finish disconnect operation.
+        // (e.g. returning to pool or starting accept).
+        if (FinishDisconnect(sd))
+            goto RELEASE_CHUNK_TO_POOL;
 
-            return;
-        }
-
-        // NOTE: Setting socket data to null, so other
-        // manipulations on it are not possible.
-        sd = NULL;
-
-        // The disconnect operation is pending.
         return;
     }
+
+    // NOTE: Setting socket data to null, so other
+    // manipulations on it are not possible.
+    sd = NULL;
+
+    // The disconnect operation is pending.
+    return;
 
     // Returning the chunk to pool.
 RELEASE_CHUNK_TO_POOL:

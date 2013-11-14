@@ -79,10 +79,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
 
                 try {
-
-                    dbSession.RunSync(() => {
-                        this.BuildMissingBuilds();
-                    });
+                    lock (this) {
+                        dbSession.RunSync(() => {
+                            this.BuildMissingBuilds();
+                        });
+                    }
                 }
                 catch (Exception e) {
 
