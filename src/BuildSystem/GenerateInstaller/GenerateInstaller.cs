@@ -407,6 +407,13 @@ namespace GenerateInstaller
                     checkoutDir,
                     @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
 
+                // Deleting the existing archive since we have a copy in .saved file.
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip");
+
+                if (!File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip.saved"))
+                    throw new Exception("Archive.zip.saved is not found after build is created!");
+
                 Console.WriteLine("Cleaning temporary build directories...");
 
                 BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper",
