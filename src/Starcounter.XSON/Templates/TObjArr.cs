@@ -76,7 +76,13 @@ namespace Starcounter.Templates {
 		}
 
 		internal override Json GetValue(Json parent) {
-			return UnboundGetter(parent);
+			var arr = UnboundGetter(parent);
+
+			if (UseBinding(parent)) {
+				arr.CheckBoundArray(BoundGetter(parent));	
+			}
+
+			return arr;
 		}
 
 		internal void SetValue(Json parent, IEnumerable value) {
@@ -140,6 +146,10 @@ namespace Starcounter.Templates {
 				BoundSetter(parent, (IEnumerable)value.Data);
 			}
 			UnboundSetter(parent, value);
+
+			if (value._PendingEnumeration) {
+				value.Array_InitializeAfterImplicitConversion(parent, this);
+			}
 
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);

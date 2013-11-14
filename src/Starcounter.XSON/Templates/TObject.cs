@@ -82,7 +82,13 @@ namespace Starcounter.Templates {
 		}
 
 		internal override Json GetValue(Json parent) {
-			return UnboundGetter(parent);
+			var json = UnboundGetter(parent);
+
+			if (UseBinding(parent)) {
+				json.CheckBoundObject(BoundGetter(parent));
+			}
+
+			return json;
 		}
 
 		internal void SetValue(Json parent, object value) {

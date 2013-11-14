@@ -32,7 +32,7 @@ namespace Starcounter {
             }
             else {
                 Debug.WriteLine("Setting value after no handler: " + value);
-				((Property<V>)template).Setter(this, input.Value);
+				((Property<V>)template).Setter(this, value);
             }
         }
 

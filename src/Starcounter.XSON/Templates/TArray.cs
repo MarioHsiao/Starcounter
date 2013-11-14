@@ -46,10 +46,14 @@ namespace Starcounter.Templates {
 				oldArr._cacheIndexInArr = -1;
 			}
 
-			if (UseBinding(parent)) {
+			if (UseBinding(parent) && BoundSetter != null) {
 				BoundSetter(parent, (IEnumerable)value.Data);
 			}
 			UnboundSetter(parent, value);
+
+			if (value._PendingEnumeration) {
+				value.Array_InitializeAfterImplicitConversion(parent, this);
+			}
 
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
@@ -58,6 +62,12 @@ namespace Starcounter.Templates {
 		}
 
 		internal override Json GetValue(Json parent) {
+			var arr = UnboundGetter(parent);
+
+			if (UseBinding(parent)) {
+				arr.CheckBoundArray(BoundGetter(parent));
+			}
+
 			return UnboundGetter(parent);
 		}
 

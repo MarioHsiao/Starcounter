@@ -554,8 +554,8 @@ namespace Starcounter {
 			foreach (object value in boundValue) {
 				if (_list.Count <= index) {
 					newJson = (Json)tArr.ElementType.CreateInstance();
-					newJson.Data = value;
 					Add(newJson);
+					newJson.Data = value;
 					hasChanged = true;
 				} else {
 					oldJson = (Json)_list[index];
