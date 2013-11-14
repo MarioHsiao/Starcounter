@@ -25,6 +25,8 @@ namespace Starcounter.InstallerEngine
         public const String Setting_InstallVS2012Integration = "InstallVS2012Integration";
         public const String Setting_InstallVS2013Integration = "InstallVS2013Integration";
 
+        public const String Setting_SendUsageAndCrashReports = "SendUsageAndCrashReports";
+
         public const String Setting_CreatePersonalServerShortcuts = "CreatePersonalServerShortcuts";
         public const String Setting_AddStarcounterToStartMenu = "AddStarcounterToStartMenu";
 

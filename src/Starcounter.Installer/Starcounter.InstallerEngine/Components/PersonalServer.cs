@@ -334,6 +334,23 @@ public class CPersonalServer : CComponentBase
                 Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Unable to properly access given server HTTP port value: " + serverSystemPortString ?? "NULL");
         }
+
+        // Send usage statistics and crash reports to the tracker
+        bool sendUsageAndCrashReports;
+        var sendUsageAndCrashReportsString = InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_SendUsageAndCrashReports);
+        if (string.IsNullOrEmpty(sendUsageAndCrashReportsString) || !bool.TryParse(sendUsageAndCrashReportsString, out sendUsageAndCrashReports)) {
+            throw ErrorCode.ToException(
+                Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Unable to properly access given property for send user stats and crash report: " + sendUsageAndCrashReportsString ?? "NULL");
+        }
+
+        // Save SendUsageAndCrashReports setting
+        if (setup.ServerConfiguration.SendUsageAndCrashReports != sendUsageAndCrashReports) {
+            setup.ServerConfiguration.SendUsageAndCrashReports = sendUsageAndCrashReports;
+            setup.ServerConfiguration.Save();
+        }
+
+
         Environment.SetEnvironmentVariable(
             ConstantsBank.SCEnvVariableDefaultPersonalPort,
             serverSystemPortString,
