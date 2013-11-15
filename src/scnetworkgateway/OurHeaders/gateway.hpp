@@ -173,9 +173,6 @@ const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
 
-// Maximum size of HTTP content.
-const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
-
 // Maximum size of HTTP content requiring accumulation on host.
 const int32_t CONTENT_SIZE_HOST_ACCUMULATION = 1024 * 64;
 
@@ -1494,6 +1491,9 @@ class Gateway
     // Maximum total number of sockets aka connections.
     uint32_t setting_max_connections_;
 
+    // Maximum receive content length size in bytes.
+    uint32_t setting_maximum_receive_content_length_;
+
     // Starcounter server type upper case.
     std::string setting_sc_server_type_upper_;
 
@@ -2398,6 +2398,11 @@ public:
     const std::string& get_shm_monitor_int_name()
     {
         return shm_monitor_int_name_;
+    }
+
+    uint32_t setting_maximum_receive_content_length()
+    {
+        return setting_maximum_receive_content_length_;
     }
 
     // Getting settings log file directory.
