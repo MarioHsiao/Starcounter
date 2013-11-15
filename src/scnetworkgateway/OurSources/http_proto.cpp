@@ -823,7 +823,7 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                 if (http_request_.content_len_bytes_ > num_content_bytes_received)
                 {
                     // Checking for maximum supported HTTP request content size.
-                    if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
+                    if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
                     {
                         // Handled successfully.
                         *is_handled = true;
@@ -1098,7 +1098,7 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
                 if (http_request_.content_len_bytes_ > static_cast<uint32_t>(num_content_bytes_received))
                 {
                     // Checking for maximum supported HTTP request content size.
-                    if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
+                    if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
                     {
                         // Handled successfully.
                         *is_handled = true;
