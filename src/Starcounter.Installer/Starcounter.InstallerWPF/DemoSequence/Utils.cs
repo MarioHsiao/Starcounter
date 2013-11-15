@@ -143,7 +143,8 @@ namespace Starcounter.InstallerWPF.DemoSequence
     {
         VS2008,
         VS2010,
-        VS2012
+        VS2012,
+        VS2013
     }
 
     public enum PostDemoTypeEnum
@@ -151,6 +152,7 @@ namespace Starcounter.InstallerWPF.DemoSequence
         PREBUILT,
         VS2008,
         VS2010,
-        VS2012
+        VS2012,
+        VS2013
     }
 }

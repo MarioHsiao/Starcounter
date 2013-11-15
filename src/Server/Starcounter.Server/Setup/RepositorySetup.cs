@@ -144,7 +144,8 @@ namespace Starcounter.Server.Setup {
                 EnginesDirectory = structure.RepositoryDirectory,
                 SystemHttpPort = structure.SystemHttpPort,
                 DefaultDatabaseStorageConfiguration = databaseStorageConfig,
-                DefaultDatabaseConfiguration = databaseConfiguration
+                DefaultDatabaseConfiguration = databaseConfiguration,
+                SendUsageAndCrashReports = true
             };
 
             return new RepositorySetup(structure, serverConfig);

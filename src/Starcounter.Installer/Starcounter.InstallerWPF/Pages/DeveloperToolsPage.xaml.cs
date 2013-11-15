@@ -24,18 +24,20 @@ namespace Starcounter.InstallerWPF.Pages
         {
             get
             {
-                // NOTE: Installation can proceed even when zero components are selected.
-                // In this case InstallationBase will be installed.
-                return true;
-
-                /*Configuration config = this.DataContext as Configuration;
+                Configuration config = this.DataContext as Configuration;
+                if (config.SetupOptions == SetupOptions.Install) {
+                    // NOTE: Installation can proceed even when zero components are selected.
+                    // In this case InstallationBase will be installed.
+                    return true;
+                }
+                
 
                 if (!config.CanExecute)
                 {
                     return false;
                 }
 
-                return base.CanGoNext;*/
+                return base.CanGoNext;
             }
         }
 

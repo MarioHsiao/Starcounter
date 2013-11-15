@@ -596,6 +596,9 @@ namespace Starcounter.InstallerWPF {
             VisualStudio2012 visualStudio2012 = new VisualStudio2012(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2012);
 
+            VisualStudio2013 visualStudio2013 = new VisualStudio2013(this._InternalComponents);
+            this._InternalComponents.Add(visualStudio2013);
+
             // Starcounter installation
 
             InstallationBase starcounterInstallation = new InstallationBase(this._InternalComponents);
@@ -632,6 +635,9 @@ namespace Starcounter.InstallerWPF {
 
             VisualStudio2012Integration visualStudio2012Integration = new VisualStudio2012Integration(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2012Integration);
+
+            VisualStudio2013Integration visualStudio2013Integration = new VisualStudio2013Integration(this._InternalComponents);
+            this._InternalComponents.Add(visualStudio2013Integration);
 
             // Samples
 
@@ -737,6 +743,9 @@ namespace Starcounter.InstallerWPF {
 
                     if (InstalledComponents[(int)ComponentsCheck.Components.VS2012Integration])
                         foundComponents += " - Visual Studio 2012 Integration.";
+
+                    if (InstalledComponents[(int)ComponentsCheck.Components.VS2013Integration])
+                        foundComponents += " - Visual Studio 2013 Integration.";
 
                     WpfMessageBoxResult result = WpfMessageBox.Show("Starcounter installation seems corrupted." + Environment.NewLine + "Footprints of the following components are found:" + Environment.NewLine +
                         foundComponents +

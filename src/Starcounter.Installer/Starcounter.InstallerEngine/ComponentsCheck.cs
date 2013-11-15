@@ -45,7 +45,8 @@ namespace Starcounter.InstallerEngine
             InstallationBase,
             PersonalServer,
             SystemServer,
-            VS2012Integration
+            VS2012Integration,
+            VS2013Integration
         };
 
         public static readonly Int32 NumComponents = Enum.GetValues(typeof(Components)).Length;

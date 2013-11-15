@@ -32,9 +32,11 @@ namespace Starcounter.Administrator.API.Handlers {
             response = RESTUtility.JSON.ExpectAsynchronousOrNone(request, out async);
             if (response != null) return response;
 
+			int i = 0;
             string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
-            for (int i = 0; i < exe.Arguments.Count; i++) {
-                userArgs[i] = exe.Arguments[i].dummy;
+//            for (int i = 0; i < exe.Arguments.Count; i++) {
+			foreach (Executable.ArgumentsElementJson arg in exe.Arguments) {
+                userArgs[i++] = arg.dummy;
             }
 
             var cmd = new ExecCommand(engine, exe.Path, exe.WorkingDirectory, userArgs);

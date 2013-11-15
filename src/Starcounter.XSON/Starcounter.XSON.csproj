@@ -57,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding\BindingInfo.cs" />
-    <Compile Include="Binding\DataValueBinding.cs" />
     <Compile Include="Class Json\Json.Array2.cs" />
     <Compile Include="Class Json\Json.IList.cs" />
     <Compile Include="Class Json\Json.cs" />
@@ -96,7 +95,10 @@
     <Compile Include="Class Json\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
-    <Compile Include="Templates\Schema.cs" />
+    <Compile Include="TemplateDelegateGenerator.cs" />
+    <Compile Include="Templates\Foundation\TValue.cs" />
+    <Compile Include="Templates\TArray.cs" />
+    <Compile Include="Templates\TObject.cs" />
     <Compile Include="Sessions\JSON-Patch\Change.cs" />
     <Compile Include="Sessions\JSON-Patch\HttpPatchBuilder.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
@@ -105,14 +107,13 @@
     <Compile Include="Sessions\Session.ChangeLog.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
-    <Compile Include="Templates\Foundation\TContainer.Serializer.cs" />
-    <Compile Include="Templates\Schema.Expando.cs" />
+    <Compile Include="Templates\TObject.Expando.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
     <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="JSON-By-Example\Module2.cs" />
-    <Compile Include="Binding\DataBindingFactory.cs" />
+    <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Interfaces\IDebugInfo.cs" />
     <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
@@ -136,12 +137,11 @@
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
     <Compile Include="Templates\Foundation\TContainer.cs" />
     <Compile Include="Templates\Foundation\Template.cs" />
-    <Compile Include="Templates\TArr.cs" />
+    <Compile Include="Templates\TObjArr.cs" />
     <Compile Include="Templates\TBool.cs" />
     <Compile Include="Templates\TDecimal.cs" />
     <Compile Include="Templates\TDouble.cs" />
     <Compile Include="Templates\TLong.cs" />
-    <Compile Include="Templates\Schema.Binding.cs" />
     <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
     <Compile Include="Templates\TTrigger.cs" />
@@ -181,10 +181,6 @@
     <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
       <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
       <Name>Starcounter.XSON.JsTemplateParser</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
-      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
-      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

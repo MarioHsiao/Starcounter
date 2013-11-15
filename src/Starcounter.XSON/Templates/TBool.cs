@@ -4,9 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Internal;
 using System;
-using System.Collections.Generic;
 
 namespace Starcounter.Templates {
 
