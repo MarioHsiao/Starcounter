@@ -442,7 +442,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append('"');
                     
                     TValue tv = mn.Template as TValue;
-                    if (tv != null && ( tv.Bound == Bound.Yes ) && tv.PropertyName != tv.Bind) {
+                    if (tv != null && ( tv.BindingStrategy == BindingStrategy.Bound ) && tv.PropertyName != tv.Bind) {
                         if (tv.Bind == null) {
                             sb.Append(", bind:null");
                         } else {

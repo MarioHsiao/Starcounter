@@ -7,9 +7,6 @@
 using System;
 using System.Collections.Generic;
 
-using Starcounter;
-using System.Collections;
-
 namespace Starcounter.Templates {
 
     /// <summary>

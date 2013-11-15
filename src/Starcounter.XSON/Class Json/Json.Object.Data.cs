@@ -43,66 +43,55 @@ namespace Starcounter {
                     if (Template == null) {
                         (this as Json).CreateDynamicTemplate(); // If there is no template, we'll create a template
                     }
-                    InternalSetData((IBindable)value, (TObject)Template, false);
+                    InternalSetData(value, (TObject)Template, false);
                 }
             }
         }
 
-        internal void AttachData(IBindable data) {
+        internal void AttachData(object data) {
             InternalSetData(data, (TObject)Template, true);
         }
 
 
-		/// <summary>
-		/// Gets the bound value from the dataobject.
-		/// </summary>
-		/// <remarks>
-		/// This method assumes that the cached binding on the template 
-		/// is correct and will not verify it.
-		/// </remarks>
-		/// <typeparam name="TVal"></typeparam>
-		/// <param name="template"></param>
-		/// <returns></returns>
-        internal TVal GetBound<TVal>(Property<TVal> template) {
-            IBindable data = DataAsBindable;
-            if (data == null)
-                return default(TVal);
-            return ((DataValueBinding<TVal>)template.dataBinding).Get(data);
-        }
+		///// <summary>
+		///// Gets the bound value from the dataobject.
+		///// </summary>
+		///// <typeparam name="TVal"></typeparam>
+		///// <param name="template"></param>
+		///// <returns></returns>
+		//internal TVal GetBound<TVal>(Property<TVal> template) {
+		//	if (template.UseBinding(this))
+		//		return template.BoundGetter(this);
+		//	return default(TVal);
+		//}
 
-		/// <summary>
-		/// Sets the value to the dataobject.
-		/// </summary>
-		/// <remarks>
-		/// This method assumes that the cached binding on the template 
-		/// is correct and will not verify it.
-		/// </remarks>
-		/// <param name="template"></param>
-		/// <param name="value"></param>
-        internal void SetBound<TVal>(Property<TVal> template, TVal value) {
-            IBindable data = DataAsBindable;
-            if (data == null)
-                return;
-            ((DataValueBinding<TVal>)template.dataBinding).Set(data, value);
-        }
+		///// <summary>
+		///// Sets the value to the dataobject.
+		///// </summary>
+		///// <param name="template"></param>
+		///// <param name="value"></param>
+		//internal void SetBound<TVal>(Property<TVal> template, TVal value) {
+		//	if (template.UseBinding(this))
+		//		template.BoundSetter(this, value);
+		//}
 
-		internal object GetBound(TValue template) {
-            IBindable data = DataAsBindable;
-            var thisj = AssertIsObject();
-            if (data == null)
-				return null;
-			
-			return template.GetBoundValueAsObject(thisj);
-		}
+		//internal object GetBound(TValue template) {
+		//	IBindable data = DataAsBindable;
+		//	var thisj = AssertIsObject();
+		//	if (data == null)
+		//		return null;
 
-		internal void SetBound(TValue template, object value) {
-            var thisj = AssertIsObject();
-            IBindable data = DataAsBindable;
-			if (data == null)
-				return;
+		//	return template.GetBoundValueAsObject(thisj);
+		//}
 
-			template.SetBoundValueAsObject(thisj, value);
-		}
+		//internal void SetBound(TValue template, object value) {
+		//	var thisj = AssertIsObject();
+		//	IBindable data = DataAsBindable;
+		//	if (data == null)
+		//		return;
+
+		//	template.SetBoundValueAsObject(thisj, value);
+		//}
 
         /// <summary>
         /// For public API functions that does not operate on templates, this
@@ -117,68 +106,68 @@ namespace Starcounter {
             return this as Json;
         }
 
-		/// <summary>
-		/// Gets the bound value from the dataobject.
-		/// </summary>
-		/// <remarks>
-		/// This method assumes that the cached binding on the template 
-		/// is correct and will not verify it.
-		/// </remarks>
-		/// <param name="template"></param>
-		/// <returns></returns>
-        internal IEnumerable GetBound(TObjArr template) {
-            IBindable data = DataAsBindable;
-            if (data == null)
-                return default(Rows<object>);
+		///// <summary>
+		///// Gets the bound value from the dataobject.
+		///// </summary>
+		///// <remarks>
+		///// This method assumes that the cached binding on the template 
+		///// is correct and will not verify it.
+		///// </remarks>
+		///// <param name="template"></param>
+		///// <returns></returns>
+		//internal IEnumerable GetBound(TObjArr template) {
+		//	IBindable data = DataAsBindable;
+		//	if (data == null)
+		//		return default(Rows<object>);
 
-            return ((DataValueBinding<IEnumerable>)template.dataBinding).Get(data);
-        }
+		//	return ((DataValueBinding<IEnumerable>)template.dataBinding).Get(data);
+		//}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="template"></param>
-		/// <param name="value"></param>
-		internal void SetBound(TObjArr template, IEnumerable value) {
-			IBindable data = DataAsBindable;
-			if (data == null)
-				return;
-			var binding = (DataValueBinding<IEnumerable>)template.dataBinding;
-			if (binding.HasSetBinding())
-				binding.Set(data, value);
-		}
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="template"></param>
+		///// <param name="value"></param>
+		//internal void SetBound(TObjArr template, IEnumerable value) {
+		//	IBindable data = DataAsBindable;
+		//	if (data == null)
+		//		return;
+		//	var binding = (DataValueBinding<IEnumerable>)template.dataBinding;
+		//	if (binding.HasSetBinding())
+		//		binding.Set(data, value);
+		//}
 
-		/// <summary>
-		/// Gets the bound value from the dataobject.
-		/// </summary>
-		/// <remarks>
-		/// This method assumes that the cached binding on the template 
-		/// is correct and will not verify it.
-		/// </remarks>
-		/// <param name="template"></param>
-		/// <returns></returns>
-        internal IBindable GetBound(TObject template) {
-            IBindable data = DataAsBindable;
-            if (data == null)
-                return null;
-            return ((DataValueBinding<IBindable>)template.dataBinding).Get(data);
-        }
+		///// <summary>
+		///// Gets the bound value from the dataobject.
+		///// </summary>
+		///// <remarks>
+		///// This method assumes that the cached binding on the template 
+		///// is correct and will not verify it.
+		///// </remarks>
+		///// <param name="template"></param>
+		///// <returns></returns>
+		//internal IBindable GetBound(TObject template) {
+		//	IBindable data = DataAsBindable;
+		//	if (data == null)
+		//		return null;
+		//	return ((DataValueBinding<IBindable>)template.dataBinding).Get(data);
+		//}
 
-		/// <summary>
-		/// Sets the value to the dataobject.
-		/// </summary>
-		/// <remarks>
-		/// This method assumes that the cached binding on the template 
-		/// is correct and will not verify it.
-		/// </remarks>
-		/// <param name="template"></param>
-		/// <param name="value"></param>
-        internal void SetBound(TObject template, IBindable value) {
-            IBindable data = DataAsBindable;
-            if (data == null)
-                return;
-			((DataValueBinding<IBindable>)template.dataBinding).Set(data, value);
-        }
+		///// <summary>
+		///// Sets the value to the dataobject.
+		///// </summary>
+		///// <remarks>
+		///// This method assumes that the cached binding on the template 
+		///// is correct and will not verify it.
+		///// </remarks>
+		///// <param name="template"></param>
+		///// <param name="value"></param>
+		//internal void SetBound(TObject template, IBindable value) {
+		//	IBindable data = DataAsBindable;
+		//	if (data == null)
+		//		return;
+		//	((DataValueBinding<IBindable>)template.dataBinding).Set(data, value);
+		//}
 
         /// <summary>
         /// Sets the underlying data object and refreshes all bound values.
@@ -186,13 +175,14 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data, TObject template, bool readOperation ) {
+        protected virtual void InternalSetData(object data, TObject template, bool readOperation ) {
             this._data = data;
 
-			if (template.Bound != Bound.No) {
+			if (template.BindingStrategy != BindingStrategy.Unbound) {
 				var parent = ((Json)this.Parent);
-				if (!readOperation && parent != null && template.UseBinding(parent.DataAsBindable)) {
-					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
+				if (!readOperation && parent != null && template.UseBinding(parent)) {
+					throw new NotImplementedException();
+//					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
 				}
 			}
 
@@ -207,13 +197,13 @@ namespace Starcounter {
             TObjArr child;
             for (Int32 i = 0; i < template.Properties.Count; i++) {
                 child = template.Properties[i] as TObjArr;
-                if (child != null && child.Bound != Bound.No) {
+                if (child != null && child.BindingStrategy != BindingStrategy.Unbound) {
 					if (_data != null) {
-						if (child.UseBinding(DataAsBindable))
+						if (child.UseBinding(this))
 							Refresh(child);
 					} else {
                         var thisj = AssertIsObject();
-						var arr = (Json)thisj.Get(child);
+						var arr = (Json)child.Getter(thisj);
 						arr.Clear();
 					}
                 }
