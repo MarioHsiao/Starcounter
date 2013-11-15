@@ -143,14 +143,12 @@ namespace Starcounter.Internal
         /// <param name="buf">The buf.</param>
         /// <param name="buf_len_bytes">The buf_len_bytes.</param>
         /// <param name="chunk_index">The chunk_index.</param>
-        /// <param name="chunk_memory">The chunk_memory.</param>
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_send_buffer(
             Byte* buf,
             UInt32 buf_len_bytes,
-            UInt32* chunk_index,
-            Byte* chunk_memory,
+            UInt32* the_chunk_index,
             UInt32 conn_flags
         );
 
