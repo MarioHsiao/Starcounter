@@ -32,32 +32,49 @@ namespace Starcounter {
         /// <summary>
         /// Register the specified uri, with one variable parameter, with a custom verb
         /// </summary>
-        /// <param name="uri">The uri to register.</param>
+        /// <param name="methodAndUri">The method and uri to register.</param>
         /// <param name="handler">The handler.</param>
-        public static void CUSTOM(string uri, Func<Response> handler)
+        public static void CUSTOM(string methodAndUri, Func<Response> handler)
         {
-            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUri, handler);
         }
 
-        public static void CUSTOM(ushort port, string uri, Func<Response> handler)
+        public static void CUSTOM(ushort port, string methodAndUri, Func<Response> handler)
         {
-            _REST.RegisterHandler(port, uri, handler);
+            _REST.RegisterHandler(port, methodAndUri, handler);
         }
 
         /// <summary>
         /// Register the specified uri, with one variable parameter, with a custom verb
         /// </summary>
         /// <typeparam name="T">The type of the parameter.</typeparam>
-        /// <param name="uri">The uri to register.</param>
+        /// <param name="methodAndUri">The method and uri to register.</param>
         /// <param name="handler">The handler.</param>
-        public static void CUSTOM<T>(string uri, Func<T, Response> handler)
+        public static void CUSTOM<T>(string methodAndUri, Func<T, Response> handler)
         {
-            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUri, handler);
         }
 
-        public static void CUSTOM<T>(ushort port, string uri, Func<T, Response> handler)
+        public static void CUSTOM<T>(ushort port, string methodAndUri, Func<T, Response> handler)
         {
-            _REST.RegisterHandler<T>(port, uri, handler);
+            _REST.RegisterHandler<T>(port, methodAndUri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with one variable parameter, with a custom verb
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter.</typeparam>
+        /// <param name="method">The method to register.</param>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T>(string method, string uri, Func<T, Response> handler)
+        {
+            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method + " " + uri, handler);
+        }
+
+        public static void CUSTOM<T>(ushort port, string method, string uri, Func<T, Response> handler)
+        {
+            _REST.RegisterHandler<T>(port, method + " " + uri, handler);
         }
    
         /// <summary>
@@ -113,16 +130,34 @@ namespace Starcounter {
         /// </summary>
         /// <typeparam name="T1">The type of the first parameter.</typeparam>
         /// <typeparam name="T2">The type of the second parameter.</typeparam>
-        /// <param name="uri">The uri to register.</param>
+        /// <param name="methodAndUri">The method and uri to register.</param>
         /// <param name="handler">The handler.</param>
-        public static void CUSTOM<T1, T2>(string uri, Func<T1, T2, Response> handler)
+        public static void CUSTOM<T1, T2>(string methodAnduri, Func<T1, T2, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAnduri, handler);
         }
 
-        public static void CUSTOM<T1, T2>(ushort port, string uri, Func<T1, T2, Response> handler)
+        public static void CUSTOM<T1, T2>(ushort port, string methodAnduri, Func<T1, T2, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2>(port, uri, handler);
+            _REST.RegisterHandler<T1, T2>(port, methodAnduri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with two variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="method">The method to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2>(string method, string uri, Func<T1, T2, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method + " " + uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2>(ushort port, string method, string uri, Func<T1, T2, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2>(port, method + " " + uri, handler);
         }
 
         /// <summary>
@@ -149,16 +184,35 @@ namespace Starcounter {
         /// <typeparam name="T1">The type of the first parameter.</typeparam>
         /// <typeparam name="T2">The type of the second parameter.</typeparam>
         /// <typeparam name="T3">The type of the third parameter.</typeparam>
-        /// <param name="uri">The uri to register</param>
+        /// <param name="methodAndUri">The method and uri to register</param>
         /// <param name="handler">The handler.</param>
-        public static void CUSTOM<T1, T2, T3>(string uri, Func<T1, T2, T3, Response> handler)
+        public static void CUSTOM<T1, T2, T3>(string methodAndUri, Func<T1, T2, T3, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUri, handler);
         }
 
-        public static void CUSTOM<T1, T2, T3>(ushort port, string uri, Func<T1, T2, T3, Response> handler)
+        public static void CUSTOM<T1, T2, T3>(ushort port, string methodAndUri, Func<T1, T2, T3, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2, T3>(port, uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>(port, methodAndUri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with three variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="method">The method to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2, T3>(string method, string uri, Func<T1, T2, T3, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method + " " + uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2, T3>(ushort port, string method, string uri, Func<T1, T2, T3, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3>(port, method + " " + uri, handler);
         }
 
         /// <summary>
@@ -187,16 +241,36 @@ namespace Starcounter {
         /// <typeparam name="T2">The type of the second parameter.</typeparam>
         /// <typeparam name="T3">The type of the third parameter.</typeparam>
         /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
-        /// <param name="uri">The uri to register.</param>
+        /// <param name="methodAndUri">The method and uri to register.</param>
         /// <param name="handler">The handler.</param>
-        public static void CUSTOM<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, Response> handler)
+        public static void CUSTOM<T1, T2, T3, T4>(string methodAndUri, Func<T1, T2, T3, T4, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUri, handler);
         }
 
-        public static void CUSTOM<T1, T2, T3, T4>(ushort port, string uri, Func<T1, T2, T3, T4, Response> handler)
+        public static void CUSTOM<T1, T2, T3, T4>(ushort port, string methodAndUri, Func<T1, T2, T3, T4, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2, T3, T4>(port, uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>(port, methodAndUri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with four variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter.</typeparam>
+        /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="method">The method to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2, T3, T4>(string method, string uri, Func<T1, T2, T3, T4, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method + " " + uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2, T3, T4>(ushort port, string method, string uri, Func<T1, T2, T3, T4, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4>(port, method + " " + uri, handler);
         }
 
         /// <summary>
@@ -227,16 +301,37 @@ namespace Starcounter {
         /// <typeparam name="T3">The type of the third parameter.</typeparam>
         /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
         /// <typeparam name="T5">The type of the fifth parameter.</typeparam>
-        /// <param name="uri">The uri to register.</param>
+        /// <param name="methodAndUri">The method and uri to register.</param>
         /// <param name="handler">The handler.</param>
-        public static void CUSTOM<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, Response> handler)
+        public static void CUSTOM<T1, T2, T3, T4, T5>(string methodAndUri, Func<T1, T2, T3, T4, T5, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUri, handler);
         }
 
-        public static void CUSTOM<T1, T2, T3, T4, T5>(ushort port, string uri, Func<T1, T2, T3, T4, T5, Response> handler)
+        public static void CUSTOM<T1, T2, T3, T4, T5>(ushort port, string methodAndUri, Func<T1, T2, T3, T4, T5, Response> handler)
         {
-            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, methodAndUri, handler);
+        }
+
+        /// <summary>
+        /// Register the specified uri, with five variable parameters, with a custom verb
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter.</typeparam>
+        /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
+        /// <typeparam name="T5">The type of the fifth parameter.</typeparam>
+        /// <param name="uri">The uri to register.</param>
+        /// <param name="method">The method to register.</param>
+        /// <param name="handler">The handler.</param>
+        public static void CUSTOM<T1, T2, T3, T4, T5>(string method, string uri, Func<T1, T2, T3, T4, T5, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method + " " + uri, handler);
+        }
+
+        public static void CUSTOM<T1, T2, T3, T4, T5>(ushort port, string method, string uri, Func<T1, T2, T3, T4, T5, Response> handler)
+        {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, method + " " + uri, handler);
         }
 
         /// <summary>
