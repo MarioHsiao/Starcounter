@@ -3,7 +3,7 @@ using System.Text;
 using Starcounter.Internal.REST;
 using System;
 
-namespace Starcounter.Advanced {
+namespace Starcounter {
     public sealed partial class Response {
         /// <summary>
         /// Creates a response from an HTTP status code

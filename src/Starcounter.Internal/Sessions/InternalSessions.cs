@@ -15,6 +15,7 @@ using System.Diagnostics;
 using Starcounter.Advanced;
 using System.Security.Cryptography;
 using Starcounter.Internal;
+using Starcounter;
 
 namespace HttpStructs
 {
