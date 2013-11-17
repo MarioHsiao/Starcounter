@@ -169,6 +169,8 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     bool aggregated_flag =
         (0 != ((*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED));
 
+    _SC_ASSERT(!aggregated_flag);
+
     // Checking if data fits in one chunk.
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {
@@ -190,23 +192,23 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     }
     
     // Number of chunks to use.
-    int32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_left_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
-    _SC_ASSERT(num_extra_chunks_to_use > 0);
+    int32_t num_extra_chunks = ((buf_len_bytes - num_bytes_left_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
+    _SC_ASSERT(num_extra_chunks > 0);
 
     int32_t num_bytes_to_write = buf_len_bytes;
 
     // Checking if more than maximum chunks we can take at once.
-    if ((num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!aggregated_flag))
+    if ((num_extra_chunks >= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!aggregated_flag))
     {
-        num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
+        num_extra_chunks = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS - 1;
         num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_left_first_chunk;
     }
 
     // Setting total number of chunks.
-    *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks_to_use;
+    *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks;
 
     // Acquiring linked chunks.
-    err_code = cm_acquire_linked_shared_memory_chunks_counted(the_chunk_index, num_extra_chunks_to_use);
+    err_code = cm_acquire_linked_shared_memory_chunks_counted(the_chunk_index, num_extra_chunks);
     if (err_code)
     {
         // Releasing the original chunk.
