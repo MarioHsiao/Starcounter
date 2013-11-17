@@ -406,9 +406,14 @@ namespace Starcounter.Internal.Test
                 return "CUSTOM REPORT!";
             });
 
-            Handle.CUSTOM("SEARCH /", () =>
+            Handle.CUSTOM("SEARCH", "/", () =>
             {
                 return "CUSTOM SEARCH!";
+            });
+
+            Handle.CUSTOM("OPTIONS", "/", () =>
+            {
+                return "CUSTOM OPTIONS!";
             });
 
             Handle.CUSTOM("{?}", (String methodAndUri) =>
