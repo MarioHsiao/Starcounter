@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-namespace Starcounter.Advanced {
+
+namespace Starcounter {
     /// <summary>
     /// Class Request
     /// </summary>
