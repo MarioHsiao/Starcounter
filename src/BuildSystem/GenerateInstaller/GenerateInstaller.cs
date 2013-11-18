@@ -446,7 +446,7 @@ namespace GenerateInstaller
 
                     // Calling external tool to upload build package to public server.
                     ProcessStartInfo uploadProcessInfo = new ProcessStartInfo();
-                    uploadProcessInfo.FileName = outputDir + "\\BuildsHelper.exe";
+                    uploadProcessInfo.FileName = outputDir + "\\BuildHelpers.exe";
                     uploadProcessInfo.Arguments = "-Mode=UploadBigFile -UploadUri=\"tracker.starcounter.com:8585/upload\" -PathToFile=\"" + pathToAllInOneArchive + "\"";
                     uploadProcessInfo.UseShellExecute = false;
 
