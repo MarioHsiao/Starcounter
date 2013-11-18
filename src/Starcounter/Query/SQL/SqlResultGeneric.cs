@@ -20,7 +20,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult<T> : Rows<T>, IEnumerable, IEnumerable<T> {
+    public class QueryResultRows<T> : Rows<T>, IEnumerable, IEnumerable<T> {
 
 
 
@@ -30,7 +30,7 @@ namespace Starcounter
         protected Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
 
         // Creating SQL result with query parameters all given at once.
-        internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues) {
+        internal QueryResultRows(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues) {
             this.transactionId = transactionId;
             this.query = query;
             this.slowSQL = slowSQL;

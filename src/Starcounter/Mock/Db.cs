@@ -77,7 +77,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<Object> SQL(String query, params Object[] values) {
+        public static QueryResultRows<Object> SQL(String query, params Object[] values) {
             return SQL<Object>(query, values);
         }
 
@@ -88,12 +88,12 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<T> SQL<T>(String query, params Object[] values) {
+        public static QueryResultRows<T> SQL<T>(String query, params Object[] values) {
             if (query == null)
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
-            SqlResult<T> enumerableResult = null;
+            QueryResultRows<T> enumerableResult = null;
             try {
-                enumerableResult = new SqlResult<T>(0, query, false, values);
+                enumerableResult = new QueryResultRows<T>(0, query, false, values);
                 enumerableResult.CacheExecutionEnumerator();
             } catch (Exception) {
                 try {
@@ -123,7 +123,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<Object> SlowSQL(String query, params Object[] values)
+        public static QueryResultRows<Object> SlowSQL(String query, params Object[] values)
         {
             return SlowSQL<Object>(query, values);
         }
@@ -135,7 +135,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<T> SlowSQL<T>(String query, params Object[] values) {
+        public static QueryResultRows<T> SlowSQL<T>(String query, params Object[] values) {
             if (query == null)
                 throw new ArgumentNullException("query");
 
@@ -150,7 +150,7 @@ namespace Starcounter
             if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, true, values))
                 return null;
             else {
-                SqlResult<T> enumerableResult = new SqlResult<T>(transactionId, query, true, values);
+                QueryResultRows<T> enumerableResult = new QueryResultRows<T>(transactionId, query, true, values);
                 enumerableResult.CacheExecutionEnumerator();
                 return enumerableResult;
             }
@@ -162,7 +162,7 @@ namespace Starcounter
     /// Starcounter database.
     /// </summary>
     public static class SQL {
-        public static SqlResult<T> SELECT<T>(string query, params Object[] values) {
+        public static QueryResultRows<T> SELECT<T>(string query, params Object[] values) {
             return Db.SQL<T>( String.Concat( "SELECT _O_ FROM ", typeof(T).FullName, " _O_ ", query ), values);
         }
     }
@@ -173,7 +173,7 @@ namespace Starcounter
     /// Starcounter database.
     /// </summary>
     public static class SELECT<T> {
-       public static SqlResult<T> WHERE(string query, params Object[] values) {
+       public static QueryResultRows<T> WHERE(string query, params Object[] values) {
           return Db.SQL<T>(String.Concat("SELECT _O_ FROM ", typeof(T).FullName, " _O_ WHERE ", query), values);
        }
     }
@@ -184,7 +184,7 @@ namespace Starcounter
 
     public static class SELECT {
        public static class FROM<T> {
-          public static SqlResult<T> WHERE(string query, params Object[] values) {
+          public static QueryResultRows<T> WHERE(string query, params Object[] values) {
              return Db.SQL<T>(String.Concat("SELECT _O_ FROM ", typeof(T).FullName, " _O_ WHERE ", query), values);
           }
        }
