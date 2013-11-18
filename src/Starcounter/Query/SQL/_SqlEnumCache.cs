@@ -11,6 +11,7 @@ using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Query.Sql;
 using Starcounter.Query.Execution;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Sql
 {
@@ -106,7 +107,7 @@ public sealed class SqlEnumCache
         return execEnum;
     }
 
-    internal Int32 CacheEnumerator<T>(String query) {
+    internal Int32 CacheOrExecuteEnumerator<T>(String query) {
         if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
             return lastUsedEnumIndex;
         // We have to ask dictionary for the index.
@@ -119,6 +120,8 @@ public sealed class SqlEnumCache
             // Parser and optimize it
             // Creating enumerator from scratch.
             IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareOrExecuteQuery<T>(query);
+            if (newEnum == null)
+                return -1;
             enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
             if (totalCachedEnum == 0) { // Cache was reset
                 enumIndex = globalQueryCache.GetEnumIndex(query);
@@ -135,7 +138,9 @@ public sealed class SqlEnumCache
     internal IExecutionEnumerator GetCachedEnumerator<T>(String query)
     {
         // Fetching existing enumerator using index.
-        return GetCachedEnumerator(CacheEnumerator<T>(query));
+        int enumIndex = CacheOrExecuteEnumerator<T>(query);
+        Debug.Assert(enumIndex >= 0);
+        return GetCachedEnumerator(enumIndex);
     }
 
     /// <summary>
