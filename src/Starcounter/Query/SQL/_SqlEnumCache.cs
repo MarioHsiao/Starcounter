@@ -114,9 +114,17 @@ public sealed class SqlEnumCache
 
         // Checking if its completely new query.
         if (enumIndex < 0) {
-            enumIndex = globalQueryCache.AddNewQuery<T>(query);
-            if (totalCachedEnum == 0) // Cache was reset
-                enumIndex = globalQueryCache.AddNewQuery<T>(query);
+
+            // Query is not cached, adding it.
+            // Parser and optimize it
+            // Creating enumerator from scratch.
+            IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareQuery<T>(query);
+            enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
+            if (totalCachedEnum == 0) { // Cache was reset
+                enumIndex = globalQueryCache.GetEnumIndex(query);
+                if (enumIndex < 0)
+                    enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
+            }
         }
         return enumIndex;
     }
