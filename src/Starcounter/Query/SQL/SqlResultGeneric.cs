@@ -70,7 +70,7 @@ namespace Starcounter
         /// if not then creates and caches an enumerator.
         /// </summary>
         internal void CacheExecutionEnumerator() {
-            Scheduler.GetInstance().SqlEnumCache.CacheEnumerator<T>(query);
+            Scheduler.GetInstance().SqlEnumCache.CacheOrExecuteEnumerator<T>(query);
         }
 
         internal IExecutionEnumerator GetExecutionEnumerator() {
