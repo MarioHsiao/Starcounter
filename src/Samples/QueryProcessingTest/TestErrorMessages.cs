@@ -21,7 +21,7 @@ namespace QueryProcessingTest {
 
         internal static void RunErrorQuery(string query) {
             try {
-                Trace.Assert(SqlProcessor.CallSqlProcessor(query) == 0);
+                Trace.Assert(SqlProcessor.CallSqlProcessor(query) == null);
                 ignored++;
             } catch (Exception ex) {
                 if (ex is SqlException) {

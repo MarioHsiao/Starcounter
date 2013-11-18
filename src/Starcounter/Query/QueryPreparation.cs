@@ -16,7 +16,19 @@ namespace Starcounter.Query {
         /// </summary>
         /// <param name="query">Input query string to prepare</param>
         /// <returns>The result enumerated with the execution plan.</returns>
-        internal static IExecutionEnumerator PrepareQuery<T>(String query) {
+        internal static IExecutionEnumerator PrepareOrExecuteQuery<T>(String query) {
+#if !PROLOG_ONLY // Run Bison-based native SQL processor
+            Exception nativeException = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
+            if (nativeException == null)
+                return null; // The query was executed
+            if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED)
+                throw nativeException;
+#endif // !PROLOG_ONLY
+#if BISON_ONLY
+            if (nativeException != null)
+                throw nativeException;
+            Debug.Assert(false); // Should not be reached
+#endif
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
             Exception prologException = null;
@@ -24,25 +36,15 @@ namespace Starcounter.Query {
 #if !BISON_ONLY
             // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
-            try {
+            //try {
                 answer = PrologManager.CallProlog(QueryModule.DatabaseId, query);
-            } catch (SqlException e) {
-                prologException = e;
-            }
+            //} catch (SqlException e) {
+            //    prologException = e;
+            //}
             // Transfer answer terms into pre-optimized structures
             if (prologException == null)
                 optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
 #endif
-            // Call to Bison parser and type checker
-#if !PROLOG_ONLY
-            uint err = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
-            Debug.Assert(err == 0);
-            if (prologException != null)
-                throw prologException;
-#endif //!PROLOG_ONLY
-#if BISON_ONLY
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Semantic analyzer is not implemented for this type of query parsed by Bison");
-#endif // BISON_ONLY
             // Call to optimizer of Prolog result
             if (optArgsProlog != null)
                 prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
