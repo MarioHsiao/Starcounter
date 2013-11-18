@@ -46,12 +46,21 @@ namespace BuildHelpers
                 for (Int32 i = 0; i < args.Length; i++)
                 {
                     if (args[i].StartsWith("-UploadUri="))
+                    {
                         uploadUri = args[i].Substring("-UploadUri=".Length);
+
+                        if (uploadUri.StartsWith("\""))
+                            uploadUri = uploadUri.Substring(1, uploadUri.Length - 2);
+                    }
                     else if (args[i].StartsWith("-PathToFile="))
+                    {
                         pathToFile = args[i].Substring("-PathToFile=".Length);
+                        if (pathToFile.StartsWith("\""))
+                            pathToFile = pathToFile.Substring(1, pathToFile.Length - 2);
+                    }
                 }
 
-                Response resp = X.PUT(uploadUri, (String) null, null);
+                Response resp = X.POST(uploadUri, (String) null, null);
                 if (!resp.IsSuccessStatusCode)
                 {
                     Console.WriteLine("Problems obtaining resource from \"" + uploadUri + "\" Status description: " + resp.Body);
@@ -70,13 +79,13 @@ namespace BuildHelpers
                         if (readBytes < tempBuf.Length)
                         {
                             Byte[] truncatedBuf = new Byte[readBytes];
-                            tempBuf.CopyTo(truncatedBuf, 0);
+                            Array.Copy(tempBuf, truncatedBuf, readBytes);
 
-                            resp = X.POST(uploadUri + "/" + resId, truncatedBuf, null);
+                            resp = X.PUT(uploadUri + "/" + resId, truncatedBuf, "UploadSettings: Final\r\n");
                         }
                         else
                         {
-                            resp = X.POST(uploadUri + "/" + resId, tempBuf, null);
+                            resp = X.PUT(uploadUri + "/" + resId, tempBuf, null);
                         }
 
                         // Checking response status code.
