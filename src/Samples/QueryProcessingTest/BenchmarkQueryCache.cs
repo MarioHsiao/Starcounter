@@ -90,7 +90,7 @@ namespace QueryProcessingTest {
         }
 
         public static void DbSQL(int nrIterations) {
-            SqlResult<dynamic> s;
+            QueryResultRows<dynamic> s;
             for (int i=0; i<nrIterations;i++)
                 s = Db.SQL(query, 10);
             lock (query) {

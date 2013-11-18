@@ -39,7 +39,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
             Console.WriteLine(string.Format("NOTICE: Exporting to: {0} ", file));
 
 
-            SqlResult<Starcounter.Metadata.SysTable> result = Db.SlowSQL<Starcounter.Metadata.SysTable>("SELECT o FROM SYSTABLE o");
+            QueryResultRows<Starcounter.Metadata.SysTable> result = Db.SlowSQL<Starcounter.Metadata.SysTable>("SELECT o FROM SYSTABLE o");
             int tableCnt = 0;
 
             try {
@@ -102,7 +102,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                 //return;
             }
 
-            SqlResult<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.Name));
+            QueryResultRows<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.Name));
             TypeDef typeDef = null;
             try {
                 typeDef = Bindings.GetTypeDef((int)table.TableId);

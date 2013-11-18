@@ -73,7 +73,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             // Clear all statistics
             Db.Transaction(() => {
-                SqlResult<StatisticDay> result = Db.SlowSQL<StatisticDay>("SELECT o FROM StatisticDay o");
+                QueryResultRows<StatisticDay> result = Db.SlowSQL<StatisticDay>("SELECT o FROM StatisticDay o");
 
                 foreach (StatisticDay statisticDay in result) {
                     statisticDay.Delete();
@@ -178,7 +178,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
         static Int64 GetDownloads(string channel, DateTime from, DateTime to) {
 
             Int64 counter = 0;
-            SqlResult<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Channel=? ORDER BY o.DownloadDate", true, channel);
+            QueryResultRows<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Channel=? ORDER BY o.DownloadDate", true, channel);
 
 
             foreach (VersionBuild versionBuild in versionBuilds) {
