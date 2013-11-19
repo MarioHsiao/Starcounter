@@ -129,6 +129,7 @@ uint32_t __stdcall sc_bmx_clone_chunk(
     // Acquiring new chunk.
     uint8_t* new_chunk_buf;
     err_code = cm_acquire_shared_memory_chunk(new_chunk_index, &new_chunk_buf);
+    _SC_ASSERT(err_code == 0);
     if (err_code)
         return err_code;
 
