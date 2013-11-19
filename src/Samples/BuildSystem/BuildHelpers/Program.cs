@@ -95,6 +95,8 @@ namespace BuildHelpers
                 }
             }
 
+            Console.WriteLine("Operation completed successfully!");
+
             return (Int32) ReturnCodes.Success;
         }
     }
