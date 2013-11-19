@@ -12,6 +12,7 @@ using BizArk.Core.Util;
 using HttpStructs;
 using Starcounter.Internal.REST;
 using Starcounter.Advanced;
+using System.Web;
 
 namespace Starcounter.Internal.Web {
 
@@ -345,7 +346,9 @@ namespace Starcounter.Internal.Web {
                 return; // Only local uris are supported
             }
 
-            string[] segments = relativeUri.Split('?');
+			var decodedUri = HttpUtility.UrlDecode(relativeUri);
+
+			string[] segments = decodedUri.Split('?');
 
             string[] components = segments[0].Split('/');
 
