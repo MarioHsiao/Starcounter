@@ -20,7 +20,8 @@ namespace BuildHelpers
         Success,
         WrongPutResponse,
         CantSendFile,
-        ExceptionOccurred
+        ExceptionOccurred,
+        WrongChecksum
     }
 
     class Program
@@ -75,20 +76,28 @@ namespace BuildHelpers
                     using (FileStream fs = File.OpenRead(pathToFile))
                     {
                         Int32 readBytes;
-                        Byte[] tempBuf = new Byte[1024 * 1024];
+                        Byte[] buf = new Byte[1024 * 1024];
 
-                        while ((readBytes = fs.Read(tempBuf, 0, tempBuf.Length)) > 0)
+                        while ((readBytes = fs.Read(buf, 0, buf.Length)) > 0)
                         {
-                            if (readBytes < tempBuf.Length)
+                            UInt64 checkSum = 0;
+
+                            if (readBytes < buf.Length)
                             {
                                 Byte[] truncatedBuf = new Byte[readBytes];
-                                Array.Copy(tempBuf, truncatedBuf, readBytes);
+                                Array.Copy(buf, truncatedBuf, readBytes);
+
+                                for (Int32 i = 0; i < truncatedBuf.Length; i++)
+                                    checkSum += truncatedBuf[i];
 
                                 resp = X.PUT(uploadUri + "/" + resId, truncatedBuf, "UploadSettings: Final\r\n");
                             }
                             else
                             {
-                                resp = X.PUT(uploadUri + "/" + resId, tempBuf, null);
+                                for (Int32 i = 0; i < buf.Length; i++)
+                                    checkSum += buf[i];
+
+                                resp = X.PUT(uploadUri + "/" + resId, buf, null);
                             }
 
                             // Checking response status code.
@@ -96,6 +105,13 @@ namespace BuildHelpers
                             {
                                 Console.WriteLine("Error in response: " + resp.Body);
                                 return (Int32)ReturnCodes.CantSendFile;
+                            }
+
+                            // Checking checksum.
+                            if (checkSum != UInt64.Parse(resp.Body))
+                            {
+                                Console.WriteLine("Wrong response checksum: " + resp.Body);
+                                return (Int32)ReturnCodes.WrongChecksum;
                             }
                         }
                     }
