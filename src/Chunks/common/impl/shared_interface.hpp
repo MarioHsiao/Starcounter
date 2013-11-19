@@ -390,6 +390,7 @@ inline channel_type& shared_interface::channel(std::size_t n) const {
 	return channel_[n];
 }
 
+#if 0
 inline void
 shared_interface::database_state(common_client_interface_type::state s) {
 	common_client_interface_->database_state(s);
@@ -399,6 +400,7 @@ inline common_client_interface_type::state
 shared_interface::database_state() const {
 	return common_client_interface_->database_state();
 }
+#endif
 
 inline void shared_interface::init() {
 	simple_shared_memory_manager* pm = new(mapped_region_.get_address())
