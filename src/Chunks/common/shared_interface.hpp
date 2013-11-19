@@ -435,25 +435,7 @@ public:
 	uint32_t number_of_active_schedulers() {
 		return common_scheduler_interface().number_of_active_schedulers();
 	}
-	
-	/// send_to_server_and_wait_response() send a request and wait for a
-	/// response from the database. It is a "timed" function that can fail.
-	/**
-	 * @param channel The channel which the communication is done.
-	 * @param request The request chunk_index.
-	 * @param response Reference to the response chunk_index.
-	 * @param spin The number of times to re-try pushing to the in queue or
-	 *		popping from the out queue, before eventually blocking.
-	 * @param timeout The number of milliseconds to wait before a timeout may
-	 *		occur, in case the database doesn't respond. If the database
-	 *		terminates, then clients waiting to push or pop on a queue will be
-	 *		notified more or less instantly (within a millisecond or so), by
-	 *		the monitor.
-	 * @return en error code.
-	 */
-	uint32_t send_to_server_and_wait_response(uint32_t channel, uint32_t
-	request, uint32_t& response, uint32_t spin, uint32_t timeout);
-	
+		
 	/// Get the segment_name in the format
 	/// <DATABASE_NAME_PREFIX>_<DATABASE_NAME>_<SEQUENCE_NUMBER>
 	std::string get_segment_name() const;
