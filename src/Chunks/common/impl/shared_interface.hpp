@@ -258,6 +258,7 @@ uint32_t timeout_milliseconds) {
 	
 	// Set the channel number flag after having set pointers to the
 	// scheduler_interface and the client_interface.
+	// This is done to enable the server scanning of the particular channel.
 	scheduler_interface_[the_scheduler_number]
 	.set_channel_number_flag(temp_channel_number);
 	
