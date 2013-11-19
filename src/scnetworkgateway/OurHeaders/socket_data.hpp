@@ -830,9 +830,9 @@ public:
     // Create WSA buffers.
     uint32_t CreateWSABuffers(
         WorkerDbInterface* worker_db,
-        shared_memory_chunk* head_smc,
-        uint32_t head_chunk_offset_bytes,
-        uint32_t head_chunk_num_bytes,
+        shared_memory_chunk* first_smc,
+        uint32_t first_chunk_offset_bytes,
+        uint32_t first_chunk_num_bytes,
         uint32_t total_bytes);
 
     // Overlapped structure used for WinSock.

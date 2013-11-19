@@ -24,11 +24,10 @@
 #include <cassert>
 #include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
-
-#include <sccoredbg2.h>
+#include "sccoredbg2.h"
+#include "sccoredb.h"
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
-//#include "sccorensm.h"
 
 // BMX task information.
 struct TASK_INFO_TYPE {
@@ -38,7 +37,6 @@ struct TASK_INFO_TYPE {
     uint8_t fill1;
     starcounter::core::chunk_index chunk_index;
     uint64_t transaction_handle;
-//    SC_SESSION_ID session_id;
 };
 
 // User handler callback.
@@ -57,7 +55,7 @@ namespace bmx
 
     // NOTE: Excluding original chunk since its for extra linked.
     const uint32_t MAX_EXTRA_LINKED_WSABUFS = MixedCodeConstants::CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
-    const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = MAX_EXTRA_LINKED_WSABUFS * MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
+    const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = (MAX_EXTRA_LINKED_WSABUFS - 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Invalid BMX handler info.
     const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~((BMX_HANDLER_TYPE) 0);
@@ -292,8 +290,8 @@ namespace bmx
             int32_t num_params,
             starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
         {
-            assert(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
-            assert(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
+            _SC_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
+            _SC_ASSERT(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
 
             num_entries_ = 0;
 
