@@ -177,7 +177,7 @@ namespace Starcounter
         {
             // Processing user data and sending it to gateway.
             UInt32 cur_chunk_index = chunk_index_;
-            UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length_bytes, &cur_chunk_index, unmanaged_chunk_, (UInt32)conn_flags);
+            UInt32 ec = bmx.sc_bmx_send_buffer(p + offset, (UInt32)length_bytes, &cur_chunk_index, (UInt32)conn_flags);
             chunk_index_ = cur_chunk_index;
 
             // Checking if any error occurred.

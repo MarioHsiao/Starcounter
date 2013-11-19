@@ -8,8 +8,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Net;
+using Starcounter.Advanced;
 
-namespace Starcounter.Advanced
+namespace Starcounter
 {
     internal class ResponseSchedulerStore
     {

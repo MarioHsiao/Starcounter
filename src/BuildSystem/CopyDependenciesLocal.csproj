@@ -23,7 +23,6 @@
   <ItemGroup>
     
     <KillAllScript Include="..\BuildSystem\Scripts\kill_all.bat" />
-    <NodeUploadTool Include="..\BuildSystem\Tools\NodeUploadTool.exe" />
     <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
@@ -59,7 +58,6 @@
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(KillAllScript)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(NodeUploadTool)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(TestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayTestFiles)" DestinationFolder="$(OutputPath)" />
