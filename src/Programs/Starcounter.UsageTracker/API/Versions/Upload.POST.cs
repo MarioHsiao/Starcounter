@@ -16,7 +16,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             Dictionary<String, FileStream> uploadedFiles = new Dictionary<String, FileStream>();
 
-            Handle.POST("/upload", (Request req) =>
+            Handle.POST(port, "/upload", (Request req) =>
             {
                 Random rand = new Random((int)DateTime.Now.Ticks);
                 String fileName = "upload-";
@@ -41,7 +41,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 return resp;
             });
 
-            Handle.PUT("/upload/{?}", (Request req, String uploadId) =>
+            Handle.PUT(port, "/upload/{?}", (Request req, String uploadId) =>
             {
                 VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
