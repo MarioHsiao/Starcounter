@@ -410,7 +410,8 @@ public:
 	 */
 	channel_type& channel(std::size_t n) const;
 #endif // defined (IPC_VERSION_2_0)
-	
+
+#if 0	
 	/// Set database state. This is used by the monitor when it detects that
 	/// the database process exit without having unregistered.
 	/**
@@ -426,6 +427,7 @@ public:
 	 *      database_is_down.
 	 */
 	common_client_interface_type::state database_state() const;
+#endif
 	
 	/// Get number of active schedulers.
 	/**

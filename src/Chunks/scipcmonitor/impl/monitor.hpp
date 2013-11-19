@@ -457,6 +457,22 @@ namespace starcounter {
                                     monitor->ipc_monitor_cleanup_event());
 
                                     try {
+
+									   // NOTE:
+									   // Disabled since database state is not
+									   // read by client so no need to set it.
+									   //
+									   // Also, the monitor is unable to wake up
+									   // the connected clients since it is
+									   // unable to signal the events for the
+									   // clients. Only the server can do this
+									   // since only the server has access to
+									   // the event from client_interface
+									   // (client uses shared_interface to
+									   // access event).
+									   //
+									   // (see client_interface::notify()).
+#if 0
                                        // Try open the segment.
                                        shared_interface shared
                                           (process_register_it_2
@@ -483,6 +499,7 @@ namespace starcounter {
                                        }
 
                                        /// TODO: Figure when to remove the event.
+#endif
 
                                        // Try to erase database name from
                                        // active_databases_, and notify the
