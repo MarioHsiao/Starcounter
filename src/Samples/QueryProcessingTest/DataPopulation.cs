@@ -13,6 +13,9 @@ namespace QueryProcessingTest {
         public static int OldestAge { get { return CurrentYear - DataPopulation.OldestBirthYear; } }
         public static int YoungestAge { get { return CurrentYear - DataPopulation.YoungestBirthYear; } }
 
+        public static string DAILYACCOUNT = "Daily";
+        public static string SAVINGACCOUNT = "Saving";
+
         public static void PopulateAccounts(Int64 nrUsers, Int64 nrAccountPerUser) {
             DeleteAccounts();
             Random rnd = new Random(1);
@@ -27,7 +30,14 @@ namespace QueryProcessingTest {
                         BirthDay = new DateTime(rnd.Next(OldestBirthYear, YoungestBirthYear), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, When = DateTime.Now };
+                        new Account {
+                            AccountId = i * nrAccountPerUser + j,
+                            Amount = 100.0m * j,
+                            Client = newUser,
+                            When = DateTime.Now,
+                            AccountType = j < 3 ? DAILYACCOUNT : SAVINGACCOUNT,
+                            NotActive = false
+                        };
                 }
             });
         }
@@ -46,7 +56,14 @@ namespace QueryProcessingTest {
                         BirthDay = new DateTime(rnd.Next(1950, 1985), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, When = DateTime.Now };
+                        new Account {
+                            AccountId = i * nrAccountPerUser + j,
+                            Amount = 100.0m * j,
+                            Client = newUser,
+                            When = DateTime.Now,
+                            AccountType = j < 3 ? DAILYACCOUNT : SAVINGACCOUNT,
+                            NotActive = false
+                        };
                 });
         }
 
