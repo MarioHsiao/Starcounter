@@ -465,6 +465,63 @@ namespace NetworkIoTestApp
                         return HandlerStatus.Handled;
                     });
 
+                    Dictionary<String, FileStream> uploadedFiles = new Dictionary<String, FileStream>();
+
+                    Handle.POST("/upload", (Request req) =>
+                    {
+                        Random rand = new Random((int)DateTime.Now.Ticks);
+                        String fileName = "upload-";
+                        for (Int32 i = 0; i < 5; i++)
+                            fileName += rand.Next();
+
+                        // Create destination file.
+                        FileStream fs = new FileStream(fileName, FileMode.Create);
+                        uploadedFiles.Add(fileName, fs);
+
+                        Response resp = new Response() { Body = fileName };
+
+                        return resp;
+                    });
+
+                    Handle.PUT( "/upload/{?}", (Request req, String uploadId) =>
+                    {
+                        // Checking that dictionary contains the upload.
+                        if (!uploadedFiles.ContainsKey(uploadId))
+                            return 404;
+
+                        Byte[] bodyBytes = req.BodyBytes;
+                        UInt64 checkSum = 0;
+                        for (Int32 i = 0; i < bodyBytes.Length; i++)
+                            checkSum += bodyBytes[i];
+
+                        FileStream fs = uploadedFiles[uploadId];
+                        fs.Write(bodyBytes, 0, bodyBytes.Length);
+                        if (req["UploadSettings"] == "Final")
+                        {
+                            fs.Close();
+                            uploadedFiles.Remove(uploadId);
+
+                            try
+                            {
+                                
+                            }
+                            catch (Exception e)
+                            {
+                                return new Response()
+                                {
+                                    StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError,
+                                    Body = "Failed to handle the package. " + e.ToString()
+                                };
+                            }
+                        }
+
+                        return new Response()
+                        {
+                            StatusCode = (ushort)System.Net.HttpStatusCode.NoContent,
+                            Body = checkSum.ToString()
+                        };
+                    });
+
                     break;
                 }
 
