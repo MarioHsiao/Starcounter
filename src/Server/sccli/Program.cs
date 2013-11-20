@@ -101,8 +101,8 @@ namespace star {
                 return;
             }
 
-            // We got an executable to host.
-            // Get the only required parameter - the executable - and send it
+            // We got an application to host.
+            // Get the only required parameter - the application - and send it
             // to the server.
             // We utilize a strategy where we do minimal client side validation,
             // because everything we validate here (on the client) actually
@@ -113,13 +113,13 @@ namespace star {
             // So bottomline: a client with "full" transparency.
             //
             // Aware of the client transparency guideline stated previously,
-            // we still do resolve the path of the given executable based on
+            // we still do resolve the path of the given file based on
             // the location of the client. It's most likely what the user
             // intended.
             // On top of that, we check if we can find the file once resolved
-            // and if we can't, we do a try on the given name + the .exe file
-            // extension. If we find such file, we assume the user meant that
-            // to be the file.
+            // and if we can't, we do a try on the given name + some of our
+            // supported extensions If we find such file, we assume the user
+            // meant that to be the file.
             //   After this resolving has taken place, if we still can't find
             // the file, the correct thing to do is to pass it to the server,
             // at least in theory. We have no way of knowing how the server do
@@ -130,24 +130,24 @@ namespace star {
             // a lot of processing being done when the file is missing. So that
             // is what we do. If we find we must be more strict to theory later
             // on, we should implement a swich that allows this to be turned of.
-            var exePath = appArgs.CommandParameters[0];
+            var filePath = appArgs.CommandParameters[0];
             try {
-                exePath = Path.GetFullPath(exePath);
+                filePath = Path.GetFullPath(filePath);
             } catch {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), true);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", filePath)), true);
 
             }
-            if (!File.Exists(exePath)) {
-                var executableEx = appArgs.CommandParameters[0] + ".exe";
-                executableEx = Path.GetFullPath(executableEx);
-                if (File.Exists(executableEx)) {
-                    exePath = executableEx;
+            if (!File.Exists(filePath)) {
+                var filePathCandidate = appArgs.CommandParameters[0] + ".exe";
+                filePathCandidate = Path.GetFullPath(filePathCandidate);
+                if (File.Exists(filePathCandidate)) {
+                    filePath = filePathCandidate;
                 }
             }
-            if (!File.Exists(exePath)) {
+            if (!File.Exists(filePath)) {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), true);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", filePath)), true);
             }
 
             string[] userArgs = null;
@@ -169,7 +169,7 @@ namespace star {
             // Turn to the shared CLI library to do the bulk of the
             // work executing.
 
-            ExeCLI.StartOrStop(exePath, appArgs, userArgs);
+            ExeCLI.StartOrStop(filePath, appArgs, userArgs);
         }
 
         static void ShowVersionInfo() {
