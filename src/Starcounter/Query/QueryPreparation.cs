@@ -21,8 +21,6 @@ namespace Starcounter.Query {
             Exception nativeException = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
             if (nativeException == null)
                 return null; // The query was executed
-            if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED)
-                throw nativeException;
 #endif // !PROLOG_ONLY
 #if BISON_ONLY
             if (nativeException != null)
@@ -38,19 +36,31 @@ namespace Starcounter.Query {
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
                 answer = PrologManager.CallProlog(QueryModule.DatabaseId, query);
-            } catch (SqlException) {
+            } catch (SqlException ex) {
                 try {
                     if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, slowSql, values))
                         return null; // The query was executed.
                 } catch (Exception e) {
                     if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
-                        throw;
+                        prologException = e;
+                        //throw;
                 }
-                throw;
+                //throw;
+                if (prologException == null)
+                    prologException = ex;
             }
+            if (prologException != null) {
+#if !PROLOG_ONLY
+                if (nativeException != null)
+                    if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED)
+                        throw nativeException;
+#endif //!PROLOG_ONLY
+                throw prologException;
+            }
+
             // Transfer answer terms into pre-optimized structures
-            if (prologException == null)
-                optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
+            Debug.Assert(prologException == null);
+            optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
 #endif
             // Call to optimizer of Prolog result
             if (optArgsProlog != null)
