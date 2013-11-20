@@ -66,6 +66,7 @@ namespace starcounter {
             // Open the log.
                log().open(server_name_.c_str(), "scipcmonitor", database_output_dir_name_.c_str());
 
+#if 0
                monitor_dir_path_ = std::wstring(argv[2]) +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
                active_databases_file_path_ = std::wstring(argv[2]) +W_SLASH +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
 
@@ -86,6 +87,7 @@ namespace starcounter {
                      log().error(SCERRIPCMONITORCREATEACTIVEDBDIR);
                      throw ipc_monitor_exception(SCERRIPCMONITORCREATEACTIVEDBDIR);
                }
+#endif
             }
             else {
 
@@ -102,6 +104,7 @@ namespace starcounter {
                throw ipc_monitor_exception(SCERRIPCMONITORREQUIREDARGUMENTS);
             }
 
+#if 0
             // Constructing the full path to active databases file.
             active_databases_file_path_ = active_databases_file_path_
                +W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME +W_SLASH
@@ -115,6 +118,7 @@ namespace starcounter {
                      throw ipc_monitor_exception(SCERRIPCMONITORDELACTIVEDBFILE);
                   }
             }
+#endif
 
             //--------------------------------------------------------------------------
             // Initialize the monitor_interface shared memory object.
@@ -382,9 +386,11 @@ namespace starcounter {
          // Start the cleanup thread.
          cleanup_.create((thread::start_routine_type) &monitor::cleanup, this);
 
+#if 0
          // Start the active databases thread.
          active_databases_file_updater_thread_.create
 		 ((thread::start_routine_type) &monitor::update_active_databases_file, this);
+#endif
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          // Start the resources watching thread.
@@ -1417,6 +1423,7 @@ namespace starcounter {
          }
       }
 
+#if 0
       void monitor::update_active_databases_file(monitor* monitor) {
          do {
             boost::mutex::scoped_lock active_databases_lock
@@ -1453,6 +1460,7 @@ namespace starcounter {
             }
          } while (true);
       }
+#endif
 
       void monitor::gotoxy(int16_t x, int16_t y) {
          COORD coord;
