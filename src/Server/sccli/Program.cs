@@ -139,15 +139,27 @@ namespace star {
 
             }
             if (!File.Exists(filePath)) {
-                var filePathCandidate = appArgs.CommandParameters[0] + ".exe";
-                filePathCandidate = Path.GetFullPath(filePathCandidate);
-                if (File.Exists(filePathCandidate)) {
-                    filePath = filePathCandidate;
-                }
+                var extensionsSupported = new string[] { ".exe", ".cs" };
+                foreach (var fileExtension in extensionsSupported) {
+                    var filePathCandidate = appArgs.CommandParameters[0] + fileExtension;
+                    filePathCandidate = Path.GetFullPath(filePathCandidate);
+                    if (File.Exists(filePathCandidate)) {
+                        filePath = filePathCandidate;
+                        break;
+                    }
+                }   
             }
             if (!File.Exists(filePath)) {
                 SharedCLI.ShowErrorAndSetExitCode(
                     ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", filePath)), true);
+            }
+
+            // The file exist. Check what kind of file we are dealing 
+            // with here.
+
+            if (Path.GetExtension(filePath).Equals(".cs")) {
+                SharedCLI.ShowErrorAndSetExitCode(
+                    ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED), true);
             }
 
             string[] userArgs = null;
