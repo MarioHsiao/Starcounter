@@ -14,14 +14,14 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern uint scsql_dump_memory_leaks();
 
-        public static unsafe uint CallSqlProcessor(String query) {
+        public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
             if (err == 0)
-                return err;
+                return null;
             Exception ex = GetSqlException(err, query);
             // create the exception
             scsql_free_memory();
-            throw ex;
+            return ex;
         }
 
         /// <summary>
