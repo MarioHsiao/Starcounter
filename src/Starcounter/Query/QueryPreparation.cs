@@ -16,7 +16,7 @@ namespace Starcounter.Query {
         /// </summary>
         /// <param name="query">Input query string to prepare</param>
         /// <returns>The result enumerated with the execution plan.</returns>
-        internal static IExecutionEnumerator PrepareOrExecuteQuery<T>(String query) {
+        internal static IExecutionEnumerator PrepareOrExecuteQuery<T>(String query, bool slowSql, params Object[] values) {
 #if !PROLOG_ONLY // Run Bison-based native SQL processor
             Exception nativeException = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
             if (nativeException == null)
@@ -36,11 +36,18 @@ namespace Starcounter.Query {
 #if !BISON_ONLY
             // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
-            //try {
+            try {
                 answer = PrologManager.CallProlog(QueryModule.DatabaseId, query);
-            //} catch (SqlException e) {
-            //    prologException = e;
-            //}
+            } catch (SqlException) {
+                try {
+                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, slowSql, values))
+                        return null; // The query was executed.
+                } catch (Exception e) {
+                    if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
+                        throw;
+                }
+                throw;
+            }
             // Transfer answer terms into pre-optimized structures
             if (prologException == null)
                 optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
@@ -55,7 +62,7 @@ namespace Starcounter.Query {
 
             // Checking if its LikeExecEnumerator.
             if (newEnum is LikeExecEnumerator) {
-                (newEnum as LikeExecEnumerator).CreateLikeCombinations<T>();
+                (newEnum as LikeExecEnumerator).CreateLikeCombinations<T>(query, slowSql, values);
             }
             MatchEnumeratorResultAndExpectedType<T>(newEnum);
             return newEnum;

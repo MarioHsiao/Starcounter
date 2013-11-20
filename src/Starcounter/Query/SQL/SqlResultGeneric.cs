@@ -65,14 +65,6 @@ namespace Starcounter
             return GetEnumerator();
         }
 
-        /// <summary>
-        /// Checks if an enumerator for the query cached and
-        /// if not then creates and caches an enumerator.
-        /// </summary>
-        internal void CacheExecutionEnumerator() {
-            Scheduler.GetInstance().SqlEnumCache.CacheOrExecuteEnumerator<T>(query);
-        }
-
         internal IExecutionEnumerator GetExecutionEnumerator() {
             IExecutionEnumerator execEnum = null;
 #if true // TODO: Lucent objects.
@@ -88,7 +80,7 @@ namespace Starcounter
                 //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
 #endif
             try {
-                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(query);
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(query, slowSQL, sqlParams);
 
                 // Check if the query includes anything non-supported.
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
