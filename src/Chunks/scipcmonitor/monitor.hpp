@@ -287,9 +287,11 @@ public:
 		return monitor_active_databases_file_;
 	}
 
+#if 0
 	std::wstring& active_databases_file_path() {
 		return active_databases_file_path_;
 	}
+#endif
 
 	std::set<std::string>& active_databases() {
 		return active_databases_;
@@ -329,9 +331,11 @@ private:
 	 * @return Number of chunks marked for cleanup.
 	 */
 	std::size_t find_chunks_and_mark_them_for_cleanup(owner_id oid);
-	
+
+#if 0	
 	/// Write active databases.
 	static void update_active_databases_file(monitor*);
+#endif
 	
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;
@@ -378,14 +382,18 @@ private:
 	// Name of the database output dir (L".db.output".)
 	std::wstring database_output_dir_name_;
 	
+#if 0
 	// Path to the dir where the files related to the IPC monitor can be stored.
 	std::wstring monitor_dir_path_;
+#endif
 	
 	// Set with names of active databases.
 	std::set<std::string> active_databases_;
-	
+
+#if 0	
 	// The monitor's active databases file path.
 	std::wstring active_databases_file_path_;
+#endif
 	
 	bounded_buffer<std::string> active_segments_update_;
 	
