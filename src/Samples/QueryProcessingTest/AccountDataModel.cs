@@ -32,8 +32,10 @@ namespace QueryProcessingTest {
     public class Account {
         public Int64 AccountId;
         public User Client;
+        public String AccountType;
         public Decimal Amount;
         public DateTime When;
         public String Where;
+        public Boolean NotActive;
     }
 }

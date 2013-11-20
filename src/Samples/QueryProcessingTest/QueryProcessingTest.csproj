@@ -65,6 +65,7 @@
     <Compile Include="SelectClauseExpressionsTests.cs" />
     <Compile Include="SqlBugsTest.cs" />
     <Compile Include="TestErrorMessages.cs" />
+    <Compile Include="VersionSourceModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
