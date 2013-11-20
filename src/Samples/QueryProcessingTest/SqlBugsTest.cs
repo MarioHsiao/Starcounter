@@ -321,6 +321,11 @@ namespace QueryProcessingTest {
                 nrs++;
             }
             Trace.Assert(nrs == 3);
+            VersionSource latest = Db.SQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=? order by versiondate desc",
+                dailyChannel, false).First;
+            Trace.Assert(latest != null);
+            Trace.Assert(latest.Channel == dailyChannel);
+            Trace.Assert(!latest.BuildError);
             HelpMethods.LogEvent("Finished testing queries on conjunction bug (1350)");
         }
 
