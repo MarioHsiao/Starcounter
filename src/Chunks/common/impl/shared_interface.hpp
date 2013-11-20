@@ -390,6 +390,7 @@ inline channel_type& shared_interface::channel(std::size_t n) const {
 	return channel_[n];
 }
 
+#if 0
 inline void
 shared_interface::database_state(common_client_interface_type::state s) {
 	common_client_interface_->database_state(s);
@@ -399,6 +400,7 @@ inline common_client_interface_type::state
 shared_interface::database_state() const {
 	return common_client_interface_->database_state();
 }
+#endif
 
 inline void shared_interface::init() {
 	simple_shared_memory_manager* pm = new(mapped_region_.get_address())
@@ -597,148 +599,6 @@ inline uint32_t shared_interface::id() const {
 	return id_;
 }
 #endif // defined (IPC_VERSION_2_0)
-
-inline uint32_t shared_interface::send_to_server_and_wait_response(uint32_t ch,
-uint32_t request, uint32_t& response, uint32_t spin, uint32_t timeout) {
-	// Get a reference to the channel.
-	channel_type& the_channel = channel(ch);
-	
-	// Before starting to spin, check the state of the database. Assuming the
-	// state is normal.
-	if (common_client_interface().database_state()
-	== common_client_interface_type::normal) {
-push_request_message_with_spin: /// The notify flag could be true...
-		// Push the message to the channels in queue, retry spin_count times.
-		if (the_channel.in.push_front(request, spin) == true) {
-			// Successfully pushed the chunk_index. Notify the scheduler.
-			the_channel.scheduler()->notify(scheduler_work_event(the_channel
-			.get_scheduler_number()));
-		}
-		else {
-			// Could not push the request message to the channels in queue while
-			// spinning. Preparing to wait. . .
-			client_interface_type& this_client_interface
-			= client_interface(client_number_);
-			
-			this_client_interface.set_notify_flag(true);
-			
-			while (the_channel.in.try_push_front(request) == false) {
-				// Check the state of the database.
-				switch (common_client_interface().database_state()) {
-				case common_client_interface_type::normal:
-					// The server state is normal. Wait until the request
-					// message can be pushed. . .the in queue is full.
-					if (this_client_interface.wait_for_work(client_work_event(),
-					timeout)) {
-						// The scheduler or monitor notified the client.
-						this_client_interface.set_notify_flag(false);
-						goto push_request_message_with_spin;
-					}
-					else {
-						// Timeout.
-						this_client_interface.set_notify_flag(false);
-						return SCERRCTIMEOUTPUSHREQUESTMESSAGE;
-					}
-					break;
-				case common_client_interface_type
-				::database_terminated_gracefully:
-					this_client_interface.set_notify_flag(false);
-					return SCERRDBTERMINATEDGRACEFULLY;
-				case common_client_interface_type
-				::database_terminated_unexpectedly:
-					this_client_interface.set_notify_flag(false);
-					return SCERRDBTERMINATEDUNEXPECTEDLY;
-				default: // Unknown server state.
-					this_client_interface.set_notify_flag(false);
-					return SCERRUNKNOWNDBSTATE;
-				}
-			}
-			
-			// Successfully pushed the request message on the channels in queue.
-			this_client_interface.set_notify_flag(false);
-		}
-		
-pop_response_message_with_spin: /// The notify flag could be true
-		// Pop a response message from the channels out queue, retry spin_count
-		// times.
-		if (the_channel.out.pop_back(&response, spin) == true) {
-			// Successfully popped response. Notify the scheduler.
-			the_channel.scheduler()->notify(scheduler_work_event(the_channel
-			.get_scheduler_number()));
-		}
-		else {
-			client_interface_type& this_client_interface
-			= client_interface(client_number_);
-			
-			// Could not pop a response message from the channels out queue
-			// while spinning. Preparing to wait. . .
-			this_client_interface.set_notify_flag(true);
-			
-			while (the_channel.out.try_pop_back(&response) == false) {
-				// Check the state of the database.
-				switch (common_client_interface().database_state()) {
-				case common_client_interface_type::normal:
-					// The server state is normal. Wait until a response message
-					// can be popped. . .the out queue is empty.
-					if (this_client_interface.wait_for_work(client_work_event(),
-					timeout)) {
-						// The scheduler or monitor notified the client.
-						this_client_interface.set_notify_flag(false);
-						goto pop_response_message_with_spin;
-					}
-					else {
-						// Timeout.
-						this_client_interface.set_notify_flag(false);
-						return SCERRCTIMEOUTPOPRESPONSEMESSAGE;
-					}
-					break;
-				case common_client_interface_type
-				::database_terminated_gracefully:
-					this_client_interface.set_notify_flag(false);
-					return SCERRDBTERMINATEDGRACEFULLY;
-				case common_client_interface_type
-				::database_terminated_unexpectedly:
-					this_client_interface.set_notify_flag(false);
-					return SCERRDBTERMINATEDUNEXPECTEDLY;
-				default: // Unknown database state.
-					this_client_interface.set_notify_flag(false);
-					return SCERRUNKNOWNDBSTATE;
-				}
-			}
-			// Successfully popped the request message from the channels out
-			// queue.
-			this_client_interface.set_notify_flag(false);
-		}
-	}
-	else {
-		client_interface_type& this_client_interface
-		= client_interface(client_number_);
-
-		// The database state is not normal. Check the state of the database.
-		switch (common_client_interface().database_state()) {
-		case common_client_interface_type::normal:
-			/// Not expected. The state was not normal, but now all of a sudden
-			/// it is normal again. Return error code or go on? I just go on
-			/// for now but TODO: return error code.
-			goto push_request_message_with_spin;
-		case common_client_interface_type
-		::database_terminated_gracefully:
-			this_client_interface.set_notify_flag(false);
-			return SCERRDBTERMINATEDGRACEFULLY;
-		case common_client_interface_type
-		::database_terminated_unexpectedly:
-			this_client_interface.set_notify_flag(false);
-			return SCERRDBTERMINATEDUNEXPECTEDLY;
-		default: // Unknown database state.
-			this_client_interface.set_notify_flag(false);
-			return SCERRUNKNOWNDBSTATE;
-		}
-	}
-	
-	// Successfully pushed and popped.
-	/// The notify flag could be true, but it should be false! This hurts performance a lot.
-	return 0;
-}
 
 } // namespace core
 } // namespace starcounter
