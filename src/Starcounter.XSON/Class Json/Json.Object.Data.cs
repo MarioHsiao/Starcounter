@@ -178,15 +178,17 @@ namespace Starcounter {
         protected virtual void InternalSetData(object data, TObject template, bool readOperation ) {
             this._data = data;
 
-			if (template.BindingStrategy != BindingStrategy.Unbound) {
-				var parent = ((Json)this.Parent);
-				if (!readOperation && parent != null && template.UseBinding(parent)) {
-					throw new NotImplementedException();
-//					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
+			if (template != null) {
+				if (template.BindingStrategy != BindingStrategy.Unbound) {
+					var parent = ((Json)this.Parent);
+					if (!readOperation && parent != null && template.UseBinding(parent)) {
+						throw new NotImplementedException();
+						//					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
+					}
 				}
-			}
 
-			InitBoundArrays(template);
+				InitBoundArrays(template);
+			}
             OnData();
         }
 

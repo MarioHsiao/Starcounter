@@ -116,7 +116,7 @@ namespace Starcounter.Templates {
 
 		private Json BoundOrUnboundGet(Json parent) {
 			Json value = UnboundGetter(parent);
-			if (UseBinding(parent))
+			if (value != null && UseBinding(parent))
 				value.CheckBoundObject(BoundGetter(parent));
 			return value;
 		}
