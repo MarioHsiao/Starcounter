@@ -157,9 +157,14 @@ namespace star {
             // The file exist. Check what kind of file we are dealing 
             // with here.
 
-            if (Path.GetExtension(filePath).Equals(".cs")) {
-                SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERRNOTIMPLEMENTED), true);
+            if (Path.GetExtension(filePath).Equals(".cs", StringComparison.InvariantCultureIgnoreCase)) {
+                try {
+                    var sourceCode = filePath;
+                    SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, out filePath);
+                } catch (Exception experimental) {
+                    SharedCLI.ShowErrorAndSetExitCode(
+                        ErrorCode.ToMessage(Error.SCERRUNSPECIFIED, experimental.ToString()), true);
+                }
             }
 
             string[] userArgs = null;
