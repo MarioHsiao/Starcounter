@@ -107,7 +107,7 @@ public sealed class SqlEnumCache
         return execEnum;
     }
 
-    internal Int32 CacheOrExecuteEnumerator<T>(String query) {
+    internal Int32 CacheOrExecuteEnumerator<T>(String query, bool slowSQL, params Object[] values) {
         if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
             return lastUsedEnumIndex;
         // We have to ask dictionary for the index.
@@ -119,7 +119,7 @@ public sealed class SqlEnumCache
             // Query is not cached, adding it.
             // Parser and optimize it
             // Creating enumerator from scratch.
-            IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareOrExecuteQuery<T>(query);
+            IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareOrExecuteQuery<T>(query, slowSQL, values);
             if (newEnum == null)
                 return -1;
             enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
@@ -135,10 +135,10 @@ public sealed class SqlEnumCache
     /// <summary>
     /// Gets an already existing enumerator corresponding to the query from the cache or creates a new one.
     /// </summary>
-    internal IExecutionEnumerator GetCachedEnumerator<T>(String query)
+    internal IExecutionEnumerator GetCachedEnumerator<T>(String query, bool slowSQL, params Object[] values)
     {
         // Fetching existing enumerator using index.
-        int enumIndex = CacheOrExecuteEnumerator<T>(query);
+        int enumIndex = CacheOrExecuteEnumerator<T>(query, slowSQL, values);
         Debug.Assert(enumIndex >= 0);
         return GetCachedEnumerator(enumIndex);
     }

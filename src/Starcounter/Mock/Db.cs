@@ -89,31 +89,7 @@ namespace Starcounter
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
         public static QueryResultRows<T> SQL<T>(String query, params Object[] values) {
-            if (query == null)
-                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
-            QueryResultRows<T> enumerableResult = null;
-            try {
-                enumerableResult = new QueryResultRows<T>(0, query, false, values);
-                enumerableResult.CacheExecutionEnumerator();
-            } catch (Exception) {
-                try {
-                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, false, values))
-                        return null;
-                } catch (Exception e) {
-                    if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
-                        throw;
-                }
-                throw;
-            }
-            Debug.Assert(enumerableResult != null);
-#if true
-            return enumerableResult;
-#else
-            if (Starcounter.Transaction.Current != null)
-                return new SqlResult<T>(Starcounter.Transaction.Current.TransactionId, query, false, values); 
-            else
-                return new SqlResult<T>(0, query, false, values);
-#endif
+            return FullQueryProcess<T>(query, false, values);
         }
 
         /// <summary>
@@ -136,24 +112,17 @@ namespace Starcounter
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
         public static QueryResultRows<T> SlowSQL<T>(String query, params Object[] values) {
+            return FullQueryProcess<T>(query, true, values);
+        }
+
+        private static QueryResultRows<T> FullQueryProcess<T>(String query, bool slowSQL, params Object[] values) {
             if (query == null)
-                throw new ArgumentNullException("query");
-
-            UInt64 transactionId = 0;
-#if false
-            if (Starcounter.Transaction.Current != null)
-				transactionId = Starcounter.Transaction.Current.TransactionId;
-#endif
-
-            //if (query == "")
-            //    return new SqlResult<T>(transactionId, query, true, values);
-            if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, true, values))
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
+            int cacheResult = Scheduler.GetInstance().SqlEnumCache.CacheOrExecuteEnumerator<T>(query, slowSQL, values);
+            if (cacheResult == -1)
                 return null;
-            else {
-                QueryResultRows<T> enumerableResult = new QueryResultRows<T>(transactionId, query, true, values);
-                enumerableResult.CacheExecutionEnumerator();
-                return enumerableResult;
-            }
+            QueryResultRows<T> enumerableResult = new QueryResultRows<T>(0, query, slowSQL, values);
+            return enumerableResult;
         }
     }
 

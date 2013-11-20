@@ -165,7 +165,7 @@ namespace QueryProcessingTest {
         public static void GetCachedEnumerator(int nrIterations) {
             var scheduler = Scheduler.GetInstance();
             for (int i = 0; i < nrIterations; i++) {
-                var e = scheduler.SqlEnumCache.GetCachedEnumerator<dynamic>(query);
+                var e = scheduler.SqlEnumCache.GetCachedEnumerator<dynamic>(query, false);
                 e.Dispose();
             }
             lock (query) {
@@ -176,7 +176,7 @@ namespace QueryProcessingTest {
         public static void RestExecutionEnumerator(int nrIterations, params Object[] sqlParams) {
             Boolean slowSQL = false;
             var scheduler = Scheduler.GetInstance();
-            var execEnum = scheduler.SqlEnumCache.GetCachedEnumerator<dynamic>(query);
+            var execEnum = scheduler.SqlEnumCache.GetCachedEnumerator<dynamic>(query,false);
             for (int i = 0; i < nrIterations; i++) {
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
                     if ((execEnum.QueryFlags & QueryFlags.IncludesAggregation) != QueryFlags.None)
