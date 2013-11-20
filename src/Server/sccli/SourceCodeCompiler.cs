@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CSharp;
+using System.CodeDom.Compiler;
 
 namespace star {
     /// <summary>
@@ -27,9 +29,15 @@ namespace star {
         /// </summary>
         /// <param name="sourceCode">The source code to compile.</param>
         /// <param name="assemblyPath">Path to the compiled assembly.</param>
-        public static void CompileSingleFileToExecutable(
-            string sourceCode, out string assemblyPath) {
-            throw new NotImplementedException();
+        public static void CompileSingleFileToExecutable(string sourceCode, out string assemblyPath) {
+            var provider = CSharpCodeProvider.CreateProvider("CSharp");
+            var parameters = new CompilerParameters();
+            var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
+            if (result.Errors.Count > 0) {
+                assemblyPath = null;
+                throw new Exception("Errors compiling! Wanna know what?");
+            }
+            assemblyPath = result.PathToAssembly;
         }
     }
 }
