@@ -7,13 +7,15 @@ namespace QueryProcessingTest {
         static string[] syllabels = new string[8] { "ka", "ti", "mo", "le", "pu", "va", "ro", "se" };
         internal readonly static int OldestBirthYear = 1950;
         internal readonly static int YoungestBirthYear = 1985;
+        internal readonly static int CurrentYear = 2013;
+        internal readonly static DateTime CurrentDate = new DateTime(2013, 1, 12);
 
-        public static int OldestAge { get { return DateTime.Now.Year - DataPopulation.OldestBirthYear; } }
-        public static int YoungestAge { get { return DateTime.Now.Year - DataPopulation.YoungestBirthYear; } }
+        public static int OldestAge { get { return CurrentYear - DataPopulation.OldestBirthYear; } }
+        public static int YoungestAge { get { return CurrentYear - DataPopulation.YoungestBirthYear; } }
 
         public static void PopulateAccounts(Int64 nrUsers, Int64 nrAccountPerUser) {
             DeleteAccounts();
-            Random rnd = new Random();
+            Random rnd = new Random(1);
             Db.Transaction(delegate {
                 for (int i = 0; i < nrUsers; i++) {
                     User newUser = new User {
@@ -32,7 +34,7 @@ namespace QueryProcessingTest {
 
         public static void PopulateUsers(Int64 nrUsers, Int64 nrAccountPerUser) {
             DeleteAccounts();
-            Random rnd = new Random();
+            Random rnd = new Random(1);
             for (int i = 0; i < nrUsers; i++)
                 Db.Transaction(delegate {
                     User newUser = new User {
