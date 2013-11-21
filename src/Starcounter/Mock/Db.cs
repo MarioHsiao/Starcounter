@@ -77,7 +77,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<Object> SQL(String query, params Object[] values) {
+        public static QueryResultRows<Object> SQL(String query, params Object[] values) {
             return SQL<Object>(query, values);
         }
 
@@ -88,32 +88,8 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<T> SQL<T>(String query, params Object[] values) {
-            if (query == null)
-                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
-            SqlResult<T> enumerableResult = null;
-            try {
-                enumerableResult = new SqlResult<T>(0, query, false, values);
-                enumerableResult.CacheExecutionEnumerator();
-            } catch (Exception) {
-                try {
-                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, false, values))
-                        return null;
-                } catch (Exception e) {
-                    if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
-                        throw;
-                }
-                throw;
-            }
-            Debug.Assert(enumerableResult != null);
-#if true
-            return enumerableResult;
-#else
-            if (Starcounter.Transaction.Current != null)
-                return new SqlResult<T>(Starcounter.Transaction.Current.TransactionId, query, false, values); 
-            else
-                return new SqlResult<T>(0, query, false, values);
-#endif
+        public static QueryResultRows<T> SQL<T>(String query, params Object[] values) {
+            return FullQueryProcess<T>(query, false, values);
         }
 
         /// <summary>
@@ -123,7 +99,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<Object> SlowSQL(String query, params Object[] values)
+        public static QueryResultRows<Object> SlowSQL(String query, params Object[] values)
         {
             return SlowSQL<Object>(query, values);
         }
@@ -135,25 +111,18 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<T> SlowSQL<T>(String query, params Object[] values) {
+        public static QueryResultRows<T> SlowSQL<T>(String query, params Object[] values) {
+            return FullQueryProcess<T>(query, true, values);
+        }
+
+        private static QueryResultRows<T> FullQueryProcess<T>(String query, bool slowSQL, params Object[] values) {
             if (query == null)
-                throw new ArgumentNullException("query");
-
-            UInt64 transactionId = 0;
-#if false
-            if (Starcounter.Transaction.Current != null)
-				transactionId = Starcounter.Transaction.Current.TransactionId;
-#endif
-
-            //if (query == "")
-            //    return new SqlResult<T>(transactionId, query, true, values);
-            if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, true, values))
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
+            int cacheResult = Scheduler.GetInstance().SqlEnumCache.CacheOrExecuteEnumerator<T>(query, slowSQL, values);
+            if (cacheResult == -1)
                 return null;
-            else {
-                SqlResult<T> enumerableResult = new SqlResult<T>(transactionId, query, true, values);
-                enumerableResult.CacheExecutionEnumerator();
-                return enumerableResult;
-            }
+            QueryResultRows<T> enumerableResult = new QueryResultRows<T>(0, query, slowSQL, values);
+            return enumerableResult;
         }
     }
 
@@ -162,7 +131,7 @@ namespace Starcounter
     /// Starcounter database.
     /// </summary>
     public static class SQL {
-        public static SqlResult<T> SELECT<T>(string query, params Object[] values) {
+        public static QueryResultRows<T> SELECT<T>(string query, params Object[] values) {
             return Db.SQL<T>( String.Concat( "SELECT _O_ FROM ", typeof(T).FullName, " _O_ ", query ), values);
         }
     }
@@ -173,7 +142,7 @@ namespace Starcounter
     /// Starcounter database.
     /// </summary>
     public static class SELECT<T> {
-       public static SqlResult<T> WHERE(string query, params Object[] values) {
+       public static QueryResultRows<T> WHERE(string query, params Object[] values) {
           return Db.SQL<T>(String.Concat("SELECT _O_ FROM ", typeof(T).FullName, " _O_ WHERE ", query), values);
        }
     }
@@ -184,7 +153,7 @@ namespace Starcounter
 
     public static class SELECT {
        public static class FROM<T> {
-          public static SqlResult<T> WHERE(string query, params Object[] values) {
+          public static QueryResultRows<T> WHERE(string query, params Object[] values) {
              return Db.SQL<T>(String.Concat("SELECT _O_ FROM ", typeof(T).FullName, " _O_ WHERE ", query), values);
           }
        }
