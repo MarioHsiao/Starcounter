@@ -149,7 +149,8 @@ namespace Starcounter.Hosting {
 
                 UpdateDatabaseSchemaAndRegisterTypes();
 
-                CallInfrastructureInitializerIfPresent();
+				if (this.WorkingDirectory != null && !StarcounterEnvironment.IsAdministratorApp)
+					AppsBootstrapper.Bootstrap(this.WorkingDirectory); 
 
                 // Initializing package for all executables.
                 if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_))
@@ -265,17 +266,6 @@ namespace Starcounter.Hosting {
             }
 
             return storedTableDef;
-        }
-
-        private void CallInfrastructureInitializerIfPresent() {
-            if (assembly_ != null && assembly_.EntryPoint != null) {
-                var entrypointType = assembly_.EntryPoint.DeclaringType;
-
-                var m = entrypointType.GetMethod("STARCOUNTERGENERATED_InitializeAppsInfrastructure");
-                if (m != null) {
-                    m.Invoke(null, new object[] { this.WorkingDirectory, this.EntrypointArguments });
-                }
-            }
         }
 
         /// <summary>
