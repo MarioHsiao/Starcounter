@@ -7,7 +7,6 @@ EXPORTS
 	server_get_next_signal_or_task
 	server_get_next_signal
 	server_has_task
-	sc_try_receive_from_client
 	sc_send_to_client
 	server_send_task_to_scheduler
 	server_send_signal_to_scheduler
