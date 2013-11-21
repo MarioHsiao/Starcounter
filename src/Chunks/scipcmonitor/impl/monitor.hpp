@@ -1340,7 +1340,8 @@ namespace starcounter {
 
             if (owner_id_counter_ != owner_id::none
                && owner_id_counter_ != owner_id::anonymous
-               && owner_id_counter_ != ipc_monitor_owner_id) {
+               && owner_id_counter_ != ipc_monitor_owner_id
+               && owner_id_counter_ != single_client_owner_id) {
                   if (process_register_.find(owner_id_counter_) == process_register_.end()) {
                      // This owner_id is not used by any monitored process.
                      return owner_id_counter_;
@@ -1355,6 +1356,7 @@ namespace starcounter {
 
 #else // !defined (IPC_OWNER_ID_IS_32_BIT)
       inline owner_id monitor::get_new_owner_id() {
+	     // TODO: Does not work since reserved owner ids will be allocated.
          return ++owner_id_counter_;
       }
 #endif // defined (IPC_OWNER_ID_IS_32_BIT)
