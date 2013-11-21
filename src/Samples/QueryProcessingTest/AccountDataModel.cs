@@ -23,7 +23,7 @@ namespace QueryProcessingTest {
 
         public int Age {
             get {
-                return (DateTime.Now - BirthDay).Days / 365;
+                return (DataPopulation.CurrentDate - BirthDay).Days / 365;
             }
         }
     }
@@ -32,8 +32,10 @@ namespace QueryProcessingTest {
     public class Account {
         public Int64 AccountId;
         public User Client;
+        public String AccountType;
         public Decimal Amount;
         public DateTime When;
         public String Where;
+        public Boolean NotActive;
     }
 }
