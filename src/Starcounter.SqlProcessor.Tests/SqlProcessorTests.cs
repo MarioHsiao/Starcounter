@@ -9,14 +9,8 @@ namespace Starcounter.SqlProcessor.Tests {
         const uint parseOK = Error.SCERRSQLNOTIMPLEMENTED;
 
         public static unsafe void ProcessQuery(uint expectedError, string query) {
-            uint err = SqlProcessor.scsql_process_query(query);
-            if (err != 0) {
-                ScError* fullError = SqlProcessor.scsql_get_error();
-                uint errF = fullError->scerrorcode;
-                SqlProcessor.scsql_free_memory();
-                Assert.AreEqual(err, errF);
-            }
-            Assert.AreEqual(expectedError, err);
+            Exception ex = SqlProcessor.CallSqlProcessor(query);
+            Assert.AreEqual(expectedError, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
         }
 
         [Test]
