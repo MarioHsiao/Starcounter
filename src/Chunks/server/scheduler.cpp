@@ -66,7 +66,9 @@ EXTERN_C unsigned long server_initialize_port(void *port_mem128, const char *nam
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
+#if 0
 EXTERN_C unsigned long sc_try_receive_from_client(void *port, unsigned long channel_index, unsigned long *pchunk_index);
+#endif
 EXTERN_C unsigned long sc_send_to_client(void *port, unsigned long channel_index, unsigned long chunk_index);
 EXTERN_C unsigned long server_send_task_to_scheduler(void *port, unsigned long port_number, unsigned long message);
 EXTERN_C unsigned long server_send_signal_to_scheduler(void *port, unsigned long port_number, unsigned long message);
@@ -146,7 +148,9 @@ public:
 	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 	long has_task();
 	void send_to_client(unsigned long the_channel_index, chunk_index the_chunk_index);
+#if 0
 	unsigned long try_receive_from_client(unsigned long the_channel_index, chunk_index &the_chunk_index);
+#endif
 	unsigned long send_task_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
 	unsigned long send_signal_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
 	void add_ref_to_channel(unsigned long the_channel_index);
@@ -295,23 +299,7 @@ public:
 	 * @return 0 on success otherwise error.
 	 */
     unsigned long release_linked_chunks(chunk_index start_chunk_index);
-	
-	//--------------------------------------------------------------------------
-	/// client_release_linked_chunks() is used by the scheduler to do the clean
-	/// up, releasing chunks of a client_interface. The pointer to the
-	/// client_interface is obtained via a channel and must belong to a client
-	/// that has terminated. This function is only used during clean up.
-	/**
-	 * @param client_interface_ptr A pointer to the client_interface where the
-	 *		chunk is marked as owned.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
-	 *		timeout may occur. TODO: implement timeout_milliseconds!?
-	 * @return false if failing to release the chunk_index. It can happen if the
-	 *		lock of the queue was not obtained.
-	 */
-	bool release_clients_chunks(client_interface_type* client_interface_ptr,
-	uint32_t timeout_milliseconds = 10000);
-	
+
 	//--------------------------------------------------------------------------
 	/// Scheduler's call release_channel_number() after they see that the
 	/// channel is marked "to be released."
@@ -864,6 +852,7 @@ long server_port::has_task() {
 	return 0;
 }
 
+#if 0
 unsigned long server_port::try_receive_from_client(unsigned long
 the_channel_index, chunk_index &the_chunk_index) {
 	// We assume that, unless the client has crashed, the client still
@@ -885,6 +874,7 @@ the_channel_index, chunk_index &the_chunk_index) {
 
 	return _E_WAIT_TIMEOUT;
 }
+#endif
 
 void server_port::send_to_client(unsigned long the_channel_index,
 chunk_index the_chunk_index) {
@@ -1484,12 +1474,6 @@ unsigned long server_port::release_linked_chunks(chunk_index start_chunk_index)
     return 0;
 }
 
-bool server_port::release_clients_chunks(client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	return shared_chunk_pool_->release_clients_chunks(client_interface_ptr,
-	timeout_milliseconds);
-}
-
 bool server_port::release_channel_number(channel_number the_channel_number,
 scheduler_number the_scheduler_number, uint32_t spin_count,
 uint32_t timeout_milliseconds) {
@@ -1557,6 +1541,7 @@ long server_has_task(void *port) {
 	return the_port->has_task();
 }
 
+#if 0
 unsigned long sc_try_receive_from_client(void *port, unsigned long
 channel_index, unsigned long *pchunk_index) {
 	using namespace starcounter::core;
@@ -1568,6 +1553,7 @@ channel_index, unsigned long *pchunk_index) {
 	*pchunk_index = the_chunk_index;
 	return r;
 }
+#endif
 
 unsigned long sc_send_to_client(void *port, unsigned long channel_index,
 unsigned long chunk_index) {
