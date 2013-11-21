@@ -38,13 +38,22 @@ worker::~worker() {
 
 /// Start the worker.
 void worker::start() {
+	auto worker_number = worker_id_;
+
 	///=========================================================================
 	/// Initialize
 	///=========================================================================
+	if (!shared().acquire_client_number2((client_number)worker_number)) {
+		// Failed to acquire client number.
+		throw worker_exception(4000);
+	}
+
+#if 0
 	if (!shared().acquire_client_number()) {
 		// Failed to acquire client number.
 		throw worker_exception(4000);
 	}
+#endif
 	
 	chunk_type* chunk_ptr = &shared().chunk(0);
 	//get_chunk_pool_list(scheduler_num).set_chunk_ptr(chunk_ptr);
@@ -123,12 +132,21 @@ void worker::start() {
 		scheduler_interface_[the_scheduler_number].set_channel_number_flag(scheduler_num);
 		
 #else // !defined (IPC_VERSION_2_0)
+		channel_[scheduler_num] = (worker_number * 32) + scheduler_num;
+
+		if (!shared().acquire_channel2(channel_[scheduler_num], scheduler_num)) {
+			std::cout << " worker[" << worker_id_ << "] error: "
+			"invalid channel number." << std::endl;
+		}
+
+#if 0
 		channel_[scheduler_num] = invalid_channel_number;
 
 		if (!shared().acquire_channel(&channel_[scheduler_num], scheduler_num)) {
 			std::cout << " worker[" << worker_id_ << "] error: "
 			"invalid channel number." << std::endl;
 		}
+#endif
 #endif // defined (IPC_VERSION_2_0)
 		++num_channels_;
 	}
