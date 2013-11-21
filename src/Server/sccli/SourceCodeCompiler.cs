@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
+using System.IO;
 
 namespace star {
     /// <summary>
@@ -25,19 +26,37 @@ namespace star {
     /// </remarks>
     class SourceCodeCompiler {
         /// <summary>
-        /// Compiles a source code file.
+        /// Compiles a source code file to an executable. If the operation
+        /// succeed, the path to the compiled assembly is returned.
         /// </summary>
         /// <param name="sourceCode">The source code to compile.</param>
         /// <param name="assemblyPath">Path to the compiled assembly.</param>
         public static void CompileSingleFileToExecutable(string sourceCode, out string assemblyPath) {
             var provider = CSharpCodeProvider.CreateProvider("CSharp");
-            var parameters = new CompilerParameters();
+            var parameters = new CompilerParameters() {
+                GenerateExecutable = true,
+                GenerateInMemory = false
+            };
+            parameters.TempFiles = new TempFileCollection(@".\.temp", true);
+            parameters.OutputAssembly = Path.GetFullPath(string.Format(@".\.out\{0}.exe", Path.GetFileNameWithoutExtension(sourceCode)));
+            parameters.ReferencedAssemblies.Add("Starcounter");
+
+            // Specify a x64 bit application? Can 32-bit applications reference
+            // Starcounter?
+            // TODO:
+
             var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
             if (result.Errors.Count > 0) {
                 assemblyPath = null;
-                throw new Exception("Errors compiling! Wanna know what?");
+                foreach (var error in result.Errors) {
+                    Console.WriteLine(error.ToString());
+                }
+                throw new Exception("Errors compiling!");
             }
             assemblyPath = result.PathToAssembly;
+
+            Console.WriteLine("Compiled in {0}", assemblyPath);
+            Environment.Exit(0);
         }
     }
 }
