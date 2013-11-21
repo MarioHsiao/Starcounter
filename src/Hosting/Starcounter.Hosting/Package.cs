@@ -149,7 +149,8 @@ namespace Starcounter.Hosting {
 
                 UpdateDatabaseSchemaAndRegisterTypes();
 
-				AppsBootstrapper.Bootstrap(this.WorkingDirectory); 
+				if (this.WorkingDirectory != null && !StarcounterEnvironment.IsAdministratorApp)
+					AppsBootstrapper.Bootstrap(this.WorkingDirectory); 
 
                 // Initializing package for all executables.
                 if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_))
