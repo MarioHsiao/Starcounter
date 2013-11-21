@@ -315,7 +315,9 @@ private:
 	
 	enum {
 		// The IPC monitor also have an owner_id and it is 2 because 1 is anonymous.
-		ipc_monitor_owner_id = 2
+		ipc_monitor_owner_id = 2,
+
+		single_client_owner_id = 3
 	};
 
 	/// Return a const reference to the IPC monitor's owner_id.
