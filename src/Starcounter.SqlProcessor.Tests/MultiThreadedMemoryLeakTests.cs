@@ -56,7 +56,7 @@ namespace Starcounter.SqlProcessor.Tests {
         }
 
         private static void TestQuery(Object obj) {
-            SqlProcessorTests.ProcessQuery(0, (String)obj);
+            SqlProcessorTests.ProcessQuery(Error.SCERRSQLNOTIMPLEMENTED, (String)obj);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Starcounter.SqlProcessor.Tests {
             Stopwatch timer = new Stopwatch();
             timer.Start();
             for (int i = 0; i < nrIterations; i++)
-                SqlProcessor.scsql_process_query(query);
+                SqlProcessor.CallSqlProcessor(query);
             timer.Stop();
             Console.WriteLine("Performed query: " + query);
             Console.WriteLine(nrIterations + " iterations in " + timer.ElapsedMilliseconds + " ms, " +
