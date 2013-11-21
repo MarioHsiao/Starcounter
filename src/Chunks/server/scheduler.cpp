@@ -299,23 +299,7 @@ public:
 	 * @return 0 on success otherwise error.
 	 */
     unsigned long release_linked_chunks(chunk_index start_chunk_index);
-	
-	//--------------------------------------------------------------------------
-	/// client_release_linked_chunks() is used by the scheduler to do the clean
-	/// up, releasing chunks of a client_interface. The pointer to the
-	/// client_interface is obtained via a channel and must belong to a client
-	/// that has terminated. This function is only used during clean up.
-	/**
-	 * @param client_interface_ptr A pointer to the client_interface where the
-	 *		chunk is marked as owned.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
-	 *		timeout may occur. TODO: implement timeout_milliseconds!?
-	 * @return false if failing to release the chunk_index. It can happen if the
-	 *		lock of the queue was not obtained.
-	 */
-	bool release_clients_chunks(client_interface_type* client_interface_ptr,
-	uint32_t timeout_milliseconds = 10000);
-	
+
 	//--------------------------------------------------------------------------
 	/// Scheduler's call release_channel_number() after they see that the
 	/// channel is marked "to be released."
@@ -1488,12 +1472,6 @@ unsigned long server_port::release_linked_chunks(chunk_index start_chunk_index)
     }
 
     return 0;
-}
-
-bool server_port::release_clients_chunks(client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	return shared_chunk_pool_->release_clients_chunks(client_interface_ptr,
-	timeout_milliseconds);
 }
 
 bool server_port::release_channel_number(channel_number the_channel_number,
