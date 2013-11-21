@@ -224,6 +224,10 @@ public:
 	void pop_back_channel_number(channel_number* the_channel_number, owner_id id) {
 		channel_number_.acquire(the_channel_number, id, smp::spinlock::milliseconds(10000));
 	}
+
+	bool pop_back_channel_number(channel_number the_channel_number, owner_id id) {
+		return channel_number_.acquire(the_channel_number, id, smp::spinlock::milliseconds(10000));
+	}
 	
 	void push_front_channel_number(channel_number the_channel_number, owner_id id) {
 		// Release the_channel_number to this channel_number_ queue.
