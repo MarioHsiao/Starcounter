@@ -66,7 +66,9 @@ EXTERN_C unsigned long server_initialize_port(void *port_mem128, const char *nam
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
 EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
+#if 0
 EXTERN_C unsigned long sc_try_receive_from_client(void *port, unsigned long channel_index, unsigned long *pchunk_index);
+#endif
 EXTERN_C unsigned long sc_send_to_client(void *port, unsigned long channel_index, unsigned long chunk_index);
 EXTERN_C unsigned long server_send_task_to_scheduler(void *port, unsigned long port_number, unsigned long message);
 EXTERN_C unsigned long server_send_signal_to_scheduler(void *port, unsigned long port_number, unsigned long message);
@@ -146,7 +148,9 @@ public:
 	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
 	long has_task();
 	void send_to_client(unsigned long the_channel_index, chunk_index the_chunk_index);
+#if 0
 	unsigned long try_receive_from_client(unsigned long the_channel_index, chunk_index &the_chunk_index);
+#endif
 	unsigned long send_task_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
 	unsigned long send_signal_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
 	void add_ref_to_channel(unsigned long the_channel_index);
@@ -864,6 +868,7 @@ long server_port::has_task() {
 	return 0;
 }
 
+#if 0
 unsigned long server_port::try_receive_from_client(unsigned long
 the_channel_index, chunk_index &the_chunk_index) {
 	// We assume that, unless the client has crashed, the client still
@@ -885,6 +890,7 @@ the_channel_index, chunk_index &the_chunk_index) {
 
 	return _E_WAIT_TIMEOUT;
 }
+#endif
 
 void server_port::send_to_client(unsigned long the_channel_index,
 chunk_index the_chunk_index) {
@@ -1557,6 +1563,7 @@ long server_has_task(void *port) {
 	return the_port->has_task();
 }
 
+#if 0
 unsigned long sc_try_receive_from_client(void *port, unsigned long
 channel_index, unsigned long *pchunk_index) {
 	using namespace starcounter::core;
@@ -1568,6 +1575,7 @@ channel_index, unsigned long *pchunk_index) {
 	*pchunk_index = the_chunk_index;
 	return r;
 }
+#endif
 
 unsigned long sc_send_to_client(void *port, unsigned long channel_index,
 unsigned long chunk_index) {
