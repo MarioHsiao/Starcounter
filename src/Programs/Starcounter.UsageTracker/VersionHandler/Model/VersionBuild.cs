@@ -116,7 +116,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
             Db.Transaction(() => {
 
                 // A downloaded version build should not be deleted
-                SqlResult<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE  o.Channel=? AND o.Version=?", channel, version);
+                QueryResultRows<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE  o.Channel=? AND o.Version=?", channel, version);
                 foreach (VersionBuild versionBuild in versionBuilds) {
 
                     VersionBuild.DeleteVersionBuildFile(versionBuild);
