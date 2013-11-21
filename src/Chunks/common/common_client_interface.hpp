@@ -158,6 +158,13 @@ public:
 		return client_number_pool_.acquire(n, base_client_interface, oid,
 		smp::spinlock::milliseconds(timeout_milliseconds));
 	}
+
+	bool acquire_client_number(value_type n, client_interface_type*
+	base_client_interface, owner_id oid, uint32_t spin_count = 1000000,
+	uint32_t timeout_milliseconds = 10000) {
+		return client_number_pool_.acquire(n, base_client_interface, oid,
+		smp::spinlock::milliseconds(timeout_milliseconds));
+	}
 	
 	/// Clients release its client_number, which releases
 	/// client_interface[client_number].

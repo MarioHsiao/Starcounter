@@ -141,6 +141,9 @@ public:
 	 */
 	bool acquire_client_number(uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
+
+	bool acquire_client_number2(client_number v, uint32_t spin_count = 1000000,
+	uint32_t timeout_milliseconds = 10000);
 	
 	/// Client's call release_client_number() when they want to release the
 	/// client_number.
@@ -176,6 +179,10 @@ public:
 	 *      elapsed, true otherwise.
 	 */
 	bool acquire_channel(channel_number* the_channel_number, scheduler_number
+	the_scheduler_number, uint32_t spin_count = 1000000, uint32_t
+	timeout_milliseconds = 10000);
+
+	bool acquire_channel2(channel_number the_channel_number, scheduler_number
 	the_scheduler_number, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
 	
@@ -592,6 +599,9 @@ public:
 private:
 	// Specify what it throws.
 	void init();
+
+	void shared_interface::init_acquired_channel(
+	channel_number the_channel_number, scheduler_number the_scheduler_number);
 	
 	/// TODO: Think through which ones are most frequently used together, and
 	/// put them close to one another so that they share the same cache-line.
