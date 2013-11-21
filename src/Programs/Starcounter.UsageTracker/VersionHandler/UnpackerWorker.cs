@@ -107,7 +107,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             bool bUnpacked = false;
             LogWriter.WriteLine("NOTICE: Checking for new packages to unpack.");
 
-            SqlResult<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
+            QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
 
             foreach (VersionSource item in versionSources) {
 
@@ -195,7 +195,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 Db.Transaction(() => {
 
                     // Retrive versions to delete
-                    SqlResult<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", false, numDelete);
+                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", false, numDelete);
                     foreach (VersionSource versionSource in versionSources) {
 
                         // Delete Obsolete Version Builds

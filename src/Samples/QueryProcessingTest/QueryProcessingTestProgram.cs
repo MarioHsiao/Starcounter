@@ -20,9 +20,11 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
+#if false
                 if (TestLogger.IsNightlyBuild())
                     BenchmarkQueryCache.BenchQueryCache();
                 else
+#endif
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
