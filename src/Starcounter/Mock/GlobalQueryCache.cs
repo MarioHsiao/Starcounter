@@ -53,15 +53,14 @@ internal sealed class GlobalQueryCache
             lock (indexDict)
             {
                 //// First trying to fetch enumerator.
-                //Int32 enumIndex = GetEnumIndex(query);
-                //if (enumIndex >= 0)
-                //{
-                //    return enumIndex;
-                //}
+                Int32 enumIndex = GetEnumIndex(query);
+                if (enumIndex >= 0) {
+                    return enumIndex;
+                }
 
                 // Assigning unique query ID.
                 newEnum.UniqueQueryID = (UInt64)numUniqueQueries;
-                Int32 enumIndex = numUniqueQueries;
+                enumIndex = numUniqueQueries;
 
                 // Increasing number of unique queries.
                 numUniqueQueries++;
