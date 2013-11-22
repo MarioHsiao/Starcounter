@@ -39,7 +39,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
             Console.WriteLine(string.Format("NOTICE: Exporting to: {0} ", file));
 
 
-            SqlResult<Starcounter.Metadata.materialized_table> result = Db.SlowSQL<Starcounter.Metadata.materialized_table>("SELECT o FROM MATERIALIZED_TABLE o");
+            QueryResultRows<Starcounter.Metadata.materialized_table> result = Db.SlowSQL<Starcounter.Metadata.materialized_table>("SELECT o FROM MATERIALIZED_TABLE o");
             int tableCnt = 0;
 
             try {
@@ -109,7 +109,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                 //return;
             }
 
-            SqlResult<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.name));
+            QueryResultRows<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.name));
             TypeDef typeDef = null;
             try {
                 typeDef = Bindings.GetTypeDef((int)table.table_id);
