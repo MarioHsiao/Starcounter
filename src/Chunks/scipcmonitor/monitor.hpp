@@ -436,11 +436,13 @@ private:
 	thread cleanup_;
 #endif
 
+#if 0
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
 	// databases to the file:
 	// %UserProfile%\AppData\Local\Starcounter\active_databases
 	thread active_databases_file_updater_thread_;
+#endif
 	
 	// The resources watching thread is used for debug, verifying that resources
 	// are recovered. It will keep an eye of all registered databases shared

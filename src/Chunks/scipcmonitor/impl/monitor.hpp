@@ -26,7 +26,9 @@ namespace starcounter {
 #if 0
          cleanup_(),
 #endif
+#if 0
          active_databases_file_updater_thread_(),
+#endif
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          resources_watching_thread_(),
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
@@ -354,7 +356,9 @@ namespace starcounter {
 #if 0
          cleanup_.join();
 #endif
+#if 0
          active_databases_file_updater_thread_.join();
+#endif
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          resources_watching_thread_.join();
