@@ -276,9 +276,11 @@ namespace starcounter {
                database_process_group(i).event_.reserve(events_per_group);
             }
 
+#if 0
             for (std::size_t i = 0; i < client_process_event_groups; ++i) {
                client_process_group(i).event_.reserve(events_per_group);
             }
+#endif
 
             //--------------------------------------------------------------------------
             if (is_system) {
@@ -336,9 +338,11 @@ namespace starcounter {
             database_process_group(i).thread_.join();
          }
 
+#if 0
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
             client_process_group(i).thread_.join();
          }
+#endif
 
          registrar_.join();
          cleanup_.join();
@@ -365,6 +369,7 @@ namespace starcounter {
                = database_process_group(i).thread_.native_handle();
          }
 
+#if 0
          // Start a group of threads monitoring client process event.
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
 			std::pair<monitor*,std::size_t>* arg = new std::pair<monitor*,std::size_t>(this, i); // TODO: Fix this leak.
@@ -376,6 +381,7 @@ namespace starcounter {
             client_process_group(i).thread_handle_
                = client_process_group(i).thread_.native_handle();
          }
+#endif
 
          // Start the registrar thread. This must be done after the
          // database_process_group(s) and client_process_group(s) native_handle(s)
@@ -556,9 +562,11 @@ namespace starcounter {
                               monitor->log().error(SCERRTRYOPENSEGMENTUNKNOWNEXCEPT);
                            }
                            break;
+#if 0
                         case monitor_interface::client_process: /// It can't be!
                            monitor->log().error(SCERRGOTCLIENTPROCESSTYPENOTDB);
                            break;
+#endif
                         default: /// Impossible!
                            // Unknown proess type exit. Cosmic X-ray corrupted RAM?
                            monitor->log().error(SCERRGOTUNKNOWNPROCESSTYPENOTDB);
@@ -715,6 +723,7 @@ namespace starcounter {
          }
       }
 
+#if 0
       void monitor::wait_for_client_process_event(std::pair<monitor*,std::size_t> arg) {
 		monitor* monitor = arg.first;
 		std::size_t group = arg.second;
@@ -1094,6 +1103,7 @@ namespace starcounter {
             }
          }
       }
+#endif
 
       /// private:
 
@@ -1131,6 +1141,7 @@ namespace starcounter {
                   break;
                }
                break;
+#if 0
             case monitor_interface::client_process:
                switch (monitor->the_monitor_interface()->get_operation()) {
                case monitor_interface::registration_request:
@@ -1201,6 +1212,7 @@ namespace starcounter {
                   }
                }
                break;
+#endif
             }
          }
       }
@@ -1701,6 +1713,7 @@ namespace starcounter {
             database_process_group(group).event_.pop_back();
       }
 
+#if 0
       void monitor::remove_client_process_event(process_info::handle_type e) {
          for (std::size_t group = 0; group < client_process_event_groups; ++group) {
             for (uint32_t i = 0; i < events_per_group; ++i) {
@@ -1724,6 +1737,7 @@ namespace starcounter {
             // Remove the last element.
             client_process_group(group).event_.pop_back();
       }
+#endif
 
       void monitor::print_event_register() {
          boost::mutex::scoped_lock register_lock(register_mutex_);

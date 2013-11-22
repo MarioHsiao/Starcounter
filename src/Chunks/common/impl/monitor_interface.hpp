@@ -751,9 +751,11 @@ const monitor_interface::process_type& u) {
 	case monitor_interface::database_process:
 		name = "database";
 		break;
+#if 0
 	case monitor_interface::client_process:
 		name = "client";
 		break;
+#endif
 	default:
 		name = "?";
 	}
