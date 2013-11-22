@@ -272,9 +272,11 @@ scheduler_number the_scheduler_number)
 	client_interface().set_channel_flag(the_scheduler_number,
 	the_channel_number);
 #endif
-	
+
+#if 0	
 	// The number of owned channels counter is incremented.
 	client_interface().increment_number_of_allocated_channels();
+#endif
 	
     // Set the chunk base address relative to the clients address space.
 	channel_[the_channel_number].in_overflow().set_chunk_ptr(chunk_);

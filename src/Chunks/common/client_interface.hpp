@@ -79,7 +79,9 @@ public:
 	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false),
 	owner_id_(owner_id::none),
+#if 0
 	allocated_channels_(0),
+#endif
 	database_cleanup_index_(-1) {
 		if (segment_name != 0) {
 			char work_notify_name[segment_and_notify_name_size];
@@ -267,6 +269,7 @@ public:
 		return owner_id_;
 	}
 
+#if 0
 	/// Set number of channels acquired by the client.
 	/**
 	 * @param n The number of channels allocated.
@@ -294,7 +297,7 @@ public:
 		_InterlockedDecrement((LONG*) &allocated_channels_);
 		return allocated_channels_;
 	}
-	
+
 	/// Get the number of allocated channels. Used by the clean-up mechanism.
 	/**
 	 * @return The number of allocated channels.
@@ -302,6 +305,7 @@ public:
 	uint32_t allocated_channels() const {
 		return allocated_channels_;
 	}
+#endif
 	
 #if 0	
 	resource_map& get_resource_map() {
@@ -393,7 +397,9 @@ private:
 	// The owner of this client_interface also owns resources marked in the
 	// resource_map_.
 	owner_id owner_id_;
+#if 0
 	volatile uint32_t allocated_channels_;
+#endif
 	
 	// The IPC monitor will set database_cleanup_index_ (range 0 to databases -1)
 	// before notifying the scheduler's to start their part of the cleanup.
@@ -407,7 +413,9 @@ private:
 
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
+#if 0
 	-sizeof(uint32_t) // allocated_channels_
+#endif
 	-sizeof(int32_t) // database_cleanup_index_
 	];
 	
