@@ -185,7 +185,8 @@ public:
 	bool acquire_channel2(channel_number the_channel_number, scheduler_number
 	the_scheduler_number, uint32_t spin_count = 1000000, uint32_t
 	timeout_milliseconds = 10000);
-	
+
+#if 0	
 	/// A client can call release_channel() to release a channel it owns,
 	/// at any time - even when the channel is not in the tranquility state,
 	/// i.e., it has not received all responses from the scheduler. The channel
@@ -198,6 +199,7 @@ public:
 	 * @param the_channel_number The channel_number to be released.
 	 */
 	void release_channel(channel_number the_channel_number);
+#endif
 	
 	//--------------------------------------------------------------------------
 	/// Allocate linked chunks from the shared_chunk_pool. It is a "timed"

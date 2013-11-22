@@ -69,7 +69,9 @@ public:
 	scheduler_interface_(0),
 	client_interface_(0),
 	server_refs_(0),
+#if 0
 	is_to_be_released_(false),
+#endif
 	in_overflow_(),
 	out_overflow_() {}
 	
@@ -124,7 +126,8 @@ public:
 		_mm_mfence();
 		return server_refs_;
 	}
-	
+
+#if 0	
 	void set_to_be_released() {
 		_mm_sfence();
 		is_to_be_released_ = true;
@@ -140,6 +143,7 @@ public:
 	bool is_to_be_released() const {
 		return is_to_be_released_;
 	}
+#endif
 
 public:
 	atomic_buffer<T, channel_capacity_bits> in;
@@ -348,10 +352,12 @@ private:
 	// Indexes to interfaces.
 	scheduler_number scheduler_number_;
 	client_number client_number_;
-	
+
+#if 0	
 	// Flag to indicate that the client no longer uses the channel and the
 	// scheduler shall empty the in and out queues and release the channel.
 	volatile bool is_to_be_released_;
+#endif
 	
 	char cache_line_pad_0_[CACHE_LINE_SIZE -(
 	+sizeof(scheduler_interface_type*) // scheduler_interface_
@@ -359,7 +365,9 @@ private:
 	+sizeof(int32_t) // server_refs_
 	+sizeof(scheduler_number) // scheduler_number_
 	+sizeof(client_number) // client_number_
+#if 0
 	+sizeof(bool) // is_to_be_released_
+#endif
 	) % CACHE_LINE_SIZE];
 
 	queue in_overflow_;

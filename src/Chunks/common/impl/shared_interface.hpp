@@ -299,6 +299,7 @@ scheduler_number the_scheduler_number)
 	.set_channel_number_flag(the_channel_number);
 }
 
+#if 0
 inline void shared_interface::release_channel(channel_number the_channel_number)
 {
 	scheduler_interface_type* the_scheduler
@@ -322,6 +323,7 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 	the_channel.scheduler()->notify(scheduler_work_event(the_channel
 	.get_scheduler_number()));
 }
+#endif
 
 //------------------------------------------------------------------------------
 // TODO: Rename to acquire_linked_chunks()

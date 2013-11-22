@@ -159,7 +159,8 @@ public:
 	/// actually releasing the channel so that any client can allocate it.
 	/// A better name might be remove_ref_to_channel(channel_number);
 	void release_channel(unsigned long the_channel_index);
-	
+
+#if 0	
 	/// Scheduler's call do_release_channel() after they see that the
 	/// channel is marked "to be released", and if the clean up flag is set also
 	/// then all resources (chunks, channels, client_interface) the client had
@@ -174,6 +175,7 @@ public:
 	 */
 	void do_release_channel(channel_number the_channel_number);
 	void release_channel_marked_for_release(channel_number the_channel_index);
+#endif
 
 	std::size_t number_of_active_schedulers();
 	
@@ -680,9 +682,13 @@ check_next_channel:
 					channel_type& the_channel = channel_[this_channel];
 					
 					// Check if the channel is marked for release, assuming not.
+					if (true) {
+#if 0
 					if (!the_channel.is_to_be_released()) {
+#endif
 						continue; // check next...
 					}
+#if 0
 					else {
 						// The channel has been marked for release. The release of
 						// the channel will be done when there are no more server
@@ -699,6 +705,7 @@ check_next_channel:
 							do_release_channel(this_channel);
 						}
 					}
+#endif
 				}
 			}
 		}
@@ -717,7 +724,10 @@ check_next_channel:
 				channel_type& the_channel = channel_[this_channel];
 				
 				// Check if the channel is marked for release, assuming not.
+				if (true) {
+#if 0
 				if (!the_channel.is_to_be_released()) {
+#endif
 					// An attempt to improve the flow of messages circulating in
 					// the system is that the scheduler shall attempt to move
 					// all items (if any) from the out overflow queue in the given
@@ -774,6 +784,7 @@ check_next_channel:
 						return 0;
 					}
 				}
+#if 0
 				else {
 					// The channel has been marked for release. The release of
 					// the channel will be done when there are no more server
@@ -790,6 +801,7 @@ check_next_channel:
 						release_channel_marked_for_release(this_channel);
 					}
 				}
+#endif
 			}
 			
 			// A 64-bit mask word have been scanned, therefore add mask size 64.
@@ -978,7 +990,10 @@ void server_port::release_channel(unsigned long the_channel_index)
 	if (!new_server_refs)
 	{
 		//if (!channel.client()->get_owner_id().get_clean_up()) {
+		if (true) {
+#if 0
 		if (!channel.is_to_be_released()) {
+#endif
 			// No clean up job to do.
 			return;
 		}
@@ -991,6 +1006,7 @@ void server_port::release_channel(unsigned long the_channel_index)
 	}
 }
 
+#if 0
 void server_port::do_release_channel(channel_number the_channel_index) {
 	channel_type& channel = channel_[the_channel_index];
 	int32_t server_refs = channel.get_server_refs();
@@ -1225,6 +1241,7 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 		// The channel has been released and can now be allocated by any client.
 	}
 }
+#endif
 
 std::size_t server_port::number_of_active_schedulers() {
 	return common_scheduler_interface_->number_of_active_schedulers();
