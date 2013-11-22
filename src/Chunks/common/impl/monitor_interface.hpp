@@ -164,6 +164,7 @@ segment_name, owner_id& oid, uint32_t timeout_milliseconds) {
 	return 0;
 }
 
+#if 0
 inline uint32_t monitor_interface::register_client_process(pid_type pid, owner_id& oid,
 uint32_t timeout_milliseconds) {
 	// The timeout is used multiple times below, while time passes, so all
@@ -252,6 +253,7 @@ uint32_t timeout_milliseconds) {
 	// Successfully registered the client process.
 	return 0;
 }
+#endif
 
 inline uint32_t monitor_interface::unregister_database_process(pid_type pid, owner_id&
 oid, uint32_t timeout_milliseconds) {
@@ -342,6 +344,7 @@ oid, uint32_t timeout_milliseconds) {
 	return 0;
 }
 
+#if 0
 inline uint32_t monitor_interface::unregister_client_process(pid_type pid, owner_id&
 oid, uint32_t timeout_milliseconds) {
 	// The timeout is used multiple times below, while time passes, so all
@@ -430,6 +433,7 @@ oid, uint32_t timeout_milliseconds) {
 	// Successfully unregistered the client process.
 	return 0;
 }
+#endif
 
 inline void monitor_interface::wait_for_registration() {
 	// The monitor starts the registrar thread which calls this function.

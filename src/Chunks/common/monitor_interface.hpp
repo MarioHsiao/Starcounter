@@ -54,15 +54,19 @@ public:
 	
 	uint32_t register_database_process(pid_type pid, std::string segment_name,
 	owner_id& oid, uint32_t timeout_milliseconds);
-	
+
+#if 0	
 	uint32_t register_client_process(pid_type pid, owner_id& oid,
 	uint32_t timeout_milliseconds);
+#endif
 	
 	uint32_t unregister_database_process(pid_type pid, owner_id& oid,
 	uint32_t timeout_milliseconds);
-	
+
+#if 0	
 	uint32_t unregister_client_process(pid_type pid, owner_id& oid,
 	uint32_t timeout_milliseconds);
+#endif
 	
 	// The monitor thread registrar_ calls this function in order to wait for
 	// processes to register and unregister. It obtains the parameters.
