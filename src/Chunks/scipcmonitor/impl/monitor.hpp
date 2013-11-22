@@ -15,13 +15,17 @@
 namespace starcounter {
    namespace core {
 
-      monitor::monitor(int argc, wchar_t* argv[])
-         : ipc_monitor_cleanup_event_(),
+      monitor::monitor(int argc, wchar_t* argv[]) :
+#if 0
+		 ipc_monitor_cleanup_event_(),
+#endif
          monitor_interface_(),
          active_segments_update_(active_segments_buffer_capacity),
          active_databases_updated_flag_(false),
          registrar_(),
+#if 0
          cleanup_(),
+#endif
          active_databases_file_updater_thread_(),
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          resources_watching_thread_(),
@@ -137,6 +141,7 @@ namespace starcounter {
             monitor_interface_shared_memory_object_name = server_name_ +"_"
                +MONITOR_INTERFACE_SUFFIX;
 
+#if 0
             //--------------------------------------------------------------------------
             // Construct the ipc_monitor_cleanup_event_name.
             char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
@@ -171,6 +176,7 @@ namespace starcounter {
                   log().error(SCERRCREATEIPCMONITORCLEANUPEV);
                   throw ipc_monitor_exception(SCERRCREATEIPCMONITORCLEANUPEV);
             }
+#endif
 
             //--------------------------------------------------------------------------
             // Construct the active_databases_updated_event_name.
@@ -345,7 +351,9 @@ namespace starcounter {
 #endif
 
          registrar_.join();
+#if 0
          cleanup_.join();
+#endif
          active_databases_file_updater_thread_.join();
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
@@ -389,8 +397,10 @@ namespace starcounter {
          // QueueUserAPC() by the registrar_ thread.
          registrar_.create((thread::start_routine_type) &monitor::registrar, this);
 
+#if 0
          // Start the cleanup thread.
          cleanup_.create((thread::start_routine_type) &monitor::cleanup, this);
+#endif
 
 #if 0
          // Start the active databases thread.
@@ -463,10 +473,12 @@ namespace starcounter {
                                     // shared memory segment that this database
                                     // process had created.
 
+#if 0
                                     // Erase the segment name from the cleanup_task table if it exists.
                                     monitor->the_monitor_interface()->erase_segment_name
                                     (process_register_it_2->second.get_segment_name().c_str(),
                                     monitor->ipc_monitor_cleanup_event());
+#endif
 
                                     try {
 
@@ -1217,6 +1229,7 @@ namespace starcounter {
          }
       }
 
+#if 0
       void monitor::cleanup(monitor* monitor) {
          /// TODO: Shutdown mechanism.
          while (true) {
@@ -1321,6 +1334,7 @@ namespace starcounter {
             }
          }
       }
+#endif
 
       void __stdcall monitor::apc_function(uint64_t arg) {
          // Instead of accessing the object from here like this:

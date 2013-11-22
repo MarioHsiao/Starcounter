@@ -245,9 +245,11 @@ public:
 	/// Get const reference to the log.
 	const starcounter::log& log() const;
 
+#if 0
 	HANDLE& ipc_monitor_cleanup_event() {
 		return ipc_monitor_cleanup_event_;
 	}
+#endif
 
 	monitor_interface* the_monitor_interface() {
 		return the_monitor_interface_;
@@ -317,9 +319,11 @@ private:
 
 	/// The registration thread calls this.
 	static void registrar(monitor*);
-	
+
+#if 0	
 	/// The cleanup_ thread calls this.
 	static void cleanup(monitor*);
+#endif
 	
 	static void __stdcall apc_function(uint64_t arg);
 	
@@ -356,9 +360,11 @@ private:
 	
 	// The state of the monitor.
 	state state_; /// TODO: implement shutdown.
-	
+
+#if 0	
 	// Event to notify the monitor to do cleanup.
 	HANDLE ipc_monitor_cleanup_event_;
+#endif
 
 	/// TODO Maybe put this in a nested struct. Saved time not doing it.
 	// The register_mutex_ is locked whenever a thread need to update any of the
@@ -424,9 +430,11 @@ private:
 	// client_process_event_thread_group_. Then it waits for that thread to
 	// complete the wait_for_registration
 	thread registrar_;
-	
+
+#if 0	
 	// Cleanup thread.
 	thread cleanup_;
+#endif
 
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
