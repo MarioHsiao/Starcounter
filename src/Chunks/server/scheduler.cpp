@@ -153,12 +153,14 @@ public:
 #endif
 	unsigned long send_task_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
 	unsigned long send_signal_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
+#if 0
 	void add_ref_to_channel(unsigned long the_channel_index);
 	
 	/// Release a reference to the channel. NOTE: This have nothing to do with
 	/// actually releasing the channel so that any client can allocate it.
 	/// A better name might be remove_ref_to_channel(channel_number);
 	void release_channel(unsigned long the_channel_index);
+#endif
 
 #if 0	
 	/// Scheduler's call do_release_channel() after they see that the
@@ -775,10 +777,13 @@ check_next_channel:
 						
 						// Notify the client that the in queue is not full.
 						the_channel.client()->notify();
-						
+
+#if 0						
 						// Add a reference to for the caller. The caller will
 						// release the channel request has been processed.
 						the_channel.add_server_ref();
+#endif
+
 						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
 						
@@ -976,6 +981,7 @@ chunk_index the_chunk_index) {
 	return _E_INPUT_QUEUE_FULL;
 }
 
+#if 0
 void server_port::add_ref_to_channel(unsigned long the_channel_index)
 {
 	channel_type &channel = channel_[the_channel_index];
@@ -1007,6 +1013,7 @@ void server_port::release_channel(unsigned long the_channel_index)
 		}
 	}
 }
+#endif
 
 #if 0
 void server_port::do_release_channel(channel_number the_channel_index) {
@@ -1523,16 +1530,20 @@ port_number, unsigned long message) {
 
 void sc_add_ref_to_channel(void *port, unsigned long the_channel_index)
 {
+#if 0
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	the_port->add_ref_to_channel(the_channel_index);
+#endif
 }
 
 void sc_release_channel(void *port, unsigned long the_channel_index)
 {
+#if 0
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	the_port->release_channel(the_channel_index);
+#endif
 }
 
 unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index)
