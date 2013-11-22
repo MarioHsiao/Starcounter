@@ -583,6 +583,7 @@ inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
 	return cleanup_mask_;
 }
 
+#if 0
 inline int32_t monitor_interface::insert_segment_name(const char* segment_name) {
 	return cleanup_task_.insert_segment_name(segment_name);
 }
@@ -605,6 +606,7 @@ inline void monitor_interface::print_segment_name_list() {
 		std::cout << std::endl;
 	}
 }
+#endif
 
 inline void monitor_interface::set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
 	cleanup_task_.set_cleanup_flag(index, ipc_monitor_cleanup_event);

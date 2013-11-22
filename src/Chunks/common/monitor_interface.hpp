@@ -111,7 +111,8 @@ public:
 	
 	void set_in_data_available_state(bool state);
 	void set_out_data_available_state(bool state);
-	
+
+#if 0	
 	/// insert_segment_name() is used by the monitor::wait_for_client_process_event()
 	/// to insert segment names that are involved in cleanup tasks. The index in the
 	/// table is set in the client_interface[] where cleanup is to be done by the
@@ -145,6 +146,7 @@ public:
 	const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event);
 
 	void print_segment_name_list();
+#endif
 
 	/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
 	/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
