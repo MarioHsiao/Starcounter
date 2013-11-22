@@ -156,11 +156,13 @@ namespace star {
 
             // The file exist. Check what kind of file we are dealing 
             // with here.
+            var applicationFilePath = filePath;
 
             if (Path.GetExtension(filePath).Equals(".cs", StringComparison.InvariantCultureIgnoreCase)) {
                 try {
                     var sourceCode = filePath;
                     SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, out filePath);
+                    applicationFilePath = sourceCode;
                 } catch (Exception experimental) {
                     SharedCLI.ShowErrorAndSetExitCode(
                         ErrorCode.ToMessage(Error.SCERRUNSPECIFIED, experimental.ToString()), true);
@@ -186,7 +188,7 @@ namespace star {
             // Turn to the shared CLI library to do the bulk of the
             // work executing.
 
-            ExeCLI.StartOrStop(filePath, appArgs, userArgs);
+            ExeCLI.StartOrStop(filePath, appArgs, applicationFilePath, userArgs);
         }
 
         static void ShowVersionInfo() {
