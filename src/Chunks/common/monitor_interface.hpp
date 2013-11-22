@@ -146,7 +146,6 @@ public:
 	const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event);
 
 	void print_segment_name_list();
-#endif
 
 	/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
 	/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
@@ -163,6 +162,7 @@ public:
 
 	/// Get reference to the spinlock.
 	smp::spinlock& spinlock();
+#endif
 
 	class active_databases {
 	public:	
@@ -269,6 +269,7 @@ private:
 	// Hack until I can figure how to bind it.
 	bool out_is_data_available() const;
 
+#if 0
 	struct cleanup_task {
 		typedef uint64_t mask_type;
 
@@ -342,6 +343,7 @@ private:
 		// spinlock_ synchronizes updates to cleanup_mask_ and set/reset of the event.
 		smp::spinlock spinlock_;
 	} cleanup_task_;
+#endif
 
 	active_databases active_databases_;
 };
