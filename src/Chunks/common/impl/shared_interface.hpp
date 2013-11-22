@@ -267,9 +267,11 @@ uint32_t timeout_milliseconds) {
 inline void shared_interface::init_acquired_channel(channel_number the_channel_number,
 scheduler_number the_scheduler_number)
 {
+#if 0
 	// Mark this channel as owned by this client.
 	client_interface().set_channel_flag(the_scheduler_number,
 	the_channel_number);
+#endif
 	
 	// The number of owned channels counter is incremented.
 	client_interface().increment_number_of_allocated_channels();

@@ -303,6 +303,7 @@ public:
 		return allocated_channels_;
 	}
 	
+#if 0	
 	resource_map& get_resource_map() {
 		return resource_map_;
 	}
@@ -314,13 +315,12 @@ public:
 	void clear_chunk_flag(std::size_t index) {
 		resource_map_.clear_chunk_flag(index);
 	}
-	
+
 	void set_channel_flag(std::size_t scheduler_num, std::size_t channel_num) {
 		resource_map_.set_channel_flag(scheduler_num, channel_num);
 	}
 	
-	void clear_channel_flag(std::size_t scheduler_num, std::size_t channel_num)
-	{
+	void clear_channel_flag(std::size_t scheduler_num, std::size_t channel_num) {
 		resource_map_.clear_channel_flag(scheduler_num, channel_num);
 	}
 	
@@ -337,6 +337,7 @@ public:
 	bool is_chunk_owner(uint32_t n) const {
 		return resource_map_.owns_chunk(n);
 	}
+#endif
 
 	::HANDLE get_work_event() const {
 		return work_;
@@ -417,7 +418,9 @@ private:
 	-sizeof(smp::spinlock) // spinlock_
 	];
 
+#if 0
 	resource_map resource_map_;
+#endif
 
 	// In order to reduce the time taken to open the work_ event the name is
 	// cached. Otherwise the name have to be formated before opening it.
