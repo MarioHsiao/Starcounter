@@ -34,8 +34,15 @@ inline bool monitor_interface::out::is_data_available() const {
 inline monitor_interface::monitor_interface()
 : in_(),
 out_(),
+is_ready_flag_(false) {}
+
+#if 0
+inline monitor_interface::monitor_interface()
+: in_(),
+out_(),
 is_ready_flag_(false),
 cleanup_task_() {}
+#endif
 
 inline void monitor_interface::wait_until_ready() {
 	boost::interprocess::scoped_lock<boost::interprocess
@@ -496,6 +503,7 @@ inline owner_id monitor_interface::get_owner_id() const {
 	return out_.owner_id_;
 }
 
+#if 0
 inline monitor_interface::cleanup_task::cleanup_task()
 : segment_name_mask_(0),
 cleanup_mask_(0),
@@ -582,6 +590,7 @@ inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
 	smp::spinlock::scoped_lock lock(spinlock());
 	return cleanup_mask_;
 }
+#endif
 
 #if 0
 inline int32_t monitor_interface::insert_segment_name(const char* segment_name) {
@@ -606,7 +615,6 @@ inline void monitor_interface::print_segment_name_list() {
 		std::cout << std::endl;
 	}
 }
-#endif
 
 inline void monitor_interface::set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
 	cleanup_task_.set_cleanup_flag(index, ipc_monitor_cleanup_event);
@@ -619,6 +627,7 @@ inline uint64_t monitor_interface::get_cleanup_flag() {
 inline smp::spinlock& monitor_interface::spinlock() {
 	return cleanup_task_.spinlock();
 }
+#endif
 
 inline monitor_interface::active_databases::active_databases()
 : size_(0),
