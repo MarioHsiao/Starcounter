@@ -68,7 +68,9 @@ public:
 	out(),
 	scheduler_interface_(0),
 	client_interface_(0),
+#if 0
 	server_refs_(0),
+#endif
 #if 0
 	is_to_be_released_(false),
 #endif
@@ -113,7 +115,8 @@ public:
 	client_number get_client_number() const {
 		return client_number_;
 	}
-	
+
+#if 0	
 	int32_t add_server_ref() {
 		return ++server_refs_;
 	}
@@ -126,6 +129,7 @@ public:
 		_mm_mfence();
 		return server_refs_;
 	}
+#endif
 
 #if 0	
 	void set_to_be_released() {
@@ -344,10 +348,12 @@ private:
 	// to the database process address space, so only the database process that
 	// owns this channel can use it.
 	uint64_t client_interface_; // client_interface_type*
-	
+
+#if 0	
 	// Only read from and written to on the server side. Used to keep track of
 	// when a channel can be released if the client terminates unexpectedly.
 	int32_t server_refs_;
+#endif
 	
 	// Indexes to interfaces.
 	scheduler_number scheduler_number_;
@@ -362,7 +368,9 @@ private:
 	char cache_line_pad_0_[CACHE_LINE_SIZE -(
 	+sizeof(scheduler_interface_type*) // scheduler_interface_
 	+sizeof(uint64_t) // client_interface_
+#if 0
 	+sizeof(int32_t) // server_refs_
+#endif
 	+sizeof(scheduler_number) // scheduler_number_
 	+sizeof(client_number) // client_number_
 #if 0
