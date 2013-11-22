@@ -31,7 +31,7 @@ namespace Starcounter.Internal.JsonPatch {
 			Int32 startIndex;
 			String patch;
 			Template template;
-			Object obj;
+//			Object obj;
 
 			// if (changeLog.Count == 0)
 			// {
@@ -43,13 +43,13 @@ namespace Starcounter.Internal.JsonPatch {
 			foreach (Change change in changeLog) {
 				template = change.Property;
 
-				if (change.ChangeType != Change.REMOVE) {
-					obj = GetValueFromChange(change);
-				} else {
-					obj = null;
-				}
+				//if (change.ChangeType != Change.REMOVE) {
+				//	obj = GetValueFromChange(change);
+				//} else {
+				//	obj = null;
+				//}
 
-				patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.Obj, change.Property, obj, change.Index);
+				patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.Obj, change.Property, change.Index);
 				Byte[] patchArr = Encoding.UTF8.GetBytes(patch);
 				buffer.AddRange(patchArr);
 
@@ -80,11 +80,11 @@ namespace Starcounter.Internal.JsonPatch {
 			// Need a faster way than checking type and casting to get the value.
 
 			if (property is TString) {
-				ret = change.Obj.Get((TString)property);
+				ret = ((TString)property).Getter(change.Obj);
 			} else if (property is TObjArr) {
-				var arr = (Json)change.Obj.Get((TObjArr)property);
+				var arr = (Json)((TObjArr)property).Getter(change.Obj);
 				if (change.Index != -1) {
-					ret = arr[change.Index];
+					ret = arr._GetAt(change.Index);
 				} else {
 #if DEBUG
 					if (change.ChangeType == Change.REMOVE) {
@@ -95,15 +95,16 @@ namespace Starcounter.Internal.JsonPatch {
 				}
 
 			} else if (property is TLong) {
-				ret = change.Obj.Get((TLong)property);
+
+				ret = ((TLong)property).Getter(change.Obj);
 			} else if (property is TBool) {
-				ret = change.Obj.Get((TBool)property);
+				ret = ((TBool)property).Getter(change.Obj);
 			} else if (property is TDouble) {
-				ret = change.Obj.Get((TDouble)property);
+				ret = ((TDouble)property).Getter(change.Obj);
 			} else if (property is TDecimal) {
-				ret = change.Obj.Get((TDecimal)property);
+				ret = ((TDecimal)property).Getter(change.Obj);
 			} else if (property is TObject) {
-				ret = change.Obj.Get((TObject)property);
+				ret = ((TObject)property).Getter(change.Obj);
 			}
 			return ret;
 		}

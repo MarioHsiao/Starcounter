@@ -399,9 +399,9 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 // Create WSA buffers.
 uint32_t SocketDataChunk::CreateWSABuffers(
     WorkerDbInterface* worker_db,
-    shared_memory_chunk* head_smc,
-    uint32_t head_chunk_offset_bytes,
-    uint32_t head_chunk_num_bytes,
+    shared_memory_chunk* first_smc,
+    uint32_t first_chunk_offset_bytes,
+    uint32_t first_chunk_num_bytes,
     uint32_t total_bytes)
 {
     // Getting total user data length.
@@ -421,7 +421,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     uint32_t err_code;
 
     // Getting link to the first chunk in chain.
-    shared_memory_chunk* smc = head_smc;
+    shared_memory_chunk* smc = first_smc;
     core::chunk_index cur_chunk_index = smc->get_link();
 
     core::chunk_index wsa_bufs_chunk_index;
@@ -435,20 +435,20 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     num_chunks_++;
 
     // Inserting extra chunk in linked chunks.
-    head_smc->set_link(wsa_bufs_chunk_index);
+    first_smc->set_link(wsa_bufs_chunk_index);
     wsa_bufs_smc->set_link(cur_chunk_index);
 
     // Checking if head chunk is involved.
-    if (head_chunk_offset_bytes)
+    if (first_chunk_offset_bytes)
     {
         // Pointing to current WSABUF in blob.
         WSABUF* wsa_buf = (WSABUF*) ((uint8_t*)wsa_bufs_smc + cur_wsa_buf_offset);
-        wsa_buf->len = head_chunk_num_bytes;
-        wsa_buf->buf = (char *)head_smc + head_chunk_offset_bytes;
+        wsa_buf->len = first_chunk_num_bytes;
+        wsa_buf->buf = (char *)first_smc + first_chunk_offset_bytes;
         cur_wsa_buf_offset += sizeof(WSABUF);
 
         // Decreasing number of bytes left to be processed.
-        bytes_left -= head_chunk_num_bytes;
+        bytes_left -= first_chunk_num_bytes;
         if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
     }
@@ -475,8 +475,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     }
 
     // Checking that maximum number of WSABUFs in chunk is correct.
-    // NOTE: Skipping extra and original chunk in check.
-    GW_ASSERT((num_chunks_ - 2) <= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS);
+    GW_ASSERT(num_chunks_ <= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS + 1);
 
     return 0;
 }

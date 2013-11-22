@@ -10,7 +10,7 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 
 namespace Starcounter.Advanced.Configuration {
-    
+
     /// <summary>
     /// Configures the server.
     /// </summary>
@@ -82,8 +82,7 @@ namespace Starcounter.Advanced.Configuration {
         /// Tcp port number for Administrator.
         /// </summary>
         [XmlElement(IsNullable = false)]
-        public UInt16 SystemHttpPort
-        {
+        public UInt16 SystemHttpPort {
             get;
             set;
         }
@@ -91,9 +90,16 @@ namespace Starcounter.Advanced.Configuration {
         /// <summary>
         /// String representation.
         /// </summary>
-        public static String SystemHttpPortString
-        {
+        public static String SystemHttpPortString {
             get { return "SystemHttpPort"; }
+        }
+
+        /// <summary>
+        /// Send usage statistics and crash reports to the tracker
+        /// </summary>
+        public bool SendUsageAndCrashReports {
+            get;
+            set;
         }
 
         /// <summary>

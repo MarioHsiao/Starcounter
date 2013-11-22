@@ -17,11 +17,12 @@
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
+	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(BUILD_BLUE_CONFIGURATION)</Level0Configuration>
+	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
   </PropertyGroup>
   <ItemGroup>
     
     <KillAllScript Include="..\BuildSystem\Scripts\kill_all.bat" />
-    <NodeUploadTool Include="..\BuildSystem\Tools\NodeUploadTool.exe" />
     <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
@@ -38,14 +39,14 @@
   <Target Name="BuildLevel0" Condition="Exists('$(LocalLevel0Solution)')" >
   
     <!-- Building Level0 solution if any. -->
-    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalLevel0Solution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalLevel0Solution) /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
     <!-- Building SqlProcessor solution. -->
-    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\..\..\Level0\msbuild\SqlProcessor\SqlProcessor.sln /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\..\..\Level0\msbuild\SqlProcessor\SqlProcessor.sln /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
-      <LocalLevel0BinFiles Include="..\..\..\Level0\msbuild\x64\$(Configuration)\*" />
+      <LocalLevel0BinFiles Include="..\..\..\Level0\msbuild\x64\$(Level0Configuration)\*" />
     </ItemGroup>
     
     <!-- Copying to Level1 output. -->
@@ -57,7 +58,6 @@
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(KillAllScript)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(NodeUploadTool)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(TestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayTestFiles)" DestinationFolder="$(OutputPath)" />

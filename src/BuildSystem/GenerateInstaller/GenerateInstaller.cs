@@ -76,12 +76,9 @@ namespace GenerateInstaller
 
             // Restoring fake archive file if needed.
             String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
-            String tempArchivePath = archivePath + ".old";
+            String savedArchivePath = archivePath + ".saved";
             
             Console.WriteLine("Building empty managed setup EXE...");
-
-            if (File.Exists(tempArchivePath))
-                File.Delete(tempArchivePath);
 
             Console.WriteLine("Building unique Starcounter.Tracking DLL...");
 
@@ -91,7 +88,6 @@ namespace GenerateInstaller
                 configuration,
                 platform);
 
-            File.Move(archivePath, tempArchivePath);
             File.WriteAllText(archivePath, "This is an empty file...");
 
             Console.WriteLine("Building empty Starcounter.InstallerWPF...");
@@ -115,8 +111,8 @@ namespace GenerateInstaller
 
             File.Delete(archivePath);
 
-            // Updating newly built files in Archive.zip.
-            using (FileStream zipToOpen = new FileStream(tempArchivePath, FileMode.Open))
+            // Updating newly built files in archive.
+            using (FileStream zipToOpen = new FileStream(savedArchivePath, FileMode.Open))
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                 {
@@ -143,7 +139,7 @@ namespace GenerateInstaller
                 }
             }
 
-            File.Move(tempArchivePath, archivePath);
+            File.Copy(savedArchivePath, archivePath);
 
             Console.WriteLine("Building complete managed setup EXE...");
 
@@ -303,7 +299,9 @@ namespace GenerateInstaller
                 versionFileContents += "  <Configuration>" + configuration + "</Configuration>" + Environment.NewLine;
                 versionFileContents += "  <Platform>" + platform + "</Platform>" + Environment.NewLine;
                 versionFileContents += "  <Version>" + version + "</Version>" + Environment.NewLine;
-                versionFileContents += "  <VersionDate>" + DateTime.UtcNow.ToUniversalTime().ToString("u") + "</VersionDate>" + Environment.NewLine;
+
+                String versionDate = BuildSystem.FindStringInFile(Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs"), @"VersionDate \= DateTime\.Parse\(""[0-9Z\:\-\. ]+"",").Substring("VersionDate = DateTime.Parse(".Length + 1, 20);
+                versionFileContents += "  <VersionDate>" + versionDate + "</VersionDate>" + Environment.NewLine;
                 versionFileContents += "  <Channel>" + channel + "</Channel>" + Environment.NewLine;
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 
@@ -333,14 +331,16 @@ namespace GenerateInstaller
                     throw new Exception("Failed to sign files:" + Environment.NewLine + signingError);
                 }
 
-                Console.WriteLine("Creating installer Archive.zip...");
+                Console.WriteLine("Creating installer Archive.zip.saved...");
 
                 // Removing Starcounter-Setup.
                 BuildSystem.DirectoryContainsFilesRegex(outputDir, new String[] { @"Starcounter.+Setup\.exe", @"Starcounter.+Setup\.pdb", @"Starcounter.+Setup\.ilk" }, true);
 
                 // Packing output directory into archive.
-                File.Delete(installerWpfFolder + "\\Resources\\Archive.zip");
-                ZipFile.CreateFromDirectory(outputDir, installerWpfFolder + "\\Resources\\Archive.zip", CompressionLevel.Optimal, false);
+                if (File.Exists(installerWpfFolder + "\\Resources\\Archive.zip"))
+                    File.Delete(installerWpfFolder + "\\Resources\\Archive.zip");
+
+                ZipFile.CreateFromDirectory(outputDir, installerWpfFolder + "\\Resources\\Archive.zip.saved", CompressionLevel.Optimal, false);
 
                 // Removing old standalone package.
                 String tempBuildDir = Path.Combine(checkoutDir, "TempBuild");
@@ -407,6 +407,13 @@ namespace GenerateInstaller
                     checkoutDir,
                     @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
 
+                // Deleting the existing archive since we have a copy in .saved file.
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip");
+
+                if (!File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip.saved"))
+                    throw new Exception("Archive.zip.saved is not found after build is created!");
+
                 Console.WriteLine("Cleaning temporary build directories...");
 
                 BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper",
@@ -439,8 +446,8 @@ namespace GenerateInstaller
 
                     // Calling external tool to upload build package to public server.
                     ProcessStartInfo uploadProcessInfo = new ProcessStartInfo();
-                    uploadProcessInfo.FileName = outputDir + "\\NodeUploadTool.exe";
-                    uploadProcessInfo.Arguments = "UploadUri=\"tracker.starcounter.com:8585/upload\" PathToFile=\"" + pathToAllInOneArchive + "\"";
+                    uploadProcessInfo.FileName = outputDir + "\\BuildHelpers.exe";
+                    uploadProcessInfo.Arguments = "-Mode=UploadBigFile -UploadUri=\"tracker.starcounter.com:8585/upload\" -PathToFile=\"" + pathToAllInOneArchive + "\"";
                     uploadProcessInfo.UseShellExecute = false;
 
                     // Start the upload and wait for exit.

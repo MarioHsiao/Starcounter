@@ -70,8 +70,10 @@ namespace Starcounter.Administrator {
             // Registering Administrator handlers.
             RegisterHandlers();
 
-            // Start User Tracking (Send data to tracking server each hour)
-            Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface, Master.ServerEngine.HostLog);
+            // Start User Tracking (Send data to tracking server each hour and crash reports)
+            if (serverInfo.Configuration.SendUsageAndCrashReports) {
+                Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface, Master.ServerEngine.HostLog);
+            }
         }
 
         /// <summary>
@@ -145,15 +147,14 @@ namespace Starcounter.Administrator {
                 return "hello";
             });
 
-            POST("/echotest", (Request req) =>
-            {
+            POST("/echotest", (Request req) => {
                 return new Response() { BodyBytes = req.BodyBytes };
             });
 
             #endregion
 
         }
-             
+
         static public string EncodeTo64(string toEncode) {
             byte[] toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
             string returnValue = System.Convert.ToBase64String(toEncodeAsBytes);

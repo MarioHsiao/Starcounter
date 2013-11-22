@@ -7,7 +7,6 @@
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 #if CLIENT
 namespace Starcounter.Client.Template {

@@ -44,7 +44,7 @@ internal sealed class GlobalQueryCache
     /// Adds a new query to the cache if its already not there.
     /// Mutually exclusive.
     /// </summary>
-    internal Int32 AddNewQuery<T>(String query)
+    internal Int32 AddNewQuery<T>(String query, IExecutionEnumerator newEnum)
     {
         Starcounter.ThreadHelper.SetYieldBlock();
         try
@@ -52,17 +52,11 @@ internal sealed class GlobalQueryCache
             // Mutually excluding.
             lock (indexDict)
             {
-                // First trying to fetch enumerator.
+                //// First trying to fetch enumerator.
                 Int32 enumIndex = GetEnumIndex(query);
-                if (enumIndex >= 0)
-                {
+                if (enumIndex >= 0) {
                     return enumIndex;
                 }
-
-                // Query is not cached, adding it.
-                // Parser and optimize it
-                // Creating enumerator from scratch.
-                IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareQuery<T>(query);
 
                 // Assigning unique query ID.
                 newEnum.UniqueQueryID = (UInt64)numUniqueQueries;

@@ -110,6 +110,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             // Changing number of used chunks.
             ChangeNumUsedChunks(sd->get_num_chunks());
 
+            // Checking that maximum number of WSABUFs in chunk is correct.
+            GW_ASSERT(sd->get_num_chunks() <= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS);
+
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
@@ -177,13 +180,13 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     int32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
 
     // Number of chunks to use.
-    int32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
-    GW_ASSERT(num_extra_chunks_to_use > 0);
+    int32_t num_extra_chunks = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
+    GW_ASSERT(num_extra_chunks > 0);
 
     // Checking if more than maximum chunks we can take at once.
-    if ((num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!is_aggregated_flag))
+    if ((num_extra_chunks >= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!is_aggregated_flag))
     {
-        num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
+        num_extra_chunks = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS - 1;
         num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;
     }
 
@@ -191,7 +194,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     starcounter::core::chunk_index new_chunk_index;
     uint32_t err_code = GetMultipleChunksFromPrivatePool(
         &new_chunk_index,
-        num_extra_chunks_to_use);
+        num_extra_chunks);
 
     if (err_code)
         return err_code;
@@ -210,7 +213,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
     // Setting total number of chunks.
-    *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks_to_use;
+    *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks;
 
     // Going through each linked chunk and write data there.
     int32_t left_bytes_to_write = num_bytes_to_write;
