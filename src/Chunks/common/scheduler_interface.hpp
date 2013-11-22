@@ -154,6 +154,7 @@ public:
 			// Error: No server name. Throw exception error_code.
 		}
 
+#if 0
 		///=====================================================================
 		/// Open the ipc_monitor_cleanup_event.
 		///=====================================================================
@@ -209,6 +210,7 @@ public:
 		else {
 			//std::cout << "Successfully opened the ipc_monitor_cleanup_event_name." << std::endl;
 		}
+#endif
 	}
 	
 	~scheduler_interface() {

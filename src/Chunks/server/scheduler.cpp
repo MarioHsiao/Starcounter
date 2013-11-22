@@ -179,6 +179,7 @@ public:
 
 	std::size_t number_of_active_schedulers();
 	
+#if 0
 	//--------------------------------------------------------------------------
 	/// open_ipc_monitor_cleanup_event() is called by the constructor.
 	HANDLE& open_ipc_monitor_cleanup_event();
@@ -186,6 +187,7 @@ public:
 	/// Get a reference to the ipc_monitor_cleanup_event. It is opened by the
 	/// constructor and closed by the destructor.
 	HANDLE& ipc_monitor_cleanup_event();
+#endif
 
 	//--------------------------------------------------------------------------
 	// This function is obsolete and shall be replaced with
@@ -1247,6 +1249,7 @@ std::size_t server_port::number_of_active_schedulers() {
 	return common_scheduler_interface_->number_of_active_schedulers();
 }
 
+#if 0
 //------------------------------------------------------------------------------
 inline HANDLE& server_port::open_ipc_monitor_cleanup_event() {
 #if 0
@@ -1261,10 +1264,13 @@ inline HANDLE& server_port::open_ipc_monitor_cleanup_event() {
 #endif
 	return ipc_monitor_cleanup_event();
 }
+#endif
 
+#if 0
 inline HANDLE& server_port::ipc_monitor_cleanup_event() {
 	return this_scheduler_interface_->ipc_monitor_cleanup_event();
 }
+#endif
 
 //------------------------------------------------------------------------------
 inline bool server_port::acquire_linked_chunks(chunk_index& head, std::size_t
