@@ -219,6 +219,7 @@ public:
     // Deallocates active database.
     ~WorkerDbInterface()
     {
+#if 0
         // Freeing all occupied channels.
         for (std::size_t s = 0; s < num_schedulers_; s++)
         {
@@ -229,6 +230,7 @@ public:
 
             the_channel.set_to_be_released();
         }
+#endif
 
         // Deleting channels.
         delete[] channels_;
