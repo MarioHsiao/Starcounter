@@ -112,10 +112,12 @@ public:
 		// Up to (events_per_group * database_process_event_groups) database
 		// processes can be monitored.
 		database_process_event_groups = 1,
-		
+
+#if 0		
 		// Up to (events_per_group * client_process_event_groups) client
 		// processes can be monitored.
 		client_process_event_groups = 4
+#endif
 	};
 	
 	enum {
@@ -158,7 +160,8 @@ public:
 	 *		group has up to 64 process events.
 	 */
 	static void wait_for_database_process_event(std::pair<monitor*,std::size_t> arg);
-	
+
+#if 0	
 	//--------------------------------------------------------------------------
 	/// The wait_for_client_process_event() will wait for up to 64 client
 	/// process events per group.
@@ -172,6 +175,7 @@ public:
 	 *		group has up to 64 client process events.
 	 */
 	static void wait_for_client_process_event(std::pair<monitor*,std::size_t> arg);
+#endif
 	
 #if 0 // idea
 	// Methods for updating the process_register_.
@@ -190,10 +194,12 @@ public:
 	/// Remove database process event.
 	void remove_database_process_event(process_info::handle_type e);
 	void remove_database_process_event(std::size_t group, uint32_t event_code);
-	
+
+#if 0	
 	/// Remove client process event.
 	void remove_client_process_event(process_info::handle_type e);
 	void remove_client_process_event(std::size_t group, uint32_t event_code);
+#endif
 
 	/// Print pid register requires the pid register to be locked for a
 	/// relatively long time so this is only used for debug.
@@ -257,15 +263,19 @@ public:
 		return database_process_group_[i];
 	}
 
+#if 0
 	struct client_process_group_type {
 		thread thread_; // TODO: Access method.
 		thread::native_handle_type thread_handle_; // TODO: Access method.
 		std::vector<::HANDLE> event_; // TODO: Access method.
 	};
+#endif
 
+#if 0
 	client_process_group_type& client_process_group(std::size_t i) {
 		return client_process_group_[i];
 	}
+#endif
 
 	boost::mutex& register_mutex() {
 		return register_mutex_;
@@ -376,7 +386,9 @@ private:
 	bool active_databases_updated_flag_;
 	
 	database_process_group_type database_process_group_[database_process_event_groups];
+#if 0
 	client_process_group_type client_process_group_[client_process_event_groups];
+#endif
 	
 	// The name of the server that started this monitor.
 	std::string server_name_;

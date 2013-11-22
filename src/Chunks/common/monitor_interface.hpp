@@ -74,13 +74,17 @@ public:
 	
 	enum process_type {
 		database_process,
+#if 0
 		client_process
+#endif
 	};
 	
 	enum operation {
 		registration_request,
 		unregistration_request,
-		shutdown /// TODO: Implement this and see if it works fine.
+#if 0
+		shutdown
+#endif
 	};
 	
 	void set_pid(pid_type pid); // make it private?
