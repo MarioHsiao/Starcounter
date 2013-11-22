@@ -432,9 +432,11 @@ scan_channel_out_buffers:
 			}
 		}
 	}
-	
+
+#if 0	
 	// Call this before exit is called for the thread.
 	worker->release_all_resources();
+#endif
 	
 	/// Exit thread.
 	return;
@@ -531,6 +533,7 @@ inline void worker::release_all_resources() {
 }
 #endif // NOT COMPLETE
 
+#if 0
 inline void worker::release_all_resources() {
 	return; // Let the IPC monitor start the cleanup instead.
 
@@ -582,6 +585,7 @@ inline void worker::release_all_resources() {
 		}
 	}
 }
+#endif
 
 } // namespace interprocess_communication
 } // namespace starcounter
