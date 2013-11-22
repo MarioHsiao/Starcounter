@@ -77,8 +77,10 @@ EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsign
 EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long num_chunks);
 EXTERN_C void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index);
 EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index);
+#if 0
 EXTERN_C void sc_add_ref_to_channel(void *port, unsigned long channel_index);
 EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
+#endif
 
 namespace starcounter {
 namespace core {
@@ -1528,23 +1530,23 @@ port_number, unsigned long message) {
 	return the_port->send_signal_to_scheduler(port_number, message);
 }
 
+#if 0
 void sc_add_ref_to_channel(void *port, unsigned long the_channel_index)
 {
-#if 0
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	the_port->add_ref_to_channel(the_channel_index);
-#endif
 }
+#endif
 
+#if 0
 void sc_release_channel(void *port, unsigned long the_channel_index)
 {
-#if 0
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	the_port->release_channel(the_channel_index);
-#endif
 }
+#endif
 
 unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index)
 {
