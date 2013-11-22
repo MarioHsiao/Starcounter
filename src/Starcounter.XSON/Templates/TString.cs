@@ -76,7 +76,7 @@ namespace Starcounter.Templates {
 			string value = Getter(parent);
 			if (value != null)
 				return '"' + value + '"';
-			return "null";
+			return "\"\"";
 		}
     }
 }
