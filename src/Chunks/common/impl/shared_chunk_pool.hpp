@@ -483,6 +483,7 @@ smp::spinlock::milliseconds timeout) {
 	return released;
 }
 
+#if 0
 //------------------------------------------------------------------------------
 // For schedulers (and monitor), doing clean up:
 
@@ -526,6 +527,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// Successfully released all chunks.
 	return true;
 }
+#endif
 
 //------------------------------------------------------------------------------
 template<class T, class Alloc>
