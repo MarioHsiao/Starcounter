@@ -117,7 +117,7 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// 
         /// </summary>
-        public Bound BindChildren = Bound.Auto;
+        public BindingStrategy BindChildren = BindingStrategy.Auto;
 
         /// <summary>
         /// All parent classes of the specified class in the codebehind file.
@@ -176,8 +176,8 @@ namespace Starcounter.XSON.Metadata {
 				index += 6;
 				count = attribute.Length - index - 1;
 
-				Bound bound;
-				if (!Enum.TryParse<Bound>(attribute.Substring(index, count), out bound))
+				BindingStrategy bound;
+				if (!Enum.TryParse<BindingStrategy>(attribute.Substring(index, count), out bound))
 					throw new Exception("Unable to get correct value from BindChildren attribute");
 
 				if (existing == null)

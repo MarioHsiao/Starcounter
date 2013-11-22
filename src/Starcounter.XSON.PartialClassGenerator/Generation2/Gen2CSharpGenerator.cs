@@ -322,6 +322,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="m">The m.</param>
         private void WriteAppMemberPrefix(AstProperty m) {
+			if (m.Template is TTrigger)
+				return;
+
             m.Prefix.Add(markAsCodegen);
             var sb = new StringBuilder();
             sb.Append("public ");
@@ -334,20 +337,31 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             //                sb.Append('>');
             //            }
 
+			sb.Append(" { get { return ");
+
             if (m.Type is AstJsonClass) {
-                sb.Append(" { get { return Get<");
-                sb.Append(m.Type.GlobalClassSpecifier);
-                sb.Append('>');
+				sb.Append('(');
+				sb.Append(m.Type.GlobalClassSpecifier);
+				sb.Append(')');
+				//sb.Append(" { get { return Get<");
+				//sb.Append(m.Type.GlobalClassSpecifier);
+				//sb.Append('>');
             }
-            else {
-                sb.Append(" { get { return Get");
-            }
-            sb.Append("(Template.");
-            sb.Append(m.MemberName);
-            sb.Append("); } set { Set");
-            sb.Append("(Template.");
-            sb.Append(m.MemberName);
-            sb.Append(", value); } }");
+			sb.Append("Template.");
+			sb.Append(m.MemberName);
+			sb.Append(".Getter(this); } set { Template.");
+			sb.Append(m.MemberName);
+			sb.Append(".Setter(this, value); } }");
+
+			//else {
+			//	sb.Append(" { get { return Get");
+			//}
+			//sb.Append("(Template.");
+			//sb.Append(m.MemberName);
+			//sb.Append("); } set { Set");
+			//sb.Append("(Template.");
+			//sb.Append(m.MemberName);
+			//sb.Append(", value); } }");
             m.Prefix.Add(sb.ToString());
         }
 
@@ -561,7 +575,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add("        : base() {");
 
 //            a.Prefix.Add("        Template = new st::TJson();");
-            if (a.BindChildren != Bound.Auto) {
+            if (a.BindChildren != BindingStrategy.Auto) {
                 a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
             }
 
@@ -595,7 +609,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     sb.Append('"');
 
                     TValue tv = mn.Template as TValue;
-					if (tv != null && tv._Bound != Bound.UseParent && tv._Bound != Bound.Auto){
+					if (tv != null && tv.BindingStrategy != BindingStrategy.UseParent && tv.BindingStrategy != BindingStrategy.Auto){
                         if (tv.Bind == null) {
                             sb.Append(", bind:null");
                         } else {

@@ -340,7 +340,7 @@ inline int HttpProto::OnHeaderField(http_parser* p, const char *at, size_t lengt
 }
 
 // Processes the session information.
-inline void HttpProto::ProcessSessionString(SocketDataChunk* sd, const char* session_id_start)
+inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start)
 {
     // Parsing the session.
     sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
@@ -667,7 +667,7 @@ uint32_t HttpProto::HttpUriDispatcher(
 }
 
 // Resets the parser related fields.
-void HttpProto::ResetParser(SocketDataChunk* sd)
+void HttpProto::ResetParser(SocketDataChunkRef sd)
 {
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
@@ -823,7 +823,7 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                 if (http_request_.content_len_bytes_ > num_content_bytes_received)
                 {
                     // Checking for maximum supported HTTP request content size.
-                    if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
+                    if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
                     {
                         // Handled successfully.
                         *is_handled = true;
@@ -1098,7 +1098,7 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
                 if (http_request_.content_len_bytes_ > static_cast<uint32_t>(num_content_bytes_received))
                 {
                     // Checking for maximum supported HTTP request content size.
-                    if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
+                    if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
                     {
                         // Handled successfully.
                         *is_handled = true;

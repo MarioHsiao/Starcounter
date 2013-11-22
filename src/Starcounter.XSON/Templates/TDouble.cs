@@ -55,5 +55,9 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get { return typeof(double); }
         }
+
+		internal override string ValueToJsonString(Json parent) {
+			return Getter(parent).ToString("0.0###########################");
+		}
     }
 }

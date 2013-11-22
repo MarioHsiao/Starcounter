@@ -44,7 +44,7 @@ namespace Starcounter.InstallerWPF.Rules {
 
         public string InstallationPath { get; set; }
         public string PersonalServerPath { get; set; }
-        public string SystemServerPath { get; set; }
+        //public string SystemServerPath { get; set; }
 
         public SelfType Type { get; set; }
 
@@ -69,9 +69,9 @@ namespace Starcounter.InstallerWPF.Rules {
                         return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the main installation path" + Environment.NewLine });
                     }
 
-                    if (this.SystemServerPath != null && string.Compare(enteredPath, this.SystemServerPath.TrimEnd(charsToTrim)) == 0) {
-                        return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the system server path" + Environment.NewLine });
-                    }
+                    //if (this.SystemServerPath != null && string.Compare(enteredPath, this.SystemServerPath.TrimEnd(charsToTrim)) == 0) {
+                    //    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the system server path" + Environment.NewLine });
+                    //}
 
                 }
                 else if (this.Type == SelfType.SystemServerPath) {

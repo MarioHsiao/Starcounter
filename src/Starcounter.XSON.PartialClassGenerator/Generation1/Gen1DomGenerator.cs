@@ -170,7 +170,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
             };
             if (metadata.RootClassInfo != null) {
-                tcn.AutoBindProperties = (metadata.RootClassInfo.BindChildren == Bound.Yes);
+                tcn.AutoBindProperties = (metadata.RootClassInfo.BindChildren == BindingStrategy.Bound);
             }
 
 
@@ -337,7 +337,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                         mdAppClass._Inherits = mapInfo.BaseClassName + "Metadata";
                     }
 
-                    if (mapInfo.BindChildren == Bound.Yes) {
+                    if (mapInfo.BindChildren == BindingStrategy.Bound) {
                         ntAppClass.AutoBindProperties = true;
                     }
 

@@ -8,6 +8,9 @@
   
   <!-- Maximum number of connections -->
   <MaxConnections>100100</MaxConnections>
+  
+  <!-- Maximum receive content length size in bytes -->
+  <MaximumReceiveContentLength>4194304</MaximumReceiveContentLength>
 
   <!-- Inactive connections life time in seconds -->
   <InactiveConnectionTimeout>1200</InactiveConnectionTimeout>

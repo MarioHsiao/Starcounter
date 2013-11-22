@@ -18,48 +18,7 @@ namespace Starcounter.Tools {
 
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="original"></param>
-        /// <returns></returns>
-        public static Image MakeGrayscale(Image original) {
-            Image newBitmap = new Bitmap(original.Width, original.Height);
-            Graphics g = Graphics.FromImage(newBitmap);
-            ColorMatrix colorMatrix = new ColorMatrix(
-                new float[][] 
-                {
-                    new float[] {0.299f, 0.299f, 0.299f, 0, 0},
-                    new float[] {0.587f, 0.587f, 0.587f, 0, 0},
-                    new float[] {.114f, .114f, .114f, 0, 0},
-                    new float[] {0, 0, 0, 1, 0},
-                    new float[] {0, 0, 0, 0, 1}
-                });
-
-            ImageAttributes attributes = new ImageAttributes();
-            attributes.SetColorMatrix(colorMatrix);
-            g.DrawImage(
-                original,
-                new Rectangle(0, 0, original.Width, original.Height),
-                0, 0, original.Width, original.Height,
-                GraphicsUnit.Pixel, attributes);
-
-            g.Dispose();
-            return newBitmap;
-        }
-
-        //public static BitmapSource GenerateBitmapSource(Visual visual, double renderWidth, double renderHeight) {
-        //    var bmp = new RenderTargetBitmap((int)renderWidth, (int)renderHeight, 96, 96, PixelFormats.Pbgra32);
-        //    var dv = new DrawingVisual();
-        //    using (DrawingContext dc = dv.RenderOpen()) {
-        //        dc.DrawRectangle(new VisualBrush(visual), null, new Rect(0, 0, renderWidth, renderHeight));   
-        //    }
-        //    bmp.Render(dv);
-        //    return bmp;
-        //}
-
-
-        /// <summary>
-        /// 
+        /// Get starcounter system port
         /// </summary>
         /// <param name="port"></param>
         /// <param name="error"></param>
@@ -89,7 +48,7 @@ namespace Starcounter.Tools {
 
 
         /// <summary>
-        /// 
+        /// Get Server folder
         /// </summary>
         /// <param name="file"></param>
         /// <param name="serverDir"></param>
@@ -117,7 +76,7 @@ namespace Starcounter.Tools {
 
 
         /// <summary>
-        /// 
+        /// Get port number from server configuration file
         /// </summary>
         /// <param name="file"></param>
         /// <param name="port"></param>
@@ -142,8 +101,9 @@ namespace Starcounter.Tools {
             return false;
         }
 
+
         /// <summary>
-        /// 
+        /// Get a tag value from a xml configuration file
         /// </summary>
         /// <param name="file"></param>
         /// <param name="tag"></param>
@@ -156,7 +116,7 @@ namespace Starcounter.Tools {
             error = null;
 
             if (!File.Exists(file)) {
-                error = string.Format("Missing configuration file {0}.", file);
+                error = string.Format("Missing {0} configuration file.", file);
                 return false;
             }
 

@@ -267,11 +267,11 @@ namespace Starcounter.Internal {
 
             results.rows = (Json)rowObjectTemplate.CreateInstance();
 
-            Json rowArr = results.rows.Get(rowsTemplate);
+			Json rowArr = rowsTemplate.Getter(results.rows);
 
             try {
 
-                SqlResult<dynamic> sqlResult = Db.SlowSQL(query);
+                QueryResultRows<dynamic> sqlResult = Db.SlowSQL(query);
 
                 if (sqlResult != null) {
                     sqle = (Starcounter.SqlEnumerator<object>)sqlResult.GetEnumerator();
@@ -329,28 +329,28 @@ namespace Starcounter.Internal {
                                 //    value = obj.GetBinary(prop.Index);
                                 //    break;
                                 case DbTypeCode.Boolean:
-                                    jsonRow.Set((TBool)rowItemTemplate.Properties[0], (bool)row);
+                                    ((TBool)rowItemTemplate.Properties[0]).Setter(jsonRow, (bool)row);
                                     break;
                                 case DbTypeCode.Byte:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+                                    ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.DateTime:
-                                    jsonRow.Set((TString)rowItemTemplate.Properties[0], ((DateTime)row).ToString());
+									((TString)rowItemTemplate.Properties[0]).Setter(jsonRow, ((DateTime)row).ToString());
                                     break;
                                 case DbTypeCode.Decimal:
-                                    jsonRow.Set((TDecimal)rowItemTemplate.Properties[0], (Decimal)row);
+                                    ((TDecimal)rowItemTemplate.Properties[0]).Setter(jsonRow, (Decimal)row);
                                     break;
                                 case DbTypeCode.Double:
-                                    jsonRow.Set((TDouble)rowItemTemplate.Properties[0], (Double)row);
+                                    ((TDouble)rowItemTemplate.Properties[0]).Setter(jsonRow, (Double)row);
                                     break;
                                 case DbTypeCode.Int16:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.Int32:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.Int64:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 //case DbTypeCode.LargeBinary:
                                 //    value = obj.GetBinary(prop.Index);
@@ -358,26 +358,26 @@ namespace Starcounter.Internal {
                                 case DbTypeCode.Object:
                                     IObjectView value = (IObjectView)row;
                                     if (value != null) {
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)DbHelper.GetObjectNo(value));
+                                        ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)DbHelper.GetObjectNo(value));
                                     }
                                     break;
                                 case DbTypeCode.SByte:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(sbyte)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.Single:
-                                    jsonRow.Set((TDouble)rowItemTemplate.Properties[0], (Double)(Single)row);
+									((TDouble)rowItemTemplate.Properties[0]).Setter(jsonRow, (Double)(Single)row);
                                     break;
                                 case DbTypeCode.String:
-                                    jsonRow.Set((TString)rowItemTemplate.Properties[0], (string)row);
+									((TString)rowItemTemplate.Properties[0]).Setter(jsonRow, (String)row);
                                     break;
                                 case DbTypeCode.UInt16:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(ushort)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.UInt32:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(uint)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.UInt64:
-                                    jsonRow.Set((TLong)rowItemTemplate.Properties[0], (long)(ulong)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 default:
                                     throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", sqle.ProjectionTypeCode.ToString()));
@@ -398,28 +398,28 @@ namespace Starcounter.Internal {
                                     //    value = obj.GetBinary(prop.Index);
                                     //    break;
                                     case DbTypeCode.Boolean:
-                                        jsonRow.Set((TBool)rowItemTemplate.Properties[pi], (bool)obj.GetBoolean(prop.Index));
+                                        ((TBool)rowItemTemplate.Properties[pi]).Setter(jsonRow, (bool)obj.GetBoolean(prop.Index));
                                         break;
                                     case DbTypeCode.Byte:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetByte(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetByte(prop.Index));
                                         break;
                                     case DbTypeCode.DateTime:
-                                        jsonRow.Set((TString)rowItemTemplate.Properties[pi], obj.GetDateTime(prop.Index).ToString());
+                                        ((TString)rowItemTemplate.Properties[pi]).Setter(jsonRow, obj.GetDateTime(prop.Index).ToString());
                                         break;
                                     case DbTypeCode.Decimal:
-                                        jsonRow.Set((TDecimal)rowItemTemplate.Properties[pi], (Decimal)obj.GetDecimal(prop.Index));
+                                        ((TDecimal)rowItemTemplate.Properties[pi]).Setter(jsonRow, (Decimal)obj.GetDecimal(prop.Index));
                                         break;
                                     case DbTypeCode.Double:
-                                        jsonRow.Set((TDouble)rowItemTemplate.Properties[pi], (Double)obj.GetDouble(prop.Index));
+                                        ((TDouble)rowItemTemplate.Properties[pi]).Setter(jsonRow, (Double)obj.GetDouble(prop.Index));
                                         break;
                                     case DbTypeCode.Int16:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetInt16(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetInt16(prop.Index));
                                         break;
                                     case DbTypeCode.Int32:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetInt32(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetInt32(prop.Index));
                                         break;
                                     case DbTypeCode.Int64:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetInt64(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetInt64(prop.Index));
                                         break;
                                     //case DbTypeCode.LargeBinary:
                                     //    value = obj.GetBinary(prop.Index);
@@ -428,26 +428,26 @@ namespace Starcounter.Internal {
 
                                         IObjectView value = obj.GetObject(prop.Index);
                                         if (value != null) {
-                                            jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)DbHelper.GetObjectNo(value));
+                                            ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)DbHelper.GetObjectNo(value));
                                         }
                                         break;
                                     case DbTypeCode.SByte:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetSByte(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetSByte(prop.Index));
                                         break;
                                     case DbTypeCode.Single:
-                                        jsonRow.Set((TDouble)rowItemTemplate.Properties[pi], (Double)obj.GetSingle(prop.Index));
+                                        ((TDouble)rowItemTemplate.Properties[pi]).Setter(jsonRow, (Double)obj.GetSingle(prop.Index));
                                         break;
                                     case DbTypeCode.String:
-                                        jsonRow.Set((TString)rowItemTemplate.Properties[pi], obj.GetString(prop.Index));
+                                        ((TString)rowItemTemplate.Properties[pi]).Setter(jsonRow, obj.GetString(prop.Index));
                                         break;
                                     case DbTypeCode.UInt16:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetUInt16(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetUInt16(prop.Index));
                                         break;
                                     case DbTypeCode.UInt32:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetUInt32(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetUInt32(prop.Index));
                                         break;
                                     case DbTypeCode.UInt64:
-                                        jsonRow.Set((TLong)rowItemTemplate.Properties[pi], (long)obj.GetUInt64(prop.Index));
+                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetUInt64(prop.Index));
                                         break;
                                     default:
                                         throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", prop.TypeCode.ToString()));

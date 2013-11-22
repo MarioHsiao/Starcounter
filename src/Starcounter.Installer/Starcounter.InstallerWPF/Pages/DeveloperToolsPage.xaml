@@ -54,6 +54,13 @@
                     <!-- Content -->
                     <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
 
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
                         <!-- VisualStudio 2010 Extension -->
                         <StackPanel Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2010Integration]}" Visibility="Collapsed">
 
@@ -99,7 +106,7 @@
                         </StackPanel>
 
                         <!-- VisualStudio 2012 Extension -->
-                        <StackPanel  Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2012Integration]}">
+                        <StackPanel Grid.Row="0"  Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2012Integration]}">
 
                             <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
 
@@ -142,7 +149,52 @@
 
                         </StackPanel>
 
+                        <!-- Devider -->
+                        <Border Margin="0,7.5,0,7.5" Grid.Row="1" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />
 
+                        <!-- VisualStudio 2013 Extension -->
+                        <StackPanel Grid.Row="2"  Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2013Integration]}">
+
+                            <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
+
+                            <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+
+                                <CheckBox.IsChecked>
+                                    <MultiBinding Converter="{StaticResource isCheckedConverter}">
+                                        <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
+                                        <Binding  Path="ExecuteCommand" Mode="TwoWay"/>
+                                    </MultiBinding>
+                                </CheckBox.IsChecked>
+
+                                <StackPanel Orientation="Horizontal" >
+                                    <Label  Padding="0" Margin="0" Content="_VisualStudio 2013 Extension" />
+                                    <Image  Margin="8,1,0,0"  HorizontalAlignment="Left" Width="20" Height="20" Source="..\resources\16x16\VisualStudio2012.png" VerticalAlignment="Top"/>
+
+                                    <TextBlock  Margin="7.5,0,0,0" Text="{Binding Comment}" />
+                                </StackPanel>
+
+                            </CheckBox>
+
+                            <Grid >
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,0">
+
+                                    <!-- Header Description -->
+                                    <TextBlock Style="{DynamicResource ComponentDescription}">
+                                                Starcounter for Visual Studio 2013 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
+                                                <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Starcounter_Visual_Studio_extension2013" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                    </TextBlock>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </StackPanel>
 
 
                     </Grid>

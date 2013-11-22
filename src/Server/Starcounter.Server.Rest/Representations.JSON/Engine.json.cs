@@ -10,8 +10,7 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     partial class Engine : Json {
 
         public ExecutableReference GetExecutable(string exePath) {
-            for (int i = 0; i < this.Executables.Executing.Count; i++) {
-                var exe = this.Executables.Executing[i];
+			foreach (ExecutableReference exe in this.Executables.Executing){
                 if (exe.Path.Equals(exePath, System.StringComparison.InvariantCultureIgnoreCase)) {
                     return exe;
                 }

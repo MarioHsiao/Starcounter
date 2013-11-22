@@ -74,7 +74,7 @@ restart:
 
 						if (tProperty is TObject) {
 							if (childObjArr == null) {
-								childObj = obj.Get((TObject)tProperty);
+								childObj = ((TObject)tProperty).Getter(obj);
 								valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
 							}
 							if (valueSize != -1) {
@@ -89,7 +89,7 @@ restart:
 							} else
 								goto restart;
 						} else if (tProperty is TObjArr) {
-							Json arr = obj.Get((TObjArr)tProperty);
+							Json arr = ((TObjArr)tProperty).Getter(obj);
 							if (posInArray == -1) {
 								if (MAX_INT_SIZE > (buf.Length - writer.Length))
 									goto restart;
@@ -104,7 +104,8 @@ restart:
 
 							for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
 								if (childObjArr == null) {
-									valueSize = ((TContainer)(arr[arrPos] as Json).Template).ToFasterThanJson((arr[arrPos] as Json), out childObjArr);
+									var arrItem = (Json)arr._GetAt(arrPos);
+									valueSize = ((TContainer)arrItem.Template).ToFasterThanJson(arrItem, out childObjArr);
 									if (valueSize == -1)
 										goto restart;
 
@@ -127,17 +128,17 @@ restart:
 								if (buf.Length < (writer.Length + 1))
 									goto restart;
 
-								bool b = obj.Get((TBool)tProperty);
+								bool b = ((TBool)tProperty).Getter(obj);
 								if (b) writer.WriteULong(1);
 								else writer.WriteULong(0);
 							} else if (tProperty is TDecimal) {
-								valueAsStr = obj.Get((TDecimal)tProperty).ToString("0.0###########################", CultureInfo.InvariantCulture);
+								valueAsStr = ((TDecimal)tProperty).Getter(obj).ToString("0.0###########################", CultureInfo.InvariantCulture);
 								valueSize = valueAsStr.Length;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
 								writer.WriteString(valueAsStr);
 							} else if (tProperty is TDouble) {
-								valueAsStr = obj.Get((TDouble)tProperty).ToString("0.0###########################", CultureInfo.InvariantCulture);
+								valueAsStr = ((TDouble)tProperty).Getter(obj).ToString("0.0###########################", CultureInfo.InvariantCulture);
 								valueSize = valueAsStr.Length;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
@@ -146,9 +147,9 @@ restart:
 								valueSize = MAX_INT_SIZE;
 								if (valueSize > (buf.Length - writer.Length))
 									goto restart;
-								writer.WriteLong(obj.Get((TLong)tProperty));
+								writer.WriteLong(((TLong)tProperty).Getter(obj));
 							} else if (tProperty is TString) {
-								valueAsStr = obj.Get((TString)tProperty);
+								valueAsStr = ((TString)tProperty).Getter(obj);
 								if (valueAsStr == null)
 									throw new NotImplementedException("null values are not yet supported");
 								valueSize = valueAsStr.Length;
@@ -193,24 +194,24 @@ restart:
 					try {
 						if (tProperty is TBool) {
 							ulong v = reader.ReadULong();
-							if (v == 1) obj.Set((TBool)tProperty, true);
-							else obj.Set((TBool)tProperty, false);
+							if (v == 1) ((TBool)tProperty).Setter(obj, true);
+							else ((TBool)tProperty).Setter(obj, false);
 						} else if (tProperty is TDecimal) {
 							valueAsStr = reader.ReadString();
-							obj.Set((TDecimal)tProperty, Decimal.Parse(valueAsStr, CultureInfo.InvariantCulture));
+							((TDecimal)tProperty).Setter(obj, Decimal.Parse(valueAsStr, CultureInfo.InvariantCulture));
 						} else if (tProperty is TDouble) {
 							valueAsStr = reader.ReadString();
-							obj.Set((TDouble)tProperty, Double.Parse(valueAsStr, CultureInfo.InvariantCulture));
+							((TDouble)tProperty).Setter(obj, Double.Parse(valueAsStr, CultureInfo.InvariantCulture));
 						} else if (tProperty is TLong) {
-							obj.Set((TLong)tProperty, reader.ReadLong());
+							((TLong)tProperty).Setter(obj, reader.ReadLong());
 						} else if (tProperty is TString) {
-							obj.Set((TString)tProperty, reader.ReadString());
+							((TString)tProperty).Setter(obj, reader.ReadString());
 						} else if (tProperty is TObject) {
-							childObj = obj.Get((TObject)tProperty);
+							childObj = ((TObject)tProperty).Getter(obj);
 							((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)reader.AtEnd, 0);
 							reader.Skip();
 						} else if (tProperty is TObjArr) {
-							arr = obj.Get((TObjArr)tProperty);
+							arr = ((TObjArr)tProperty).Getter(obj);
 
 							var arrReader = new TupleReaderBase64(reader.AtEnd, 2);
 							int arrItemCount = (int)arrReader.ReadULong();

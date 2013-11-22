@@ -387,7 +387,12 @@ namespace Starcounter.Advanced.XSON {
                     *pfrag = (byte)'"';
                     return usedSize;
                 } else {
-                    return WriteNull(pfrag, bufferSize);
+					if (bufferSize < 2)
+						return -1;
+
+					*pfrag++ = (byte)'"';
+					*pfrag = (byte)'"';
+					return 2;
                 }
             }
         }

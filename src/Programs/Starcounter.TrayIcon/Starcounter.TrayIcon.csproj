@@ -48,7 +48,11 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service.cs" />
+    <Compile Include="Service\ErrorEventArgs.cs" />
+    <Compile Include="Service\StarcounterService.cs" />
+    <Compile Include="Service\ShutdownTask.cs" />
+    <Compile Include="Service\StatusEventArgs.cs" />
+    <Compile Include="Service\StatusTask.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,7 +70,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="sc_logo.ico" />
+    <EmbeddedResource Include="sc.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="sc_grayscale.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

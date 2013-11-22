@@ -696,6 +696,21 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             return SCERRGWCANTLOADXMLSETTINGS;
         }
 
+        // Getting maximum connection number.
+        node_elem = root_elem->first_node("MaximumReceiveContentLength");
+        if (!node_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read MaximumReceiveContentLength property.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+
+        setting_maximum_receive_content_length_ = atoi(node_elem->value());
+        if (setting_maximum_receive_content_length_ < 4096 || setting_maximum_receive_content_length_ > 67108864)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaximumReceiveContentLength value.");
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+
         // Getting inactive socket timeout.
         node_elem = root_elem->first_node("InactiveConnectionTimeout");
         if (!node_elem)

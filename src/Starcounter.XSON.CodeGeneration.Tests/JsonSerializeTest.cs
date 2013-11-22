@@ -597,23 +597,23 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             Assert.AreEqual(tExpected, tActual);
             foreach (Template child in tExpected.Properties) {
                 if (child is TBool)
-                    Assert.AreEqual(expected.Get((TBool)child), actual.Get((TBool)child));
-                else if (child is Property<decimal>)
-                    Assert.AreEqual(expected.Get((Property<decimal>)child), actual.Get((Property<decimal>)child));
-                else if (child is Property<double>)
-                    Assert.AreEqual(expected.Get((TDouble)child), actual.Get((TDouble)child));
-                else if (child is Property<long>)
-                    Assert.AreEqual(expected.Get((TLong)child), actual.Get((TLong)child));
-                else if (child is Property<string>)
-                    Assert.AreEqual(expected.Get((TString)child), actual.Get((TString)child));
+                    Assert.AreEqual(((TBool)child).Getter(expected), ((TBool)child).Getter(actual));
+                else if (child is TDecimal)
+                    Assert.AreEqual(((TDecimal)child).Getter(expected), ((TDecimal)child).Getter(actual));
+                else if (child is TDouble)
+                    Assert.AreEqual(((TDouble)child).Getter(expected), ((TDouble)child).Getter(actual));
+                else if (child is TLong)
+                    Assert.AreEqual(((TLong)child).Getter(expected), ((TLong)child).Getter(actual));
+                else if (child is TString)
+                    Assert.AreEqual(((TString)child).Getter(expected), ((TString)child).Getter(actual));
                 else if (child is TJson)
-                    AssertAreEqual(expected.Get((TJson)child), actual.Get((TJson)child));
+                    AssertAreEqual(((TJson)child).Getter(expected), ((TJson)child).Getter(actual));
                 else if (child is TObjArr) {
-                    var arr1 = expected.Get((TArray<Json>)child);
-                    var arr2 = actual.Get((TArray<Json>)child);
+                    var arr1 = ((TObjArr)child).Getter(expected);
+                    var arr2 = ((TObjArr)child).Getter(actual);
                     Assert.AreEqual(arr1.Count, arr2.Count);
                     for (int i = 0; i < arr1.Count; i++) {
-                        AssertAreEqual(arr1[i], arr2[i]);
+                        AssertAreEqual((Json)arr1._GetAt(i), (Json)arr2._GetAt(i));
                     }
                 } else
                     throw new NotSupportedException();

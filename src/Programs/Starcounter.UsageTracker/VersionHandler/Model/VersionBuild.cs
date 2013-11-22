@@ -86,11 +86,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         internal static VersionBuild GetLatestAvailableBuild(string channel) {
 
             // Get latest version source
-            string version = VersionSource.GetLatestVersion(channel);
-            if (version == null) return null;
+            VersionSource versionSource = VersionSource.GetLatestVersion(channel);
+            if (versionSource == null) return null;
 
             // Get version build
-            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", channel, version, false).First;
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", versionSource.Channel, versionSource.Version, false).First;
         }
 
 
@@ -116,7 +116,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
             Db.Transaction(() => {
 
                 // A downloaded version build should not be deleted
-                SqlResult<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE  o.Channel=? AND o.Version=?", channel, version);
+                QueryResultRows<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE  o.Channel=? AND o.Version=?", channel, version);
                 foreach (VersionBuild versionBuild in versionBuilds) {
 
                     VersionBuild.DeleteVersionBuildFile(versionBuild);

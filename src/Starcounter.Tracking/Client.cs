@@ -210,8 +210,9 @@ namespace Starcounter.Tracking {
         /// <param name="mode"></param>
         /// <param name="personalServer"></param>
         /// <param name="vs2012Extention"></param>
+        /// <param name="vs2013Extention"></param>
         /// <param name="completeCallback"></param>
-        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention, EventHandler<CompletedEventArgs> completeCallback) {
+        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention, bool vs2013Extention, EventHandler<CompletedEventArgs> completeCallback) {
 
             try {
                 // Build json content
@@ -224,10 +225,7 @@ namespace Starcounter.Tracking {
 
                 contentJson.executing.personalServer = personalServer;
                 contentJson.executing.vs2012Extention = vs2012Extention;
-
-                //contentJson.executing.options = new object[] { };
-                //contentJson.executing.options[0] = new { id = "personalServer", value = true };
-                //contentJson.executing.options[1] = new { id = "vs2012Extentsion", value = true };
+                contentJson.executing.vs2013Extention = vs2013Extention;
 
                 string content = contentJson.ToString();
 
@@ -248,8 +246,9 @@ namespace Starcounter.Tracking {
         /// <param name="mode"></param>
         /// <param name="personalServer"></param>
         /// <param name="vs2012Extention"></param>
-        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention) {
-            this.SendInstallerExecuting(mode, personalServer, vs2012Extention, null);
+        /// <param name="vs2013Extention"></param>
+        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention, bool vs2013Extention) {
+            this.SendInstallerExecuting(mode, personalServer, vs2012Extention, vs2013Extention, null);
         }
 
 

@@ -539,7 +539,7 @@ public:
     static int OnHeaderValue(http_parser* p, const char *at, size_t length);
 
     // Processes the session information.
-    void ProcessSessionString(SocketDataChunk* sd, const char* session_id_start);
+    void ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start);
 
     // Resets the HTTP/WS structure.
     void Reset()
@@ -548,7 +548,7 @@ public:
     }
 
     // Resets the parser related fields.
-    void ResetParser(SocketDataChunk* sd);
+    void ResetParser(SocketDataChunkRef sd);
 
     // Entry point for outer data processing.
     uint32_t HttpUriDispatcher(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);

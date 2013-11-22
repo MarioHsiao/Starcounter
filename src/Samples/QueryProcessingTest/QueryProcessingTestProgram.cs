@@ -43,6 +43,9 @@ namespace QueryProcessingTest {
 
         internal static void CreateIndexes() {
             if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "accountidindx").First == null)
+                Starcounter.Db.SQL("create index AccountTypeActiveIndx on Account (notactive, AccountType)");
+            if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "AccountTypeIndx").First == null)
+                Starcounter.Db.SQL("create index AccountTypeIndx on Account (AccountType)");
                 Starcounter.Db.SQL("create index accountidindx on Account(accountid)");
             if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "nicknameindx").First == null) {
                 Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
@@ -50,6 +53,17 @@ namespace QueryProcessingTest {
             }
             if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "UserCompoundIndx").First == null)
                 Starcounter.Db.SlowSQL("create index UserCompoundIndx on user(NickName, LastName)");
+            if (Starcounter.Db.SQL("SELECT i FROM materialized_index i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
+            }
+
+            if (Starcounter.Db.SQL("SELECT i FROM materialized_index i WHERE Name=?", "VersionSourceBuildErrorIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorIndex ON VersionSource (BuildError)");
+            }
+
+            if (Starcounter.Db.SQL("SELECT i FROM materialized_index i WHERE Name=?", "VersionSourceVersionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceVersionIndex ON VersionSource (Version)");
+            }
         }
     }
 }

@@ -1,7 +1,5 @@
 #include "bmx.hpp"
 
-EXTERN_C uint32_t __stdcall sccoredb_set_current_transaction(int32_t unlock_tran_from_thread, uint64_t handle, uint64_t verify);
-
 using namespace starcounter::bmx;
 using namespace starcounter::core;
 
@@ -735,14 +733,14 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     // Retrieve the chunk.
     err_code = cm_get_shared_memory_chunk(task_info.chunk_index, &raw_chunk);
-    assert(err_code == 0);
+    _SC_ASSERT(err_code == 0);
 
     // Read the metadata in the chunk (session id and handler id).
     smc = (shared_memory_chunk*)raw_chunk;
     //session_id = smc->get_user_data(); The user data field in chunks is no longer used.
     BMX_HANDLER_TYPE handler_info = smc->get_bmx_handler_info();
     BMX_HANDLER_INDEX_TYPE handler_index = GetBmxHandlerIndex(handler_info);
-    assert(handler_index < unique_handler_num_);
+    _SC_ASSERT(handler_index < unique_handler_num_);
 
     // Checking if handler exists (ignoring if wrong handler).
     if (registered_handlers_[handler_index].IsEmpty())

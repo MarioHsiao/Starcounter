@@ -119,7 +119,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
 {
     _SC_BEGIN_FUNC
 
-    assert(NULL != g_bmx_data);
+    _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code = g_bmx_data->FindPortHandler(port_num, &handler_index);
@@ -152,7 +152,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
 {
     _SC_BEGIN_FUNC
 
-    assert(NULL != g_bmx_data);
+    _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code = g_bmx_data->FindSubportHandler(port_num, sub_port, &handler_index);
@@ -190,7 +190,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
 {
     _SC_BEGIN_FUNC
 
-    assert(NULL != g_bmx_data);
+    _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code = g_bmx_data->FindUriHandler(port_num, processed_uri_info, &handler_index);
@@ -364,7 +364,7 @@ uint32_t sc_bmx_parse_pong(
 }
 
 // Send Pong response for initial Ping message.
-inline uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
+uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
 {
     // Original 8-bytes of data.
     uint64_t orig_data = request->read_uint64();

@@ -331,5 +331,24 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// TODO: This was a quick fix solution that we needed immediately
+        /// In the future we need a more flexible solution. 
+        /// Maybe a auto blacklist with timeouts for ipadresses that is "hammering" our services
+        /// </remarks>
+        /// <param name="ipAdress"></param>
+        /// <returns></returns>
+        public static bool IsBlacklisted(string ipAdress) {
+
+            // TODO: 
+//            if ("58.27.115.118" == ipAdress) return true;
+            return false;
+
+        }
+
     }
 }
