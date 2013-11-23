@@ -546,7 +546,7 @@ WorkerDbInterface::WorkerDbInterface(
     // Acquiring unique channel for each scheduler.
     for (int32_t s = 0; s < num_schedulers_; ++s)
     {
-		channels_[s] = (worker_id * 32) + s;
+		channels_[s] = (worker_id * num_schedulers_) + s;
         bool channel_acquired = shared_int_.acquire_channel2(channels_[s], static_cast<core::scheduler_number> (s));
         GW_ASSERT(true == channel_acquired);
 
