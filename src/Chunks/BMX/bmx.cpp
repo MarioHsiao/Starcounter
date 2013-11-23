@@ -35,7 +35,8 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0; // TODO:
+	err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }
@@ -72,7 +73,8 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0; // TODO:
+    err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }
@@ -109,7 +111,8 @@ uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0; // TODO:
+    err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }
@@ -554,13 +557,6 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
     // Entering critical section.
     uint32_t err_code = 0;
 
-    // NOTE:
-    // Channel attached to thread. No storing away channel reference in
-    // shared memory.
-    err_code = coalmine_set_current_channel_as_default();
-    if (err_code)
-        return err_code;
-
     // Getting number of schedulers if needed.
     if (!g_schedulers_count)
         cm3_get_cpuc(NULL, &g_schedulers_count);
@@ -575,7 +571,8 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
     InterlockedIncrement(&num_registered_push_channels_);
 
     // Now the chunk is ready to be sent.
-    err_code = cm_send_to_client(task_info->chunk_index);
+    client_index_type client_index = 0; // TODO:
+    err_code = cm_send_to_client(client_index, task_info->chunk_index);
 
     return err_code;
 }
@@ -702,7 +699,8 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
     if ((!err_code) && (max_num_entries_ > 1))
     {
         // Now the chunk is ready to be sent.
-        err_code = cm_send_to_client(task_info->chunk_index);
+	    client_index_type client_index = 0; // TODO:
+        err_code = cm_send_to_client(client_index, task_info->chunk_index);
     }
 
     return err_code;
@@ -878,7 +876,8 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0; // TODO:
+    err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }

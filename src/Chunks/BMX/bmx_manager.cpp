@@ -377,7 +377,8 @@ uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc,
     response->write(orig_data);
 
     // Now the chunk is ready to be sent.
-    uint32_t err_code = cm_send_to_client(task_info->chunk_index);
+    client_index_type client_index = 0; // TODO:
+    uint32_t err_code = cm_send_to_client(client_index, task_info->chunk_index);
 
     return err_code;
 }
