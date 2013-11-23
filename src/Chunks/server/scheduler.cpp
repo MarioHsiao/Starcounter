@@ -72,9 +72,9 @@ EXTERN_C unsigned long sc_try_receive_from_client(void *port, unsigned long chan
 EXTERN_C unsigned long sc_send_to_client(void *port, unsigned long channel_index, unsigned long chunk_index);
 EXTERN_C unsigned long server_send_task_to_scheduler(void *port, unsigned long port_number, unsigned long message);
 EXTERN_C unsigned long server_send_signal_to_scheduler(void *port, unsigned long port_number, unsigned long message);
-EXTERN_C unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index);
-EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long needed_size);
-EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long num_chunks);
+EXTERN_C unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long *pchunk_index);
+EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index, unsigned long needed_size);
+EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long start_chunk_index, unsigned long num_chunks);
 EXTERN_C void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index);
 EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index);
 #if 0
@@ -296,9 +296,9 @@ public:
 	std::size_t chunks_to_release, uint32_t timeout_milliseconds = 10000);
 	
 	//--------------------------------------------------------------------------
-	unsigned long acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk, unsigned long needed_size);
-    unsigned long acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk, unsigned long num_chunks);
-    unsigned long acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index);
+	unsigned long acquire_linked_chunk_indexes(unsigned long start_chunk, unsigned long needed_size);
+    unsigned long acquire_linked_chunk_indexes_counted(unsigned long start_chunk, unsigned long num_chunks);
+    unsigned long acquire_one_chunk(chunk_index* out_chunk_index);
 
     /// Releases linked chunks to a private chunk_pool and if there is a bunch there
     /// then to the shared_chunk_pool.
@@ -1326,24 +1326,21 @@ void server_port::acquire_chunk_index(unsigned long& the_chunk_index)
 }
 #endif // OBSOLETE API
 
-unsigned long server_port::acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk_index, unsigned long needed_size)
+unsigned long server_port::acquire_linked_chunk_indexes(unsigned long start_chunk_index, unsigned long needed_size)
 {
 	lldiv_t div_value = div((int64_t)needed_size, (int64_t)chunk_type::static_data_size);
 	uint32_t num_needed_chunks = div_value.quot;
 	if (div_value.rem != 0)
         num_needed_chunks++;
 
-    return acquire_linked_chunk_indexes_counted(channel_number, start_chunk_index, num_needed_chunks);
+    return acquire_linked_chunk_indexes_counted(start_chunk_index, num_needed_chunks);
 }
 
-unsigned long server_port::acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index)
+unsigned long server_port::acquire_one_chunk(chunk_index* out_chunk_index)
 {
-    channel_type& the_channel = channel_[channel_number];
-
 try_to_acquire_from_private_chunk_pool:
-
     // Try to acquire the linked chunks from the private chunk_pool.
-    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), *out_chunk_index, 1, the_channel.client()))
+    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), *out_chunk_index, 1))
     {
         // Successfully acquired the linked chunks from the private chunk_pool.
         return 0;
@@ -1365,15 +1362,14 @@ try_to_acquire_from_private_chunk_pool:
     }
 }
 
-unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk_index, unsigned long num_chunks)
+unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long start_chunk_index, unsigned long num_chunks)
 {
-	channel_type& the_channel = channel_[channel_number];
 	chunk_index head;
 	
 try_to_acquire_from_private_chunk_pool:
 
     // First trying to fetch from private chunk pool.
-	if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), head, num_chunks, the_channel.client()))
+	if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), head, num_chunks))
     {
 		// Successfully acquired the linked chunks from the private
 		// chunk_pool. Link chunk[start_chunk_index] to head.
@@ -1548,31 +1544,31 @@ void sc_release_channel(void *port, unsigned long the_channel_index)
 }
 #endif
 
-unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index)
+unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long *pchunk_index)
 {
     using namespace starcounter::core;
 
     server_port* the_port = (server_port*)port;
 
-    return the_port->acquire_one_chunk(channel_index, (chunk_index*)pchunk_index);
+    return the_port->acquire_one_chunk((chunk_index*)pchunk_index);
 }
 
-unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long needed_size)
+unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index, unsigned long needed_size)
 {
 	using namespace starcounter::core;
 	
 	server_port* the_port = (server_port*)port;
 	
-	return the_port->acquire_linked_chunk_indexes(channel_index, start_chunk_index, needed_size);
+	return the_port->acquire_linked_chunk_indexes(start_chunk_index, needed_size);
 }
 
-unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long num_chunks)
+unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long start_chunk_index, unsigned long num_chunks)
 {
     using namespace starcounter::core;
 
     server_port* the_port = (server_port*)port;
 
-    return the_port->acquire_linked_chunk_indexes_counted(channel_index, start_chunk_index, num_chunks);
+    return the_port->acquire_linked_chunk_indexes_counted(start_chunk_index, num_chunks);
 }
 
 void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index)
