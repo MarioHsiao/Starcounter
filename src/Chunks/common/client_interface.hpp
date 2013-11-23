@@ -78,11 +78,15 @@ public:
 	explicit client_interface(const allocator_type& alloc = allocator_type(),
 	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false),
-	owner_id_(owner_id::none),
+	owner_id_(owner_id::none) {
 #if 0
+	explicit client_interface(const allocator_type& alloc = allocator_type(),
+	const char* segment_name = 0, int32_t id = -1)
+	: notify_(false),
+	owner_id_(owner_id::none),
 	allocated_channels_(0),
-#endif
 	database_cleanup_index_(-1) {
+#endif
 		if (segment_name != 0) {
 			char work_notify_name[segment_and_notify_name_size];
 			std::size_t length;
@@ -399,7 +403,6 @@ private:
 	owner_id owner_id_;
 #if 0
 	volatile uint32_t allocated_channels_;
-#endif
 	
 	// The IPC monitor will set database_cleanup_index_ (range 0 to databases -1)
 	// before notifying the scheduler's to start their part of the cleanup.
@@ -410,13 +413,14 @@ private:
 	// There it will find this, and use the data there to access the IPC shared memory
 	// segment and search through the client_interface[s] for
 	volatile int32_t database_cleanup_index_;
+#endif
 
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
 #if 0
 	-sizeof(uint32_t) // allocated_channels_
-#endif
 	-sizeof(int32_t) // database_cleanup_index_
+#endif
 	];
 	
 	// The spinlock_ is used to synchronize release of chunks_.
