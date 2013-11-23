@@ -132,7 +132,8 @@ void worker::start() {
 		scheduler_interface_[the_scheduler_number].set_channel_number_flag(scheduler_num);
 		
 #else // !defined (IPC_VERSION_2_0)
-		channel_[scheduler_num] = (worker_number * 32) + scheduler_num;
+		channel_[scheduler_num] = (worker_number * num_active_schedulers_) +
+		scheduler_num ;
 
 		if (!shared().acquire_channel2(channel_[scheduler_num], scheduler_num)) {
 			std::cout << " worker[" << worker_id_ << "] error: "
