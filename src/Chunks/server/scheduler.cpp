@@ -666,10 +666,15 @@ check_next_channel:
 
 		///=====================================================================
 #else // !defined (IPC_VERSION_2_0)
+
+		if (true) {
+#if 0
 		if (!common_client_interface().client_interfaces_to_clean_up()) {
+#endif
 			// No cleanup to do.
 			goto check_next_channel;
 		}
+#if 0
 		else {
 			/// At least one client_interface shall be cleaned up. Since the
 			/// "attention" to various channels or schedulers can vary, the best
@@ -688,13 +693,9 @@ check_next_channel:
 					channel_type& the_channel = channel_[this_channel];
 					
 					// Check if the channel is marked for release, assuming not.
-					if (true) {
-#if 0
 					if (!the_channel.is_to_be_released()) {
-#endif
 						continue; // check next...
 					}
-#if 0
 					else {
 						// The channel has been marked for release. The release of
 						// the channel will be done when there are no more server
@@ -711,10 +712,10 @@ check_next_channel:
 							do_release_channel(this_channel);
 						}
 					}
-#endif
 				}
 			}
 		}
+#endif
 		
 check_next_channel:
 		for (channel_number mask_word_counter = next_channel_ >> 6;
