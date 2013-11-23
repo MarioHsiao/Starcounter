@@ -316,7 +316,8 @@ uint32_t __stdcall sc_bmx_send_small_buffer(
     _SC_ASSERT(smc->is_terminated());
 
     // Sending linked chunks to client.
-    err_code = cm_send_to_client(the_chunk_index);
+    client_index_type client_index = 0; // TODO:
+    err_code = cm_send_to_client(client_index, the_chunk_index);
     _SC_ASSERT(err_code == 0);
 
     the_chunk_index = shared_memory_chunk::link_terminator;
@@ -378,7 +379,8 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
                 return err_code;
 
             // Sending linked chunks to client.
-            err_code = cm_send_to_client(the_chunk_index);
+		    client_index_type client_index = 0; // TODO:
+            err_code = cm_send_to_client(client_index, the_chunk_index);
             _SC_ASSERT(err_code == 0);
 
             // Switching to next cloned chunk.
@@ -392,7 +394,8 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
         else
         {
             // Sending linked chunks to client.
-            err_code = cm_send_to_client(the_chunk_index);
+		    client_index_type client_index = 0; // TODO:
+            err_code = cm_send_to_client(client_index, the_chunk_index);
             _SC_ASSERT(err_code == 0);
             the_chunk_index = shared_memory_chunk::link_terminator;
 
