@@ -78,7 +78,8 @@ public:
 	explicit client_interface(const allocator_type& alloc = allocator_type(),
 	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false),
-	owner_id_(owner_id::none) {
+	owner_id_(owner_id::none),
+	available_(0) {
 #if 0
 	explicit client_interface(const allocator_type& alloc = allocator_type(),
 	const char* segment_name = 0, int32_t id = -1)
@@ -273,6 +274,14 @@ public:
 		return owner_id_;
 	}
 
+	void set_available() {
+		_mm_sfence();
+		available_ = 1;
+		_mm_sfence();
+	}
+
+	int available() { return available_; }
+
 #if 0
 	/// Set number of channels acquired by the client.
 	/**
@@ -401,6 +410,11 @@ private:
 	// The owner of this client_interface also owns resources marked in the
 	// resource_map_.
 	owner_id owner_id_;
+
+	// Used by client (gateway) to indicate that client is initialized and
+	// available.
+	int available_;
+
 #if 0
 	volatile uint32_t allocated_channels_;
 	
@@ -417,6 +431,7 @@ private:
 
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
+	-sizeof(int) // available_
 #if 0
 	-sizeof(uint32_t) // allocated_channels_
 	-sizeof(int32_t) // database_cleanup_index_

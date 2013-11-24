@@ -81,6 +81,7 @@ EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsign
 EXTERN_C void sc_add_ref_to_channel(void *port, unsigned long channel_index);
 EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
 #endif
+EXTERN_C uint32_t server_get_clients_available(void *port);
 
 namespace starcounter {
 namespace core {
@@ -360,6 +361,16 @@ public:
 	 */
 	common_client_interface_type& common_client_interface() const {
 		return *common_client_interface_;
+	}
+
+	uint32_t get_clients_available() {
+		client_interface_type *client_interface = this_scheduler_interface_->
+		client_interface();
+		uint32_t clients_available = 0;
+		for (int i = 0; i < 8; i++) {
+			if (client_interface[i].available()) clients_available++;
+		}
+		return clients_available;
 	}
 
 private:
@@ -1588,4 +1599,12 @@ unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long s
     server_port* the_port = (server_port*)port;
 
     return the_port->release_linked_chunks(start_chunk_index);
+}
+
+uint32_t server_get_clients_available(void *port)
+{
+    using namespace starcounter::core;
+
+    server_port* the_port = (server_port*)port;
+    return the_port->get_clients_available();
 }

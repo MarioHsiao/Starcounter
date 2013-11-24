@@ -440,6 +440,10 @@ public:
 		<boost::interprocess::interprocess_mutex> lock(client_interface_mutex_);
 		client_interface_ = reinterpret_cast<uint64_t>(p);
 	}
+
+	client_interface_type *client_interface() {
+		return reinterpret_cast<client_interface_type *>(client_interface_);
+	}
 	
 	/// Get the work notify name, used to open the event. In order to reduce the
 	/// time taken to open the work_ event the name is cached. Otherwise the
