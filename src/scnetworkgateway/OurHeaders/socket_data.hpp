@@ -116,6 +116,16 @@ class SocketDataChunk
 
 public:
 
+    void CopyFromAnotherSocketData(SocketDataChunk* sd)
+    {
+        memcpy(this, sd, sizeof(SocketDataChunk));
+    }
+
+    void CopyFromSharedMemoryChunk(shared_memory_chunk* smc)
+    {
+        memcpy(this, (uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA, sizeof(SocketDataChunk));
+    }
+
     // Get Http protocol instance.
     HttpProto* get_http_proto()
     {
@@ -226,6 +236,7 @@ public:
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_BOUND_WORKER_ID = "<< ((uint8_t*)&(session_.gw_worker_id_) - sd) << std::endl;
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
@@ -269,6 +280,8 @@ public:
         GW_ASSERT(((uint8_t*)&socket_info_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
 
         GW_ASSERT((&get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+
+        GW_ASSERT(((uint8_t*)&(session_.gw_worker_id_) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_BOUND_WORKER_ID);
 
         return 0;
     }
@@ -619,6 +632,12 @@ public:
         return g_gateway.GetSocketAggregatedFlag(socket_info_index_);
     }
 
+    // Getting worker id to which this socket is bound.
+    worker_id_type GetBoundWorkerId()
+    {
+        return g_gateway.GetBoundWorkerId(socket_info_index_);
+    }
+
     // Getting matched URI index.
     uri_index_type GetMatchedUriIndex()
     {
@@ -853,6 +872,11 @@ public:
         type_of_network_oper_ = (uint8_t)type_of_network_oper;
     }
 
+    void set_bound_worker_id(worker_id_type worker_id)
+    {
+        session_.gw_worker_id_ = worker_id;
+    }
+
     // Accept data or parameters data.
     uint8_t* const get_accept_or_params_data()
     {
@@ -963,7 +987,8 @@ public:
     void Init(
         session_index_type socket_info_index,
         db_index_type db_index,
-        core::chunk_index chunk_index);
+        core::chunk_index chunk_index,
+        worker_id_type bound_worker_id);
 
     // Resetting socket.
     void ResetOnDisconnect();

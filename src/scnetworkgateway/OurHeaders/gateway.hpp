@@ -58,6 +58,7 @@ typedef uint64_t ip_info_type;
 typedef int16_t uri_index_type;
 typedef int16_t port_index_type;
 typedef int8_t db_index_type;
+typedef int8_t worker_id_type;
 
 // Statistics macros.
 #define GW_COLLECT_SOCKET_STATISTICS
@@ -169,6 +170,12 @@ const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
+
+// Maximum number of gateway chunks.
+const int32_t MAX_GATEWAY_CHUNKS = 1024 * 1024;
+
+// Maximum number of gateway chunks.
+const int32_t GATEWAY_CHUNK_SIZE_BYTES = MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
@@ -679,6 +686,19 @@ public:
             push_index_ = 0;
     }
 
+    T& PopBack()
+    {
+        push_index_--;
+        T& ret_value = elems_[push_index_];
+        stripe_length_--;
+        GW_ASSERT(stripe_length_ >= 0);
+
+        if (push_index_ < 0)
+            push_index_ = 0;
+
+        return ret_value;
+    }
+
     T& PopFront()
     {
         T& ret_value = elems_[pop_index_];
@@ -952,6 +972,9 @@ struct ScSessionStruct
     // Scheduler id.
     scheduler_id_type scheduler_id_;
 
+    // Worker id.
+    worker_id_type gw_worker_id_;
+
     // Reset.
     void Reset()
     {
@@ -1049,6 +1072,9 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
+
+    // Worker id.
+    worker_id_type worker_id_;
 
     // Avoiding false sharing between workers.
     uint8_t pad[CACHE_LINE_SIZE];
@@ -1924,6 +1950,14 @@ public:
         return all_sockets_infos_unsafe_[socket_index].port_index_;
     }
 
+    // Getting worker id.
+    worker_id_type GetBoundWorkerId(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[socket_index].worker_id_;
+    }
+
     // Getting scheduler id.
     int32_t GetSchedulerId(session_index_type socket_index)
     {
@@ -2008,9 +2042,10 @@ public:
     bool ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id);
 
     // Creates new socket info.
-    void CreateNewSocketInfo(session_index_type socket_index, int32_t port_index)
+    void CreateNewSocketInfo(session_index_type socket_index, int32_t port_index, worker_id_type worker_id)
     {
         all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
+        all_sockets_infos_unsafe_[socket_index].worker_id_ = worker_id;
     }
 
     // Setting new unique socket number.

@@ -1126,7 +1126,7 @@ session_index_type Gateway::ObtainFreeSocketIndex(
         si->set_socket_proxy_connect_flag();
 
     // Creating new socket info.
-    CreateNewSocketInfo(si->read_only_index_, port_index);
+    CreateNewSocketInfo(si->read_only_index_, port_index, gw->get_worker_id());
 
     // Creating unique ids.
     GenerateUniqueSocketInfoIds(si->read_only_index_, gw->GenerateSchedulerId(db_index));

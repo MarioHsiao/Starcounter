@@ -15,7 +15,8 @@ namespace network {
 void SocketDataChunk::Init(
     session_index_type socket_info_index,
     db_index_type db_index,
-    core::chunk_index chunk_index)
+    core::chunk_index chunk_index,
+    worker_id_type bound_worker_id)
 {
     flags_ = 0;
 
@@ -53,6 +54,7 @@ void SocketDataChunk::Init(
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
     set_unique_socket_id(g_gateway.GetUniqueSocketId(socket_info_index));
+    set_bound_worker_id(bound_worker_id);
 
     num_chunks_ = 1;
 
@@ -298,6 +300,8 @@ uint32_t SocketDataChunk::CloneToPush(
     // TODO: Add support for linked chunks.
     GW_ASSERT(1 == get_num_chunks());
 
+#ifndef GW_MEMORY_MANAGEMENT
+
     core::chunk_index new_chunk_index;
     shared_memory_chunk* new_smc;
 
@@ -317,6 +321,18 @@ uint32_t SocketDataChunk::CloneToPush(
 
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_chunk_index);
+
+#else
+
+    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk();
+
+    (*new_sd)->CopyFromAnotherSocketData(this);
+
+    // Changing new chunk index.
+    (*new_sd)->set_chunk_index(INVALID_CHUNK_INDEX);
+
+#endif
+
     (*new_sd)->set_target_db_index(get_target_db_index());
 
     // Adjusting accumulative buffer.
@@ -347,8 +363,17 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     if (err_code)
         return err_code;
 
+#ifndef GW_MEMORY_MANAGEMENT
+
     // Copying chunk data.
     memcpy(new_db_smc, get_smc(), MixedCodeConstants::SHM_CHUNK_SIZE);
+
+#else
+
+    // Copying chunk data.
+    memcpy(new_db_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA, this, MixedCodeConstants::SHM_CHUNK_SIZE);
+
+#endif
 
     // Socket data inside chunk.
     (*new_sd) = (SocketDataChunk*)((uint8_t*)new_db_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
@@ -365,6 +390,8 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
     // Adjusting accumulative buffer.
     int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
     (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((uint8_t*) (*new_sd) + offset_bytes_from_sd, get_accum_buf());
+
+#ifndef GW_MEMORY_MANAGEMENT
 
     core::chunk_index prev_db_chunk_index = get_smc()->get_link();
     shared_memory_chunk* prev_db_smc;
@@ -392,6 +419,8 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
         prev_db_chunk_index = prev_db_smc->get_link();
     }
+
+#endif
 
     return 0;
 }
