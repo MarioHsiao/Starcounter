@@ -564,6 +564,8 @@ WorkerDbInterface::WorkerDbInterface(
     GW_COUT << GW_ENDL;
 #endif
 
+	// Signal to server that worker is available. Needed for server push.
+	shared_int_.client_interface().set_available();
 }
 
 // Registers push channels on all schedulers.

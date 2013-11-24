@@ -74,6 +74,7 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     return 0;
 }
 
+#if 0
 // Waits for BMX component to be ready.
 int32_t sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms)
 {
@@ -93,10 +94,11 @@ int32_t sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms)
             return g_bmx_data->get_num_remaining_push_channels();
     }
 
-    return 0;    
+    return 0;
 
     _SC_END_FUNC
 }
+#endif
 
 // Main message loop for incoming requests. Handles the 
 // dispatching of the message to the correct handler as 

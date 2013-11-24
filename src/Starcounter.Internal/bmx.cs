@@ -96,11 +96,13 @@ namespace Starcounter.Internal
             Diagnostics.ErrorHandlingCallback error_handling_callback
             );
 
+#if false
         /// <summary>
         /// Sc_wait_for_bmx_readies this instance.
         /// </summary>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static Int32 sc_wait_for_bmx_ready(UInt32 max_time_to_wait_ms);
+#endif
 
         /// <summary>
         /// sc_bmx_copy_all_chunks the specified chunk_index.

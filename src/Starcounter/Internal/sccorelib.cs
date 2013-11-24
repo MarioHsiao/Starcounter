@@ -501,6 +501,11 @@ namespace Starcounter.Internal
         internal const uint CM3_WAIT_FLAG_BLOCK_SCHED = 0x00000001;
 
         /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll")]
+        public extern static int fix_wait_for_gateway_available(uint timeout_milliseconds);
+
+        /// <summary>
         /// Gets the cpu count.
         /// </summary>
         /// <param name="handle">The handle.</param>

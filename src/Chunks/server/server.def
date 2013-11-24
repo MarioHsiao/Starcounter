@@ -15,3 +15,4 @@ EXPORTS
 	sc_acquire_shared_memory_chunk
 	sc_acquire_linked_shared_memory_chunks
     sc_acquire_linked_shared_memory_chunks_counted
+	server_get_clients_available

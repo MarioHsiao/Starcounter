@@ -153,6 +153,8 @@ void worker::start() {
 	}
 	
 	channel_[num_channels_] = invalid_channel_number;
+
+	shared().client_interface().set_available();
 	
 	std::cout << "worker[" << id() << "]: acquired " << acquired_chunks
 	<< " chunks, divided evenly over " << num_active_schedulers_
