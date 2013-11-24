@@ -1914,6 +1914,7 @@ uint32_t Gateway::Init()
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
 
+#if 0
     // Send registration request to the monitor and try to acquire an owner_id.
     // Without an owner_id we can not proceed and have to exit.
     // Get process id and store it in the monitor_interface.
@@ -1922,6 +1923,10 @@ uint32_t Gateway::Init()
     // Try to register gateway process pid. Wait up to 10000 ms.
     uint32_t err_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000/*ms*/);
     GW_ASSERT(0 == err_code);
+#else
+    gateway_pid_.set_current();
+	gateway_owner_id_ = 3;
+#endif
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
