@@ -797,8 +797,16 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
     // Returning gateway chunk if any.
     sd->ReturnGatewayChunk();
 
+#ifndef GW_MEMORY_MANAGEMENT
+
     // Returning current chunks to pool.
     worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
+
+#else
+
+    worker_chunks_.ReleaseChunk(sd);
+
+#endif
 
     // IMPORTANT: Preventing further usages of this socket data.
     sd = NULL;
@@ -1463,7 +1471,10 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Checking for socket data correctness.
                 GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
                 GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+
+#ifndef GW_MEMORY_MANAGEMENT
                 GW_ASSERT(INVALID_CHUNK_INDEX != sd->get_chunk_index());
+#endif
 
 #ifdef GW_LOOPED_TEST_MODE
                 oper_num_bytes = fetched_ovls[i].dwNumberOfBytesTransferred;
@@ -1732,6 +1743,8 @@ uint32_t GatewayWorker::CreateSocketData(
     if (NULL == db)
         return SCERRGWWRONGDATABASEINDEX;
 
+#ifndef GW_MEMORY_MANAGEMENT
+
     // Pop chunk index from private chunk pool.
     core::chunk_index chunk_index;
     shared_memory_chunk *smc;
@@ -1747,7 +1760,17 @@ uint32_t GatewayWorker::CreateSocketData(
     out_sd = (SocketDataChunk*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Initializing socket data.
-    out_sd->Init(socket_info_index, db_index, chunk_index);
+    out_sd->Init(socket_info_index, db_index, chunk_index, worker_id_);
+
+#else
+
+    // Obtaining chunk from gateway private memory.
+    out_sd = worker_chunks_.ObtainChunk();
+
+    // Initializing socket data.
+    out_sd->Init(socket_info_index, db_index, INVALID_CHUNK_INDEX, worker_id_);
+    
+#endif
 
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER << "Creating socket data: socket index " << out_sd->get_socket_info_index() << ":" << out_sd->get_unique_socket_id() << ":" << out_sd->get_chunk_index() << ":" << (uint64_t)out_sd << GW_ENDL;
@@ -1775,7 +1798,9 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     GW_ASSERT(INVALID_DB_INDEX != target_db_index);
 
     // Checking if we need to clone.
+#ifndef GW_MEMORY_MANAGEMENT
     if (target_db_index != 0)
+#endif
     {
         // Getting new chunk and copy contents from old one.
         SocketDataChunk* new_sd = NULL;

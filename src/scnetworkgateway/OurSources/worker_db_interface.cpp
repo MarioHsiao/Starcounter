@@ -92,19 +92,38 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             }
 
             // Process the chunk.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+            SocketDataChunk* sd;
 
-            // Checking for socket data correctness.
-            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+#ifndef GW_MEMORY_MANAGEMENT
 
-            // Initializing socket data that arrived from database.
-            sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+            sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
+            // Checking for correct chunks number.
             if (!smc->is_terminated())
                 GW_ASSERT(sd->get_num_chunks() > 1);
             else
                 GW_ASSERT(sd->get_num_chunks() == 1);
-            
+
+            // Initializing socket data that arrived from database.
+            sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+
+#else
+            // Allowing only one chunk.
+            GW_ASSERT(smc->is_terminated());
+
+            sd = gw->GetWorkerChunks()->ObtainChunk();
+            sd->CopyFromSharedMemoryChunk(smc);
+
+            // Releasing management chunks.
+            ReturnLinkedChunksToPool(1, cur_chunk_index);
+
+            // Initializing socket data that arrived from database.
+            sd->PreInitSocketDataFromDb(db_index_, INVALID_CHUNK_INDEX);
+#endif
+
+            // Checking for socket data correctness.
+            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
 
             // Changing number of used chunks.
@@ -314,6 +333,8 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(uint16_t num_linked_chunks, cor
         // TODO: Uncomment when centralized chunks are ready!
         //GW_ASSERT(0 == err_code);
     }
+
+    first_linked_chunk = INVALID_CHUNK_INDEX;
 }
 
 // Releases all private chunks to shared chunk pool.
