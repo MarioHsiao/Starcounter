@@ -648,8 +648,10 @@ namespace bmx
 }  // namespace bmx
 }; // namespace starcounter
 
+#if 0
 // Waits for BMX manager to be ready.
 EXTERN_C int32_t __stdcall sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms);
+#endif
 
 // Handles all incoming chunks.
 EXTERN_C uint32_t __stdcall sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);

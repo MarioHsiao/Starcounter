@@ -550,8 +550,13 @@ WorkerDbInterface::WorkerDbInterface(
     channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
-    bool shared_int_acquired = shared_int_.acquire_client_number();
+    bool shared_int_acquired = shared_int_.acquire_client_number2(worker_id);
     GW_ASSERT(true == shared_int_acquired);
+
+#if 0
+	bool shared_int_acquired = shared_int_.acquire_client_number();
+    GW_ASSERT(true == shared_int_acquired);
+#endif
 
 #ifdef GW_DATABASES_DIAG
     // Diagnostics.
@@ -562,8 +567,14 @@ WorkerDbInterface::WorkerDbInterface(
     // Acquiring unique channel for each scheduler.
     for (int32_t s = 0; s < num_schedulers_; ++s)
     {
+		channels_[s] = (worker_id * num_schedulers_) + s;
+        bool channel_acquired = shared_int_.acquire_channel2(channels_[s], static_cast<core::scheduler_number> (s));
+        GW_ASSERT(true == channel_acquired);
+
+#if 0
         bool channel_acquired = shared_int_.acquire_channel(&channels_[s], static_cast<core::scheduler_number> (s));
         GW_ASSERT(true == channel_acquired);
+#endif
 
 #ifdef GW_DATABASES_DIAG
         GW_COUT << channels_[s] << ", ";
@@ -574,6 +585,8 @@ WorkerDbInterface::WorkerDbInterface(
     GW_COUT << GW_ENDL;
 #endif
 
+	// Signal to server that worker is available. Needed for server push.
+	shared_int_.client_interface().set_available();
 }
 
 // Registers push channels on all schedulers.
