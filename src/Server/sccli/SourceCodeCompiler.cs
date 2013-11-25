@@ -56,22 +56,6 @@ namespace star {
                 GenerateInMemory = false
             };
 
-            /*
-             * Backlog before 530-push.
-             * 
-             * A)
-               make a nicer/minimal output when running scripts!
-
-            B)
-            Fix temporary storage compiler (and delete file).
-            Change so that we delete the temporary files from
-            the compiler!
-
-            C)
-            Fix always restart w/ scripts
-             */
-
-
             parameters.TempFiles = new TempFileCollection(Path.GetTempPath(), false);
             
             var temporaryDiskExePath = Path.GetRandomFileName();
