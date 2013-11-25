@@ -20,7 +20,7 @@ namespace Starcounter {
 			if (this.IsArray) {
 				var tjson = (TObjArr)Template;
 				this.ArrayAddsAndDeletes = null;
-				tjson.Checkpoint(this);
+				tjson.Checkpoint(this.Parent);
 			} else {
 				var tjson = (TObject)Template;
 				for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
@@ -124,13 +124,16 @@ namespace Starcounter {
 								// Added this code to make current implementation work.
 								// Probably not the correct place to do it though, both
 								// for readability and speed.
-								//if (childTemplate is TContainer) {
-								//	var childJson = (Json)this.Get(childTemplate);
-								//	if (childJson != null){
-								//		childJson.SetBoundValuesInTuple();
-								//		childJson.CheckpointChangeLog();
-								//	}
-								//}
+								Json childJson = null;
+								if (childTemplate is TObjArr) 
+									childJson = this.Get((TObjArr)childTemplate);
+								else if (childTemplate is TObject)
+									childJson = this.Get((TObject)childTemplate);									
+
+								if (childJson != null) {
+									childJson.SetBoundValuesInTuple();
+									childJson.CheckpointChangeLog();
+								}
 							}
 						}
 						CheckpointAt(exposed[t].TemplateIndex);

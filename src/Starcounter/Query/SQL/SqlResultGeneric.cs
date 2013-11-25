@@ -20,7 +20,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult<T> : Rows<T>, IEnumerable, IEnumerable<T> {
+    public class QueryResultRows<T> : Rows<T>, IEnumerable, IEnumerable<T> {
 
 
 
@@ -30,7 +30,7 @@ namespace Starcounter
         protected Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
 
         // Creating SQL result with query parameters all given at once.
-        internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues) {
+        internal QueryResultRows(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues) {
             this.transactionId = transactionId;
             this.query = query;
             this.slowSQL = slowSQL;
@@ -65,14 +65,6 @@ namespace Starcounter
             return GetEnumerator();
         }
 
-        /// <summary>
-        /// Checks if an enumerator for the query cached and
-        /// if not then creates and caches an enumerator.
-        /// </summary>
-        internal void CacheExecutionEnumerator() {
-            Scheduler.GetInstance().SqlEnumCache.CacheEnumerator<T>(query);
-        }
-
         internal IExecutionEnumerator GetExecutionEnumerator() {
             IExecutionEnumerator execEnum = null;
 #if true // TODO: Lucent objects.
@@ -88,7 +80,7 @@ namespace Starcounter
                 //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
 #endif
             try {
-                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(query);
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(query, slowSQL, sqlParams);
 
                 // Check if the query includes anything non-supported.
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {

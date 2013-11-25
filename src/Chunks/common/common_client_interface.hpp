@@ -62,12 +62,14 @@ public:
 	// The size type. (An unsigned integral type that can represent any non-
 	// negative value of the container's distance type.)
 	typedef typename queue_type::size_type size_type;
-	
+
+#if 0	
 	enum state {
 		normal,
 		database_terminated_gracefully,
 		database_terminated_unexpectedly
 	};
+#endif
 	
 	// Construction/Destruction.
 	
@@ -83,13 +85,16 @@ public:
 	 */
 	explicit common_client_interface(const char* segment_name)
 	: client_number_pool_(segment_name),
+#if 0
 	state_(normal),
+#endif
 	client_interfaces_to_clean_up_(0) {}
 	
 	queue_type& client_number_pool() {
 		return client_number_pool_;
 	}
-	
+
+#if 0	
 	/// The monitor sets the state to database_terminated_unexpectedly if it
 	/// detects that the database process exit without having unregistered. This
 	/// indicates a database crash.
@@ -116,6 +121,7 @@ public:
 	state database_state() const {
 		return state_;
 	}
+#endif
 	
 	/// Get number of client interfaces to clean up.
 	/**
@@ -176,15 +182,19 @@ private:
 	char cache_line_pad_0_[CACHE_LINE_SIZE
 	-(sizeof(queue_type) % CACHE_LINE_SIZE) // client_number_pool_
 	];
-	
+
+#if 0	
 	// Database state.
 	volatile state state_;
+#endif
 	
 	// Number of client interfaces to clean up.
 	volatile uint32_t client_interfaces_to_clean_up_;
 	
 	char cache_line_pad_1_[CACHE_LINE_SIZE
+#if 0
 	-sizeof(state) // state_
+#endif
 	-sizeof(uint32_t) // client_interfaces_to_clean_up_
 	];
 };

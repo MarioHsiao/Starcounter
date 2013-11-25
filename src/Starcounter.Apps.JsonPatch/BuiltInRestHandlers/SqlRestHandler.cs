@@ -271,7 +271,7 @@ namespace Starcounter.Internal {
 
             try {
 
-                SqlResult<dynamic> sqlResult = Db.SlowSQL(query);
+                QueryResultRows<dynamic> sqlResult = Db.SlowSQL(query);
 
                 if (sqlResult != null) {
                     sqle = (Starcounter.SqlEnumerator<object>)sqlResult.GetEnumerator();

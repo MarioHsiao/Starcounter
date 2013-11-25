@@ -129,6 +129,7 @@ uint32_t __stdcall sc_bmx_clone_chunk(
     // Acquiring new chunk.
     uint8_t* new_chunk_buf;
     err_code = cm_acquire_shared_memory_chunk(new_chunk_index, &new_chunk_buf);
+    _SC_ASSERT(err_code == 0);
     if (err_code)
         return err_code;
 
@@ -155,6 +156,8 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 {
     // Maximum number of bytes that will be written in this call.
     int32_t num_bytes_left_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    _SC_ASSERT(num_bytes_left_first_chunk > 0);
+    _SC_ASSERT(num_bytes_left_first_chunk + first_chunk_offset == starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
 
     // Getting chunk memory address.
     uint8_t* cur_smc;
@@ -254,6 +257,7 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     {
         // Getting next chunk in chain.
         the_chunk_index = ((shared_memory_chunk*)cur_smc)->get_link();
+        _SC_ASSERT(the_chunk_index != shared_memory_chunk::link_terminator);
         _SC_ASSERT(the_chunk_index < starcounter::MixedCodeConstants::SHM_CHUNKS_DEFAULT_NUMBER);
 
         // Getting chunk memory address.
