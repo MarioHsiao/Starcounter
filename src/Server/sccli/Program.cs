@@ -157,12 +157,14 @@ namespace star {
             // The file exist. Check what kind of file we are dealing 
             // with here.
             var applicationFilePath = filePath;
+            bool sourceCodeInput = false;
 
             if (Path.GetExtension(filePath).Equals(".cs", StringComparison.InvariantCultureIgnoreCase)) {
                 try {
                     var sourceCode = filePath;
                     SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, out filePath);
                     applicationFilePath = sourceCode;
+                    sourceCodeInput = true;
                 } catch (Exception experimental) {
                     SharedCLI.ShowErrorAndSetExitCode(
                         ErrorCode.ToMessage(Error.SCERRUNSPECIFIED, experimental.ToString()), true);
@@ -188,7 +190,21 @@ namespace star {
             // Turn to the shared CLI library to do the bulk of the
             // work executing.
 
-            ExeCLI.StartOrStop(filePath, appArgs, applicationFilePath, userArgs);
+            try {
+                ExeCLI.StartOrStop(filePath, appArgs, applicationFilePath, userArgs);
+            } finally {
+                // Delete the temporary executable if we have executed
+                // from a script being given.
+                if (sourceCodeInput) {
+                    try {
+                        File.Delete(filePath);
+                    } catch (Exception e) {
+                        if (SharedCLI.Verbose) {
+                            Console.WriteLine("Failed deleting temporary assembly file: {0}.", e.Message);
+                        }
+                    }
+                }
+            }
         }
 
         static void ShowVersionInfo() {

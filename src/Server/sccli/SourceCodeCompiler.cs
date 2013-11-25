@@ -56,13 +56,31 @@ namespace star {
                 GenerateInMemory = false
             };
 
-            // Improved way of dealing with temporary output. Initial strategy
-            // is to store it on disk (temp folder), and delete it once the
-            // host says the weaved version is loaded.
-            // TODO:
+            /*
+             * Backlog before 530-push.
+             * 
+             * A)
+               make a nicer/minimal output when running scripts!
 
-            parameters.TempFiles = new TempFileCollection(@".\.temp", true);
-            parameters.OutputAssembly = Path.GetFullPath(string.Format(@".\.out\{0}.exe", Path.GetFileNameWithoutExtension(sourceCode)));
+            B)
+            Fix temporary storage compiler (and delete file).
+            Change so that we delete the temporary files from
+            the compiler!
+
+            C)
+            Fix always restart w/ scripts
+             */
+
+
+            parameters.TempFiles = new TempFileCollection(Path.GetTempPath(), false);
+            
+            var temporaryDiskExePath = Path.GetRandomFileName();
+            temporaryDiskExePath += Guid.NewGuid().ToString();
+            temporaryDiskExePath += ".exe";
+            temporaryDiskExePath = Path.Combine(parameters.TempFiles.TempDir, temporaryDiskExePath);
+            parameters.TempFiles.AddFile(temporaryDiskExePath, true);
+
+            parameters.OutputAssembly = temporaryDiskExePath;
             
             // As for assemblies, we'll start with a strategy where we add
             // all Starcounter assemblies comprising the default reference set
@@ -88,6 +106,14 @@ namespace star {
                 }
                 throw new Exception("Errors compiling!");
             }
+
+            // Clean up all temporary files produced that are still
+            // around and marked OK to delete; our executable will
+            // is marked to remain. We'll delete it after we have
+            // executed.
+
+            result.TempFiles.Delete();
+
             assemblyPath = result.PathToAssembly;
         }
 
