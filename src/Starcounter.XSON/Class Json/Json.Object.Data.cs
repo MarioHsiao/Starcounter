@@ -181,9 +181,10 @@ namespace Starcounter {
 			if (template != null) {
 				if (template.BindingStrategy != BindingStrategy.Unbound) {
 					var parent = ((Json)this.Parent);
-					if (!readOperation && parent != null && template.UseBinding(parent)) {
-						throw new NotImplementedException();
-						//					((DataValueBinding<IBindable>)template.dataBinding).Set(parent.DataAsBindable, data);
+					if (!readOperation && parent != null 
+						&& template.UseBinding(parent) 
+						&& template.BoundSetter != null) {
+						template.BoundSetter(parent, data);
 					}
 				}
 
