@@ -105,7 +105,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             LogWriter.WriteLine("NOTICE: Checking for new versions to build.");
 
-            var sources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=?", false);
+            var sources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=?", true);
 
             VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
