@@ -58,7 +58,15 @@
 
 typedef struct _sc_io_event
 {
-	unsigned long channel_index_;
+	unsigned long client_index_;
+
+	//
+	// Server has no need for channel index so we don't output this (yes, this
+	// is a bit inconsistent with the interface since send takes the channel
+	// index and not the client index).
+	//
+//	unsigned long channel_index_;
+
 	unsigned long chunk_index_;
 } sc_io_event;
 
@@ -522,7 +530,8 @@ sc_io_event& the_io_event) try {
 	while (true) {
 		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
-			the_io_event.channel_index_ = invalid_channel_number;
+			the_io_event.client_index_ = no_client_number;
+//			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
 			return 0;
 		}
@@ -531,7 +540,8 @@ sc_io_event& the_io_event) try {
 		if (this_scheduler_task_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
 			// Got an internal message from some scheduler.
-			the_io_event.channel_index_ = invalid_channel_number;
+			the_io_event.client_index_ = no_client_number;
+//			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
 			return 0;
 		}
@@ -798,7 +808,8 @@ check_next_channel:
 						the_channel.add_server_ref();
 #endif
 
-						the_io_event.channel_index_ = this_channel;
+						the_io_event.client_index_ = the_channel.get_client_number();
+//						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
 						
 						// Successfully fetched a message from the given channel.
