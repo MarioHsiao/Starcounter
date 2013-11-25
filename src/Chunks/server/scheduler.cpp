@@ -299,23 +299,7 @@ public:
 	 * @return 0 on success otherwise error.
 	 */
     unsigned long release_linked_chunks(chunk_index start_chunk_index);
-	
-	//--------------------------------------------------------------------------
-	/// client_release_linked_chunks() is used by the scheduler to do the clean
-	/// up, releasing chunks of a client_interface. The pointer to the
-	/// client_interface is obtained via a channel and must belong to a client
-	/// that has terminated. This function is only used during clean up.
-	/**
-	 * @param client_interface_ptr A pointer to the client_interface where the
-	 *		chunk is marked as owned.
-	 * @param timeout_milliseconds The number of milliseconds to wait before a
-	 *		timeout may occur. TODO: implement timeout_milliseconds!?
-	 * @return false if failing to release the chunk_index. It can happen if the
-	 *		lock of the queue was not obtained.
-	 */
-	bool release_clients_chunks(client_interface_type* client_interface_ptr,
-	uint32_t timeout_milliseconds = 10000);
-	
+
 	//--------------------------------------------------------------------------
 	/// Scheduler's call release_channel_number() after they see that the
 	/// channel is marked "to be released."
@@ -1312,72 +1296,12 @@ void server_port::acquire_chunk_index(unsigned long& the_chunk_index)
 
 unsigned long server_port::acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk_index, unsigned long needed_size)
 {
-	channel_type& the_channel = channel_[channel_number];
-	//uint64_t the_owner_id = the_channel.get_owner_id().get_owner_id();
 	lldiv_t div_value = div((int64_t)needed_size, (int64_t)chunk_type::static_data_size);
-	uint32_t needed_chunks = div_value.quot;
-	if (div_value.rem != 0) needed_chunks++;
+	uint32_t num_needed_chunks = div_value.quot;
+	if (div_value.rem != 0)
+        num_needed_chunks++;
 
-	uint8_t* current_chunk = (uint8_t*)&chunk_[start_chunk_index];
-	chunk_index head;
-	
-	if (needed_chunks < a_bunch_of_chunks) {
-try_to_acquire_from_private_chunk_pool:
-		// Try to acquire the linked chunks from the private chunk_pool.
-		
-		if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks
-		(&chunk(0), head, needed_size, the_channel.client()) == true) {
-			// Successfully acquired the linked chunks from the private
-			// chunk_pool. Link chunk[start_chunk_index] to head.
-			chunk(start_chunk_index).set_link(head);
-			return 0;
-		}
-		else {
-			// Failed to acquire the linked chunks from the private chunk_pool.
-			// Try to move some chunks from the shared_chunk_pool to the private
-			// chunk_pool.
-			while (this_scheduler_interface_->chunk_pool().size()
-			< needed_chunks) {
-				// Failed to move enough chunks. Retry, potentially blocking
-				// this thread forever. TODO: Consider returning with an error
-				// code, or bool to indicate success/failure.
-				std::size_t chunks_to_move = needed_chunks;
-				
-				// Make sure at least a_bunch_of_chunks is moved.
-				if (chunks_to_move < a_bunch_of_chunks) {
-					chunks_to_move = a_bunch_of_chunks;
-				}
-				
-				shared_chunk_pool_->acquire_to_chunk_pool
-				(this_scheduler_interface_->chunk_pool(), chunks_to_move,
-				10000 /* timeout ms */);
-			}
-			
-			// Successfully moved enough chunks to the private chunk_pool.
-			// Retry acquire the linked chunks from there.
-			goto try_to_acquire_from_private_chunk_pool;
-		}
-	}
-	else {
-		// Try to acquire the linked chunks from the shared_chunk_pool.
-		
-		while (!shared_chunk_pool_->acquire_linked_chunks(&chunk(0), head,
-		needed_size, the_channel.client(), 10000 /* timeout ms */)) {
-
-            // NOTE: Returning error immediately if chunks can't be obtained.
-            return SCERRACQUIRELINKEDCHUNKS;
-
-			// Failed to acquire the linked chunks from the shared_chunk_pool.
-			// Retry, potentially blocking this thread forever. TODO: Consider
-			// returning with an error code, or bool to indicate success/
-			// failure.
-		}
-		
-		// Successfully acquired the linked chunks from the shared_chunk_pool.
-		// Link chunk[start_chunk_index] to head.
-		chunk(start_chunk_index).set_link(head);
-		return 0;
-	}
+    return acquire_linked_chunk_indexes_counted(channel_number, start_chunk_index, num_needed_chunks);
 }
 
 unsigned long server_port::acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index)
@@ -1385,10 +1309,9 @@ unsigned long server_port::acquire_one_chunk(unsigned long channel_number, chunk
     channel_type& the_channel = channel_[channel_number];
 
 try_to_acquire_from_private_chunk_pool:
-    // Try to acquire the linked chunks from the private chunk_pool.
 
-    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted
-        (&chunk(0), *out_chunk_index, 1, the_channel.client()) == true)
+    // Try to acquire the linked chunks from the private chunk_pool.
+    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), *out_chunk_index, 1, the_channel.client()))
     {
         // Successfully acquired the linked chunks from the private chunk_pool.
         return 0;
@@ -1398,9 +1321,11 @@ try_to_acquire_from_private_chunk_pool:
         // Failed to acquire the linked chunks from the private chunk_pool.
         // Try to move some chunks from the shared_chunk_pool to the private
         // chunk_pool.
-        shared_chunk_pool_->acquire_to_chunk_pool(
-            this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks,
-			10000 /* timeout ms */);
+        while (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */))
+        {
+            // NOTE: Waiting until chunk is available.
+            Sleep(1);
+        }
 
         // Successfully moved enough chunks to the private chunk_pool.
         // Retry acquire the linked chunks from there.
@@ -1413,62 +1338,29 @@ unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long ch
 	channel_type& the_channel = channel_[channel_number];
 	chunk_index head;
 	
-	if (num_chunks < a_bunch_of_chunks) {
 try_to_acquire_from_private_chunk_pool:
-		// Try to acquire the linked chunks from the private chunk_pool.
-		
-		if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted
-		(&chunk(0), head, num_chunks, the_channel.client()) == true) {
-			// Successfully acquired the linked chunks from the private
-			// chunk_pool. Link chunk[start_chunk_index] to head.
-			chunk(start_chunk_index).set_link(head);
-			return 0;
-		}
-		else {
-			// Failed to acquire the linked chunks from the private chunk_pool.
-			// Try to move some chunks from the shared_chunk_pool to the private
-			// chunk_pool.
-			while (this_scheduler_interface_->chunk_pool().size()
-			< num_chunks) {
-				// Failed to move enough chunks. Retry, potentially blocking
-				// this thread forever. TODO: Consider returning with an error
-				// code, or bool to indicate success/failure.
-				std::size_t chunks_to_move = num_chunks;
-				
-				// Make sure at least a_bunch_of_chunks is moved.
-				if (chunks_to_move < a_bunch_of_chunks) {
-					chunks_to_move = a_bunch_of_chunks;
-				}
-				
-				shared_chunk_pool_->acquire_to_chunk_pool
-				(this_scheduler_interface_->chunk_pool(), chunks_to_move,
-				10000 /* timeout ms */);
-			}
-			
-			// Successfully moved enough chunks to the private chunk_pool.
-			// Retry acquire the linked chunks from there.
-			goto try_to_acquire_from_private_chunk_pool;
-		}
-	}
-	else {
-		// Try to acquire the linked chunks from the shared_chunk_pool.
-		
-		while (!shared_chunk_pool_->acquire_linked_chunks_counted(&chunk(0), head,
-		num_chunks, the_channel.client(), 10000 /* timeout ms */)) {
 
-            // NOTE: Returning error immediately if chunks can't be obtained.
-            return SCERRACQUIRELINKEDCHUNKS;
-
-			// Failed to acquire the linked chunks from the shared_chunk_pool.
-			// Retry, potentially blocking this thread forever. TODO: Consider
-			// returning with an error code, or bool to indicate success/
-			// failure.
-		}
-		
-		// Successfully acquired the linked chunks from the shared_chunk_pool.
-		// Link chunk[start_chunk_index] to head.
+    // First trying to fetch from private chunk pool.
+	if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), head, num_chunks, the_channel.client()))
+    {
+		// Successfully acquired the linked chunks from the private
+		// chunk_pool. Link chunk[start_chunk_index] to head.
 		chunk(start_chunk_index).set_link(head);
+
 		return 0;
+	}
+    else
+    {
+        // Getting a bunch of chunks to private pool.
+        while (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */))
+        {
+            // NOTE: Waiting until chunk is available.
+            Sleep(1);
+        }
+
+        // Successfully moved enough chunks to the private chunk_pool.
+        // Retry acquire the linked chunks from there.
+        goto try_to_acquire_from_private_chunk_pool;
 	}
 }
 
@@ -1488,12 +1380,6 @@ unsigned long server_port::release_linked_chunks(chunk_index start_chunk_index)
     }
 
     return 0;
-}
-
-bool server_port::release_clients_chunks(client_interface_type*
-client_interface_ptr, uint32_t timeout_milliseconds) {
-	return shared_chunk_pool_->release_clients_chunks(client_interface_ptr,
-	timeout_milliseconds);
 }
 
 bool server_port::release_channel_number(channel_number the_channel_number,
@@ -1625,63 +1511,6 @@ void sc_release_channel(void *port, unsigned long the_channel_index)
 	server_port *the_port = (server_port *)port;
 	the_port->release_channel(the_channel_index);
 }
-
-#if 0
-unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_id, unsigned long *pchunk_index)
-{
-	using namespace starcounter::core;
-
-	server_port* the_port = (server_port*)port;
-	
-	//the_port->acquire_chunk_index(*pchunk_index); // Obsolete API.
-
-	// acquire_chunk_index() is an obsolete API. Use:
-	//
-	//	bool result = the_port->acquire_linked_chunks(chunk_index& head,
-	//	std::size_t size, client_interface_type* client_interface_ptr,
-	//	uint32_t timeout_milliseconds = 10000);
-	//
-	// if the number of chunks to allocate are, say, 64 or more. Experiment with
-	// a suitable treshold.
-	//
-	// If need to allocate less chunks than the treshold (64, etc.), then
-	// instead allocate the chunks from the private chunk_pool found in this
-	// scheduler's scheduler_interface, which is much faster:
-	//
-	//	bool result =
-	//	this_scheduler_interface_->chunk_pool().acquire_linked_chunks
-	//	(&chunk(0), head, 65536 /*bytes*/, the_channel.client())
-	//
-	// If the private chunk_pool is empty, move chunks from the
-	// shared_chunk_pool to the private chunk_pool with:
-	//
-	//	// Acquiring from shared_chunk_pool to private chunk_pool.
-	//	shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->
-	//	chunk_pool(), 256, 1000);
-	//
-	// See example how to: acquire_to_chunk_pool(), release_from_chunk_pool(),
-	// acquire_linked_chunks(), and release_linked_chunks()
-	// in server_port::send_to_client().
-	
-	// reference used as shorthand
-	channel_type& the_channel = the_port->channel(channel_id);
-	
-	chunk_index head;
-
-	// IMPORTANT NOTE: The caller must know which channel these chunks are
-	// targeted for, because the chunks are marked as owned by the client that
-	// owns the channel the chunks are targeted for. If channel_id is not the
-	// channel that these chunks will be sent to, then that is a severe bug. 
-	while (!the_port->acquire_linked_chunks(head, 1, the_channel.client())) {
-		// Wait forever until acquiring a chunk, simulating the old code.
-		// An alternative is to set the fourth argument timeout_milliseconds and
-		// give up if failed to acquire the chunk(s).
-	}
-	
-	*pchunk_index = head;
-	return 0;
-}
-#endif
 
 unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index)
 {

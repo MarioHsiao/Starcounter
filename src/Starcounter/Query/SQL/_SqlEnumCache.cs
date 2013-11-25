@@ -124,9 +124,7 @@ public sealed class SqlEnumCache
                 return -1;
             enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
             if (totalCachedEnum == 0) { // Cache was reset
-                enumIndex = globalQueryCache.GetEnumIndex(query);
-                if (enumIndex < 0)
-                    enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
+                enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
             }
         }
         return enumIndex;

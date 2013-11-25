@@ -55,8 +55,8 @@ namespace QueryProcessingTest {
                     "Obtaining enumerator and move next with no dispose on ");
 #endif
                 GC.WaitForFullGCComplete(1000);
-                HelpMethods.LogEvent("Finished benchmark of query cache");
             }
+            HelpMethods.LogEvent("Finished benchmark of query cache");
         }
 
         public static void BenchmarkAction(int nrSchedulers, int nrIterations, Action work, String prefix) {
