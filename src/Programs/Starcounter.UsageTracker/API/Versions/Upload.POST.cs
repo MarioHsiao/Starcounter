@@ -52,6 +52,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         return 404;
 
                     Byte[] bodyBytes = req.BodyBytes;
+                    UInt64 checkSum = 0;
+                    for (Int32 i = 0; i < bodyBytes.Length; i++)
+                        checkSum += bodyBytes[i];
+
                     FileStream fs = uploadedFiles[uploadId];
                     fs.Write(bodyBytes, 0, bodyBytes.Length);
                     if (req["UploadSettings"] == "Final")
@@ -71,17 +75,23 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                             // Trigger unpacker worker.
                             VersionHandlerApp.UnpackWorker.Trigger();
-
-                            return (ushort)System.Net.HttpStatusCode.NoContent;
                         }
                         catch (Exception e)
                         {
-                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = "Failed to handle the package. " + e.ToString() };
+                            return new Response()
+                            {
+                                StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError,
+                                Body = "Failed to handle the package. " + e.ToString()
+                            };
                         }
                     }
-                }
 
-                return (ushort)System.Net.HttpStatusCode.NoContent;
+                    return new Response()
+                    {
+                        StatusCode = (ushort)System.Net.HttpStatusCode.NoContent,
+                        Body = checkSum.ToString()
+                    };
+                }
             });
         }
     }

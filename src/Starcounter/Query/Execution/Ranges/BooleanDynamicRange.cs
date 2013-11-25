@@ -77,12 +77,12 @@ internal class BooleanDynamicRange : DynamicRange, IDynamicRange
         {
             if (!(conditionList[i] is IComparison))
             {
-                break;
+                continue;
             }
             rangePoint = (conditionList[i] as IComparison).CreateRangePoint(extentNumber, strPath);
             if (rangePoint == null)
             {
-                break;
+                continue;
             }
             if (!(rangePoint is BooleanRangePoint))
             {

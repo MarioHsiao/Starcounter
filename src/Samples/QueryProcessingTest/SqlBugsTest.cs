@@ -8,6 +8,7 @@ using Starcounter.Metadata;
 namespace QueryProcessingTest {
     public static class SqlBugsTest {
         public static void QueryTests() {
+            TestConjunctionBug1350();
             TestFetchOrderBy();
             TestLike();
             TestProjectionName();
@@ -38,7 +39,7 @@ namespace QueryProcessingTest {
             int nrs = 0;
             var accounts = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
             Account acc = (Account)accounts.First;
-            SqlResult<dynamic> aquery = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
+            QueryResultRows<dynamic> aquery = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
             foreach (var a in aquery) {
                 amounts += a.Amount;
                 nrs++;
@@ -274,9 +275,63 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Finished testing queries on comparison bug");
         }
 
+        public static void TestConjunctionBug1350() {
+            HelpMethods.LogEvent("Start testing queries on conjunction bug (1350)");
+            int nrs = 0;
+            foreach (Account a in Db.SlowSQL<Account>("select a from account a where accounttype = ? and notactive = ?",
+                DataPopulation.DAILYACCOUNT, false)) {
+                    Trace.Assert(!a.NotActive);
+                    Trace.Assert(a.AccountType == DataPopulation.DAILYACCOUNT);
+                    nrs++;
+            }
+            Trace.Assert(nrs == 30000);
+            string dailyChannel = "DailyBuilds";
+            string nightlyChannel = "NightlyBuilds";
+            Db.Transaction(delegate {
+                new VersionSource {
+                    BuildError = false,
+                    Channel = nightlyChannel,
+                    Version = "2.0.1191.3",
+                    VersionDate = new DateTime(2013, 11, 16, 01, 00, 00)
+                };
+                new VersionSource {
+                    BuildError = false,
+                    Channel = nightlyChannel,
+                    Version = "2.0.1197.3",
+                    VersionDate = new DateTime(2013, 11, 18, 08, 29, 00)
+                };
+                new VersionSource {
+                    BuildError = false,
+                    Channel = dailyChannel,
+                    Version = "2.0.5823.2",
+                                    VersionDate = new DateTime(2013, 11, 18, 22, 25, 00) };
+                new VersionSource {
+                    BuildError = false, Channel = dailyChannel, Version = "2.0.5835.2",
+                 VersionDate = new DateTime(2013, 11, 19, 12, 25, 00) };
+                new VersionSource { BuildError = false, Channel = dailyChannel, Version = "2.0.5837.2",
+                    VersionDate = new DateTime(2013, 11, 19, 15, 00, 00) };
+            });
+            var vsources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=?",
+                dailyChannel, false).GetEnumerator();
+            nrs = 0;
+            while (vsources.MoveNext()){
+                VersionSource v = vsources.Current;
+                Trace.Assert(v.Channel == dailyChannel);
+                Trace.Assert(!v.BuildError);
+                nrs++;
+            }
+            Trace.Assert(nrs == 3);
+            VersionSource latest = Db.SQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=? order by versiondate desc",
+                dailyChannel, false).First;
+            Trace.Assert(latest != null);
+            Trace.Assert(latest.Channel == dailyChannel);
+            Trace.Assert(!latest.BuildError);
+            HelpMethods.LogEvent("Finished testing queries on conjunction bug (1350)");
+        }
+
         public static void TestEnumerators() {
             HelpMethods.LogEvent("Test enumerator related bugs");
-            SqlResult<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
+            QueryResultRows<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
             Type t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
             t = accounts.First.GetType();
