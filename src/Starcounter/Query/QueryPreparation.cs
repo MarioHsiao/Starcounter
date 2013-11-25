@@ -16,7 +16,17 @@ namespace Starcounter.Query {
         /// </summary>
         /// <param name="query">Input query string to prepare</param>
         /// <returns>The result enumerated with the execution plan.</returns>
-        internal static IExecutionEnumerator PrepareQuery<T>(String query) {
+        internal static IExecutionEnumerator PrepareOrExecuteQuery<T>(String query, bool slowSql, params Object[] values) {
+#if !PROLOG_ONLY // Run Bison-based native SQL processor
+            Exception nativeException = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
+            if (nativeException == null)
+                return null; // The query was executed
+#endif // !PROLOG_ONLY
+#if BISON_ONLY
+            if (nativeException != null)
+                throw nativeException;
+            Debug.Assert(false); // Should not be reached
+#endif
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
             Exception prologException = null;
@@ -26,23 +36,32 @@ namespace Starcounter.Query {
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
                 answer = PrologManager.CallProlog(QueryModule.DatabaseId, query);
-            } catch (SqlException e) {
-                prologException = e;
+            } catch (SqlException ex) {
+                try {
+                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, slowSql, values))
+                        return null; // The query was executed.
+                } catch (Exception e) {
+                    if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))
+                        prologException = e;
+                        //throw;
+                }
+                //throw;
+                if (prologException == null)
+                    prologException = ex;
             }
-            // Transfer answer terms into pre-optimized structures
-            if (prologException == null)
-                optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
-#endif
-            // Call to Bison parser and type checker
+            if (prologException != null) {
 #if !PROLOG_ONLY
-            uint err = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
-            Debug.Assert(err == 0);
-            if (prologException != null)
-                throw prologException;
+                if (nativeException != null)
+                    if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED)
+                        throw nativeException;
 #endif //!PROLOG_ONLY
-#if BISON_ONLY
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Semantic analyzer is not implemented for this type of query parsed by Bison");
-#endif // BISON_ONLY
+                throw prologException;
+            }
+
+            // Transfer answer terms into pre-optimized structures
+            Debug.Assert(prologException == null);
+            optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
+#endif
             // Call to optimizer of Prolog result
             if (optArgsProlog != null)
                 prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
@@ -53,7 +72,7 @@ namespace Starcounter.Query {
 
             // Checking if its LikeExecEnumerator.
             if (newEnum is LikeExecEnumerator) {
-                (newEnum as LikeExecEnumerator).CreateLikeCombinations<T>();
+                (newEnum as LikeExecEnumerator).CreateLikeCombinations<T>(query, slowSql, values);
             }
             MatchEnumeratorResultAndExpectedType<T>(newEnum);
             return newEnum;

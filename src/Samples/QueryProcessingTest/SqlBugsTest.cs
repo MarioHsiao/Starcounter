@@ -39,7 +39,7 @@ namespace QueryProcessingTest {
             int nrs = 0;
             var accounts = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
             Account acc = (Account)accounts.First;
-            SqlResult<dynamic> aquery = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
+            QueryResultRows<dynamic> aquery = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
             foreach (var a in aquery) {
                 amounts += a.Amount;
                 nrs++;
@@ -331,7 +331,7 @@ namespace QueryProcessingTest {
 
         public static void TestEnumerators() {
             HelpMethods.LogEvent("Test enumerator related bugs");
-            SqlResult<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
+            QueryResultRows<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
             Type t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
             t = accounts.First.GetType();
