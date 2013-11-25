@@ -130,8 +130,8 @@ namespace Starcounter.Templates {
 			}
 
 			if (value != null) {
-				if (UseBinding(parent))
-					BoundSetter(parent, value);
+				if (UseBinding(parent) && BoundSetter != null)
+					BoundSetter(parent, value.Data);
 				value.Parent = parent;
 				value._cacheIndexInArr = TemplateIndex;
 			}
