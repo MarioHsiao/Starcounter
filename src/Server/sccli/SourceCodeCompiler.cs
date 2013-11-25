@@ -25,6 +25,24 @@ namespace star {
     ///  </para>
     /// </remarks>
     class SourceCodeCompiler {
+        static string starcounterAssembliesFolder = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        static string[] DefaultAssemblyReferences = new string[] {
+            "Starcounter",
+            "Starcounter.Apps.JsonPatch",
+            "Starcounter.HyperMedia",
+            "Starcounter.Internal",
+            "Starcounter.Logging",
+            "Starcounter.Node",
+            "Starcounter.XSON",
+            "System",
+            "System.Core",
+            "System.Xml",
+            "System.Xml.Linq",
+            "System.Data",
+            "System.Data.DataSetExtensions",
+            "Microsoft.CSharp"
+        };
+
         /// <summary>
         /// Compiles a source code file to an executable. If the operation
         /// succeed, the path to the compiled assembly is returned.
@@ -37,26 +55,65 @@ namespace star {
                 GenerateExecutable = true,
                 GenerateInMemory = false
             };
-            parameters.TempFiles = new TempFileCollection(@".\.temp", true);
-            parameters.OutputAssembly = Path.GetFullPath(string.Format(@".\.out\{0}.exe", Path.GetFileNameWithoutExtension(sourceCode)));
-            parameters.ReferencedAssemblies.Add("Starcounter");
 
-            // Specify a x64 bit application? Can 32-bit applications reference
-            // Starcounter?
-            // TODO:
+            parameters.TempFiles = new TempFileCollection(Path.GetTempPath(), false);
+            
+            var temporaryDiskExePath = Path.GetRandomFileName();
+            temporaryDiskExePath += Guid.NewGuid().ToString();
+            temporaryDiskExePath += ".exe";
+            temporaryDiskExePath = Path.Combine(parameters.TempFiles.TempDir, temporaryDiskExePath);
+            parameters.TempFiles.AddFile(temporaryDiskExePath, true);
+
+            parameters.OutputAssembly = temporaryDiskExePath;
+            
+            // As for assemblies, we'll start with a strategy where we add
+            // all Starcounter assemblies comprising the default reference set
+            // for a Starcounter application project, and all System assemblies
+            // part of a standard Console Window dito.
+            //
+            // As a future feature, we should add the ability to specify the
+            // parameters. Just support some CLI option that allows a reference
+            // to be given, and pass the value along to the same method as used
+            // here.
+
+            foreach (var reference in DefaultAssemblyReferences) {
+                AddAssemblyReference(parameters, reference);
+            }
 
             var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
             if (result.Errors.Count > 0) {
+                // Improved error handling
+                // TODO:
                 assemblyPath = null;
                 foreach (var error in result.Errors) {
                     Console.WriteLine(error.ToString());
                 }
                 throw new Exception("Errors compiling!");
             }
-            assemblyPath = result.PathToAssembly;
 
-            Console.WriteLine("Compiled in {0}", assemblyPath);
-            Environment.Exit(0);
+            // Clean up all temporary files produced that are still
+            // around and marked OK to delete; our executable will
+            // is marked to remain. We'll delete it after we have
+            // executed.
+
+            result.TempFiles.Delete();
+
+            assemblyPath = result.PathToAssembly;
+        }
+
+        static void AddAssemblyReference(CompilerParameters parameters, string assemblyName) {
+            if (!assemblyName.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase)) {
+                assemblyName += ".dll";
+            }
+
+            var candidate = Path.Combine(starcounterAssembliesFolder, assemblyName);
+            if (File.Exists(candidate)) {
+                assemblyName = candidate;
+            }
+
+            if (!parameters.ReferencedAssemblies.Contains(assemblyName)) {
+                parameters.ReferencedAssemblies.Add(assemblyName);
+            }
         }
     }
 }
