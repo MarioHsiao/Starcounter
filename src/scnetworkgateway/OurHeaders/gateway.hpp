@@ -76,7 +76,7 @@ typedef int8_t worker_id_type;
 //#define GW_SESSIONS_DIAG
 #define GW_COLLECT_INACTIVE_SOCKETS
 //#define GW_LOOPBACK_AGGREGATION
-#define GW_IOCP_IMMEDIATE_COMPLETION
+//#define GW_IOCP_IMMEDIATE_COMPLETION
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -109,6 +109,7 @@ typedef int8_t worker_id_type;
 // TODO: Move error codes to errors XML!
 #define SCERRGWFAILEDWSARECV 12346
 #define SCERRGWSOCKETCLOSEDBYPEER 12347
+#define SCERRGWFAILEDACCEPTEX 12348
 #define SCERRGWFAILEDWSASEND 12349
 #define SCERRGWDISCONNECTAFTERSENDFLAG 12350
 #define SCERRGWDISCONNECTFLAG 12351
@@ -155,6 +156,8 @@ typedef int8_t worker_id_type;
 #define SCERRGWFAILEDTOATTACHSOCKETTOIOCP 12410
 #define SCERRGWFAILEDTOLISTENONSOCKET 12411
 #define SCERRGWIPISNOTONWHITELIST 12413
+#define SCERRGWWRONGDBINDEX 12414
+#define SCERRGWMAXHTTPHEADERSSIZEREACHED 12415
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -208,7 +211,7 @@ const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
 const db_index_type INVALID_DB_INDEX = -1;
 
 // Bad worker index.
-const int32_t INVALID_WORKER_INDEX = -1;
+const worker_id_type INVALID_WORKER_INDEX = -1;
 
 // Bad port index.
 const int32_t INVALID_PORT_INDEX = -1;
@@ -229,7 +232,7 @@ const uri_index_type INVALID_URI_INDEX = -1;
 const uint8_t INVALID_PARAMETER_INDEX = 255;
 
 // Bad chunk index.
-const core::chunk_index INVALID_CHUNK_INDEX = shared_memory_chunk::link_terminator;
+const core::chunk_index INVALID_CHUNK_INDEX = MixedCodeConstants::INVALID_CHUNK_INDEX;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
@@ -370,7 +373,8 @@ const int32_t WS_MAX_FRAME_INFO_SIZE = 16;
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code
 
 // Printing prefixes.
-#define GW_PRINT_WORKER GW_COUT << "[" << worker_id_ << "]: "
+#define GW_PRINT_WORKER GW_COUT << "[" << (int32_t)worker_id_ << "]: "
+#define GW_PRINT_WORKER_DB GW_COUT << "[" << (int32_t)worker_id_ << "][" << (int32_t)db_index_ << "]: "
 #define GW_PRINT_GLOBAL GW_COUT << "Global: "
 
 // Gateway program name.
@@ -1064,8 +1068,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Port index.
     port_index_type port_index_;
 
-    // Index to already determined URI.
-    uri_index_type matched_uri_index_;
+    // Index to already determined database.
+    db_index_type dest_db_index_;
 
     // Some flags on socket.
     uint8_t flags_;
@@ -1123,7 +1127,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
         saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
         flags_ = 0;
-        matched_uri_index_ = INVALID_URI_INDEX;
+        dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SESSION_INDEX;
         aggr_socket_info_index_ = INVALID_SESSION_INDEX;
     }
@@ -1152,9 +1156,6 @@ class ActiveDatabase
 
     // Database handlers.
     HandlersTable* user_handlers_;
-
-    // Number of confirmed register push channels.
-    int32_t num_confirmed_push_channels_;
 
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
@@ -1188,12 +1189,6 @@ public:
         num_holding_workers_--;
     }
 
-    // Number of confirmed register push channels.
-    int32_t get_num_confirmed_push_channels()
-    {
-        return num_confirmed_push_channels_;
-    }
-
     // Spawns channels events monitor thread.
     uint32_t SpawnChannelsEventsMonitor()
     {
@@ -1216,12 +1211,6 @@ public:
     {
         TerminateThread(channels_events_thread_handle_, 0);
         channels_events_thread_handle_ = NULL;
-    }
-
-    // Received confirmation push channel.
-    void ReceivedPushChannelConfirmation()
-    {
-        num_confirmed_push_channels_++;
     }
 
     // Gets database name.
@@ -1926,20 +1915,20 @@ public:
         all_sockets_infos_unsafe_[socket_index].Reset();
     }
 
-    // Getting matched URI index.
-    uri_index_type GetMatchedUriIndex(session_index_type socket_index)
+    // Getting destination database index.
+    db_index_type GetDestDbIndex(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
-        return all_sockets_infos_unsafe_[socket_index].matched_uri_index_;
+        return all_sockets_infos_unsafe_[socket_index].dest_db_index_;
     }
 
-    // Setting matched URI index.
-    void SetMatchedUriIndex(session_index_type socket_index, uri_index_type uri_index)
+    // Setting destination database index.
+    void SetDestDbIndex(session_index_type socket_index, db_index_type db_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
-        all_sockets_infos_unsafe_[socket_index].matched_uri_index_ = uri_index;
+        all_sockets_infos_unsafe_[socket_index].dest_db_index_ = db_index;
     }
 
     // Getting socket id.
@@ -2564,8 +2553,7 @@ public:
     void EnterGlobalLock()
     {
         // Checking if already locked.
-        if (global_lock_unsafe_)
-            while (global_lock_unsafe_);
+        while (global_lock_unsafe_);
 
         // Entering the critical section.
         EnterCriticalSection(&cs_global_lock_);

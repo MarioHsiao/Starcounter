@@ -89,9 +89,6 @@ class SocketDataChunk
     // Type of network protocol.
     uint8_t type_of_network_protocol_;
 
-    // Target database index.
-    db_index_type target_db_index_;
-
     /////////////////////////
     // Data structures.
     /////////////////////////
@@ -115,6 +112,11 @@ class SocketDataChunk
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
 
 public:
+
+    worker_id_type get_worker_id()
+    {
+        return session_.gw_worker_id_;
+    }
 
     void CopyFromAnotherSocketData(SocketDataChunk* sd)
     {
@@ -193,7 +195,6 @@ public:
         std::cout << "offset db_index_ = "<< ((uint8_t*)&db_index_ - sd) << std::endl;
         std::cout << "offset type_of_network_oper_ = "<< ((uint8_t*)&type_of_network_oper_ - sd) << std::endl;
         std::cout << "offset type_of_network_protocol_ = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
-        std::cout << "offset target_db_index_ = "<< ((uint8_t*)&target_db_index_ - sd) << std::endl;
         std::cout << "offset accum_buf_ = "<< ((uint8_t*)&accum_buf_ - sd) << std::endl;
         std::cout << "offset http_proto_ = "<< ((uint8_t*)&http_proto_ - sd) << std::endl;
         std::cout << "offset ws_proto_ = "<< ((uint8_t*)&ws_proto_ - sd) << std::endl;
@@ -638,16 +639,16 @@ public:
         return g_gateway.GetBoundWorkerId(socket_info_index_);
     }
 
-    // Getting matched URI index.
-    uri_index_type GetMatchedUriIndex()
+    // Getting destination database index.
+    db_index_type GetDestDbIndex()
     {
-        return g_gateway.GetMatchedUriIndex(socket_info_index_);
+        return g_gateway.GetDestDbIndex(socket_info_index_);
     }
 
-    // Setting matched URI index.
-    void SetMatchedUriIndex(uri_index_type uri_index)
+    // Setting destination database index.
+    void SetDestDbIndex(db_index_type db_index)
     {
-        return g_gateway.SetMatchedUriIndex(socket_info_index_, uri_index);
+        return g_gateway.SetDestDbIndex(socket_info_index_, db_index);
     }
 
     // Getting saved user handler id.
@@ -815,6 +816,11 @@ public:
         return chunk_index_;
     }
 
+    void InvalidateDbIndex(db_index_type newindex)
+    {
+        db_index_ = newindex;
+    }
+
     // Gets extra chunk index.
     core::chunk_index GetNextLinkedChunkIndex()
     {
@@ -926,18 +932,6 @@ public:
     {
         GW_ASSERT_DEBUG(false == get_big_accumulation_chunk_flag());
         accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
-    }
-
-    // Index into target databases array.
-    db_index_type get_target_db_index()
-    {
-        return target_db_index_;
-    }
-
-    // Index into target databases array.
-    void set_target_db_index(db_index_type db_index)
-    {
-        target_db_index_ = db_index;
     }
 
     // Index into databases array.

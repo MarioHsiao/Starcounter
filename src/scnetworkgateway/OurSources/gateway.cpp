@@ -1544,8 +1544,8 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
             // Leaving global lock.
             LeaveGlobalLock();
 
-            // Registering push channel on first worker.
-            err_code = gw_workers_[0].GetWorkerDb(empty_db_index)->RegisterAllPushChannels();
+            // Registering gateway ready on first worker.
+            err_code = gw_workers_[0].GetWorkerDb(empty_db_index)->SetGatewayReadyForDbPushes();
             GW_ERR_CHECK(err_code);
         }
     }
@@ -1600,7 +1600,6 @@ void ActiveDatabase::Init(
     db_index_ = db_index;
     were_sockets_closed_ = false;
 
-    num_confirmed_push_channels_ = 0;
     is_empty_ = false;
     is_ready_for_cleanup_ = false;
 
