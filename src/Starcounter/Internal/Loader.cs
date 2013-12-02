@@ -26,31 +26,55 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="columnDefs">The column defs.</param>
         /// <param name="propertyDefs">The property defs.</param>
+        /// <param name="columnRuntimeTypes">
+        /// Array parallel to columnDefs with type codes of columns as mapped by properties.
+        /// </param>
         /// <exception cref="System.Exception"></exception>
-        public static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs)
+        public static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs, out DbTypeCode[] columnRuntimeTypes)
         {
-            for (int pi = 0; pi < propertyDefs.Length; pi++)
-            {
-                var columnName = propertyDefs[pi].ColumnName;
-                if (columnName != null)
-                {
-                    try
-                    {
+            DbTypeCode?[] columnRuntimeTypesTemp;
+            columnRuntimeTypesTemp = new DbTypeCode?[columnDefs.Length];
+
+            for (int pi = 0; pi < propertyDefs.Length; pi++) {
+                var propertyDef = propertyDefs[pi];
+                var columnName = propertyDef.ColumnName;
+                if (columnName != null) {
+                    try {
                         int ci = 0;
-                        for (; ; )
-                        {
-                            if (columnDefs[ci].Name == columnName)
-                            {
-                                propertyDefs[pi].ColumnIndex = ci;
+                        for (; ; ) {
+                            if (columnDefs[ci].Name == columnName) {
+                                propertyDef.ColumnIndex = ci;
+
+                                // We set the type from the first property we find that maps the
+                                // column. If more then one property maps the same column we assume
+                                // the first one to be the primary one.
+
+                                if (!columnRuntimeTypesTemp[ci].HasValue) {
+                                    columnRuntimeTypesTemp[ci] = propertyDef.Type;
+                                }
                                 break;
                             }
                             ci++;
                         }
                     }
-                    catch (IndexOutOfRangeException)
-                    {
+                    catch (IndexOutOfRangeException) {
                         throw ErrorCode.ToException(Error.SCERRUNEXPDBMETADATAMAPPING, "Column "+columnName+" cannot be found in ColumnDefs.");
                     }
+                }
+            }
+
+            // Create final column runtime type array. For columns not mapped
+            // we use the default column type for the column type.
+
+            columnRuntimeTypes = new DbTypeCode[columnDefs.Length];
+            for (var ci = 0; ci < columnRuntimeTypesTemp.Length; ci++) {
+                if (columnRuntimeTypesTemp[ci].HasValue) {
+                    columnRuntimeTypes[ci] = columnRuntimeTypesTemp[ci].Value;
+                }
+                else {
+                    columnRuntimeTypes[ci] = BindingHelper.ConvertScTypeCodeToDbTypeCode(
+                        columnDefs[ci].Type
+                        );
                 }
             }
         }
@@ -117,15 +141,22 @@ namespace Starcounter.Internal
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
 
             // Add column definition for implicit key column.
-            columnDefs.Add(new ColumnDef("__id", DbTypeCode.Key, false, baseName == null ? false : true));
+            columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
-            LoaderHelper.MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray);
+
+            DbTypeCode[] columnRuntimeTypes;
+            LoaderHelper.MapPropertyDefsToColumnDefs(
+                columnDefArray, propertyDefArray, out columnRuntimeTypes
+                );
             
             var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
-            var typeDef = new TypeDef(databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef);
+            var typeDef = new TypeDef(
+                databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef,
+                columnRuntimeTypes
+                );
 
             return typeDef;
         }
@@ -214,7 +245,7 @@ namespace Starcounter.Internal
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
                                 DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(databaseAttribute.Name),
-                                type,
+                                BindingHelper.ConvertDbTypeCodeToScTypeCode(type),
                                 isNullable,
                                 subClass
                                 ));

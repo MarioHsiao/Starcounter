@@ -165,7 +165,10 @@ internal class SortSpecification
                 uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
                 if (r == 0)
                 {
-                    return new IndexUseInfo(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), SortOrder.Ascending);
+                    return new IndexUseInfo(
+                        new IndexInfo2(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), typeBind.TypeDef),
+                        SortOrder.Ascending
+                        );
                 }
                 if (r != Error.SCERRINDEXNOTFOUND) throw ErrorCode.ToException(r);
             }
@@ -184,7 +187,10 @@ internal class SortSpecification
                 uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
                 if (r == 0)
                 {
-                    return new IndexUseInfo(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), SortOrder.Descending);
+                    return new IndexUseInfo(
+                        new IndexInfo2(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), typeBind.TypeDef),
+                        SortOrder.Descending
+                        );
                 }
                 if (r == Error.SCERRINDEXNOTFOUND) return null;
                 throw ErrorCode.ToException(r);

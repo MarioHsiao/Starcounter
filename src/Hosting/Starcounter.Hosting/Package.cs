@@ -222,7 +222,9 @@ namespace Starcounter.Hosting {
                     // Remap properties representing columns in case the column
                     // order has changed.
 
-                    LoaderHelper.MapPropertyDefsToColumnDefs(tableDef.ColumnDefs, typeDef.PropertyDefs);
+                    LoaderHelper.MapPropertyDefsToColumnDefs(
+                        tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
+                        );
                 }
 
                 OnDatabaseSchemaCheckedAndUpdated();

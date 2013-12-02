@@ -257,44 +257,39 @@ namespace Starcounter.Binding
                     {
                         switch (newColumnDef.Type)
                         {
+#if false
                         case DbTypeCode.Boolean:
                             output.Add(new BooleanColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Byte:
-                        case DbTypeCode.DateTime:
-                        case DbTypeCode.UInt64:
-                        case DbTypeCode.UInt32:
-                        case DbTypeCode.UInt16:
+#endif
+                        case sccoredb.STAR_TYPE_ULONG:
                             output.Add(new UInt64ColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Decimal:
+                        case sccoredb.STAR_TYPE_DECIMAL:
                             output.Add(new DecimalColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Single:
+                        case sccoredb.STAR_TYPE_FLOAT:
                             output.Add(new SingleColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Double:
+                        case sccoredb.STAR_TYPE_DOUBLE:
                             output.Add(new DoubleColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Int64:
-                        case DbTypeCode.Int32:
-                        case DbTypeCode.Int16:
-                        case DbTypeCode.SByte:
+                        case sccoredb.STAR_TYPE_LONG:
                             output.Add(new Int64ColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Object:
+                        case sccoredb.STAR_TYPE_REFERENCE:
                             output.Add(new ObjectColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.String:
+                        case sccoredb.STAR_TYPE_STRING:
                             output.Add(new StringColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Binary:
+                        case sccoredb.STAR_TYPE_BINARY:
                             output.Add(new BinaryColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.LargeBinary:
+                        case sccoredb.STAR_TYPE_LBINARY:
                             output.Add(new LargeBinaryColumnValueTransfer(oi, ni));
                             break;
-                        case DbTypeCode.Key: break;
+                        case sccoredb.STAR_TYPE_KEY: break;
                         default:
                             throw new NotSupportedException();
                         }
@@ -558,36 +553,28 @@ namespace Starcounter.Binding
 
                 for (int i = 0; i < indexInfo.AttributeCount; i++)
                 {
-                    // TODO: Handle sort order.
+                    // TODO: Handle sort order. Not all key types are supported.
                     *l = 0; l++;
                     *h = 1; h++;
-                    switch (indexInfo.GetTypeCode(i))
+                    switch (indexInfo.GetColumnType(i))
                     {
-                        case DbTypeCode.Boolean:
-                        case DbTypeCode.Byte:
-                        case DbTypeCode.DateTime:
-                        case DbTypeCode.UInt64:
-                        case DbTypeCode.UInt32:
-                        case DbTypeCode.UInt16:
-                        case DbTypeCode.Object:
-                        case DbTypeCode.Key:
+                        case sccoredb.STAR_TYPE_ULONG:
+                        case sccoredb.STAR_TYPE_REFERENCE:
+                        case sccoredb.STAR_TYPE_KEY:
                             *((ulong*)h) = ulong.MaxValue; h += 8;
                             break;
-                        case DbTypeCode.Decimal:
+                        case sccoredb.STAR_TYPE_DECIMAL:
                             throw new NotImplementedException();
-                        case DbTypeCode.Int64:
-                        case DbTypeCode.Int32:
-                        case DbTypeCode.Int16:
-                        case DbTypeCode.SByte:
+                        case sccoredb.STAR_TYPE_LONG:
                             *((long*)h) = long.MaxValue; h += 8;
                             break;
-                        case DbTypeCode.String:
+                        case sccoredb.STAR_TYPE_STRING:
                             byte* s;
                             sccoredb.SCConvertUTF16StringToNative("", 1, &s);
                             uint sl = *((uint*)s) + 4;
                             for (uint si = 0; si < sl; si++) *h++ = *s++;
                             break;
-                        case DbTypeCode.Binary:
+                        case sccoredb.STAR_TYPE_BINARY:
                             throw new NotImplementedException();
                         default:
                             throw new NotSupportedException();
