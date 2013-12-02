@@ -48,7 +48,6 @@ void SocketDataChunk::Init(
     }
 
     set_to_database_direction_flag();
-    target_db_index_ = INVALID_DB_INDEX;
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
@@ -193,7 +192,6 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->set_unique_socket_id(unique_socket_id_);
     sd_clone->set_socket_info_index(socket_info_index_);
     sd_clone->set_client_ip_info(client_ip_info_);
-    sd_clone->set_target_db_index(get_target_db_index());
 
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
@@ -333,8 +331,6 @@ uint32_t SocketDataChunk::CloneToPush(
 
 #endif
 
-    (*new_sd)->set_target_db_index(get_target_db_index());
-
     // Adjusting accumulative buffer.
     int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
     (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((uint8_t*) (*new_sd) + offset_bytes_from_sd, get_accum_buf());
@@ -375,12 +371,15 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
 #endif
 
+    // Sealing the new chunk.
+    new_db_smc->terminate_link();
+    new_db_smc->terminate_next();
+
     // Socket data inside chunk.
     (*new_sd) = (SocketDataChunk*)((uint8_t*)new_db_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
-    (*new_sd)->set_target_db_index(INVALID_DB_INDEX);
 
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_db_chunk_index);
@@ -413,12 +412,15 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
         // Copying chunk data.
         memcpy(new_db_smc, prev_db_smc, MixedCodeConstants::SHM_CHUNK_SIZE);
         new_db_smc->terminate_link();
+        new_db_smc->terminate_next();
 
         // Linking previous chunk to the newly obtained.
         cur_new_db_smc->set_link(new_db_chunk_index);
 
         prev_db_chunk_index = prev_db_smc->get_link();
     }
+
+    GW_ASSERT(new_db_smc->is_terminated());
 
 #endif
 

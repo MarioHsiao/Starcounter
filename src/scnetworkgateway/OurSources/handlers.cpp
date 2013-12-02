@@ -19,13 +19,6 @@ uint32_t PortHandlers::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, boo
     // Going through all handler list.
     for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
     {
-        // Checking if there is no predefined user handler id.
-        if (INVALID_DB_INDEX == sd->get_target_db_index())
-        {
-            // Setting destination database.
-            sd->set_target_db_index(handler_lists_[i]->get_db_index());
-        }
-
         err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
 
         // Checking if information was handled and no errors occurred.
