@@ -38,6 +38,12 @@ namespace Starcounter.Binding
         /// </summary>
         public TableDef TableDef;
 
+        /// <summary>
+        /// Array parallel to TableDef.ColumnDefs with type codes of columns as mapped by
+        /// properties.
+        /// </summary>
+        public DbTypeCode[] ColumnRuntimeTypes;
+
         private string LowerName_;
         /// <summary>
         /// Gets the full name of the class in lowercase.
@@ -72,13 +78,22 @@ namespace Starcounter.Binding
         /// <param name="propertyDefs">The property defs.</param>
         /// <param name="typeLoader">The type loader.</param>
         /// <param name="tableDef">The table def.</param>
-        public TypeDef(string name, string baseName, PropertyDef[] propertyDefs, TypeLoader typeLoader, TableDef tableDef)
+        public TypeDef(string name, string baseName, PropertyDef[] propertyDefs, TypeLoader typeLoader, TableDef tableDef, DbTypeCode[] columnRuntimeTypes)
         {
             Name = name;
             BaseName = baseName;
             PropertyDefs = propertyDefs;
             TypeLoader = typeLoader;
             TableDef = tableDef;
+            ColumnRuntimeTypes = columnRuntimeTypes;
+        }
+
+        internal IndexInfo2 GetIndexInfo(string name) {
+            var indexInfo = TableDef.GetIndexInfo(name);
+            if (indexInfo != null) {
+                return new IndexInfo2(indexInfo, this);
+            }
+            return null;
         }
     }
 }

@@ -136,12 +136,13 @@ namespace StarcounterInternal.Hosting
             else
                 stopwatch_ = new Stopwatch();
 
-            var sysTableTypeDef = SysTable.CreateTypeDef();
-            var sysColumnTypeDef = SysColumn.CreateTypeDef();
-            var sysIndexTypeDef = SysIndex.CreateTypeDef();
+            var sysTableTypeDef = materialized_table.CreateTypeDef();
+            var sysColumnTypeDef = materialized_column.CreateTypeDef();
+            var sysIndexTypeDef = materialized_index.CreateTypeDef();
+            var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
 
             Package package = new Package(
-                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef },
+                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef },
                 null,
                 stopwatch_,
                 true
@@ -177,9 +178,9 @@ namespace StarcounterInternal.Hosting
             // in the static class constructor). For system classes, we
             // have to do this by hand.
 
-            HostManager.InitTypeSpecification(typeof(SysTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(SysColumn.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(SysIndex.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(materialized_table.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }

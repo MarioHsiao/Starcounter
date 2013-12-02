@@ -254,22 +254,22 @@ namespace QueryProcessingTest {
 
         public static void TestComparison() {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
-            var e = Db.SQL<SysTable>("select s from systable s where tableid = ?", 4).GetEnumerator();
+            var e = Db.SQL<materialized_table>("select s from materialized_table s where table_id = ?", 5).GetEnumerator();
             Trace.Assert(e.MoveNext());
-            SysTable s = e.Current;
-            Trace.Assert(s.Name == "QueryProcessingTest.Account");
-            Trace.Assert(s.TableId == 4);
+            materialized_table s = e.Current;
+            Trace.Assert(s.name == "QueryProcessingTest.Account");
+            Trace.Assert(s.table_id == 5);
             e.Dispose();
-            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 4").GetEnumerator();
+            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 5").GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
-            Trace.Assert(s.Name == "QueryProcessingTest.Account");
-            Trace.Assert(s.TableId == 4);
+            Trace.Assert(s.name == "QueryProcessingTest.Account");
+            Trace.Assert(s.table_id == 5);
             e.Dispose();
-            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 10").GetEnumerator();
+            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 10").GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
-            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 1.0E1").GetEnumerator();
+            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 1.0E1").GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
             HelpMethods.LogEvent("Finished testing queries on comparison bug");
@@ -461,14 +461,14 @@ namespace QueryProcessingTest {
             try {
                 Db.SQL("create index anwhereindx on account (where)");
             } catch (SqlException) { }
-            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whenindx").First != null);
-            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whereindx").First != null);
-            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "anwhereindx").First == null);
+            Trace.Assert(Db.SQL<materialized_index>("select s from materialized_index s where name = ?", "whenindx").First != null);
+            Trace.Assert(Db.SQL<materialized_index>("select s from materialized_index s where name = ?", "whereindx").First != null);
+            Trace.Assert(Db.SQL<materialized_index>("select s from materialized_index s where name = ?", "anwhereindx").First == null);
             Db.SQL("drop index whenindx on account ");
             Db.SQL("drop index whereindx on account");
-            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whenindx").First == null);
-            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "whereindx").First == null);
-            Trace.Assert(Db.SQL<SysIndex>("select s from sysindex s where name = ?", "anwhereindx").First == null);
+            Trace.Assert(Db.SQL<materialized_index>("select s from materialized_index s where name = ?", "whenindx").First == null);
+            Trace.Assert(Db.SQL<materialized_index>("select s from materialized_index s where name = ?", "whereindx").First == null);
+            Trace.Assert(Db.SQL<materialized_index>("select s from materialized_index s where name = ?", "anwhereindx").First == null);
             HelpMethods.LogEvent("Finished testing DDL statements");
         }
     }
