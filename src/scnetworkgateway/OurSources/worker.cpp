@@ -1334,7 +1334,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     GW_ASSERT(true == sd->CompareUniqueSocketId());
 
     // Checking that socket arrived on correct worker.
+#ifndef GW_TESTING_MODE
     GW_ASSERT(0 == worker_id_);
+#endif
 
     // Updating connection timestamp.
     sd->UpdateConnectionTimeStamp();
