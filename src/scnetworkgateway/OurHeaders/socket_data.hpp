@@ -113,9 +113,14 @@ class SocketDataChunk
 
 public:
 
-    worker_id_type get_worker_id()
+    worker_id_type get_bound_worker_id()
     {
         return session_.gw_worker_id_;
+    }
+
+    void set_bound_worker_id(worker_id_type worker_id)
+    {
+        session_.gw_worker_id_ = worker_id;
     }
 
     void CopyFromAnotherSocketData(SocketDataChunk* sd)
@@ -876,11 +881,6 @@ public:
     void set_type_of_network_oper(SocketOperType type_of_network_oper)
     {
         type_of_network_oper_ = (uint8_t)type_of_network_oper;
-    }
-
-    void set_bound_worker_id(worker_id_type worker_id)
-    {
-        session_.gw_worker_id_ = worker_id;
     }
 
     // Accept data or parameters data.

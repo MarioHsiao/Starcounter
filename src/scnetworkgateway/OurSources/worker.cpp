@@ -368,9 +368,13 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
-    // Checking that socket arrived on correct worker.
-    GW_ASSERT(sd->get_worker_id() == worker_id_);
-    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+    // NOTE: Only Accept has the problem of not binding to a correct socket.
+    if (sd->get_type_of_network_oper() != ACCEPT_SOCKET_OPER)
+    {
+        // Checking that socket arrived on correct worker.
+        GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
+        GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+    }
 
     // Checking that only database zero chunk is for this operation.
     GW_ASSERT(sd->get_db_index() == 0);
@@ -483,7 +487,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     GW_ASSERT(sd->get_db_index() == 0);
 
     // Checking that socket arrived on correct worker.
-    GW_ASSERT(sd->get_worker_id() == worker_id_);
+    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // NOTE: Since we are here means that this socket data represents this socket.
@@ -616,7 +620,7 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
 
     // Checking that socket arrived on correct worker.
-    GW_ASSERT(sd->get_worker_id() == worker_id_);
+    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // Checking correct unique socket.
@@ -715,7 +719,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 #endif
 
     // Checking that socket arrived on correct worker.
-    GW_ASSERT(sd->get_worker_id() == worker_id_);
+    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
@@ -1357,8 +1361,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     ChangeNumActiveConnections(sd->GetPortIndex(), 1);
 
     sd->set_socket_diag_active_conn_flag();
-
-    sd->set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
 
 #endif
 

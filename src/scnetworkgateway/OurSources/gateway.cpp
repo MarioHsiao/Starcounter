@@ -1545,8 +1545,11 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
             LeaveGlobalLock();
 
             // Registering gateway ready on first worker.
-            err_code = gw_workers_[0].GetWorkerDb(empty_db_index)->SetGatewayReadyForDbPushes();
-            GW_ERR_CHECK(err_code);
+            for (int32_t i = 0; i < setting_num_workers_; i++)
+            {
+                err_code = gw_workers_[i].GetWorkerDb(empty_db_index)->SetGatewayReadyForDbPushes();
+                GW_ERR_CHECK(err_code);
+            }
         }
     }
 
