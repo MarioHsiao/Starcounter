@@ -982,10 +982,8 @@ struct ScSessionStruct
     // Reset.
     void Reset()
     {
-        // NOTE: We don't reset the scheduler id, since its used for socket
+        // NOTE: We don't reset the scheduler id and worker id, since they are used for socket
         // sending data in order, even when session is not created!
-
-        //scheduler_id_ = (uint8_t)INVALID_SCHEDULER_ID;
 
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
@@ -1076,9 +1074,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
-
-    // Worker id.
-    worker_id_type worker_id_;
 
     // Avoiding false sharing between workers.
     uint8_t pad[CACHE_LINE_SIZE];
@@ -1944,7 +1939,7 @@ public:
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
-        return all_sockets_infos_unsafe_[socket_index].worker_id_;
+        return all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_;
     }
 
     // Getting scheduler id.
@@ -2034,7 +2029,7 @@ public:
     void CreateNewSocketInfo(session_index_type socket_index, int32_t port_index, worker_id_type worker_id)
     {
         all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
-        all_sockets_infos_unsafe_[socket_index].worker_id_ = worker_id;
+        all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
     }
 
     // Setting new unique socket number.
