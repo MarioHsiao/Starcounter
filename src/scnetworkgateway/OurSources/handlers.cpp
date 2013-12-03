@@ -612,6 +612,9 @@ uint32_t AppsPortProcessData(
         sd->set_user_data_written_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
 
+        // Setting matched URI index.
+        sd->SetDestDbIndex(hl->get_db_index());
+
         // Push chunk to corresponding channel/scheduler.
         err_code = gw->PushSocketDataToDb(sd, user_handler_id);
         if (err_code)
