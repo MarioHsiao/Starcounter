@@ -4,12 +4,6 @@ IF "%SC_RUN_NODE_TEST%"=="False" GOTO :EOF
 :: Killing all processes.
 staradmin -killall
 
-:: Starting service in background.
-START CMD /C "scservice.exe"
-
-:: Waiting for service to initialize.
-ping -n 10 127.0.0.1 > nul
-
 :: Starting NetworkIoTest in background.
 START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS"
 
