@@ -7,7 +7,6 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
-		private bool hasBackingField;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
 
@@ -22,14 +21,6 @@ namespace Starcounter.Templates {
 		}
 
 		/// <summary>
-		/// 
-		/// </summary>
-		public bool HasBackingField {
-			get { return hasBackingField; }
-			set { hasBackingField = value; }
-		}
-
-		/// <summary>
 		/// Gets or sets the name of the property this template is bound to.
 		/// </summary>
 		/// <value>The name of the property to bind.</value>
@@ -41,10 +32,6 @@ namespace Starcounter.Templates {
 				return bind;
 			}
 			set {
-				if (hasBackingField) {
-					throw new Exception("TODO! Not allowed when backing field is used.");
-				}
-
 				bind = value;
 				var b = !string.IsNullOrEmpty(bind);
 				if (b) {
@@ -75,11 +62,7 @@ namespace Starcounter.Templates {
 
 				return strategy;
 			}
-			set {
-				if (hasBackingField) {
-					throw new Exception("TODO! Not allowed when backing field is used.");
-				}
-
+			set {				
 				strategy = value;
 
 				// After we set the value we retrieve it again just to get the correct

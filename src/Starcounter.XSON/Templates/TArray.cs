@@ -10,8 +10,8 @@ namespace Starcounter.Templates {
 	public class TArray<OT> : TObjArr
 		where OT : Json, new() {
 
-		public new readonly Action<Json, Arr<OT>> Setter;
-		public new readonly Func<Json, Arr<OT>> Getter;
+		public new Action<Json, Arr<OT>> Setter;
+		public new Func<Json, Arr<OT>> Getter;
 		internal new Action<Json, Arr<OT>> UnboundSetter;
 		internal new Func<Json, Arr<OT>> UnboundGetter;
 
@@ -24,9 +24,30 @@ namespace Starcounter.Templates {
 			get { return typeof(ArrMetadata<OT, Json>); }
 		}
 
+		/// <summary>
+		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
+		/// </summary>
+		/// <param name="getter"></param>
+		/// <param name="setter"></param>
+		public void SetCustomAccessors(Func<Json, Arr<OT>> getter, Action<Json, Arr<OT>> setter) {
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				Getter = getter;
+				Setter = setter;
+			}
+			UnboundGetter = getter;
+			UnboundSetter = setter;
+
+			base.SetCustomAccessors(
+				(parent) => { return (Json)getter(parent); }, 
+				(parent, value) => { setter(parent, (Arr<OT>)value); }
+			);
+		}
+
 		internal override void GenerateUnboundGetterAndSetter() {
-			TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, false);
-			base.GenerateUnboundGetterAndSetter();
+			if (UnboundGetter == null) {
+				TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, false);
+				base.GenerateUnboundGetterAndSetter();
+			}
 		}
 
 		private Arr<OT> BoundOrUnboundGet(Json parent) {

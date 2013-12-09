@@ -26,8 +26,8 @@ namespace Starcounter.Templates {
 		internal string DebugUnboundGetter;
 #endif
 
-		public readonly Action<Json, Json> Setter;
-		public readonly Func<Json, Json> Getter;
+		public Action<Json, Json> Setter;
+		public Func<Json, Json> Getter;
 		internal Action<Json, object> BoundSetter;
 		internal Func<Json, object> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
@@ -68,7 +68,8 @@ namespace Starcounter.Templates {
 		}
 
 		internal override void GenerateUnboundGetterAndSetter() {
-			TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
+			if (UnboundGetter == null)
+				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
 
 		internal override void Checkpoint(Json parent) {
@@ -141,6 +142,25 @@ namespace Starcounter.Templates {
 				parent.MarkAsReplaced(TemplateIndex);
 
 			parent._CallHasChanged(this);
+		}
+
+		/// <summary>
+		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
+		/// </summary>
+		/// <param name="getter"></param>
+		/// <param name="setter"></param>
+		public void SetCustomAccessors(Func<Json, Json> getter, Action<Json, Json> setter) {
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				Getter = getter;
+				Setter = setter;
+			}
+			UnboundGetter = Getter;
+			UnboundSetter = setter;
+
+#if DEBUG
+			DebugUnboundGetter = "<custom>";
+			DebugUnboundSetter = "<custom>";
+#endif 
 		}
 
 		/// <summary>
