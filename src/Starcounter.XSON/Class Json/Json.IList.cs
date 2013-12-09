@@ -132,8 +132,9 @@ namespace Starcounter {
                 _SetFlag = new List<bool>(vc);
                 _Dirty = false;
                 for (int t = 0; t < vc; t++) {
-                    _list.Add( ((Template)prop[t]).CreateInstance(this) );
-                    _SetFlag.Add(false);
+					_list.Add(null);
+					_SetFlag.Add(false);
+					((TValue)prop[t]).SetDefaultValue(this);
                 }
             }
         }
