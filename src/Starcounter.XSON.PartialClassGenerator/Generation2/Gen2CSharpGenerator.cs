@@ -283,44 +283,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteAppMemberPrefixOld(AstProperty m) {
-            var sb = new StringBuilder();
-            sb.Append("public ");
-            sb.Append(m.Type.GlobalClassSpecifier);
-            sb.Append(' ');
-            sb.Append(m.MemberName);
-//            if (m.Type is NArr) {
-//                sb.Append('<');
-//                sb.Append(((NArr)m.Type).NApp.GlobalClassSpecifier);
-//                sb.Append('>');
-//            }
-//            if (m.FunctionGeneric != null) {
-//                sb.Append(" { get { return Get<");
-//                sb.Append(m.FunctionGeneric.GlobalClassSpecifier);
-//                sb.Append('>');
-//            }
-//            else {
-                sb.Append(" { get { return Get");
-//            }
-            sb.Append("(Template.");
-            sb.Append(m.MemberName);
-            sb.Append("); } set { Set");
- //           if (m.Type is AstArrXXXClass) {
- //               sb.Append('<');
- //               sb.Append(((AstArrXXXClass)m.Type).NApp.GlobalClassSpecifier);
- //               sb.Append('>');
- //           }
-            sb.Append("(Template.");
-            sb.Append(m.MemberName);
-            sb.Append(", value); } }");
-            m.Prefix.Add(sb.ToString());
-        }
-
-
-        /// <summary>
-        /// Writes the app member prefix.
-        /// </summary>
-        /// <param name="m">The m.</param>
         private void WriteAppMemberPrefix(AstProperty m) {
 			if (m.Template is TTrigger)
 				return;
@@ -331,21 +293,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
             sb.Append(m.MemberName);
-            //            if (m.Type is NArr) {
-            //                sb.Append('<');
-            //                sb.Append(((NArr)m.Type).NApp.FullClassName);
-            //                sb.Append('>');
-            //            }
-
+            
 			sb.Append(" { get { return ");
 
             if (m.Type is AstJsonClass) {
 				sb.Append('(');
 				sb.Append(m.Type.GlobalClassSpecifier);
 				sb.Append(')');
-				//sb.Append(" { get { return Get<");
-				//sb.Append(m.Type.GlobalClassSpecifier);
-				//sb.Append('>');
             }
 			sb.Append("Template.");
 			sb.Append(m.MemberName);
@@ -353,15 +307,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 			sb.Append(m.MemberName);
 			sb.Append(".Setter(this, value); } }");
 
-			//else {
-			//	sb.Append(" { get { return Get");
-			//}
-			//sb.Append("(Template.");
-			//sb.Append(m.MemberName);
-			//sb.Append("); } set { Set");
-			//sb.Append("(Template.");
-			//sb.Append(m.MemberName);
-			//sb.Append(", value); } }");
             m.Prefix.Add(sb.ToString());
         }
 
@@ -442,6 +387,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     a.CodebehindClass.BoundDataClass +
                     ")base.Data; } set { base.Data = value; } }");
             }
+
+			foreach (AstBase kid in a.NTemplateClass.Children) {
+				var prop = kid as AstProperty;
+				if (prop != null && prop.BackingFieldName != null) {
+					a.Prefix.Add("    private "
+								 + prop.Template.InstanceType.Name
+								 + " "
+								 + prop.BackingFieldName
+								 + ";");
+				}
+			}
             /*
 
             if (a.Template.Parent != null) {
@@ -635,7 +591,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());
                     }
- 
+
+					if (mn.BackingFieldName != null) {
+						sb.Clear();
+						sb.Append("        ");
+						sb.Append(mn.MemberName);
+						sb.Append(".SetCustomAccessors((parent) => { return ((");
+						sb.Append(a.NValueClass.GlobalClassSpecifier);
+						sb.Append(")parent).");
+						sb.Append(mn.BackingFieldName);
+						sb.Append("; }, (parent, value) => { ((");
+						sb.Append(a.NValueClass.GlobalClassSpecifier);
+						sb.Append(")parent).");
+						sb.Append(mn.BackingFieldName);
+						sb.Append(" = value; } );");
+						a.Prefix.Add(sb.ToString());
+					}
                 }
                 else if (kid is AstInputBinding)
                 {
