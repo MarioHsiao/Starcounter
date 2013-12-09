@@ -50,7 +50,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 		public string BackingFieldName {
 			get {
 				var tv = Template as TValue;
-				if (tv != null) {
+				if (tv != null && !(tv is TTrigger)) {
 					return "__bf__" + MemberName + "__";
 				}
 				return null;

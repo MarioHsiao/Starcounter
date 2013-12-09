@@ -391,11 +391,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 			foreach (AstBase kid in a.NTemplateClass.Children) {
 				var prop = kid as AstProperty;
 				if (prop != null && prop.BackingFieldName != null) {
+					string bfTypeName = null;
+					if (prop.Template is TObjArr) {
+						if (prop.Type.Generic != null && prop.Type.Generic.Length > 0) {
+							bfTypeName = ((AstJsonClass)prop.Type.Generic[0]).ParentProperty.GlobalClassSpecifier;
+						} 
+					}
+					
+					if (bfTypeName == null)
+						bfTypeName = HelperFunctions.GetClassDeclarationSyntax(prop.Template.InstanceType);
+					
 					a.Prefix.Add("    private "
-								 + prop.Template.InstanceType.Name
-								 + " "
-								 + prop.BackingFieldName
-								 + ";");
+								+ bfTypeName
+								+ " "
+								+ prop.BackingFieldName
+								+ ";");
 				}
 			}
             /*
@@ -592,19 +602,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add(sb.ToString());
                     }
 
-					if (mn.BackingFieldName != null) {
+					if (mn.BackingFieldName != null /*&& !(mn.Template is TObjArr)*/) {
 						sb.Clear();
 						sb.Append("        ");
 						sb.Append(mn.MemberName);
-						sb.Append(".SetCustomAccessors((parent) => { return ((");
+						sb.Append(".SetCustomAccessors((_p_) => { return ((");
 						sb.Append(a.NValueClass.GlobalClassSpecifier);
-						sb.Append(")parent).");
+						sb.Append(")_p_).");
 						sb.Append(mn.BackingFieldName);
-						sb.Append("; }, (parent, value) => { ((");
+						sb.Append("; }, (_p_, _v_) => { ((");
 						sb.Append(a.NValueClass.GlobalClassSpecifier);
-						sb.Append(")parent).");
+						sb.Append(")_p_).");
 						sb.Append(mn.BackingFieldName);
-						sb.Append(" = value; } );");
+						sb.Append(" = _v_; } );");
 						a.Prefix.Add(sb.ToString());
 					}
                 }
