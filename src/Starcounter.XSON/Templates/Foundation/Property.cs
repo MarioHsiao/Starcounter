@@ -27,8 +27,8 @@ namespace Starcounter.Templates {
 		public Func<Json, T> Getter;
 		internal Action<Json, T> BoundSetter;
 		internal Func<Json, T> BoundGetter;
-		public Action<Json, T> UnboundSetter;
-		public Func<Json, T>  UnboundGetter;
+		internal Action<Json, T> UnboundSetter;
+		internal Func<Json, T>  UnboundGetter;
 
         internal Func<Json, Property<T>, T, Input<T>> CustomInputEventCreator = null;
         internal List<Action<Json, Input<T>>> CustomInputHandlers = new List<Action<Json, Input<T>>>();
@@ -57,6 +57,25 @@ namespace Starcounter.Templates {
 		}
 
 		/// <summary>
+		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
+		/// </summary>
+		/// <param name="getter"></param>
+		/// <param name="setter"></param>
+		public void SetCustomAccessors(Func<Json, T> getter, Action<Json, T> setter) {
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				Getter = getter;
+				Setter = setter;
+			}
+			UnboundGetter = getter;
+			UnboundSetter = setter;
+
+#if DEBUG
+			DebugUnboundGetter = "<custom>";
+			DebugUnboundSetter = "<custom>";
+#endif
+		}
+
+		/// <summary>
 		/// 
 		/// </summary>
 		internal override void InvalidateBoundGetterAndSetter() {
@@ -78,7 +97,8 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		internal override void GenerateUnboundGetterAndSetter() {
-			TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
+			if (UnboundGetter == null)
+				TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
 		}
 
 		/// <summary>
