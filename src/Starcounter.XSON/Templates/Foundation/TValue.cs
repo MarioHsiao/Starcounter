@@ -118,6 +118,12 @@ namespace Starcounter.Templates {
 		/// <summary>
 		/// 
 		/// </summary>
+		/// <param name="parent"></param>
+		internal abstract void SetDefaultValue(Json parent);
+
+		/// <summary>
+		/// 
+		/// </summary>
 		internal virtual void InvalidateBoundGetterAndSetter() {
 			isVerifiedUnbound = false;
 			dataTypeForBinding = null;

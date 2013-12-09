@@ -56,6 +56,10 @@ namespace Starcounter.Templates {
 			Setter = BoundOrUnboundSet;
 		}
 
+		internal override void SetDefaultValue(Json parent) {
+			UnboundSetter(parent, (Json)CreateInstance(parent));
+		}
+
 		internal override void InvalidateBoundGetterAndSetter() {
 			BoundGetter = null;
 			BoundSetter = null;
@@ -154,7 +158,7 @@ namespace Starcounter.Templates {
 				Getter = getter;
 				Setter = setter;
 			}
-			UnboundGetter = Getter;
+			UnboundGetter = getter;
 			UnboundSetter = setter;
 
 #if DEBUG

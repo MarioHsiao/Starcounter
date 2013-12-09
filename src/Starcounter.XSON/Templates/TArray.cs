@@ -43,6 +43,10 @@ namespace Starcounter.Templates {
 			);
 		}
 
+		internal override void SetDefaultValue(Json parent) {
+			UnboundSetter(parent, new Arr<OT>(parent, this));
+		}
+
 		internal override void GenerateUnboundGetterAndSetter() {
 			if (UnboundGetter == null) {
 				TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, false);

@@ -78,6 +78,14 @@ namespace Starcounter.Templates {
 		/// <summary>
 		/// 
 		/// </summary>
+		/// <param name="parent"></param>
+		internal override void SetDefaultValue(Json parent) {
+			UnboundSetter(parent, (T)CreateInstance(parent));
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
 		internal override void InvalidateBoundGetterAndSetter() {
 			BoundGetter = null;
 			BoundSetter = null;
