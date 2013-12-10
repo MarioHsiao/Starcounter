@@ -1,4 +1,5 @@
 ﻿
+using HttpStructs;
 using NUnit.Framework;
 using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
@@ -11,6 +12,16 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
     class JsonPatchTests {
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        [TestFixtureSetUp]
+        public static void Setup()
+        {
+            // Initializing global sessions.
+            GlobalSessions.InitGlobalSessions(1);
+        }
+
 		[TearDown]
 		public static void AfterTest() {
 			// Making sure that we are ending the session even if the test failed.
