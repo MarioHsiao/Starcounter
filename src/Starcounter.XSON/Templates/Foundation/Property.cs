@@ -45,9 +45,10 @@ namespace Starcounter.Templates {
 		}
 
 		private void BoundOrUnboundSet(Json parent, T value) {
-			if (UseBinding(parent))
-				BoundSetter(parent, value);
-			else 
+			if (UseBinding(parent)) {
+				if (BoundSetter != null)
+					BoundSetter(parent, value);
+			} else
 				UnboundSetter(parent, value);
 
 			if (parent.HasBeenSent)
@@ -107,6 +108,15 @@ namespace Starcounter.Templates {
 		internal override void GenerateUnboundGetterAndSetter() {
 			if (UnboundGetter == null)
 				TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		internal override object GetUnboundValueAsObject(Json parent) {
+			return UnboundGetter(parent);
 		}
 
 		/// <summary>
