@@ -257,9 +257,9 @@ namespace Starcounter {
         /// Set user destroy callback.  
         /// </summary>
         /// <param name="destroy_user_delegate"></param>
-        public void SetSessionDestroyCallback(Action<Session> destroy_user_delegate)
+        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod)
         {
-            _SessionDestroyUserDelegate_ = destroy_user_delegate;
+            _SessionDestroyUserDelegate_ = userDestroyMethod;
         }
 
         /// <summary>
