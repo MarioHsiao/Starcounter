@@ -106,6 +106,13 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <returns></returns>
+		internal abstract object GetUnboundValueAsObject(Json parent);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
 		internal abstract object GetValueAsObject(Json parent);
 
 		/// <summary>

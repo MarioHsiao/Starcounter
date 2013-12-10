@@ -101,6 +101,10 @@ namespace Starcounter.Templates {
 			current.AttachData(value);
 		}
 
+		internal override object GetUnboundValueAsObject(Json parent) {
+			return UnboundGetter(parent);
+		}
+
 		/// <summary>
 		/// 
 		/// </summary>

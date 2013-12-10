@@ -107,7 +107,8 @@ namespace Starcounter {
                         // For this reason, we need to allow the expansion of the 
                         // values.
                         _SetFlag.Add(false);
-                        _list.Add(((Template)template.Properties[_list.Count]).CreateInstance(this));
+						_list.Add(null);
+						((TValue)template.Properties[_list.Count]).SetDefaultValue(this);
                     }
                     return _list;
                 }
