@@ -289,13 +289,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             m.Prefix.Add(markAsCodegen);
             var sb = new StringBuilder();
+
             sb.Append("public ");
             sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
             sb.Append(m.MemberName);
-            
-			sb.Append(" { get { return ");
+			sb.AppendLine(" {");
 
+			sb.Append("#line ");
+			sb.Append(m.Template.CompilerOrigin.LineNo);
+			sb.Append(" \"");
+			sb.Append(m.Template.CompilerOrigin.FileName);
+			sb.AppendLine("\"");
+			sb.AppendLine("    get {");
+
+			sb.AppendLine("#line hidden");
+			sb.Append("        return ");
             if (m.Type is AstJsonClass) {
 				sb.Append('(');
 				sb.Append(m.Type.GlobalClassSpecifier);
@@ -303,9 +312,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
 			sb.Append("Template.");
 			sb.Append(m.MemberName);
-			sb.Append(".Getter(this); } set { Template.");
+			sb.AppendLine(".Getter(this); }");
+
+			sb.Append("#line ");
+			sb.Append(m.Template.CompilerOrigin.LineNo);
+			sb.Append(" \"");
+			sb.Append(m.Template.CompilerOrigin.FileName);
+			sb.AppendLine("\"");
+			sb.AppendLine("    set {");
+
+			sb.AppendLine("#line hidden");
+			sb.Append("        Template.");
 			sb.Append(m.MemberName);
-			sb.Append(".Setter(this, value); } }");
+			sb.AppendLine(".Setter(this, value); } }");
+
+			sb.AppendLine("#line default");
 
             m.Prefix.Add(sb.ToString());
         }
