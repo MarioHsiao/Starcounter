@@ -91,6 +91,12 @@ namespace Starcounter.Internal
             /// Starcounter admin server.
             /// </summary>
             public const string ScAdminServer = "scadminserver";
+
+            /// <summary>
+            /// ScTrayIcon
+            /// </summary>
+            public const string ScTrayIcon = "sctrayicon";
+
         }
 
         /// <summary>
@@ -172,6 +178,11 @@ namespace Starcounter.Internal
             /// Default Prolog SQL TCP port.
             /// </summary>
             public const String DefaultSystemPrologSqlProcessPort_String = "DefaultSystemPrologSqlProcessPort";
+
+            /// <summary>
+            /// Default session timeout.
+            /// </summary>
+            public const UInt16 DefaultSessionTimeoutMinutes = 20;
         }
 
         /// <summary>
@@ -233,6 +244,11 @@ namespace Starcounter.Internal
             /// Default HTTP port for user code.
             /// </summary>
             public const string DefaultUserHttpPort = "DefaultUserHttpPort";
+
+            /// <summary>
+            /// Default session timeout.
+            /// </summary>
+            public const string DefaultSessionTimeoutMinutes = "DefaultSessionTimeoutMinutes";
 
             /// <summary>
             /// Default HTTP port for system code.
