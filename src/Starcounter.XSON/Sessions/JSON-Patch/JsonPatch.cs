@@ -129,12 +129,16 @@ namespace Starcounter.Internal.JsonPatch {
 					childJson = ((TContainer)from).GetValue(nearestApp);
 					if (index != -1)
 						childJson = (Json)childJson._GetAt(index);
+
+					if (childJson == null)
+						sb.Append("{}");
 				}
 
 				if (childJson != null) {
 					sb.Append(childJson.ToJson());
 					childJson.SetBoundValuesInTuple();
 				} else {
+					nearestApp.ResumeTransaction(true);
                     sb.Append(from.ValueToJsonString(nearestApp));
                 }
             }
