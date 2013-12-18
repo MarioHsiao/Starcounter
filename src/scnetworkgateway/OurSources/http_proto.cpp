@@ -1318,7 +1318,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
             return err_code;
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Created proxy socket: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+        GW_COUT << "Created proxy socket: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
         // Re-enabling socket representer flag.

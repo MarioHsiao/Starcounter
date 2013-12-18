@@ -151,11 +151,6 @@ public:
         set_user_data_offset_in_socket_data(static_cast<uint16_t>(data_blob_ - (uint8_t*)this));
     }
 
-    void CopyFromSharedMemoryChunk(shared_memory_chunk* smc)
-    {
-        memcpy(this, (uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA, sizeof(SocketDataChunk));
-    }
-
     // Get Http protocol instance.
     HttpProto* get_http_proto()
     {
@@ -207,7 +202,7 @@ public:
     uint32_t AssertCorrectState()
     {
         uint8_t* sd = (uint8_t*) this;
-        uint8_t* smc = (uint8_t*)OLD_get_smc();
+        uint8_t* smc = (uint8_t*) this - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
 
         std::cout << "offset ovl_ = "<< ((uint8_t*)&ovl_ - sd) << std::endl;
         std::cout << "offset session_ = "<< ((uint8_t*)&session_ - sd) << std::endl;
@@ -217,7 +212,7 @@ public:
         std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&user_data_written_bytes_ - sd) << std::endl;
         std::cout << "offset flags_ = "<< ((uint8_t*)&flags_ - sd) << std::endl;
         std::cout << "offset unique_aggr_index_ = "<< ((uint8_t*)&unique_aggr_index_ - sd) << std::endl;
-        std::cout << "offset temporary_num_chunks_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
+        std::cout << "offset num_ipc_chunks_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
         std::cout << "offset user_data_offset_in_socket_data_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
         std::cout << "offset type_of_network_oper_ = "<< ((uint8_t*)&type_of_network_oper_ - sd) << std::endl;
         std::cout << "offset type_of_network_protocol_ = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
@@ -250,7 +245,7 @@ public:
         std::cout << "CHUNK_OFFSET_SESSION_RANDOM_SALT = "<< ((uint8_t*)&session_.random_salt_ - smc) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_PARAMS_INFO = "<< (accept_or_params_or_temp_data_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_BLOB = "<< (data_blob_ - sd) << std::endl;
-        std::cout << "CHUNK_OFFSET_TEMP_NUM_CHUNKS = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_NUM_IPC_CHUNKS = "<< ((uint8_t*)&ovl_ - smc) << std::endl;
 
         std::cout << "CHUNK_OFFSET_SOCKET_FLAGS = "<< ((uint8_t*)&flags_ - smc) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
@@ -286,7 +281,7 @@ public:
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
-        GW_ASSERT(((uint8_t*)&user_data_offset_in_socket_data_ - smc) == MixedCodeConstants::CHUNK_OFFSET_TEMP_NUM_CHUNKS);
+        GW_ASSERT(((uint8_t*)&ovl_ - smc) == MixedCodeConstants::CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
         GW_ASSERT(((uint8_t*)&flags_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS);
 
@@ -336,9 +331,6 @@ public:
     {
         return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
     }
-
-    // Gets last linked smc.
-    shared_memory_chunk* ObtainLastLinkedSmc(GatewayWorker* gw);
 
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
@@ -803,16 +795,10 @@ public:
         socket_info_index_ = socket_info_index;
     }
 
-    // Returns SMC representing this chunk.
-    shared_memory_chunk* OLD_get_smc()
+    // Sets number of IPC chunks.
+    void SetNumberOfIPCChunks(uint16_t num_ip_chunks)
     {
-        return (shared_memory_chunk*)((uint8_t*)this - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-    }
-
-    // Gets extra chunk index.
-    core::chunk_index OLD_GetNextLinkedChunkIndex()
-    {
-        return OLD_get_smc()->get_link();
+        *(uint16_t*)(&ovl_) = num_ip_chunks;
     }
 
 #ifdef GW_TESTING_MODE
@@ -825,12 +811,6 @@ public:
 
 #endif
 
-    // Gets number of data bytes left in chunk.
-    int32_t GetNumRemainingDataBytesInChunk(uint8_t* payload)
-    {
-        return static_cast<int32_t> (MixedCodeConstants::CHUNK_MAX_DATA_BYTES - (payload - (uint8_t*)OLD_get_smc()));
-    }
-
     // Copies IPC chunks to gateway chunk.
     uint32_t CopyIPCChunksToGatewayChunk(
         WorkerDbInterface* worker_db,
@@ -841,7 +821,7 @@ public:
         WorkerDbInterface* worker_db,
         SocketDataChunk** new_ipc_sd,
         core::chunk_index* db_chunk_index,
-        int16_t* num_chunks);
+        uint16_t* num_ipc_chunks);
 
     // Overlapped structure used for WinSock.
     OVERLAPPED* get_ovl()
@@ -929,25 +909,11 @@ public:
         unique_socket_id_ = proxy_unique_socket_id;
     }
 
-#ifndef GW_MEMORY_MANAGEMENT
-
-    // Initializes socket data that comes from database.
-    void PreInitSocketDataFromDb(db_index_type db_index, core::chunk_index the_chunk_index)
-    {
-        db_index_ = db_index;
-        chunk_index_ = the_chunk_index;
-        type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
-    }
-
-#else
-
     // Initializes socket data that comes from database.
     void PreInitSocketDataFromDb()
     {
         type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
     }
-
-#endif
 
     // Initialization.
     void Init(
@@ -970,7 +936,7 @@ public:
     }
 
     // Start receiving on socket.
-    uint32_t ReceiveSingleChunk(GatewayWorker *gw, uint32_t *num_bytes)
+    uint32_t Receive(GatewayWorker *gw, uint32_t *num_bytes)
     {
         set_type_of_network_oper(RECEIVE_SOCKET_OPER);
 
@@ -986,7 +952,7 @@ public:
     }
 
     // Start sending on socket.
-    uint32_t SendSingleChunk(GatewayWorker* gw, uint32_t *numBytes)
+    uint32_t Send(GatewayWorker* gw, uint32_t *numBytes)
     {
         set_type_of_network_oper(SEND_SOCKET_OPER);
 

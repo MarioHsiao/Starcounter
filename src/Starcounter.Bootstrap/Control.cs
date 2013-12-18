@@ -217,7 +217,7 @@ namespace StarcounterInternal.Bootstrap
             // Waiting until BMX component is ready.
             if (!configuration.NoNetworkGateway)
             {
-                int ir = sccorelib.fix_wait_for_gateway_available(10000);
+                int ir = sccorelib.fix_wait_for_gateway_available(1000000);
                 if (ir == 0)
                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, "fix_wait_for_gateway_available didn't finish within given time interval.");
 

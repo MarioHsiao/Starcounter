@@ -20,6 +20,16 @@ public:
         memset(num_allocated_chunks_, 0, sizeof(num_allocated_chunks_));
     }
 
+    void PrintInfo(std::stringstream& stats_stream)
+    {
+        stats_stream << "Allocated chunks: ";
+
+        for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
+            stats_stream << num_allocated_chunks_[i] << ", ";
+
+        stats_stream << "<br>";
+    }
+
     int32_t GetNumberAllocatedChunks(chunk_store_type store_index)
     {
         return num_allocated_chunks_[store_index];
@@ -394,6 +404,7 @@ public:
         stats_stream << "Bytes sent: " << worker_stats_bytes_sent_ << "<br>";
         stats_stream << "Packets sent: " << worker_stats_sent_num_ << "<br>";
         stats_stream << "Bound sockets: " << worker_stats_num_bound_sockets_ << "<br>";
+        worker_chunks_.PrintInfo(stats_stream);
     }
 
     // Worker initialization function.
@@ -525,12 +536,6 @@ public:
     uint32_t CreateSocketData(
         session_index_type socket_info_index,
         SocketDataChunkRef out_sd);
-
-    // Gets SMC from given database chunk.
-    shared_memory_chunk* GetSmcFromChunkIndex(db_index_type db_index, core::chunk_index the_chunk_index)
-    {
-        return (shared_memory_chunk*) &(worker_dbs_[db_index]->get_shared_int()->chunk(the_chunk_index));
-    }
 
 #ifdef GW_TESTING_MODE
 
