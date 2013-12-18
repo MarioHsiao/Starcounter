@@ -174,14 +174,6 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 
     _SC_ASSERT(!aggregated_flag);
 
-#ifdef GW_MEMORY_MANAGEMENT
-
-    // Enforcing usage of one chunk.
-    if (buf_len_bytes > num_bytes_left_first_chunk)
-        buf_len_bytes = num_bytes_left_first_chunk;
-    
-#endif
-
     // Checking if data fits in one chunk.
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {

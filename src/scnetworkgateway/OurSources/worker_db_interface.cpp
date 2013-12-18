@@ -13,13 +13,13 @@ namespace starcounter {
 namespace network {
 
 // Releases chunks from private chunk pool to the shared chunk pool.
-uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
+uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_ipc_chunks)
 {
     // Release chunks from this worker threads private chunk pool to the shared chunk pool.
     int32_t released_chunks_num = static_cast<int32_t> (shared_int_.release_from_private_to_shared(
-        private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
+        private_chunk_pool_, num_ipc_chunks, &shared_int_.client_interface(), 1000));
 
-    GW_ASSERT(released_chunks_num == num_chunks);
+    GW_ASSERT(released_chunks_num == num_ipc_chunks);
 
     return 0;
 }
@@ -28,20 +28,20 @@ uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
 // (otherwise fetches from shared chunk pool).
 uint32_t WorkerDbInterface::GetOneChunkFromPrivatePool(
     core::chunk_index* chunk_index,
-    shared_memory_chunk** smc)
+    shared_memory_chunk** ipc_smc)
 {
     // Trying to fetch chunk from private pool.
     uint32_t err_code;
     while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *chunk_index, 1))
     {
         // Getting chunks from shared chunk pool.
-        err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
+        err_code = AcquireIPCChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
         if (err_code)
             return err_code;
     }
 
     // Getting data pointer.
-    (*smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
+    (*ipc_smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
 
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER_DB << "Getting new chunk: " << *chunk_index << GW_ENDL;
@@ -87,18 +87,18 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             the_channel.scheduler()->notify(shared_int_.scheduler_work_event(the_channel.get_scheduler_number()));
 
             // Get the chunk.
-            shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(ipc_first_chunk_index));
+            shared_memory_chunk* ipc_smc = (shared_memory_chunk*) GetSharedMemoryChunkFromIndex(ipc_first_chunk_index);
 
             // Check if its a BMX handlers management message.
-            if (bmx::BMX_MANAGEMENT_HANDLER_INFO == smc->get_bmx_handler_info())
+            if (bmx::BMX_MANAGEMENT_HANDLER_INFO == ipc_smc->get_bmx_handler_info())
             {
-                GW_ASSERT(smc->is_terminated());
+                GW_ASSERT(ipc_smc->is_terminated());
 
                 // Entering global lock.
                 gw->EnterGlobalLock();
 
                 // Handling management chunks.
-                err_code = HandleManagementChunks(sched_id, gw, smc);
+                err_code = HandleManagementChunks(sched_id, gw, ipc_smc);
 
                 // Releasing management chunks.
                 ReturnLinkedChunksToPool(ipc_first_chunk_index);
@@ -112,30 +112,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 continue;
             }
 
-            // Process the chunk.
-            SocketDataChunk* sd;
+            SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-#ifndef GW_MEMORY_MANAGEMENT
-
-            sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-
-            // Checking for correct chunks number.
-            if (!smc->is_terminated())
-                GW_ASSERT(sd->get_num_chunks() > 1);
-            else
-                GW_ASSERT(sd->get_num_chunks() == 1);
-
-            // Initializing socket data that arrived from database.
-            sd->PreInitSocketDataFromDb(db_index_, ipc_first_chunk_index);
-
-#else
-            SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-
-            sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_written_bytes());
-
+            SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_written_bytes());
 
             // Checking if its one or several chunks.
-            if (smc->is_terminated())
+            if (ipc_smc->is_terminated())
             {
                 sd->CopyFromOneChunkIPCSocketData(ipc_sd, ipc_sd->get_user_data_written_bytes());
             }
@@ -152,7 +134,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // Initializing socket data that arrived from database.
             sd->PreInitSocketDataFromDb();
-#endif
 
             // Checking that socket arrived on correct worker.
             GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
@@ -162,7 +143,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+            GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
             // NOTE: We always override the global session with active session received from database.
@@ -213,14 +194,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 }
 
 // Writes given big linear buffer into obtained linked chunks.
-uint32_t WorkerDbInterface::WriteBigDataToChunks(
+uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index cur_chunk_index,
     int32_t* actual_written_bytes,
     int32_t first_chunk_offset,
-    bool just_sending_flag,
-    bool is_aggregated_flag
+    uint16_t* num_ipc_chunks
     )
 {
     // Maximum number of bytes that will be written in this call.
@@ -232,17 +212,14 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
     GW_ASSERT(num_extra_chunks > 0);
 
     // Checking if more than maximum chunks we can take at once.
-    if ((num_extra_chunks >= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!is_aggregated_flag))
-    {
-        num_extra_chunks = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS - 1;
-        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;
-    }
+    GW_ASSERT(num_extra_chunks < starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS);
+
+    // Setting total number of IPC chunks.
+    *num_ipc_chunks = num_extra_chunks + 1;
 
     // Acquiring linked chunks.
     starcounter::core::chunk_index new_chunk_index;
-    uint32_t err_code = GetMultipleChunksFromPrivatePool(
-        &new_chunk_index,
-        num_extra_chunks);
+    uint32_t err_code = GetMultipleChunksFromPrivatePool(&new_chunk_index, num_extra_chunks);
 
     if (err_code)
         return err_code;
@@ -252,10 +229,6 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
     // Linking to the first chunk.
     ((shared_memory_chunk*)cur_chunk_buf)->set_link(new_chunk_index);
-
-    // Checking if we should just send the chunks.
-    if (just_sending_flag)
-        (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
@@ -343,7 +316,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 void WorkerDbInterface::ReturnLinkedChunksToPool(core::chunk_index& first_linked_chunk)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER_DB << "Returning linked chunks to pool: " << first_linked_chunk << ", chain size:" << num_linked_chunks << GW_ENDL;
+    GW_PRINT_WORKER_DB << "Returning linked chunks to pool: " << first_linked_chunk << GW_ENDL;
 #endif
 
     // Releasing chunk to private pool.
@@ -389,40 +362,38 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    int16_t num_chunks;
+    uint16_t num_ipc_chunks;
     core::chunk_index first_chunk_index;
     SocketDataChunk* ipc_sd;
-    uint32_t err_code = sd->CopyGatewayChunkToIPCChunks(this, &ipc_sd, &first_chunk_index, &num_chunks);
+    uint32_t err_code = sd->CopyGatewayChunkToIPCChunks(this, &ipc_sd, &first_chunk_index, &num_ipc_chunks);
     GW_ASSERT(0 == err_code);
 
     // Returning gateway chunk to pool.
     gw->ReturnSocketDataChunksToPool(sd);
 
-    sd = ipc_sd;
-
     // Setting number of chunks.
-    sd->set_user_data_offset_in_socket_data(num_chunks);
+    ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = 255;
 
     // Checking if socket has active session.
-    if (sd->HasActiveSession())
-        sched_id = sd->get_scheduler_id();
+    if (ipc_sd->HasActiveSession())
+        sched_id = ipc_sd->get_scheduler_id();
 
     // Modifying chunk data to use correct handler.
-    shared_memory_chunk *smc = sd->OLD_get_smc();
-    smc->set_bmx_handler_info(user_handler_id); // User code handler id.
-    smc->set_request_size(4);
+    shared_memory_chunk *ipc_smc = (shared_memory_chunk*)((uint8_t*)ipc_sd - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    ipc_smc->set_bmx_handler_info(user_handler_id); // User code handler id.
+    ipc_smc->set_request_size(4);
 
     // Checking scheduler id validity.
     if (sched_id >= num_schedulers_)
     {
         sched_id = GenerateSchedulerId();
-        sd->set_scheduler_id(sched_id);
+        ipc_sd->set_scheduler_id(sched_id);
     }
 
     // Checking that scheduler is correct for this database.
@@ -430,9 +401,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(first_chunk_index, sched_id);
-
-    // Making SD unusable.
-    sd = NULL;
 
     return 0;
 }
@@ -444,17 +412,17 @@ uint32_t WorkerDbInterface::PushSessionDestroy(
     uint8_t sched_id)
 {
     // Get a reference to the chunk.
-    shared_memory_chunk *smc = NULL;
+    shared_memory_chunk *ipc_smc = NULL;
 
     // Getting a free chunk.
     core::chunk_index new_chunk;
-    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &ipc_smc);
     GW_ERR_CHECK(err_code);
 
     // Predefined BMX management handler.
-    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
+    ipc_smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
 
-    request_chunk_part* request = smc->get_request_chunk();
+    request_chunk_part* request = ipc_smc->get_request_chunk();
     request->reset_offset();
 
     // Writing BMX message type.
@@ -479,18 +447,18 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     const wchar_t* const err_msg)
 {
     // Get a reference to the chunk.
-    shared_memory_chunk *smc = NULL;
+    shared_memory_chunk *ipc_smc = NULL;
 
     // Getting a free chunk.
     core::chunk_index new_chunk_index;
-    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk_index, &smc);
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk_index, &ipc_smc);
     if (err_code)
         return err_code;
 
     // Predefined BMX management handler.
-    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
+    ipc_smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
 
-    request_chunk_part* request = smc->get_request_chunk();
+    request_chunk_part* request = ipc_smc->get_request_chunk();
     request->reset_offset();
 
     // Writing BMX message type.
@@ -586,10 +554,10 @@ uint32_t WorkerDbInterface::SetGatewayReadyForDbPushes()
 uint32_t WorkerDbInterface::HandleManagementChunks(
     scheduler_id_type sched_id,
     GatewayWorker *gw,
-    shared_memory_chunk* smc)
+    shared_memory_chunk* ipc_smc)
 {
     // Getting the response part of the chunk.
-    response_chunk_part* resp_chunk = smc->get_response_chunk();
+    response_chunk_part* resp_chunk = ipc_smc->get_response_chunk();
     uint32_t response_size = resp_chunk->get_offset();
     GW_ASSERT (0 != response_size);
 
@@ -611,7 +579,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                 // Jumping over 8 bytes because we reseted the offset.
                 resp_chunk->skip(8);
 
-                err_code = sc_bmx_parse_pong(smc, &ping_data);
+                err_code = sc_bmx_parse_pong(ipc_smc, &ping_data);
                 if (err_code)
                     return err_code;
 

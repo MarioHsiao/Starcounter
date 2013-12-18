@@ -44,16 +44,16 @@ class WorkerDbInterface
     int32_t cur_scheduler_id_;
 
     // Acquires needed amount of chunks from shared pool.
-    uint32_t AcquireChunksFromSharedPool(int32_t num_chunks)
+    uint32_t AcquireIPCChunksFromSharedPool(int32_t num_ipc_chunks)
     {
         // Acquire chunks from the shared chunk pool to this worker private chunk pool.
         int32_t num_acquired_chunks = static_cast<int32_t> (shared_int_.acquire_from_shared_to_private(
-            private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
+            private_chunk_pool_, num_ipc_chunks, &shared_int_.client_interface(), 1000));
 
-        //GW_ASSERT(num_acquired_chunks == num_chunks);
+        //GW_ASSERT(num_acquired_chunks == num_ipc_chunks);
 
         // Checking that number of acquired chunks is correct.
-        if (num_acquired_chunks != num_chunks)
+        if (num_acquired_chunks != num_ipc_chunks)
         {
             // Some problem acquiring enough chunks.
 #ifdef GW_ERRORS_DIAG
@@ -79,14 +79,13 @@ public:
     }
 
     // Writes given big linear buffer into obtained linked chunks.
-    uint32_t WorkerDbInterface::WriteBigDataToChunks(
+    uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
         uint8_t* buf,
         int32_t buf_len_bytes,
         starcounter::core::chunk_index cur_chunk_index,
         int32_t* actual_written_bytes,
         int32_t first_chunk_offset,
-        bool just_sending_flag,
-        bool is_aggregated_flag
+        uint16_t* num_ipc_chunks
         );
 
     // Getting the number of overflowed chunks.
@@ -238,7 +237,7 @@ public:
     uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Releases chunks from private chunk pool to the shared chunk pool.
-    uint32_t ReleaseToSharedChunkPool(int32_t num_chunks);
+    uint32_t ReleaseToSharedChunkPool(int32_t num_ipc_chunks);
 
     // Scans all channels for any incoming chunks.
     uint32_t ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms);
@@ -249,36 +248,28 @@ public:
         return (shared_memory_chunk *)(&shared_int_.chunk(the_chunk_index));
     }
 
-    // Getting socket data from chunk index.
-    SocketDataChunk* GetSocketDataFromChunkIndex(core::chunk_index the_chunk_index)
-    {
-        return (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(the_chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-    }
-
     // Obtains chunk from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).
-    uint32_t GetOneChunkFromPrivatePool(
-        core::chunk_index* chunk_index,
-        shared_memory_chunk** smc);
+    uint32_t GetOneChunkFromPrivatePool(core::chunk_index* chunk_index, shared_memory_chunk** smc);
 
     // Obtains chunks from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).
     uint32_t GetMultipleChunksFromPrivatePool(
         core::chunk_index* new_chunk_index,
-        uint32_t num_chunks)
+        uint32_t num_ipc_chunks)
     {
         // Trying to fetch chunk from private pool.
         uint32_t err_code;
-        while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *new_chunk_index, num_chunks))
+        while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *new_chunk_index, num_ipc_chunks))
         {
             // Getting chunks from shared chunk pool.
-            err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
+            err_code = AcquireIPCChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
             if (err_code)
                 return err_code;
         }
 
 #ifdef GW_CHUNKS_DIAG
-        GW_COUT << "Acquired new " << num_chunks << " linked chunks: " << *new_chunk_index << GW_ENDL;
+        GW_COUT << "Acquired new " << num_ipc_chunks << " linked chunks: " << *new_chunk_index << GW_ENDL;
 #endif
 
         return 0;
@@ -294,7 +285,7 @@ public:
     uint32_t HandleManagementChunks(
         scheduler_id_type sched_id,
         GatewayWorker *gw,
-        shared_memory_chunk* smc);
+        shared_memory_chunk* ipc_smc);
 };
 
 } // namespace network

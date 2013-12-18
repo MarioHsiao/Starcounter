@@ -2725,8 +2725,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // NOTE: The following statistics can be dangerous since its not protected by global lock!
         // That's why we enable it only for tests.
 
-        global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
-            ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
+        global_statistics_stream_ << "Overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
             ", active sockets " << g_gateway.get_num_active_sockets() <<
             ", created sockets " << g_gateway.NumberCreatedSocketsAllWorkers() <<
             ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
@@ -3405,6 +3404,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
+
+    Sleep(5000);
 
     // Setting the critical log handler.
     set_critical_log_handler(LogGatewayCrash, NULL);

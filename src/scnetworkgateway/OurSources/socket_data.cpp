@@ -163,8 +163,8 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     gw->SetReceiveClone(sd_clone);
 
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "Cloned socket " << socket_info_index_ << ":" << GetSocket() << ":" << unique_socket_id_ << ":" << chunk_index_ << ":" << (uint64_t)this << " to socket " <<
-        sd_clone->get_socket_info_index() << ":" << sd_clone->GetSocket() << ":" << sd_clone->get_unique_socket_id() << ":" << sd_clone->get_chunk_index() << ":" << (uint64_t)sd_clone << GW_ENDL;
+    GW_COUT << "Cloned socket " << socket_info_index_ << ":" << GetSocket() << ":" << unique_socket_id_ << ":" << (uint64_t)this << " to socket " <<
+        sd_clone->get_socket_info_index() << ":" << sd_clone->GetSocket() << ":" << sd_clone->get_unique_socket_id() << ":" << (uint64_t)sd_clone << GW_ENDL;
 #endif
 
     return 0;
@@ -237,17 +237,17 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
         cur_chunk_data_size = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Getting link to the first chunk in chain.
-    shared_memory_chunk* smc = ipc_sd->OLD_get_smc();
-    core::chunk_index cur_chunk_index = smc->get_link();
+    shared_memory_chunk* ipc_smc = (shared_memory_chunk*)((uint8_t*)ipc_sd - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    core::chunk_index cur_chunk_index = ipc_smc->get_link();
 
     // Until we get the last chunk in chain.
     while (cur_chunk_index != shared_memory_chunk::link_terminator)
     {
         // Obtaining chunk memory.
-        smc = worker_db->GetSharedMemoryChunkFromIndex(cur_chunk_index);
+        ipc_smc = worker_db->GetSharedMemoryChunkFromIndex(cur_chunk_index);
 
         // Copying current IPC chunk.
-        memcpy(data_blob_ + data_bytes_offset, smc, cur_chunk_data_size);
+        memcpy(data_blob_ + data_bytes_offset, ipc_smc, cur_chunk_data_size);
 
         // Decreasing number of bytes left to be processed.
         data_bytes_offset += cur_chunk_data_size;
@@ -256,7 +256,7 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
             cur_chunk_data_size = bytes_left;
 
         // Getting next chunk in chain.
-        cur_chunk_index = smc->get_link();
+        cur_chunk_index = ipc_smc->get_link();
     }
 
     // Checking that maximum number of WSABUFs in chunk is correct.
@@ -270,15 +270,15 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     WorkerDbInterface* worker_db,
     SocketDataChunk** new_ipc_sd,
     core::chunk_index* db_chunk_index,
-    int16_t* num_chunks)
+    uint16_t* num_ipc_chunks)
 {
-    shared_memory_chunk* db_smc;
+    shared_memory_chunk* ipc_smc;
 
-    uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(db_chunk_index, &db_smc);
+    uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(db_chunk_index, &ipc_smc);
     if (err_code)
         return err_code;
 
-    *new_ipc_sd = (SocketDataChunk*)((uint8_t*)db_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    *new_ipc_sd = (SocketDataChunk*)((uint8_t*)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Copying only socket data info without data buffer.
     memcpy(*new_ipc_sd, this, SOCKET_DATA_OFFSET_BLOB);
@@ -286,14 +286,13 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     int32_t actual_written_bytes = 0;
 
     // Copying data buffer separately.
-    err_code = worker_db->WriteBigDataToChunks(
+    err_code = worker_db->WriteBigDataToIPCChunks(
         get_accum_buf()->get_chunk_orig_buf_ptr(),
         get_accum_buf()->get_accum_len_bytes(),
         *db_chunk_index,
         &actual_written_bytes,
         MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB,
-        false,
-        false);
+        num_ipc_chunks);
 
     GW_ASSERT(actual_written_bytes == get_accum_buf()->get_accum_len_bytes());
 
