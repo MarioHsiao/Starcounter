@@ -5,7 +5,7 @@
 // C++ code--removes public keyword for C++
 #define public
 
-//#define GW_MEMORY_MANAGEMENT
+#define GW_MEMORY_MANAGEMENT
 
 typedef char* const String;
 typedef unsigned int uint;
@@ -101,7 +101,7 @@ namespace Starcounter.Internal
         public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 208;
         public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 192;
         public const int SOCKET_DATA_OFFSET_BLOB = 256;
-        public const int CHUNK_OFFSET_NUM_CHUNKS = 100;
+        public const int CHUNK_OFFSET_TEMP_NUM_CHUNKS = 102;
         public const int CHUNK_OFFSET_SOCKET_FLAGS = 92;
         public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 74;
         public const int SOCKET_DATA_OFFSET_CLIENT_IP = 40;

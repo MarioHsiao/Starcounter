@@ -102,7 +102,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
         case WS_OPCODE_BINARY:
         {
             // Unmasking data.
-            UnMaskAllChunks(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
+            UnMaskPayload(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
 
             // Setting user data length and pointer.
             sd->set_user_data_written_bytes(static_cast<uint32_t>(frame_info_.payload_len_));
@@ -127,7 +127,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             uint64_t payload_len = frame_info_.payload_len_;
 
             // Send the response Close message.
-            UnMaskAllChunks(gw, sd, payload_len, frame_info_.mask_, payload);
+            UnMaskPayload(gw, sd, payload_len, frame_info_.mask_, payload);
             payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload, payload_len);
 
             // Sending resource not found and closing the connection.
@@ -146,7 +146,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             uint64_t payload_len = frame_info_.payload_len_;
 
             // Send the response Pong.
-            UnMaskAllChunks(gw, sd, payload_len, frame_info_.mask_, payload);
+            UnMaskPayload(gw, sd, payload_len, frame_info_.mask_, payload);
             payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, payload_len);
 
             // Prepare buffer to send outside.
@@ -184,12 +184,6 @@ uint32_t WsProto::ProcessWsDataToDb(
     uint8_t* orig_data_ptr = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
     uint32_t num_accum_bytes = sd->get_accum_buf()->get_accum_len_bytes();
     uint32_t num_processed_bytes = 0;
-
-    // Resetting completeness flag to be sure that its not used later.
-    if (sd->get_num_chunks() > 1)
-        GW_ASSERT(true == frame_info_.is_complete_);
-    else
-        frame_info_.is_complete_ = false;
 
     // Checking if we have already parsed the frame.
     if (frame_info_.is_complete_)
@@ -464,48 +458,19 @@ void WsProto::MaskUnMask(
 }
 
 // Masks or unmasks payload.
-void WsProto::UnMaskAllChunks(
+void WsProto::UnMaskPayload(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     const uint64_t payload_len_bytes,
     const uint64_t mask,
     uint8_t* payload)
 {
-    // Getting link to the first chunk in chain.
-    shared_memory_chunk* smc = sd->get_smc();
-    core::chunk_index cur_chunk_index;
-    int32_t chunk_bytes_left = sd->GetNumRemainingDataBytesInChunk(payload);
-    if (payload_len_bytes < chunk_bytes_left)
-        chunk_bytes_left = static_cast<int32_t>(payload_len_bytes);
-
-    int8_t num_remaining_bytes = 0;
-    int32_t total_processed_len_bytes = 0;
+    int8_t num_remaining_bytes;
     uint64_t mask_8bytes = mask | (mask << 32);
 
-    // Processing all linked chunks.
-    while (true)
-    {
-        MaskUnMask(payload, chunk_bytes_left, mask_8bytes, num_remaining_bytes);
-        total_processed_len_bytes += chunk_bytes_left;
+    MaskUnMask(payload, static_cast<uint32_t>(payload_len_bytes), mask_8bytes, num_remaining_bytes);
 
-        int32_t num_payload_bytes_left = static_cast<int32_t>(payload_len_bytes - total_processed_len_bytes);
-
-        if (0 == num_payload_bytes_left)
-            break;
-        
-        // Getting next linked chunk.
-        cur_chunk_index = smc->get_link();
-
-        // Obtaining chunk memory.
-        smc = gw->GetSmcFromChunkIndex(sd->get_db_index(), cur_chunk_index);
-
-        payload = (uint8_t*) smc;
-
-        chunk_bytes_left = MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
-
-        if (num_payload_bytes_left < chunk_bytes_left)
-            chunk_bytes_left = num_payload_bytes_left;
-    }
+    GW_ASSERT(0 == num_remaining_bytes);
 }
 
 #define swap64(y) ((static_cast<uint64_t>(ntohl(static_cast<uint32_t>(y))) << 32) | ntohl(static_cast<uint32_t>(y >> 32)))
@@ -660,7 +625,7 @@ uint8_t *WsProto::WritePayload(
         p += 4;
 
         // Do masking on all data.
-        UnMaskAllChunks(gw, sd, payload_len, mask, p);
+        UnMaskPayload(gw, sd, payload_len, mask, p);
     }
 
     // Returning total data length.

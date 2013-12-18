@@ -1365,7 +1365,7 @@ uint32_t PostSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
     // Getting new socket index.
-    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, sd->get_db_index(), INVALID_SOCKET, port_index, false);
+    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, INVALID_SOCKET, port_index, false);
     ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
 
     // Setting some socket options.
