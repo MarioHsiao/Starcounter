@@ -37,15 +37,6 @@ class WorkerDbInterface
     // Worker id to which this interface belongs.
     worker_id_type worker_id_;
 
-    // Open socket handles.
-    std::bitset<MAX_POSSIBLE_CONNECTIONS> active_sockets_bitset_;
-
-    // Number of used sockets.
-    int64_t num_used_sockets_;
-
-    // Number of used chunks.
-    int64_t num_used_chunks_;
-
     // Number of active schedulers.
     int32_t num_schedulers_;
 
@@ -60,9 +51,6 @@ class WorkerDbInterface
             private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
 
         //GW_ASSERT(num_acquired_chunks == num_chunks);
-
-        // Changing number of database chunks.
-        ChangeNumUsedChunks(num_acquired_chunks);
 
         // Checking that number of acquired chunks is correct.
         if (num_acquired_chunks != num_chunks)
@@ -101,22 +89,6 @@ public:
         bool is_aggregated_flag
         );
 
-    // Increments or decrements the number of active chunks.
-    void ChangeNumUsedChunks(int64_t change_value)
-    {
-        num_used_chunks_ += change_value;
-
-#ifdef GW_CHUNKS_DIAG
-        GW_COUT << "ChangeNumUsedChunks: " << change_value << " and " << num_used_chunks_ << GW_ENDL;
-#endif
-    }
-
-    // Getting the number of used chunks.
-    int64_t get_num_used_chunks()
-    {
-        return num_used_chunks_;
-    }
-
     // Getting the number of overflowed chunks.
     int64_t GetNumberOverflowedChunks()
     {
@@ -132,32 +104,6 @@ public:
         }
 
         return num_overflow_chunks;
-    }
-
-    // Tracks certain socket.
-    void TrackSocket(session_index_type index)
-    {
-        num_used_sockets_++;
-        active_sockets_bitset_[index] = true;
-    }
-
-    // Untracks certain socket.
-    void UntrackSocket(session_index_type index)
-    {
-        num_used_sockets_--;
-        active_sockets_bitset_[index] = false;
-    }
-
-    // Getting number of used sockets.
-    int64_t get_num_used_sockets()
-    {
-        return num_used_sockets_;
-    }
-
-    // Gets certain socket state.
-    bool IsActiveSocket(session_index_type index)
-    {
-        return active_sockets_bitset_[index];
     }
 
     // Sends session destroyed message.
@@ -186,8 +132,7 @@ public:
     {
         db_index_ = INVALID_DB_INDEX;
         worker_id_ = INVALID_WORKER_INDEX;
-        num_used_sockets_ = 0;
-        num_used_chunks_ = 0;
+
         num_schedulers_ = 0;
         cur_scheduler_id_ = 0;
 
@@ -196,10 +141,6 @@ public:
             delete[] channels_;
             channels_ = NULL;
         }
-
-        // Setting all sockets as inactive.
-        for (int32_t i = 0; i < MAX_POSSIBLE_CONNECTIONS; i++)
-            active_sockets_bitset_[i] = false;
     }
 
     // Allocates different channels and pools.
@@ -231,8 +172,7 @@ public:
     // Tries pushing to channel and returns try if it did.
     bool TryPushToChannel(
         core::channel_type& the_channel,
-        core::chunk_index the_chunk_index,
-        int32_t stats_num_chunks)
+        core::chunk_index the_chunk_index)
     {
         // Trying to push chunk if overflow is empty.
         if (the_channel.in.try_push_front(the_chunk_index))
@@ -247,9 +187,6 @@ public:
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER_DB << "   successfully pushed: chunk " << the_chunk_index << GW_ENDL;
 #endif
-
-            // Chunk was pushed successfully either to channel or overflow pool.
-            ChangeNumUsedChunks(-stats_num_chunks);
 
             return true;
         }
@@ -278,7 +215,7 @@ public:
 
             // NOTE: If success - chunk is gone, we can't do any operations related to it!
             // That's why we do pop_front and then push_front.
-            if (!TryPushToChannel(the_channel, the_chunk_index, sd->get_num_chunks()))
+            if (!TryPushToChannel(the_channel, the_chunk_index))
             {
                 // Pushing chunk back to front since it wasn't pushed on channel.
                 overflow_queue.push_front(the_chunk_index);
@@ -296,7 +233,6 @@ public:
     // Push whatever chunks we have to channels.
     void PushLinkedChunksToDb(
         core::chunk_index chunk_index,
-        int32_t num_chunks,
         int16_t scheduler_id);
 
     uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
@@ -349,7 +285,7 @@ public:
     }
 
     // Returns given linked chunks to private chunk pool (and if needed then to shared).
-    void ReturnLinkedChunksToPool(uint16_t num_linked_chunks, core::chunk_index& first_linked_chunk);
+    void ReturnLinkedChunksToPool(core::chunk_index& first_linked_chunk);
 
     // Returns all chunks from private pool to shared.
     void ReturnAllPrivateChunksToSharedPool();

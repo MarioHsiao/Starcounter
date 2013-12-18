@@ -570,7 +570,7 @@ uint32_t OuterPortProcessData(
     bool* is_handled)
 {
     // First searching in database handlers table.
-    HandlersTable* handlers_table = g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers();
+    HandlersTable* handlers_table = g_gateway.GetDatabase(hl->get_db_index())->get_user_handlers();
 
     // Getting the corresponding port number.
     uint16_t port_num = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();

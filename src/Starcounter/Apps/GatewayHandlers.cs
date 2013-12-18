@@ -262,7 +262,7 @@ namespace Starcounter
                     // Creating network data stream object.
                     NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS);
+                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_TEMP_NUM_CHUNKS);
 
                     Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
 

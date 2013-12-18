@@ -59,6 +59,7 @@ typedef int16_t uri_index_type;
 typedef int16_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
+typedef int8_t chunk_store_type;
 
 // Statistics macros.
 #define GW_COLLECT_SOCKET_STATISTICS
@@ -311,6 +312,43 @@ enum GatewayTestingMode
 
     MODE_GATEWAY_UNKNOWN = 6
 };
+
+const int32_t NumGatewayChunkSizes = 5;
+const int32_t DefaultGatewayChunkSizeType = 1;
+
+const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
+    512,
+    2 * 1024, // Default chunk size.
+    8 * 1024,
+    32 * 1024,
+    128 * 1024
+};
+
+const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
+    100000,
+    500000, // Default chunk size.
+    100000,
+    50000,
+    50000
+};
+
+const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
+    GatewayChunkSizes[0] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[1] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB
+};
+
+inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
+{
+    for (int32_t i = 0; i < data_size; i++)
+        if (data_size < GatewayChunkDataSizes[i])
+            return i;
+
+    GW_ASSERT(false);
+    return -1;
+}
 
 struct AggregationStruct
 {
@@ -734,9 +772,6 @@ class AccumBuffer
     // Initial data pointer in chunk.
     uint8_t* chunk_orig_buf_ptr_;
 
-    // First chunk data pointer.
-    uint8_t* first_chunk_orig_buf_ptr_;
-
     // Original chunk total length.
     uint32_t chunk_orig_buf_len_bytes_;
 
@@ -792,7 +827,6 @@ public:
         {
             desired_accum_bytes_ = 0;
             accumulated_len_bytes_ = 0;
-            first_chunk_orig_buf_ptr_ = NULL;
         }
         else
         {
@@ -850,24 +884,6 @@ public:
         chunk_num_available_bytes_ -= data_len;
     }
 
-    // First chunk origin data.
-    void SaveFirstChunkOrigBufPtr()
-    {
-        first_chunk_orig_buf_ptr_ = chunk_orig_buf_ptr_;
-    }
-
-    // First chunk origin data.
-    void set_first_chunk_orig_buf_ptr(uint8_t* first_chunk_orig_buf_ptr)
-    {
-        first_chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr;
-    }
-
-    // First chunk origin data.
-    uint8_t* get_first_chunk_orig_buf_ptr()
-    {
-        return first_chunk_orig_buf_ptr_;
-    }
-
     // Get buffer length.
     uint32_t GetNumLeftBytesInChunk(uint8_t* cur_ptr)
     {
@@ -880,17 +896,6 @@ public:
         return desired_accum_bytes_;
     }
 
-    // Setting the data pointer for the next operation.
-    void RestoreToFirstChunk()
-    {
-        GW_ASSERT(NULL != first_chunk_orig_buf_ptr_);
-
-        chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr_;
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
-        chunk_orig_buf_len_bytes_ = 0;
-        chunk_num_available_bytes_ = 0;
-    }
-
     // Resets to original state.
     void ResetToOriginalState()
     {
@@ -898,7 +903,6 @@ public:
         chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_;
         accumulated_len_bytes_ = 0;
         desired_accum_bytes_ = 0;
-        first_chunk_orig_buf_ptr_ = NULL;
     }
 
     // Adds accumulated bytes.
@@ -923,7 +927,6 @@ public:
         chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
         chunk_num_available_bytes_ = accumulated_len_bytes_;
 
-        GW_ASSERT_DEBUG(NULL == first_chunk_orig_buf_ptr_);
         GW_ASSERT_DEBUG(0 == desired_accum_bytes_);
         accumulated_len_bytes_ = 0;
     }
@@ -1145,9 +1148,6 @@ class ActiveDatabase
 
     // Unique sequence number.
     volatile uint64_t unique_num_unsafe_;
-
-    // Indicates if closure was performed.
-    bool were_sockets_closed_;
 
     // Database handlers.
     HandlersTable* user_handlers_;
@@ -1776,7 +1776,6 @@ public:
     // Gets free socket index.
     session_index_type ObtainFreeSocketIndex(
         GatewayWorker* gw,
-        db_index_type db_index,
         SOCKET s,
         int32_t port_index,
         bool proxy_connect_socket);
@@ -2081,16 +2080,13 @@ public:
     const char* GetGlobalStatisticsString(int32_t* out_len);
 
     // Getting the number of used sockets.
-    int64_t NumberUsedSocketsAllWorkersAndDatabases();
+    int64_t NumberCreatedSocketsAllWorkers();
 
     // Getting the number of reusable connect sockets.
     int64_t NumberOfReusableConnectSockets();
 
     // Getting the number of used sockets per worker.
     int64_t NumberUsedSocketsPerWorker(int32_t worker_id);
-
-    // Getting the number of used sockets per database.
-    int64_t NumberUsedSocketsPerDatabase(db_index_type db_index);
 
     // Last bind port number.
     uint16_t get_last_bind_port_num()
@@ -2607,20 +2603,11 @@ public:
         return setting_num_workers_;
     }
 
-    // Getting the total number of used chunks for all databases.
-    int64_t NumberUsedChunksAllWorkersAndDatabases();
-
     // Getting the total number of overflow chunks for all databases.
     int64_t NumberOverflowChunksAllWorkersAndDatabases();
 
-    // Getting the number of used chunks per database.
-    int64_t NumberUsedChunksPerDatabase(db_index_type db_index);
-
     // Getting the number of overflow chunks per database.
     int64_t NumberOverflowChunksPerDatabase(db_index_type db_index);
-
-    // Getting the number of used sockets per worker.
-    int64_t NumberUsedChunksPerWorker(int32_t worker_id);
 
     // Getting the number of active connections per port.
     int64_t NumberOfActiveConnectionsPerPort(int32_t port_index);
