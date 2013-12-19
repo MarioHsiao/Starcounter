@@ -56,7 +56,7 @@ angular.module('uiHandsontable', [])
   })
 
   .directive('uiHandsontable', function ($compile, $rootScope, getHandsontableSettings) {
-    var htOptions = ['data', 'width', 'height', 'rowHeaders', 'colHeaders', 'colWidths', 'columns', 'cells', 'dataSchema', 'contextMenu', 'onSelection', 'onSelectionByProp', 'onBeforeChange', 'onChange', 'onCopyLimit', 'startRows', 'startCols', 'minRows', 'minCols', 'maxRows', 'maxCols', 'minSpareRows', 'minSpareCols', 'multiSelect', 'fillHandle', 'undo', 'outsideClickDeselects', 'enterBeginsEditing', 'enterMoves', 'tabMoves', 'autoWrapRow', 'autoWrapCol', 'copyRowsLimit', 'copyColsLimit', 'currentRowClassName', 'currentColClassName', 'asyncRendering', 'stretchH', 'columnSorting', 'manualColumnMove', 'manualColumnResize', 'fragmentSelection', 'nativeScrollbars'];
+    var htOptions = ['data', 'width', 'height', 'rowHeaders', 'colHeaders', 'colWidths', 'columns', 'cells', 'dataSchema', 'contextMenu', 'onSelection', 'onSelectionByProp', 'onBeforeChange', 'onChange', 'onCopyLimit', 'startRows', 'startCols', 'minRows', 'minCols', 'maxRows', 'maxCols', 'minSpareRows', 'minSpareCols', 'multiSelect', 'fillHandle', 'undo', 'outsideClickDeselects', 'enterBeginsEditing', 'enterMoves', 'tabMoves', 'autoWrapRow', 'autoWrapCol', 'copyRowsLimit', 'copyColsLimit', 'currentRowClassName', 'currentColClassName', 'asyncRendering', 'stretchH', 'columnSorting', 'manualColumnMove', 'manualColumnResize', 'fragmentSelection', 'nativeScrollbars', 'afterRender'];
 
     var scopeDef = {
       selectedIndex: '=selectedindex'
@@ -10174,7 +10174,9 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
-  this.getSetting('onDraw',  !selectionsOnly);
+  if (!this.cloneSource) {
+    this.getSetting('onDraw',  !selectionsOnly);
+  }
   return this;
 };
 
@@ -11847,7 +11849,7 @@ WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, leng
 //applyToDOM (in future merge it with this.refresh?)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 1 + 'px'; //+1 is needed, otherwise sometimes vertical scroll appears in Chrome (window scroll mode)
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 4 + 'px'; //+4 is needed, otherwise sometimes vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row
   this.fixed.style.top = this.measureBefore + 'px';
   this.fixed.style.bottom = '';
 };
