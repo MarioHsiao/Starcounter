@@ -3,7 +3,7 @@
  * Starcounter Administrator module
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHandsontable', 'ui', 'ui.config'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['ngRoute','ui.bootstrap', 'ui.select2', 'uiHandsontable', 'ui', 'ui.config'], function ($routeProvider) {
 
     $routeProvider.when('/databases', {
         templateUrl: '/app/partials/databases.html',
