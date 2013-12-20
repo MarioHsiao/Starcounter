@@ -544,20 +544,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // Assigning last received bytes.
     if (sd->get_accumulating_flag())
     {
-        // Indicates if all data was accumulated.
-        bool is_accumulated;
-
-        // Trying to continue accumulation.
-        err_code = sd->ContinueAccumulation(this, &is_accumulated);
-        if (err_code)
-        {
-            sd->reset_accumulating_flag();
-
-            return err_code;
-        }
-
         // Checking if we have not accumulated everything yet.
-        if (!is_accumulated)
+        if (!sd->get_accum_buf()->IsAccumulationComplete())
         {
             // Checking if we are called already from Receive to avoid recursiveness.
             if (!called_from_receive)
@@ -1728,19 +1716,20 @@ uint32_t GatewayWorker::SendPredefinedMessage(
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
 
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
     // Checking if data fits inside chunk.
-    GW_ASSERT(message_len < (int32_t)accum_buf->get_chunk_num_available_bytes());
+    if (message_len > (int32_t)sd->get_accum_buf()->get_chunk_num_available_bytes())
+    {
+        uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, message_len);
+        if (err_code)
+            return err_code;
+    }
 
     // Checking if message should be copied.
     if (message)
-        memcpy(accum_buf->get_chunk_orig_buf_ptr(), message, message_len);
+        memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), message, message_len);
 
     // Prepare buffer to send outside.
-    accum_buf->PrepareForSend(accum_buf->get_chunk_orig_buf_ptr(), message_len);
-    sd->set_user_data_written_bytes(message_len);
-    sd->set_user_data_offset_in_socket_data(sd->GetAccumOrigBufferSocketDataOffset());
+    sd->PrepareForSend(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), message_len);
 
     // Sending data.
     return Send(sd);

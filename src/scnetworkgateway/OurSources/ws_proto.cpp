@@ -134,7 +134,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             sd->set_disconnect_after_send_flag();
 
             // Prepare buffer to send outside.
-            sd->get_accum_buf()->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
+            sd->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
 
             // Sending data.
             return gw->Send(sd);
@@ -150,7 +150,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, payload_len);
 
             // Prepare buffer to send outside.
-            sd->get_accum_buf()->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
+            sd->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
 
             // Sending data.
             return gw->Send(sd);
@@ -225,12 +225,6 @@ uint32_t WsProto::ProcessWsDataToDb(
 
             // Setting the desired number of bytes to accumulate.
             sd->get_accum_buf()->StartAccumulation(static_cast<uint32_t>(header_len + frame_info_.payload_len_), header_len + num_accum_bytes - num_processed_bytes);
-
-            // Trying to continue accumulation.
-            bool is_accumulated;
-            uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
-            if (err_code)
-                return err_code;
 
             // Checking if we have not accumulated everything yet.
             return gw->Receive(sd);
@@ -324,7 +318,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, payload_len);
 
     // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
+    sd->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
 
     // Calculating difference between original user data and post-processed.
     int32_t diff = static_cast<int32_t>(orig_payload - payload);
@@ -398,7 +392,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     sd->SetSavedUserHandlerId(user_handler_id);
 
     // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(resp_data_begin, resp_len_bytes);
+    sd->PrepareForSend(resp_data_begin, resp_len_bytes);
 
     // Sending data.
     err_code = gw->Send(sd);

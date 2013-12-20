@@ -101,27 +101,6 @@ void SocketDataChunk::ReturnGatewayChunk()
     }
 }
 
-// Continues accumulation if needed.
-uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated)
-{
-    *is_accumulated = false;
-
-    // Checking if we have not completely accumulated all data.
-    if (!accum_buf_.IsAccumulationComplete())
-    {
-        // Checking if current chunk buffer is full.
-        if (accum_buf_.IsBufferFilled())
-            GW_ASSERT(false);
-    }
-    else
-    {
-        // All data has been received.
-        *is_accumulated = true;
-    }
-
-    return 0;
-}
-
 // Clones existing socket data chunk for receiving.
 uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 {
@@ -200,18 +179,44 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
     return 0;
 }
 
-// Clone current socket data to push it.
-uint32_t SocketDataChunk::CloneToPush(
-    GatewayWorker* gw,
-    SocketDataChunk** new_sd)
+// Clone current socket data to a bigger one.
+uint32_t SocketDataChunk::ChangeToBigger(
+    GatewayWorker*gw,
+    SocketDataChunkRef sd,
+    int32_t data_size)
 {
-    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk();
+    // Checking if maximum chunk size is reached.
+    if (sd->get_chunk_store_index() == NumGatewayChunkSizes)
+        return SCERRGWMAXCHUNKSIZEREACHED;
 
+    // Taking the chunk where accumulated buffer fits.
+    SocketDataChunk* new_sd;
+    if (data_size == 0)
+        new_sd = gw->GetWorkerChunks()->ObtainChunkByStoreIndex(sd->get_chunk_store_index() + 1);
+    else
+        new_sd = gw->GetWorkerChunks()->ObtainChunk(data_size);
+
+    // Copying the socket data headers and accumulated buffer.
+    new_sd->CopyFromAnotherSocketData(sd);
+
+    // Releasing chunk.
+    gw->GetWorkerChunks()->ReleaseChunk(sd);
+
+    sd = new_sd;
+
+    return 0;
+}
+
+// Clone current socket data to push it.
+uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_sd)
+{
+    GW_ASSERT(static_cast<int32_t>(get_accum_buf()->get_accum_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
+
+    // Taking the chunk where accumulated buffer fits.
+    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(get_accum_buf()->get_accum_len_bytes());
+
+    // Copying the socket data headers and accumulated buffer.
     (*new_sd)->CopyFromAnotherSocketData(this);
-
-    // Adjusting accumulative buffer.
-    int32_t offset_bytes_from_sd = static_cast<int32_t> (get_accum_buf()->get_chunk_orig_buf_ptr() - (uint8_t*) this);
-    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((uint8_t*) (*new_sd) + offset_bytes_from_sd, get_accum_buf());
 
     // This socket becomes unattached.
     (*new_sd)->reset_socket_representer_flag();

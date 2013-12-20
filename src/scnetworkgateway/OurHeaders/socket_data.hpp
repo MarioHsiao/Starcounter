@@ -110,7 +110,7 @@ public:
     // Checking that gateway chunk is valid.
     void CheckForValidity()
     {
-        GW_ASSERT(chunk_store_index_ >= 0);
+        GW_ASSERT((chunk_store_index_ >= 0) && (chunk_store_index_ < NumGatewayChunkSizes));
     }
 
     // Invalidating gateway chunk when returning to store.
@@ -139,15 +139,40 @@ public:
         session_.gw_worker_id_ = worker_id;
     }
 
+    void PlainCopySocketDataInfoHeaders(SocketDataChunk* sd)
+    {
+        // NOTE:
+        // Saving new chunk store index, otherwise it would be overwritten.
+        chunk_store_type saved_new_store_index = chunk_store_index_;
+        memcpy(this, sd, sizeof(SocketDataChunk));
+        chunk_store_index_ = saved_new_store_index;
+
+        // Resetting the accumulative buffer because it was overwritten.
+        ResetAccumBuffer();
+    }
+
     void CopyFromAnotherSocketData(SocketDataChunk* sd)
     {
-        memcpy(this, sd, sizeof(SocketDataChunk));
+        // First copying socket data headers.
+        PlainCopySocketDataInfoHeaders(sd);
+
+        AccumBuffer* ab = sd->get_accum_buf();
+
+        GW_ASSERT(static_cast<int32_t>(ab->get_accum_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
+
+        memcpy(data_blob_, ab->get_chunk_orig_buf_ptr(), ab->get_accum_len_bytes());
+
+        // Adjusting the accumulative buffer.
+        accum_buf_.AddAccumulatedBytes(ab->get_accum_len_bytes());
     }
 
     void CopyFromOneChunkIPCSocketData(SocketDataChunk* sd, int32_t num_bytes_to_copy)
     {
-        memcpy(this, sd, sizeof(SocketDataChunk));
+        // First copying socket data headers.
+        PlainCopySocketDataInfoHeaders(sd);
+
         memcpy(data_blob_, (uint8_t*)sd + sd->get_user_data_offset_in_socket_data(), num_bytes_to_copy);
+
         set_user_data_offset_in_socket_data(static_cast<uint16_t>(data_blob_ - (uint8_t*)this));
     }
 
@@ -180,6 +205,14 @@ public:
     uint32_t GetAccumOrigBufferSocketDataOffset()
     {
         return static_cast<uint32_t>(accum_buf_.get_chunk_orig_buf_ptr() - (uint8_t*)this);
+    }
+
+    // Prepare buffer to send outside.
+    void PrepareForSend(uint8_t *data, uint32_t num_bytes_to_write)
+    {
+        accum_buf_.PrepareForSend(data, num_bytes_to_write);
+        set_user_data_written_bytes(num_bytes_to_write);
+        set_user_data_offset_in_socket_data(static_cast<uint32_t>(data - (uint8_t*)this));
     }
 
     // Resets safe flags.
@@ -331,9 +364,6 @@ public:
     {
         return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
     }
-
-    // Continues fill up if needed.
-    uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
@@ -879,17 +909,11 @@ public:
         return &accum_buf_;
     }
 
-    // Initializes accumulated data buffer based on chunk data.
-    void InitAccumBufferFromUserData()
-    {
-        accum_buf_.Init(user_data_written_bytes_, (uint8_t*)this + user_data_offset_in_socket_data_, true);
-    }
-
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
         GW_ASSERT_DEBUG(false == get_big_accumulation_chunk_flag());
-        accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
+        accum_buf_.Init(GatewayChunkDataSizes[chunk_store_index_], data_blob_, true);
     }
 
     // Exchanges sockets during proxying.
@@ -1052,6 +1076,12 @@ public:
 
     // Clone current socket data to simply send it.
     uint32_t CloneToPush(GatewayWorker*gw, SocketDataChunk** new_sd);
+
+    // Clone current socket data to a bigger one.
+    static uint32_t ChangeToBigger(
+        GatewayWorker*gw,
+        SocketDataChunkRef sd,
+        int32_t data_size = 0);
 
     // Clone current socket data to simply send it.
     uint32_t CreateSocketDataFromBigBuffer(
