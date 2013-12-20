@@ -159,6 +159,7 @@ typedef int8_t chunk_store_type;
 #define SCERRGWIPISNOTONWHITELIST 12413
 #define SCERRGWWRONGDBINDEX 12414
 #define SCERRGWMAXHTTPHEADERSSIZEREACHED 12415
+#define SCERRGWMAXCHUNKSIZEREACHED 12416
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -201,9 +202,6 @@ const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
 const int32_t SOCKET_DATA_OFFSET_BLOB = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
-
-// Length of blob data in bytes.
-const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
@@ -342,8 +340,8 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
 
 inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
 {
-    for (int32_t i = 0; i < data_size; i++)
-        if (data_size < GatewayChunkDataSizes[i])
+    for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
+        if (data_size <= GatewayChunkDataSizes[i])
             return i;
 
     GW_ASSERT(false);
@@ -722,7 +720,8 @@ public:
         elems_[push_index_] = new_elem;
         push_index_++;
         stripe_length_++;
-        GW_ASSERT(stripe_length_ <= MaxElems);
+        if (stripe_length_ > MaxElems)
+            std::cout << "";
 
         if (push_index_ == MaxElems)
             push_index_ = 0;
@@ -798,17 +797,6 @@ public:
         }
 
         return chunk_orig_buf_ptr_;
-    }
-
-    // Cloning existing accumulative buffer.
-    void CloneBasedOnNewBaseAddress(uint8_t* new_orig_buf_ptr, AccumBuffer* accum_buffer)
-    {
-        // Pure data copy from another accumulative buffer.
-        *this = *accum_buffer;
-
-        // Adjusting pointers.
-        chunk_orig_buf_ptr_ = new_orig_buf_ptr;
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_ + (accum_buffer->chunk_cur_buf_ptr_ - accum_buffer->chunk_orig_buf_ptr_);
     }
 
     // Initializes accumulative buffer.
@@ -936,10 +924,6 @@ public:
     {
         desired_accum_bytes_ = total_desired_bytes;
         accumulated_len_bytes_ = num_already_accumulated;
-
-        uint32_t remaining = total_desired_bytes - num_already_accumulated;
-        if (chunk_num_available_bytes_ > remaining)
-            chunk_num_available_bytes_ = remaining;
     }
 
     // Returns pointer to original data buffer.

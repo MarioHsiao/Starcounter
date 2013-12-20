@@ -3405,8 +3405,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    Sleep(5000);
-
     // Setting the critical log handler.
     set_critical_log_handler(LogGatewayCrash, NULL);
 

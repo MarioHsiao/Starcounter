@@ -629,7 +629,7 @@ uint32_t AppsPortProcessData(
     else
     {
         // Prepare buffer to send outside.
-        sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);

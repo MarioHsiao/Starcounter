@@ -160,9 +160,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 continue;
             }*/
 
-            // Resetting the accumulative buffer.
-            sd->InitAccumBufferFromUserData();
-
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);
 

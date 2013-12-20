@@ -723,13 +723,16 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             (const char *)accum_buf->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
 
-        // Checking if we have complete data.
-        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
-            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
+        // Checking if we should continue receiving the headers.
+        if ((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()) ||
+            ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
             // Checking if any space left in chunk.
             if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
-                return SCERRGWMAXHTTPHEADERSSIZEREACHED;
+                err_code = SocketDataChunk::ChangeToBigger(gw, sd);
+
+            if (err_code)
+                return err_code;
 
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
@@ -817,15 +820,6 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                 // Number of content bytes already received.
                 uint32_t num_content_bytes_received = sd->GetAccumOrigBufferSocketDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
                 
-                // Checking if content was partially received at all.
-                if (http_request_.content_offset_ <= 0)
-                {
-                    // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint16_t>(sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
-
-                    num_content_bytes_received = 0;
-                }
-
                 // Checking if full request is received when aggregated.
                 if (sd->GetSocketAggregatedFlag())
                     GW_ASSERT(http_request_.content_len_bytes_ == num_content_bytes_received);
@@ -861,12 +855,6 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                     accum_buf->StartAccumulation(
                         accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
                         accum_buf->get_accum_len_bytes());
-
-                    // Trying to continue accumulation.
-                    bool is_accumulated;
-                    uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
-                    if (err_code)
-                        return err_code;
 
                     // Handled successfully.
                     *is_handled = true;
@@ -961,7 +949,7 @@ ALL_DATA_ACCUMULATED:
             return SCERRGWDISCONNECTFLAG;
 
         // Prepare buffer to send outside.
-        sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);
@@ -1136,11 +1124,6 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
                     accum_buf->StartAccumulation(
                         accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
                         accum_buf->get_accum_len_bytes());
-
-                    // Trying to continue accumulation.
-                    bool is_accumulated;
-                    uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
-                    GW_ERR_CHECK(err_code);
 
                     // Handled successfully.
                     *is_handled = true;

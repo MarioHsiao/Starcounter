@@ -66,15 +66,22 @@ public:
     // Getting free chunk from the list or creating a new one.
     SocketDataChunk* ObtainChunkByStoreIndex(chunk_store_type chunk_store_index)
     {
+        SocketDataChunk* sd;
+
+        // Checking if a free chunk is available.
         if (worker_chunks_[chunk_store_index].get_num_entries())
-            return worker_chunks_[chunk_store_index].PopBack();
+        {
+            sd = worker_chunks_[chunk_store_index].PopBack();
+            goto RETURN_SD;
+        }
 
         // Creating new chunk.
-        SocketDataChunk* sd = (SocketDataChunk*) _aligned_malloc(GatewayChunkSizes[chunk_store_index], MEMORY_ALLOCATION_ALIGNMENT);
-        sd->set_chunk_store_index(chunk_store_index);
-
+        sd = (SocketDataChunk*) _aligned_malloc(GatewayChunkSizes[chunk_store_index], MEMORY_ALLOCATION_ALIGNMENT);
         num_allocated_chunks_[chunk_store_index]++;
 
+RETURN_SD:
+
+        sd->set_chunk_store_index(chunk_store_index);
         return sd;
     }
 };
