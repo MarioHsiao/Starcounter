@@ -125,12 +125,12 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunk size.
         /// </summary>
-        public const int SHM_CHUNK_SIZE = 1 << 11; // 2K chunks.
+        public const int SHM_CHUNK_SIZE = 512;
 
         /// <summary>
         /// Shared memory chunks default number.
         /// </summary>
-        public const int SHM_CHUNKS_DEFAULT_NUMBER = 1 << 16;
+        public const int SHM_CHUNKS_DEFAULT_NUMBER = 1 << 14;
 
         /// <summary>
         /// Linked chunk flag.
@@ -156,6 +156,16 @@ namespace Starcounter.Internal
         /// Socket data max size.
         /// </summary>
         public const int SOCKET_DATA_MAX_SIZE = CHUNK_MAX_DATA_BYTES - CHUNK_OFFSET_SOCKET_DATA;
+
+        /// <summary>
+        /// Maximum extra linked IPC chunks.
+        /// </summary>
+        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 32;
+
+        /// <summary>
+        /// Maximum linked chunks bytes.
+        /// </summary>
+        public const int MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS = MAX_EXTRA_LINKED_IPC_CHUNKS * CHUNK_MAX_DATA_BYTES;
 
         /// <summary>
         /// Size of socket data blob.

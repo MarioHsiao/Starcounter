@@ -107,6 +107,12 @@ class SocketDataChunk
 
 public:
 
+    // Setting accumulating flag.
+    void set_accumulating_flag()
+    {
+        flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+    }
+
     // Checking that gateway chunk is valid.
     void CheckForValidity()
     {
@@ -117,6 +123,7 @@ public:
     void InvalidateWhenReturning()
     {
         chunk_store_index_ = -1;
+        accum_buf_.Invalidate();
     }
 
     chunk_store_type get_chunk_store_index()
@@ -455,12 +462,6 @@ public:
     bool get_accumulating_flag()
     {
         return (flags_ & SOCKET_DATA_FLAGS_ACCUMULATING_STATE) != 0;
-    }
-
-    // Setting accumulating flag.
-    void set_accumulating_flag()
-    {
-        flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
     // ReSetting accumulating flag.

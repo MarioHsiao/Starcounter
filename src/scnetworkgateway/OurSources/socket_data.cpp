@@ -233,6 +233,9 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
     int32_t data_bytes_offset = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - ipc_sd->get_user_data_offset_in_socket_data(),
         bytes_left = ipc_sd->get_user_data_written_bytes() - data_bytes_offset;
 
+    // Checking that number of left bytes in linked chunks is correct.
+    GW_ASSERT(bytes_left <= MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS);
+
     // Copying first chunk.
     CopyFromOneChunkIPCSocketData(ipc_sd, data_bytes_offset);
 
