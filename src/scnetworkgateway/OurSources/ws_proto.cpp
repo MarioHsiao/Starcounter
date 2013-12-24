@@ -220,11 +220,14 @@ uint32_t WsProto::ProcessWsDataToDb(
         // Continue accumulating data.
         if (num_processed_bytes + frame_info_.payload_len_ > num_accum_bytes)
         {
-            // Enabling accumulative state.
-            sd->set_accumulating_flag();
-
             // Setting the desired number of bytes to accumulate.
-            sd->get_accum_buf()->StartAccumulation(static_cast<uint32_t>(header_len + frame_info_.payload_len_), header_len + num_accum_bytes - num_processed_bytes);
+            err_code = gw->StartAccumulation(
+                sd,
+                static_cast<uint32_t>(header_len + frame_info_.payload_len_),
+                header_len + num_accum_bytes - num_processed_bytes);
+
+            if (err_code)
+                return err_code;
 
             // Checking if we have not accumulated everything yet.
             return gw->Receive(sd);

@@ -198,10 +198,10 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     int32_t num_bytes_to_write = buf_len_bytes;
 
     // Checking if more than maximum chunks we can take at once.
-    if ((num_extra_chunks >= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!aggregated_flag))
+    if ((num_extra_chunks > starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS) && (!aggregated_flag))
     {
-        num_extra_chunks = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS - 1;
-        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_left_first_chunk;
+        num_extra_chunks = starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS;
+        num_bytes_to_write = starcounter::MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS + num_bytes_left_first_chunk;
     }
 
     // Acquiring linked chunks.

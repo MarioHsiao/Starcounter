@@ -189,6 +189,36 @@ public:
         sockets_indexes_to_disconnect_.push_back(socket_index);
     }
 
+    // Starting accumulation.
+    uint32_t StartAccumulation(SocketDataChunkRef sd, uint32_t total_desired_bytes, uint32_t num_already_accumulated)
+    {
+        // Enabling accumulative state.
+        sd->set_accumulating_flag();
+
+        // Checking if the host accumulation should be involved.
+        if (total_desired_bytes > static_cast<uint32_t>(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]))
+        {
+            // We need to accumulate on host.
+            sd->set_on_host_accumulation_flag();
+
+            return SCERRGWMAXDATASIZEREACHED;
+        }
+
+        // Checking if data that needs accumulation fits into chunk.
+        if (sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() < total_desired_bytes)
+        {
+            uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, total_desired_bytes);
+            if (err_code)
+                return err_code;
+        }
+
+        GW_ASSERT(sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() >= total_desired_bytes);
+
+        sd->get_accum_buf()->StartAccumulation(total_desired_bytes, num_already_accumulated);
+
+        return 0;
+    }
+
     // Processes sockets that should be disconnected.
     void ProcessSocketDisconnectList();
 

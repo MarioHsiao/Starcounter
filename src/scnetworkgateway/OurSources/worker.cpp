@@ -485,8 +485,6 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
-    uint32_t err_code;
-
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
     {
@@ -520,7 +518,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         if (!sd->GetSocketAggregatedFlag())
         {
             // Posting cloning receive since all data is accumulated.
-            err_code = sd->CloneToReceive(this);
+            uint32_t err_code = sd->CloneToReceive(this);
             if (err_code)
                 return err_code;
         }
