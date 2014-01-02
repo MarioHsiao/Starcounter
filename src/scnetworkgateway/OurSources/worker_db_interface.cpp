@@ -502,7 +502,10 @@ WorkerDbInterface::WorkerDbInterface(
 
     // TODO: Fix correct in-time interface initialization.
     while (num_schedulers_ <= 0)
+    {
         Sleep(1);
+        num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
+    }
 
     channels_ = new core::channel_number[num_schedulers_];
 
