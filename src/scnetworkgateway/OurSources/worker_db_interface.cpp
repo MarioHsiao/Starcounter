@@ -499,6 +499,11 @@ WorkerDbInterface::WorkerDbInterface(
 
     // Allocating channels.
     num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
+
+    // TODO: Fix correct in-time interface initialization.
+    while (num_schedulers_ <= 0)
+        Sleep(1);
+
     channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
@@ -511,7 +516,6 @@ WorkerDbInterface::WorkerDbInterface(
 #endif
 
 #ifdef GW_DATABASES_DIAG
-    // Diagnostics.
     GW_PRINT_WORKER << "Database \"" << active_db->get_db_name() <<
         "\" acquired client interface " << shared_int_.get_client_number() << " and " << num_schedulers_ << " channel(s): ";
 #endif
@@ -522,11 +526,6 @@ WorkerDbInterface::WorkerDbInterface(
 		channels_[s] = (worker_id * num_schedulers_) + s;
         bool channel_acquired = shared_int_.acquire_channel2(channels_[s], static_cast<core::scheduler_number> (s));
         GW_ASSERT(true == channel_acquired);
-
-#if 0
-        bool channel_acquired = shared_int_.acquire_channel(&channels_[s], static_cast<core::scheduler_number> (s));
-        GW_ASSERT(true == channel_acquired);
-#endif
 
 #ifdef GW_DATABASES_DIAG
         GW_COUT << channels_[s] << ", ";

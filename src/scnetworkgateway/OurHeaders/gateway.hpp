@@ -1035,6 +1035,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Main session structure attached to this socket.
     ScSessionStruct session_;
 
+    //////////////////////////////
+    //////// 64 bits data ////////
+    //////////////////////////////
+
     // Socket last activity timestamp.
     socket_timestamp_type socket_timestamp_;
 
@@ -1047,6 +1051,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Socket number.
     SOCKET socket_;
 
+    //////////////////////////////
+    //////// 32 bits data ////////
+    //////////////////////////////
+
     // Proxy socket identifier.
     session_index_type proxy_socket_info_index_;
 
@@ -1056,8 +1064,19 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Aggregation socket index.
     session_index_type aggr_socket_info_index_;
 
+    // Number of bytes left for accumulation.
+    uint32_t accum_data_bytes_left_;
+
+    //////////////////////////////
+    //////// 16 bits data ////////
+    //////////////////////////////
+
     // Port index.
     port_index_type port_index_;
+
+    //////////////////////////////
+    //////// 8 bits data /////////
+    //////////////////////////////
 
     // Index to already determined database.
     db_index_type dest_db_index_;
@@ -1995,7 +2014,6 @@ public:
         all_sockets_infos_unsafe_[socket_index].set_socket_aggregated_flag();
     }
 
-    // Getting proxy socket index.
     session_index_type GetProxySocketIndex(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
@@ -2003,12 +2021,32 @@ public:
         return all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
     }
 
-    // Getting proxy socket index.
     void SetProxySocketIndex(session_index_type socket_index, session_index_type proxy_socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_ = proxy_socket_index;
+    }
+
+    session_index_type GetAccumulatedBytesLeft(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_;
+    }
+
+    void SetAccumulatedBytesLeft(session_index_type socket_index, uint32_t num_bytes)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_ = num_bytes;
+    }
+
+    void DecrementAccumulatedBytesLeft(session_index_type socket_index, uint32_t decr_bytes)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_ -= decr_bytes;
     }
 
     // Applying session parameters to socket data.
