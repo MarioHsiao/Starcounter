@@ -491,21 +491,23 @@ WorkerDbInterface::WorkerDbInterface(
 
     ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
 
-    // Initializing worker shared memory interface.
-    shared_int_.init(
-        active_db->get_shm_seg_name().c_str(),
-        g_gateway.get_shm_monitor_int_name().c_str(),
-        g_gateway.get_gateway_pid(),
-        g_gateway.get_gateway_owner_id());
-
-    // Allocating channels.
-    num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
-
     // TODO: Fix correct in-time interface initialization.
-    while (num_schedulers_ <= 0)
+    while (true)
     {
-        Sleep(1);
+        // Initializing worker shared memory interface.
+        shared_int_.init(
+            active_db->get_shm_seg_name().c_str(),
+            g_gateway.get_shm_monitor_int_name().c_str(),
+            g_gateway.get_gateway_pid(),
+            g_gateway.get_gateway_owner_id());
+
+        // Allocating channels.
         num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
+
+        if (num_schedulers_ <= 0)
+            Sleep(100);
+        else
+            break;
     }
 
     channels_ = new core::channel_number[num_schedulers_];
