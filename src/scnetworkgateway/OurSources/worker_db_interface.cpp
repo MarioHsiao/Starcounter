@@ -195,60 +195,64 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index cur_chunk_index,
-    int32_t* actual_written_bytes,
     int32_t first_chunk_offset,
+    int32_t* actual_written_bytes,
     uint16_t* num_ipc_chunks
     )
 {
     // Maximum number of bytes that will be written in this call.
-    int32_t num_bytes_to_write = buf_len_bytes;
-    int32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    int32_t num_bytes_left_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
 
     // Number of chunks to use.
-    int32_t num_extra_chunks = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
-    GW_ASSERT(num_extra_chunks > 0);
-
-    // Checking if more than maximum chunks we can take at once.
-    GW_ASSERT(num_extra_chunks <= MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS);
-
-    // Setting total number of IPC chunks.
-    *num_ipc_chunks = num_extra_chunks + 1;
-
-    // Acquiring linked chunks.
-    starcounter::core::chunk_index new_chunk_index;
-    uint32_t err_code = GetMultipleChunksFromPrivatePool(&new_chunk_index, num_extra_chunks);
-
-    if (err_code)
-        return err_code;
+    int32_t num_extra_chunks = 0;
+    if (buf_len_bytes > num_bytes_left_first_chunk)
+        num_extra_chunks = ((buf_len_bytes - num_bytes_left_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
 
     // Getting chunk memory address.
     uint8_t* cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
 
+    // Setting total number of IPC chunks.
+    *num_ipc_chunks = num_extra_chunks + 1;
+
+    // Setting number of total written bytes.
+    *actual_written_bytes = buf_len_bytes;
+
+    // Setting the number of written bytes.
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
+
+    // Checking if the original chunk is sufficient.
+    if (0 == num_extra_chunks)
+    {
+        memcpy(cur_chunk_buf + first_chunk_offset, buf, buf_len_bytes);
+
+        return 0;
+    }
+
+    // Checking if more than maximum chunks we can take at once.
+    GW_ASSERT(num_extra_chunks <= MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS);
+
+    // Acquiring linked chunks.
+    starcounter::core::chunk_index new_chunk_index;
+    uint32_t err_code = GetMultipleChunksFromPrivatePool(&new_chunk_index, num_extra_chunks);
+    GW_ASSERT(0 == err_code);
+
     // Linking to the first chunk.
     ((shared_memory_chunk*)cur_chunk_buf)->set_link(new_chunk_index);
 
-    // Setting the number of written bytes.
-    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
-
     // Going through each linked chunk and write data there.
-    int32_t left_bytes_to_write = num_bytes_to_write;
+    int32_t left_bytes_to_write = buf_len_bytes;
     int32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Writing to first chunk.
-    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
-    left_bytes_to_write -= num_bytes_first_chunk;
+    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
+    left_bytes_to_write -= num_bytes_left_first_chunk;
 
     // Checking how many bytes to write next time.
     if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
     {
         // Checking if we copied everything.
         if (left_bytes_to_write <= 0)
-        {
-            // Setting number of total written bytes.
-            *actual_written_bytes = num_bytes_to_write;
-
             return 0;
-        }
 
         num_bytes_to_write_in_chunk = left_bytes_to_write;
     }
@@ -263,7 +267,7 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
         cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
 
         // Copying memory.
-        memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
+        memcpy(cur_chunk_buf, buf + buf_len_bytes - left_bytes_to_write, num_bytes_to_write_in_chunk);
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
 
         // Checking how many bytes to write next time.
@@ -276,9 +280,6 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
             num_bytes_to_write_in_chunk = left_bytes_to_write;
         }
     }
-
-    // Setting number of total written bytes.
-    *actual_written_bytes = num_bytes_to_write;
 
     return 0;
 }

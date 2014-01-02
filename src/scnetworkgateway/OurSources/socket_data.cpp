@@ -298,8 +298,8 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
         get_accum_buf()->get_chunk_orig_buf_ptr(),
         get_accum_buf()->get_accum_len_bytes(),
         *db_chunk_index,
-        &actual_written_bytes,
         MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB,
+        &actual_written_bytes,
         num_ipc_chunks);
 
     GW_ASSERT(actual_written_bytes == get_accum_buf()->get_accum_len_bytes());
