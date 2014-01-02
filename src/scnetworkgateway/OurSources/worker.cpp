@@ -756,7 +756,9 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
 {
 #ifdef GW_COLLECT_SOCKET_STATISTICS
+#ifndef GW_TESTING_MODE
     GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
+#endif
 #endif
 
 #ifdef GW_CHUNKS_DIAG
