@@ -4,12 +4,16 @@
 // </copyright>
 // ***********************************************************************
 
+// Remove this define to generate code without #line directives
+#define ADDLINEDIRECTIVES
+
 using Starcounter.Templates.Interfaces;
 using System.Text;
 using System;
 using Starcounter.Templates;
 using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
+using System.Diagnostics;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
@@ -157,6 +161,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (node is AstClass) {
                 if (node is AstMetadataClass) {
                     node.Prefix.Add("");
+
+                    AppendLineDirectiveIfDefined(node.Prefix, "#line hidden");
+
                     var n = node as AstMetadataClass;
                     sb.Append("public class ");
                     sb.Append(n.ClassStemIdentifier);
@@ -171,8 +178,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     WriteObjMetadataClassPrefix(node as AstMetadataClass);
                     node.Suffix.Add("}");
 
+                    AppendLineDirectiveIfDefined(node.Suffix, "#line default");
+
                 } else if (node is AstClass) {
                     node.Prefix.Add("");
+
+                    AppendLineDirectiveIfDefined(node.Prefix, "#line hidden");
+
                     var n = node as AstClass;
                     sb.Append("public ");
 
@@ -209,6 +221,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         WriteTAppConstructor((node as AstSchemaClass).Constructor);
                     }
                     node.Suffix.Add("}");
+
+                    AppendLineDirectiveIfDefined(node.Suffix, "#line default");
+
                 } else {
                     throw new Exception();
                 }
@@ -264,14 +279,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(m.MemberName);
             sb.AppendLine(" {");
 
-            sb.Append("#line ");
-            sb.Append(m.Template.CompilerOrigin.LineNo);
-            sb.Append(" \"");
-            sb.Append(m.Template.CompilerOrigin.FileName);
-            sb.AppendLine("\"");
+            AppendLineDirectiveIfDefined(sb, 
+                                     "#line "
+                                     + m.Template.CompilerOrigin.LineNo
+                                     + " \""
+                                     + m.Template.CompilerOrigin.FileName
+                                     + "\"");
+
             sb.AppendLine("    get {");
 
-            sb.AppendLine("#line hidden");
+            AppendLineDirectiveIfDefined(sb, "#line hidden");
+
             sb.Append("        return ");
             if (m.Type is AstJsonClass) {
                 sb.Append('(');
@@ -282,19 +300,20 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(m.MemberName);
             sb.AppendLine(".Getter(this); }");
 
-            sb.Append("#line ");
-            sb.Append(m.Template.CompilerOrigin.LineNo);
-            sb.Append(" \"");
-            sb.Append(m.Template.CompilerOrigin.FileName);
-            sb.AppendLine("\"");
-            sb.AppendLine("    set {");
+            AppendLineDirectiveIfDefined(sb,
+                                     "#line "
+                                     + m.Template.CompilerOrigin.LineNo
+                                     + " \""
+                                     + m.Template.CompilerOrigin.FileName
+                                     + "\"");
 
-            sb.AppendLine("#line hidden");
+            sb.AppendLine("    set {");
+            AppendLineDirectiveIfDefined(sb, "#line hidden");
             sb.Append("        Template.");
             sb.Append(m.MemberName);
             sb.AppendLine(".Setter(this, value); } }");
 
-            sb.AppendLine("#line default");
+            AppendLineDirectiveIfDefined(sb, "#line default");
 
             m.Prefix.Add(sb.ToString());
         }
@@ -304,7 +323,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="a">A.</param>
         private void WriteAppClassPrefix(AstJsonClass a) {
-            a.Prefix.Add("    #line hidden");
+            AppendLineDirectiveIfDefined(a.Prefix, "    #line hidden");
+
             a.Prefix.Add("    " + markAsCodegen);
             a.Prefix.Add("    public static "
                          + a.ClassSpecifierWithoutOwners
@@ -369,7 +389,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 + ";");
                 }
             }
-            a.Prefix.Add("    #line default");
+            AppendLineDirectiveIfDefined(a.Prefix, "    #line default");
         }
 
         private AstClass GetParentPropertyType(Template a) {
@@ -645,14 +665,29 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             h.Append("#pragma warning disable 0108\n");
             h.Append("#pragma warning disable 1591\n");
-            //			h.Append("#line hidden\n");
             h.Append('\n');
         }
 
         static internal void WriteFooter(StringBuilder f) {
-            f.Append("#line default\n");
+#if !DEBUG
+            string s = "apa";
+            Console.Write(s);
+            s = null;
+
+#endif
+
             f.Append("#pragma warning restore 1591\n");
             f.Append("#pragma warning restore 0108");
+        }
+
+        [Conditional("ADDLINEDIRECTIVES")]
+        private static void AppendLineDirectiveIfDefined(List<string> list, string str) {
+            list.Add(str);
+        }
+
+        [Conditional("ADDLINEDIRECTIVES")]
+        private static void AppendLineDirectiveIfDefined(StringBuilder sb, string str) {
+            sb.AppendLine(str);
         }
     }
 }
