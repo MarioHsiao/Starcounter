@@ -270,8 +270,8 @@ namespace Starcounter.Templates {
             newTemplate._Parent = parent;
             newTemplate.TemplateIndex = existing.TemplateIndex;
 
-            if (newTemplate is TValue) {
-                ((TValue)newTemplate).CopyValueDelegates(existing);
+            if (existing is TValue) {
+                ((TValue)existing).CopyValueDelegates(newTemplate);
             }
 
             list[newTemplate.TemplateIndex] = newTemplate;
