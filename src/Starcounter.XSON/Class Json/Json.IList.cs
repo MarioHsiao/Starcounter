@@ -66,7 +66,7 @@ namespace Starcounter {
         public bool HasBeenSent {
             get {
 				if (Parent != null) {
-					return !Parent.WasReplacedAt(IndexInParent);
+					return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
 				}
 				else {
                     var s = Session;
@@ -365,7 +365,6 @@ namespace Starcounter {
             if (i == -1)
                 return;
             this.RemoveAt(i);
-            _SetFlag.RemoveAt(i);
             return;
         }
 
