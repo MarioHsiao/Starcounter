@@ -269,6 +269,11 @@ namespace Starcounter.Templates {
             }
             newTemplate._Parent = parent;
             newTemplate.TemplateIndex = existing.TemplateIndex;
+
+            if (newTemplate is TValue) {
+                ((TValue)newTemplate).CopyValueDelegates(existing);
+            }
+
             list[newTemplate.TemplateIndex] = newTemplate;
             parent.OnPropertyAdded(newTemplate);
         }
