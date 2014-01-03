@@ -118,5 +118,8 @@ namespace Starcounter.Templates {
 
 		internal override void SetValueAsObject(Json parent, object value) {
 		}
+
+		internal override void CopyValueDelegates(Template toTemplate) {
+		}
     }
 }

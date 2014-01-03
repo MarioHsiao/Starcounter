@@ -635,7 +635,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 						sb.Append(a.NValueClass.GlobalClassSpecifier);
 						sb.Append(")_p_).");
 						sb.Append(mn.BackingFieldName);
-						sb.Append(" = _v_; } );");
+						sb.Append(" = _v_; }, false);");
 						a.Prefix.Add(sb.ToString());
 					}
                 }

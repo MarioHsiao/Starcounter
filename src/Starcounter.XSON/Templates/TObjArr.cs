@@ -15,13 +15,6 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class TObjArr : TContainer {
-#if DEBUG
-		internal string DebugBoundSetter;
-		internal string DebugBoundGetter;
-		internal string DebugUnboundSetter;
-		internal string DebugUnboundGetter;
-#endif
-
 		public Action<Json, Json> Setter;
 		public Func<Json, Json> Getter;
 		internal Action<Json, IEnumerable> BoundSetter;
@@ -48,18 +41,49 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="getter"></param>
 		/// <param name="setter"></param>
-		public void SetCustomAccessors(Func<Json, Json> getter, Action<Json, Json> setter) {
-			if (BindingStrategy == BindingStrategy.Unbound) {
-				Getter = getter;
-				Setter = setter;
-			}
-			UnboundGetter = getter;
-			UnboundSetter = setter;
+		/// <param name="overwriteExisting">
+		/// If false the new delegates are only set if the current delegates are null.
+		/// </param>
+		public void SetCustomAccessors(Func<Json, Json> getter, 
+									   Action<Json, Json> setter,
+									   bool overwriteExisting = true) {
+			bool overwrite = (overwriteExisting || !hasCustomAccessors);
 
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				if (overwrite || Getter == null)
+					Getter = getter;
+				if (overwrite || Setter == null)
+					Setter = setter;
+			}
+
+			if (overwrite || UnboundGetter == null) {
+				UnboundGetter = getter;
 #if DEBUG
-			DebugUnboundGetter = "<custom>";
-			DebugUnboundSetter = "<custom>";
+				DebugUnboundGetter = "<custom>";
 #endif
+			}
+
+			if (overwrite || UnboundSetter == null) {
+				UnboundSetter = setter;
+#if DEBUG
+				DebugUnboundSetter = "<custom>";
+#endif
+			}
+
+			hasCustomAccessors = true;
+		}
+
+		internal override void CopyValueDelegates(Template toTemplate) {
+			var p = toTemplate as TObjArr;
+			if (p != null) {
+				p.UnboundGetter = UnboundGetter;
+				p.UnboundSetter = UnboundSetter;
+				p.hasCustomAccessors = hasCustomAccessors;
+#if DEBUG
+				DebugUnboundGetter = DebugUnboundGetter;
+				DebugUnboundSetter = DebugUnboundSetter;
+#endif
+			}
 		}
 
 		internal override void SetDefaultValue(Json parent) {

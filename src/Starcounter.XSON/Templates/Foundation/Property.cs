@@ -14,15 +14,6 @@ namespace Starcounter.Templates {
     /// </summary>
     /// <typeparam name="T">The primitive system type of this property.</typeparam>
     public abstract class Property<T> : TValue {
-#if DEBUG
-//		internal string DebugSetter;
-//		internal string DebugGetter;
-		internal string DebugBoundSetter;
-		internal string DebugBoundGetter;
-		internal string DebugUnboundSetter;
-		internal string DebugUnboundGetter;
-#endif
-
 		public Action<Json, T> Setter;
 		public Func<Json, T> Getter;
 		internal Action<Json, T> BoundSetter;
@@ -62,18 +53,33 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="getter"></param>
 		/// <param name="setter"></param>
-		public void SetCustomAccessors(Func<Json, T> getter, Action<Json, T> setter) {
-			if (BindingStrategy == BindingStrategy.Unbound) {
-				Getter = getter;
-				Setter = setter;
-			}
-			UnboundGetter = getter;
-			UnboundSetter = setter;
+		public void SetCustomAccessors(Func<Json, T> getter, 
+									   Action<Json, T> setter,
+									   bool overwriteExisting = true) {
+			bool overwrite = (overwriteExisting || !hasCustomAccessors);
 
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				if (overwrite || Getter == null)
+					Getter = getter;
+				if (overwrite || Setter == null)
+					Setter = setter;
+			}
+
+			if (overwrite || UnboundGetter == null) {
+				UnboundGetter = getter;
 #if DEBUG
-			DebugUnboundGetter = "<custom>";
-			DebugUnboundSetter = "<custom>";
+				DebugUnboundGetter = "<custom>";
 #endif
+			}
+
+			if (overwrite || UnboundSetter == null) {
+				UnboundSetter = setter;
+#if DEBUG
+				DebugUnboundSetter = "<custom>";
+#endif
+			}
+
+			hasCustomAccessors = true;
 		}
 
 		/// <summary>
@@ -169,7 +175,25 @@ namespace Starcounter.Templates {
 		}
 
 		internal override string ValueToJsonString(Json parent) {
-			return Getter(parent).ToString();
+		    return Getter(parent).ToString();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="from"></param>
+		internal override void CopyValueDelegates(Template toTemplate) {
+			var p = toTemplate as Property<T>;
+			if (p != null) {
+				p.UnboundGetter = UnboundGetter;
+				p.UnboundSetter = UnboundSetter;
+				p.hasCustomAccessors = hasCustomAccessors;
+
+#if DEBUG
+				p.DebugUnboundGetter = DebugUnboundGetter;
+				p.DebugUnboundSetter = DebugUnboundSetter;
+#endif
+			}
 		}
 
         /// <summary>

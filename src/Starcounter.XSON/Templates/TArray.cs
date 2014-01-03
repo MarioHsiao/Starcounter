@@ -29,18 +29,48 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="getter"></param>
 		/// <param name="setter"></param>
-		public void SetCustomAccessors(Func<Json, Arr<OT>> getter, Action<Json, Arr<OT>> setter) {
+		/// <param name="overwriteExisting">
+		/// If false the new delegates are only set if the current delegates are null.
+		/// </param>
+		public void SetCustomAccessors(Func<Json, Arr<OT>> getter, 
+									   Action<Json, Arr<OT>> setter, 
+									   bool overwriteExisting = true) {
+			bool overwrite = (overwriteExisting || !hasCustomAccessors);
+
 			if (BindingStrategy == BindingStrategy.Unbound) {
-				Getter = getter;
-				Setter = setter;
+				if (overwrite || Getter == null)
+					Getter = getter;
+				if (overwrite || Setter == null)
+					Setter = setter;
 			}
-			UnboundGetter = getter;
-			UnboundSetter = setter;
+
+			if (overwrite || UnboundGetter == null)
+				UnboundGetter = getter;
+			if (overwrite || UnboundSetter == null)
+				UnboundSetter = setter;	
 
 			base.SetCustomAccessors(
 				(parent) => { return (Json)getter(parent); }, 
-				(parent, value) => { setter(parent, (Arr<OT>)value); }
+				(parent, value) => { setter(parent, (Arr<OT>)value); },
+				overwriteExisting
 			);
+
+			hasCustomAccessors = true;
+		}
+
+		internal override void CopyValueDelegates(Template toTemplate) {
+			var p = toTemplate as TArray<OT>;
+			if (p != null) {
+				p.UnboundGetter = UnboundGetter;
+				p.UnboundSetter = UnboundSetter;
+				p.hasCustomAccessors = hasCustomAccessors;
+				base.CopyValueDelegates(toTemplate);
+
+#if DEBUG
+				p.DebugUnboundGetter = DebugUnboundGetter;
+				p.DebugUnboundSetter = DebugUnboundSetter;
+#endif
+			}
 		}
 
 		internal override void SetDefaultValue(Json parent) {

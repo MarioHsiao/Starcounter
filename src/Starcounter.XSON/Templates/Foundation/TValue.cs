@@ -9,6 +9,14 @@ namespace Starcounter.Templates {
 		private string bind;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
+		internal bool hasCustomAccessors;
+
+#if DEBUG
+		internal string DebugBoundSetter;
+		internal string DebugBoundGetter;
+		internal string DebugUnboundSetter;
+		internal string DebugUnboundGetter;
+#endif
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has instance value on client.
@@ -131,6 +139,12 @@ namespace Starcounter.Templates {
 		/// <summary>
 		/// 
 		/// </summary>
+		/// <param name="from"></param>
+		internal abstract void CopyValueDelegates(Template toTemplate);
+
+		/// <summary>
+		/// 
+		/// </summary>
 		internal virtual void InvalidateBoundGetterAndSetter() {
 			isVerifiedUnbound = false;
 			dataTypeForBinding = null;
@@ -162,6 +176,7 @@ namespace Starcounter.Templates {
 		/// <param name="toTemplate"></param>
 		public override void CopyTo(Template toTemplate) {
 			base.CopyTo(toTemplate);
+			CopyValueDelegates(toTemplate);
 			((TValue)toTemplate).Bind = Bind;
 		}
 
