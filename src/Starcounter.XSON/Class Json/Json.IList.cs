@@ -100,6 +100,7 @@ namespace Starcounter {
                     return _list;
                 }
                 else {
+                    int childIndex;
                     var template = (TObject)Template;
                     while (_list.Count < template.Properties.Count) {
                         // We allow adding new properties to dynamic templates
@@ -107,8 +108,9 @@ namespace Starcounter {
                         // For this reason, we need to allow the expansion of the 
                         // values.
                         _SetFlag.Add(false);
-						_list.Add(null);
-						((TValue)template.Properties[_list.Count]).SetDefaultValue(this);
+                        childIndex = _list.Count;
+                        _list.Add(null);
+                        ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
                     }
                     return _list;
                 }
