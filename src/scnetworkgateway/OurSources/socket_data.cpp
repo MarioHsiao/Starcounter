@@ -49,8 +49,8 @@ void SocketDataChunk::Init(
     set_bound_worker_id(bound_worker_id);
 
     // Initializing HTTP/WEBSOCKETS data structures.
-    get_http_proto()->Reset();
-    get_ws_proto()->Reset();
+    get_http_proto()->Init();
+    get_ws_proto()->Init();
 }
 
 // Resetting socket.
