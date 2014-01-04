@@ -57,9 +57,6 @@ class WsProtoFrameInfo
     // Opcode type.
     uint8_t opcode_;
 
-    // Is frame complete.
-    bool is_complete_;
-
     void Reset()
     {
         memset(this, 0, sizeof(WsProtoFrameInfo));
@@ -90,6 +87,8 @@ public:
 
     // Resets the structure.
     void Reset();
+
+    void Init();
 
     uint32_t UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id);
 

@@ -90,6 +90,13 @@ void WsProto::Reset()
     g_ts_sub_protocol_len_ = 0;
 }
 
+// Initializes the structure.
+void WsProto::Init()
+{
+    frame_info_.Reset();
+    Reset();
+}
+
 // Unmasks frame and pushes it to database.
 uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
@@ -186,7 +193,7 @@ uint32_t WsProto::ProcessWsDataToDb(
     uint32_t num_processed_bytes = 0;
 
     // Checking if we have already parsed the frame.
-    if (frame_info_.is_complete_)
+    if (sd->get_complete_header_flag())
         goto DATA_ACCUMULATED;
 
     // Since WebSocket frames can be grouped into one network packet
@@ -202,7 +209,7 @@ uint32_t WsProto::ProcessWsDataToDb(
             return err_code;
 
         // Checking frame information is complete.
-        if (!frame_info_.is_complete_)
+        if (!sd->get_complete_header_flag())
         {
             // Checking if we need to move current data up.
             cur_data_ptr = sd->get_accum_buf()->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
@@ -462,12 +469,13 @@ void WsProto::UnMaskPayload(
     const uint64_t mask,
     uint8_t* payload)
 {
-    int8_t num_remaining_bytes;
+    // TODO: Retrieve remaining bytes from saved value.
+    int8_t num_remaining_bytes = 0;
     uint64_t mask_8bytes = mask | (mask << 32);
 
     MaskUnMask(payload, static_cast<uint32_t>(payload_len_bytes), mask_8bytes, num_remaining_bytes);
 
-    GW_ASSERT(0 == num_remaining_bytes);
+    // TODO: Save number of remaining bytes for the next payload chunk.
 }
 
 #define swap64(y) ((static_cast<uint64_t>(ntohl(static_cast<uint32_t>(y))) << 32) | ntohl(static_cast<uint32_t>(y >> 32)))
@@ -523,7 +531,7 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
 
     // Checking if frame was successfully parsed.
     if (data < limit)
-        frame_info_.is_complete_ = true;
+        sd->set_complete_header_flag();
     
     frame_info_.payload_offset_ = static_cast<uint32_t> (data - sd->get_accum_buf()->get_chunk_orig_buf_ptr());
 
