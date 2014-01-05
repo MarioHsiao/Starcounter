@@ -114,12 +114,12 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_written_bytes());
+            SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_length_bytes());
 
             // Checking if its one or several chunks.
             if (ipc_smc->is_terminated())
             {
-                sd->CopyFromOneChunkIPCSocketData(ipc_sd, ipc_sd->get_user_data_written_bytes());
+                sd->CopyFromOneChunkIPCSocketData(ipc_sd, ipc_sd->get_user_data_length_bytes());
             }
             else
             {

@@ -53,9 +53,6 @@ class SocketDataChunk
     // Socket identifier.
     session_index_type socket_info_index_;
 
-    // Size in bytes of written user data.
-    uint32_t user_data_written_bytes_;
-
     // Socket data flags.
     uint32_t flags_;
 
@@ -173,12 +170,16 @@ public:
         accum_buf_.AddAccumulatedBytes(ab->get_accum_len_bytes());
     }
 
-    void CopyFromOneChunkIPCSocketData(SocketDataChunk* sd, int32_t num_bytes_to_copy)
+    void CopyFromOneChunkIPCSocketData(SocketDataChunk* ipc_sd, int32_t num_bytes_to_copy)
     {
         // First copying socket data headers.
-        PlainCopySocketDataInfoHeaders(sd);
+        PlainCopySocketDataInfoHeaders(ipc_sd);
 
-        memcpy(data_blob_, (uint8_t*)sd + sd->get_user_data_offset_in_socket_data(), num_bytes_to_copy);
+        // Setting some specific accumulative buffer fields.
+        accum_buf_.set_desired_accum_bytes(ipc_sd->get_accum_buf()->get_desired_accum_bytes());
+        accum_buf_.set_chunk_num_available_bytes(ipc_sd->get_user_data_length_bytes());
+
+        memcpy(data_blob_, (uint8_t*)ipc_sd + ipc_sd->get_user_data_offset_in_socket_data(), num_bytes_to_copy);
 
         set_user_data_offset_in_socket_data(static_cast<uint16_t>(data_blob_ - (uint8_t*)this));
     }
@@ -215,10 +216,9 @@ public:
     }
 
     // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *data, uint32_t num_bytes_to_write)
+    void PrepareForSend(uint8_t *data, uint32_t num_bytes)
     {
-        accum_buf_.PrepareForSend(data, num_bytes_to_write);
-        set_user_data_written_bytes(num_bytes_to_write);
+        accum_buf_.PrepareForSend(data, num_bytes);
         set_user_data_offset_in_socket_data(static_cast<uint32_t>(data - (uint8_t*)this));
     }
 
@@ -249,7 +249,7 @@ public:
         std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
         std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
-        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&user_data_written_bytes_ - sd) << std::endl;
+        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)accum_buf_.get_chunk_num_available_bytes_addr() - sd) << std::endl;
         std::cout << "offset flags_ = "<< ((uint8_t*)&flags_ - sd) << std::endl;
         std::cout << "offset unique_aggr_index_ = "<< ((uint8_t*)&unique_aggr_index_ - sd) << std::endl;
         std::cout << "offset num_ipc_chunks_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
@@ -293,8 +293,9 @@ public:
         std::cout << "SOCKET_DATA_OFFSET_HTTP_REQUEST = "<< ((uint8_t*)get_http_proto()->get_http_request() - sd) << std::endl;
         std::cout << "SOCKET_DATA_NUM_CLONE_BYTES = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
         std::cout << "CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = "<< ((uint8_t*)accum_buf_.get_desired_accum_bytes_addr() - smc) << std::endl;
 
-        std::cout << "CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = "<< ((uint8_t*)&user_data_written_bytes_ - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = "<< ((uint8_t*)accum_buf_.get_chunk_num_available_bytes_addr() - smc) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
@@ -335,7 +336,9 @@ public:
 
         GW_ASSERT(((uint8_t*)&user_data_offset_in_socket_data_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
-        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
+        GW_ASSERT(((uint8_t*)accum_buf_.get_desired_accum_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH);
+
+        GW_ASSERT(((uint8_t*)accum_buf_.get_chunk_num_available_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
 
         GW_ASSERT(((uint8_t*)&unique_socket_id_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
@@ -878,12 +881,6 @@ public:
         return accept_or_params_or_temp_data_;
     }
 
-    // Size in bytes of written user data.
-    void set_user_data_written_bytes(uint32_t user_data_written_bytes)
-    {
-        user_data_written_bytes_ = user_data_written_bytes;
-    }
-
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
     void set_user_data_offset_in_socket_data(uint16_t user_data_offset_in_socket_data)
@@ -899,9 +896,9 @@ public:
     }
 
     // Size in bytes of written user data.
-    uint32_t get_user_data_written_bytes()
+    uint32_t get_user_data_length_bytes()
     {
-        return user_data_written_bytes_;
+        return accum_buf_.get_chunk_num_available_bytes();
     }
 
     // Data buffer chunk.

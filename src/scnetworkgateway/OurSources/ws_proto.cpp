@@ -111,12 +111,9 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             // Unmasking data.
             UnMaskPayload(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
 
-            // Setting user data length and pointer.
-            sd->set_user_data_written_bytes(static_cast<uint32_t>(frame_info_.payload_len_));
-
             // Setting request offsets.
             HttpRequest* req = sd->get_http_proto()->get_http_request();
-            req->request_len_bytes_ = static_cast<uint32_t> (frame_info_.payload_len_);
+            req->request_len_bytes_ = frame_info_.payload_len_;
             req->request_offset_ = static_cast<uint32_t> (payload - (uint8_t*)sd);
             req->content_len_bytes_ = req->request_len_bytes_;
             req->content_offset_ = req->request_offset_;
@@ -131,17 +128,17 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 
         case WS_OPCODE_CLOSE:
         {
-            uint64_t payload_len = frame_info_.payload_len_;
+            uint32_t payload_len = frame_info_.payload_len_;
 
             // Send the response Close message.
             UnMaskPayload(gw, sd, payload_len, frame_info_.mask_, payload);
-            payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload, payload_len);
+            payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload_len, payload, payload_len);
 
             // Sending resource not found and closing the connection.
             sd->set_disconnect_after_send_flag();
 
             // Prepare buffer to send outside.
-            sd->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
+            sd->PrepareForSend(payload, payload_len);
 
             // Sending data.
             return gw->Send(sd);
@@ -150,14 +147,14 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 		case WS_OPCODE_PONG:
         case WS_OPCODE_PING:
         {
-            uint64_t payload_len = frame_info_.payload_len_;
+            uint32_t payload_len = frame_info_.payload_len_;
 
             // Send the response Pong.
             UnMaskPayload(gw, sd, payload_len, frame_info_.mask_, payload);
-            payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, payload_len);
+            payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload_len, payload, payload_len);
 
             // Prepare buffer to send outside.
-            sd->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
+            sd->PrepareForSend(payload, payload_len);
 
             // Sending data.
             return gw->Send(sd);
@@ -314,7 +311,8 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     uint8_t* orig_payload = payload;
 
     // Length of user data in bytes.
-    uint64_t payload_len = sd->get_user_data_written_bytes();
+    uint32_t total_payload_len = sd->get_accum_buf()->get_desired_accum_bytes();
+    uint32_t cur_payload_len = sd->get_user_data_length_bytes();
 
     // Checking if we are sending last frame.
     if (sd->get_gracefully_close_flag())
@@ -325,16 +323,15 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     }
 
     // Place where masked data should be written.
-    payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, payload_len);
+    payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, total_payload_len, payload, cur_payload_len);
 
     // Prepare buffer to send outside.
-    sd->PrepareForSend(payload, static_cast<uint32_t>(payload_len));
+    sd->PrepareForSend(payload, cur_payload_len);
 
     // Calculating difference between original user data and post-processed.
     int32_t diff = static_cast<int32_t>(orig_payload - payload);
 
     // Adjusting user data parameters.
-    sd->set_user_data_written_bytes(sd->get_user_data_written_bytes() + diff);
     sd->set_user_data_offset_in_socket_data(sd->get_user_data_offset_in_socket_data() - diff);
 
 JUST_SEND_SOCKET_DATA:
@@ -465,7 +462,7 @@ void WsProto::MaskUnMask(
 void WsProto::UnMaskPayload(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    const uint64_t payload_len_bytes,
+    const uint32_t payload_len_bytes,
     const uint64_t mask,
     uint8_t* payload)
 {
@@ -473,7 +470,7 @@ void WsProto::UnMaskPayload(
     int8_t num_remaining_bytes = 0;
     uint64_t mask_8bytes = mask | (mask << 32);
 
-    MaskUnMask(payload, static_cast<uint32_t>(payload_len_bytes), mask_8bytes, num_remaining_bytes);
+    MaskUnMask(payload, payload_len_bytes, mask_8bytes, num_remaining_bytes);
 
     // TODO: Save number of remaining bytes for the next payload chunk.
 }
@@ -545,8 +542,9 @@ uint8_t *WsProto::WritePayload(
     uint8_t opcode,
     bool masking,
     WS_FRAGMENT_FLAG frame_type,
+    uint32_t total_payload_len,
     uint8_t* payload,
-    uint64_t& payload_len)
+    uint32_t& cur_payload_len)
 {
     // Pointing to destination memory.
     uint8_t *p = payload - 1;
@@ -556,9 +554,9 @@ uint8_t *WsProto::WritePayload(
         p -= 4;
 
     // Checking payload length.
-    if (payload_len < 126)
+    if (total_payload_len < 126)
         p -= 1;
-    else if (payload_len <= 0xFFFF)
+    else if (total_payload_len <= 0xFFFF)
         p -= 3;
     else
         p -= 9;
@@ -598,21 +596,21 @@ uint8_t *WsProto::WritePayload(
     p++;
 
     // Writing payload length.
-    if (payload_len < 126)
+    if (total_payload_len < 126)
     {
-        *p = static_cast<uint8_t>(payload_len);
+        *p = static_cast<uint8_t>(total_payload_len);
         p++;
     }
-    else if (payload_len <= 0xFFFF)
+    else if (total_payload_len <= 0xFFFF)
     {
         *p = 126;
-        (*(uint16_t *)(p + 1)) = htons(static_cast<uint16_t>(payload_len));
+        (*(uint16_t *)(p + 1)) = htons(static_cast<uint16_t>(total_payload_len));
         p += 3;
     }
     else
     {
         *p = 127;
-        (*(uint64_t *)(p + 1)) = swap64(payload_len);
+        (*(uint64_t *)(p + 1)) = swap64(static_cast<uint64_t>(total_payload_len));
         p += 9;
     }
 
@@ -630,11 +628,11 @@ uint8_t *WsProto::WritePayload(
         p += 4;
 
         // Do masking on all data.
-        UnMaskPayload(gw, sd, payload_len, mask, p);
+        UnMaskPayload(gw, sd, cur_payload_len, mask, p);
     }
 
     // Returning total data length.
-    payload_len = (payload - frame_start) + payload_len;
+    cur_payload_len = static_cast<uint32_t>(payload - frame_start) + cur_payload_len;
 
     // Returning frame start address.
     return frame_start;

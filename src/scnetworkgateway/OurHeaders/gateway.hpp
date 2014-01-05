@@ -781,6 +781,16 @@ class AccumBuffer
 
 public:
 
+    uint32_t* get_desired_accum_bytes_addr()
+    {
+        return &desired_accum_bytes_;
+    }
+
+    uint32_t* get_chunk_num_available_bytes_addr()
+    {
+        return &chunk_num_available_bytes_;
+    }
+
     // Makes accumulative buffer non-usable.
     void Invalidate()
     {
@@ -856,10 +866,14 @@ public:
         accumulated_len_bytes_ = buf_total_len_bytes;
     }
 
-    // Get buffer length.
     uint32_t get_chunk_num_available_bytes()
     {
         return chunk_num_available_bytes_;
+    }
+
+    void set_chunk_num_available_bytes(uint32_t num_bytes)
+    {
+        chunk_num_available_bytes_ = num_bytes;
     }
 
     void RevertBeforeSend()
@@ -884,10 +898,14 @@ public:
         return static_cast<uint32_t> (chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - cur_ptr);
     }
 
-    // Getting desired accumulating bytes.
     uint32_t get_desired_accum_bytes()
     {
         return desired_accum_bytes_;
+    }
+
+    void set_desired_accum_bytes(uint32_t desired_num_bytes)
+    {
+        desired_accum_bytes_ = desired_num_bytes;
     }
 
     // Resets to original state.
@@ -908,9 +926,9 @@ public:
     }
 
     // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *data, uint32_t num_bytes_to_write)
+    void PrepareForSend(uint8_t *data, uint32_t num_bytes)
     {
-        chunk_num_available_bytes_ = num_bytes_to_write;
+        chunk_num_available_bytes_ = num_bytes;
         chunk_cur_buf_ptr_ = data;
         accumulated_len_bytes_ = 0;
     }
