@@ -943,7 +943,7 @@ ALL_DATA_ACCUMULATED:
             return SCERRGWDISCONNECTFLAG;
 
         // Prepare buffer to send outside.
-        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);

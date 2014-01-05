@@ -22,7 +22,6 @@ void SocketDataChunk::Init(
 
     ResetUserDataOffset();
 
-    user_data_written_bytes_ = 0;
     socket_info_index_ = socket_info_index;
     
     session_.Reset();
@@ -231,7 +230,7 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
     SocketDataChunk* ipc_sd)
 {
     int32_t data_bytes_offset = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - ipc_sd->get_user_data_offset_in_socket_data(),
-        bytes_left = ipc_sd->get_user_data_written_bytes() - data_bytes_offset;
+        bytes_left = ipc_sd->get_user_data_length_bytes() - data_bytes_offset;
 
     // Checking that number of left bytes in linked chunks is correct.
     GW_ASSERT(bytes_left <= MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS);
