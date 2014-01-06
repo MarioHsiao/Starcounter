@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 
 :: Checking if test should be run.
 IF "%SC_RUN_STAR_LOOP_TEST%"=="False" GOTO :EOF
@@ -8,7 +9,6 @@ set LOOP_TIMES=%1
 IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
 ECHO Test is going to loop %LOOP_TIMES% times:
 
-
 for /l %%x in (1, 1, %LOOP_TIMES%) do (
 
    :: Printing iteration number.
@@ -16,6 +16,9 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    
    :: Starting NetworkIOTest
    star.exe --restart --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
+   
+   :: Checking exit code.
+   IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 )
 
 :: Success message.
@@ -23,3 +26,8 @@ ECHO Star.exe loop tests finished successfully!
 
 ::staradmin -killall
 GOTO :EOF
+
+:: If we are here than some test has failed.
+:TESTFAILED
+ECHO Error occurred during the test! 1>&2
+EXIT 1
