@@ -6,7 +6,6 @@
 
 using System;
 using System.Text;
-using HttpStructs;
 using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;

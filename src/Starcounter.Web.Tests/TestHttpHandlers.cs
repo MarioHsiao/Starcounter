@@ -8,8 +8,8 @@ using NUnit.Framework;
 using Starcounter.Internal.Uri;
 using System;
 using System.Text;
-using HttpStructs;
 using Starcounter.Advanced;
+
 namespace Starcounter.Internal.Test {
 
     // TODO: Reenable all comments.
@@ -20,13 +20,13 @@ namespace Starcounter.Internal.Test {
 
 
     /// <summary>
-    /// Used for HttpStructs tests initialization/shutdown.
+    /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
     class TestHttpHandlersSetup
     {
         /// <summary>
-        /// HttpStructs tests initialization.
+        /// Tests initialization.
         /// </summary>
         [SetUp]
         public void InitTestHttpHandlersSetup()

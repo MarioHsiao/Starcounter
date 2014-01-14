@@ -1,5 +1,4 @@
 ﻿
-using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -367,7 +366,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Checks if HttpStructs is destroyed already.
+        /// Checks if request is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
         internal bool IsDestroyed()
