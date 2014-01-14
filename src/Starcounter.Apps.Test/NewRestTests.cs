@@ -24,7 +24,7 @@ namespace Starcounter.Internal.Test
     public class NewRestTestsSetup
     {
         /// <summary>
-        /// HttpStructs tests initialization.
+        /// Tests initialization.
         /// </summary>
         [SetUp]
         public void NewRestTestsSetupInit()

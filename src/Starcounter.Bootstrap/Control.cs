@@ -17,7 +17,6 @@ using Starcounter.Hosting;
 using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
 using StarcounterInternal.Hosting;
-using HttpStructs;
 using System.Text.RegularExpressions;
 using System.IO;
 using Starcounter.Internal.JsonPatch;
@@ -135,8 +134,8 @@ namespace StarcounterInternal.Bootstrap
             if (!configuration.NoNetworkGateway)
             {
                 bmx.sc_init_bmx_manager(
-                    HttpStructs.GlobalSessions.g_destroy_apps_session_callback,
-                    HttpStructs.GlobalSessions.g_create_new_apps_session_callback,
+                    GlobalSessions.g_destroy_apps_session_callback,
+                    GlobalSessions.g_create_new_apps_session_callback,
                     Diagnostics.g_error_handling_callback);
 
                 OnBmxManagerInitialized();

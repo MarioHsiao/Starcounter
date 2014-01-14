@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using BizArk.Core.Util;
-using HttpStructs;
 using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Web;

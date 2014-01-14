@@ -1,5 +1,4 @@
 ﻿
-using HttpStructs;
 using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;

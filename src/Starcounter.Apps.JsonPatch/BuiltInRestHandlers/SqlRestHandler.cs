@@ -11,7 +11,6 @@ using System.Diagnostics;
 using Starcounter.Binding;
 using Codeplex.Data;
 using System.Net;
-using HttpStructs;
 using System.Collections.Generic;
 using System.IO;
 using Starcounter.Query.Execution;

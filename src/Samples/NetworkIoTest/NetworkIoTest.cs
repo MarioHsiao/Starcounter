@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 using System.Threading;
-using HttpStructs;
 using Starcounter;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -403,7 +402,7 @@ namespace NetworkIoTestApp
                     Handle.GET("/exc1", (Request req) =>
                     {
                         Response resp;
-                        X.GET("/exc2", null, out resp);
+                        X.GET("/exc2", out resp);
 
                         return resp;
                     });
@@ -413,7 +412,7 @@ namespace NetworkIoTestApp
                         try
                         {
                             Response resp;
-                            X.GET("/exc3", null, out resp);
+                            X.GET("/exc3", out resp);
                             return resp;
                         }
                         catch (ResponseException exc)

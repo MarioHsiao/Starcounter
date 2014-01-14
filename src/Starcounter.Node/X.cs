@@ -243,7 +243,7 @@ namespace Starcounter
         public static object GET(String uri, Int32 receiveTimeoutMs = 0)
         {
             Response r;
-            GET(uri, null, out r, receiveTimeoutMs);
+            GET(uri, out r, null, receiveTimeoutMs);
             return r.Content;
         }
 
@@ -255,7 +255,7 @@ namespace Starcounter
         public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0)
         {
             Response r;
-            GET(uri, null, out r, receiveTimeoutMs);
+            GET(uri, out r, null, receiveTimeoutMs);
             return r.GetContent<T>();
         }
 
@@ -266,7 +266,7 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="response">Generated response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void GET(String uri, String customHeaders, out Response response, Int32 receiveTimeoutMs = 0)
+        public static void GET(String uri, out Response response, String customHeaders = null, Int32 receiveTimeoutMs = 0)
         {
             // Checking if we can reuse the cache.
             if (IsInSccode && CheckLocalCache(uri, null, null, out response))
