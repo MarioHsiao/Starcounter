@@ -1,6 +1,4 @@
 ﻿{
-   $:{Editable:true, DataType:"MyDataType"},
-
    $userid$: {Bind:"uid"},
    
    $doubleToInt: {Type:"int", Editable:false},
