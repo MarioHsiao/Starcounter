@@ -9,7 +9,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProjectGuid>{7DB7527C-79F6-4C05-A8CF-B7A52E5E7A19}</ProjectGuid>
+    <ProjectGuid>{273D72D7-B9D9-45DC-AC2C-FB880CD1FAC0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Starcounter.VS.VSIX.2013</RootNamespace>
@@ -66,7 +66,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
-	<Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSTypedJsonWithCode.zip">
+    <Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSTypedJsonWithCode.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>
