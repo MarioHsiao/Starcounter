@@ -10,8 +10,6 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using Starcounter.CommandLine;
 using Starcounter; // TODO:
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
 using Starcounter.Advanced;
 using Starcounter.Hosting;
 using Starcounter.Internal; // TODO:
