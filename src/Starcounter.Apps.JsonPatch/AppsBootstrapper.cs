@@ -3,6 +3,7 @@ using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
+using Starcounter.Rest;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
