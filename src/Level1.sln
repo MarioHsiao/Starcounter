@@ -392,6 +392,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildHelpers", "Samples\BuildSystem\BuildHelpers\BuildHelpers.csproj", "{057D8278-0AC6-474B-B91C-E2A4574AFD12}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.UriMatcher", "Starcounter.UriMatcher\Starcounter.UriMatcher.csproj", "{F913DFEB-3817-41C6-BD28-A5FC55245668}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.VSIX.2013", "Development\Starcounter.VS.VSIX.2013\Starcounter.VS.VSIX.2013.csproj", "{273D72D7-B9D9-45DC-AC2C-FB880CD1FAC0}"
 EndProject
 Global
