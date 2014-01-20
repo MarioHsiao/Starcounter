@@ -10,6 +10,7 @@ using System.Text;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 using System.Diagnostics;
+using Starcounter.Rest;
 
 namespace Starcounter
 {
