@@ -14,6 +14,7 @@ using Starcounter.Internal.Web;
 using TJson = Starcounter.Templates.TObject;
 using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 using Starcounter.Templates;
+using Starcounter.Rest;
 
 namespace Starcounter.Internal.Test
 {

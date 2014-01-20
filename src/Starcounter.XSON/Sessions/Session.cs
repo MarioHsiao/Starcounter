@@ -47,7 +47,7 @@ namespace Starcounter {
         /// <summary>
         /// Destroy session delegate.
         /// </summary>
-        internal Action<Session> _SessionDestroyUserDelegate_;
+        internal Action<Session> _SessionDestroyUserDelegate;
 
         /// <summary>
         /// Database session interface.
@@ -334,7 +334,7 @@ namespace Starcounter {
         /// <param name="destroy_user_delegate"></param>
         public void SetSessionDestroyCallback(Action<Session> userDestroyMethod)
         {
-            _SessionDestroyUserDelegate_ = userDestroyMethod;
+            _SessionDestroyUserDelegate = userDestroyMethod;
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Action<Session> GetDestroyCallback()
         {
-            return _SessionDestroyUserDelegate_;
+            return _SessionDestroyUserDelegate;
         }
 
         /// <summary>
@@ -366,10 +366,10 @@ namespace Starcounter {
             }
 
             // Checking if destroy callback is supplied.
-            if (null != _SessionDestroyUserDelegate_)
+            if (null != _SessionDestroyUserDelegate)
             {
-                _SessionDestroyUserDelegate_(this);
-                _SessionDestroyUserDelegate_ = null;
+                _SessionDestroyUserDelegate(this);
+                _SessionDestroyUserDelegate = null;
             }
 
             Session._Current = null;
