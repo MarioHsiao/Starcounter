@@ -50,11 +50,13 @@ public:
 	
 	// The type of an allocator used.
 	typedef Alloc allocator_type;
-	
+
+#if 0	
 	enum state {
 		normal,
 		at_least_one_client_is_down /// TODO: Think about it.
 	};
+#endif
 	
 	// Construction/Destruction.
 	
@@ -67,7 +69,8 @@ public:
 	 */
 	explicit common_scheduler_interface(const char* server_name,
 	const allocator_type& alloc = allocator_type())
-	: active_schedulers_mask_(), state_(normal) {
+//	: active_schedulers_mask_(), state_(normal) {
+	: active_schedulers_mask_() {
 		if (server_name != 0) {
 			// Number of characters in the string after being converted.
 			std::size_t length;
@@ -114,7 +117,8 @@ public:
 			// Error: No server name. Throw exception error_code.
 		}
 	}
-	
+
+#if 0	
 	/// TODO: Think about multiple clients.
 	void clients_state(state s) {
 		_mm_mfence();
@@ -126,6 +130,7 @@ public:
 	state clients_state() const {
 		return state_;
 	}
+#endif
 	
 	bool is_scheduler_active(std::size_t index) {
 		return active_schedulers_mask_.is_scheduler_active(index);
@@ -175,7 +180,7 @@ private:
 	-(sizeof(scheduler_mask_type) % CACHE_LINE_SIZE) // active_schedulers_mask_
 	];
 	
-	volatile state state_;
+//	volatile state state_;
 
 	char server_name_[server_name_size];
 	char monitor_interface_name_[server_name_size +sizeof
@@ -190,7 +195,7 @@ private:
 	wchar_t w_ipc_monitor_cleanup_event_name_[ipc_monitor_cleanup_event_name_size];
 
 	char cache_line_pad_1_[CACHE_LINE_SIZE -((
-	+sizeof(state) // state_
+//	+sizeof(state) // state_
 	+server_name_size * sizeof(char) // server_name_
 	+ipc_monitor_cleanup_event_name_size * sizeof(wchar_t) // ipc_monitor_cleanup_event_name_
 	) % CACHE_LINE_SIZE)];
