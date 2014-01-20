@@ -68,9 +68,8 @@ public:
 	 *		Constant.
 	 */
 	explicit common_scheduler_interface(const char* server_name,
-	const allocator_type& alloc = allocator_type())
-//	: active_schedulers_mask_(), state_(normal) {
-	: active_schedulers_mask_() {
+    uint32_t scheduler_count, const allocator_type& alloc = allocator_type())
+	: scheduler_count_(scheduler_count), active_schedulers_mask_() {
 		if (server_name != 0) {
 			// Number of characters in the string after being converted.
 			std::size_t length;
@@ -157,6 +156,10 @@ public:
 		
 		return count;
 	}
+
+    uint32_t scheduler_count() {
+        return scheduler_count_;
+    }
 	
 	const char* server_name() const {
 		return server_name_;
@@ -176,9 +179,11 @@ public:
 
 private:
 	scheduler_mask_type active_schedulers_mask_;
-	char cache_line_pad_0_[CACHE_LINE_SIZE
-	-(sizeof(scheduler_mask_type) % CACHE_LINE_SIZE) // active_schedulers_mask_
-	];
+    uint32_t scheduler_count_;
+	char cache_line_pad_0_[CACHE_LINE_SIZE -((
+	+sizeof(scheduler_mask_type) // active_schedulers_mask_
+    +sizeof(uint32_t) // scheduler_count_
+    ) % CACHE_LINE_SIZE)];
 	
 //	volatile state state_;
 
