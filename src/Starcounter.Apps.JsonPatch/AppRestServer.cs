@@ -16,7 +16,7 @@ using Starcounter.Rest;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
-    /// Wrapps the file based http web resource resolver and the App view model resolver.
+    /// Wraps the file based http web resource resolver and the App view model resolver.
     /// </summary>
     /// <remarks>Supports Http as well as proprietary protocols.
     /// If the URI does not point to a App view model or a user implemented
@@ -51,27 +51,22 @@ namespace Starcounter.Internal.Web {
             try {
                 // Checking if we need to resolve static resource.
                 if (response.HandlingStatus == HandlerStatusInternal.NotHandled) {
-                    response = new Response() {
-                        Uncompressed = ResolveAndPrepareFile(request.Uri, request),
-                        HandlingStatus = HandlerStatusInternal.Done
-                    };
+                    response = ResolveAndPrepareFile(request.Uri, request);
+                    response.HandlingStatus = HandlerStatusInternal.Done;
+                } else {
+                    // NOTE: Checking if its internal request then just returning response without modification.
+                    if (request.IsInternal)
+                        return response;
 
-                    return response;
-                }
+                    // Checking if JSON object is attached.
+                    if (response.Hypermedia is Json) {
+                        Json r = (Json)response.Hypermedia;
 
-                // NOTE: Checking if its internal request then just returning response without modification.
-                if (request.IsInternal)
-                    return response;
+                        while (r.Parent != null)
+                            r = r.Parent;
 
-                // Checking if JSON object is attached.
-                if (response.Hypermedia is Json) {
-
-                    Json r = (Json)response.Hypermedia;
-
-                    while (r.Parent != null)
-                        r = r.Parent;
-
-                    response.Hypermedia = (Json)r;
+                        response.Hypermedia = (Json)r;
+                    }
                 }
 
                 response.Request = request;
@@ -336,36 +331,22 @@ namespace Starcounter.Internal.Web {
 
         /// <summary>
         /// This is where the AppServer calls to get a resource from the file system.
-        /// If needed, script injection optimization is also performed.
         /// </summary>
         /// <param name="relativeUri">The uri to resolve</param>
         /// <param name="request">The http request</param>
         /// <returns>The http response</returns>
-        /// <remarks>To save an additional http request, in the event of a html resource request,
-        /// the Starcounter App view model is embedded in a script tag.</remarks>
-        private byte[] ResolveAndPrepareFile(string relativeUri, Request request) {
+        private Response ResolveAndPrepareFile(string relativeUri, Request request) {
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
             if (StaticFileServers.TryGetValue(request.PortNumber, out staticWebServer))
             {
-                Response ri = staticWebServer.GetStatic(relativeUri, request);
-                byte[] original = ri.GetBytes(request);
-                if (request.NeedsScriptInjection)
-                {
-                    request.Debug(" (injecting script)");
-                    byte[] script = Encoding.UTF8.GetBytes("<script>window.__elim_req=" + Encoding.UTF8.GetString(request.ViewModel) + "</script>");
-
-                    return ScriptInjector.Inject(original, script, ri.HeadersLength, ri.ContentLength, ri.ContentLengthLength, ri.ContentLengthInjectionPoint, ri.ScriptInjectionPoint);
-                }
-
-                return original;
+                return staticWebServer.GetStatic(relativeUri, request);
             }
 
 			var badReq = Response.FromStatusCode(400);
 			badReq["Connection"] = "close";
-			badReq.ConstructFromFields();
-			return badReq.Uncompressed;
+		    return badReq;
         }
 
         /// <summary>
