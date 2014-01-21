@@ -144,10 +144,8 @@ namespace Starcounter.Internal.Web {
             for (int t = 0; t < workingDirectories.Count; t++) {
                 ParseFileSpecifier(workingDirectories[t], relativeUri, out dir, out fileName, out fileExtension);
 
-                try {
-                    // TODO: 
-                    // Dont use exceptions. Check instead if directories and files exists.
-                    FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
+                FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
+                if (f != null) {
                     len = (int)f.Length;
 
                     // Check for UTF-8 byte order mark (BOM) offset
@@ -166,12 +164,7 @@ namespace Starcounter.Internal.Web {
                     f.Read(payload, 0, (int)len);
                     f.Close();
                     return true;
-                } 
-                // The default return value is false so we don't need to do anything special in each 
-                // exceptionblock, just make sure that we catch it and return normally.
-                catch (FileNotFoundException) { } 
-                catch (DirectoryNotFoundException) { } 
-                catch (DriveNotFoundException) { }
+                }
             }
             dir = null;
             fileName = null;
@@ -274,7 +267,7 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Tries to open the file with the specified name in the specified directory.
         /// If not succesful and the fileExtension parameter is not specified a default 
-        /// extension is
+        /// extension is used.
         /// </summary>
         /// <param name="dir">The directory to look for the file</param>
         /// <param name="fileName">Name of the file.</param>
@@ -285,19 +278,21 @@ namespace Starcounter.Internal.Web {
             string filePathWOExt = Path.Combine(dir, fileName);
             string filePath;
 
-            try {
-                filePath = filePathWOExt;
-                if (hasExtension)
-                    filePath += fileExtension; 
+            filePath = filePathWOExt;
+            if (hasExtension)
+                filePath += fileExtension; 
+
+            if (File.Exists(filePath))
                 return File.OpenRead(filePath);
-            } catch (Exception) {
-                if (!hasExtension) {
-                    fileExtension = ".html";
-                    filePath = filePathWOExt + fileExtension;
+          
+            if (!hasExtension) {
+                fileExtension = ".html";
+                filePath = filePathWOExt + fileExtension;
+                if (File.Exists(filePath))
                     return File.OpenRead(filePath);
-                }
-                throw;
             }
+
+            return null;
         }
 
         /// <summary>
