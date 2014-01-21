@@ -73,6 +73,7 @@ namespace Starcounter.Internal.Web {
                     statusCode = HttpStatusCode.NotFound;
                     mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                     payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
+                    Console.WriteLine("Could not find " + relativeUri);
                 } else {
                     mimeType = MimeMap.GetMimeType(fileExtension);
                 }
@@ -86,7 +87,7 @@ namespace Starcounter.Internal.Web {
 
             shouldCompress = req.IsGzipAccepted;
             didCompress = false;
-            if (contentLength != -1 && shouldCompress) {
+            if (shouldCompress && statusCode == HttpStatusCode.OK && contentLength != -1) {
                 compressed = Compress(payload);
                 didCompress = compressed.Length + 100 < payload.Length; // Don't use compress version if the difference is too small
 //                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
