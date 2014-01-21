@@ -35,7 +35,7 @@ namespace Starcounter.Internal.Web {
                     path));
             }
 
-            Console.WriteLine("Adding path to static web server \"" + path + "\"");
+            Debug("Adding path to static web server \"" + path + "\"");
 
             // Always clearing cache when adding new directory on this port.
             ClearCache();
@@ -110,7 +110,7 @@ namespace Starcounter.Internal.Web {
                 lock (lockObject) {
                     // Checking again if already processed the file..
                     if (cacheOnUri.TryGetValue(relativeUri, out resource)) {
-                        Console.WriteLine("(found cache2) " + relativeUri);
+                        Debug("(found cache2) " + relativeUri);
                         return resource;
                     }
                 }

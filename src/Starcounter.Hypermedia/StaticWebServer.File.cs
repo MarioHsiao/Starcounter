@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -58,7 +59,7 @@ namespace Starcounter.Internal.Web {
             string dir = null;
             string fileName = null;
             
-            req.Debug(" (FILE ACCESS) " + relativeUri);
+            Debug(" (FILE ACCESS) " + relativeUri);
 
             statusCode = HttpStatusCode.OK;
             shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
@@ -73,7 +74,7 @@ namespace Starcounter.Internal.Web {
                     statusCode = HttpStatusCode.NotFound;
                     mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                     payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
-                    Console.WriteLine("Could not find " + relativeUri);
+                    Debug("Could not find " + relativeUri);
                 } else {
                     mimeType = MimeMap.GetMimeType(fileExtension);
                 }
@@ -90,14 +91,14 @@ namespace Starcounter.Internal.Web {
             if (shouldCompress && statusCode == HttpStatusCode.OK && contentLength != -1) {
                 compressed = Compress(payload);
                 didCompress = compressed.Length + 100 < payload.Length; // Don't use compress version if the difference is too small
-//                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+//                Debug(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                 if (didCompress) {
-                    req.Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                    Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                     contentLength = compressed.Length;
                     payload = compressed;
                     response.ContentEncoding = "gzip";
                 } else {
-                    req.Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                    Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                     response.WorthWhileCompressing = false;
                 }
             }
@@ -256,10 +257,10 @@ namespace Starcounter.Internal.Web {
             lock (lockObject) {
                 if (cacheOnFilePath.TryGetValue(fileSignature, out cached)) {
                     foreach (var uri in cached.Uris) {
-                        Console.WriteLine("(decache uri) " + uri);
+                        Debug("(decache uri) " + uri);
                         cacheOnUri.Remove(uri);
                     }
-                    Console.WriteLine("(decache file) " + fileSignature);
+                    Debug("(decache file) " + fileSignature);
                     cacheOnFilePath.Remove(fileSignature);
                 }
             }
@@ -306,7 +307,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileExtension">The file extension.</param>
         internal void ParseFileSpecifier(string serverPath, string relativeUri, out string directory, out string fileName, out string fileExtension) {
             if (!relativeUri.StartsWith("/")) {
-                Console.WriteLine(String.Format("Illegal URI for static resource: {0}", relativeUri));
+                Debug(String.Format("Illegal URI for static resource: {0}", relativeUri));
                 directory = null;
                 fileExtension = null;
                 fileName = null;
@@ -336,6 +337,11 @@ namespace Starcounter.Internal.Web {
                 fileExtension = "";
             }
             //    fileSpecifier = directory + @"\" + fileNameWithExtension;
+        }
+
+        [Conditional("DEBUG")]
+        private void Debug(string message) {
+            Console.WriteLine(message);
         }
 
         ///// <summary>
