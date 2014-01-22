@@ -491,6 +491,8 @@ WorkerDbInterface::WorkerDbInterface(
 
     ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
 
+    Sleep(1000);
+
     // Initializing worker shared memory interface.
     shared_int_.init(
         active_db->get_shm_seg_name().c_str(),
