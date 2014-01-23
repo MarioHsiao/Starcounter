@@ -41,7 +41,11 @@ namespace Starcounter.Internal.Test
                     StatusDescription = "Not Found",
                     ContentType = "text/html",
                     ContentEncoding = "gzip",
-                    Cookies = { "MyCookie1=123", "MyCookie2=456", "MyCookie3=789" },
+                    Cookies = {
+                        "reg_fb_gate=deleted; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/; Domain=.example.com; HttpOnly",
+                        "MyCookie2=456; Domain=.foo.com; Path=/",
+                        "MyCookie3=789; Path=/; Expires=Wed, 13 Jan 2021 22:23:01 GMT; HttpOnly"
+                    },
                     Body = "response10"
                 };
 
@@ -57,9 +61,9 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("text/html" == resp.ContentType);
             Assert.IsTrue("gzip" == resp.ContentEncoding);
 
-            Assert.IsTrue("MyCookie1=123" == resp.Cookies[0]);
-            Assert.IsTrue("MyCookie2=456" == resp.Cookies[1]);
-            Assert.IsTrue("MyCookie3=789" == resp.Cookies[2]);
+            Assert.IsTrue("reg_fb_gate=deleted; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/; Domain=.example.com; HttpOnly" == resp.Cookies[0]);
+            Assert.IsTrue("MyCookie2=456; Domain=.foo.com; Path=/" == resp.Cookies[1]);
+            Assert.IsTrue("MyCookie3=789; Path=/; Expires=Wed, 13 Jan 2021 22:23:01 GMT; HttpOnly" == resp.Cookies[2]);
 
             Assert.IsTrue(10 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
