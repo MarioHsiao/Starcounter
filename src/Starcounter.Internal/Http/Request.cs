@@ -617,13 +617,21 @@ namespace Starcounter {
                 unsafe
                 {
                     // Concatenating headers from dictionary.
-                    if (null != customHeaderFields_)
+                    if ((null != customHeaderFields_) || (null != _Cookies))
                     {
                         headersString_ = "";
 
                         foreach (KeyValuePair<string, string> h in customHeaderFields_)
                         {
                             headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
+                        }
+
+                        if (null != _Cookies)
+                        {
+                            foreach (String c in _Cookies)
+                            {
+                                headersString_ += HttpHeadersUtf8.GetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
+                            }
                         }
 
                         return headersString_;
@@ -640,23 +648,47 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Cookie string.
+        /// List of cookies.
         /// </summary>
-        public String Cookie
+        List<String> _Cookies;
+
+        /// <summary>
+        /// List of Cookie headers.
+        /// Each string is in the form of "key=value".
+        /// </summary>
+        public List<String> Cookies
         {
             get
             {
-                EnsureHttpV1IsUsed();
+                if (_Cookies != null)
+                    return _Cookies;
 
-                return this[HttpHeadersUtf8.GetCookieHeader];
+                _Cookies = new List<String>();
+
+                // Adding new cookies list from request.
+                unsafe
+                {
+                    if (http_request_struct_ != null)
+                    {
+                        String allCookies = this[HttpHeadersUtf8.GetCookieHeader];
+                        if (allCookies != null)
+                        {
+                            String[] splittedCookies = allCookies.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            // Adding all trimmed cookies to list.
+                            foreach (String c in splittedCookies)
+                                _Cookies.Add(c.Trim());
+                        }
+                    }
+                }
+
+                return _Cookies;
             }
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
-                this[HttpHeadersUtf8.GetCookieHeader] = value;
+                _Cookies = value;
             }
         }
 
@@ -854,6 +886,21 @@ namespace Starcounter {
                                 writer.Write(HttpHeadersUtf8.CRLF);
                             }
                         }
+                    }
+
+                    // Checking the cookies list.
+                    if ((null != _Cookies) && (_Cookies.Count > 0))
+                    {
+                        writer.Write(HttpHeadersUtf8.GetCookieStart);
+                        writer.Write(_Cookies[0]);
+
+                        for (Int32 i = 1; i < _Cookies.Count; i++)
+                        {
+                            writer.Write(HttpHeadersUtf8.SemicolonSpace);
+                            writer.Write(_Cookies[i]);
+                        }
+
+                        writer.Write(HttpHeadersUtf8.CRLF);
                     }
 
 					if (null != bodyString_) {
