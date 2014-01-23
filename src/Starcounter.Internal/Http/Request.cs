@@ -274,6 +274,10 @@ namespace Starcounter {
             data_stream_ = data_stream;
             handler_id_ = handler_id;
             protocol_type_ = protocol_type;
+
+            // Checking if session is correct.
+            GetAppsSessionInterface();
+            came_with_correct_session_ = (INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_));
         }
 
         /// <summary>
@@ -1357,19 +1361,17 @@ namespace Starcounter {
         public const UInt32 INVALID_VIEW_MODEL_INDEX = UInt32.MaxValue;
 
         /// <summary>
-        /// Checks if HTTP request already has session.
+        /// Indicates if came with session originally.
         /// </summary>
-        public Boolean HasSession 
-        {
-            get
-            {
-                unsafe
-                {
-                    if (session_ != null)
-                        return INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
+        Boolean came_with_correct_session_ = false;
 
-                    return false;
-                }
+        /// <summary>
+        /// Checks if HTTP request already came with session.
+        /// </summary>
+        public Boolean CameWithCorrectSession 
+        {
+            get {
+                return came_with_correct_session_;
             }
         }
 
