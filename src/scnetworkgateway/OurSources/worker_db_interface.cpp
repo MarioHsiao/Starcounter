@@ -498,11 +498,19 @@ WorkerDbInterface::WorkerDbInterface(
         g_gateway.get_gateway_pid(),
         g_gateway.get_gateway_owner_id());
 
+    uint32_t scheduler_count =
+      shared_int_.common_scheduler_interface().scheduler_count();
+
     // Wait until the scheduler interface has been properly initialized.
     while (
         shared_int_.common_scheduler_interface().number_of_active_schedulers()
-        != shared_int_.common_scheduler_interface().scheduler_count()
+        != scheduler_count
         ) ::Sleep(0);
+
+    // Open events used to notify scheduler of work available.
+	for (uint32_t i = 0; i < scheduler_count; i++) {
+      shared_int_.open_scheduler_work_event(i); // Exception on failure.
+	}
 
     // Allocating channels.
     num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
