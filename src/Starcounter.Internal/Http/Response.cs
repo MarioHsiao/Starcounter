@@ -828,7 +828,7 @@ namespace Starcounter
                             }
 
                             // Checking if session is defined.
-                            if (null != AppsSession) {
+                            if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
                                 if (AppsSession.use_session_cookie_) {
                                     writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
                                     writer.Write(AppsSession.ToAsciiString());
