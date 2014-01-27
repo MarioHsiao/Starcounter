@@ -23,6 +23,9 @@ using System.Windows.Threading;
 using Starcounter.InstallerWPF.DemoSequence;
 using Starcounter.Internal;
 using System.Windows.Documents;
+using System.Linq;
+
+
 
 namespace Starcounter.InstallerWPF {
     /// <summary>
@@ -365,6 +368,13 @@ namespace Starcounter.InstallerWPF {
         }
 
 
+        private IList<String> _PoweredByResources = new ObservableCollection<string>();
+        public IList<String> PoweredByResources {
+            get {
+                return this._PoweredByResources;
+            }
+        }
+
         public static Boolean[] InstalledComponents;
 
         #endregion
@@ -375,7 +385,37 @@ namespace Starcounter.InstallerWPF {
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
             this.Closed += new EventHandler(CleanUpAfterUninstall);
 
+            this.InitPoweredByResources();
+
             InitializeComponent();
+        }
+
+
+        /// <summary>
+        /// Get assembly file list
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetResourceNames() {
+            var asm = Assembly.GetEntryAssembly();
+            string resName = asm.GetName().Name + ".g.resources";
+            using (var stream = asm.GetManifestResourceStream(resName))
+            using (var reader = new System.Resources.ResourceReader(stream)) {
+                return reader.Cast<DictionaryEntry>().Select(entry => (string)entry.Key).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Populate "poweredby" image list
+        /// </summary>
+        private void InitPoweredByResources() {
+            string[] files = GetResourceNames();
+
+            IOrderedEnumerable<string> orderedfiles = files.OrderBy(x => x);
+            foreach (string file in orderedfiles) {
+                if (file.StartsWith("resources/poweredby")) {
+                    this.PoweredByResources.Add(file);
+                }
+            }
         }
 
         void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -472,12 +512,10 @@ namespace Starcounter.InstallerWPF {
 #if SIMULATE_CLEAN_INSTALLATION
             WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
-            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes))
-            {
+            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
                 this.SetupOptions = SetupOptions.Install;
             }
-            else
-            {
+            else {
                 this.SetupOptions = SetupOptions.Ask;
             }
 #else
