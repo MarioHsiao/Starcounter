@@ -106,6 +106,8 @@ namespace Starcounter.InstallerWPF.Slides {
 
                 Stream resFilestream = sri.Stream;
 
+                if (resFilestream.Length == 0) return null;
+
                 string tempFileName = System.IO.Path.GetTempFileName();
 
                 // Prepare file name 
