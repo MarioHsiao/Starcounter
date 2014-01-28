@@ -158,8 +158,15 @@ namespace Starcounter.Internal.Web {
                                 // Starting session.
                                 Session.Start(s);
 
+								// TODO:
+								// This needs to be revisited. For the current solution we only use the cache 
+								// for internal requests (x.GET() from one handler to another) and not for 
+								// external requests. We need some better mechanism to determine if the cached 
+								// should be used or not.
+
                                 // Checking if we can reuse the cache.
-                                if (X.CheckLocalCache(request.Uri, request.IsInternal, null, null, out response)) {
+                                if (request.IsInternal && X.CheckLocalCache(request.Uri, null, null, out response)) {
+
                                     // Setting the session again.
                                     response.AppsSession = Session.Current.InternalSession;
 
