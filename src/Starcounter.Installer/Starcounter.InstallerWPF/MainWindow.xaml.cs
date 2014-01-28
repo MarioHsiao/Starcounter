@@ -24,6 +24,7 @@ using Starcounter.InstallerWPF.DemoSequence;
 using Starcounter.Internal;
 using System.Windows.Documents;
 using System.Linq;
+using System.Windows.Resources;
 
 
 
@@ -392,31 +393,41 @@ namespace Starcounter.InstallerWPF {
 
 
         /// <summary>
-        /// Get assembly file list
+        /// Populate "poweredby" resource image list
         /// </summary>
-        /// <returns></returns>
-        public static string[] GetResourceNames() {
-            var asm = Assembly.GetEntryAssembly();
-            string resName = asm.GetName().Name + ".g.resources";
-            using (var stream = asm.GetManifestResourceStream(resName))
-            using (var reader = new System.Resources.ResourceReader(stream)) {
-                return reader.Cast<DictionaryEntry>().Select(entry => (string)entry.Key).ToArray();
+        private void InitPoweredByResources() {
+
+            string resource1 = "resources/poweredby1.png";
+            if (this.IsResourceIsAvailable(resource1)) {
+                this.PoweredByResources.Add(resource1);
             }
+
+            string resource2 = "resources/poweredby2.png";
+            if (this.IsResourceIsAvailable(resource2)) {
+                this.PoweredByResources.Add(resource2);
+            }
+
         }
 
         /// <summary>
-        /// Populate "poweredby" image list
+        /// Check if resource is available
         /// </summary>
-        private void InitPoweredByResources() {
-            string[] files = GetResourceNames();
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private bool IsResourceIsAvailable(string name) {
 
-            IOrderedEnumerable<string> orderedfiles = files.OrderBy(x => x);
-            foreach (string file in orderedfiles) {
-                if (file.StartsWith("resources/poweredby")) {
-                    this.PoweredByResources.Add(file);
+            try {
+                StreamResourceInfo sri = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/../" + name));
+                if (sri != null && sri.Stream.Length > 0) {
+                    return true;
                 }
             }
+            catch { }
+
+            return false;
         }
+
+
 
         void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e) {
             if ("SetupOptions".Equals(e.PropertyName)) {
