@@ -64,15 +64,17 @@ namespace Starcounter {
         /// <summary>
         /// Runs a task asynchronously on a given scheduler.
         /// </summary>
-        public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
-            _dbSession.RunAsync(action, schedId);
+        public void RunAsync(Action action, Byte schedId = Byte.MaxValue)
+        {
+            ScSessionClass.DbSession.RunAsync(action, schedId);
         }
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
-        public void RunSync(Action action) {
-            _dbSession.RunSync(action);
+        public void RunSync(Action action)
+        {
+            ScSessionClass.DbSession.RunSync(action);
         }
 
         /// <summary>
