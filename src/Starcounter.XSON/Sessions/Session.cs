@@ -180,6 +180,20 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Setting or getting user object.
+        /// </summary>
+        public Object UserObject
+        {
+            get {
+                return InternalSession.UserObject;
+            }
+
+            set {
+                InternalSession.UserObject = value;
+            }
+        }
+
+        /// <summary>
         /// Getting session creation time. 
         /// </summary>
         public DateTime Created
