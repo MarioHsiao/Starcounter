@@ -34,11 +34,6 @@ namespace Starcounter.XSON.Tests {
 
         }
 
-        ITransaction IDb.NewCurrent() {
-            current = FakeTransaction.NewCurrent();
-            return current;
-        }
-
         void IDb.SetCurrentTransaction(ITransaction transaction) {
             current = transaction;
         }
@@ -49,23 +44,11 @@ namespace Starcounter.XSON.Tests {
     }
 
     internal class FakeTransaction : ITransaction {
-        internal static ITransaction NewCurrent() {
-            return new FakeTransaction();
-        }
-
         public void Add(Action action) {
 
         }
 
         public void Commit() {
-        
-        }
-
-        public void BeginScope() {
-        
-        }
-
-        public void EndScope() {
         
         }
 

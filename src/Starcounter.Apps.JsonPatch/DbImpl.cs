@@ -33,10 +33,6 @@ namespace Starcounter.Internal {
             Db.Transaction(action);
         }
 
-        ITransaction IDb.NewCurrent() {
-            return Transaction.NewCurrent();
-        }
-
         void IDb.SetCurrentTransaction(ITransaction transaction) {
             Transaction.SetCurrent((Transaction)transaction);
         }

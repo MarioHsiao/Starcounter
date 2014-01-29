@@ -14,12 +14,14 @@ namespace SQLTest
                 if (args.Length == 1)
                     outputPath = args[0];
 
-            using (Transaction t = Transaction.NewCurrent()) {
-                Console.WriteLine("Started SQLTest.");
-                nrFailedQueries += Test1and2(outputPath);
-                nrFailedQueries += Test3(outputPath);
-                nrFailedQueries += Test4(outputPath);
-                Console.WriteLine("Finished SQLTest.");
+            using (Transaction t = new Transaction()) {
+                t.Add(() => {
+                    Console.WriteLine("Started SQLTest.");
+                    nrFailedQueries += Test1and2(outputPath);
+                    nrFailedQueries += Test3(outputPath);
+                    nrFailedQueries += Test4(outputPath);
+                    Console.WriteLine("Finished SQLTest.");
+                });
             }
 
             //System.IO.File.Create(@"s\Starcounter\failedTest");
