@@ -36,10 +36,12 @@ public class BahrainDriver : Driver
 
     public override void TakeSeatIn()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Pilot>();
-            transaction.Commit();
+            transaction.Add(() => {
+                Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Pilot>();
+                transaction.Commit();
+            });
         }
     }
 
@@ -52,183 +54,175 @@ public class BahrainDriver : Driver
     {
         int objectCount = Setup.ObjectCount;
         int commitInterval = Setup.CommitInterval;
-        using(Transaction transaction = Transaction.NewCurrent())
+        using(Transaction transaction = new Transaction())
         {
-            for (int i = 1; i <= objectCount; ++i)
-            {
-                Pilot p = new Pilot();
-                p.Id = i;
-                p.Name = Pilot.GetName(i);
-                p.FirstName = Pilot.GetFirstName(i);
-                p.Points = i;
-                p.LicenseId = i;
-                if (this.Setup.IsCommitPoint(i))
-                {
-                    transaction.Commit();
+            transaction.Add(() => {
+                for (int i = 1; i <= objectCount; ++i) {
+                    Pilot p = new Pilot();
+                    p.Id = i;
+                    p.Name = Pilot.GetName(i);
+                    p.FirstName = Pilot.GetFirstName(i);
+                    p.Points = i;
+                    p.LicenseId = i;
+                    if (this.Setup.IsCommitPoint(i)) {
+                        transaction.Commit();
+                    }
+                    AddToCheckSum(i);
                 }
-                AddToCheckSum(i);
-            }
-            transaction.Commit();
+                transaction.Commit();
+            });
         } // end transaction
     }
 
     [Lap("Query_indexed_string")]
     public void LapQueryIndexedString()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            int selectCount = Setup.SelectCount;
-            for (int i = 1; i <= selectCount; ++i)
-            {
-                int taken = 0;
-                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByName, Pilot.GetName(i)).GetEnumerator())
-                {
-                    taken = AddResultChecksums(sqlResult);
-                    if (taken != 1)
-                    {
-                        PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.Name = " + i + ", hits = " + taken);
-                    }
-                }
-
-                if (taken != 1)   // Re-trying...
-                {
-                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByName, Pilot.GetName(i)).GetEnumerator())
-                    {
+            transaction.Add(() => {
+                int selectCount = Setup.SelectCount;
+                for (int i = 1; i <= selectCount; ++i) {
+                    int taken = 0;
+                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByName, Pilot.GetName(i)).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
-                        PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        if (taken != 1) {
+                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.Name = " + i + ", hits = " + taken);
+                        }
+                    }
+
+                    if (taken != 1)   // Re-trying...
+                {
+                        using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByName, Pilot.GetName(i)).GetEnumerator()) {
+                            taken = AddResultChecksums(sqlResult);
+                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        }
                     }
                 }
-            }
+            });
         }
     }
 
     [Lap("Query_string")]
     public void LapQueryString()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            int selectCount = Setup.SelectCount;
-            for (int i = 1; i <= selectCount; ++i)
-            {
-                int taken = 0;
+            transaction.Add(() => {
+                int selectCount = Setup.SelectCount;
+                for (int i = 1; i <= selectCount; ++i) {
+                    int taken = 0;
 
-                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByFirstName, Pilot.GetFirstName(i)).GetEnumerator())
-                {
-                    taken = AddResultChecksums(sqlResult);
-                    if (taken != 1)
-                    {
-                        PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.FirstName = " + i + ", hits = " + taken);
-                    }
-                }
-
-                if (taken != 1)   // Re-trying...
-                {
-                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByFirstName, Pilot.GetFirstName(i)).GetEnumerator())
-                    {
+                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByFirstName, Pilot.GetFirstName(i)).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
-                        PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        if (taken != 1) {
+                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.FirstName = " + i + ", hits = " + taken);
+                        }
+                    }
+
+                    if (taken != 1)   // Re-trying...
+                {
+                        using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByFirstName, Pilot.GetFirstName(i)).GetEnumerator()) {
+                            taken = AddResultChecksums(sqlResult);
+                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        }
                     }
                 }
-            }
+            });
         }
     }
 
     [Lap("Query_indexed_int")]
     public void LapQueryIndexedInt()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            int selectCount = Setup.SelectCount;
-            for (int i = 1; i <= selectCount; ++i)
-            {
-                int taken = 0;
+            transaction.Add(() => {
+                int selectCount = Setup.SelectCount;
+                for (int i = 1; i <= selectCount; ++i) {
+                    int taken = 0;
 
-                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByLicenseId, i).GetEnumerator())
-                {
-                    taken = AddResultChecksums(sqlResult);
-                    if (taken != 1)
-                    {
-                        PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.LicenseId = " + i + ", hits = " + taken);
-                    }
-                }
-
-                if (taken != 1)   // Re-trying...
-                {
-                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByLicenseId, i).GetEnumerator())
-                    {
+                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByLicenseId, i).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
-                        PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        if (taken != 1) {
+                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.LicenseId = " + i + ", hits = " + taken);
+                        }
+                    }
+
+                    if (taken != 1)   // Re-trying...
+                {
+                        using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByLicenseId, i).GetEnumerator()) {
+                            taken = AddResultChecksums(sqlResult);
+                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        }
                     }
                 }
-            }
+            });
         }
     }
 
     [Lap("Query_int")]
     public void LapQueryInt()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            int selectCount = Setup.SelectCount;
+            transaction.Add(() => {
+                int selectCount = Setup.SelectCount;
 
-            for (int i = 1; i <= selectCount; ++i)
-            {
-                int taken = 0;
+                for (int i = 1; i <= selectCount; ++i) {
+                    int taken = 0;
 
-                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByPoints, i).GetEnumerator())
-                {
-                    taken = AddResultChecksums(sqlResult);
-                    if (taken != 1)
-                    {
-                        PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.Points = " + i + ", hits = " + taken);
-                    }
-                }
-
-                if (taken != 1)   // Re-trying...
-                {
-                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByPoints, i).GetEnumerator())
-                    {
+                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByPoints, i).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
-                        PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        if (taken != 1) {
+                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.Points = " + i + ", hits = " + taken);
+                        }
+                    }
+
+                    if (taken != 1)   // Re-trying...
+                {
+                        using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByPoints, i).GetEnumerator()) {
+                            taken = AddResultChecksums(sqlResult);
+                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                        }
                     }
                 }
-            }
+            });
         }
     }
 
     [Lap("Update")]
     public void LapUpdate()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator())
-            {
-                int remainingUpdates = Setup.UpdateCount;
-                while (sqlResult.MoveNext() && remainingUpdates-- > 0)
-                {
-                    Pilot p = sqlResult.Current as Pilot;
-                    p.Name = p.Name.ToUpper();
-                    AddToCheckSum(1);
+            transaction.Add(() => {
+                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
+                    int remainingUpdates = Setup.UpdateCount;
+                    while (sqlResult.MoveNext() && remainingUpdates-- > 0) {
+                        Pilot p = sqlResult.Current as Pilot;
+                        p.Name = p.Name.ToUpper();
+                        AddToCheckSum(1);
+                    }
                 }
-            }
-            transaction.Commit();
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Delete")]
     public void LapDelete()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator())
-            {
-                while (sqlResult.MoveNext())
-                {
-                    (sqlResult.Current as Pilot).Delete();
-                    AddToCheckSum(1);
+            transaction.Add(() => {
+                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
+                    while (sqlResult.MoveNext()) {
+                        (sqlResult.Current as Pilot).Delete();
+                        AddToCheckSum(1);
+                    }
                 }
-            }
-            transaction.Commit();
+                transaction.Commit();
+            });
         }
     }
 

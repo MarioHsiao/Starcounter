@@ -191,24 +191,24 @@ namespace SqlCacheTrasher
             // Repeating same thing several times.
             for (Int32 n = 0; n < 10000; n++)
             {
-                using (Transaction transaction = Transaction.NewCurrent())
+                using (Transaction transaction = new Transaction())
                 {
-                    for (Int32 i = startIndex; i < endIndex; i++)
-                    {
-                        hitCount = 0;
-                        foreach (SimpleObject s in Db.SQL(queryCapCombs[i], i))
-                        {
-                            hitCount++;
+                    transaction.Add(() => {
+                        for (Int32 i = startIndex; i < endIndex; i++) {
+                            hitCount = 0;
+                            foreach (SimpleObject s in Db.SQL(queryCapCombs[i], i)) {
+                                hitCount++;
 
-                            // Checking that correct object fetched.
-                            if (s.IntegerProperty != i)
-                                throw new ArgumentOutOfRangeException("Wrong object fetched: " + s.IntegerProperty);
+                                // Checking that correct object fetched.
+                                if (s.IntegerProperty != i)
+                                    throw new ArgumentOutOfRangeException("Wrong object fetched: " + s.IntegerProperty);
+                            }
+
+                            // Checking that exactly one object fetched.
+                            if (hitCount != 1)
+                                throw new ArgumentOutOfRangeException("Wrong hit count: " + hitCount);
                         }
-
-                        // Checking that exactly one object fetched.
-                        if (hitCount != 1)
-                            throw new ArgumentOutOfRangeException("Wrong hit count: " + hitCount);
-                    }
+                    });
                 }
             }
 
@@ -224,31 +224,31 @@ namespace SqlCacheTrasher
 //            Int32 trans = 0;
             Int32 deleted = 0;
 
-            using (Transaction transaction = Transaction.NewCurrent())
+            using (Transaction transaction = new Transaction())
             {
-                using (var sqlResult = Db.SQL("SELECT s FROM SimpleObject s").GetEnumerator())
-                {
-                    while (sqlResult.MoveNext())
-                    {
-                        // Deleting the object.
-                        sqlResult.Current.Delete();
-                        deleted++;
+                transaction.Add(() => {
+                    using (var sqlResult = Db.SQL("SELECT s FROM SimpleObject s").GetEnumerator()) {
+                        while (sqlResult.MoveNext()) {
+                            // Deleting the object.
+                            sqlResult.Current.Delete();
+                            deleted++;
 
-                        // Checking if we need to commit transaction.
-                        /*trans++;
-                        if (trans >= MaxObjPerTrans)
-                        {
-                            trans = 0;
-                            transaction.Commit();
+                            // Checking if we need to commit transaction.
+                            /*trans++;
+                            if (trans >= MaxObjPerTrans)
+                            {
+                                trans = 0;
+                                transaction.Commit();
 
-                            // Resetting the enumerator.
-                            sqlResult.Reset();
-                        }*/
+                                // Resetting the enumerator.
+                                sqlResult.Reset();
+                            }*/
+                        }
                     }
-                }
 
-                // Committing transaction.
-                transaction.Commit();
+                    // Committing transaction.
+                    transaction.Commit();
+                });
             }
 
             Console.Error.WriteLine("Deleted old objects: " + deleted);
@@ -262,24 +262,24 @@ namespace SqlCacheTrasher
             Int32 trans = 0, created = 0;
 
             // Populating database using number of given transactions.
-            using (Transaction transaction = Transaction.NewCurrent())
+            using (Transaction transaction = new Transaction())
             {
-                for (Int32 i = 0; i < numQueries; i++)
-                {
-                    SimpleObject testClassInstance = new SimpleObject(i);
-                    created++;
+                transaction.Add(() => {
+                    for (Int32 i = 0; i < numQueries; i++) {
+                        SimpleObject testClassInstance = new SimpleObject(i);
+                        created++;
 
-                    // Checking if we need to commit transaction.
-                    trans++;
-                    if (trans >= MaxObjPerTrans)
-                    {
-                        trans = 0;
-                        transaction.Commit();
+                        // Checking if we need to commit transaction.
+                        trans++;
+                        if (trans >= MaxObjPerTrans) {
+                            trans = 0;
+                            transaction.Commit();
+                        }
                     }
-                }
 
-                // Committing all objects within transaction.
-                transaction.Commit();
+                    // Committing all objects within transaction.
+                    transaction.Commit();
+                });
             }
 
             Console.Error.WriteLine("Created new objects: " + created);
