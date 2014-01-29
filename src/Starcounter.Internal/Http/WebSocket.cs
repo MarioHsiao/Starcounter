@@ -32,6 +32,7 @@ namespace Starcounter
             Request req = Request.GenerateNewRequest(Session.InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
 
             req.SendResponse(data, 0, data.Length, connFlags);
+
         }
 
         // Server push on WebSocket.
