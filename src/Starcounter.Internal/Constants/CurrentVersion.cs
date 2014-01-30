@@ -10,15 +10,25 @@ namespace Starcounter.Internal
     /// </summary>
     public static class CurrentVersion
     {
-        ////////////////////////////////////////////////
-        // NOTE: Do not modify, even whitespace!!!
+        ///////////////////////////////////////////////////
+        // WARNING!!!Do not modify, even whitespace here!!!
         // Used for direct replacement by installer.
-        ////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
 
         /// <summary>
         /// This Starcounter version.
         /// </summary>
         public const String Version = "2.0.0.0";
+
+        /// <summary>
+        /// This name of channel for this version.
+        /// </summary>
+        public const String ChannelName = "NightlyBuilds";
+
+        /// <summary>
+        /// This name of edition for this version.
+        /// </summary>
+        public const String EditionName = "Starcounter";
 
         /// <summary>
         /// This Starcounter version date.
