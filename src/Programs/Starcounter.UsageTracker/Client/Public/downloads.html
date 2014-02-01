@@ -9,10 +9,11 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
 
+
     <!-- Optional theme -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
 
-    <script src="//code.jquery.com/jquery.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 
     <!-- Latest compiled and minified JavaScript -->
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
@@ -41,6 +42,10 @@
 
 <body ng-app="downloadApp" ng-controller="DownloadCtrl as dCtrl" class="container">
 
+    <a class="btn" href="http://www.starcounter.com">Starcounter.com</a>
+    <a class="btn" href="https://github.com/starcounter/starcounter/wiki">Wiki</a>
+    <a class="btn" href="http://www.starcounter.com/forum">Forum</a>
+
     <div class="alert alert-danger alert-dismissable" ng-show="alertMessage">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
         <strong>Error!</strong> {{alertMessage}}.
@@ -50,17 +55,31 @@
         At the moment there is no versions available for download. Please try again later.
     </div>
 
-    <div ng-repeat="channel in dCtrl.channels">
-        <h3>{{channel.name}}</h3>
-        <a href="{{channel.downloadUrl}}" class="btn btn-success">Download latest ({{channel.latestVersion}})</a>
-        <br />
-        <br />
-        <h5>History</h5>
+    <br />
 
-        <div ng-repeat="version in channel.versions">
-            <a href="{{version.downloadUrl}}">{{version.version}}</a>
-            ({{version.versionDate | date:'medium'}})
+    <div class="panel panel-default" ng-repeat="edition in dCtrl.editions">
+
+        <div class="panel-heading">
+            <h1 class="panel-title"><strong>{{edition.name}} edition</strong></h1>
         </div>
+
+        <ul class="list-group">
+
+            <li class="list-group-item" ng-repeat="channel in edition.channels">
+                <h5>{{channel.name}} channel</h5>
+
+                <a href="{{channel.downloadUrl}}" class="btn btn-success">Download latest ({{channel.latestVersion}})</a>
+                <br />
+                <br />
+
+                <div ng-repeat="version in channel.versions">
+                    <a href="{{version.downloadUrl}}">{{version.version}}</a>
+                    ({{version.versionDate | date:'medium'}})
+                </div>
+
+            </li>
+
+        </ul>
     </div>
 
 </body>

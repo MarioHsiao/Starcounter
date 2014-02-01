@@ -4,7 +4,6 @@ using Starcounter.Advanced;
 using System.Net.NetworkInformation;
 using Starcounter.Internal;
 using System.Net;
-using Starcounter.Applications.UsageTrackerApp.API.Backend;
 
 namespace Starcounter.Applications.UsageTrackerApp {
     class Program {
@@ -38,9 +37,6 @@ namespace Starcounter.Applications.UsageTrackerApp {
                 });
 
                 Utils.AssureIndexes();
-
-                // Bootstrap Backend GUI (system port)
-                Administrator.Bootstrap(uPort);
 
                 // use TrackingEnvironment.StarcounterTrackerPort
                 // Bootstrap Tracking Incoming message

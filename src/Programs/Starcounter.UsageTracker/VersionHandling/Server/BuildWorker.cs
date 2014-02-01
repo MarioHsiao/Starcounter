@@ -126,8 +126,10 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 while (source.BuildError == false) {
 
+                    bool bSourceHasError = false;
+
                     // Get number of available builds
-                    Int64 num = Db.SlowSQL<Int64>("SELECT count(o) FROM VersionBuild o WHERE o.HasBeenDownloaded=? AND o.Version=?", false, source.Version).First;
+                    Int64 num = Db.SlowSQL<Int64>("SELECT count(o) FROM VersionBuild o WHERE o.Edition=? AND o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", source.Edition, source.Channel, source.Version, false).First;
 
                     Int64 neededVersions = settings.MaximumBuilds - num;
                     if (neededVersions <= 0) {
@@ -135,11 +137,35 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         break;
                     }
 
+                    // Error check properties
+                    if (string.IsNullOrEmpty(source.Edition)) {
+                        LogWriter.WriteLine(string.Format("ERROR: Source {0} Edition is not specified on the source record in the database.", source.SourceFolder));
+                        bSourceHasError = true;
+                    }
+                    if (string.IsNullOrEmpty(source.Channel)) {
+                        LogWriter.WriteLine(string.Format("ERROR: Source {0} Channel is not specified on the source record in the database.", source.SourceFolder));
+                        bSourceHasError = true;
+                    }
+                    if (string.IsNullOrEmpty(source.Version)) {
+                        LogWriter.WriteLine(string.Format("ERROR: Source {0} Version is not specified on the source record in the database.", source.SourceFolder));
+                        bSourceHasError = true;
+                    }
+
+                    if (bSourceHasError) {
+                        Db.Transaction(() => {
+                            // Mark build as a faild to build
+                            source.BuildError = true;
+                        });
+                        break;
+                    }
+
+
                     // Build destination folder path (unique per build) an assure it dosent exits yet
-                    // Example path: ..\stable\2.0.2345.2\xdfe4lvrlkmv
+                    // Example path: {versionFolder}\oem\stable\2.0.2345.2\xdfe4lvrlkmv
                     string destinationFolder = string.Empty;
                     for (int i = 0; i < 50; i++) {
                         destinationFolder = settings.VersionFolder;
+                        destinationFolder = System.IO.Path.Combine(destinationFolder, source.Edition);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, source.Channel);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, source.Version);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, System.IO.Path.GetRandomFileName());
@@ -202,8 +228,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             build.File = file;
                             build.Serial = serialId;
                             build.DownloadDate = DateTime.MinValue;
-                            build.Version = source.Version;
+                            build.Edition = source.Edition;
                             build.Channel = source.Channel;
+                            build.Version = source.Version;
                             build.Source = source;
                         });
                     }
@@ -213,6 +240,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             LogWriter.WriteLine("NOTICE: Waiting to build new versions.");
 
         }
+
 
         /// <summary>
         /// Generate unique serial id
@@ -300,6 +328,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             Thread.Sleep(retryPause);
                             continue;
                         }
+
+                        // Pick the first outputed file
+                        // This will eventually be the downloadable file from the website
                         file = files[0];
 
                         LogWriter.WriteLine(string.Format("NOTICE: Successfully built {0} to {1}.", serialId, destinationFolder));
