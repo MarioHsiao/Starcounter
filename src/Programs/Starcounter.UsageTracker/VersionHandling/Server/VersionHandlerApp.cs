@@ -51,6 +51,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             if (!Directory.Exists(publicDocumentationFolder)) {
                 Directory.CreateDirectory(publicDocumentationFolder);
             }
+
             String publicDocfolder = publicPort.ToString() + "\r\n" + publicDocumentationFolder;
 
             Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", publicDocfolder, null, null, (Response resp, Object userObject) => {

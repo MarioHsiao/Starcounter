@@ -84,7 +84,7 @@ adminModule.service('VersionCheckService', ['$http', '$log', 'UtilsFactory', 'Jo
             else if (response.status == 503) {
                 // 503 Service Unavailable
                 if (typeof (errorCallback) == "function") {
-                    errorCallback(null);
+                    messageObject = null;
                 }
             }
             else {

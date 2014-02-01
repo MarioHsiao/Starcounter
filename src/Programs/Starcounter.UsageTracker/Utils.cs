@@ -3,6 +3,7 @@ using Codeplex.Data;
 using Starcounter.Advanced;
 using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
+using System.IO;
 
 namespace Starcounter.Applications.UsageTrackerApp {
     /// <summary>
@@ -81,7 +82,24 @@ namespace Starcounter.Applications.UsageTrackerApp {
             return 1;
         }
 
+        /// <summary>
+        /// Helping function to copy folders recursively.
+        /// </summary>
+        /// <param name="source">Source folder.</param>
+        /// <param name="target">Destination folder.</param>
+        public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
+            // Traverse through all directories.
+            foreach (DirectoryInfo dir in source.GetDirectories())
+                CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
 
+            // Traverse through all files.
+            foreach (FileInfo file in source.GetFiles())
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public static void AssureIndexes() {
 
             #region Installation
@@ -197,6 +215,9 @@ namespace Starcounter.Applications.UsageTrackerApp {
             if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionBuildChannelVersionIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionBuildChannelVersionIndex ON VersionBuild (Channel, Version)");
             }
+            if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionBuildEditionChannelVersionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionBuildEditionChannelVersionIndex ON VersionBuild (Edition, Channel, Version)");
+            }
 
             //if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionBuildDLIndex").First == null) {
             //    Starcounter.Db.SQL("CREATE INDEX VersionBuildDLIndex ON VersionBuild (HasBeenDownloaded)");
@@ -213,8 +234,12 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
 
             #endregion
-            
+
             #region VersionSource
+            if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionSourceEditionChannelIsAvailableIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceEditionChannelIsAvailableIndex ON VersionSource (Edition,Channel,IsAvailable)");
+            }
+
             if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
             }
@@ -345,7 +370,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
         public static bool IsBlacklisted(string ipAdress) {
 
             // TODO: 
-//            if ("58.27.115.118" == ipAdress) return true;
+            //            if ("58.27.115.118" == ipAdress) return true;
             return false;
 
         }
