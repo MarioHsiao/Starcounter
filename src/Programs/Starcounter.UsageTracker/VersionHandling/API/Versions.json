@@ -1,6 +1,7 @@
 {
 	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp.API.Versions"},
     versions: [{
+		edition:"edition name",
 		channel:"channel name",
 		version:"2.0.234.2",
 		versionDate:"2013-09-16 10:10:10",

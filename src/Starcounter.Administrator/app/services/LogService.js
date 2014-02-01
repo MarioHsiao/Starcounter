@@ -142,7 +142,7 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
 
                 if (evt.data == "1") {
                     // 1 = Log has change
-                    $log.warn("Sending event message to " + self.listeners.length + " listeners");
+                    $log.info("Sending event message to " + self.listeners.length + " listener(s)");
 
                     $rootScope.$apply(function () {
                         for (var i = 0; i < self.listeners.length ; i++) {
