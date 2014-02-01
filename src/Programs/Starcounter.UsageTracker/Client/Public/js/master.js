@@ -8,7 +8,7 @@ downloadApp.controller('DownloadCtrl', function ($scope, $http) {
 
     $http.get('/api/versions').then(function (response) {
         // success handler
-        mySelf.channels = response.data.channels;
+        mySelf.editions = response.data.editions;
 
     }, function (response) {
         // error handler
