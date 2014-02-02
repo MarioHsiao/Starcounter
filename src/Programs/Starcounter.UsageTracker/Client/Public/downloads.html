@@ -51,7 +51,7 @@
         <strong>Error!</strong> {{alertMessage}}.
     </div>
 
-    <div ng-show="dCtrl.channels.length==0" class="alert alert-info">
+    <div ng-show="dCtrl.editions.length==0" class="alert alert-info">
         At the moment there is no versions available for download. Please try again later.
     </div>
 
@@ -63,6 +63,10 @@
             <h1 class="panel-title"><strong>{{edition.name}} edition</strong></h1>
         </div>
 
+        <div ng-show="edition.channels.length==0" class="alert alert-info">
+            At the moment there is no versions available for download. Please try again later.
+        </div>
+
         <ul class="list-group">
 
             <li class="list-group-item" ng-repeat="channel in edition.channels">
@@ -71,6 +75,10 @@
                 <a href="{{channel.downloadUrl}}" class="btn btn-success">Download latest ({{channel.latestVersion}})</a>
                 <br />
                 <br />
+
+                <div ng-show="channel.versions.length==0" class="alert alert-info">
+                    At the moment there is no versions available for download. Please try again later.
+                </div>
 
                 <div ng-repeat="version in channel.versions">
                     <a href="{{version.downloadUrl}}">{{version.version}}</a>
