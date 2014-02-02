@@ -172,7 +172,7 @@
                 <!-- Logo -->
                 <Grid Margin="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Top" >
 
-                    <Image Source="resources/logo.png" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <Image Margin="15,20,15,0" Source="resources/logo.png" RenderOptions.BitmapScalingMode="HighQuality" />
 
                     <!--<Image RenderOptions.BitmapScalingMode="HighQuality" Stretch="None" Source="..\resources\SC_200.png" />-->
                     <!--<ContentPresenter Margin="15,20,15,0"  ContentTemplate="{StaticResource icon_sc_symbol_with_text_horizontal}" />-->
@@ -279,7 +279,8 @@
                 <!-- Devider -->
                 <!--<Border Grid.Row="3" Margin="30,0,30,40" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0"   />-->
 
-                <ListBox  ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=PoweredByResources}" Padding="0" Margin="0" Grid.Row="3" >
+                <!-- Powered by images-->
+                <ListBox  ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=PoweredByResources}" Padding="0" Margin="15,0,15,0" Grid.Row="3" >
                     <ListBox.Resources>
 
                         <!-- ### ListBox ###  -->
@@ -302,6 +303,7 @@
                         <Style TargetType="ListBoxItem">
                             <!--<Setter Property="Padding" Value="25,0,25,2.5"/>-->
                             <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0,0,0,20"/>
                             <Setter Property="Focusable" Value="False"/>
                             <Setter Property="Background" Value="{DynamicResource Selector_Background}"/>
                             <Setter Property="Template">
