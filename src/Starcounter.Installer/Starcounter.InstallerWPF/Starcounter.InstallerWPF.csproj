@@ -564,7 +564,9 @@
     <Resource Include="resources\poweredby1.png" />
     <Resource Include="resources\poweredby2.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources-polyjuice\logo.png" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources-polyjuice\poweredby1.png" />
   </ItemGroup>
