@@ -564,6 +564,15 @@
     <Resource Include="resources\poweredby1.png" />
     <Resource Include="resources\poweredby2.png" />
   </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources-polyjuice\poweredby1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources-zoon\logo.png" />
+    <Resource Include="Resources-zoon\poweredby1.png" />
+    <Resource Include="Resources-zoon\poweredby2.png" />
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
