@@ -88,6 +88,11 @@ namespace QueryProcessingTest {
             TableColumn c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "materializedcolumn").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "MaterializedColumn");
+            Trace.Assert(c.Type != null);
+            Trace.Assert(c.Type is HostMaterializedTable);
+            Trace.Assert(c.Type.Name == "materialized_column");
+            Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
+            Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == "materialized_column");
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "TableColumn");
             Trace.Assert(c.BaseTable is RawView);
@@ -95,10 +100,38 @@ namespace QueryProcessingTest {
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "base_table").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "base_table");
+            Trace.Assert(c.Type != null);
+            Trace.Assert(c.Type is HostMaterializedTable);
+            Trace.Assert(c.Type.Name == "materialized_table");
+            Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
+            Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == "materialized_table");
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "materialized_table");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable == null);
+            c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "parenttable").First;
+            Trace.Assert(c != null);
+            Trace.Assert(c.Name == "ParentTable");
+            Trace.Assert(c.Type != null);
+            Trace.Assert(c.Type is HostMaterializedTable);
+            Trace.Assert(c.Type.Name == "BaseTable");
+            Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
+            Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == c.Type.Name);
+            Trace.Assert(c.BaseTable != null);
+            Trace.Assert(c.BaseTable.Name == "BaseTable");
+            Trace.Assert(c.BaseTable is RawView);
+            Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "fullName").First;
+            Trace.Assert(c != null);
+            Trace.Assert(c.Name == "FullName");
+            Trace.Assert(c.Type != null);
+            Trace.Assert(c.Type is MaterializedType);
+            Trace.Assert(c.Type.Name == "string");
+            Trace.Assert((c.Type as MaterializedType).PrimitiveType == 1);
+            Trace.Assert(c.BaseTable != null);
+            Trace.Assert(c.BaseTable.Name == "BaseTable");
+            Trace.Assert(c.BaseTable is RawView);
+            Trace.Assert((c.BaseTable as RawView).ParentTable != null);
         }
     }
 }
