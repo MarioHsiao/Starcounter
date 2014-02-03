@@ -125,8 +125,19 @@ namespace Starcounter.Internal.Web {
                     response.FileModified = File.GetLastWriteTime(path);
                 }
                 cacheOnUri[relativeUri] = response;
-                cacheOnFilePath[fileSignature] = response;
-                WatchChange(dir, fileName + fileExtension);
+
+                // TODO: 
+                // Should cacheOnFilePath really be the actual responses? Isn't it better to just
+                // contain a list of URI's in the cacheOnUri dictionary so we can refresh/remove 
+                // all entries since we might have different responses for different URI's pointing to
+                // the same physical file?
+                Response existing;
+                if (cacheOnFilePath.TryGetValue(fileSignature, out existing)) {
+                    existing.Uris.Add(relativeUri);
+                } else {
+                    cacheOnFilePath[fileSignature] = response;
+                    WatchChange(dir, fileName + fileExtension);
+                }
             }
 
             return response;

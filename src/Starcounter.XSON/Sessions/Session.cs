@@ -64,15 +64,17 @@ namespace Starcounter {
         /// <summary>
         /// Runs a task asynchronously on a given scheduler.
         /// </summary>
-        public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
-            _dbSession.RunAsync(action, schedId);
+        public void RunAsync(Action action, Byte schedId = Byte.MaxValue)
+        {
+            ScSessionClass.DbSession.RunAsync(action, schedId);
         }
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
-        public void RunSync(Action action) {
-            _dbSession.RunSync(action);
+        public void RunSync(Action action)
+        {
+            ScSessionClass.DbSession.RunSync(action);
         }
 
         /// <summary>
@@ -114,6 +116,25 @@ namespace Starcounter {
 
             // Adding current URI to cache.
             _JsonNodeCacheDict[uri] = obj;
+        }
+
+        /// <summary>
+        /// Removes URI entry from cache.
+        /// </summary>
+        /// <param name="uri">URI entry.</param>
+        /// <returns>True if URI entry is removed.</returns>
+        internal Boolean RemoveUriFromCache(String uri) {
+            // Checking if cached state dictionary is already created.
+            if (null == _JsonNodeCacheDict)
+                return false;
+
+            // Adding current URI to cache.
+            if (_JsonNodeCacheDict.ContainsKey(uri)) {
+                _JsonNodeCacheDict[uri] = null;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

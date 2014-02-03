@@ -63,6 +63,19 @@ namespace Starcounter.InstallerEngine.VsSetup {
                 VisualStudioVersion.VS2013.BuildNumber,
                 "Pro"
                 );
+
+            // Delete the folder with the extension files, since it seems
+            // like Microsoft have delayed this in VS 2013.
+            var manifestFile = VSIXUtilities.FindManifestFile(VSIntegration.GetUserExtensionsRootFolder(VisualStudioVersion.VS2013), VSIXPackageInfo.VS2013.ExtensionIdentity);
+            if (File.Exists(manifestFile)) {
+                var extensionDirectory = Path.GetDirectoryName(manifestFile);
+                try {
+                    Utilities.LogMessage(string.Format("Debug: deleting VS extension directory \"{0}\".", extensionDirectory));
+                    Directory.Delete(extensionDirectory, true);
+                } catch (Exception e) {
+                    Utilities.LogMessage(string.Format("Warning: failed deleting VS extension directory, message \"{0}\".", e.Message));
+                }
+            }
         }
 
         /// <summary>

@@ -21,35 +21,31 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
         public static void VersionCheck_GET(ushort port, IServerRuntime server) {
 
-            // Start Database: POST /api/engines/{name}
-            // Stop Database: DELETE <EngineUri>/{name}
-
-            // Get a list of all databases with running status
+            // Get the Current and latest version
             //{
             //  "VersionCheck"
             //      {
-            //          "current":"2.0.0.0",
-            //          "currentDate":"2012-04-23T18:25:43.511Z",
-            //          "latest":"2.0.1167.3",
-            //          "latestDate":"2012-04-23T18:25:43.511Z",
-            //          "latestUri":"http://downloads.starcounter.com/beta",
-            //          "showNotice":true
+            //          "currentEdition":"oem",
+            //          "currentChannel":"beta",
+            //          "currentVersion":"2.0.0.0",
+            //          "currentVersionDate":"2012-04-23T18:25:43.511Z",
+            //          "latestVersion":"2.0.1438.3",
+            //          "latestVersionDate":"2012-04-23T18:25:43.511Z",
+            //          "latestVersionDownloadUri":"http://downloads.starcounter.com/download/oem/NightlyBuilds/2.0.1439.3"
             //      }
             //}
             Handle.GET("/api/admin/versioncheck", (Request req) => {
 
                 try {
 
-                    string channel = "NightlyBuilds";
-
-                    // Retrive the latest available version
+                    // Retrive the latest available version for a specific edition and version
                     Response response;
 
-//#if ANDWAH
-//                    X.GET("http://192.168.8.183:80/api/channels/" + channel, null, out response, 5000);
-//#else
-                    X.GET("http://downloads.starcounter.com:80/api/channels/" + channel, out response, null, 5000);
-//#endif
+#if ANDWAH
+                    X.GET("http://192.168.8.183:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest", out response, null, 5000);
+#else
+                    X.GET("http://downloads.starcounter.com:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest", out response, null, 5000);
+#endif
 
                     if (!response.IsSuccessStatusCode) {
                         // TODO: Add "Retry-After" header
@@ -60,14 +56,16 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                     var result = new versioncheck();
 
+                    // Current version
+                    result.VersionCheck.currentEdition = CurrentVersion.EditionName;
+                    result.VersionCheck.currentChannel = CurrentVersion.ChannelName;
                     result.VersionCheck.currentVersion = CurrentVersion.Version;
                     result.VersionCheck.currentVersionDate = CurrentVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
 
-                    result.VersionCheck.latestVersion = incomingJson.latestVersion;
-
-                    DateTime latestVersionDate = DateTime.Parse(incomingJson.latestVersionDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+                    // Latest version
+                    result.VersionCheck.latestVersion = incomingJson.version;
+                    DateTime latestVersionDate = DateTime.Parse(incomingJson.versionDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
                     result.VersionCheck.latestVersionDate = latestVersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-
                     result.VersionCheck.latestVersionDownloadUri = incomingJson.downloadUrl;
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };
@@ -78,13 +76,6 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
             });
 
-
-
-
-
         }
-
-
-
     }
 }

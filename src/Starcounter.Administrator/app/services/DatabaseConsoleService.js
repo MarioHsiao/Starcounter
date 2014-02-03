@@ -191,7 +191,7 @@ adminModule.service('DatabaseConsoleService', ['$http', '$log', '$rootScope', 'U
 
             connection.socket.onmessage = function (evt) {
 
-                $log.warn("Sending event message to " + self.listeners.length + " listeners");
+                $log.info("Sending event message to " + self.listeners.length + " listener(s)");
 
                 var htmlText = "";
                 if (evt.data) {
