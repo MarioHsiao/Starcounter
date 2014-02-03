@@ -248,6 +248,31 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Checks if given URI is cached.
+        /// </summary>
+        /// <param name="uri">URI string.</param>
+        /// <returns>True is URI is cached.</returns>
+        public static Boolean IsCached(String uri) {
+
+            Response response;
+
+            return X.CheckLocalCache(uri, null, null, out response);
+        }
+
+        /// <summary>
+        /// Removes given URI entry from the cache.
+        /// </summary>
+        /// <param name="uri">URI string.</param>
+        /// <returns>True if entry is removed.</returns>
+        public static Boolean Forget(String uri) {
+
+            if (null != Session.Current)
+                return Session.Current.RemoveUriFromCache(uri);
+
+            return false;
+        }
+
+        /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
         /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>

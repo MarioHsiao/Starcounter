@@ -119,6 +119,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Removes URI entry from cache.
+        /// </summary>
+        /// <param name="uri">URI entry.</param>
+        /// <returns>True if URI entry is removed.</returns>
+        internal Boolean RemoveUriFromCache(String uri) {
+            // Checking if cached state dictionary is already created.
+            if (null == _JsonNodeCacheDict)
+                return false;
+
+            // Adding current URI to cache.
+            if (_JsonNodeCacheDict.ContainsKey(uri)) {
+                _JsonNodeCacheDict[uri] = null;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Indicates if user wants to use session cookie.
         /// </summary>
         public Boolean UseSessionCookie {
