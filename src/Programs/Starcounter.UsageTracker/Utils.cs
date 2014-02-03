@@ -82,6 +82,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
             return 1;
         }
 
+
         /// <summary>
         /// Helping function to copy folders recursively.
         /// </summary>
@@ -96,6 +97,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
             foreach (FileInfo file in source.GetFiles())
                 file.CopyTo(Path.Combine(target.FullName, file.Name), true);
         }
+
 
         /// <summary>
         /// 
@@ -263,6 +265,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
         }
 
+
         /// <summary>
         /// Assure that we have an location for an ipadress
         /// </summary>
@@ -368,11 +371,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
         /// <param name="ipAdress"></param>
         /// <returns></returns>
         public static bool IsBlacklisted(string ipAdress) {
-
-            // TODO: 
-            //            if ("58.27.115.118" == ipAdress) return true;
             return false;
-
         }
 
     }
