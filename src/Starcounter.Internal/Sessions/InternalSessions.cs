@@ -325,6 +325,27 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Database session interface.
+        /// </summary>
+        static IDbSession _dbSession;
+
+        /// <summary>
+        /// Database session.
+        /// </summary>
+        internal static IDbSession DbSession
+        {
+            get { return _dbSession; }
+        }
+
+        /// <summary>
+        /// Setting actual database session implementation.
+        /// </summary>
+        internal static unsafe void SetDbSessionImplementation(IDbSession dbSessionImpl)
+        {
+            _dbSession = dbSessionImpl;
+        }
+
+        /// <summary>
         /// Updating last active session time tick.
         /// </summary>
         public void UpdateLastActive()
