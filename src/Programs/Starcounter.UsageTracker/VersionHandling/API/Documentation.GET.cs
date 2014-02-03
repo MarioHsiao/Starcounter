@@ -12,16 +12,26 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
         public static void BootStrap(ushort port) {
 
 
-            // downloads.starcounter.com/doc/oem/nightlybuilds/2.0.1439.3
 
             // Show download page
+            Handle.GET(port, "/docs", (Request request) => {
+                Node node = new Node("127.0.0.1", port);
+                return node.GET("/docs.html", null);
+            });
+
+            // downloads.starcounter.com/doc/oem/nightlybuilds/2.0.1439.3
+
+            // Show documentation page
             //Handle.GET(port, "/doc/{?}/{?}/{?}", (string edition, string channel, string version, Request request) => {
 
-            //    string documentationPath = string.Format("/doc/{0}/{1}/{2}/webframe.html", edition, channel, version, "webframe.html");
+            //    if (!version.Contains("/")) {
+            //        string documentationPath = string.Format("/doc/{0}/{1}/{2}/{3}", edition, channel, version, "webframe.html");
 
-            //    Response response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Redirect };
-            //    response["Location"] = documentationPath;
-            //    return response;
+            //        Node node = new Node("127.0.0.1", port);
+            //        return node.GET(documentationPath, null);
+            //    }
+               
+            //    return HandlerStatus.NotHandled;
 
             //});
 

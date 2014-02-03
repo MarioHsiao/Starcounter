@@ -222,7 +222,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 Db.Transaction(() => {
 
                     // Retrive versions to delete
-                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE e.Edition=? AND o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", edition, channel, true, numDelete);
+                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", edition, channel, true, numDelete);
 
                     foreach (VersionSource versionSource in versionSources) {
 

@@ -74,7 +74,6 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
 
             // Public API
             Download.BootStrap(publicPort);
-            Channels_Get.BootStrap(publicPort);
             Versions_Get.BootStrap(publicPort);
             Documentation_Get.BootStrap(publicPort);
 
