@@ -97,6 +97,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable.Name == "TableColumn");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            Trace.Assert(c.MaterializedColumn != null);
+            Trace.Assert(c.MaterializedColumn.Name == c.Name);
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "base_table").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "base_table");
@@ -109,6 +111,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable.Name == "materialized_table");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable == null);
+            Trace.Assert(c.MaterializedColumn != null);
+            Trace.Assert(c.MaterializedColumn.Name == c.Name);
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "parenttable").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "ParentTable");
@@ -121,6 +125,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable.Name == "BaseTable");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            Trace.Assert(c.MaterializedColumn != null);
+            Trace.Assert(c.MaterializedColumn.Name == c.Name);
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "fullName").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "FullName");
@@ -132,6 +138,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable.Name == "BaseTable");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            Trace.Assert(c.MaterializedColumn != null);
+            Trace.Assert(c.MaterializedColumn.Name == c.Name);
         }
     }
 }
