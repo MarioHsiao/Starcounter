@@ -246,10 +246,6 @@ namespace Starcounter.Applications.UsageTrackerApp {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
             }
 
-            if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionSourceBuildErrorIndex").First == null) {
-                Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorIndex ON VersionSource (BuildError)");
-            }
-
             if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionSourceVersionIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceVersionIndex ON VersionSource (Version)");
             }
