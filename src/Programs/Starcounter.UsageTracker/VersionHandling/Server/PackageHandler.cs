@@ -275,17 +275,6 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 return false;
             }
 
-            //// Add 'public' 
-            //string outputDocumentationFolder = Path.Combine(VersionHandlerApp.Settings.DocumentationFolder, "public");
-
-            //// Add doc name
-            //outputDocumentationFolder = Path.Combine(outputDocumentationFolder, "doc");
-
-            //// Add edition name
-            //outputDocumentationFolder = Path.Combine(outputDocumentationFolder, versionSource.Edition);
-
-            //// Add channel name
-            //outputDocumentationFolder = Path.Combine(outputDocumentationFolder, versionSource.Channel);
 
             // Create directory Without the final folder otherwise Directory.Move() will complain.
             if (!Directory.Exists(outputDocumentationFolder)) {

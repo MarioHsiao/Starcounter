@@ -42,9 +42,9 @@
 
 <body ng-app="downloadApp" ng-controller="DownloadCtrl as dCtrl" class="container">
 
-    <a class="btn" href="http://www.starcounter.com">Starcounter.com</a>
-    <a class="btn" href="https://github.com/starcounter/starcounter/wiki">Wiki</a>
-    <a class="btn" href="http://www.starcounter.com/forum">Forum</a>
+    <a class="btn" target="_blank" href="http://www.starcounter.com">Starcounter.com</a>
+    <a class="btn" target="_blank" href="https://github.com/starcounter/starcounter/wiki">Wiki</a>
+    <a class="btn" target="_blank" href="http://www.starcounter.com/forum">Forum</a>
 
     <div class="alert alert-danger alert-dismissable" ng-show="alertMessage">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
@@ -83,6 +83,7 @@
                 <div ng-repeat="version in channel.versions">
                     <a href="{{version.downloadUrl}}">{{version.version}}</a>
                     ({{version.versionDate | date:'medium'}})
+                        <a ng-show="version.documentationUrl" target="_blank" href="{{version.documentationUrl}}">Documentation</a>
                 </div>
 
             </li>
