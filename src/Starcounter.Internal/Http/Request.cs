@@ -210,6 +210,20 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns True if request is cachable.
+        /// </summary>
+        public Boolean IsCachable()
+        {
+            switch (MethodEnum)
+            {
+                case HTTP_METHODS.GET:
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Parses internal HTTP request.
         /// </summary>
         [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
