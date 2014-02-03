@@ -63,7 +63,6 @@
     <Compile Include="Tracker\API\Starcounter\GeneralCollectionHandler.POST.cs" />
     <Compile Include="Tracker\API\Starcounter\InstallerCollectionHandler.cs" />
     <Compile Include="Tracker\API\Starcounter\UsageCollectionHandler.POST.cs" />
-    <Compile Include="VersionHandling\API\Channels.GET.cs" />
     <Compile Include="VersionHandling\API\Documentation.GET.cs" />
     <Compile Include="VersionHandling\API\Download.GET.cs" />
     <Compile Include="VersionHandling\API\Statistics.GET.cs" />
@@ -172,12 +171,6 @@
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="VersionHandling\API\AllVersions.json">
-      <Generator>MsBuild:Compile</Generator>
-    </TypedJSON>
-    <TypedJSON Include="VersionHandling\API\Channel.json">
-      <Generator>MsBuild:Compile</Generator>
-    </TypedJSON>
-    <TypedJSON Include="VersionHandling\API\Channels.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="VersionHandling\API\Version.json">
