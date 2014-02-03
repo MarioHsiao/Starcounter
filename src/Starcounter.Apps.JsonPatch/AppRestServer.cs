@@ -198,7 +198,7 @@ namespace Starcounter.Internal.Web {
 
                             if ((null != curJsonObj) &&
                                 (null != rootJsonObj) &&
-                                (request.IsIdempotent()) &&
+                                (request.IsCachable()) &&
                                 (curJsonObj.HasThisRoot(rootJsonObj)))
                             {
                                 Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
