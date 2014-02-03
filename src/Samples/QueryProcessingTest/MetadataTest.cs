@@ -99,6 +99,7 @@ namespace QueryProcessingTest {
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
+            Trace.Assert(!c.Unique);
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "base_table").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "base_table");
@@ -113,6 +114,7 @@ namespace QueryProcessingTest {
             Trace.Assert((c.BaseTable as RawView).ParentTable == null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
+            Trace.Assert(!c.Unique);
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "parenttable").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "ParentTable");
@@ -127,19 +129,38 @@ namespace QueryProcessingTest {
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
+            Trace.Assert(!c.Unique);
             c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "fullName").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "FullName");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is MaterializedType);
             Trace.Assert(c.Type.Name == "string");
-            Trace.Assert((c.Type as MaterializedType).PrimitiveType == 1);
+            Trace.Assert((c.Type as MaterializedType).PrimitiveType == sccoredb.STAR_TYPE_STRING);
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "BaseTable");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
+            Trace.Assert(!c.Unique);
+            int nrColumns = 0;
+            foreach (TableColumn tc in Db.SQL<TableColumn>("select c from Tablecolumn c")) {
+                Trace.Assert(tc.Type != null);
+                if (tc.Type is HostMaterializedTable)
+                    Trace.Assert((tc.Type as HostMaterializedTable).MaterializedTable.Name == tc.Type.Name);
+                else {
+                    Trace.Assert(tc.Type is MaterializedType);
+                    Trace.Assert((tc.Type as MaterializedType).PrimitiveType != sccoredb.STAR_TYPE_REFERENCE);
+                }
+                Trace.Assert(tc.BaseTable != null);
+                Trace.Assert(tc.BaseTable is RawView);
+                Trace.Assert(tc.MaterializedColumn != null);
+                Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
+                Trace.Assert(!tc.Unique);
+                nrColumns++;
+            }
+            Trace.Assert(nrColumns == 20 + 18);
         }
     }
 }
