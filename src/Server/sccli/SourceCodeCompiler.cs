@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.IO;
+using Starcounter.Internal;
 
 namespace star {
     /// <summary>
@@ -25,7 +26,7 @@ namespace star {
     ///  </para>
     /// </remarks>
     class SourceCodeCompiler {
-        static string starcounterAssembliesFolder = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        static string starcounterAssembliesFolder = StarcounterEnvironment.InstallationDirectory;
         static string[] DefaultAssemblyReferences = new string[] {
             "Starcounter",
             "Starcounter.Apps.JsonPatch",
@@ -102,11 +103,12 @@ namespace star {
 
             var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
             if (result.Errors.Count > 0) {
-                // Improved error handling
-                // TODO:
                 assemblyPath = null;
-                foreach (var error in result.Errors) {
-                    Console.WriteLine(error.ToString());
+
+                var headline = string.Format("Compilation errors ({0}):", result.Errors.Count);
+                Console.WriteLine(headline);
+                foreach (CompilerError error in result.Errors) {
+                    WriteCompilationError(error);
                 }
                 throw new Exception("Errors compiling!");
             }
@@ -134,6 +136,15 @@ namespace star {
             if (!parameters.ReferencedAssemblies.Contains(assemblyName)) {
                 parameters.ReferencedAssemblies.Add(assemblyName);
             }
+        }
+
+        static void WriteCompilationError(CompilerError error) {
+            var s = new StringBuilder()
+            .Append(Path.GetFileName(error.FileName))
+            .AppendFormat("({0},{1}): ", error.Line, error.Column)
+            .AppendFormat("{0} {1}: ", error.IsWarning ? "warning" : "error", error.ErrorNumber)
+            .Append(error.ErrorText).ToString();
+            Console.WriteLine(s);
         }
     }
 }
