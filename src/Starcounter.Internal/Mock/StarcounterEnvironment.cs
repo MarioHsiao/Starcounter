@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Xml;
@@ -110,9 +111,32 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// The system directory
+        /// Gets a value that holds the path of the Starcounter installation
+        /// directory.
         /// </summary>
-        public static string SystemDirectory;
+        public static string InstallationDirectory {
+            get {
+                var path = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+                if (string.IsNullOrEmpty(path)) {
+                    throw ErrorCode.ToException(Error.SCERRBINDIRENVNOTFOUND);
+                }
+                return path;
+            }
+        }
+
+        /// <summary>
+        /// Assigns the Starcounter installation directory for the current process
+        /// based on the calling assembly. Designed to be invoked first/early in
+        /// any of our managed bootstrappers (e.g. the code host, the CLI tools,
+        /// the weaver).
+        /// </summary>
+        public static void SetInstallationDirectoryFromEntryAssembly() {
+            var assembly = Assembly.GetCallingAssembly();
+            Environment.SetEnvironmentVariable(
+                StarcounterEnvironment.VariableNames.InstallationDirectory,
+                Path.GetDirectoryName(assembly.Location)
+                );
+        }
 
         /// <summary>
         /// Default network ports that are used by different Starcounter components.
@@ -350,49 +374,6 @@ namespace Starcounter.Internal
             /// The administrator start page
             /// </summary>
             public const string AdministratorStartPage = "http://www.starcounter.com/admin/index.php";
-        }
-
-        static string ReadSystemDirectoryFromEnvironment()
-        {
-            string candidate;
-            string keyName;
-
-            keyName = StarcounterEnvironment.VariableNames.InstallationDirectory;
-            candidate = null;
-
-            foreach (var target in new EnvironmentVariableTarget[] {
-                EnvironmentVariableTarget.User,
-                EnvironmentVariableTarget.Machine })
-            {
-                try
-                {
-                    candidate = Environment.GetEnvironmentVariable(keyName, target);
-                }
-                catch (SecurityException securityException)
-                {
-                    // Wrap the security exception in a custom exception with our
-                    // code and raise it.
-
-                    throw ErrorCode.ToException(
-                        Error.SCERRENVVARIABLENOTACCESSIBLE,
-                        securityException,
-                        string.Format("Key={0}, Target={1}", keyName, Enum.GetName(typeof(EnvironmentVariableTarget), target))
-                        );
-                }
-
-                if (!string.IsNullOrEmpty(candidate))
-                    break;
-            }
-
-            if (string.IsNullOrEmpty(candidate))
-            {
-                // When requested, we expect the system directory to be resolved.
-                // If it ain't, raise an exception.
-
-                throw ErrorCode.ToException(Error.SCERRBINDIRENVNOTFOUND);
-            }
-
-            return candidate;
         }
     }
 }

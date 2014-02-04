@@ -15,6 +15,8 @@ namespace star {
     class Program {
        
         static void Main(string[] args) {
+            StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
+
             ApplicationArguments appArgs;
             int serverPort;
             string serverName;
@@ -214,7 +216,7 @@ namespace star {
         }
 
         static void ShowInfoAboutStarcounter() {
-            Console.WriteLine("Installation directory={0}", Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory));
+            Console.WriteLine("Installation directory={0}", StarcounterEnvironment.InstallationDirectory);
             Console.WriteLine("Default server={0}", StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
             Console.WriteLine("Version=", CurrentVersion.Version);
         }
