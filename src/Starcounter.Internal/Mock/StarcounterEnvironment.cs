@@ -121,7 +121,11 @@ namespace Starcounter.Internal
         /// </summary>
         public static string InstallationDirectory {
             get {
-                return Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+                var path = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+                if (string.IsNullOrEmpty(path)) {
+                    throw ErrorCode.ToException(Error.SCERRBINDIRENVNOTFOUND);
+                }
+                return path;
             }
         }
 
