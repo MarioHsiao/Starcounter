@@ -111,11 +111,6 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// The system directory
-        /// </summary>
-        public static string SystemDirectory;
-
-        /// <summary>
         /// Gets a value that holds the path of the Starcounter installation
         /// directory.
         /// </summary>
@@ -379,49 +374,6 @@ namespace Starcounter.Internal
             /// The administrator start page
             /// </summary>
             public const string AdministratorStartPage = "http://www.starcounter.com/admin/index.php";
-        }
-
-        static string ReadSystemDirectoryFromEnvironment()
-        {
-            string candidate;
-            string keyName;
-
-            keyName = StarcounterEnvironment.VariableNames.InstallationDirectory;
-            candidate = null;
-
-            foreach (var target in new EnvironmentVariableTarget[] {
-                EnvironmentVariableTarget.User,
-                EnvironmentVariableTarget.Machine })
-            {
-                try
-                {
-                    candidate = Environment.GetEnvironmentVariable(keyName, target);
-                }
-                catch (SecurityException securityException)
-                {
-                    // Wrap the security exception in a custom exception with our
-                    // code and raise it.
-
-                    throw ErrorCode.ToException(
-                        Error.SCERRENVVARIABLENOTACCESSIBLE,
-                        securityException,
-                        string.Format("Key={0}, Target={1}", keyName, Enum.GetName(typeof(EnvironmentVariableTarget), target))
-                        );
-                }
-
-                if (!string.IsNullOrEmpty(candidate))
-                    break;
-            }
-
-            if (string.IsNullOrEmpty(candidate))
-            {
-                // When requested, we expect the system directory to be resolved.
-                // If it ain't, raise an exception.
-
-                throw ErrorCode.ToException(Error.SCERRBINDIRENVNOTFOUND);
-            }
-
-            return candidate;
         }
     }
 }
