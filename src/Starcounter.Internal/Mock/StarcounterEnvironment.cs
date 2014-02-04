@@ -44,7 +44,7 @@ namespace Starcounter.Internal
             }
         }
 
-        static Nullable<Boolean> isCodeHosted = null;
+        internal static Nullable<Boolean> isCodeHosted = null;
 
         /// <summary>
         /// Returns if current code is hosted in Starcounter

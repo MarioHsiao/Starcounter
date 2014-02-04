@@ -3,6 +3,7 @@
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 namespace Starcounter {
 
     
@@ -28,6 +29,15 @@ namespace Starcounter {
         /// Inject REST handler function provider here
         /// </summary>
         public static volatile IREST _REST;
+
+        /// <summary>
+        /// Registers a routine to merge several responses.
+        /// </summary>
+        /// <param name="mergerRoutine">Provided merging routine.</param>
+        public static void MergeResponses(Func<Request, List<Response>, List<String>, Response> mergerRoutine)
+        {
+            _REST.RegisterResponsesMerger(mergerRoutine);
+        }
 
         /// <summary>
         /// Register the specified uri, with one variable parameter, with a custom verb

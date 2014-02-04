@@ -463,7 +463,13 @@ namespace Starcounter
                     if (null == bodyString_)
                     {
                         if (null != bodyBytes_)
+                        {
                             return Encoding.UTF8.GetString(bodyBytes_);
+                        }
+                        else if (_Hypermedia != null)
+                        {
+                            return _Hypermedia.AsMimeType(MimeType.Unspecified);
+                        }
                     }
 
                     return bodyString_;
@@ -504,9 +510,9 @@ namespace Starcounter
                 return bodyString_;
             var bytes = this.GetContentBytes();
             return Encoding.UTF8.GetString(bytes);
-        }
+            }
 
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -587,7 +593,14 @@ namespace Starcounter
                     if (null == bodyBytes_)
                     {
                         if (null != bodyString_)
+                        {
                             return Encoding.UTF8.GetBytes(bodyString_);
+                        }
+                        else if (_Hypermedia != null)
+                        {
+                            MimeType discard;
+                            return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
+                        }
                     }
 
                     return bodyBytes_;

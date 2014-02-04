@@ -107,6 +107,11 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Flag to set node local for tests.
+        /// </summary>
+        internal static Boolean LocalNode { get; set; }
+
+        /// <summary>
         /// Gets node instance from given URI.
         /// </summary>
         /// <param name="uri">Absolute or relative resource URI.</param>
@@ -134,7 +139,10 @@ namespace Starcounter
                 {
                     // Checking if static object is initialized.
                     if (null == ThreadStaticThisNode)
+                    {
                         ThreadStaticThisNode = new Node("127.0.0.1");
+                        ThreadStaticThisNode.LocalNode = LocalNode;
+                    }
 
                     // Getting thread static instance.
                     node = ThreadStaticThisNode;
