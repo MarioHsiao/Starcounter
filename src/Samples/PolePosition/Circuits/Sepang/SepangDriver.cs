@@ -18,30 +18,36 @@ public class SepangDriver : Driver
 
     public override void TakeSeatIn()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            TypeDeleter.DeleteAllOfType<Tree>();
-            RootHolder.Root = null;
-            transaction.Commit();
+            transaction.Add(() => {
+                TypeDeleter.DeleteAllOfType<Tree>();
+                RootHolder.Root = null;
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Write")]
     public void LapWrite()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            RootHolder.Root = Tree.Create(Setup.TreeDepth);
-            transaction.Commit();
+            transaction.Add(() => {
+                RootHolder.Root = Tree.Create(Setup.TreeDepth);
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Read_hot")]
     public void LapReadHot()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            RootHolder.Root.Traverse(t => AddToCheckSum(t));
+            transaction.Add(() => {
+                RootHolder.Root.Traverse(t => AddToCheckSum(t));
+            });
         }
     }
 
@@ -54,11 +60,13 @@ public class SepangDriver : Driver
     [Lap("Delete")]
     public void LapDelete()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            RootHolder.Root.Traverse(t => t.Delete());
-            RootHolder.Root = null;
-            transaction.Commit();
+            transaction.Add(() => {
+                RootHolder.Root.Traverse(t => t.Delete());
+                RootHolder.Root = null;
+                transaction.Commit();
+            });
         }
     }
 

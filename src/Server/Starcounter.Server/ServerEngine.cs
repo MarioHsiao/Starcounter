@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.Advanced.Configuration;
+using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Server.Commands;
 using Starcounter.Server.Commands.InternalCommands;
@@ -140,7 +141,7 @@ namespace Starcounter.Server {
         public ServerEngine(string serverConfigurationPath, String installDir = null) {
             // TODO: Talk to Per!
             if (installDir == null)
-                this.InstallationDirectory = Path.GetDirectoryName(typeof(ServerEngine).Assembly.Location);
+                this.InstallationDirectory = StarcounterEnvironment.InstallationDirectory;
             else
                 this.InstallationDirectory = installDir;
 

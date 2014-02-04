@@ -114,57 +114,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Creates a new transaction and sets it as current.
-        /// </summary>
-        public static Transaction NewCurrent() {
-            return NewCurrent(false);
-        }
-
-        /// <summary>
-        /// Creates a new transaction and sets it as current.
-        /// </summary>
-        /// <param name="readOnly">Transaction read-only flag.</param>
-        /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
-        /// <returns>New transaction object.</returns>
-        public static Transaction NewCurrent(bool readOnly, bool detectConflicts = true) {
-            try {
-                ulong handle;
-                ulong verify;
-                uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
-
-                if (readOnly)
-                    flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
-
-                uint r = sccoredb.sccoredb_create_transaction_and_set_current(
-                    flags,
-                    0,
-                    out handle,
-                    out verify
-                    );
-                if (r == 0) {
-                    try {
-                        _current = new Transaction(handle, verify, readOnly);
-                        return _current;
-                    }
-                    catch (Exception) {
-                        if (
-                            sccoredb.sccoredb_set_current_transaction(0, 0, 0) != 0 ||
-                            sccoredb.sccoredb_free_transaction(handle, verify) != 0
-                            ) {
-                            ExceptionManager.HandleInternalFatalError(sccoredb.star_get_last_error());
-                        }
-                        throw;
-                    }
-                }
-                throw ErrorCode.ToException(r);
-            }
-            catch {
-                if (_current != null) Transaction.SetCurrent(_current);
-                throw;
-            }
-        }
-
-        /// <summary>
         /// Adds <paramref name="obj"/> to the write list of the
         /// currently attached transaction.
         /// </summary>
@@ -269,13 +218,6 @@ namespace Starcounter
             throw ErrorCode.ToException(r);
         }
 
-        private Transaction(ulong handle, ulong verify, bool readOnly) {
-            _handle = handle;
-            _verify = verify;
-            IsReadOnly = readOnly;
-            _scrap = new TransactionScrap(handle, verify);
-        }
-
         /// <summary>
         /// </summary>
         ~Transaction() {
@@ -330,22 +272,6 @@ namespace Starcounter
 			} finally {
 				SetCurrent(old);
 			}
-        }
-
-        /// <summary>
-        /// Begins the transaction scope (sets transaction to current).
-        /// </summary>
-        /// <param name="action"></param>
-        public void BeginScope() {
-            SetCurrent(this);
-        }
-
-        /// <summary>
-        /// Ends the transaction scope (resets current transaction).
-        /// </summary>
-        /// <param name="action"></param>
-        public void EndScope() {
-            SetCurrent(null);
         }
 
         /// <summary>

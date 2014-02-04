@@ -300,10 +300,6 @@ namespace Starcounter {
 				_Current.Clear();
 				Session._Current = null;
 			}
-
-            // Resetting current transaction if any exists.
-            if (StarcounterBase._DB != null && StarcounterBase._DB.GetCurrentTransaction() != null)
-                StarcounterBase._DB.SetCurrentTransaction(null);
         }
 
         /// <summary>
