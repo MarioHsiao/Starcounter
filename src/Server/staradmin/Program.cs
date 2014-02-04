@@ -7,6 +7,8 @@ namespace staradmin {
 
     class Program {
         static void Main(string[] args) {
+            StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
+
             try {
                 string command = args.Length > 0 ? args[0] : string.Empty;
                 command = command.ToLowerInvariant();

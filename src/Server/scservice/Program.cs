@@ -12,6 +12,8 @@ namespace scservice {
     class Program {
 
         static void Main(string[] args) {
+            StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
+
             var startedAsService = IsStartedAsService(args);
             string serverName = "Personal";
             bool logSteps = false;
@@ -91,11 +93,12 @@ namespace scservice {
         /// </remarks>
         static void StartTrayIcon() {
             try {
-                string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+                string scBin = StarcounterEnvironment.InstallationDirectory;
 
                 // Need to use full path to EXE because of no shell execute.
-                var startInfo = new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                    StarcounterConstants.ProgramNames.ScTrayIcon + ".exe"));
+                var startInfo = new ProcessStartInfo(
+                    StarcounterEnvironment.InstallationDirectory,
+                    StarcounterConstants.ProgramNames.ScTrayIcon + ".exe");
 
                 startInfo.WorkingDirectory = scBin;
 
