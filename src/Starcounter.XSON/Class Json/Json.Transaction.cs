@@ -3,26 +3,28 @@ using Starcounter.Advanced;
 using System;
 namespace Starcounter {
     partial class Json {
-
         /// <summary>
-        /// Start usage of given session.
+        /// Executes the specifed Action either in the scope of a transaction
+        /// on the object or if no transaction is found, just executes the actíon.
         /// </summary>
-        /// <param name="jsonNode"></param>
-        internal void ResumeTransaction(bool searchParents) {
-            // Starting using current transaction if any.
-			var t = (searchParents == true) ? Transaction : _transaction;
-            if (t != null)
-                StarcounterBase._DB.SetCurrentTransaction(t);
+        /// <param name="action">The delegate to execute</param>
+        /// <param name="searchParents">If set to true transaction is searched for in parents.</param>
+        internal void ExecuteInScope(Action action, bool searchParents = false) {
+            var t = (searchParents == true) ? Transaction : _transaction;
+
+            if (t != null) {
+                t.Add(action);
+            } else {
+                action();
+            }
         }
 
         /// <summary>
-        /// Gets nearest transaction.
+        /// Gets the nearest transaction.
         /// </summary>
         public ITransaction Transaction {
             get {
-
                 // Returning first available transaction climbing up the tree starting from this node.
-
                 if (_transaction != null)
                     return _transaction;
 
@@ -39,7 +41,6 @@ namespace Starcounter {
                 _transaction = value;
             }
         }
-
 
         /// <summary>
         /// Returns the transaction that is set on this app. Does NOT

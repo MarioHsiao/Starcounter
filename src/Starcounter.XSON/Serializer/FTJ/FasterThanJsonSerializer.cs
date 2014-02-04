@@ -50,123 +50,124 @@ namespace Starcounter.Advanced.XSON {
 			int valueCount = exposedProperties.Count;
 			int offset = 0;
 
-			obj.ResumeTransaction(true);
+            obj.ExecuteInScope(() => {
 
-			unsafe {
+                unsafe {
 restart:
-				if (recreateBuffer) {
-					offset = writer.Length;
-					buf = IncreaseCapacity(buf, offset, valueSize);
-				}
-				
-				// Starting from the last written position
-				fixed (byte* p = &buf[0]) {
-					writer = new TupleWriterBase64(p, (uint)valueCount);
+                    if (recreateBuffer) {
+                        offset = writer.Length;
+                        buf = IncreaseCapacity(buf, offset, valueSize);
+                    }
 
-					if (recreateBuffer) {
-						int initLen = writer.Length;
-						writer.HaveWritten(offset - initLen);
-					}
-					recreateBuffer = true;
+                    // Starting from the last written position
+                    fixed (byte* p = &buf[0]) {
+                        writer = new TupleWriterBase64(p, (uint)valueCount);
 
-					for (int i = templateNo; i < exposedProperties.Count; i++) {
-						tProperty = exposedProperties[i];
+                        if (recreateBuffer) {
+                            int initLen = writer.Length;
+                            writer.HaveWritten(offset - initLen);
+                        }
+                        recreateBuffer = true;
 
-						if (tProperty is TObject) {
-							if (childObjArr == null) {
-								childObj = ((TObject)tProperty).Getter(obj);
-								valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
-							}
-							if (valueSize != -1) {
-								if (childObjArr != null) {
-									if (valueSize > (buf.Length - writer.Length))
-										goto restart;
+                        for (int i = templateNo; i < exposedProperties.Count; i++) {
+                            tProperty = exposedProperties[i];
 
-									Marshal.Copy(childObjArr, 0, (IntPtr)writer.AtEnd, valueSize);
-									writer.HaveWritten(valueSize);
-									childObjArr = null;
-								}
-							} else
-								goto restart;
-						} else if (tProperty is TObjArr) {
-							Json arr = ((TObjArr)tProperty).Getter(obj);
-							if (posInArray == -1) {
-								if (MAX_INT_SIZE > (buf.Length - writer.Length))
-									goto restart;
+                            if (tProperty is TObject) {
+                                if (childObjArr == null) {
+                                    childObj = ((TObject)tProperty).Getter(obj);
+                                    valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
+                                }
+                                if (valueSize != -1) {
+                                    if (childObjArr != null) {
+                                        if (valueSize > (buf.Length - writer.Length))
+                                            goto restart;
 
-								arrWriter = new TupleWriterBase64(writer.AtEnd, 2);
-								arrWriter.WriteULong((ulong)arr.Count);
+                                        Marshal.Copy(childObjArr, 0, (IntPtr)writer.AtEnd, valueSize);
+                                        writer.HaveWritten(valueSize);
+                                        childObjArr = null;
+                                    }
+                                } else
+                                    goto restart;
+                            } else if (tProperty is TObjArr) {
+                                Json arr = ((TObjArr)tProperty).Getter(obj);
+                                if (posInArray == -1) {
+                                    if (MAX_INT_SIZE > (buf.Length - writer.Length))
+                                        goto restart;
 
-								itemWriter = new TupleWriterBase64(arrWriter.AtEnd, (uint)arr.Count);
+                                    arrWriter = new TupleWriterBase64(writer.AtEnd, 2);
+                                    arrWriter.WriteULong((ulong)arr.Count);
 
-								posInArray = 0;
-							}
+                                    itemWriter = new TupleWriterBase64(arrWriter.AtEnd, (uint)arr.Count);
 
-							for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
-								if (childObjArr == null) {
-									var arrItem = (Json)arr._GetAt(arrPos);
-									valueSize = ((TContainer)arrItem.Template).ToFasterThanJson(arrItem, out childObjArr);
-									if (valueSize == -1)
-										goto restart;
+                                    posInArray = 0;
+                                }
 
-									if (valueSize > (buf.Length - itemWriter.Length))
-										goto restart;
-								}
+                                for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
+                                    if (childObjArr == null) {
+                                        var arrItem = (Json)arr._GetAt(arrPos);
+                                        valueSize = ((TContainer)arrItem.Template).ToFasterThanJson(arrItem, out childObjArr);
+                                        if (valueSize == -1)
+                                            goto restart;
 
-								Marshal.Copy(childObjArr, 0, (IntPtr)itemWriter.AtEnd, valueSize);
-								itemWriter.HaveWritten(valueSize);
-								childObjArr = null;
-								posInArray++;
-							}
-							arrWriter.HaveWritten(itemWriter.SealTuple());
-							writer.HaveWritten(arrWriter.SealTuple());
-							posInArray = -1;
-						} else {
-							string valueAsStr;
-							
-							if (tProperty is TBool) {
-								if (buf.Length < (writer.Length + 1))
-									goto restart;
+                                        if (valueSize > (buf.Length - itemWriter.Length))
+                                            goto restart;
+                                    }
 
-								bool b = ((TBool)tProperty).Getter(obj);
-								if (b) writer.WriteULong(1);
-								else writer.WriteULong(0);
-							} else if (tProperty is TDecimal) {
-								valueAsStr = ((TDecimal)tProperty).Getter(obj).ToString("0.0###########################", CultureInfo.InvariantCulture);
-								valueSize = valueAsStr.Length;
-								if (valueSize > (buf.Length - writer.Length))
-									goto restart;
-								writer.WriteString(valueAsStr);
-							} else if (tProperty is TDouble) {
-								valueAsStr = ((TDouble)tProperty).Getter(obj).ToString("0.0###########################", CultureInfo.InvariantCulture);
-								valueSize = valueAsStr.Length;
-								if (valueSize > (buf.Length - writer.Length))
-									goto restart;
-								writer.WriteString(valueAsStr);
-							} else if (tProperty is TLong) {
-								valueSize = MAX_INT_SIZE;
-								if (valueSize > (buf.Length - writer.Length))
-									goto restart;
-								writer.WriteLong(((TLong)tProperty).Getter(obj));
-							} else if (tProperty is TString) {
-								valueAsStr = ((TString)tProperty).Getter(obj);
-								if (valueAsStr == null)
-									throw new NotImplementedException("null values are not yet supported");
-								valueSize = valueAsStr.Length;
-								if (valueSize > (buf.Length - writer.Length))
-									goto restart;
-								writer.WriteString(valueAsStr);
-							} else if (tProperty is TTrigger) {
-								throw new NotImplementedException("null values are not yet supported");
-//								valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
-							}
+                                    Marshal.Copy(childObjArr, 0, (IntPtr)itemWriter.AtEnd, valueSize);
+                                    itemWriter.HaveWritten(valueSize);
+                                    childObjArr = null;
+                                    posInArray++;
+                                }
+                                arrWriter.HaveWritten(itemWriter.SealTuple());
+                                writer.HaveWritten(arrWriter.SealTuple());
+                                posInArray = -1;
+                            } else {
+                                string valueAsStr;
 
-						}
-						templateNo++;
-					}
-					offset = (int)writer.SealTuple();
-				}
-			}
+                                if (tProperty is TBool) {
+                                    if (buf.Length < (writer.Length + 1))
+                                        goto restart;
+
+                                    bool b = ((TBool)tProperty).Getter(obj);
+                                    if (b) writer.WriteULong(1);
+                                    else writer.WriteULong(0);
+                                } else if (tProperty is TDecimal) {
+                                    valueAsStr = ((TDecimal)tProperty).Getter(obj).ToString("0.0###########################", CultureInfo.InvariantCulture);
+                                    valueSize = valueAsStr.Length;
+                                    if (valueSize > (buf.Length - writer.Length))
+                                        goto restart;
+                                    writer.WriteString(valueAsStr);
+                                } else if (tProperty is TDouble) {
+                                    valueAsStr = ((TDouble)tProperty).Getter(obj).ToString("0.0###########################", CultureInfo.InvariantCulture);
+                                    valueSize = valueAsStr.Length;
+                                    if (valueSize > (buf.Length - writer.Length))
+                                        goto restart;
+                                    writer.WriteString(valueAsStr);
+                                } else if (tProperty is TLong) {
+                                    valueSize = MAX_INT_SIZE;
+                                    if (valueSize > (buf.Length - writer.Length))
+                                        goto restart;
+                                    writer.WriteLong(((TLong)tProperty).Getter(obj));
+                                } else if (tProperty is TString) {
+                                    valueAsStr = ((TString)tProperty).Getter(obj);
+                                    if (valueAsStr == null)
+                                        throw new NotImplementedException("null values are not yet supported");
+                                    valueSize = valueAsStr.Length;
+                                    if (valueSize > (buf.Length - writer.Length))
+                                        goto restart;
+                                    writer.WriteString(valueAsStr);
+                                } else if (tProperty is TTrigger) {
+                                    throw new NotImplementedException("null values are not yet supported");
+                                    //								valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
+                                }
+
+                            }
+                            templateNo++;
+                        }
+                        offset = (int)writer.SealTuple();
+                    }
+                }
+            }, true);
 
 			buffer = buf;
 			return offset;

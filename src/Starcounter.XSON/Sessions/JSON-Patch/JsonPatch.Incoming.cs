@@ -301,13 +301,11 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The value.</param>
         /// <exception cref="System.Exception">TODO:</exception>
         private static void HandleParsedPatch(Json rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
-			// This is needed if the dirtycheck is enabled, since every time
-			// we retrieve a value or another json object, the check is triggered.
-			// Maybe this needs to be changed to avoid checks when handling incoming patches.
-			// Right now we activate the transaction on each jsonobject we find when evaluating.
-			rootApp.ResumeTransaction(false);
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
-            ((TValue)aat.Template).ProcessInput(aat.App, value);
+
+            aat.App.ExecuteInScope(() => {
+                ((TValue)aat.Template).ProcessInput(aat.App, value);
+            }, true);
         }
 
         /// <summary>
@@ -332,65 +330,64 @@ namespace Starcounter.Internal.JsonPatch {
             Boolean nextTokenShouldBeIndex;
             Int32 index;
             Object current = null;
-
+            
             nextTokenShouldBeIndex = false;
             currentIsTApp = false;
             while (ptr.MoveNext()) {
-                if (nextTokenShouldBeIndex) {
-                    // Previous object was a Set. This token should be an index
-                    // to that Set. If not, it's an invalid patch.
-                    nextTokenShouldBeIndex = false;
-                    index = ptr.CurrentAsInt;
 
-                    Json list = ((TObjArr)current).Getter(mainApp);
-                    current = list._GetAt(index);
-                }
-                else {
-                    if (currentIsTApp) {
-                        mainApp = ((TObject)current).Getter(mainApp);
-						mainApp.ResumeTransaction(false);
-                        currentIsTApp = false;
+                // TODO: 
+                // Check if this can be improved. Searching for transaction and execute every
+                // step in a new action is not the most efficient way.
+                mainApp.ExecuteInScope(() => {
+                    if (nextTokenShouldBeIndex) {
+                        // Previous object was a Set. This token should be an index
+                        // to that Set. If not, it's an invalid patch.
+                        nextTokenShouldBeIndex = false;
+                        index = ptr.CurrentAsInt;
+
+                        Json list = ((TObjArr)current).Getter(mainApp);
+                        current = list._GetAt(index);
+                    } else {
+                        if (currentIsTApp) {
+                            mainApp = ((TObject)current).Getter(mainApp);
+//                            mainApp.ResumeTransaction(false);
+                            currentIsTApp = false;
+                        }
+
+                        if (mainApp.IsArray) {
+                            throw new NotImplementedException();
+                        }
+                        Template t = ((TObject)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
+
+                        if (t == null) {
+                            throw new Exception
+                            (
+                                String.Format("Unknown token '{0}' in patch message '{1}'",
+                                              ptr.Current,
+                                              ptr.ToString())
+                            );
+                        }
+
+                        current = t;
                     }
 
-                    if (mainApp.IsArray) {
-                        throw new NotImplementedException();
+                    if (current is Json && !(current as Json).IsArray) {
+                        mainApp = current as Json;
+//                        mainApp.ResumeTransaction(false);
+                    } else if (current is TObject) {
+                        currentIsTApp = true;
+                    } else if (current is TObjArr) {
+                        nextTokenShouldBeIndex = true;
+                    } else {
+                        // Current token points to a value or an action.
+                        // No more tokens should exist. If it does we need to 
+                        // return an error.
+                        if (ptr.MoveNext())
+                            throw new Exception("Invalid json patch. No further tokens were expected.");
                     }
-                    Template t = ((TObject)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
-
-                    if (t == null) {
-                        throw new Exception
-                        (
-                            String.Format("Unknown token '{0}' in patch message '{1}'",
-                                          ptr.Current,
-                                          ptr.ToString())
-                        );
-                    }
-
-                    current = t;
-                }
-
-                if (current is Json && !(current as Json).IsArray) {
-                    mainApp = current as Json;
-					mainApp.ResumeTransaction(false);
-                }
-                else if (current is TObject) {
-                    currentIsTApp = true;
-                }
-                else if (current is TObjArr) {
-                    nextTokenShouldBeIndex = true;
-                }
-                else {
-                    // Current token points to a value or an action.
-                    // No more tokens should exist. If it does we need to 
-                    // return an error.
-                    if (ptr.MoveNext())
-                        throw new Exception("Invalid json patch. No further tokens were expected.");
-                }
+                });
             }
 
-            // TODO:
-            // We should return the Metadata instance for the specific 
-            // template instead of instancing or own structure here.
             return new AppAndTemplate(mainApp, current as Template);
         }
     }
