@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Xml;
@@ -113,6 +114,30 @@ namespace Starcounter.Internal
         /// The system directory
         /// </summary>
         public static string SystemDirectory;
+
+        /// <summary>
+        /// Gets a value that holds the path of the Starcounter installation
+        /// directory.
+        /// </summary>
+        public static string InstallationDirectory {
+            get {
+                return Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+            }
+        }
+
+        /// <summary>
+        /// Assigns the Starcounter installation directory for the current process
+        /// based on the calling assembly. Designed to be invoked first/early in
+        /// any of our managed bootstrappers (e.g. the code host, the CLI tools,
+        /// the weaver).
+        /// </summary>
+        public static void SetInstallationDirectoryFromEntryAssembly() {
+            var assembly = Assembly.GetCallingAssembly();
+            Environment.SetEnvironmentVariable(
+                StarcounterEnvironment.VariableNames.InstallationDirectory,
+                Path.GetDirectoryName(assembly.Location)
+                );
+        }
 
         /// <summary>
         /// Default network ports that are used by different Starcounter components.
