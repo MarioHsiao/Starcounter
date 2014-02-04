@@ -97,8 +97,8 @@ namespace scservice {
 
                 // Need to use full path to EXE because of no shell execute.
                 var startInfo = new ProcessStartInfo(
-                    StarcounterEnvironment.InstallationDirectory,
-                    StarcounterConstants.ProgramNames.ScTrayIcon + ".exe");
+                    Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterConstants.ProgramNames.ScTrayIcon + ".exe")
+                    );
 
                 startInfo.WorkingDirectory = scBin;
 
