@@ -25,19 +25,21 @@ public class BarcelonaDriver : Driver
 
     public override void TakeSeatIn()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            // NOTE:
-            //
-            // If we were to DeleteAllOfType<Barcelona0>(), we get a DbException
-            // because Barcelona0 doesn't have any fields indexed. Since Barcelona4
-            // is the only type actually instantiated (indeed, the only one which
-            // CAN be instantiated as the supertypes are abstract -- a change made
-            // when adding the h4x indices), DeleteAllOfType<Barcelona2>() is
-            // sufficient (even though it hurts a little knowing that someone COULD
-            // actually add a new, concrete subclass somewhere...).
-            Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Barcelona2>();
-            transaction.Commit();
+            transaction.Add(() => {
+                // NOTE:
+                //
+                // If we were to DeleteAllOfType<Barcelona0>(), we get a DbException
+                // because Barcelona0 doesn't have any fields indexed. Since Barcelona4
+                // is the only type actually instantiated (indeed, the only one which
+                // CAN be instantiated as the supertypes are abstract -- a change made
+                // when adding the h4x indices), DeleteAllOfType<Barcelona2>() is
+                // sufficient (even though it hurts a little knowing that someone COULD
+                // actually add a new, concrete subclass somewhere...).
+                Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Barcelona2>();
+                transaction.Commit();
+            });
         }
     }
 
@@ -48,62 +50,64 @@ public class BarcelonaDriver : Driver
     [Lap("Write")]
     public void LapWrite()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            int objectCount = Setup.ObjectCount;
-            for (int i = 1; i <= objectCount; ++i)
-            {
-                Barcelona4 b4 = new Barcelona4();
-                b4.SetAll(i);
-            }
-            transaction.Commit();
+            transaction.Add(() => {
+                int objectCount = Setup.ObjectCount;
+                for (int i = 1; i <= objectCount; ++i) {
+                    Barcelona4 b4 = new Barcelona4();
+                    b4.SetAll(i);
+                }
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Read")]
     public void LapRead()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllBarcelona4).GetEnumerator())
-            {
-                int read = AddResultChecksums(sqlResult);
-            }
+            transaction.Add(() => {
+                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllBarcelona4).GetEnumerator()) {
+                    int read = AddResultChecksums(sqlResult);
+                }
+            });
         }
     }
 
     [Lap("Query")]
     public void LapQuery()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            int selectCount = Setup.SelectCount;
-            for (int i = 1; i <= selectCount; ++i)
-            {
-                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectBarcelona4ByField2, i).GetEnumerator())
-                {
-                    AddSingleResultChecksum(sqlResult);
+            transaction.Add(() => {
+                int selectCount = Setup.SelectCount;
+                for (int i = 1; i <= selectCount; ++i) {
+                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectBarcelona4ByField2, i).GetEnumerator()) {
+                        AddSingleResultChecksum(sqlResult);
+                    }
                 }
-            }
+            });
         }
     }
 
     [Lap("Delete")]
     public void LapDelete()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllBarcelona4).GetEnumerator())
-            {
-                int deleted = 0;
-                while (sqlResult.MoveNext())
-                {
-                    ++deleted;
-                    (sqlResult.Current as Barcelona4).Delete();
-                    AddToCheckSum(5);
+            transaction.Add(() => {
+                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllBarcelona4).GetEnumerator()) {
+                    int deleted = 0;
+                    while (sqlResult.MoveNext()) {
+                        ++deleted;
+                        (sqlResult.Current as Barcelona4).Delete();
+                        AddToCheckSum(5);
+                    }
                 }
-            }
-            transaction.Commit();
+                transaction.Commit();
+            });
         }
     }
 

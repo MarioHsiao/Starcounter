@@ -20,51 +20,53 @@ public class ImolaDriver : Driver
 
     public override void TakeSeatIn()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            objectIds = null;
-            Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Pilot>();
-            transaction.Commit();
+            transaction.Add(() => {
+                objectIds = null;
+                Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Pilot>();
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Store")]
     public void LapStore()
     {
-        using(Transaction transaction = Transaction.NewCurrent())
+        using(Transaction transaction = new Transaction())
         {
-            objectIds = new ulong[Setup.SelectCount];
-            for (int i = 1; i <= Setup.ObjectCount; ++i)
-            {
-                Pilot p = new Pilot();
-                p.Name = "Pilot_" + i;
-                p.FirstName = "Jonny_" + i;
-                p.Points = i;
-                p.LicenseId = i;
-                if (i <= Setup.SelectCount)
-                {
-                    objectIds[i - 1] = DbHelper.GetObjectNo(p);
+            transaction.Add(() => {
+                objectIds = new ulong[Setup.SelectCount];
+                for (int i = 1; i <= Setup.ObjectCount; ++i) {
+                    Pilot p = new Pilot();
+                    p.Name = "Pilot_" + i;
+                    p.FirstName = "Jonny_" + i;
+                    p.Points = i;
+                    p.LicenseId = i;
+                    if (i <= Setup.SelectCount) {
+                        objectIds[i - 1] = DbHelper.GetObjectNo(p);
+                    }
+                    if (Setup.IsCommitPoint(i)) {
+                        transaction.Commit();
+                    }
                 }
-                if (Setup.IsCommitPoint(i))
-                {
-                    transaction.Commit();
-                }
-            }
-            transaction.Commit();
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Retrieve")]
     public void LapRetrieve()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            foreach (ulong oid in objectIds)
-            {
-                Pilot p = (Pilot)DbHelper.FromID(oid);
-                AddToCheckSum(p);
-            }
-            transaction.Commit();
+            transaction.Add(() => {
+                foreach (ulong oid in objectIds) {
+                    Pilot p = (Pilot)DbHelper.FromID(oid);
+                    AddToCheckSum(p);
+                }
+                transaction.Commit();
+            });
         }
     }
 }
