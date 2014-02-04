@@ -60,8 +60,13 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                             table.Name == "materialized_table" || table.Name == "materialized_index" || table.Name == "materialized_column" || table.Name == "materialized_index_column" ||
                             // Even newer system tables
                             table.Name == "MaterializedTable" || table.Name == "MaterializedIndex" || table.Name == "MaterializedColumn" || table.Name == "MaterializedIndexColumn" ||
-                            // Runtime view system tables
-                            table.Name == "BaseType" || table.Name == "MaterializedType" || table.Name == "RuntimeType" || table.Name == "MappedType" || table.Name == "ClrPrimitiveType"
+                            // Runtime type system tables
+                            table.Name == "BaseType" || table.Name == "MaterializedType" || table.Name == "MappedType" || table.Name == "ClrPrimitiveType" ||
+                            // Runtime table system tables
+                            table.Name == "BaseTable" || table.Name == "HostMaterializedTable" || table.Name == "RawView" ||
+                            table.Name == "VMView" || table.Name == "ClrView" ||
+                            // Runtime column system tables
+                            table.Name == "BaseMember" || table.Name == "TableColumn" || table.Name == "CodeProperty"
                             ) continue;
 
                         // Begin Table
