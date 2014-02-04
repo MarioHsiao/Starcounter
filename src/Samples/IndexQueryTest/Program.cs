@@ -41,16 +41,18 @@ namespace IndexQueryTest
             Db.SlowSQL("DROP TABLE AccountTest.User");
 #endif
 
-            using (Transaction t = Transaction.NewCurrent()) {
-                HelpMethods.LogEvent("Test of CREATE/DROP INDEX and DROP TABLE completed.");
-                HelpMethods.LogEvent("Test inherited indexes");
-                InheritedIndex.InheritedIndexTest.RunInheritedIndexTest();
-                HelpMethods.LogEvent("Finished testing inherited indexes");
-                HelpMethods.LogEvent("Test IS type predicate");
-                IsTypePredicateTest.RunIsTypePredicateTest();
-                HelpMethods.LogEvent("Finished testing IS type predicate");
-                HelpMethods.LogEvent("All tests are completed!");
-                Environment.Exit(0);
+            using (Transaction t = new Transaction()) {
+                t.Add(() => {
+                    HelpMethods.LogEvent("Test of CREATE/DROP INDEX and DROP TABLE completed.");
+                    HelpMethods.LogEvent("Test inherited indexes");
+                    InheritedIndex.InheritedIndexTest.RunInheritedIndexTest();
+                    HelpMethods.LogEvent("Finished testing inherited indexes");
+                    HelpMethods.LogEvent("Test IS type predicate");
+                    IsTypePredicateTest.RunIsTypePredicateTest();
+                    HelpMethods.LogEvent("Finished testing IS type predicate");
+                    HelpMethods.LogEvent("All tests are completed!");
+                    Environment.Exit(0);
+                });
             }
         }
     }

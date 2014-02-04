@@ -112,73 +112,73 @@ namespace Starcounter {
 			var template = (TObject)Template;
 			var exposed = template.Properties.ExposedProperties;
 
-			ResumeTransaction(false);
+            this.ExecuteInScope(() => {
+                if (_Dirty) {
+                    for (int t = 0; t < exposed.Count; t++) {
+                        if (WasReplacedAt(exposed[t].TemplateIndex)) {
+                            var s = Session;
+                            if (s != null) {
+                                if (IsArray) {
+                                    throw new NotImplementedException();
+                                } else {
+                                    var childTemplate = (TValue)exposed[t];
+                                    Session.UpdateValue(this, childTemplate);
 
-			if (_Dirty) {
-				for (int t = 0; t < exposed.Count; t++) {
-					if (WasReplacedAt(exposed[t].TemplateIndex)) {
-						var s = Session;
-						if (s != null) {
-							if (IsArray) {
-								throw new NotImplementedException();
-							} else {
-								var childTemplate = (TValue)exposed[t];
-								Session.UpdateValue(this, childTemplate);
+                                    // TODO:
+                                    // Added this code to make current implementation work.
+                                    // Probably not the correct place to do it though, both
+                                    // for readability and speed.
+                                    Json childJson = null;
+                                    if (childTemplate is TObjArr)
+                                        childJson = this.Get((TObjArr)childTemplate);
+                                    else if (childTemplate is TObject)
+                                        childJson = this.Get((TObject)childTemplate);
 
-								// TODO:
-								// Added this code to make current implementation work.
-								// Probably not the correct place to do it though, both
-								// for readability and speed.
-								Json childJson = null;
-								if (childTemplate is TObjArr) 
-									childJson = this.Get((TObjArr)childTemplate);
-								else if (childTemplate is TObject)
-									childJson = this.Get((TObject)childTemplate);									
-
-								if (childJson != null) {
-									childJson.SetBoundValuesInTuple();
-									childJson.CheckpointChangeLog();
-								}
-							}
-						}
-						CheckpointAt(exposed[t].TemplateIndex);
-					} else {
-						var p = exposed[t];
-						if (p is TContainer) {
-							var c = ((TContainer)p).GetValue(this);
-							if (c != null)
-								c.LogValueChangesWithDatabase(session);
-						} else {
-							if (IsArray)
-								throw new NotImplementedException();
-							else
-								((TValue)p).CheckAndSetBoundValue(this, true);
-						}
-					}
-				}
-				_Dirty = false;
-			} else if (template.HasAtLeastOneBoundProperty) {
-				for (int t = 0; t < exposed.Count; t++) {
-					if (exposed[t] is TContainer) {
-                        var c = ((TContainer)exposed[t]).GetValue(this);
-                        if (c != null)
-						    c.LogValueChangesWithDatabase(session);
-					} else {
-						if (IsArray) {
-							throw new NotImplementedException();
-						} else {
-							var p = exposed[t] as TValue;
-							p.CheckAndSetBoundValue(this, true);
-						}
-					}
-				}
-			} else {
-				foreach (var e in list) {
-					if (e is Json) {
-						((Json)e).LogValueChangesWithDatabase(session);
-					}
-				}
-			}
+                                    if (childJson != null) {
+                                        childJson.SetBoundValuesInTuple();
+                                        childJson.CheckpointChangeLog();
+                                    }
+                                }
+                            }
+                            CheckpointAt(exposed[t].TemplateIndex);
+                        } else {
+                            var p = exposed[t];
+                            if (p is TContainer) {
+                                var c = ((TContainer)p).GetValue(this);
+                                if (c != null)
+                                    c.LogValueChangesWithDatabase(session);
+                            } else {
+                                if (IsArray)
+                                    throw new NotImplementedException();
+                                else
+                                    ((TValue)p).CheckAndSetBoundValue(this, true);
+                            }
+                        }
+                    }
+                    _Dirty = false;
+                } else if (template.HasAtLeastOneBoundProperty) {
+                    for (int t = 0; t < exposed.Count; t++) {
+                        if (exposed[t] is TContainer) {
+                            var c = ((TContainer)exposed[t]).GetValue(this);
+                            if (c != null)
+                                c.LogValueChangesWithDatabase(session);
+                        } else {
+                            if (IsArray) {
+                                throw new NotImplementedException();
+                            } else {
+                                var p = exposed[t] as TValue;
+                                p.CheckAndSetBoundValue(this, true);
+                            }
+                        }
+                    }
+                } else {
+                    foreach (var e in list) {
+                        if (e is Json) {
+                            ((Json)e).LogValueChangesWithDatabase(session);
+                        }
+                    }
+                }
+            });
 		}
 
 		internal void SetBoundValuesInTuple() {
@@ -187,23 +187,24 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
-				ResumeTransaction(false);
-				TObject tobj = (TObject)Template;
-				if (tobj != null) {
-					for (int i = 0; i < tobj.Properties.Count; i++) {
-						var t = tobj.Properties[i];
+                this.ExecuteInScope(() => {
+                    TObject tobj = (TObject)Template;
+                    if (tobj != null) {
+                        for (int i = 0; i < tobj.Properties.Count; i++) {
+                            var t = tobj.Properties[i];
 
-						if (t is TContainer) {
-							var childJson = ((TContainer)t).GetValue(this);
-							if (childJson != null)
-								childJson.SetBoundValuesInTuple();
-						} else {
-							var vt = t as TValue;
-							if (vt != null)
-								vt.CheckAndSetBoundValue(this, false);
-						}
-					}
-				}
+                            if (t is TContainer) {
+                                var childJson = ((TContainer)t).GetValue(this);
+                                if (childJson != null)
+                                    childJson.SetBoundValuesInTuple();
+                            } else {
+                                var vt = t as TValue;
+                                if (vt != null)
+                                    vt.CheckAndSetBoundValue(this, false);
+                            }
+                        }
+                    }
+                });
 			}
 		}
 	}

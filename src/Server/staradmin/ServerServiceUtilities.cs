@@ -34,7 +34,7 @@ namespace staradmin {
         }
 
         static void PreInstall() {
-            var installDir = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+            var installDir = StarcounterEnvironment.InstallationDirectory;
             if (string.IsNullOrEmpty(installDir)) {
                 throw new InvalidOperationException();
             }

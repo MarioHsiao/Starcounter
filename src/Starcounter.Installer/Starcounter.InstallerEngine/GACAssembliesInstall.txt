@@ -8,6 +8,7 @@ Starcounter.REST.dll
 Starcounter.Bootstrap.dll
 Starcounter.BitsAndBytes.Unsafe.dll
 Starcounter.CLI.dll
+Starcounter.Server.dll
 Starcounter.Server.Rest.dll
 Starcounter.Node.dll
 Starcounter.Logging.dll
