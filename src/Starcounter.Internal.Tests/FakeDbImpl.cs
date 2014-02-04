@@ -3,9 +3,6 @@ using Starcounter.Advanced;
 
 namespace Starcounter.XSON.Tests {
     internal class FakeDbImpl : IDb {
-        [ThreadStatic]
-        private static ITransaction current;
-
         void IDb.RunAsync(Action action, Byte schedId) {
             // Do nothing.
         }
@@ -32,14 +29,6 @@ namespace Starcounter.XSON.Tests {
 
         void IDb.Transaction(Action action) {
 
-        }
-
-        void IDb.SetCurrentTransaction(ITransaction transaction) {
-            current = transaction;
-        }
-
-        ITransaction IDb.GetCurrentTransaction() {
-            return current;
         }
     }
 
