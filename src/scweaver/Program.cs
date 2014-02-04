@@ -25,8 +25,9 @@ namespace Weaver {
         }
 
         static void Main(string[] args) {
-            ApplicationArguments arguments;
+            StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
 
+            ApplicationArguments arguments;
             try {
                 if (TryGetProgramArguments(args, out arguments))
                     ApplyOptionsAndExecuteGivenCommand(arguments);
