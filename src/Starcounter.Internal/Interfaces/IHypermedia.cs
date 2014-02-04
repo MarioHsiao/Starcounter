@@ -14,6 +14,22 @@ namespace Starcounter {
     public interface IHypermedia {
 
         /// <summary>
+        /// Override this method to provide a custom conversion when a request
+        /// is made to some other mime type than "application/json".
+        /// </summary>
+        /// <param name="mimeType"></param>
+        /// <returns></returns>
+        string AsMimeType(MimeType mimeType);
+
+        /// <summary>
+        /// Override this method to provide a custom conversion when a request
+        /// is made to some other mime type than "application/json".
+        /// </summary>
+        /// <param name="mimeType"></param>
+        /// <returns></returns>
+        string AsMimeType(string mimeType);
+
+        /// <summary>
         /// Returns a binary representation of the resource using the specified MIME type.
         /// </summary>
         /// <remarks>
