@@ -179,5 +179,46 @@ namespace Starcounter.Internal.XSON.Tests {
 			json.Template = mainTemplate;
 			json.Data = r;
 		}
+
+        [Test]
+        public static void TestInvalidBinding() {
+            uint errorCode;
+
+            var schema = new TObject();
+            schema.ClassName = "PersonMsg";
+
+            var tname = schema.Add<TString>("Name", "Invalid");
+            tname.BindingStrategy = BindingStrategy.Bound;
+
+            var tage = schema.Add<TLong>("Age", "FirstName");
+            tname.BindingStrategy = BindingStrategy.Bound;
+
+            dynamic json = new Json() { Template = schema };
+            json.Data = new Person();
+
+            Exception ex = Assert.Throws<Exception>(() => {
+                Console.WriteLine(json.Name);
+            });
+
+            Assert.IsTrue(ErrorCode.IsFromErrorCode(ex));
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRCREATEDATABINDINGFORJSON, errorCode);
+            Assert.IsTrue(ex.Message.Contains("was not found in"));
+
+            Console.WriteLine(ex.Message);
+            Console.WriteLine();
+
+            ex = Assert.Throws<Exception>(() => {
+                Console.WriteLine(json.Age);
+            });
+
+            Assert.IsTrue(ErrorCode.IsFromErrorCode(ex));
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRCREATEDATABINDINGFORJSON, errorCode);
+            Assert.IsTrue(ex.Message.Contains("Incompatible types for binding"));
+
+            Console.WriteLine(ex.Message);
+
+        }
     }
 }

@@ -147,7 +147,7 @@ namespace Starcounter.XSON {
 			if (pInfo == null && throwException) {
 				throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
 											string.Format(propNotFound,
-														  "TODO!", //GetParentClassName(template),
+														  GetParentClassName(template),
 														  template.TemplateName,
 														  bindingName,
 														  dataType.FullName
