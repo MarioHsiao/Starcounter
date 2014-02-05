@@ -20,44 +20,47 @@ public class MelbourneDriver : Driver
 
     public override void TakeSeatIn()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            TypeDeleter.DeleteAllOfType<Pilot>();
-            transaction.Commit();
+            transaction.Add(() => {
+                TypeDeleter.DeleteAllOfType<Pilot>();
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Write")]
     public void LapWrite()
     {
-        using(Transaction transaction = Transaction.NewCurrent())
+        using(Transaction transaction = new Transaction())
         {
-            for (int i = 1; i <= Setup.ObjectCount; ++i)
-            {
-                Pilot p = new Pilot();
-                p.Name = "Pilot_" + i;
-                p.FirstName = "Herkules";
-                p.Points = i;
-                p.LicenseId = i;
-                AddToCheckSum(p);
-                if (Setup.IsCommitPoint(i))
-                {
-                    transaction.Commit();
+            transaction.Add(() => {
+                for (int i = 1; i <= Setup.ObjectCount; ++i) {
+                    Pilot p = new Pilot();
+                    p.Name = "Pilot_" + i;
+                    p.FirstName = "Herkules";
+                    p.Points = i;
+                    p.LicenseId = i;
+                    AddToCheckSum(p);
+                    if (Setup.IsCommitPoint(i)) {
+                        transaction.Commit();
+                    }
                 }
-            }
-            transaction.Commit();
+                transaction.Commit();
+            });
         }
     }
 
     [Lap("Read_hot")]
     public void LapReadHot()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        using (Transaction transaction = new Transaction())
         {
-            using (var se = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator())
-            {
-                AddResultChecksums(se);
-            }
+            transaction.Add(() => {
+                using (var se = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
+                    AddResultChecksums(se);
+                }
+            });
         }
     }
 
@@ -82,31 +85,31 @@ public class MelbourneDriver : Driver
     /// </returns>
     private bool DoDelete()
     {
-        using (Transaction transaction = Transaction.NewCurrent())
+        bool moreToDelete = false;
+
+        using (Transaction transaction = new Transaction())
         {
-            try
-            {
-                using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator())
-                {
-                    int i = 1;
-                    while (sqlResult.MoveNext())
-                    {
-                        (sqlResult.Current as Pilot).Delete();
-                        if (this.Setup.IsCommitPoint(i++))
-                        {
-                            // If we reach the commit point, and there are more
-                            // objects, we want the caller to continue deleting.
-                            return sqlResult.MoveNext();
+            transaction.Add(() => {
+                try {
+                    using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
+                        int i = 1;
+                        while (sqlResult.MoveNext()) {
+                            (sqlResult.Current as Pilot).Delete();
+                            if (this.Setup.IsCommitPoint(i++)) {
+                                // If we reach the commit point, and there are more
+                                // objects, we want the caller to continue deleting.
+                                moreToDelete = sqlResult.MoveNext();
+                                break;
+                            }
                         }
                     }
-                    return false; // Reached end before commit point; no more objects to delete
+                } finally {
+                    transaction.Commit();
                 }
-            }
-            finally
-            {
-                transaction.Commit();
-            }
+            });
         }
+
+        return moreToDelete;
     }
 
 }

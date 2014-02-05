@@ -8,6 +8,7 @@ using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Internal.Uri;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -25,6 +26,14 @@ namespace Starcounter.Rest
     /// </summary>
     public class RestRegistrationProxy : IREST
     {
+        /// <summary>
+        /// Registers responses merging routine.
+        /// </summary>
+        /// <param name="mergerRoutine"></param>
+        public void RegisterResponsesMerger(Func<Request, List<Response>, List<String>, Response> mergerRoutine)
+        {
+            UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ = mergerRoutine;
+        }
 
         /// <summary>
         /// Registers a handler with no parameters

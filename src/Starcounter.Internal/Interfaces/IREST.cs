@@ -13,6 +13,12 @@ namespace Starcounter.Advanced {
     public interface IREST {
 
         /// <summary>
+        /// Registers responses merging routine.
+        /// </summary>
+        /// <param name="mergerRoutine"></param>
+        void RegisterResponsesMerger(Func<Request, List<Response>, List<String>, Response> mergerRoutine);
+
+        /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /test</param>
