@@ -161,6 +161,9 @@ namespace QueryProcessingTest {
                 nrColumns++;
             }
             Trace.Assert(nrColumns == 20 + 18);
+            MaterializedIndex i = Db.SQL<MaterializedIndex>("select i from materializedindex i where name = ?",
+                "TableColumnPrimaryKey").First;
+            Trace.Assert(i != null);
         }
     }
 }
