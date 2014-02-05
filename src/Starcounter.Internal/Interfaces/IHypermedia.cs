@@ -91,5 +91,29 @@ namespace Starcounter {
             }
             throw new UnsupportedMimeTypeException(String.Format("Cannot convert mime type constant {0} to text", mimeType));
         }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="mimeType">The mime type constant to convert to a string</param>
+        /// <returns>The standard mime type text</returns>
+        public static MimeType StringToMimeType(String mimeTypeString) {
+            mimeTypeString = mimeTypeString.ToUpper();
+            if (mimeTypeString.StartsWith("APPLICATION/JSON-PATCH+JSON")) {
+                return MimeType.Application_JsonPatch__Json;
+            }
+            else if (mimeTypeString.StartsWith("TEXT/HTML")) {
+                return MimeType.Text_Html;
+            }
+            else if (mimeTypeString.StartsWith("APPLICATION/JSON")) {
+                return MimeType.Application_Json;
+            }
+            else if (mimeTypeString.StartsWith("TEXT/PLAIN")) {
+                return MimeType.Text_Plain;
+            }
+            else if (mimeTypeString.StartsWith("*/*")) {
+                return MimeType.Unspecified;
+            }
+            return MimeType.Other;
+        }
     }
 }

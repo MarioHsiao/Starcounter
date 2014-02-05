@@ -468,7 +468,7 @@ namespace Starcounter
                         }
                         else if (_Hypermedia != null)
                         {
-                            return _Hypermedia.AsMimeType(MimeType.Unspecified);
+                            return _Hypermedia.AsMimeType(MimeType.Text_Html);
                         }
                     }
 
@@ -493,7 +493,7 @@ namespace Starcounter
         public T GetContent<T>() {
             // TODO Ask Jocke!
             if (typeof(T) == typeof(String)) {
-                return (T)(object)GetContentString();
+                return (T)(object)GetContentString(MimeType.Unspecified);
             }
             if (typeof(T) == typeof(byte[])) {
                 return (T)(object)GetContentBytes();
@@ -502,19 +502,24 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// 
+        /// Gets content as a string.
         /// </summary>
         /// <returns></returns>
-        private string GetContentString() {
-            if (bodyString_ != null)
-                return bodyString_;
-            var bytes = this.GetContentBytes();
-            return Encoding.UTF8.GetString(bytes);
-            }
+        public string GetContentString(MimeType mimeType) {
+            if (null != _Hypermedia)
+                return _Hypermedia.AsMimeType(mimeType);
 
-        
+            if (null != bodyBytes_)
+                return Encoding.UTF8.GetString(bodyBytes_);
+
+            if (null != bodyString_)
+                return bodyString_;
+
+            return GetBodyStringUtf8_Slow();
+        }
+
         /// <summary>
-        /// 
+        /// Gets content as bytes.
         /// </summary>
         /// <returns></returns>
         private byte[] GetContentBytes() {
