@@ -153,11 +153,11 @@ namespace Starcounter.XSON {
 
             bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
-				getLambda = GenerateBoundGetExpression<T>(bInfo);
+				getLambda = GenerateBoundGetExpression<T>(bInfo, property);
 				property.BoundGetter = getLambda.Compile();
 
 				if (DataBindingHelper.HasSetter(bInfo.Member)) {
-					setLambda = GenerateBoundSetExpression<T>(bInfo);
+					setLambda = GenerateBoundSetExpression<T>(bInfo, property);
 					property.BoundSetter = setLambda.Compile();
 				}
 
@@ -189,11 +189,11 @@ namespace Starcounter.XSON {
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 			bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
-				getLambda = GenerateBoundGetExpression<object>(bInfo);
+				getLambda = GenerateBoundGetExpression<object>(bInfo, property);
 				property.BoundGetter = getLambda.Compile();
 
 				if (DataBindingHelper.HasSetter(bInfo.Member)) {
-					setLambda = GenerateBoundSetExpression<object>(bInfo);
+					setLambda = GenerateBoundSetExpression<object>(bInfo, property);
 					property.BoundSetter = setLambda.Compile();
 				}
 #if DEBUG
@@ -225,11 +225,11 @@ namespace Starcounter.XSON {
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 			bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
-				getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo);
+				getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo, property);
 				property.BoundGetter = getLambda.Compile();
 
 				if (DataBindingHelper.HasSetter(bInfo.Member)) {
-					setLambda = GenerateBoundSetExpression<IEnumerable>(bInfo);
+					setLambda = GenerateBoundSetExpression<IEnumerable>(bInfo, property);
 					property.BoundSetter = setLambda.Compile();
 				}
 
@@ -284,7 +284,7 @@ namespace Starcounter.XSON {
 			return Expression.Lambda<Action<Json, T>>(expr, jsonParam, valueParam);
 		}
 
-		private static Expression<Func<Json, T>> GenerateBoundGetExpression<T>(BindingInfo bInfo) {
+		private static Expression<Func<Json, T>> GenerateBoundGetExpression<T>(BindingInfo bInfo, Template origin) {
 			var instance = Expression.Parameter(typeof(Json));
             Expression expression;
 
@@ -293,7 +293,7 @@ namespace Starcounter.XSON {
             else 
 			    expression = Expression.Call(instance, jsonGetDataInfo);
 
-			expression = CreateBinding<T>(bInfo, true, expression);
+			expression = CreateBinding<T>(bInfo, true, expression, null, origin);
 
 			if (expression != null) {
 				return Expression.Lambda<Func<Json, T>>(expression, instance);
@@ -301,7 +301,7 @@ namespace Starcounter.XSON {
 			return null;
 		}
 
-		private static Expression<Action<Json, T>> GenerateBoundSetExpression<T>(BindingInfo bInfo) {
+		private static Expression<Action<Json, T>> GenerateBoundSetExpression<T>(BindingInfo bInfo, Template origin) {
 			var instance = Expression.Parameter(typeof(Json));
             Expression expression;
 
@@ -311,7 +311,7 @@ namespace Starcounter.XSON {
                 expression = Expression.Call(instance, jsonGetDataInfo);
 			
 			var value = Expression.Parameter(typeof(T));
-			expression = CreateBinding<T>(bInfo, false, expression, value);
+			expression = CreateBinding<T>(bInfo, false, expression, value, origin);
 
 			if (expression != null) {
 				return Expression.Lambda<Action<Json, T>>(expression, instance, value);
@@ -328,7 +328,8 @@ namespace Starcounter.XSON {
 		private static Expression CreateBinding<T>(BindingInfo bInfo, 
 												   bool createGetBinding, 
 												   Expression instance, 
-												   ParameterExpression value = null) {
+												   ParameterExpression value,
+                                                   Template origin) {
 			BlockExpression block;
 			Expression[] callArr;
 			Expression bindingExpr = null;
@@ -349,16 +350,16 @@ namespace Starcounter.XSON {
 				for (int i = 0; i < variables.Length; i++) {
 					Type type = DataBindingHelper.GetMemberReturnType(bInfo.Path[i]);
 					variables[i] = Expression.Variable(type, "localvar" + i);
-					bindingExpr = CreateGetMemberBinding<T>(bInfo.Path[i], lastVar, false);
+					bindingExpr = CreateGetMemberBinding<T>(bInfo.Path[i], lastVar, false, origin);
 					bindingExpr = Expression.Assign(variables[i], bindingExpr);
 					callArr[i] = bindingExpr;
 					lastVar = variables[i];
 				}
 
 				if (createGetBinding)
-					bindingExpr = CreateGetMemberBinding<T>(bInfo.Member, lastVar, true);
+					bindingExpr = CreateGetMemberBinding<T>(bInfo.Member, lastVar, true, origin);
 				else
-					bindingExpr = CreateSetMemberBinding<T>(bInfo.Member, lastVar, value, true);
+					bindingExpr = CreateSetMemberBinding<T>(bInfo.Member, lastVar, value, true, origin);
 
 				// Create null-check branches for each local stored value
 				memberType = DataBindingHelper.GetMemberReturnType(bInfo.Member);
@@ -384,9 +385,9 @@ namespace Starcounter.XSON {
 			} else {
 				//				this.dataType = GetMemberDeclaringType(bInfo.Member);
 				if (createGetBinding)
-					bindingExpr = CreateGetMemberBinding<T>(bInfo.Member, instance, true);
+					bindingExpr = CreateGetMemberBinding<T>(bInfo.Member, instance, true, origin);
 				else
-					bindingExpr = CreateSetMemberBinding<T>(bInfo.Member, instance, value, true);
+					bindingExpr = CreateSetMemberBinding<T>(bInfo.Member, instance, value, true, origin);
 			}
 			return bindingExpr;
 		}
@@ -397,7 +398,10 @@ namespace Starcounter.XSON {
 		/// <param name="member"></param>
 		/// <param name="expr"></param>
 		/// <returns></returns>
-		private static Expression CreateGetMemberBinding<T>(MemberInfo member, Expression variable, bool convertType) {
+		private static Expression CreateGetMemberBinding<T>(MemberInfo member, 
+                                                            Expression variable, 
+                                                            bool convertType,
+                                                            Template origin) {
 			MethodInfo methodInfo;
 			PropertyInfo bindToProperty = member as PropertyInfo;
 			Expression newExpr = null;
@@ -411,11 +415,11 @@ namespace Starcounter.XSON {
 					if (methodInfo.IsVirtual) {
 						methodInfo = methodInfo.GetBaseDefinition();
 					}
-					newExpr = CreatePropertyGetBinding<T>(methodInfo, variable, convertType);
+					newExpr = CreatePropertyGetBinding<T>(methodInfo, variable, convertType, origin);
 				}
 			} else {
 				var fieldInfo = (FieldInfo)member;
-				newExpr = CreateFieldGetBinding<T>(fieldInfo, variable, convertType);
+				newExpr = CreateFieldGetBinding<T>(fieldInfo, variable, convertType, origin);
 			}
 			return newExpr;
 		}
@@ -429,7 +433,8 @@ namespace Starcounter.XSON {
 		private static Expression CreateSetMemberBinding<T>(MemberInfo member,
 													 Expression variable,
 													 ParameterExpression value,
-													 bool convertType) {
+													 bool convertType,
+                                                     Template origin) {
 			MethodInfo methodInfo;
 			PropertyInfo bindToProperty = member as PropertyInfo;
 			Expression newExpr = null;
@@ -442,11 +447,11 @@ namespace Starcounter.XSON {
 					if (methodInfo.IsVirtual) {
 						methodInfo = methodInfo.GetBaseDefinition();
 					}
-					newExpr = CreatePropertySetBinding<T>(methodInfo, variable, value, convertType);
+					newExpr = CreatePropertySetBinding<T>(methodInfo, variable, value, convertType, origin);
 				}
 			} else {
 				var fieldInfo = (FieldInfo)member;
-				newExpr = CreateFieldSetBinding<T>(fieldInfo, variable, value, convertType);
+				newExpr = CreateFieldSetBinding<T>(fieldInfo, variable, value, convertType, origin);
 			}
 			return newExpr;
 		}
@@ -456,7 +461,10 @@ namespace Starcounter.XSON {
 		/// that reads and returns the value of a a specific field 
 		/// </summary>
 		/// <param name="field">The field to read</param>
-		private static Expression CreateFieldGetBinding<T>(FieldInfo field, Expression variable, bool convertType) {
+		private static Expression CreateFieldGetBinding<T>(FieldInfo field, 
+                                                           Expression variable, 
+                                                           bool convertType,
+                                                           Template origin) {
 			Expression expr;
 
 			if (variable.Type != field.DeclaringType)
@@ -466,7 +474,7 @@ namespace Starcounter.XSON {
 
 			expr = Expression.Field(expr, field);
 			if (convertType && !field.FieldType.Equals(typeof(T))) {
-				expr = AddTypeConversionIfPossible(expr, field.FieldType, typeof(T));
+				expr = AddTypeConversionIfPossible(expr, field.FieldType, typeof(T), field, origin);
 			}
 			return expr;
 		}
@@ -481,7 +489,8 @@ namespace Starcounter.XSON {
 		private static Expression CreateFieldSetBinding<T>(FieldInfo field,
 													Expression variable,
 													ParameterExpression value,
-													bool convertType) {
+													bool convertType,
+                                                    Template origin) {
 			Expression expr;
 			Type valueType = field.FieldType;
 
@@ -494,7 +503,7 @@ namespace Starcounter.XSON {
 
 			Expression setValue = value;
 			if (convertType && !valueType.Equals(typeof(T))) {
-				setValue = AddTypeConversionIfPossible(value, typeof(T), valueType);
+				setValue = AddTypeConversionIfPossible(value, typeof(T), valueType, field, origin);
 			}
 			return Expression.Assign(expr, setValue);
 		}
@@ -508,7 +517,8 @@ namespace Starcounter.XSON {
 		/// <returns></returns>
 		private static Expression CreatePropertyGetBinding<T>(MethodInfo getMethod,
 													   Expression variable,
-													   bool convertType) {
+													   bool convertType, 
+                                                       Template origin) {
 			Expression expr;
 
 			if (variable.Type != getMethod.DeclaringType)
@@ -518,7 +528,7 @@ namespace Starcounter.XSON {
 
 			expr = Expression.Call(expr, getMethod);
 			if (convertType && !getMethod.ReturnType.Equals(typeof(T))) {
-				expr = AddTypeConversionIfPossible(expr, getMethod.ReturnType, typeof(T));
+				expr = AddTypeConversionIfPossible(expr, getMethod.ReturnType, typeof(T), getMethod, origin);
 			}
 			return expr;
 		}
@@ -533,7 +543,8 @@ namespace Starcounter.XSON {
 		private static Expression CreatePropertySetBinding<T>(MethodInfo setMethod,
 													   Expression variable,
 													   ParameterExpression value,
-													   bool convertType) {
+													   bool convertType,
+                                                       Template origin) {
 			Expression expr;
 			Type valueType = setMethod.GetParameters()[0].ParameterType;
 
@@ -544,7 +555,7 @@ namespace Starcounter.XSON {
 
 			Expression setValue = value;
 			if (convertType && !valueType.Equals(typeof(T))) {
-				setValue = AddTypeConversionIfPossible(value, typeof(T), valueType);
+				setValue = AddTypeConversionIfPossible(value, typeof(T), valueType, setMethod, origin);
 			}
 			return Expression.Call(expr, setMethod, setValue);
 		}
@@ -556,7 +567,11 @@ namespace Starcounter.XSON {
 		/// <param name="from">The original type</param>
 		/// <param name="to">The type to convert to if possible</param>
 		/// <returns>The new node in the expression tree</returns>
-		private static Expression AddTypeConversionIfPossible(Expression expr, Type from, Type to) {
+		private static Expression AddTypeConversionIfPossible(Expression expr, 
+                                                              Type from, 
+                                                              Type to, 
+                                                              MemberInfo bindTo, 
+                                                              Template template) {
 			Expression newExpr = null;
 
 			if (to.Equals(typeof(string))) {
@@ -579,11 +594,11 @@ namespace Starcounter.XSON {
 					throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
 												ex,
 												string.Format(propNotCompatible,
-															  "TODO!", //DataBindingFactory.GetParentClassName(Template),
-															  "TODO!", //Template.TemplateName,
-															  "TODO!", //Template.JsonType,
-															  "TODO!", //dataType.FullName,
-															  from.Name,
+                                                              DataBindingHelper.GetParentClassName(template),
+															  template.TemplateName,
+															  to.FullName,
+                                                              bindTo.DeclaringType.FullName, 
+															  bindTo.Name,
 															  from.FullName));
 				}
 			}
