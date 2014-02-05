@@ -6,8 +6,6 @@ namespace Starcounter.Advanced {
         void Commit();
         void Rollback();
         void Add(Action action);
-        void EndScope();
-        void BeginScope();
         Boolean IsDirty { get; }
     }
 }

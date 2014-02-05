@@ -3,6 +3,9 @@ using Starcounter.Internal;
 using Starcounter.Rest;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace Starcounter.Rest
@@ -92,7 +95,43 @@ namespace Starcounter.Rest
     /// </summary>
     internal class UserHandlerInfo
     {
-        Func<Request, IntPtr, IntPtr, Response> user_delegate_ = null;
+        /// <summary>
+        /// List of user delegates.
+        /// </summary>
+        List<Func<Request, IntPtr, IntPtr, Response>> user_delegates_ = null;
+
+        /// <summary>
+        /// List of application names.
+        /// </summary>
+        List<String> app_names_ = null;
+
+        /// <summary>
+        /// Runs all user delegates.
+        /// </summary>
+        /// <param name="req">Original request.</param>
+        /// <param name="methodAndUri">Method and URI pointer.</param>
+        /// <param name="rawParamsInfo">Raw parameters info.</param>
+        /// <returns>Response or merged response.</returns>
+        public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo) {
+
+            Debug.Assert(user_delegates_ != null);
+
+            // Checking if there is only one delegate.
+            if (user_delegates_.Count == 1)
+                return user_delegates_[0](req, methodAndUri, rawParamsInfo);
+            
+            List<Response> responses = new List<Response>();
+
+            // Running every delegate from the list.
+            foreach(Func<Request, IntPtr, IntPtr, Response> func in user_delegates_) {
+                responses.Add(func(req, methodAndUri, rawParamsInfo));
+            }
+
+            Debug.Assert(UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null);
+
+            // Creating merged response.
+            return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses, app_names_);
+        }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();
 
@@ -122,11 +161,6 @@ namespace Starcounter.Rest
             get { return uri_info_.port_; }
         }
 
-        public Func<Request, IntPtr, IntPtr, Response> UserDelegate
-        {
-            get { return user_delegate_; }
-        }
-
         public bool IsEmpty()
         {
             return uri_info_.processed_uri_info_ == null;
@@ -135,7 +169,18 @@ namespace Starcounter.Rest
         public void Destroy()
         {
             uri_info_.Destroy();
-            user_delegate_ = null;
+            user_delegates_ = null;
+        }
+
+        public void AddDelegateToList(Func<Request, IntPtr, IntPtr, Response> user_delegate)
+        {
+            user_delegates_.Add(user_delegate);
+            app_names_.Add(GetAppName());
+        }
+
+        static String GetAppName()
+        {
+            return Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
         }
 
         public void Init(
@@ -157,7 +202,13 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
 
-            user_delegate_ = user_delegate;
+            Debug.Assert(user_delegates_ == null);
+
+            user_delegates_ = new List<Func<Request,IntPtr,IntPtr,Response>>();
+            user_delegates_.Add(user_delegate);
+
+            app_names_ = new List<String>();
+            app_names_.Add(GetAppName());
 
             uri_info_.InitUriPointers();
         }
@@ -173,6 +224,8 @@ namespace Starcounter.Rest
         List<PortUris> portUris_ = new List<PortUris>();
 
         Int32 maxNumHandlersEntries_ = 0;
+
+        internal Func<Request, List<Response>, List<String>, Response> ResponsesMergerRoutine_;
 
         public HandleInternalRequestDelegate HandleInternalRequest_;
 
@@ -279,7 +332,7 @@ namespace Starcounter.Rest
                 allUserHandlers_[i] = new UserHandlerInfo();
         }
 
-        public void RunDelegate(Request r, out Response resource)
+        public void RunDelegate(Request r, out Response resp)
         {
             unsafe
             {
@@ -299,19 +352,19 @@ namespace Starcounter.Rest
                 switch (r.ProtocolType)
                 {
                     case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                    methodAndUri = r.GetRawMethodAndUri();
+                        methodAndUri = r.GetRawMethodAndUri();
                     break;
 
                     case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
-                    methodAndUri = IntPtr.Zero;
+                        methodAndUri = IntPtr.Zero;
                     break;
 
                     default:
-                    throw new ArgumentOutOfRangeException("Trying to call handler for unsupported protocol: " + r.ProtocolType);
+                        throw new ArgumentOutOfRangeException("Trying to call handler for unsupported protocol: " + r.ProtocolType);
                 }
 
                 // Calling user delegate.
-                resource = uhi.UserDelegate(
+                resp = uhi.RunUserDelegates(
                     r,
                     methodAndUri,
                     r.GetRawParametersInfo());
@@ -347,7 +400,15 @@ namespace Starcounter.Rest
                     if ((0 == String.Compare(allUserHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
                         (port == allUserHandlers_[i].Port))
                     {
-                        throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Processed URI: " + processedUriInfo);
+                        if (ResponsesMergerRoutine_ == null)
+                        {
+                            throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Processed URI: " + processedUriInfo);
+                        }
+                        else
+                        {
+                            allUserHandlers_[i].AddDelegateToList(wrappedDelegate);
+                            return;
+                        }
                     }
                 }
 
@@ -394,7 +455,7 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
-        /// Unregisteres existing URI handler.
+        /// Unregisters existing URI handler.
         /// </summary>
         /// <param name="methodAndUri"></param>
         public void UnregisterUriHandler(String methodAndUri)

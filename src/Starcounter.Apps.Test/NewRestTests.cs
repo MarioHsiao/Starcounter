@@ -37,6 +37,8 @@ namespace Starcounter.Internal.Test
 
             UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
             Node.InjectHostedImpl(UserHandlerCodegen.DoLocalNodeRest, null);
+
+            X.LocalNode = true;
         }
     }
 

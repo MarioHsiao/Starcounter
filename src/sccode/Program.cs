@@ -9,6 +9,8 @@ namespace sccode
     {
         static void Main(string[] args)
         {
+            StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
+
             Diagnostics.WriteTimeStamp("SCCODE", "Started sccode Main()");
 
             //Trace.Listeners.Add(new ConsoleTraceListener());

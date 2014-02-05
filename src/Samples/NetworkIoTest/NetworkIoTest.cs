@@ -15,7 +15,7 @@ namespace NetworkIoTestApp
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
-    public class AppsClass : Json
+    public class AppsClass
     {
         /// <summary>
         /// Initializes some Apps handlers.
@@ -24,92 +24,92 @@ namespace NetworkIoTestApp
         {
             String localString = "This is local string!";
 
-            GET(80, "/local", () =>
+            Handle.GET(80, "/local", () =>
             {
                 return localString;
             });
 
-            GET("/static/{?}/static", (String p1) =>
+            Handle.GET("/static/{?}/static", (String p1) =>
             {
                 return String.Format("string {0}", p1);
             });
 
-            GET("/{?}/{?}", (Int32 p1, Boolean p2) =>
+            Handle.GET("/{?}/{?}", (Int32 p1, Boolean p2) =>
             {
                 return String.Format("int32 {0}, bool {1}", p1, p2);
             });
 
-            GET("/{?}/{?}/{?}", (Int32 p1, Boolean p2, Double p3) =>
+            Handle.GET("/{?}/{?}/{?}", (Int32 p1, Boolean p2, Double p3) =>
             {
                 return String.Format("int32 {0}, bool {1}, double {2}", p1, p2, p3);
             });
 
-            GET("/{?}", (Int32 p1) =>
+            Handle.GET("/{?}", (Int32 p1) =>
             {
                 return String.Format("int32 {0}", p1);
             });
 
-            GET("/{?}/{?}", (Int32 p1, Decimal p2) =>
+            Handle.GET("/{?}/{?}", (Int32 p1, Decimal p2) =>
             {
                 return String.Format("int32 {0}, decimal {1}", p1, p2);
             });
             
-            GET("/{?}/{?}/{?}", (Int32 p1, string p2, string p3) =>
+            Handle.GET("/{?}/{?}/{?}", (Int32 p1, string p2, string p3) =>
             {
                 return String.Format("int32 {0}, string {1}, string {2}", p1, p2, p3);
             });
 
-            GET("/{?}/{?}/{?}", (string p1, string p2, string p3) =>
+            Handle.GET("/{?}/{?}/{?}", (string p1, string p2, string p3) =>
             {
                 return String.Format("string {0}, string {1}, string {2}", p1, p2, p3);
             });
              
-            GET("/{?}/{?}/{?}", (string p1, Int32 p2, string p3) =>
+            Handle.GET("/{?}/{?}/{?}", (string p1, Int32 p2, string p3) =>
             {
                 return String.Format("string {0}, int32 {1}, string {2}", p1, p2, p3);
             });
 
-            GET("/{?}/{?}", (Int64 p1, string p2) =>
+            Handle.GET("/{?}/{?}", (Int64 p1, string p2) =>
             {
                 return String.Format("int64 {0}, string {1}", p1, p2);
             });
 
-            GET("/{?}/{?}", (string p1, string p2) =>
+            Handle.GET("/{?}/{?}", (string p1, string p2) =>
             {
                 return String.Format("string {0}, string {1}", p1, p2);
             });
 
-            GET("/{?}/{?}/{?}", (Int32 p1, string p2, Int32 p3) =>
+            Handle.GET("/{?}/{?}/{?}", (Int32 p1, string p2, Int32 p3) =>
             {
                 return String.Format("int32 {0}, string {1}, int32 {2}", p1, p2, p3);
             });
 
-            GET("/ab", () =>
+            Handle.GET("/ab", () =>
             {
                 return "ab";
             });
 
-            GET("/{?}/{?}/{?}", (string p1, string p2, Int32 p3) =>
+            Handle.GET("/{?}/{?}/{?}", (string p1, string p2, Int32 p3) =>
             {
                 return String.Format("string {0}, string {1}, int32 {2}", p1, p2, p3);
             });
             
-            GET("/{?}/{?}", (String p1, Int32 p2) =>
+            Handle.GET("/{?}/{?}", (String p1, Int32 p2) =>
             {
                 return String.Format("string {0}, int32 {1}", p1, p2);
             });
 
-            GET("/", () =>
+            Handle.GET("/", () =>
             {
                 return "root";
             });
 
-            GET("/s{?}", (String p1) =>
+            Handle.GET("/s{?}", (String p1) =>
             {
                 return "s" + p1;
             });
 
-            GET("/{?}/static/{?}", (string str1, string str2) =>
+            Handle.GET("/{?}/static/{?}", (string str1, string str2) =>
             {
                 return "str_concat_with_static=" + str1 + "static" + str2;
             });
@@ -121,7 +121,7 @@ namespace NetworkIoTestApp
         public static void InitAppHandlersSession()
         {
             // http://127.0.0.1:8080/new-session
-            GET("/new-session", (Request r) =>
+            Handle.GET("/new-session", (Request r) =>
             {
                 if (!r.CameWithCorrectSession)
                 {
@@ -142,7 +142,7 @@ namespace NetworkIoTestApp
             });
 
             // http://127.0.0.1:8080/del-session/70300000CAA03ED139EB1306FFFFFFFF
-            GET("/del-session/{?}", (Session s, Request r) =>
+            Handle.GET("/del-session/{?}", (Session s, Request r) =>
             {
                 if (r.CameWithCorrectSession)
                 {
@@ -156,7 +156,7 @@ namespace NetworkIoTestApp
             });
 
             // http://127.0.0.1:8080/view-session/3030000008E25A422DB73D6FFFFFFFFF
-            GET("/view-session/{?}", (Session s) =>
+            Handle.GET("/view-session/{?}", (Session s) =>
             {
                 if (s != null)
                     return "Session string: " + s.SessionIdString;

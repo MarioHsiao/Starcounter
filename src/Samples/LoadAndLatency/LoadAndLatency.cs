@@ -412,25 +412,26 @@ namespace LoadAndLatency
             if (ThereAreObjectsInDB())
             {
                 LogEvent("   Purging all existing objects...");
-                using (Transaction transaction = Transaction.NewCurrent())
+                using (Transaction transaction = new Transaction())
                 {
-                    //Int32 trans = 0;
+                    transaction.Add(() => {
+                        //Int32 trans = 0;
 
-                    foreach (TestClass t in Db.SQL("SELECT t FROM TestClass t"))
-                    {
-                        t.Delete();
+                        foreach (TestClass t in Db.SQL("SELECT t FROM TestClass t")) {
+                            t.Delete();
 
-                        // Checking if we need to commit transaction.
-                        /*trans++;
-                        if (trans >= 1000)
-                        {
-                            trans = 0;
-                            transaction.Commit();
-                        }*/
-                    }
+                            // Checking if we need to commit transaction.
+                            /*trans++;
+                            if (trans >= 1000)
+                            {
+                                trans = 0;
+                                transaction.Commit();
+                            }*/
+                        }
 
-                    // Committing the final transaction.
-                    transaction.Commit();
+                        // Committing the final transaction.
+                        transaction.Commit();
+                    });
                 }
             }
 
@@ -601,80 +602,71 @@ namespace LoadAndLatency
                 Int64 calcChecksum = 0, m = 0, artChecksum = 0;
 
                 // Transaction scope.
-                using (Transaction transaction = Transaction.NewCurrent())
+                using (Transaction transaction = new Transaction())
                 {
-                    SqlEnumerator<Object> sqlEnum = null;
+                    transaction.Add(() => {
+                        SqlEnumerator<Object> sqlEnum = null;
 
-                    // Running throw all transactions.
-                    for (Int32 trans = 0; trans < TransactionsMagnifier; trans++)
-                    {
-                        if (trans == 0)
-                        {
-                            sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c FETCH ?", fetchNumber).GetEnumerator();
-                        }
-                        else
-                        {
-                            if (!startedOnClient)
-                            {
-                                sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c FETCH ? OFFSETKEY ?", fetchNumber + 1, offsetKey).GetEnumerator();
+                        // Running throw all transactions.
+                        for (Int32 trans = 0; trans < TransactionsMagnifier; trans++) {
+                            if (trans == 0) {
+                                sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c FETCH ?", fetchNumber).GetEnumerator();
+                            } else {
+                                if (!startedOnClient) {
+                                    sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c FETCH ? OFFSETKEY ?", fetchNumber + 1, offsetKey).GetEnumerator();
 
-                                // Moving enumerator to the next position after recreation.
-                                sqlEnum.MoveNext();
+                                    // Moving enumerator to the next position after recreation.
+                                    sqlEnum.MoveNext();
+                                } else {
+                                    sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c FETCH ? OFFSETKEY ?", fetchNumber, offsetKey).GetEnumerator();
+                                }
                             }
-                            else
-                            {
-                                sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c FETCH ? OFFSETKEY ?", fetchNumber, offsetKey).GetEnumerator();
-                            }
-                        }
 
-                        // Fetching only the first result and getting the object checksum.
-                        for (Int32 k = 0; k < fetchNumber; k++)
-                        {
-                            // Checking that results always exist.
-                            if (!sqlEnum.MoveNext())
-                            {
+                            // Fetching only the first result and getting the object checksum.
+                            for (Int32 k = 0; k < fetchNumber; k++) {
+                                // Checking that results always exist.
+                                if (!sqlEnum.MoveNext()) {
+                                    // Throwing an exception that will cause test failure.
+                                    String errMessage = "Object does not exist when it should.";
+                                    logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                    throw new Exception(errMessage);
+                                }
+
+                                TestClass curObj = sqlEnum.Current as TestClass;
+
+                                // Calculating object's checksum.
+                                calcChecksum += curObj.GetCheckSum();
+
+                                // Calculating artificial checksum.
+                                artChecksum += m;
+                                m++;
+
+                                // Checking that checksums are the same.
+                                if (calcChecksum != artChecksum) {
+                                    // Throwing an exception that will cause test failure.
+                                    String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
+                                    logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                    throw new Exception(errMessage);
+                                }
+                            }
+
+                            // Fetching the offset key.
+                            offsetKey = sqlEnum.GetOffsetKey();
+                            if (offsetKey == null)
+                                throw new Exception("GetOffsetKey failed...");
+
+                            // Checking that exactly needed amount of objects is fetched.
+                            if (sqlEnum.MoveNext()) {
                                 // Throwing an exception that will cause test failure.
-                                String errMessage = "Object does not exist when it should.";
+                                String errMessage = "Unexpected object exists when it shouldn't.";
                                 logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
                                 throw new Exception(errMessage);
                             }
 
-                            TestClass curObj = sqlEnum.Current as TestClass;
-
-                            // Calculating object's checksum.
-                            calcChecksum += curObj.GetCheckSum();
-
-                            // Calculating artificial checksum.
-                            artChecksum += m;
-                            m++;
-
-                            // Checking that checksums are the same.
-                            if (calcChecksum != artChecksum)
-                            {
-                                // Throwing an exception that will cause test failure.
-                                String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
-                                logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
-                                throw new Exception(errMessage);
-                            }
+                            // Disposing the enumerator.
+                            sqlEnum.Dispose();
                         }
-
-                        // Fetching the offset key.
-                        offsetKey = sqlEnum.GetOffsetKey();
-                        if (offsetKey == null)
-                            throw new Exception("GetOffsetKey failed...");
-
-                        // Checking that exactly needed amount of objects is fetched.
-                        if (sqlEnum.MoveNext())
-                        {
-                            // Throwing an exception that will cause test failure.
-                            String errMessage = "Unexpected object exists when it shouldn't.";
-                            logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
-                            throw new Exception(errMessage);
-                        }
-
-                        // Disposing the enumerator.
-                        sqlEnum.Dispose();
-                    }
+                    });
                 }
             }
 
@@ -715,51 +707,48 @@ namespace LoadAndLatency
                 for (Int32 i = 0; i < TransactionsMagnifier; i++)
                 {
                     // Transaction scope.
-                    using (Transaction transaction = Transaction.NewCurrent())
+                    using (Transaction transaction = new Transaction())
                     {
-                        // Fetching the enumerator.
-                        using (SqlEnumerator<Object> sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c WHERE c.prop_int64 >= ? FETCH ?", m, fetchNumber).GetEnumerator())
-                        {
-                            // Fetching only the first result and getting the object checksum.
-                            for (Int32 k = 0; k < fetchNumber; k++)
-                            {
-                                // Checking that results always exist.
-                                if (!sqlEnum.MoveNext())
-                                {
-                                    // Throwing an exception that will cause test failure.
-                                    String errMessage = "Object does not exist when it should.";
-                                    logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
-                                    throw new Exception(errMessage);
+                        transaction.Add(() => {
+                            // Fetching the enumerator.
+                            using (SqlEnumerator<Object> sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c WHERE c.prop_int64 >= ? FETCH ?", m, fetchNumber).GetEnumerator()) {
+                                // Fetching only the first result and getting the object checksum.
+                                for (Int32 k = 0; k < fetchNumber; k++) {
+                                    // Checking that results always exist.
+                                    if (!sqlEnum.MoveNext()) {
+                                        // Throwing an exception that will cause test failure.
+                                        String errMessage = "Object does not exist when it should.";
+                                        logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                        throw new Exception(errMessage);
+                                    }
+
+                                    TestClass curObj = sqlEnum.Current as TestClass;
+
+                                    // Calculating object's checksum.
+                                    calcChecksum += curObj.GetCheckSum();
+
+                                    // Calculating artificial checksum.
+                                    artChecksum += m;
+                                    m++;
+
+                                    // Checking that checksums are the same.
+                                    if (calcChecksum != artChecksum) {
+                                        // Throwing an exception that will cause test failure.
+                                        String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
+                                        logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                        throw new Exception(errMessage);
+                                    }
                                 }
 
-                                TestClass curObj = sqlEnum.Current as TestClass;
-
-                                // Calculating object's checksum.
-                                calcChecksum += curObj.GetCheckSum();
-
-                                // Calculating artificial checksum.
-                                artChecksum += m;
-                                m++;
-
-                                // Checking that checksums are the same.
-                                if (calcChecksum != artChecksum)
-                                {
+                                // Checking that exactly needed amount of objects is fetched.
+                                if (sqlEnum.MoveNext()) {
                                     // Throwing an exception that will cause test failure.
-                                    String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
+                                    String errMessage = "Unexpected object exists when it shouldn't.";
                                     logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
                                     throw new Exception(errMessage);
                                 }
                             }
-
-                            // Checking that exactly needed amount of objects is fetched.
-                            if (sqlEnum.MoveNext())
-                            {
-                                // Throwing an exception that will cause test failure.
-                                String errMessage = "Unexpected object exists when it shouldn't.";
-                                logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
-                                throw new Exception(errMessage);
-                            }
-                        }
+                        });
                     }
                 }
             }
@@ -1288,25 +1277,26 @@ namespace LoadAndLatency
 
                     case SimpleObjectOperations.SIMPLE_OBJECTS_PURGE:
                     {
-                        using (Transaction transaction = Transaction.NewCurrent())
+                        using (Transaction transaction = new Transaction())
                         {
-                            //Int32 trans = 0;
+                            transaction.Add(() => {
+                                //Int32 trans = 0;
 
-                            foreach (SimpleObject p in Db.SQL("SELECT s FROM SimpleObject s"))
-                            {
-                                p.Delete();
+                                foreach (SimpleObject p in Db.SQL("SELECT s FROM SimpleObject s")) {
+                                    p.Delete();
 
-                                // Checking if we need to commit transaction.
-                                /*trans++;
-                                if (trans >= 1000)
-                                {
-                                    trans = 0;
-                                    transaction.Commit();
-                                }*/
-                            }
+                                    // Checking if we need to commit transaction.
+                                    /*trans++;
+                                    if (trans >= 1000)
+                                    {
+                                        trans = 0;
+                                        transaction.Commit();
+                                    }*/
+                                }
 
-                            // Committing transaction.
-                            transaction.Commit();
+                                // Committing transaction.
+                                transaction.Commit();
+                            });
                         }
 
                         // Indicating that this worker has finished.
@@ -1365,7 +1355,8 @@ namespace LoadAndLatency
                         }
 
                         // Creating new transaction.
-                        transaction = Transaction.NewCurrent();
+                        transaction = new Transaction();
+                        Transaction.SetCurrent(transaction);
 
                         switch (typeOfOperation)
                         {
@@ -1773,35 +1764,33 @@ namespace LoadAndLatency
         /// </summary>
         Boolean ThereAreObjectsInDB()
         {
-            using (Transaction transaction = Transaction.NewCurrent())
+            bool objectsExists = false; 
+
+            using (Transaction transaction = new Transaction())
             {
-                SqlEnumerator<Object> sqlResult = null;
-                try
-                {
-                    sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c").GetEnumerator();
+                transaction.Add(() => {
+                    SqlEnumerator<Object> sqlResult = null;
+                    try {
+                        sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c").GetEnumerator();
 
-                    // If there are instances in the database, consider the example
-                    // data already created.
-                    // Hence, calling this method each time in the exercise does
-                    // not duplicate the data set.
-                    Int64 objCount = 0;
-                    while (sqlResult.MoveNext())
-                        objCount++;
+                        // If there are instances in the database, consider the example
+                        // data already created.
+                        // Hence, calling this method each time in the exercise does
+                        // not duplicate the data set.
+                        Int64 objCount = 0;
+                        while (sqlResult.MoveNext())
+                            objCount++;
 
-                    if (objCount > 0)
-                    {
-                        LogEvent(String.Format("   {0} objects already exist in a database.", objCount));
-                        return true;
+                        if (objCount > 0) {
+                            LogEvent(String.Format("   {0} objects already exist in a database.", objCount));
+                            objectsExists = true;
+                        }
+                    } finally {
+                        if (sqlResult != null)
+                            sqlResult.Dispose();
                     }
-                }
-                finally
-                {
-                    if (sqlResult != null)
-                        sqlResult.Dispose();
-                }
-
-                // No suitable objects found, creating DB data from scratch...
-                return false;
+                });
+                return objectsExists;
             }
         }
 
@@ -1854,14 +1843,18 @@ namespace LoadAndLatency
 
             // Creating transaction scope.
             Starcounter.Transaction trans = null;
-            if (!useIndividualTransactions)
-                trans = Starcounter.Transaction.NewCurrent();
+            if (!useIndividualTransactions) {
+                trans = new Transaction();
+                Transaction.SetCurrent(trans);
+            }
 
             // Running each SELECT in separate transaction.
             for (Int64 i = 0; i < TotalNumOfObjectsInDB; i++)
             {
-                if (useIndividualTransactions)
-                    trans = Starcounter.Transaction.NewCurrent();
+                if (useIndividualTransactions) {
+                    trans = new Transaction();
+                    Transaction.SetCurrent(trans);
+                }
 
                 //Application.Profiler.Start("Time for Profiler Overhead Estimator.", 13);
                 //Application.Profiler.Stop(13);
@@ -2008,35 +2001,36 @@ namespace LoadAndLatency
             // Populating database using number of given transactions.
             for (Int32 t = 0; t < TransactionsMagnifier; t++)
             {
-                using (Transaction transaction = Transaction.NewCurrent())
+                using (Transaction transaction = new Transaction())
                 {
-                    for (Int64 i = 0; i < NumObjectsPerTransaction; i++)
-                    {
-                        TestClass testClassInstance = new TestClass(
-                            true,
-                            (Nullable<SByte>)(curObjectNum % 127),
-                            (Nullable<Byte>)(curObjectNum % 255),
-                            (Nullable<Int16>)(curObjectNum % 32767),
-                            (Nullable<UInt16>)(curObjectNum % 65535),
-                            (Nullable<Int32>)curObjectNum,
-                            (Nullable<UInt32>)curObjectNum,
-                            (Nullable<Int64>)curObjectNum,
-                            (Nullable<UInt64>)curObjectNum,
-                            (Nullable<Decimal>)curObjectNum,
-                            (Nullable<Double>)curObjectNum,
-                            (Nullable<Single>)curObjectNum,
-                            new DateTime(curObjectNum),
-                            new Binary(BitConverter.GetBytes(curObjectNum)),
-                            new LargeBinary(BitConverter.GetBytes(curObjectNum)),
-                            curObjectNum.ToString()
-                            );
+                    transaction.Add(() => {
+                        for (Int64 i = 0; i < NumObjectsPerTransaction; i++) {
+                            TestClass testClassInstance = new TestClass(
+                                true,
+                                (Nullable<SByte>)(curObjectNum % 127),
+                                (Nullable<Byte>)(curObjectNum % 255),
+                                (Nullable<Int16>)(curObjectNum % 32767),
+                                (Nullable<UInt16>)(curObjectNum % 65535),
+                                (Nullable<Int32>)curObjectNum,
+                                (Nullable<UInt32>)curObjectNum,
+                                (Nullable<Int64>)curObjectNum,
+                                (Nullable<UInt64>)curObjectNum,
+                                (Nullable<Decimal>)curObjectNum,
+                                (Nullable<Double>)curObjectNum,
+                                (Nullable<Single>)curObjectNum,
+                                new DateTime(curObjectNum),
+                                new Binary(BitConverter.GetBytes(curObjectNum)),
+                                new LargeBinary(BitConverter.GetBytes(curObjectNum)),
+                                curObjectNum.ToString()
+                                );
 
-                        // Creating next unique object.
-                        curObjectNum++;
-                    }
+                            // Creating next unique object.
+                            curObjectNum++;
+                        }
 
-                    // Committing all objects within transaction.
-                    transaction.Commit();
+                        // Committing all objects within transaction.
+                        transaction.Commit();
+                    });
                 }
             }
         }
