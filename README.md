@@ -6,6 +6,9 @@ It threives on complexity and massive multiuser activity such that can found in 
 
 This repository is reserved for the public Starcounter bits.
 
+# Download installer
+* [Windows](http://downloads.starcounter.com/beta)
+
 # More information
 
 * [Wiki](http://www.github.com/starcounter/starcounter/wiki) 

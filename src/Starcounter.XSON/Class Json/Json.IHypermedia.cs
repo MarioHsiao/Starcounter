@@ -8,9 +8,7 @@ using System.Text;
 
 namespace Starcounter {
     public partial class Json : IHypermedia {
-
-
-
+        
         /// <summary>
         /// Override this method to provide a custom conversion when a request
         /// is made to some other mime type than "application/json".
@@ -18,6 +16,14 @@ namespace Starcounter {
         /// <param name="mimeType"></param>
         /// <returns></returns>
         public virtual string AsMimeType(MimeType mimeType) {
+            switch (mimeType) {
+                case MimeType.Text_Html:
+                    return this.Html;
+
+                case MimeType.Application_Json:
+                    return this.ToJson();
+            }
+
             return this.ToJson();
         }
 
@@ -28,7 +34,7 @@ namespace Starcounter {
         /// <param name="mimeType"></param>
         /// <returns></returns>
         public virtual string AsMimeType(string mimeType) {
-            return this.ToJson();
+            return AsMimeType(MimeTypeHelper.StringToMimeType(mimeType));
         }
 
         /// <summary>

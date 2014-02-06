@@ -93,25 +93,10 @@ namespace Starcounter {
                 EnsureHttpV1IsUsed();
 
                 var a = this[HttpHeadersUtf8.GetAcceptHeader];
-                if (a != null) {
-                    a = a.ToUpper();
-                    if (a.StartsWith("APPLICATION/JSON-PATCH+JSON")) {
-                        return MimeType.Application_JsonPatch__Json;
-                    }
-                    else if (a.StartsWith("TEXT/HTML")) {
-                        return MimeType.Text_Html;
-                    }
-                    else if (a.StartsWith("APPLICATION/JSON")) {
-                        return MimeType.Application_Json;
-                    }
-                    else if (a.StartsWith("TEXT/PLAIN")) {
-                        return MimeType.Text_Plain;
-                    }
-                    else if (a.StartsWith("*/*")) {
-                        return MimeType.Unspecified;
-                    }
-                    return MimeType.Other;
-                }
+
+                if (a != null)
+                    return MimeTypeHelper.StringToMimeType(a);
+
                 return MimeType.Unspecified;
             }
         }
@@ -141,7 +126,7 @@ namespace Starcounter {
         /// <summary>
         /// Returns True if request is internal.
         /// </summary>
-        internal Boolean IsInternal
+        public Boolean IsInternal
         {
             get { return is_internal_request_; }
         }

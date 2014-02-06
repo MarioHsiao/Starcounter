@@ -149,7 +149,7 @@ namespace Starcounter {
         /// Returns the original request for session.
         /// </summary>
         /// <value></value>
-        internal static Request InitialRequest {
+        public static Request InitialRequest {
             get { return _Request; }
             set { _Request = value; }
         }
