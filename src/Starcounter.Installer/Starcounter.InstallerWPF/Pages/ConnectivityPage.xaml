@@ -108,7 +108,7 @@
                       <!-- Header Description -->
                       <TextBlock Style="{DynamicResource ComponentDescription}">
                           The term connectivity refers to the alternatives available to communicate with Starcounter databases from tools or client programs. This includes tools and programs either provided as part of the Starcounter installation or created by you or other developers.
-                          <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Connectivity" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                          <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Connectivity" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
                       </TextBlock>
 
                       <!-- Properties -->
@@ -156,7 +156,7 @@
                       <!-- Header Description -->
                       <TextBlock Style="{DynamicResource ComponentDescription}">
                           The term connectivity refers to the alternatives available to communicate with Starcounter databases from tools or client programs. This includes tools and programs either provided as part of the Starcounter installation or created by you or other developers.
-                          <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Connectivity" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                          <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Connectivity" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
                       </TextBlock>
 
                       <!-- Properties -->
@@ -203,7 +203,7 @@
                       <!-- Header Description -->
                       <TextBlock Style="{DynamicResource ComponentDescription}">
                           The term connectivity refers to the alternatives available to communicate with Starcounter databases from tools or client programs. This includes tools and programs either provided as part of the Starcounter installation or created by you or other developers.
-                          <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Connectivity" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                          <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Connectivity" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
                       </TextBlock>
 
                       <!-- Properties -->
