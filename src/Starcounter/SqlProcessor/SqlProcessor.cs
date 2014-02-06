@@ -15,6 +15,8 @@ namespace Starcounter.SqlProcessor {
         public static extern uint scsql_dump_memory_leaks();
         [DllImport("scsqlprocessor.dll")]
         public static extern uint scsql_create_runtime_metadata();
+        [DllImport("scsqlprocessor.dll")]
+        public static extern uint scsql_clean_clrview();
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -32,6 +34,12 @@ namespace Starcounter.SqlProcessor {
 
         public static void PopulateRuntimeMetadata() {
             uint err = scsql_create_runtime_metadata();
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+        }
+
+        public static void CleanClrMetadata() {
+            uint err = scsql_clean_clrview();
             if (err != 0)
                 throw ErrorCode.ToException(err);
         }

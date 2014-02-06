@@ -214,6 +214,8 @@ namespace Starcounter.Hosting {
                 if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable") {
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                     OnRuntimeMetadataPopulated();
+                    // Call CLR view clean up
+                    Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
                 }
 
                 for (int i = 0; i < typeDefs.Length; i++)
