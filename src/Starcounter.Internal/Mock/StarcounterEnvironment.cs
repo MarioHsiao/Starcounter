@@ -33,6 +33,11 @@ namespace Starcounter.Internal
         public static string DatabaseNameLower { get; internal set; }
 
         /// <summary>
+        /// Name of the application.
+        /// </summary>
+        public static string AppName { get; set; }
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte GetCurrentSchedulerId()

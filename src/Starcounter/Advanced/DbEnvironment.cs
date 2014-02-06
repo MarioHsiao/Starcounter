@@ -2,6 +2,8 @@
 using Starcounter.Internal;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 namespace Starcounter.Advanced {
     
@@ -17,6 +19,8 @@ namespace Starcounter.Advanced {
 
             DatabaseNameLower = databaseName.ToLower();
             StarcounterEnvironment.DatabaseNameLower = DatabaseNameLower;
+            StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
+
             HasDatabase = hasDatabase;
         }
 

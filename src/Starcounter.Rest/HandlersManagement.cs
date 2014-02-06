@@ -175,12 +175,7 @@ namespace Starcounter.Rest
         public void AddDelegateToList(Func<Request, IntPtr, IntPtr, Response> user_delegate)
         {
             user_delegates_.Add(user_delegate);
-            app_names_.Add(GetAppName());
-        }
-
-        static String GetAppName()
-        {
-            return Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
+            app_names_.Add(StarcounterEnvironment.AppName);
         }
 
         public void Init(
@@ -208,7 +203,7 @@ namespace Starcounter.Rest
             user_delegates_.Add(user_delegate);
 
             app_names_ = new List<String>();
-            app_names_.Add(GetAppName());
+            app_names_.Add(StarcounterEnvironment.AppName);
 
             uri_info_.InitUriPointers();
         }
