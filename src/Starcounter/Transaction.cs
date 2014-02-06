@@ -182,6 +182,13 @@ namespace Starcounter
         public Transaction() : this(false) { }
 
         /// <summary>
+        /// Constructor that creates and runs a new transaction.
+        /// </summary>
+        public Transaction(Action action) : this(false) {
+            this.Add(action);
+        }
+
+        /// <summary>
         /// New transaction constructor.
         /// </summary>
         /// <param name="readOnly">Transaction read-only flag.</param>

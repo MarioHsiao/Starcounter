@@ -92,7 +92,7 @@
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                                                 Starcounter Administrator is a GUI tool included as part of the Starcounter installation. It is used to view, configure, manage, and administer all components within Starcounter, including servers and databases.
                                                 Starcounter Administrator also includes the ability for users to run SQL queries and execute stored procedures.
-                                                <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Starcounter_Administrator" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                                <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Administrator" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
                                     </TextBlock>
 
                                     <!-- Properties -->

@@ -42,7 +42,7 @@
                         <GroupBox.Header>
                             <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
                         </GroupBox.Header>
-                        <TextBlock Text="Starcounter were successfully installed." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                        <TextBlock Text="Starcounter was successfully installed." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
                     </GroupBox>
 
                     <!-- Content -->
@@ -99,7 +99,7 @@
                                                 <!-- Header Description -->
                                                 <TextBlock Style="{DynamicResource ComponentDescription}">
                                                     Starcounter demo is a simple database application that simulates bank account transactions and is used to demonstrate difference in performance between Entity Framework on top of MS SQL Server Express and Starcounter.
-                                                    <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
+                                                    <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
                                                 </TextBlock>
 
                                             </StackPanel>
@@ -160,7 +160,7 @@
                                                 <!-- Header Description -->
                                                 <TextBlock Style="{DynamicResource ComponentDescription}">
                                                     Starcounter demo is a simple database application that simulates bank account transactions and is used to demonstrate difference in performance between Entity Framework on top of MS SQL Server Express and Starcounter.
-                                                    <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
+                                                    <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
                                                 </TextBlock>
 
                                             </StackPanel>
@@ -221,7 +221,7 @@
                                                 <!-- Header Description -->
                                                 <TextBlock Style="{DynamicResource ComponentDescription}">
                                                     Starcounter demo is a simple database application that simulates bank account transactions and is used to demonstrate difference in performance between Entity Framework on top of MS SQL Server Express and Starcounter.
-                                                    <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
+                                                    <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Simple_WPF_Benchmark_demo" Command="NavigationCommands.GoToPage"  >Read more about Starcounter Demo...</Hyperlink>
                                                 </TextBlock>
 
                                             </StackPanel>
@@ -248,7 +248,7 @@
                         <TextBlock TextWrapping="Wrap" Style="{DynamicResource PageWelcomeHeaderStyle}">
                             To continue visit our wiki.
                             <LineBreak/>
-                            <Hyperlink CommandParameter="http://www.starcounter.com/wiki" Command="NavigationCommands.GoToPage">Getting Started</Hyperlink>
+                            <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki" Command="NavigationCommands.GoToPage">Getting Started</Hyperlink>
                             
                         </TextBlock>
 
