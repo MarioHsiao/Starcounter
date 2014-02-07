@@ -40,6 +40,14 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets the logical name of the application.
+        /// </summary>
+        public string Name {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the server key for this executable. A key must
         /// be assured to be unique within the scope of a single database.
         /// </summary>
@@ -102,6 +110,7 @@ namespace Starcounter.Server {
             return new AppInfo() {
                 ExecutablePath = this.OriginalExecutablePath,
                 ApplicationFilePath = this.ApplicationFilePath,
+                Name = this.Name,
                 ExecutionPath = this.ExecutionPath,
                 Arguments = this.Arguments,
                 Key = this.Key
@@ -120,6 +129,7 @@ namespace Starcounter.Server {
 
             exe.PrimaryFile = this.OriginalExecutablePath;
             exe.ApplicationFilePath = this.ApplicationFilePath;
+            exe.Name = this.Name;
             exe.WorkingDirectory = this.WorkingDirectory;
             if (this.Arguments != null) {
                 foreach (var argument in this.Arguments) {
