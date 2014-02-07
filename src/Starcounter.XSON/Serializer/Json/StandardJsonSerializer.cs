@@ -175,7 +175,7 @@ restart:
                         offset++;
                     }
                 }
-            }, true);
+            });
 
 			buffer = buf;
 			return offset;

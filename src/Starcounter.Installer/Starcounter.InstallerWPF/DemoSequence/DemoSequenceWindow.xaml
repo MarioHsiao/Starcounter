@@ -1001,12 +1001,12 @@
                         <TextBlock  Margin="3,3,0,0" TextWrapping="Wrap" Text="Starcounter" FontSize="17"/>
                         <TextBlock  Margin="3,3,0,0" TextWrapping="Wrap">
                             Visit our 
-                            <Hyperlink Foreground="#FF6495ED" Command="NavigationCommands.GoToPage" CommandParameter="http://www.starcounter.com/wiki/">wiki</Hyperlink> 
+                            <Hyperlink Foreground="#FF6495ED" Command="NavigationCommands.GoToPage" CommandParameter="https://github.com/starcounter/starcounter/wiki">wiki</Hyperlink> 
                             for documentation and our <Hyperlink Foreground="#FF6495ED" Command="NavigationCommands.GoToPage" CommandParameter="http://www.starcounter.com/forum/">forum</Hyperlink>
                             for discussions.
                         </TextBlock>
 
-                        <!--<Button HorizontalAlignment="Left" Style="{DynamicResource Link_Button_Style}" Command="NavigationCommands.GoToPage" CommandParameter="http://www.starcounter.com/wiki/">
+                        <!--<Button HorizontalAlignment="Left" Style="{DynamicResource Link_Button_Style}" Command="NavigationCommands.GoToPage" CommandParameter="https://github.com/starcounter/starcounter/wiki/">
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -1082,7 +1082,7 @@
                             </Grid>
                         </Button>
 
-                        <Button Style="{DynamicResource Link_Button_Style}" Command="NavigationCommands.GoToPage" CommandParameter="http://www.starcounter.com/wiki/">
+                        <Button Style="{DynamicResource Link_Button_Style}" Command="NavigationCommands.GoToPage" CommandParameter="https://github.com/starcounter/starcounter/wiki/">
 
                             <Grid>
                                 <Grid.ColumnDefinitions>

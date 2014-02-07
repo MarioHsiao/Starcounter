@@ -167,7 +167,7 @@ restart:
                         offset = (int)writer.SealTuple();
                     }
                 }
-            }, true);
+            });
 
 			buffer = buf;
 			return offset;
