@@ -1,9 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="ExecCommandProcessor.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management;
 using Starcounter.Internal;
@@ -17,24 +12,24 @@ using System.Threading;
 namespace Starcounter.Server.Commands {
 
     /// <summary>
-    /// Executes a queued and dispatched <see cref="ExecCommand"/>.
+    /// Executes a queued and dispatched <see cref="StartExecutableCommand"/>.
     /// </summary>
-    [CommandProcessor(typeof(ExecCommand))]
-    internal sealed partial class ExecCommandProcessor : CommandProcessor {
+    [CommandProcessor(typeof(StartExecutableCommand))]
+    internal sealed partial class StartExecutableCommandProcessor : CommandProcessor {
 
         /// <summary>
-        /// Initializes a new <see cref="ExecCommandProcessor"/>.
+        /// Initializes a new <see cref="StartExecutableCommandProcessor"/>.
         /// </summary>
         /// <param name="server">The server in which the processor executes.</param>
-        /// <param name="command">The <see cref="ExecCommand"/> the
+        /// <param name="command">The <see cref="StartExecutableCommand"/> the
         /// processor should exeucte.</param>
-        public ExecCommandProcessor(ServerEngine server, ServerCommand command)
+        public StartExecutableCommandProcessor(ServerEngine server, ServerCommand command)
             : base(server, command) {
         }
 
         /// <inheritdoc />
         protected override void Execute() {
-            ExecCommand command;
+            StartExecutableCommand command;
             WeaverService weaver;
             string appRuntimeDirectory;
             string weavedExecutable;
@@ -43,7 +38,7 @@ namespace Starcounter.Server.Commands {
             Process codeHostProcess;
             bool databaseExist;
 
-            command = (ExecCommand)this.Command;
+            command = (StartExecutableCommand)this.Command;
             databaseExist = false;
             weavedExecutable = null;
             database = null;

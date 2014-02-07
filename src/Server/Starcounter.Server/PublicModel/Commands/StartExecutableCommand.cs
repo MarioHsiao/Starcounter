@@ -1,9 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="ExecAppCommand.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using System;
 using System.IO;
 using System.Linq;
@@ -15,12 +10,12 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// <summary>
     /// A command representing the request to start an executable.
     /// </summary>
-    public sealed class ExecCommand : DatabaseCommand {
+    public sealed class StartExecutableCommand : DatabaseCommand {
         string databaseName;
 
         public static class DefaultProcessor {
             public static int Token {
-                get { return ExecCommandProcessor.ProcessorToken; }
+                get { return StartExecutableCommandProcessor.ProcessorToken; }
             }
 
             public static class Tasks {
@@ -94,14 +89,14 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Initializes an instance of <see cref="ExecCommand"/>.
+        /// Initializes an instance of <see cref="StartExecutableCommand"/>.
         /// </summary>
         /// <param name="engine">The <see cref="ServerEngine"/> where this command
         /// are to execute.</param>
         /// <param name="assemblyPath">Path to the assembly requesting to start.</param>
         /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
         /// <param name="arguments">Arguments as passed to the requesting executable.</param>
-        public ExecCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
+        public StartExecutableCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
             : base(engine, null, "Starting {0}", Path.GetFileName(assemblyPath)) {
             if (string.IsNullOrEmpty(assemblyPath)) {
                 throw new ArgumentNullException("assemblyPath");
