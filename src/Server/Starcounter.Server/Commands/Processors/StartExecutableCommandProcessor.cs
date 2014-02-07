@@ -49,6 +49,10 @@ namespace Starcounter.Server.Commands {
                     Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.ExecutablePath));
             }
 
+            if (string.IsNullOrWhiteSpace(command.ApplicationName)) {
+                throw ErrorCode.ToException(Error.SCERRMISSINGAPPLICATIONNAME);
+            }
+
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
             if (!databaseExist) {
                 throw ErrorCode.ToException(
@@ -64,6 +68,14 @@ namespace Starcounter.Server.Commands {
                     Error.SCERREXECUTABLEALREADYRUNNING,
                     string.Format("Executable {0} is already running in engine {1}.", command.ExecutablePath, command.DatabaseName)
                     );
+            }
+
+            app = database.Apps.Find(delegate(DatabaseApp candidate) {
+                return candidate.Name.Equals(command.ApplicationName, StringComparison.InvariantCultureIgnoreCase);
+            });
+            if (app != null) {
+                throw ErrorCode.ToException(
+                    Error.SCERRAPPLICATIONALREADYRUNNING, string.Format("Name \"{0}\".", command.ApplicationName));
             }
 
             codeHostProcess = database.GetRunningCodeHostProcess();
