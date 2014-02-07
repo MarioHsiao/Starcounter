@@ -113,7 +113,7 @@ namespace Starcounter.Server {
         /// Gets or sets the list of Apps currently known to the
         /// database represented by this instance.
         /// </summary>
-        internal List<DatabaseApp> Apps {
+        internal List<DatabaseApplication> Apps {
             get;
             set;
         }
@@ -128,7 +128,7 @@ namespace Starcounter.Server {
             this.Configuration = configuration;
             this.Name = this.Configuration.Name;
             this.Uri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), server.Name, this.Name).ToString();
-            this.Apps = new List<DatabaseApp>();
+            this.Apps = new List<DatabaseApplication>();
             this.CodeHostErrorOutput = new List<string>();
         }
 

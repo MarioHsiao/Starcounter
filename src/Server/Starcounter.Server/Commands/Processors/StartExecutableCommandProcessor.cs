@@ -34,7 +34,7 @@ namespace Starcounter.Server.Commands {
             string appRuntimeDirectory;
             string weavedExecutable;
             Database database;
-            DatabaseApp app;
+            DatabaseApplication app;
             Process codeHostProcess;
             bool databaseExist;
 
@@ -60,7 +60,7 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            app = database.Apps.Find(delegate(DatabaseApp candidate) {
+            app = database.Apps.Find(delegate(DatabaseApplication candidate) {
                 return candidate.OriginalExecutablePath.Equals(command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
             });
             if (app != null) {
@@ -70,7 +70,7 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            app = database.Apps.Find(delegate(DatabaseApp candidate) {
+            app = database.Apps.Find(delegate(DatabaseApplication candidate) {
                 return candidate.Name.Equals(command.ApplicationName, StringComparison.InvariantCultureIgnoreCase);
             });
             if (app != null) {
@@ -106,7 +106,7 @@ namespace Starcounter.Server.Commands {
 
                     var node = Node.LocalhostSystemPortNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-                    app = new DatabaseApp() {
+                    app = new DatabaseApplication() {
                         OriginalExecutablePath = command.ExecutablePath,
                         ApplicationFilePath = command.ApplicationFilePath,
                         WorkingDirectory = command.WorkingDirectory,

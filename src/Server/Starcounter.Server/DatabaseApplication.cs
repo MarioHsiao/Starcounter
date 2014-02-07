@@ -17,7 +17,7 @@ namespace Starcounter.Server {
     /// Represents an "App" as it relates to a <see cref="Database"/> under
     /// a given server.
     /// </summary>
-    internal sealed class DatabaseApp {
+    internal sealed class DatabaseApplication {
         /// <summary>
         /// Gets or sets the path to the original executable, i.e. the
         /// executable that caused the materialization of this instance.
@@ -101,7 +101,7 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Creates a snapshot of this <see cref="DatabaseApp"/> in the
+        /// Creates a snapshot of this <see cref="DatabaseApplication"/> in the
         /// form of a public model <see cref="AppInfo"/>.
         /// </summary>
         /// <returns>An <see cref="AppInfo"/> representing the current state
@@ -119,7 +119,7 @@ namespace Starcounter.Server {
 
         /// <summary>
         /// Creates an <see cref="Executable"/> instance based on the
-        /// properties of the current <see cref="DatabaseApp"/>.
+        /// properties of the current <see cref="DatabaseApplication"/>.
         /// </summary>
         /// <returns>An <see cref="Executable"/> representing the same
         /// application as the current instance.</returns>
