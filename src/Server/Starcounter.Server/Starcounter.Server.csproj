@@ -81,7 +81,7 @@
     <Compile Include="Commands\Processors\DropDeletedDatabaseFilesCommandProcessor.cs" />
     <Compile Include="Commands\Processors\InvokableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
-    <Compile Include="Commands\Processors\ExecCommandProcessor.Meta.cs" />
+    <Compile Include="Commands\Processors\StartExecutableCommandProcessor.Meta.cs" />
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.Meta.cs" />
     <Compile Include="Commands\Processors\StopDatabaseCommandProcessor.cs" />
@@ -128,8 +128,8 @@
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="PublicModel\Commands\ServerCommand.cs" />
-    <Compile Include="PublicModel\Commands\ExecCommand.cs" />
-    <Compile Include="Commands\Processors\ExecCommandProcessor.cs" />
+    <Compile Include="PublicModel\Commands\StartExecutableCommand.cs" />
+    <Compile Include="Commands\Processors\StartExecutableCommandProcessor.cs" />
     <Compile Include="Configuration\ConfigurationElement.cs" />
     <Compile Include="Configuration\ConfigurationFile.cs" />
     <Compile Include="Configuration\IConfigurationElement.cs" />

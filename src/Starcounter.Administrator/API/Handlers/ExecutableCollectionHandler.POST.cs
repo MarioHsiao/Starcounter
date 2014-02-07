@@ -39,14 +39,14 @@ namespace Starcounter.Administrator.API.Handlers {
                 userArgs[i++] = arg.dummy;
             }
 
-            var cmd = new ExecCommand(engine, exe.Path, exe.WorkingDirectory, userArgs);
+            var cmd = new StartExecutableCommand(engine, exe.Path, exe.WorkingDirectory, userArgs);
             cmd.ApplicationFilePath = exe.ApplicationFilePath;
             cmd.DatabaseName = name;
             cmd.EnableWaiting = !async;
             cmd.RunEntrypointAsynchronous = !exe.IsTool;
 
             var commandInfo = runtime.Execute(cmd);
-            Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
+            Trace.Assert(commandInfo.ProcessorToken == StartExecutableCommand.DefaultProcessor.Token);
             if (!async) {
                 commandInfo = runtime.Wait(commandInfo);
             } else if (!commandInfo.HasError) {
