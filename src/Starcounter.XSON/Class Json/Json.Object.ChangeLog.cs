@@ -27,12 +27,14 @@ namespace Starcounter {
 				if (Template != null) {
 					var tjson = (TObject)Template;
 
-					for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-						var property = tjson.Properties.ExposedProperties[i] as TValue;
-						if (property != null) {
-							property.Checkpoint(this);
-						}
-					}
+                    this.ExecuteInScope(() => {
+                        for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
+                            var property = tjson.Properties.ExposedProperties[i] as TValue;
+                            if (property != null) {
+                                property.Checkpoint(this);
+                            }
+                        }
+                    });
 				}
 			}
 			_Dirty = false;

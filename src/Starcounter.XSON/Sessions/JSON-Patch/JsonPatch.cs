@@ -140,7 +140,7 @@ namespace Starcounter.Internal.JsonPatch {
 				} else {
                     nearestApp.ExecuteInScope(() => {
                         sb.Append(from.ValueToJsonString(nearestApp));
-                    }, true);
+                    });
                 }
             }
             sb.Append('}');
