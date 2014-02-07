@@ -50,6 +50,14 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Gets or sets the logical name of the application.
+        /// </summary>
+        public string Name {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets the working directory of the App.
         /// </summary>
         public string WorkingDirectory {
