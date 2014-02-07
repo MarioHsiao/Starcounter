@@ -30,6 +30,11 @@ namespace Starcounter.Server.PublicModel.Commands {
         public readonly string ExecutablePath;
 
         /// <summary>
+        /// Gets the logical name of the application about to be started.
+        /// </summary>
+        public readonly string ApplicationName;
+
+        /// <summary>
         /// Path to the application file that was used to invoke the
         /// starting of the about-to-be-started application.
         /// </summary>
@@ -94,14 +99,20 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// <param name="engine">The <see cref="ServerEngine"/> where this command
         /// are to execute.</param>
         /// <param name="assemblyPath">Path to the assembly requesting to start.</param>
+        /// <param name="applicationName">The name of the application about to be started.</param>
         /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
         /// <param name="arguments">Arguments as passed to the requesting executable.</param>
-        public StartExecutableCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
-            : base(engine, null, "Starting {0}", Path.GetFileName(assemblyPath)) {
+        public StartExecutableCommand(ServerEngine engine, string assemblyPath, string applicationName, string workingDirectory, string[] arguments)
+            : base(engine, null, "Starting {0}", applicationName) {
             if (string.IsNullOrEmpty(assemblyPath)) {
                 throw new ArgumentNullException("assemblyPath");
             }
+            if (string.IsNullOrEmpty(applicationName)) {
+                throw new ArgumentNullException("applicationName");
+            }
+
             this.ExecutablePath = assemblyPath;
+            this.ApplicationName = applicationName;
             if (string.IsNullOrEmpty(workingDirectory)) {
                 workingDirectory = Path.GetDirectoryName(this.ExecutablePath);
             }
