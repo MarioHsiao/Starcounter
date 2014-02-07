@@ -204,11 +204,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// HTML part of the JSON.
-        /// </summary>
-        public String Html { get; set; }
-
-        /// <summary>
         /// Refreshes the specified property of this Obj.
         /// </summary>
         /// <param name="property">The property</param>

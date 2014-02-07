@@ -102,7 +102,7 @@
                                     <!-- Header Description -->
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                         The server is designed with the developer in focus. It is a lightweight server installation with a minimum impact on the target computer. It will typically run as a standard Windows process under the credentials of the currently logged in user.
-                        <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                        <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
                                     </TextBlock>
 
                                     <!-- Properties -->
@@ -262,7 +262,7 @@
 
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                                   The system server is the server you typically will want to use in a production environment. It will install as a Windows service and as such, it's lifetime is managed by, and configured in, the underlying operating system.
-                                  <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                  <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
                                     </TextBlock>
 
                                     <StackPanel Margin="0,5,0,2.5" Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
