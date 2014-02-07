@@ -103,7 +103,7 @@
     <Compile Include="CoreServices\GatewayService.cs" />
     <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
-    <Compile Include="DatabaseApp.cs" />
+    <Compile Include="DatabaseApplication.cs" />
     <Compile Include="Service\ServerService.cs" />
     <Compile Include="Setup\ServerServiceSetup.cs">
       <SubType>Code</SubType>
