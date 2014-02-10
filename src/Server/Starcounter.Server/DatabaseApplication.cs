@@ -1,9 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="DatabaseApp.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Starcounter.Bootstrap.Management.Representations.JSON;
 using Starcounter.Server.PublicModel;
 using System;
@@ -14,74 +9,26 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Server {
     /// <summary>
-    /// Represents an "App" as it relates to a <see cref="Database"/> under
-    /// a given server.
+    /// Represents an application as it relates to a <see cref="Database"/>
+    /// under a given server.
     /// </summary>
     internal sealed class DatabaseApplication {
         /// <summary>
-        /// Gets or sets the path to the original executable, i.e. the
-        /// executable that caused the materialization of this instance.
+        /// Holds the application information for the current database
+        /// application, as kept by the server engine.
         /// </summary>
-        internal string OriginalExecutablePath {
-            get;
-            set;
-        }
+        public readonly AppInfo Info;
 
         /// <summary>
-        /// Path to the application file that was used to invoke the
-        /// starting of the current application.
+        /// Initialize a new <see cref="DatabaseApplication"/> based
+        /// on the given application information.
         /// </summary>
-        /// <remarks>
-        /// <see cref="Starcounter.Server.PublicModel.AppInfo.ApplicationFilePath"/>
-        /// </remarks>
-        public string ApplicationFilePath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the logical name of the application.
-        /// </summary>
-        public string Name {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the server key for this executable. A key must
-        /// be assured to be unique within the scope of a single database.
-        /// </summary>
-        internal string Key { 
-            get; 
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the path to the executable file actually being
-        /// loaded into the database, i.e. normally to the file after it
-        /// has been weaved.
-        /// </summary>
-        internal string ExecutionPath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the working directory of the App.
-        /// </summary>
-        internal string WorkingDirectory {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the full argument set passed to the executable when
-        /// started, possibly including both arguments targeting Starcounter
-        /// and/or the actual App Main.
-        /// </summary>
-        internal string[] Arguments {
-            get;
-            set;
+        /// <param name="info"></param>
+        public DatabaseApplication(AppInfo info) {
+            if (info == null) {
+                throw new ArgumentNullException("info");
+            }
+            Info = info;
         }
 
         /// <summary>
@@ -107,14 +54,7 @@ namespace Starcounter.Server {
         /// <returns>An <see cref="AppInfo"/> representing the current state
         /// of this executable.</returns>
         internal AppInfo ToPublicModel() {
-            return new AppInfo() {
-                ExecutablePath = this.OriginalExecutablePath,
-                ApplicationFilePath = this.ApplicationFilePath,
-                Name = this.Name,
-                ExecutionPath = this.ExecutionPath,
-                Arguments = this.Arguments,
-                Key = this.Key
-            };
+            return Info.DeepClone();
         }
 
         /// <summary>
@@ -124,15 +64,16 @@ namespace Starcounter.Server {
         /// <returns>An <see cref="Executable"/> representing the same
         /// application as the current instance.</returns>
         internal Executable ToExecutable() {
+            var info = Info;
             var exe = new Executable();
-            exe.Path = this.ExecutionPath;
+            exe.Path = this.Info.ExecutionPath;
 
-            exe.PrimaryFile = this.OriginalExecutablePath;
-            exe.ApplicationFilePath = this.ApplicationFilePath;
-            exe.Name = this.Name;
-            exe.WorkingDirectory = this.WorkingDirectory;
-            if (this.Arguments != null) {
-                foreach (var argument in this.Arguments) {
+            exe.PrimaryFile = this.Info.ExecutablePath;
+            exe.ApplicationFilePath = this.Info.ApplicationFilePath;
+            exe.Name = this.Info.Name;
+            exe.WorkingDirectory = this.Info.WorkingDirectory;
+            if (this.Info.Arguments != null) {
+                foreach (var argument in this.Info.Arguments) {
                     exe.Arguments.Add().dummy = argument;
                 }
             }

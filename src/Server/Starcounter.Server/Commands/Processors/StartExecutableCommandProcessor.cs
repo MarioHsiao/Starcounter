@@ -3,6 +3,7 @@ using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management;
 using Starcounter.Internal;
 using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Diagnostics;
@@ -44,12 +45,12 @@ namespace Starcounter.Server.Commands {
             database = null;
             codeHostProcess = null;
 
-            if (!File.Exists(command.ExecutablePath)) {
+            if (!File.Exists(command.Application.ExecutablePath)) {
                 throw ErrorCode.ToException(
-                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.ExecutablePath));
+                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.Application.ExecutablePath));
             }
 
-            if (string.IsNullOrWhiteSpace(command.ApplicationName)) {
+            if (string.IsNullOrWhiteSpace(command.Application.Name)) {
                 throw ErrorCode.ToException(Error.SCERRMISSINGAPPLICATIONNAME);
             }
 
@@ -60,22 +61,22 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            app = database.Apps.Find(delegate(DatabaseApplication candidate) {
-                return candidate.OriginalExecutablePath.Equals(command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
+            app = database.Apps.Find((candidate) => {
+                return candidate.Info.EqualBinaryFile(command.Application);
             });
             if (app != null) {
                 throw ErrorCode.ToException(
                     Error.SCERREXECUTABLEALREADYRUNNING,
-                    string.Format("Executable {0} is already running in engine {1}.", command.ExecutablePath, command.DatabaseName)
+                    string.Format("Executable {0} is already running in database {1}.", command.Application.ExecutablePath, command.DatabaseName)
                     );
             }
 
-            app = database.Apps.Find(delegate(DatabaseApplication candidate) {
-                return candidate.Name.Equals(command.ApplicationName, StringComparison.InvariantCultureIgnoreCase);
+            app = database.Apps.Find((candidate) => {
+                return candidate.Info.Name.Equals(command.Application.Name, StringComparison.InvariantCultureIgnoreCase);
             });
             if (app != null) {
                 throw ErrorCode.ToException(
-                    Error.SCERRAPPLICATIONALREADYRUNNING, string.Format("Name \"{0}\".", command.ApplicationName));
+                    Error.SCERRAPPLICATIONALREADYRUNNING, string.Format("Name \"{0}\".", command.Application.Name));
             }
 
             codeHostProcess = database.GetRunningCodeHostProcess();
@@ -86,16 +87,16 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            var exeKey = Engine.ExecutableService.CreateKey(command.ExecutablePath);
+            var exeKey = Engine.ExecutableService.CreateKey(command.Application.ExecutablePath);
             WithinTask(Task.PrepareExecutable, (task) => {
                 weaver = Engine.WeaverService;
                 appRuntimeDirectory = Path.Combine(database.ExecutableBasePath, exeKey);
 
                 if (command.NoDb) {
-                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.ExecutablePath, appRuntimeDirectory);
+                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.ExecutablePath, appRuntimeDirectory);
                     OnAssembliesCopiedToRuntimeDirectory();
                 } else {
-                    weavedExecutable = weaver.Weave(command.ExecutablePath, appRuntimeDirectory);
+                    weavedExecutable = weaver.Weave(command.Application.ExecutablePath, appRuntimeDirectory);
                     OnWeavingCompleted();
                 }
             });
@@ -106,17 +107,14 @@ namespace Starcounter.Server.Commands {
 
                     var node = Node.LocalhostSystemPortNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-                    app = new DatabaseApplication() {
-                        OriginalExecutablePath = command.ExecutablePath,
-                        ApplicationFilePath = command.ApplicationFilePath,
-                        WorkingDirectory = command.WorkingDirectory,
-                        Arguments = command.Arguments,
-                        ExecutionPath = weavedExecutable,
-                        Key = exeKey,
-                        IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous
-                    };
-                    var exe = app.ToExecutable();
 
+                    command.Application.Key = exeKey;
+                    command.Application.ExecutionPath = weavedExecutable;
+
+                    app = new DatabaseApplication(command.Application);
+                    app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;
+
+                    var exe = app.ToExecutable();
                     if (exe.RunEntrypointAsynchronous) {
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.
