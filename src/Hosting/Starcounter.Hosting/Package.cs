@@ -243,6 +243,9 @@ namespace Starcounter.Hosting {
                 QueryModule.UpdateSchemaInfo(typeDefs);
 
                 OnQueryModuleSchemaInfoUpdated();
+
+                PopulateClrViewsMetaData(typeDefs);
+                OnPopulateClrViewsMetaData();
             }
         }
 
@@ -310,6 +313,12 @@ namespace Starcounter.Hosting {
             }
         }
 
+        private void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
+            foreach (TypeDef typeDef in typeDefs) {
+                var dbType = typeDef.PropertyDefs[0].Type;
+            }
+        }
+
         private void OnProcessingStarted() { Trace("Package started."); }
         private void OnInternalHandlersRegistered() { Trace("Internal handlers were registered."); }
         private void OnDatabaseSchemaCheckedAndUpdated() { Trace("Database schema checked and updated."); }
@@ -318,6 +327,7 @@ namespace Starcounter.Hosting {
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
+        private void OnPopulateClrViewsMetaData() { Trace("CLR view meta-data were populated for the given types."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)

@@ -137,6 +137,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_MaterializedType;
             internal static int columnHandle_WriteLoss;
             internal static int columnHandle_ReadLoss;
+            internal static int columnHandle_DbTypeCode;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -161,13 +162,15 @@ namespace Starcounter.Metadata {
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedType", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("WriteLoss", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, false)
+                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("DbTypeCode", sccoredb.STAR_TYPE_ULONG, false,false)
                 },
                 new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("MaterializedType", DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
-                    new PropertyDef("WriteLoss", DbTypeCode.Boolean),
-                    new PropertyDef("ReadLoss",  DbTypeCode.Boolean)
+                    new PropertyDef("Name", Starcounter.Binding.DbTypeCode.String),
+                    new PropertyDef("MaterializedType", Starcounter.Binding.DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
+                    new PropertyDef("WriteLoss", Starcounter.Binding.DbTypeCode.Boolean),
+                    new PropertyDef("ReadLoss",  Starcounter.Binding.DbTypeCode.Boolean),
+                    new PropertyDef("DbTypeCode", Starcounter.Binding.DbTypeCode.UInt16)
                 });
         }
 
@@ -204,6 +207,14 @@ namespace Starcounter.Metadata {
             get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_ReadLoss); }
             internal set {
                 DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_ReadLoss,
+                    value);
+            }
+        }
+
+        public UInt16 DbTypeCode {
+            get { return DbState.ReadUInt16(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_DbTypeCode); }
+            internal set {
+                DbState.WriteUInt16(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_DbTypeCode,
                     value);
             }
         }
@@ -246,10 +257,10 @@ namespace Starcounter.Metadata {
                     new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, true)
                 },
                 new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("MaterializedType", DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
-                    new PropertyDef("WriteLoss", DbTypeCode.Boolean),
-                    new PropertyDef("ReadLoss",  DbTypeCode.Boolean)
+                    new PropertyDef("Name", Starcounter.Binding.DbTypeCode.String),
+                    new PropertyDef("MaterializedType", Starcounter.Binding.DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
+                    new PropertyDef("WriteLoss", Starcounter.Binding.DbTypeCode.Boolean),
+                    new PropertyDef("ReadLoss",  Starcounter.Binding.DbTypeCode.Boolean)
                 });
         }
 
