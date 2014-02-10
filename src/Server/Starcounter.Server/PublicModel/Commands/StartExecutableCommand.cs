@@ -1,8 +1,4 @@
 ﻿
-using System;
-using System.IO;
-using System.Linq;
-using Starcounter.Internal;
 using Starcounter.Server.Commands;
 
 namespace Starcounter.Server.PublicModel.Commands {
@@ -25,42 +21,13 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Gets the path to the executable file requesting to start.
+        /// The application that is to be started.
         /// </summary>
-        public readonly string ExecutablePath;
+        public readonly AppInfo Application;
 
         /// <summary>
-        /// Gets the logical name of the application about to be started.
-        /// </summary>
-        public readonly string ApplicationName;
-
-        /// <summary>
-        /// Path to the application file that was used to invoke the
-        /// starting of the about-to-be-started application.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="Starcounter.Server.PublicModel.AppInfo.ApplicationFilePath"/>
-        /// </remarks>
-        public string ApplicationFilePath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets the path to the directory the requesting executable
-        /// has given as it's working directory;
-        /// </summary>
-        public readonly string WorkingDirectory;
-
-        /// <summary>
-        /// Gets the arguments with which the requesting executable
-        /// was started with.
-        /// </summary>
-        public readonly string[] Arguments;
-
-        /// <summary>
-        /// Gets or sets the name of the database the App should load
-        /// into.
+        /// Gets or sets the name of the database the specified application
+        /// should load into.
         /// </summary>
         public string DatabaseName {
             get { return databaseName; }
@@ -98,26 +65,14 @@ namespace Starcounter.Server.PublicModel.Commands {
         /// </summary>
         /// <param name="engine">The <see cref="ServerEngine"/> where this command
         /// are to execute.</param>
-        /// <param name="assemblyPath">Path to the assembly requesting to start.</param>
-        /// <param name="applicationName">The name of the application about to be started.</param>
-        /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
-        /// <param name="arguments">Arguments as passed to the requesting executable.</param>
-        public StartExecutableCommand(ServerEngine engine, string assemblyPath, string applicationName, string workingDirectory, string[] arguments)
-            : base(engine, null, "Starting {0}", applicationName) {
-            if (string.IsNullOrEmpty(assemblyPath)) {
-                throw new ArgumentNullException("assemblyPath");
-            }
-            if (string.IsNullOrEmpty(applicationName)) {
-                throw new ArgumentNullException("applicationName");
-            }
-
-            this.ExecutablePath = assemblyPath;
-            this.ApplicationName = applicationName;
-            if (string.IsNullOrEmpty(workingDirectory)) {
-                workingDirectory = Path.GetDirectoryName(this.ExecutablePath);
-            }
-            this.WorkingDirectory = workingDirectory;
-            this.Arguments = arguments;
+        /// <param name="application">The application whose executable are to be
+        /// started.</param>
+        /// <param name="databaseName">The database the given application should be
+        /// started in.</param>
+        public StartExecutableCommand(ServerEngine engine, string databaseName, AppInfo application) 
+            : base(engine, null, "Starting {0} in {1}", application.Name, databaseName) {
+            this.Application = application;
+            this.DatabaseName = databaseName;
         }
 
         /// <inheritdoc />
