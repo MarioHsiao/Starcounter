@@ -42,7 +42,7 @@ namespace Starcounter.Server.Commands {
             if (app == null) {
                 var shortName = command.Executable;
                 foreach (var candidate in database.Apps) {
-                    var candidateName = Path.GetFileName(candidate.Info.ExecutablePath);
+                    var candidateName = Path.GetFileName(candidate.Info.BinaryFilePath);
                     if (candidateName.Equals(shortName, StringComparison.InvariantCultureIgnoreCase)) {
                         if (app == null) {
                             app = candidate;
@@ -63,7 +63,7 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            Log.Debug("Stopping executable \"{0}\" in database \"{1}\"", app.Info.ExecutablePath, database.Name);
+            Log.Debug("Stopping executable \"{0}\" in database \"{1}\"", app.Info.BinaryFilePath, database.Name);
 
             // Clone the set of applications before we stop the host.
             // Then stop the host, restart the host and restart every
@@ -102,7 +102,7 @@ namespace Starcounter.Server.Commands {
 
                         var exe = fellow.ToExecutable();
 
-                        Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.Info.ExecutablePath, database.Name);
+                        Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.Info.BinaryFilePath, database.Name);
 
                         if (exe.RunEntrypointAsynchronous) {
                             node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
