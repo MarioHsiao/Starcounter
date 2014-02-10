@@ -45,7 +45,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 exe.Description = string.Format("\"{0}\" running in {1} (Exe key:{2}, Host PID:{3})",
                     Path.GetFileName(exeState.BinaryFilePath), name, exeState.Key, engineState.HostProcessId);
                 exe.Path = exeState.BinaryFilePath;
-                exe.ApplicationFilePath = exeState.ApplicationFilePath;
+                exe.ApplicationFilePath = exeState.FilePath;
                 exe.Name = exeState.Name;
                 exe.DefaultUserPort = state.Configuration.Runtime.DefaultUserHttpPort;
                 exe.RuntimeInfo.LoadPath = exeState.ExecutionPath;
