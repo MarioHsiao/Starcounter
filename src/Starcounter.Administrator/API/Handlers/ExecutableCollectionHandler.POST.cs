@@ -95,7 +95,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var result = (DatabaseInfo) commandInfo.Result;
             var headers = new Dictionary<string, string>(2);
-            var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.Application.ExecutablePath, headers);
+            var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.Application.BinaryFilePath, headers);
             exeCreated.StartedBy = exe.StartedBy;
             exeCreated.Arguments = exe.Arguments;
             exeCreated.IsTool = exe.IsTool;

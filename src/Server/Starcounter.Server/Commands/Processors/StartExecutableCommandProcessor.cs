@@ -45,9 +45,9 @@ namespace Starcounter.Server.Commands {
             database = null;
             codeHostProcess = null;
 
-            if (!File.Exists(command.Application.ExecutablePath)) {
+            if (!File.Exists(command.Application.BinaryFilePath)) {
                 throw ErrorCode.ToException(
-                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.Application.ExecutablePath));
+                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.Application.BinaryFilePath));
             }
 
             if (string.IsNullOrWhiteSpace(command.Application.Name)) {
@@ -67,7 +67,7 @@ namespace Starcounter.Server.Commands {
             if (app != null) {
                 throw ErrorCode.ToException(
                     Error.SCERREXECUTABLEALREADYRUNNING,
-                    string.Format("Executable {0} is already running in database {1}.", command.Application.ExecutablePath, command.DatabaseName)
+                    string.Format("Executable {0} is already running in database {1}.", command.Application.BinaryFilePath, command.DatabaseName)
                     );
             }
 
@@ -87,16 +87,16 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            var exeKey = Engine.ExecutableService.CreateKey(command.Application.ExecutablePath);
+            var exeKey = Engine.ExecutableService.CreateKey(command.Application.BinaryFilePath);
             WithinTask(Task.PrepareExecutable, (task) => {
                 weaver = Engine.WeaverService;
                 appRuntimeDirectory = Path.Combine(database.ExecutableBasePath, exeKey);
 
                 if (command.NoDb) {
-                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.ExecutablePath, appRuntimeDirectory);
+                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.BinaryFilePath, appRuntimeDirectory);
                     OnAssembliesCopiedToRuntimeDirectory();
                 } else {
-                    weavedExecutable = weaver.Weave(command.Application.ExecutablePath, appRuntimeDirectory);
+                    weavedExecutable = weaver.Weave(command.Application.BinaryFilePath, appRuntimeDirectory);
                     OnWeavingCompleted();
                 }
             });

@@ -7,8 +7,8 @@ namespace Starcounter.Server.PublicModel {
     /// </summary>
     public sealed class AppInfo {
         /// <summary>
-        /// Gets the principal path of the executable originally
-        /// starting the App.
+        /// Gets the path of the application binary file of the
+        /// current application.
         /// </summary>
         /// <remarks>
         /// This path is not neccessary (and even most likely not)
@@ -17,7 +17,7 @@ namespace Starcounter.Server.PublicModel {
         /// and when they are actually becoming hosted, and hosting is
         /// normally done from a copy, running in another directory.
         /// </remarks>
-        public readonly string ExecutablePath;
+        public readonly string BinaryFilePath;
 
         /// <summary>
         /// Path to the application file that was used to invoke the
@@ -84,8 +84,8 @@ namespace Starcounter.Server.PublicModel {
 
             this.ApplicationFilePath = applicationFile;
             this.Name = name ?? Path.GetFileName(applicationFile);
-            this.ExecutablePath = applicationBinaryFile ?? applicationFile;
-            this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(ExecutablePath);
+            this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
+            this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
             this.Arguments = arguments;
         }
 
@@ -99,7 +99,7 @@ namespace Starcounter.Server.PublicModel {
         /// same binary file as <paramref name="other"/>; <c>false otherwise.
         /// </c></returns>
         public bool EqualBinaryFile(AppInfo other) {
-            return ExecutablePath.Equals(other.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
+            return BinaryFilePath.Equals(other.BinaryFilePath, StringComparison.InvariantCultureIgnoreCase);
         }
 
         /// <summary>
