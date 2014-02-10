@@ -4,21 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using Starcounter;
-
-using Starcounter.Templates;
-using Starcounter.Advanced;
 using System.Collections;
-using Starcounter.Internal.XSON;
-using System.Text;
-using System.Diagnostics;
+using Starcounter.Templates;
 
 namespace Starcounter {
-
-
-
     public partial class Json {
 
         /// <summary>
@@ -49,8 +38,68 @@ namespace Starcounter {
             _PendingEnumeration = true;
         }
 
+        /// <summary>
+        /// Initializes this Arr and sets the template and parent if not already done.
+        /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
+        /// </summary>
+        /// <paramCheckpointChangeLogparent"></param>
+        /// <param name="template"></param>
+        /// <remarks>
+        /// This method can be called several times, the initialization only occurs once.
+        /// </remarks>
+        internal void Array_InitializeAfterImplicitConversion(Json parent, TObjArr template) {
+            Json newApp;
 
+            if (Template == null) {
+                Template = template;
+                Parent = parent;
+            }
 
+            if (_PendingEnumeration) {
+                var notEnumeratedResult = (IEnumerable)_data;
+                foreach (var entity in notEnumeratedResult) {
+                    if (entity is Json) {
+                        Add(entity);
+                    } else {
+                        var tobj = template.ElementType;
+                        if (tobj == null) {
+                            template.CreateElementTypeFromDataObject(entity);
+                            tobj = template.ElementType;
+                        }
+                        newApp = (Json)tobj.CreateInstance(this);
+                        Add(newApp);
+                        newApp.Data = entity;
+                    }
+                }
+                _PendingEnumeration = false;
+            }
+            parent._CallHasChanged(template);
+        }
+
+        internal void InternalClear() {
+            int indexesToRemove;
+            var app = this.Parent;
+            TObjArr property = (TObjArr)this.Template;
+            indexesToRemove = list.Count;
+            for (int i = (indexesToRemove - 1); i >= 0; i--) {
+                app.ChildArrayHasRemovedAnElement(property, i);
+            }
+            list.Clear();
+        }
+
+        public Json Add() {
+            var elementType = ((TObjArr)this.Template).ElementType;
+            Json x;
+            if (elementType == null) {
+                x = new Json();
+            } else {
+                x = (Json)elementType.CreateInstance(this);
+            }
+
+            //            var x = new App() { Template = ((TArr)this.Template).App };
+            Add(x);
+            return x;
+        }
     }
 }
 
