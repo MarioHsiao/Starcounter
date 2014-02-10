@@ -1,69 +1,16 @@
 ﻿
+using Starcounter.Hosting;
 using System;
 using System.IO;
+
 namespace Starcounter.Server.PublicModel {
     /// <summary>
-    /// Exposes the properties of a Starcounter application.
+    /// Represents a Starcounter application as maintained by the
+    /// server.
     /// </summary>
-    public sealed class AppInfo {
+    public sealed class AppInfo : ApplicationBase {
         /// <summary>
-        /// Gets or sets the logical name of the application.
-        /// </summary>
-        public readonly string Name;
-        
-        /// <summary>
-        /// Gets the path of the application binary file of the
-        /// current application.
-        /// </summary>
-        /// <remarks>
-        /// This path is not neccessary (and even most likely not)
-        /// the path to the executable really loaded, since Starcounter
-        /// will process App executables in between them being launched
-        /// and when they are actually becoming hosted, and hosting is
-        /// normally done from a copy, running in another directory.
-        /// </remarks>
-        public readonly string BinaryFilePath;
-
-        /// <summary>
-        /// Path to the application file that was used to invoke the
-        /// starting of the current application.
-        /// </summary>
-        /// <remarks>
-        /// In the simplest scenario, this path will be equal to 
-        /// <c>BinaryFilePath</c>, but in a scenario where there is a
-        /// transform between the input and the actual executable
-        /// (e.g when the input is a source code file), this property
-        /// will return the path of the source code file while the
-        /// <c>BinaryFilePath</c> will return the path to the assembly
-        /// compiled on the fly.
-        /// </remarks>
-        public readonly string FilePath;
-
-        /// <summary>
-        /// Gets or sets the path from which the represented application
-        /// actually runs (governed by the server).
-        /// </summary>
-        public string HostedFilePath {
-            get;
-            internal set;
-        }
-
-        /// <summary>
-        /// Gets the working directory of the App.
-        /// </summary>
-        public readonly string WorkingDirectory;
-
-        /// <summary>
-        /// Gets or sets the full argument set passed to the executable when
-        /// started, possibly including both arguments targeting Starcounter
-        /// and/or the actual App Main.
-        /// </summary>
-        public readonly string[] Arguments;
-
-        
-
-        /// <summary>
-        /// Gets or sets the server key for this executable. A key must
+        /// Gets or sets the server key for this application. A key must
         /// be assured to be unique within the scope of a single database.
         /// </summary>
         public string Key {
@@ -79,16 +26,8 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="applicationBinaryFile">The application binary.</param>
         /// <param name="workingDirectory">The working directory.</param>
         /// <param name="arguments">The arguments with which the application was started.</param>
-        public AppInfo(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments) {
-            if (string.IsNullOrEmpty(applicationFile)) {
-                throw new ArgumentNullException("applicationFile");
-            }
-
-            this.FilePath = applicationFile;
-            this.Name = name ?? Path.GetFileName(applicationFile);
-            this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
-            this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
-            this.Arguments = arguments;
+        public AppInfo(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments)
+            : base(name, applicationFile, applicationBinaryFile, workingDirectory, arguments) {
         }
 
         /// <summary>
