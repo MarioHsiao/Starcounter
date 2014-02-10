@@ -13,6 +13,7 @@ using Codeplex.Data;
 using Starcounter.Internal.JsonPatch;
 using System.Collections.Generic;
 using Starcounter.Rest;
+using Starcounter.Logging;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -356,20 +357,8 @@ namespace Starcounter.Internal.Web {
         /// <param name="ex">The ex.</param>
         /// <returns>String.</returns>
         private String GetExceptionString(Exception ex) {
-            Exception inner;
-            StringBuilder sb = new StringBuilder();
-
-            sb.AppendLine(ex.Message);
-            sb.AppendLine(ex.StackTrace);
-
-            inner = ex.InnerException;
-            while (inner != null) {
-                sb.Append("-->");
-                sb.AppendLine(inner.Message);
-                sb.AppendLine(inner.StackTrace);
-                inner = inner.InnerException;
-            }
-            return sb.ToString();
+            string errormsg = ExceptionFormatter.ExceptionToString(ex);
+            return errormsg;
         }
 
         /// <summary>
