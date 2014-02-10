@@ -40,6 +40,15 @@ namespace Starcounter.Server.PublicModel {
         public readonly string FilePath;
 
         /// <summary>
+        /// Gets or sets the path from which the represented application
+        /// actually runs (governed by the server).
+        /// </summary>
+        public string HostedFilePath {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Gets the working directory of the App.
         /// </summary>
         public readonly string WorkingDirectory;
@@ -51,14 +60,7 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         public readonly string[] Arguments;
 
-        /// <summary>
-        /// Gets or sets the path from which the represented executable
-        /// actually runs (governed by the server).
-        /// </summary>
-        public string ExecutionPath {
-            get;
-            internal set;
-        }
+        
 
         /// <summary>
         /// Gets or sets the server key for this executable. A key must
