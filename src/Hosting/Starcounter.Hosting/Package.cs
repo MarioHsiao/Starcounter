@@ -136,7 +136,7 @@ namespace Starcounter.Hosting {
                 }
                 application = new Application() {
                     FileName = this.PrimaryFilePath,
-                    LoadPath = this.assembly_.Location,
+                    HostedFilePath = this.assembly_.Location,
                     WorkingDirectory = this.WorkingDirectory,
                     Arguments = this.EntrypointArguments
                 };

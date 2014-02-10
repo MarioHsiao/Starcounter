@@ -122,7 +122,7 @@ namespace Starcounter {
         internal static void Index(Application application) {
             if (application == null) throw new ArgumentNullException("application");
             lock (monitor) {
-                indexLoadPath.Add(application.LoadPath, application);
+                indexLoadPath.Add(application.HostedFilePath, application);
 
                 var fileName = Path.GetFileName(application.FileName);
                 if (indexFileName.ContainsKey(fileName)) {
@@ -154,7 +154,7 @@ namespace Starcounter {
         /// Gets the full path of the file actually loaded in the code
         /// host.
         /// </summary>
-        public string LoadPath { get; internal set; }
+        public string HostedFilePath { get; internal set; }
 
         /// <summary>
         /// Gets the logical working directory of the current <see cref="Application"/>.
