@@ -123,7 +123,7 @@ namespace Starcounter.Templates {
 				arr.CheckBoundArray(BoundGetter(parent));
 			}
 
-			return UnboundGetter(parent);
+            return arr;
 		}
 
 		internal override object GetUnboundValueAsObject(Json parent) {
