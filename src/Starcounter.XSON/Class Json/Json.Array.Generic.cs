@@ -1,11 +1,7 @@
 ﻿
-
-using Starcounter.Advanced;
-using Starcounter.Internal.XSON;
-using Starcounter.Templates;
-using System;
 using System.Collections;
-using System.Collections.Generic;
+using Starcounter.Templates;
+
 namespace Starcounter {
     /// <summary>
     /// 
