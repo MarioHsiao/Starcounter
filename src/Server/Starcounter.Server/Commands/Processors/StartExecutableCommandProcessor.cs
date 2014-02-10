@@ -109,7 +109,7 @@ namespace Starcounter.Server.Commands {
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                     command.Application.Key = exeKey;
-                    command.Application.ExecutionPath = weavedExecutable;
+                    command.Application.HostedFilePath = weavedExecutable;
 
                     app = new DatabaseApplication(command.Application);
                     app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;

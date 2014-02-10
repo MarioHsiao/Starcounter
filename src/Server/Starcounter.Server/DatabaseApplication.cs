@@ -66,7 +66,7 @@ namespace Starcounter.Server {
         internal Executable ToExecutable() {
             var info = Info;
             var exe = new Executable();
-            exe.Path = this.Info.ExecutionPath;
+            exe.Path = this.Info.HostedFilePath;
 
             exe.PrimaryFile = this.Info.BinaryFilePath;
             exe.ApplicationFilePath = this.Info.FilePath;

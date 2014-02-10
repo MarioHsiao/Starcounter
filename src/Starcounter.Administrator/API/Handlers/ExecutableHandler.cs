@@ -48,7 +48,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 exe.ApplicationFilePath = exeState.FilePath;
                 exe.Name = exeState.Name;
                 exe.DefaultUserPort = state.Configuration.Runtime.DefaultUserHttpPort;
-                exe.RuntimeInfo.LoadPath = exeState.ExecutionPath;
+                exe.RuntimeInfo.LoadPath = exeState.HostedFilePath;
 
                 if (headers != null) {
                     headers.Add("ETag", engineState.Fingerprint);
