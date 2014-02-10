@@ -143,9 +143,7 @@ namespace StarcounterInternal.Hosting
 
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef },
-                null,
-                stopwatch_,
-                true
+                stopwatch_
                 );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
@@ -265,10 +263,12 @@ namespace StarcounterInternal.Hosting
 
             OnTargetAssemblyLoaded();
 
-            Package package = new Package(unregisteredTypeDefs.ToArray(), 
-                                          assembly, 
-                                          stopwatch_, 
-                                          execEntryPointSynchronously);
+            Package package = new Package(
+                unregisteredTypeDefs.ToArray(), 
+                stopwatch_,
+                assembly, 
+                execEntryPointSynchronously
+            );
             if (!string.IsNullOrEmpty(workingDirectory))
             {
                 package.WorkingDirectory = workingDirectory;
