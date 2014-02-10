@@ -69,7 +69,7 @@ namespace Starcounter.Server {
             exe.Path = this.Info.ExecutionPath;
 
             exe.PrimaryFile = this.Info.BinaryFilePath;
-            exe.ApplicationFilePath = this.Info.ApplicationFilePath;
+            exe.ApplicationFilePath = this.Info.FilePath;
             exe.Name = this.Info.Name;
             exe.WorkingDirectory = this.Info.WorkingDirectory;
             if (this.Info.Arguments != null) {

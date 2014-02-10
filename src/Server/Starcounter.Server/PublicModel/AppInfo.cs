@@ -7,6 +7,11 @@ namespace Starcounter.Server.PublicModel {
     /// </summary>
     public sealed class AppInfo {
         /// <summary>
+        /// Gets or sets the logical name of the application.
+        /// </summary>
+        public readonly string Name;
+        
+        /// <summary>
         /// Gets the path of the application binary file of the
         /// current application.
         /// </summary>
@@ -25,19 +30,14 @@ namespace Starcounter.Server.PublicModel {
         /// </summary>
         /// <remarks>
         /// In the simplest scenario, this path will be equal to 
-        /// <c>ExecutablePath</c>, but in a scenario where there is a
+        /// <c>BinaryFilePath</c>, but in a scenario where there is a
         /// transform between the input and the actual executable
         /// (e.g when the input is a source code file), this property
         /// will return the path of the source code file while the
-        /// <c>ExecutablePath</c> will return the path to the assembly
+        /// <c>BinaryFilePath</c> will return the path to the assembly
         /// compiled on the fly.
         /// </remarks>
-        public readonly string ApplicationFilePath;
-
-        /// <summary>
-        /// Gets or sets the logical name of the application.
-        /// </summary>
-        public readonly string Name;
+        public readonly string FilePath;
 
         /// <summary>
         /// Gets the working directory of the App.
@@ -82,7 +82,7 @@ namespace Starcounter.Server.PublicModel {
                 throw new ArgumentNullException("applicationFile");
             }
 
-            this.ApplicationFilePath = applicationFile;
+            this.FilePath = applicationFile;
             this.Name = name ?? Path.GetFileName(applicationFile);
             this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
             this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
