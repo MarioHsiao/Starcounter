@@ -98,27 +98,33 @@ namespace Starcounter.Hosting {
             set; 
         }
 
+        /// <summary>
+        /// Initialize a simple package, not representing a user code
+        /// application, but rather just a set of types to register.
+        /// </summary>
+        /// <param name="unregisteredTypeDefs">Set of unregistered type definitions.</param>
+        /// <param name="stopwatch">A watch used to time package loading.</param>
+        internal Package(TypeDef[] unregisteredTypeDefs, Stopwatch stopwatch) {
+            unregisteredTypeDefs_ = unregisteredTypeDefs;
+            stopwatch_ = stopwatch;
+            processedEvent_ = new ManualResetEvent(false);
+            processedResult = uint.MaxValue;
+        }
+
 		/// <summary>
         /// Initializes a new instance of the <see cref="Package" /> class.
         /// </summary>
-        /// <param name="unregisteredTypeDefs">The unregistered type defs.</param>
-        /// <param name="assembly">The assembly.</param>
-        /// <param name="stopwatch"></param>
+        /// <param name="unregisteredTypeDefs">Set of unregistered type definitions.</param>
+        /// <param name="stopwatch">A watch used to time package loading.</param>
+        /// <param name="assembly">The assembly that comprise the primary
+        /// application code.</param>
         /// <param name="execEntryPointSynchronously">
         /// If true the event for processing complete will be set after the entrypoint returns, 
         /// if set to false the event will be set before the entrypoint executes.
         /// </param>
-        public Package(
-            TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
-            Assembly assembly,              // Entry point assembly.
-            Stopwatch stopwatch,             // Stopwatch used to measure package load times.
-            bool execEntryPointSynchronously
-            ) {
-            unregisteredTypeDefs_ = unregisteredTypeDefs;
+        internal Package(TypeDef[] unregisteredTypeDefs, Stopwatch stopwatch, Assembly assembly, bool execEntryPointSynchronously) 
+            : this(unregisteredTypeDefs, stopwatch) {
             assembly_ = assembly;
-            stopwatch_ = stopwatch;
-            processedEvent_ = new ManualResetEvent(false);
-            processedResult = uint.MaxValue;
             execEntryPointSynchronously_ = execEntryPointSynchronously;
         }
 
