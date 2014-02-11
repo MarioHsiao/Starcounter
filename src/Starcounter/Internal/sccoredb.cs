@@ -111,6 +111,10 @@ namespace Starcounter.Internal
         public unsafe struct sccoredb_callbacks
         {
             /// <summary>
+            /// </summary>
+            public void* yield;
+            
+            /// <summary>
             /// The on_new_schema
             /// </summary>
             public void* on_new_schema;

@@ -119,6 +119,10 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_callbacks callbacks)
         {
+            void* hModule = Kernel32.LoadLibraryA("coalmine.dll");
+            if (hModule == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+            callbacks.yield = Kernel32.GetProcAddress(hModule, "cm3_yieldc");
+            if (callbacks.yield == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
             callbacks.on_new_schema = (void*)Marshal.GetFunctionPointerForDelegate(on_new_schema);
             callbacks.on_no_transaction = (void*)Marshal.GetFunctionPointerForDelegate(on_new_transaction);
         }
