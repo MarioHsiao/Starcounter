@@ -780,6 +780,9 @@ namespace Starcounter
             Int32 receiveTimeoutMs,
             Boolean dontModifyHeaders = false)
         {
+            if (relativeUri == null || relativeUri.Length < 1)
+                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+
             Utf8Writer writer;
 
             Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
