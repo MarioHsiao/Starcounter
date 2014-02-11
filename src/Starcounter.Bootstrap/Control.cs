@@ -292,8 +292,18 @@ namespace StarcounterInternal.Bootstrap
                 OnArgumentsParsed();
 
                 // Loading the given application.
-                Loader.ExecApp(hsched_, configuration.AutoStartExePath, configuration.AutoStartExePath, stopwatch_, workingDir, userArgsArray, true);
-
+                Loader.ExecuteApplication(
+                    hsched_,
+                    Path.GetFileName(configuration.AutoStartExePath),
+                    configuration.AutoStartExePath,
+                    configuration.AutoStartExePath,
+                    configuration.AutoStartExePath,
+                    workingDir,
+                    userArgsArray,
+                    true,
+                    stopwatch_
+                );
+                
                 OnAutoStartModuleExecuted();
             }
 

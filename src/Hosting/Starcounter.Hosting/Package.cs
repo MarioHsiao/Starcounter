@@ -60,6 +60,8 @@ namespace Starcounter.Hosting {
         /// </summary>
         private readonly Assembly assembly_;
 
+        private readonly Application application_;
+
         private readonly Stopwatch stopwatch_;
 
         private readonly bool execEntryPointSynchronously_;
@@ -71,54 +73,37 @@ namespace Starcounter.Hosting {
         private volatile uint processedResult;
 
         /// <summary>
-        /// Gets or sets the logical working directory the entrypoint
-        /// assembly runs in.
+        /// Initialize a simple package, not representing a user code
+        /// application, but rather just a set of types to register.
         /// </summary>
-        public string WorkingDirectory {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the entrypoint arguments to be given to the
-        /// entrypoint when invoked.
-        /// </summary>
-        public string[] EntrypointArguments {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the full path to the primary file, used to
-        /// trigger this package to load. Note that this is normally not
-        /// the same file as the one being loaded.
-        /// </summary>
-        public string PrimaryFilePath { 
-            get; 
-            set; 
+        /// <param name="unregisteredTypeDefs">Set of unregistered type definitions.</param>
+        /// <param name="stopwatch">A watch used to time package loading.</param>
+        internal Package(TypeDef[] unregisteredTypeDefs, Stopwatch stopwatch) {
+            unregisteredTypeDefs_ = unregisteredTypeDefs;
+            stopwatch_ = stopwatch;
+            processedEvent_ = new ManualResetEvent(false);
+            processedResult = uint.MaxValue;
+            assembly_ = null;
+            application_ = null;
         }
 
 		/// <summary>
         /// Initializes a new instance of the <see cref="Package" /> class.
         /// </summary>
-        /// <param name="unregisteredTypeDefs">The unregistered type defs.</param>
-        /// <param name="assembly">The assembly.</param>
-        /// <param name="stopwatch"></param>
+        /// <param name="unregisteredTypeDefs">Set of unregistered type definitions.</param>
+        /// <param name="stopwatch">A watch used to time package loading.</param>
+        /// <param name="assembly">The assembly that comprise the primary
+        /// application code.</param>
+        /// <param name="application">The application that is being launched.</param>
         /// <param name="execEntryPointSynchronously">
         /// If true the event for processing complete will be set after the entrypoint returns, 
         /// if set to false the event will be set before the entrypoint executes.
         /// </param>
-        public Package(
-            TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
-            Assembly assembly,              // Entry point assembly.
-            Stopwatch stopwatch,             // Stopwatch used to measure package load times.
-            bool execEntryPointSynchronously
-            ) {
-            unregisteredTypeDefs_ = unregisteredTypeDefs;
+        internal Package(
+            TypeDef[] unregisteredTypeDefs, Stopwatch stopwatch, Assembly assembly, Application application, bool execEntryPointSynchronously) 
+            : this(unregisteredTypeDefs, stopwatch) {
             assembly_ = assembly;
-            stopwatch_ = stopwatch;
-            processedEvent_ = new ManualResetEvent(false);
-            processedResult = uint.MaxValue;
+            application_ = application;
             execEntryPointSynchronously_ = execEntryPointSynchronously;
         }
 
@@ -127,19 +112,8 @@ namespace Starcounter.Hosting {
         /// </summary>
         internal void Process()
         {
-            Application application = null;
-            if (this.assembly_ != null) {
-                // The assembly can be null for internal packages, like
-                // the Starcounter assembly/package.
-                if (this.EntrypointArguments == null) {
-                    this.EntrypointArguments = new string[0];
-                }
-                application = new Application() {
-                    FileName = this.PrimaryFilePath,
-                    LoadPath = this.assembly_.Location,
-                    WorkingDirectory = this.WorkingDirectory,
-                    Arguments = this.EntrypointArguments
-                };
+            var application = application_;
+            if (application != null) {
                 Application.Index(application);
             }
 
@@ -149,8 +123,8 @@ namespace Starcounter.Hosting {
 
                 UpdateDatabaseSchemaAndRegisterTypes();
 
-				if (this.WorkingDirectory != null && !StarcounterEnvironment.IsAdministratorApp)
-					AppsBootstrapper.Bootstrap(this.WorkingDirectory); 
+				if (application != null && !StarcounterEnvironment.IsAdministratorApp)
+					AppsBootstrapper.Bootstrap(application.WorkingDirectory); 
 
                 // Initializing package for all executables.
                 if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_))
@@ -165,7 +139,7 @@ namespace Starcounter.Hosting {
                 }
 
                 // Starting user Main() here.
-                if (execEntryPointSynchronously_)
+                if (application != null && execEntryPointSynchronously_)
                     ExecuteEntryPoint(application);
 
             } catch (Exception e) {
@@ -184,7 +158,7 @@ namespace Starcounter.Hosting {
                 processedEvent_.Set();
             }
 
-            if (!execEntryPointSynchronously_)
+            if (application != null && !execEntryPointSynchronously_)
                 ExecuteEntryPoint(application);
         }
 
@@ -274,33 +248,31 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
-            if (assembly_ != null) {
-                var entrypoint = assembly_.EntryPoint;
+            var entrypoint = assembly_.EntryPoint;
 
-                try {
-                    Application.CurrentAssigned = application;
-                    if (entrypoint.GetParameters().Length == 0) {
-                        entrypoint.Invoke(null, null);
-                    } else {
-                        var arguments = this.EntrypointArguments;
-                        entrypoint.Invoke(null, new object[] { arguments });
-                    }
-                } catch (TargetInvocationException te) {
-                    var entrypointException = te.InnerException;
-                    if (entrypointException == null) throw;
+            try {
+                Application.CurrentAssigned = application;
+                if (entrypoint.GetParameters().Length == 0) {
+                    entrypoint.Invoke(null, null);
+                } else {
+                    var arguments = application.Arguments;
+                    entrypoint.Invoke(null, new object[] { arguments });
+                }
+            } catch (TargetInvocationException te) {
+                var entrypointException = te.InnerException;
+                if (entrypointException == null) throw;
 
-                    var detail = entrypointException.Message;
-                    if (!ErrorCode.IsFromErrorCode(entrypointException)) {
-                        detail = entrypointException.ToString();
-                    }
-
-                    throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
-                } finally {
-                    Application.CurrentAssigned = null;
+                var detail = entrypointException.Message;
+                if (!ErrorCode.IsFromErrorCode(entrypointException)) {
+                    detail = entrypointException.ToString();
                 }
 
-                OnEntryPointExecuted();
+                throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
+            } finally {
+                Application.CurrentAssigned = null;
             }
+
+            OnEntryPointExecuted();
         }
 
         private void OnProcessingStarted() { Trace("Package started."); }

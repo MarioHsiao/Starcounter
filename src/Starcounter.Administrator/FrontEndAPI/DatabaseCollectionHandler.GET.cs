@@ -109,8 +109,8 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             if (engineInfo.HostedApps != null) {
                                 foreach (AppInfo appInfo in engineInfo.HostedApps) {
                                     var executable = result.Executables.Add();
-                                    executable.path = appInfo.ExecutablePath;
-                                    executable.applicationFilePath = appInfo.ApplicationFilePath;
+                                    executable.path = appInfo.BinaryFilePath;
+                                    executable.applicationFilePath = appInfo.FilePath;
                                     executable.uri = admin.Uris.Executable.ToAbsoluteUri(databaseInfo.Name, appInfo.Key);
                                     executable.databaseName = databaseInfo.Name;
                                     if (appInfo.Arguments != null) {

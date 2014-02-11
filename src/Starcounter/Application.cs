@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,8 +11,9 @@ namespace Starcounter {
     /// Represents a Starcounter application, executing in or configured
     /// to run in, a Starcounter code host.
     /// </summary>
-    public sealed class Application {
+    public sealed class Application : ApplicationBase {
         static object monitor = new object();
+        static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -75,27 +77,29 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the <see cref="Application"/> the given <paramref name="fileName"/>
-        /// represent. Both short names, such as "foo.exe", and full names, such as
-        /// "\path\to\foo.exe", will be considered.
+        /// Gets the <see cref="Application"/> the given <paramref name="identity"/>
+        /// represent. Both logical names, short file names (such as "foo.exe") and
+        /// full names, such as "\path\to\foo.exe", will be considered.
         /// </summary>
-        /// <param name="fileName">The file name whose <see cref="Application"/> are
-        /// being requested.</param>
-        /// <returns>The <see cref="Application"/> launched by the given file.
-        /// <exception cref="AgrumentNullException">Thrown when <paramref name="fileName"/>
+        /// <param name="identity">The identify of the <see cref="Application"/> that
+        /// are being requested.</param>
+        /// <returns>An <see cref="Application"/> matching the given identity.
+        /// <exception cref="AgrumentNullException">Thrown when <paramref name="identity"/>
         /// is null or empty.</exception>
         /// <exception cref="ArgumentException">Thrown when the application can't
-        /// be resolved based on the given file.</exception>
-        public static Application GetApplication(string fileName) {
-            if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentNullException("fileName");
+        /// be resolved based on the given identity.</exception>
+        public static Application GetApplication(string identity) {
+            if (string.IsNullOrWhiteSpace(identity)) throw new ArgumentNullException("identity");
+
             Application application;
-            var found = indexLoadPath.TryGetValue(fileName, out application);
+            var found = indexName.TryGetValue(identity, out application);
+            found = found || indexLoadPath.TryGetValue(identity, out application);
             if (!found) {
-                found = indexFileName.TryGetValue(fileName, out application);
+                found = indexFileName.TryGetValue(identity, out application);
                 if (!found) {
-                    throw CreateArgumentExceptionWithCode(string.Format("File \"{0}\" does not represent a known application.", fileName));
+                    throw CreateArgumentExceptionWithCode(string.Format("File \"{0}\" does not represent a known application.", identity));
                 } else if (application == null) {
-                    throw CreateArgumentExceptionWithCode(string.Format("File name \"{0}\" is ambiguous. Specify the full name to resolve.", fileName));
+                    throw CreateArgumentExceptionWithCode(string.Format("File name \"{0}\" is ambiguous. Specify the full name to resolve.", identity));
                 }
             }
             return application;
@@ -121,10 +125,12 @@ namespace Starcounter {
         /// <param name="application">The application to index.</param>
         internal static void Index(Application application) {
             if (application == null) throw new ArgumentNullException("application");
+            if (string.IsNullOrEmpty(application.HostedFilePath))  throw new ArgumentNullException("application.HostedFilePath");
             lock (monitor) {
-                indexLoadPath.Add(application.LoadPath, application);
+                indexName.Add(application.Name, application);
+                indexLoadPath.Add(application.HostedFilePath, application);
 
-                var fileName = Path.GetFileName(application.FileName);
+                var fileName = Path.GetFileName(application.FilePath);
                 if (indexFileName.ContainsKey(fileName)) {
                     // If the index already contains an entry with the same
                     // short name, the short name is ambiguous and we just
@@ -136,37 +142,9 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// Gets the name, including the full path, of the applications
-        /// primary file.
-        /// </summary>
-        /// <remarks>
-        /// An application can be launched by several types of files,
-        /// including executables (.exe), source code (e.g. .cs) and
-        /// libraries (.dll) and future, yet not known files, on a variety
-        /// of host systems. This property is designed to return the full
-        /// file name, including the path, of the file responsible for
-        /// starting the current application.
-        /// </remarks>
-        public string FileName { get; internal set; }
-        
-        /// <summary>
-        /// Gets the full path of the file actually loaded in the code
-        /// host.
-        /// </summary>
-        public string LoadPath { get; internal set; }
-
-        /// <summary>
-        /// Gets the logical working directory of the current <see cref="Application"/>.
-        /// </summary>
-        public string WorkingDirectory { get; internal set; }
-        
-        /// <summary>
-        /// Gets the arguments with which the current <see cref="Application"/>
-        /// was started. These are the arguments passed to a possible entrypoint,
-        /// semantically comparable to <see cref="Environment.CommandLine"/>.
-        /// </summary>
-        public string[] Arguments { get; internal set; }
+        internal Application(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments)
+            : base(name, applicationFile, applicationBinaryFile, workingDirectory, arguments) {
+        }
 
         static Exception CreateArgumentExceptionWithCode(string postfix = null, Exception innerException = null) {
             return ErrorCode.ToException(Error.SCERRAPPLICATIONCANTBERESOLVED, innerException, postfix, (msg, ex) => {
