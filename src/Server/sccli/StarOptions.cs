@@ -13,6 +13,7 @@ namespace star {
         public const string Server = SharedCLI.Option.Server;
         public const string ServerHost = SharedCLI.Option.ServerHost;
         public const string Db = SharedCLI.Option.Db;
+        public const string AppName = SharedCLI.Option.AppName;
         public const string ResourceDirectory = SharedCLI.Option.ResourceDirectory;
         public const string LogSteps = SharedCLI.Option.LogSteps;
         public const string NoDb = SharedCLI.Option.NoDb;
