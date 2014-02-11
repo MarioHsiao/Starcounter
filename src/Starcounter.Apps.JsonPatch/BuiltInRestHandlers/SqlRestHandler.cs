@@ -5,21 +5,14 @@
 // ***********************************************************************
 
 using System;
-using Starcounter.Internal.Web;
-using Starcounter.Advanced;
-using System.Diagnostics;
-using Starcounter.Binding;
-using Codeplex.Data;
-using System.Net;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using Starcounter.Query.Execution;
-using jp = Starcounter.Internal.JsonPatch;
 using System.Runtime.CompilerServices;
+using Codeplex.Data;
+using Starcounter.Binding;
+using Starcounter.Query.Execution;
 using Starcounter.Templates;
-using Starcounter.Rest;
-
-[assembly: InternalsVisibleTo("Starcounter.Bootstrap, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
 
 namespace Starcounter.Internal {
 
@@ -28,8 +21,6 @@ namespace Starcounter.Internal {
     /// with public Session.Data (aka. view-models or puppets) objects and/or with a potentially exposed SQL engine.
     /// </summary>
     public static class SqlRestHandler {
-        private static List<UInt16> registeredPorts = new List<UInt16>();
-
         private static StreamWriter consoleWriter;
 
         /// <summary>
@@ -44,8 +35,6 @@ namespace Starcounter.Internal {
 
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseNameLower) == false, "Db.Environment.DatabaseName is empty or null");
-
-            HandlersManagement.SetHandlerRegisteredCallback(HandlerRegistered);
 
             Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sessions", () => {
                 // Collecting number of sessions on all schedulers.
@@ -96,58 +85,6 @@ namespace Starcounter.Internal {
                 SetupConsoleHandling(WebSocketSessions);
             }
 
-        }
-
-        private static void HandlerRegistered(string uri, ushort port) {
-            if (registeredPorts.Contains(port))
-                return;
-
-            string dbName = Db.Environment.DatabaseNameLower;
-
-            // We add the internal handlers for stateful access to json-objects
-            // for each new port that is used.
-            registeredPorts.Add(port);
-
-            Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session) => {
-
-                Debug.Assert(null != session);
-
-                Json json = null;
-                if (null != Session.Current)
-                    json = Session.Current.Data;
-
-                if (json == null) {
-                    return HttpStatusCode.NotFound;
-                }
-
-                return new Response() {
-                    BodyBytes = json.ToJsonUtf8(),
-                    ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
-                };
-            });
-
-
-            Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session, Request request) => {
-
-                Debug.Assert(null != session);
-
-                Json root = null;
-
-                try {
-                    if (null != Session.Current)
-                        root = Session.Current.Data;
-
-                    jp::JsonPatch.EvaluatePatches(root, request.BodyBytes);
-
-                    return root;
-                }
-                catch (NotSupportedException nex) {
-                    var response = new Response();
-                    response.StatusCode = 415;
-                    response.Body = nex.Message;
-                    return response;
-                }
-            });
         }
 
         private static void SetupConsoleHandling(List<Session>[] WebSocketSessions) {
