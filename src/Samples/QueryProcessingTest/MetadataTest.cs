@@ -82,6 +82,13 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.ParentTable == null);
+            count = 0;
+            foreach (MappedType mt in Db.SQL<MappedType>("select t from mappedtype t")) {
+                Starcounter.Binding.DbTypeCode typeCode = (Starcounter.Binding.DbTypeCode)mt.DbTypeCode;
+                Trace.Assert(mt.Name == Enum.GetName(typeof(Starcounter.Binding.DbTypeCode), typeCode));
+                count++;
+            }
+            Trace.Assert(count == 16);
         }
 
         public static void TestRuntimeColumnMetadata() {
