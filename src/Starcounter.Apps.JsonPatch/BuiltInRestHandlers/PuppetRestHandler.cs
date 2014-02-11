@@ -39,8 +39,8 @@ namespace Starcounter.Internal {
                     jp::JsonPatch.EvaluatePatches(root, request.BodyBytes);
 
                     return root;
-                } catch (NotSupportedException nex) {
-                    return CreateErrorResponse(415, nex.Message);
+                } catch (jp::JsonPatchException nex) {
+                    return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
                 }
             });
 
