@@ -303,6 +303,7 @@ namespace Starcounter.CLI {
             exe = new Executable();
             exe.Path = exePath;
             exe.ApplicationFilePath = applicationFilePath;
+            exe.Name = Path.GetFileName(applicationFilePath);
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
             exe.IsTool = !args.ContainsFlag(Option.Async);
             if (userArgs != null) {

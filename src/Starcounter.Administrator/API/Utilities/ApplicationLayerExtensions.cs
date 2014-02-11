@@ -24,7 +24,7 @@ namespace Starcounter.Administrator.API.Utilities {
 
         public static AppInfo GetExecutable(this EngineInfo engine, string exePath) {
             foreach (var exe in engine.HostedApps) {
-                if (exe.ExecutablePath.Equals(exePath, StringComparison.InvariantCultureIgnoreCase)) {
+                if (exe.BinaryFilePath.Equals(exePath, StringComparison.InvariantCultureIgnoreCase)) {
                     return exe;
                 }
             }
