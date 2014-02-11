@@ -14,9 +14,9 @@ using System.IO;
 
 namespace Starcounter.Server.Commands {
 
-    internal sealed partial class ExecCommandProcessor : CommandProcessor {
+    internal sealed partial class StartExecutableCommandProcessor : CommandProcessor {
 
-        public static int ProcessorToken = CreateToken(typeof(ExecCommandProcessor));
+        public static int ProcessorToken = CreateToken(typeof(StartExecutableCommandProcessor));
         
         public static CommandDescriptor MakeDescriptor() {
             return new CommandDescriptor() {
@@ -32,14 +32,14 @@ namespace Starcounter.Server.Commands {
         internal static class Task {
 
             internal static readonly CommandTask PrepareExecutable = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.PrepareExecutableAndFiles,
+                StartExecutableCommand.DefaultProcessor.Tasks.PrepareExecutableAndFiles,
                 "Preparing user executables and files",
                 TaskDuration.NormalIndeterminate,
                 "Prepares the user code to be hosted in the code host, weaving and/or copying it."
                 );
 
             internal static readonly CommandTask Run = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.RunInCodeHost,
+                StartExecutableCommand.DefaultProcessor.Tasks.RunInCodeHost,
                 "Loading executable in code host",
                 TaskDuration.NormalIndeterminate,
                 "Makes a request to the code host to load and execute the prepared executable."
