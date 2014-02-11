@@ -357,8 +357,9 @@ namespace Starcounter.Internal.Web {
         /// <param name="ex">The ex.</param>
         /// <returns>String.</returns>
         private String GetExceptionString(Exception ex) {
-            string errormsg = ExceptionFormatter.ExceptionToString(ex);
-            return errormsg;
+            string errorMsg = ExceptionFormatter.ExceptionToString(ex);
+            errorMsg += "\r\nMore information about this error may be available in the server error log.";
+            return errorMsg;
         }
 
         /// <summary>
