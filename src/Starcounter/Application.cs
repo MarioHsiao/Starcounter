@@ -13,6 +13,7 @@ namespace Starcounter {
     /// </summary>
     public sealed class Application : ApplicationBase {
         static object monitor = new object();
+        static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -124,6 +125,7 @@ namespace Starcounter {
             if (application == null) throw new ArgumentNullException("application");
             if (string.IsNullOrEmpty(application.HostedFilePath))  throw new ArgumentNullException("application.HostedFilePath");
             lock (monitor) {
+                indexName.Add(application.Name, application);
                 indexLoadPath.Add(application.HostedFilePath, application);
 
                 var fileName = Path.GetFileName(application.FilePath);
