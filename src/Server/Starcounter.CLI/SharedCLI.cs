@@ -85,10 +85,10 @@ namespace Starcounter.CLI {
             public const string NoAutoCreateDb = "noautocreate";
             /// <summary>
             /// Gets the option name of the parameter that specifies that
-            /// restarting is allowed, if the about-to-be started object
+            /// restarting is not allowed, if the about-to-be started object
             /// is already running.
             /// </summary>
-            public const string Restart = "restart";
+            public const string NoRestart = "norestart";
             /// <summary>
             /// Gets the option name of the parameter that specifies that
             /// the executable should be stopped rather than started.
@@ -217,8 +217,8 @@ namespace Starcounter.CLI {
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
             definition.DefineFlag(
-                Option.Restart,
-                "Specifies that the application should be restarted if it's already running."
+                Option.NoRestart,
+                "Specifies that the application can't be restarted if it's already running."
                 );
             definition.DefineFlag(
                 Option.Stop,

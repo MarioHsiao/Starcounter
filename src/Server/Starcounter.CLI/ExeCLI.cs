@@ -252,14 +252,13 @@ namespace Starcounter.CLI {
                 }
             }
             else {
-                var disabledRestartFlag = new DateTime(2013, 11, 26, 3, 0, 0);
-                if (!args.ContainsFlag(Option.Restart) && DateTime.Now < disabledRestartFlag) {
+                if (args.ContainsFlag(Option.NoRestart)) {
                     var file = Path.GetFileName(applicationFilePath);
                     var alreadyStarted = string.Format("\"{0}\" already running in database \"{1}\"", file, databaseName);
                     SharedCLI.ShowInformationAndSetExitCode(
                         alreadyStarted,
                         Error.SCERREXECUTABLEALREADYRUNNING,
-                        string.Format("Type \"star --{0} {1}\" to restart it.", Option.Restart, file),
+                        string.Format("Omit the --{0} option to restart it.", Option.NoRestart),
                         false,
                         true,
                         ConsoleColor.Green,
