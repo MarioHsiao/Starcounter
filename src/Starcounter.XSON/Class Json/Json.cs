@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal.XSON;
+using System.Diagnostics;
 
 namespace Starcounter {
     /// <summary>
@@ -99,6 +100,16 @@ namespace Starcounter {
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }
+        }
+
+        /// <summary>
+        /// The QUICKTUPLE implementation keeps the property values of an App in a simple array of 
+        /// boxed CLR values. This implementation should never be used on the server side as the
+        /// strain on the garbage collector and the memory consumption would be to great. Instead, the
+        /// server side represetation should use the default session blob model.
+        /// </summary>
+        protected void _InitializeValues() {
+            InitializeCache();
         }
 
         /// <summary>
@@ -368,63 +379,33 @@ namespace Starcounter {
 			}
 		}
 
-		internal void CheckBoundObject(object boundValue) {
-			if (!CompareDataObjects(boundValue, Data))
-				AttachData(boundValue);
-		}
+        /// <summary>
+        /// As messages are not kept at the server, it does not make sense to interact with
+        /// them using "user input".
+        /// </summary>
+        /// <typeparam name="V">The type of the input value</typeparam>
+        /// <param name="template">The property having changed</param>
+        /// <param name="value">The new value of the property</param>
+        public void ProcessInput<V>(Property<V> template, V value) {
+            Input<V> input = null;
 
-		internal void CheckBoundArray(IEnumerable boundValue) {
-			Json oldJson;
-			Json newJson;
-			int index = 0;
-			TObjArr tArr = Template as TObjArr;
-			bool hasChanged = false;
+            if (template.CustomInputEventCreator != null)
+                input = template.CustomInputEventCreator.Invoke(this, template, value);
 
-			foreach (object value in boundValue) {
-				if (_list.Count <= index) {
-					newJson = (Json)tArr.ElementType.CreateInstance();
-					Add(newJson);
-					newJson.Data = value;
-					hasChanged = true;
-				} else {
-					oldJson = (Json)_list[index];
-					if (!CompareDataObjects(oldJson.Data, value)) {
-						oldJson.Data = value;
-						if (ArrayAddsAndDeletes == null)
-							ArrayAddsAndDeletes = new List<Change>();
-						ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
-						hasChanged = true;
-					}
-				}
-				index++;
-			}
-
-			for (int i = _list.Count - 1; i >= index; i--) {
-				RemoveAt(i);
-				hasChanged = true;
-			}
-
-			if (hasChanged)
-				this.Parent.HasChanged(tArr);
-		}
-
-		private bool CompareDataObjects(object obj1, object obj2) {
-			if (obj1 == null && obj2 == null)
-				return true;
-
-			if (obj1 == null && obj2 != null)
-				return false;
-
-			if (obj1 != null && obj2 == null)
-				return false;
-
-			var bind1 = obj1 as IBindable;
-			var bind2 = obj2 as IBindable;
-
-			if (bind1 == null || bind2 == null)
-				return obj1.Equals(obj2);
-
-			return (bind1.Identity == bind2.Identity);
-		}
+            if (input != null) {
+                foreach (var h in template.CustomInputHandlers) {
+                    h.Invoke(this, input);
+                }
+                if (!input.Cancelled) {
+                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
+                    ((Property<V>)template).Setter(this, input.Value);
+                } else {
+                    Debug.WriteLine("Handler cancelled: " + value);
+                }
+            } else {
+                Debug.WriteLine("Setting value after no handler: " + value);
+                ((Property<V>)template).Setter(this, value);
+            }
+        }
     }
 }
