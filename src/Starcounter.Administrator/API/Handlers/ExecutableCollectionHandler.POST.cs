@@ -32,21 +32,13 @@ namespace Starcounter.Administrator.API.Handlers {
             response = RESTUtility.JSON.ExpectAsynchronousOrNone(request, out async);
             if (response != null) return response;
 
-			int i = 0;
-            string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
-//            for (int i = 0; i < exe.Arguments.Count; i++) {
-			foreach (Executable.ArgumentsElementJson arg in exe.Arguments) {
-                userArgs[i++] = arg.dummy;
-            }
-
-            var cmd = new ExecCommand(engine, exe.Path, exe.WorkingDirectory, userArgs);
-            cmd.ApplicationFilePath = exe.ApplicationFilePath;
-            cmd.DatabaseName = name;
-            cmd.EnableWaiting = !async;
-            cmd.RunEntrypointAsynchronous = !exe.IsTool;
+            var cmd = new StartExecutableCommand(engine, name, exe.ToApplicationInfo()) {
+                EnableWaiting = !async,
+                RunEntrypointAsynchronous = !exe.IsTool
+            };
 
             var commandInfo = runtime.Execute(cmd);
-            Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
+            Trace.Assert(commandInfo.ProcessorToken == StartExecutableCommand.DefaultProcessor.Token);
             if (!async) {
                 commandInfo = runtime.Wait(commandInfo);
             } else if (!commandInfo.HasError) {
@@ -103,13 +95,23 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var result = (DatabaseInfo) commandInfo.Result;
             var headers = new Dictionary<string, string>(2);
-            var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.ExecutablePath, headers);
+            var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.Application.BinaryFilePath, headers);
             exeCreated.StartedBy = exe.StartedBy;
             exeCreated.Arguments = exe.Arguments;
             exeCreated.IsTool = exe.IsTool;
             headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
+        }
+
+        static AppInfo ToApplicationInfo(this Executable exe) {
+            int i = 0;
+            string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
+            foreach (Executable.ArgumentsElementJson arg in exe.Arguments) {
+                userArgs[i++] = arg.dummy;
+            }
+
+            return new AppInfo(exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs);
         }
     }
 }
