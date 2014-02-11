@@ -161,8 +161,8 @@ namespace Starcounter.Internal.JsonPatch.Test
                 obj = JsonPatch.Evaluate(app, "/Items/1");
                 //                Assert.IsInstanceOf<SampleApp.ItemsApp>(obj);
 
-                Assert.Throws<Exception>(() => { JsonPatch.Evaluate(app, "/Nonono"); },
-                                            "Unknown token 'Nonono' in patch message '/Nonono'");
+                var jpex = Assert.Throws<JsonPatchException>(() => { JsonPatch.Evaluate(app, "/Nonono"); });
+                Assert.IsTrue(jpex.Message.Contains("Unknown property"));
 
                 Int32 repeat = 1;
                 DateTime start = DateTime.Now;
