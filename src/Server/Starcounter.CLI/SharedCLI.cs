@@ -59,6 +59,10 @@ namespace Starcounter.CLI {
             /// </summary>
             public const string Db = "database";
             /// <summary>
+            /// Gets the option name of the application name.
+            /// </summary>
+            public const string AppName = "name";
+            /// <summary>
             /// Gets the option name of the parameter that specifies where
             /// to look for static resources by default.
             /// </summary>
@@ -183,6 +187,10 @@ namespace Starcounter.CLI {
                 "The database to use.",
                 OptionAttributes.Default,
                 new string[] { "d" }
+                );
+            definition.DefineProperty(
+                Option.AppName,
+                "A custom name for the application."
                 );
             definition.DefineProperty(
                 Option.Server,
