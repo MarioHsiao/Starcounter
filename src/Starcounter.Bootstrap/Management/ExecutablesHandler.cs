@@ -36,7 +36,6 @@ namespace Starcounter.Bootstrap.Management {
 
 			int i = 0;
             string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
-//            for (int i = 0; i < exe.Arguments.Count; i++) {
 			foreach (Executable.ArgumentsElementJson arg in exe.Arguments) { 
                 userArgs[i++] = arg.dummy;
             }
@@ -48,7 +47,16 @@ namespace Starcounter.Bootstrap.Management {
             //   Eventually, we will have a strategy to restart the
             // host without the now failing executable.
             try {
-                Loader.ExecApp(schedulerHandle, exe.Path, exe.PrimaryFile, null, exe.WorkingDirectory, userArgs, !exe.RunEntrypointAsynchronous);
+                Loader.ExecuteApplication(
+                    schedulerHandle,
+                    exe.Name,
+                    exe.ApplicationFilePath,
+                    exe.PrimaryFile,
+                    exe.Path,
+                    exe.WorkingDirectory,
+                    userArgs,
+                    !exe.RunEntrypointAsynchronous
+                );
             } catch (Exception e) {
                 if (!ExceptionManager.HandleUnhandledException(e)) throw;
             }
