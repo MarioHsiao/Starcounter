@@ -16,14 +16,6 @@ namespace Starcounter {
         /// <param name="mimeType"></param>
         /// <returns></returns>
         public virtual string AsMimeType(MimeType mimeType) {
-            switch (mimeType) {
-                case MimeType.Text_Html:
-                    return this.Html;
-
-                case MimeType.Application_Json:
-                    return this.ToJson();
-            }
-
             return this.ToJson();
         }
 

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using Starcounter.Advanced;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
@@ -27,12 +30,14 @@ namespace Starcounter {
 				if (Template != null) {
 					var tjson = (TObject)Template;
 
-					for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-						var property = tjson.Properties.ExposedProperties[i] as TValue;
-						if (property != null) {
-							property.Checkpoint(this);
-						}
-					}
+                    this.ExecuteInScope(() => {
+                        for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
+                            var property = tjson.Properties.ExposedProperties[i] as TValue;
+                            if (property != null) {
+                                property.Checkpoint(this);
+                            }
+                        }
+                    });
 				}
 			}
 			_Dirty = false;
@@ -207,5 +212,64 @@ namespace Starcounter {
                 });
 			}
 		}
+
+        internal void CheckBoundObject(object boundValue) {
+            if (!CompareDataObjects(boundValue, Data))
+                AttachData(boundValue);
+        }
+
+        internal void CheckBoundArray(IEnumerable boundValue) {
+            Json oldJson;
+            Json newJson;
+            int index = 0;
+            TObjArr tArr = Template as TObjArr;
+            bool hasChanged = false;
+
+            foreach (object value in boundValue) {
+                if (_list.Count <= index) {
+                    newJson = (Json)tArr.ElementType.CreateInstance();
+                    Add(newJson);
+                    newJson.Data = value;
+                    hasChanged = true;
+                } else {
+                    oldJson = (Json)_list[index];
+                    if (!CompareDataObjects(oldJson.Data, value)) {
+                        oldJson.Data = value;
+                        if (ArrayAddsAndDeletes == null)
+                            ArrayAddsAndDeletes = new List<Change>();
+                        ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+                        hasChanged = true;
+                    }
+                }
+                index++;
+            }
+
+            for (int i = _list.Count - 1; i >= index; i--) {
+                RemoveAt(i);
+                hasChanged = true;
+            }
+
+            if (hasChanged)
+                this.Parent.HasChanged(tArr);
+        }
+
+        private bool CompareDataObjects(object obj1, object obj2) {
+            if (obj1 == null && obj2 == null)
+                return true;
+
+            if (obj1 == null && obj2 != null)
+                return false;
+
+            if (obj1 != null && obj2 == null)
+                return false;
+
+            var bind1 = obj1 as IBindable;
+            var bind2 = obj2 as IBindable;
+
+            if (bind1 == null || bind2 == null)
+                return obj1.Equals(obj2);
+
+            return (bind1.Identity == bind2.Identity);
+        }
 	}
 }

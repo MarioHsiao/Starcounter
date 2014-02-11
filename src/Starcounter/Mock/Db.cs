@@ -99,6 +99,30 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
+        public static QueryResultRows<Object> Sql(String query, params Object[] values)
+        {
+            return SlowSQL<Object>(query, values);
+        }
+
+        /// <summary>
+        /// Returns the result of an SQL query as an SqlResult which implements IEnumerable.
+        /// Especially queries with expected slow execution are supported, as for example aggregations.
+        /// </summary>
+        /// <param name="query">An SQL query.</param>
+        /// <param name="values">The values to be used for variables in the query.</param>
+        /// <returns>The result of the SQL query.</returns>
+        public static QueryResultRows<T> Sql<T>(String query, params Object[] values)
+        {
+            return FullQueryProcess<T>(query, true, values);
+        }
+
+        /// <summary>
+        /// Returns the result of an SQL query as an SqlResult which implements IEnumerable.
+        /// Especially queries with expected slow execution are supported, as for example aggregations.
+        /// </summary>
+        /// <param name="query">An SQL query.</param>
+        /// <param name="values">The values to be used for variables in the query.</param>
+        /// <returns>The result of the SQL query.</returns>
         public static QueryResultRows<Object> SlowSQL(String query, params Object[] values)
         {
             return SlowSQL<Object>(query, values);

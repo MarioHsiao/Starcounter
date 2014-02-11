@@ -126,7 +126,7 @@ namespace Starcounter.Internal.JsonPatch {
             if (patchType != REMOVE) {
                 sb.Append(",\"value\":");
 				if (childJson == null && from is TContainer) {
-					childJson = ((TContainer)from).GetValue(nearestApp);
+					childJson = (Json)from.GetUnboundValueAsObject(nearestApp);
 					if (index != -1)
 						childJson = (Json)childJson._GetAt(index);
 
@@ -140,7 +140,7 @@ namespace Starcounter.Internal.JsonPatch {
 				} else {
                     nearestApp.ExecuteInScope(() => {
                         sb.Append(from.ValueToJsonString(nearestApp));
-                    }, true);
+                    });
                 }
             }
             sb.Append('}');
@@ -174,7 +174,7 @@ namespace Starcounter.Internal.JsonPatch {
             for (Int32 i = 0; i < path.Length; i++) {
                 if (nextIndexIsPositionInList) {
                     nextIndexIsPositionInList = false;
-					list = listProp.GetValue(app);
+					list = (Json)listProp.GetUnboundValueAsObject(app);
                     app = (Json)list._GetAt(path[i]);
                     sb.Append('/');
                     sb.Append(path[i]);
