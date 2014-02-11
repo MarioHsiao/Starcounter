@@ -211,8 +211,7 @@ namespace StarcounterInternal.Hosting
             bool execEntryPointSynchronously = false,
             Stopwatch stopwatch = null) {
 
-            var application = new Application(applicationName, applicationFile, applicationBinaryFile, workingDirectory, entrypointArguments);
-            application.HostedFilePath = applicationHostFile;
+            var application = new Application(applicationName, applicationFile, applicationBinaryFile, applicationHostFile, workingDirectory, entrypointArguments);
 
             stopwatch_ = stopwatch ?? Stopwatch.StartNew();
 
