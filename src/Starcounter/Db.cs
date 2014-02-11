@@ -8,6 +8,7 @@ using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -86,6 +87,7 @@ namespace Starcounter
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
                 sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
+                Debug.Assert(column_definitions.Length > 0);
                 char* name = null;
                 try
                 {
