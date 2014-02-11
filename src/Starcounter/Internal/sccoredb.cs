@@ -157,7 +157,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sccoredb_connect(uint flags, void* hsched, ulong hmenv, ulong hlogs, int* pempty);
+        public static extern unsafe uint sccoredb_connect(uint flags, ulong hmenv, ulong hlogs, int* pempty);
 
         /// <summary>
         /// </summary>
