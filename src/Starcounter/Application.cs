@@ -11,7 +11,8 @@ namespace Starcounter {
     /// Represents a Starcounter application, executing in or configured
     /// to run in, a Starcounter code host.
     /// </summary>
-    public sealed class Application : ApplicationBase {
+    public sealed class Application {
+        readonly ApplicationBase state;
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -19,6 +20,53 @@ namespace Starcounter {
 
         [ThreadStatic]
         internal static Application CurrentAssigned;
+
+        /// <summary>
+        /// Gets the name of the application.
+        /// </summary>
+        public string Name {
+            get {
+                return state.Name;
+            }
+        }
+
+        /// <summary>
+        /// Gets the file that was used to launch the current
+        /// application.
+        /// </summary>
+        public string FilePath {
+            get {
+                return state.FilePath;
+            }
+        }
+
+        /// <summary>
+        /// Gets the working directory of the application.
+        /// </summary>
+        public string WorkingDirectory {
+            get {
+                return state.WorkingDirectory;
+            }
+        }
+
+        /// <summary>
+        /// Gets the arguments that was used to start the
+        /// current application.
+        /// </summary>
+        public string[] Arguments {
+            get {
+                return state.Arguments;
+            }
+        }
+
+        /// <summary>
+        /// <see cref="ApplicationBase.HostedFilePath"/>
+        /// </summary>
+        internal string HostedFilePath {
+            get {
+                return state.HostedFilePath;
+            }
+        }
 
         /// <summary>
         /// Gets the current application, running in the current Starcounter
@@ -125,10 +173,10 @@ namespace Starcounter {
         /// <param name="application">The application to index.</param>
         internal static void Index(Application application) {
             if (application == null) throw new ArgumentNullException("application");
-            if (string.IsNullOrEmpty(application.HostedFilePath))  throw new ArgumentNullException("application.HostedFilePath");
+            if (string.IsNullOrEmpty(application.state.HostedFilePath))  throw new ArgumentNullException("application.HostedFilePath");
             lock (monitor) {
                 indexName.Add(application.Name, application);
-                indexLoadPath.Add(application.HostedFilePath, application);
+                indexLoadPath.Add(application.state.HostedFilePath, application);
 
                 var fileName = Path.GetFileName(application.FilePath);
                 if (indexFileName.ContainsKey(fileName)) {
@@ -142,8 +190,15 @@ namespace Starcounter {
             }
         }
 
-        internal Application(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments)
-            : base(name, applicationFile, applicationBinaryFile, workingDirectory, arguments) {
+        internal Application(
+            string name, 
+            string applicationFile, 
+            string applicationBinaryFile,
+            string applicationHostFile,
+            string workingDirectory, 
+            string[] arguments) {
+            state = new ApplicationBase(name, applicationFile, applicationBinaryFile, workingDirectory, arguments);
+            state.HostedFilePath = applicationHostFile;
         }
 
         static Exception CreateArgumentExceptionWithCode(string postfix = null, Exception innerException = null) {
