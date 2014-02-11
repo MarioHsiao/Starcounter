@@ -23,7 +23,16 @@ extern "C" void __stdcall sccoredbh_init(uint64_t hmenv)
 
 extern "C" void __stdcall sccoredbh_thread_enter(void* hsched, uint8_t cpun, void* p, int32_t init)
 {
-	uint32_t r = SCAttachThread(cpun, init);
+	uint32_t r;
+	void *wtds;
+	uint16_t size;
+	r = cm3_get_wtds(0, &wtds, &size);
+	if (r == 0)
+	{
+		uint64_t tpid;
+		r = cm3_get_tpid(0, &tpid);
+		if (r == 0) r = SCAttachThread(tpid, wtds, init);
+	}
     if (r == 0) return;
     _fatal_error(r);
 }
