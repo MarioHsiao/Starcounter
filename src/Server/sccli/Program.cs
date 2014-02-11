@@ -240,6 +240,7 @@ namespace star {
             Console.WriteLine(formatting, "", "Example \"star d=foo bar.exe\"");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.Stop), "Stops the given application.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.Restart), "Allow the application to be restarted if running.");
+            Console.WriteLine(formatting, string.Format("--{0}=name", StarOption.AppName), "Gives the application the specified name.");
             if (extended) {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
