@@ -289,35 +289,58 @@ namespace StarcounterInternal.Hosting
         }
 #endif
 
+        private static void SetYieldBlock() {
+            uint r = sccorelib.cm3_set_yblk((System.IntPtr)0);
+            if (r == 0) return;
+            orange_fatal_error(r);
+        }
+
+        private static void ReleaseYieldBlock() {
+            uint r = sccorelib.cm3_rel_yblk((System.IntPtr)0);
+            if (r == 0) return;
+            orange_fatal_error(r);
+        }
+
         /// <summary>
         /// Orange_on_new_schemas the specified generation.
         /// </summary>
         /// <param name="generation">The generation.</param>
-        private static void orange_on_new_schema(ulong generation)
-        {
-            // Thread is yield blocked. Thread is always attached.
+        private static void orange_on_new_schema(ulong generation) {
+            // Thread is not allowed to yield while executing callback.
 
-            try
-            {
-                Starcounter.ThreadData.Current.Scheduler.InvalidateCache(generation);
+            SetYieldBlock();
+            try {
+                try {
+                    Starcounter.ThreadData.Current.Scheduler.InvalidateCache(generation);
+                }
+                catch (System.Exception ex) {
+                    if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+                }
             }
-            catch (System.Exception ex)
-            {
-                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+            finally {
+                ReleaseYieldBlock();
             }
         }
 
         private static uint orange_on_no_transaction() {
+            // Thread is not allowed to yield while executing callback.
+
+            SetYieldBlock();
             try {
-                Starcounter.Transaction.SetCurrent(new Starcounter.Transaction(true));
-                return 0;
+                try {
+                    Starcounter.Transaction.SetCurrent(new Starcounter.Transaction(true));
+                    return 0;
+                }
+                catch (System.OutOfMemoryException) {
+                    return Starcounter.Error.SCERROUTOFMEMORY;
+                }
+                catch (System.Exception ex) {
+                    if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+                    return Starcounter.Error.SCERRUNSPECIFIED;
+                }
             }
-            catch (System.OutOfMemoryException) {
-                return Starcounter.Error.SCERROUTOFMEMORY;
-            }
-            catch (System.Exception ex) {
-                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
-                return Starcounter.Error.SCERRUNSPECIFIED;
+            finally {
+                ReleaseYieldBlock();
             }
         }
 
