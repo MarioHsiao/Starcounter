@@ -305,7 +305,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             aat.App.ExecuteInScope(() => {
                 ((TValue)aat.Template).ProcessInput(aat.App, value);
-            }, true);
+            });
         }
 
         /// <summary>

@@ -5,12 +5,11 @@ namespace Starcounter {
     partial class Json {
         /// <summary>
         /// Executes the specifed Action either in the scope of a transaction
-        /// on the object or if no transaction is found, just executes the actíon.
+        /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
-        /// <param name="searchParents">If set to true transaction is searched for in parents.</param>
-        internal void ExecuteInScope(Action action, bool searchParents = false) {
-            var t = (searchParents == true) ? Transaction : _transaction;
+        internal void ExecuteInScope(Action action) {
+            var t = Transaction;
 
             if (t != null) {
                 t.Add(action);

@@ -76,7 +76,7 @@
                 </BulletDecorator.Bullet>
 
                 <TextBlock Style="{DynamicResource SlideLevel2}">
-             <Hyperlink  CommandParameter="http://www.starcounter.com/wiki" Command="NavigationCommands.GoToPage">www.starcounter.com/wiki</Hyperlink>
+             <Hyperlink  CommandParameter="https://github.com/starcounter/starcounter/wiki" Command="NavigationCommands.GoToPage">www.starcounter.com/wiki</Hyperlink>
                 </TextBlock>
 
             </BulletDecorator>
