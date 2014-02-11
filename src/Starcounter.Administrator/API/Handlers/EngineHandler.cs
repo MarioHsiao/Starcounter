@@ -51,7 +51,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 if (engineState.HostedApps != null) {
                     foreach (var executable in engineState.HostedApps) {
                         var exe = engine.Executables.Executing.Add();
-                        exe.Path = executable.ApplicationFilePath;
+                        exe.Path = executable.FilePath;
                         exe.Uri = admin.Uris.Executable.ToAbsoluteUri(name, executable.Key);
                     }
                 }

@@ -1,88 +1,58 @@
-﻿// ***********************************************************************
-// <copyright file="AppInfo.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
+using Starcounter.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace Starcounter.Server.PublicModel {
     /// <summary>
-    /// Exposes the properties of a Starcounter App.
+    /// Represents a Starcounter application as maintained by the
+    /// server.
     /// </summary>
-    public sealed class AppInfo {
+    public sealed class AppInfo : ApplicationBase {
         /// <summary>
-        /// Gets the principal path of the executable originally
-        /// starting the App.
-        /// </summary>
-        /// <remarks>
-        /// This path is not neccessary (and even most likely not)
-        /// the path to the executable really loaded, since Starcounter
-        /// will process App executables in between them being launched
-        /// and when they are actually becoming hosted, and hosting is
-        /// normally done from a copy, running in another directory.
-        /// </remarks>
-        public string ExecutablePath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Path to the application file that was used to invoke the
-        /// starting of the current application.
-        /// </summary>
-        /// <remarks>
-        /// In the simplest scenario, this path will be equal to 
-        /// <c>ExecutablePath</c>, but in a scenario where there is a
-        /// transform between the input and the actual executable
-        /// (e.g when the input is a source code file), this property
-        /// will return the path of the source code file while the
-        /// <c>ExecutablePath</c> will return the path to the assembly
-        /// compiled on the fly.
-        /// </remarks>
-        public string ApplicationFilePath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets the working directory of the App.
-        /// </summary>
-        public string WorkingDirectory {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the path from which the represented executable
-        /// actually runs (governed by the server).
-        /// </summary>
-        public string ExecutionPath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the full argument set passed to the executable when
-        /// started, possibly including both arguments targeting Starcounter
-        /// and/or the actual App Main.
-        /// </summary>
-        public string[] Arguments {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the server key for this executable. A key must
+        /// Gets or sets the server key for this application. A key must
         /// be assured to be unique within the scope of a single database.
         /// </summary>
         public string Key {
             get;
-            set;
+            internal set;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="AppInfo"/>.
+        /// </summary>
+        /// <param name="name">The name of the application.</param>
+        /// <param name="applicationFile">The application file, as given by the user.</param>
+        /// <param name="applicationBinaryFile">The application binary.</param>
+        /// <param name="workingDirectory">The working directory.</param>
+        /// <param name="arguments">The arguments with which the application was started.</param>
+        public AppInfo(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments)
+            : base(name, applicationFile, applicationBinaryFile, workingDirectory, arguments) {
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the current instance represents
+        /// an application that runs a binary from the same path as
+        /// <paramref name="other"/>.
+        /// </summary>
+        /// <param name="other">The application to compare against.</param>
+        /// <returns><c>true</c> if the current application reference the
+        /// same binary file as <paramref name="other"/>; <c>false otherwise.
+        /// </c></returns>
+        public bool EqualBinaryFile(AppInfo other) {
+            return BinaryFilePath.Equals(other.BinaryFilePath, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// Creates a full clone of the current <see cref="AppInfo"/>.
+        /// </summary>
+        /// <returns>A clone of the current <see cref="AppInfo"/>.
+        /// </returns>
+        internal AppInfo DeepClone() {
+            // As long as we got only primitites, we can back
+            // this one up by the built-in shallow cloning in
+            // .NET.
+            return (AppInfo)MemberwiseClone();
         }
     }
 }

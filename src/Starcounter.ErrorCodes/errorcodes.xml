@@ -4041,6 +4041,21 @@
         Failed to send a set of collected reported error notifications.
       </message>
     </code>
+    <code hex="0023" severity="Error" name="ScErrMissingApplicationName">
+      <message>
+        The name of the application was not specified.
+      </message>
+    </code>
+    <code hex="0024" severity="Error" name="ScErrApplicationAlreadyRunning">
+      <message>
+        An application with the given name is already running.
+      </message>
+    </code>
+    <code hex="0025" severity="Error" name="ScErrApplicationNotRunning">
+      <message>
+        No application with the given name is running.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
