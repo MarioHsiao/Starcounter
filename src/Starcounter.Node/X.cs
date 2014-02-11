@@ -119,6 +119,9 @@ namespace Starcounter
         /// <param name="relativeUri">Calculated relative URI.</param>
         internal static void GetNodeFromUri(String uri, out Node node, out String relativeUri)
         {
+            if (uri == null || uri.Length < 1)
+                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+
             // NOTE: Checking specifically for default localhost endpoint.
             // Just a performance optimization.
             if ('/' == uri[0])
@@ -219,6 +222,9 @@ namespace Starcounter
         /// <param name="userDelegate"></param>
         internal static Boolean CheckLocalCache(String uri, Object userObject, Action<Response, Object> userDelegate, out Response resp)
         {
+            if (uri == null || uri.Length < 1)
+                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+
             resp = null;
 
             // Checking if we can reuse the cache.
