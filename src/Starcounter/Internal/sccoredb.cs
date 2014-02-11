@@ -121,6 +121,10 @@ namespace Starcounter.Internal
 
             /// <summary>
             /// </summary>
+            public void* on_thread_not_attached;
+
+            /// <summary>
+            /// </summary>
             public void* on_no_transaction;
         }
 
