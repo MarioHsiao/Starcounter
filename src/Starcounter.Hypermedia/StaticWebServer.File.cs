@@ -99,7 +99,6 @@ namespace Starcounter.Internal.Web {
                     response.ContentEncoding = "gzip";
                 } else {
                     Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
-                    response.WorthWhileCompressing = false;
                 }
             }
 
