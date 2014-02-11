@@ -128,23 +128,6 @@ namespace Starcounter
     /// </remarks>
     public sealed partial class Response
     {
-        /*      
-        /// <summary>
-        /// If true, the Uncompressed and/or compressed byte arrays contains content AND header.
-        /// If false, the Uncompressed and/or compressed byte arrays contain only content.
-        /// </summary>
-        /// <remarks>
-        /// This is used when constructing responses from texts where the implicit conversion from
-        /// string to response does not know what content type to use by default. The default content
-        /// type will depend on the request. I.e. if the user agent makes a request with an Accept header
-        /// telling the server that it wants "text/html" and the handler return a string, the default
-        /// content type will be "text/html". As the implicit conversion from string to Response does
-        /// not have fast and easy access to the request context, the response is created without a
-        /// header. The header is constructed by Starcounter just 
-        /// </remarks>
-        private bool _ByteArrayContainsHeader = true;
-        */
-
         // From which cache list this response came from.
         LinkedList<Response> responseCacheListFrom_ = null;
 
@@ -174,39 +157,24 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// The _ uncompressed
+        /// The plain response bytes.
         /// </summary>
-        private byte[] uncompressed_response_ = null;
-
-		/// <summary>
-		/// 
-		/// </summary>
-		private int uncompressedResponseLength_ = 0;
+        private byte[] responseBytes_ = null;
 
         /// <summary>
-        /// The _ compressed
+        /// The plain response size bytes.
         /// </summary>
-        private byte[] compressed_response_ = null;
+        private int responseSizeBytes_ = 0;
 
         /// <summary>
-        /// UncompressedBodyOffset_
+        /// Response body offset.
         /// </summary>
-        public int UncompressedBodyOffset_ = 0;
+        public int responseBodyOffset_ = 0;
 
         /// <summary>
-        /// CompressedBodyOffset_
+        /// Response body size.
         /// </summary>
-        public int CompressedBodyOffset_ = 0;
-
-        /// <summary>
-        /// UncompressedBodyLength_
-        /// </summary>
-        public int UncompressedBodyLength_ = 0;
-
-        /// <summary>
-        /// CompressedBodyLength_
-        /// </summary>
-        public int CompressedBodyLength_ = 0;
+        public int responseBodySizeBytes_ = 0;
 
         /// <summary>
         /// The URIs.
@@ -243,7 +211,7 @@ namespace Starcounter
         /// response can easily be replaced with a current session id.
         /// </summary>
         /// <value>The session id offset.</value>
-        /// <remarks>The offset is only valid in the uncompressed response.</remarks>
+        /// <remarks>The offset is only valid in the plain response.</remarks>
         public int SessionIdOffset { get; set; }
 
         /// <summary>
@@ -468,7 +436,7 @@ namespace Starcounter
                         }
                         else if (_Hypermedia != null)
                         {
-                            return _Hypermedia.AsMimeType(MimeType.Text_Html);
+                            return _Hypermedia.AsMimeType(MimeType.Unspecified);
                         }
                     }
 
@@ -491,7 +459,6 @@ namespace Starcounter
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T GetContent<T>() {
-            // TODO Ask Jocke!
             if (typeof(T) == typeof(String)) {
                 return (T)(object)GetContentString(MimeType.Unspecified);
             }
@@ -523,16 +490,20 @@ namespace Starcounter
         /// </summary>
         /// <returns></returns>
         private byte[] GetContentBytes() {
+
             if (bodyBytes_ != null)
                 return bodyBytes_;
+
             if (bodyString_ != null)
                 return Encoding.UTF8.GetBytes(bodyString_);
+
             if (_Hypermedia != null) {
                 MimeType discard;
                 return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
             }
-            if (Uncompressed != null) {
-                return ExtractBodyFromUncompressedHttpResponse();
+
+            if (responseBytes_ != null) {
+                return ExtractBodyFromByteHttpResponse();
             }
 
             bodyBytes_ = GetBodyBytes_Slow();
@@ -540,12 +511,12 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Should be made faster using pointers copying direcly to the output buffer
+        /// Should be made faster using pointers copying directly to the output buffer.
         /// </summary>
         /// <returns></returns>
-        private byte[] ExtractBodyFromUncompressedHttpResponse() {
-            var bytes = new byte[this.UncompressedBodyLength_];
-            Array.Copy(Uncompressed, UncompressedBodyOffset_, bytes, 0, UncompressedBodyLength_);
+        private byte[] ExtractBodyFromByteHttpResponse() {
+            var bytes = new byte[this.responseBodySizeBytes_];
+            Array.Copy(responseBytes_, responseBodyOffset_, bytes, 0, responseBodySizeBytes_);
             return bytes;
         }
 
@@ -889,9 +860,9 @@ namespace Starcounter
 				        }
 			        }
 
-                    // Finally setting the uncompressed bytes.
-                    uncompressed_response_ = buf;
-                    uncompressedResponseLength_ = writer.Written;
+                    // Finally setting the response bytes.
+                    responseBytes_ = buf;
+                    responseSizeBytes_ = writer.Written;
 
                     break;
                 }
@@ -921,18 +892,18 @@ namespace Starcounter
                                 }
                             }
 
-                            // Finally setting the uncompressed bytes.
-                            uncompressed_response_ = buf;
-                            uncompressedResponseLength_ = written;
+                            // Finally setting the response bytes.
+                            responseBytes_ = buf;
+                            responseSizeBytes_ = written;
                         }
                     } else {
 
                         if (null != bodyBytes_) {
-                            uncompressed_response_ = bodyBytes_;
-                            uncompressedResponseLength_ = uncompressed_response_.Length;
+                            responseBytes_ = bodyBytes_;
+                            responseSizeBytes_ = responseBytes_.Length;
                         } else if (null != bodyString_) {
-                            uncompressed_response_ = UTF8Encoding.UTF8.GetBytes(bodyString_);
-                            uncompressedResponseLength_ = uncompressed_response_.Length;
+                            responseBytes_ = UTF8Encoding.UTF8.GetBytes(bodyString_);
+                            responseSizeBytes_ = responseBytes_.Length;
                         }
                     }
                     
@@ -1006,8 +977,8 @@ namespace Starcounter
             {
                 if (customFields_)
                 {
-                    if (UncompressedBodyLength_ > 0)
-                        return UncompressedBodyLength_;
+                    if (responseBodySizeBytes_ > 0)
+                        return responseBodySizeBytes_;
 
                     if (null != bodyBytes_)
                         return bodyBytes_.Length;
@@ -1031,62 +1002,48 @@ namespace Starcounter
             {
                 EnsureHttpV1IsUsed();
 
-                UncompressedBodyLength_ = value;
+                responseBodySizeBytes_ = value;
             }
         }
 
         /// <summary>
-        /// The uncompressed cached response
+        /// Response plain bytes.
         /// </summary>
-        /// <value>The uncompressed.</value>
-        internal Byte[] Uncompressed
+        internal Byte[] ResponseBytes
         {
             get
             {
-                return uncompressed_response_;
+                if (responseBytes_ != null)
+                    return responseBytes_;
+
+                unsafe
+                {
+                    if (null == http_response_struct_)
+                        throw new ArgumentException("HTTP response not initialized.");
+
+                    return http_response_struct_->GetResponseByte_Slow();
+                }
             }
+
             set
             {
-                uncompressed_response_ = value;
+                responseBytes_ = value;
 				if (value != null)
-					uncompressedResponseLength_ = value.Length;
+					responseSizeBytes_ = value.Length;
 				else
-					uncompressedResponseLength_ = 0;
+					responseSizeBytes_ = 0;
             }
         }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		internal Int32 UncompressedLength {
-			get { return uncompressedResponseLength_; }
-			set {
-				if (uncompressed_response_ == null)
-					throw new ArgumentException("No response defined!");
-
-				if (value > uncompressed_response_.Length) {
-					throw new ArgumentOutOfRangeException(
-						"value", 
-						"Cannot set the length of the response to be larger than the actual response.");
-				}
-				uncompressedResponseLength_ = value;
-			}
-		}
 
         /// <summary>
         /// Getting full response length.
         /// </summary>
-        public Int32 ResponseLength
+        public Int32 ResponseSizeBytes
         {
             get
             {
-                if (customFields_)
-                {
-                    if (uncompressed_response_ != null)
-                        return uncompressedResponseLength_;
-
-                    throw new ArgumentException("No response defined!");
-                }
+                if (responseBytes_ != null)
+                    return responseSizeBytes_;
 
                 unsafe
                 {
@@ -1095,61 +1052,6 @@ namespace Starcounter
 
                     return (Int32)http_response_struct_->response_len_bytes_;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Gets the bytes.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns>System.Byte[][].</returns>
-        internal byte[] GetBytes(Request request)
-        {
-            // TODO: Re-enable once uncompressed resources are fixed.
-            if (/*request.IsGzipAccepted && */Compressed != null)
-                return Compressed;
-
-            return Uncompressed;
-        }
-
-        /// <summary>
-        /// The compressed (gzip) cached resource
-        /// </summary>
-        /// <value>The compressed.</value>
-        internal byte[] Compressed
-        {
-            get
-            {
-                if (!WorthWhileCompressing)
-                    return uncompressed_response_;
-                else
-                    return compressed_response_;
-            }
-            set
-            {
-                compressed_response_ = value;
-            }
-        }
-
-        /// <summary>
-        /// The _ worth while compressing
-        /// </summary>
-        private bool _WorthWhileCompressing = true;
-
-        /// <summary>
-        /// If false, it was found that the compressed version of the response was
-        /// insignificantly smaller, equally large or even larger than the original version.
-        /// </summary>
-        /// <value><c>true</c> if [worth while compressing]; otherwise, <c>false</c>.</value>
-        public bool WorthWhileCompressing
-        {
-            get
-            {
-                return _WorthWhileCompressing;
-            }
-            set
-            {
-                _WorthWhileCompressing = value;
             }
         }
 
@@ -1206,7 +1108,7 @@ namespace Starcounter
         /// <summary>
         /// Underlying memory stream.
         /// </summary>
-        MemoryStream mem_stream_ = null;
+        MemoryStream memStream_ = null;
 
         /// <summary>
         /// Setting the response buffer.
@@ -1215,10 +1117,10 @@ namespace Starcounter
         /// <param name="response_len_bytes"></param>
         internal void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
         {
-            uncompressed_response_ = response_buf;
-			uncompressedResponseLength_ = response_len_bytes;
+            responseBytes_ = response_buf;
+			responseSizeBytes_ = response_len_bytes;
 
-            mem_stream_ = mem_stream;
+            memStream_ = mem_stream;
 
             unsafe
             {
@@ -1231,21 +1133,21 @@ namespace Starcounter
                 }
 
                 // Setting the response data pointer.
-                http_response_struct_->socket_data_ = (Byte*) BitsAndBytes.Alloc(uncompressedResponseLength_);
+                http_response_struct_->socket_data_ = (Byte*) BitsAndBytes.Alloc(responseSizeBytes_);
 
                 // Copying HTTP response data.
                 fixed (Byte* fixed_response_buf = response_buf)
-                    BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)uncompressedResponseLength_);
+                    BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)responseSizeBytes_);
             }
         }
 
         /// <summary>
-        /// Parses the HTTP response from uncompressed buffer.
+        /// Parses the HTTP response from plain buffer.
         /// </summary>
-        internal void ParseResponseFromUncompressed()
+        internal void ParseResponseFromPlainBuffer()
         {
-            if (uncompressed_response_ != null)
-                TryParseResponse(uncompressed_response_, 0, uncompressedResponseLength_, true);
+            if (null != responseBytes_)
+                TryParseResponse(responseBytes_, 0, responseSizeBytes_, true);
         }
 
         /// <summary>
@@ -1297,8 +1199,8 @@ namespace Starcounter
                     throw ErrorCode.ToException(err_code);
                 }
 
-                UncompressedBodyLength_ = http_response_struct_->content_len_bytes_;
-                UncompressedBodyOffset_ = (int)http_response_struct_->content_offset_;
+                responseBodySizeBytes_ = http_response_struct_->content_len_bytes_;
+                responseBodyOffset_ = (int)http_response_struct_->content_offset_;
 
                 // NOTE: No internal sessions support.
                 session_ = null;
@@ -1339,10 +1241,10 @@ namespace Starcounter
                     return;
 
                 // Closing the memory stream if any.
-                if (null != mem_stream_)
+                if (null != memStream_)
                 {
-                    mem_stream_.Close();
-                    mem_stream_ = null;
+                    memStream_.Close();
+                    memStream_ = null;
                 }
 
                 // Checking if we have constructed this Response
@@ -1394,53 +1296,6 @@ namespace Starcounter
         public void Debug(string message, Exception ex = null)
         {
             Console.WriteLine(message);
-        }
-
-        /// <summary>
-        /// The is app view_
-        /// </summary>
-        bool isAppView_ = false;
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance is app view.
-        /// </summary>
-        /// <value><c>true</c> if this instance is app view; otherwise, <c>false</c>.</value>
-        internal bool IsAppView
-        {
-            get { return isAppView_; }
-            set { isAppView_ = value; }
-        }
-
-        /// <summary>
-        /// The gzip advisable_
-        /// </summary>
-        bool gzipAdvisable_ = false;
-
-        /// <summary>
-        /// Gets or sets the gzip advisable.
-        /// </summary>
-        /// <value>The gzip advisable.</value>
-        public Boolean GzipAdvisable
-        {
-            get { return gzipAdvisable_; }
-            set { gzipAdvisable_ = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the view model.
-        /// </summary>
-        /// <value>The view model.</value>
-        public byte[] ViewModel { get; set; }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance can use static response.
-        /// </summary>
-        /// <value><c>true</c> if this instance can use static response; otherwise, <c>false</c>.</value>
-        public bool CanUseStaticResponse
-        {
-            get
-            {
-                return ViewModel == null;
-            }
         }
 
         /// <summary>
@@ -1565,15 +1420,6 @@ namespace Starcounter
 
                 return http_response_struct_->GetBodyByteArray_Slow();
             }
-        }
-
-        /// <summary>
-        /// Gets the response as byte array.
-        /// </summary>
-        /// <returns>Response bytes.</returns>
-        internal Byte[] ResponseBytes
-        {
-            get { return uncompressed_response_; }
         }
 
         /// <summary>
@@ -1938,6 +1784,17 @@ namespace Starcounter
         internal String GetResponseStringUtf8_Slow()
         {
             return new String((SByte*)(socket_data_ + response_offset_), 0, (Int32)response_len_bytes_, Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Gets the response as bytes.
+        /// </summary>
+        /// <returns>Byte array.</returns>
+        internal Byte[] GetResponseByte_Slow()
+        {
+            Byte[] respBytes = new Byte[response_len_bytes_];
+            Marshal.Copy((IntPtr)(socket_data_ + response_offset_), respBytes, 0, (int)response_len_bytes_);
+            return respBytes;
         }
 
         /// <summary>

@@ -971,7 +971,7 @@ namespace Starcounter.Rest
                     resp = UserHandlerCodegen.HandlersManager.HandleInternalRequest_(req);
 
                     // Parsing the response.
-                    resp.ParseResponseFromUncompressed();
+                    resp.ParseResponseFromPlainBuffer();
 
                     // Request successfully handled.
                     return true;
