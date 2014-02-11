@@ -1082,7 +1082,7 @@ namespace Starcounter {
         public void SendResponse(Response resp)
         {
             resp.ConstructFromFields();
-            SendResponse(resp.Uncompressed, 0, resp.UncompressedLength, resp.ConnFlags);
+            SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
         }
 
         /// <summary>
