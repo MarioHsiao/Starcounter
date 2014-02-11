@@ -299,11 +299,16 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
+            string applicationName;
+            if (!args.TryGetProperty(Option.AppName, out applicationName)) {
+                applicationName = Path.GetFileName(applicationFilePath);
+            }
+
             ShowStatus("Starting executable", true);
             exe = new Executable();
             exe.Path = exePath;
             exe.ApplicationFilePath = applicationFilePath;
-            exe.Name = Path.GetFileName(applicationFilePath);
+            exe.Name = applicationName;
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
             exe.IsTool = !args.ContainsFlag(Option.Async);
             if (userArgs != null) {
