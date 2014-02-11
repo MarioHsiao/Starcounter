@@ -164,7 +164,7 @@ namespace StarcounterInternal.Bootstrap
 
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(
-                (Byte)configuration.SchedulerCount,
+                (byte)schedulerCount,
                 configuration.DefaultUserHttpPort,
                 configuration.DefaultSystemHttpPort,
                 configuration.DefaultSessionTimeoutMinutes,
@@ -178,7 +178,7 @@ namespace StarcounterInternal.Bootstrap
                 ConfigureDatabase(configuration);
                 OnDatabaseConfigured();
 
-                ConnectDatabase(configuration, hmenv, hlogs);
+                ConnectDatabase(schedulerCount, hmenv, hlogs);
                 OnDatabaseConnected();
             }
 
@@ -525,13 +525,8 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Connects the database.
         /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="hmenv">The hmenv.</param>
-        /// <param name="hlogs">The hlogs.</param>
-        private unsafe void ConnectDatabase(Configuration configuration, ulong hmenv, ulong hlogs)
+        private unsafe void ConnectDatabase(uint schedulerCount, ulong hmenv, ulong hlogs)
         {
             uint e;
 
@@ -544,7 +539,7 @@ namespace StarcounterInternal.Bootstrap
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 
             int empty;
-            e = sccoredb.sccoredb_connect(flags, hmenv, hlogs, &empty);
+            e = sccoredb.sccoredb_connect(flags, schedulerCount, hmenv, hlogs, &empty);
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = filter.init_filter_lib(hmenv);
