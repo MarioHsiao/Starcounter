@@ -126,8 +126,16 @@ namespace StarcounterInternal.Hosting
 #if false
         private static unsafe void orange_thread_enter(void* hsched, byte cpun, void* p, int init)
         {
-            uint r;
-            r = sccoredb.SCAttachThread(cpun, init);
+	        uint r;
+	        void *wtds;
+	        ushort size;
+            r = coalmine.cm3_get_wtds(0, &wtds, &size);
+	        if (r == 0)
+	        {
+		        ulong tpid;
+		        r = coalmine.cm3_get_tpid(0, &tpid);
+                if (r == 0) r = sccoredb.SCAttachThread(tpid, wtds, init);
+	        }
             if (r == 0) return;
             orange_fatal_error(r);
         }
