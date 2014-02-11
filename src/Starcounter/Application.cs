@@ -77,27 +77,29 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the <see cref="Application"/> the given <paramref name="fileName"/>
-        /// represent. Both short names, such as "foo.exe", and full names, such as
-        /// "\path\to\foo.exe", will be considered.
+        /// Gets the <see cref="Application"/> the given <paramref name="identity"/>
+        /// represent. Both logical names, short file names (such as "foo.exe") and
+        /// full names, such as "\path\to\foo.exe", will be considered.
         /// </summary>
-        /// <param name="fileName">The file name whose <see cref="Application"/> are
-        /// being requested.</param>
-        /// <returns>The <see cref="Application"/> launched by the given file.
-        /// <exception cref="AgrumentNullException">Thrown when <paramref name="fileName"/>
+        /// <param name="identity">The identify of the <see cref="Application"/> that
+        /// are being requested.</param>
+        /// <returns>An <see cref="Application"/> matching the given identity.
+        /// <exception cref="AgrumentNullException">Thrown when <paramref name="identity"/>
         /// is null or empty.</exception>
         /// <exception cref="ArgumentException">Thrown when the application can't
-        /// be resolved based on the given file.</exception>
-        public static Application GetApplication(string fileName) {
-            if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentNullException("fileName");
+        /// be resolved based on the given identity.</exception>
+        public static Application GetApplication(string identity) {
+            if (string.IsNullOrWhiteSpace(identity)) throw new ArgumentNullException("identity");
+
             Application application;
-            var found = indexLoadPath.TryGetValue(fileName, out application);
+            var found = indexName.TryGetValue(identity, out application);
+            found = found || indexLoadPath.TryGetValue(identity, out application);
             if (!found) {
-                found = indexFileName.TryGetValue(fileName, out application);
+                found = indexFileName.TryGetValue(identity, out application);
                 if (!found) {
-                    throw CreateArgumentExceptionWithCode(string.Format("File \"{0}\" does not represent a known application.", fileName));
+                    throw CreateArgumentExceptionWithCode(string.Format("File \"{0}\" does not represent a known application.", identity));
                 } else if (application == null) {
-                    throw CreateArgumentExceptionWithCode(string.Format("File name \"{0}\" is ambiguous. Specify the full name to resolve.", fileName));
+                    throw CreateArgumentExceptionWithCode(string.Format("File name \"{0}\" is ambiguous. Specify the full name to resolve.", identity));
                 }
             }
             return application;
