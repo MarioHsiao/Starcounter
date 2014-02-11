@@ -140,12 +140,13 @@ namespace Starcounter.Hosting {
                 if (this.EntrypointArguments == null) {
                     this.EntrypointArguments = new string[0];
                 }
-                application = new Application() {
-                    FileName = this.PrimaryFilePath,
-                    HostedFilePath = this.assembly_.Location,
-                    WorkingDirectory = this.WorkingDirectory,
-                    Arguments = this.EntrypointArguments
-                };
+                application = new Application(
+                    Path.GetFileName(PrimaryFilePath),
+                    PrimaryFilePath,
+                    PrimaryFilePath,
+                    WorkingDirectory,
+                    EntrypointArguments);
+                application.HostedFilePath = assembly_.Location;
                 Application.Index(application);
             }
 
