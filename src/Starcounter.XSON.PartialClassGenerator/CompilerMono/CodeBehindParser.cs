@@ -248,7 +248,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                                 DeclaringClassNamespace = mce.CurrentNamespace,
                                 FullInputTypeName = inputTypeName
                             };
-//                            metadata.RootClassInfo.InputBindingList.Add(info);
+                            //                            metadata.RootClassInfo.InputBindingList.Add(info);
                             ci.InputBindingList.Add(info);
                             break;
                         } else if (mce.Token == CSharpToken.IDENTIFIER) {
@@ -267,6 +267,8 @@ namespace Starcounter.XSON.Compiler.Mono {
                         }
                         prevToken = mce.Token;
                     }
+                } else {
+                    SkipBlock(mce);
                 }
             }
         }
