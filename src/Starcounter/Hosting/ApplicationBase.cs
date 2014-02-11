@@ -8,7 +8,7 @@ namespace Starcounter.Hosting {
     /// rudimentary properties, as shared by all components and tools
     /// being part of application hosting.
     /// </summary>
-    public abstract class ApplicationBase {
+    public class ApplicationBase {
         /// <summary>
         /// Gets the logical name of the application.
         /// </summary>
@@ -70,7 +70,7 @@ namespace Starcounter.Hosting {
         /// <param name="applicationBinaryFile">The application binary.</param>
         /// <param name="workingDirectory">The working directory.</param>
         /// <param name="arguments">The arguments with which the application was started.</param>
-        protected ApplicationBase(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments) {
+        internal ApplicationBase(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments) {
             if (string.IsNullOrEmpty(applicationFile)) {
                 throw new ArgumentNullException("applicationFile");
             }
