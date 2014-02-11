@@ -178,7 +178,7 @@ namespace StarcounterInternal.Bootstrap
                 ConfigureDatabase(configuration);
                 OnDatabaseConfigured();
 
-                ConnectDatabase(configuration, hsched_, hmenv, hlogs);
+                ConnectDatabase(configuration, hmenv, hlogs);
                 OnDatabaseConnected();
             }
 
@@ -531,7 +531,7 @@ namespace StarcounterInternal.Bootstrap
         /// <param name="hsched">The hsched.</param>
         /// <param name="hmenv">The hmenv.</param>
         /// <param name="hlogs">The hlogs.</param>
-        private unsafe void ConnectDatabase(Configuration configuration, void* hsched, ulong hmenv, ulong hlogs)
+        private unsafe void ConnectDatabase(Configuration configuration, ulong hmenv, ulong hlogs)
         {
             uint e;
 
@@ -544,7 +544,7 @@ namespace StarcounterInternal.Bootstrap
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 
             int empty;
-            e = sccoredb.sccoredb_connect(flags, hsched, hmenv, hlogs, &empty);
+            e = sccoredb.sccoredb_connect(flags, hmenv, hlogs, &empty);
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = filter.init_filter_lib(hmenv);
