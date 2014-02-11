@@ -230,6 +230,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_MaterializedType;
             internal static int columnHandle_WriteLoss;
             internal static int columnHandle_ReadLoss;
+            internal static int columnHandle_DbTypeCode;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -254,13 +255,15 @@ namespace Starcounter.Metadata {
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedType", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("WriteLoss", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, true)
+                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("DbTypeCode", sccoredb.STAR_TYPE_ULONG, false,true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", Starcounter.Binding.DbTypeCode.String),
                     new PropertyDef("MaterializedType", Starcounter.Binding.DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
                     new PropertyDef("WriteLoss", Starcounter.Binding.DbTypeCode.Boolean),
-                    new PropertyDef("ReadLoss",  Starcounter.Binding.DbTypeCode.Boolean)
+                    new PropertyDef("ReadLoss",  Starcounter.Binding.DbTypeCode.Boolean),
+                    new PropertyDef("DbTypeCode", Starcounter.Binding.DbTypeCode.UInt16)
                 });
         }
 
