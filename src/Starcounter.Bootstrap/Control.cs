@@ -538,7 +538,7 @@ namespace StarcounterInternal.Bootstrap
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
             flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
 
-            e = sccoredb.sccoredb_connect(flags, schedulerCount, hmenv, hlogs);
+            e = sccoredb.sccoredb_connect(flags, schedulerCount, hmenv, hlogs, sccorelib.fix_get_performance_counter_file_map());
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = filter.init_filter_lib(hmenv);
