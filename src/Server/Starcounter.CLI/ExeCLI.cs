@@ -163,7 +163,7 @@ namespace Starcounter.CLI {
 
                 try {
                     Engine engine;
-                    DoStop(node, admin, exePath, database, args, out engine);
+                    DoStop(node, admin, exePath, applicationFilePath, database, args, out engine);
                     ShowStopResultAndSetExitCode(node, database, engine, exePath, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
@@ -327,7 +327,7 @@ namespace Starcounter.CLI {
             exe.PopulateFromJson(response.Body);
         }
 
-        static void DoStop(Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, out Engine engine) {
+        static void DoStop(Node node, AdminAPI admin, string exePath, string applicationFilePath, string databaseName, ApplicationArguments args, out Engine engine) {
             ErrorDetail errorDetail;
             int statusCode;
             var uris = admin.Uris;
@@ -358,7 +358,7 @@ namespace Starcounter.CLI {
             engine = new Engine();
             engine.PopulateFromJson(response.Body);
 
-            ExecutableReference exeRef = engine.GetExecutable(exePath);
+            ExecutableReference exeRef = engine.GetExecutable(applicationFilePath);
             if (exeRef == null) {
                 var notRunning = ErrorCode.ToMessage(Error.SCERREXECUTABLENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
                 SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
