@@ -163,8 +163,8 @@ namespace Starcounter.CLI {
 
                 try {
                     Engine engine;
-                    DoStop(node, admin, exePath, database, args, out engine);
-                    ShowStopResultAndSetExitCode(node, database, engine, exePath, args);
+                    DoStop(node, admin, exePath, applicationFilePath, database, args, out engine);
+                    ShowStopResultAndSetExitCode(node, database, engine, applicationFilePath, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
                     return;
@@ -327,7 +327,7 @@ namespace Starcounter.CLI {
             exe.PopulateFromJson(response.Body);
         }
 
-        static void DoStop(Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, out Engine engine) {
+        static void DoStop(Node node, AdminAPI admin, string exePath, string applicationFilePath, string databaseName, ApplicationArguments args, out Engine engine) {
             ErrorDetail errorDetail;
             int statusCode;
             var uris = admin.Uris;
@@ -358,7 +358,7 @@ namespace Starcounter.CLI {
             engine = new Engine();
             engine.PopulateFromJson(response.Body);
 
-            ExecutableReference exeRef = engine.GetExecutable(exePath);
+            ExecutableReference exeRef = engine.GetExecutable(applicationFilePath);
             if (exeRef == null) {
                 var notRunning = ErrorCode.ToMessage(Error.SCERREXECUTABLENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
                 SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
@@ -443,12 +443,12 @@ namespace Starcounter.CLI {
             Environment.ExitCode = 0;
         }
 
-        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string exe, ApplicationArguments args) {
+        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationFile, ApplicationArguments args) {
             var color = ConsoleColor.Green;
 
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("Stopped \"{0}\" in database \"{1}\"",
-                Path.GetFileName(exe),
+                Path.GetFileName(applicationFile),
                 database),
                 color);
 
