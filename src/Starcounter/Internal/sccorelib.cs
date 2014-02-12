@@ -396,14 +396,6 @@ namespace Starcounter.Internal
         [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         private unsafe extern static UInt32 cm2_get_cpuc(IntPtr h, Byte* pcpuc);
 
-        /// <summary>
-        /// Cm2_get_cpuns the specified h.
-        /// </summary>
-        /// <param name="h">The h.</param>
-        /// <param name="pcpun">The pcpun.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
-        private unsafe extern static UInt32 cm2_get_cpun(IntPtr h, Byte* pcpun);
 
         /// <summary>
         /// Cm3_eautodets the specified h_opt.
