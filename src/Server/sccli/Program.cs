@@ -179,8 +179,17 @@ namespace star {
                     if (File.Exists(target)) {
                         File.Delete(target);
                     }
-
                     File.Move(filePath, target);
+
+                    var pdb = Path.ChangeExtension(filePath, ".pdb");
+                    if (File.Exists(pdb)) {
+                        var pdbTarget = Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(pdb));
+                        if (File.Exists(pdbTarget)) {
+                            File.Delete(pdbTarget);
+                        }
+                        File.Move(pdb, pdbTarget);
+                    }
+
                     ConsoleUtil.ToConsoleWithColor(
                         string.Format("{0} -> {1}", Path.GetFileName(applicationFilePath), Path.GetFileName(filePath)),
                         ConsoleColor.DarkGray
@@ -436,6 +445,7 @@ namespace star {
             var filePath = compiledApplicationFile;
             try {
                 File.Delete(filePath);
+                File.Delete(Path.ChangeExtension(filePath, ".pdb"));
                 var directory = Path.GetDirectoryName(filePath);
                 Directory.Delete(directory);
             } catch (Exception e) {
