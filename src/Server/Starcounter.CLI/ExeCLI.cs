@@ -164,7 +164,7 @@ namespace Starcounter.CLI {
                 try {
                     Engine engine;
                     DoStop(node, admin, exePath, applicationFilePath, database, args, out engine);
-                    ShowStopResultAndSetExitCode(node, database, engine, exePath, args);
+                    ShowStopResultAndSetExitCode(node, database, engine, applicationFilePath, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
                     return;
@@ -443,12 +443,12 @@ namespace Starcounter.CLI {
             Environment.ExitCode = 0;
         }
 
-        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string exe, ApplicationArguments args) {
+        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationFile, ApplicationArguments args) {
             var color = ConsoleColor.Green;
 
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("Stopped \"{0}\" in database \"{1}\"",
-                Path.GetFileName(exe),
+                Path.GetFileName(applicationFile),
                 database),
                 color);
 
