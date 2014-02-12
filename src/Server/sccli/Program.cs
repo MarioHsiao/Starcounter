@@ -198,15 +198,7 @@ namespace star {
                 // Delete the temporary executable if we have executed
                 // from a script being given.
                 if (sourceCodeInput) {
-                    try {
-                        File.Delete(filePath);
-                        var directory = Path.GetDirectoryName(filePath);
-                        Directory.Delete(directory);
-                    } catch (Exception e) {
-                        if (SharedCLI.Verbose) {
-                            Console.WriteLine("Failed deleting temporary content: {0}.", e.Message);
-                        }
-                    }
+                    CleanUpAfterCompilation(filePath);
                 }
             }
         }
@@ -414,6 +406,20 @@ namespace star {
             }
 
             Console.WriteLine();
+        }
+
+        static void CleanUpAfterCompilation(string compiledApplicationFile) {
+            var filePath = compiledApplicationFile;
+            try {
+                File.Delete(filePath);
+                var directory = Path.GetDirectoryName(filePath);
+                Directory.Delete(directory);
+            } catch (Exception e) {
+                if (SharedCLI.Verbose) {
+                    Console.WriteLine("Failed deleting temporary content: {0}.", e.Message);
+                }
+            }
+
         }
 
         static void CreateServerRepository(ApplicationArguments args) {
