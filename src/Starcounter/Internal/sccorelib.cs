@@ -508,7 +508,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("coalmine.dll")]
-        public extern static void* fix_get_performance_counter_file_map();
+        public extern static unsafe void* fix_get_performance_counter_file_map();
 
         /// <summary>
         /// Gets the cpu count.
