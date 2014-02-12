@@ -123,6 +123,8 @@ namespace StarcounterInternal.Hosting
             if (hModule == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
             callbacks.yield = Kernel32.GetProcAddress(hModule, "cm3_yieldc");
             if (callbacks.yield == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+            callbacks.ping = Kernel32.GetProcAddress(hModule, "cm4_ping");
+            if (callbacks.yield == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
             callbacks.on_thread_not_attached = Kernel32.GetProcAddress(hModule, "cm3_eautodet");
             if (callbacks.on_thread_not_attached == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
 

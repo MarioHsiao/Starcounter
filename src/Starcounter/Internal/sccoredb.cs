@@ -113,6 +113,10 @@ namespace Starcounter.Internal
             /// <summary>
             /// </summary>
             public void* yield;
+
+            /// <summary>
+            /// </summary>
+            public void* ping;
             
             /// <summary>
             /// The on_new_schema
