@@ -173,6 +173,33 @@ namespace star {
                 }
             }
 
+            if (sourceCodeInput && appArgs.ContainsFlag(StarOption.CompileOnly)) {
+                try {
+                    var target = Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(filePath));
+                    if (File.Exists(target)) {
+                        File.Delete(target);
+                    }
+                    File.Move(filePath, target);
+
+                    var pdb = Path.ChangeExtension(filePath, ".pdb");
+                    if (File.Exists(pdb)) {
+                        var pdbTarget = Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(pdb));
+                        if (File.Exists(pdbTarget)) {
+                            File.Delete(pdbTarget);
+                        }
+                        File.Move(pdb, pdbTarget);
+                    }
+
+                    ConsoleUtil.ToConsoleWithColor(
+                        string.Format("{0} -> {1}", Path.GetFileName(applicationFilePath), Path.GetFileName(filePath)),
+                        ConsoleColor.DarkGray
+                        ); 
+                } finally {
+                    CleanUpAfterCompilation(filePath);
+                }
+                return;
+            }
+
             string[] userArgs = null;
             if (appArgs.CommandParameters != null) {
                 int userArgsCount = appArgs.CommandParameters.Count;
@@ -198,15 +225,7 @@ namespace star {
                 // Delete the temporary executable if we have executed
                 // from a script being given.
                 if (sourceCodeInput) {
-                    try {
-                        File.Delete(filePath);
-                        var directory = Path.GetDirectoryName(filePath);
-                        Directory.Delete(directory);
-                    } catch (Exception e) {
-                        if (SharedCLI.Verbose) {
-                            Console.WriteLine("Failed deleting temporary content: {0}.", e.Message);
-                        }
-                    }
+                    CleanUpAfterCompilation(filePath);
                 }
             }
         }
@@ -256,6 +275,7 @@ namespace star {
             if (unofficial) {
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.Debug), "Attaches a debugger to the star.exe process.");
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.CodeHostCommandLineOptions), "Allows for the passing of custom code host parameters");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.CompileOnly), "Compiles given source-code input without running it.");
             }
             Console.WriteLine();
             if (extended) {
@@ -325,6 +345,11 @@ namespace star {
             appSyntax.DefineFlag(
                 StarOption.NoColor,
                 "Instructs star.exe to turn off colorizing output."
+                );
+
+            appSyntax.DefineFlag(
+                StarOption.CompileOnly,
+                "Compiles any given source-code input without running it."
                 );
 
             // NOTE:
@@ -414,6 +439,21 @@ namespace star {
             }
 
             Console.WriteLine();
+        }
+
+        static void CleanUpAfterCompilation(string compiledApplicationFile) {
+            var filePath = compiledApplicationFile;
+            try {
+                File.Delete(filePath);
+                File.Delete(Path.ChangeExtension(filePath, ".pdb"));
+                var directory = Path.GetDirectoryName(filePath);
+                Directory.Delete(directory);
+            } catch (Exception e) {
+                if (SharedCLI.Verbose) {
+                    Console.WriteLine("Failed deleting temporary content: {0}.", e.Message);
+                }
+            }
+
         }
 
         static void CreateServerRepository(ApplicationArguments args) {
