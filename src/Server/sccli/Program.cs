@@ -173,6 +173,19 @@ namespace star {
                 }
             }
 
+            if (sourceCodeInput && appArgs.ContainsFlag(StarOption.CompileOnly)) {
+                try {
+                    File.Move(filePath, Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(filePath)));
+                    ConsoleUtil.ToConsoleWithColor(
+                        string.Format("{0} -> {1}", Path.GetFileName(applicationFilePath), Path.GetFileName(filePath)),
+                        ConsoleColor.DarkGray
+                        ); 
+                } finally {
+                    CleanUpAfterCompilation(filePath);
+                }
+                return;
+            }
+
             string[] userArgs = null;
             if (appArgs.CommandParameters != null) {
                 int userArgsCount = appArgs.CommandParameters.Count;
@@ -318,6 +331,11 @@ namespace star {
             appSyntax.DefineFlag(
                 StarOption.NoColor,
                 "Instructs star.exe to turn off colorizing output."
+                );
+
+            appSyntax.DefineFlag(
+                StarOption.CompileOnly,
+                "Compiles any given source-code input without running it."
                 );
 
             // NOTE:
