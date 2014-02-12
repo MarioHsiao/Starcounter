@@ -175,7 +175,12 @@ namespace star {
 
             if (sourceCodeInput && appArgs.ContainsFlag(StarOption.CompileOnly)) {
                 try {
-                    File.Move(filePath, Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(filePath)));
+                    var target = Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(filePath));
+                    if (File.Exists(target)) {
+                        File.Delete(target);
+                    }
+
+                    File.Move(filePath, target);
                     ConsoleUtil.ToConsoleWithColor(
                         string.Format("{0} -> {1}", Path.GetFileName(applicationFilePath), Path.GetFileName(filePath)),
                         ConsoleColor.DarkGray
