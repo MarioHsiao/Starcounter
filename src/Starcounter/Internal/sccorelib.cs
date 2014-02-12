@@ -506,6 +506,11 @@ namespace Starcounter.Internal
         public extern static int fix_wait_for_gateway_available(uint timeout_milliseconds);
 
         /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll")]
+        public extern static void* fix_get_performance_counter_file_map();
+
+        /// <summary>
         /// Gets the cpu count.
         /// </summary>
         /// <param name="handle">The handle.</param>
