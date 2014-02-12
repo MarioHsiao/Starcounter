@@ -117,6 +117,10 @@ namespace Starcounter.Internal
             /// <summary>
             /// </summary>
             public void* ping;
+
+            /// <summary>
+            /// </summary>
+            public void* query_highmem_cond;
             
             /// <summary>
             /// The on_new_schema
