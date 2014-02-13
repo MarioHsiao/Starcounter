@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Text;
 
 namespace Starcounter.Internal {
     /// <summary>
@@ -27,6 +28,42 @@ namespace Starcounter.Internal {
         /// <returns>A string with all values in the given list.</returns>
         public static string ToStringFromValues(this List<string> list) {
             return string.Join(" ", list);
+        }
+
+        /// <summary>
+        /// Returns reverse order of names in a dot separated string.
+        /// For example, use to reverse order of full class name, which includes
+        /// namespace names.
+        /// </summary>
+        /// <param name="fullName">The input full name string.</param>
+        /// <returns>New string with dot separated names in reverse order</returns>
+        public static string ReverseFullName(this string fullName) {
+            if (fullName.Length == 0)
+                return fullName;
+            StringBuilder reversed = new StringBuilder(fullName.Length, fullName.Length);
+            int curEnd = fullName.Length - 1;
+            int lastDot = fullName.LastIndexOf('.');
+            while (lastDot > -1) {
+                reversed.Append(fullName.Substring(lastDot + 1, curEnd - lastDot));
+                reversed.Append('.');
+                curEnd = lastDot - 1;
+                lastDot = fullName.LastIndexOf('.', curEnd);
+
+            }
+            reversed.Append(fullName.Substring(0, curEnd + 1));
+            return reversed.ToString();
+        }
+
+        /// <summary>
+        /// Returns first name, which is before first dot, in full class name.
+        /// </summary>
+        /// <param name="fullName">The full name.</param>
+        /// <returns>The first name without dots.</returns>
+        public static string FirstName(this string fullName) {
+            int dotPos = fullName.IndexOf('.');
+            if (dotPos > -1)
+                return fullName.Substring(0, dotPos);
+            return fullName;
         }
     }
 }

@@ -14,9 +14,18 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll")]
         public static extern uint scsql_dump_memory_leaks();
         [DllImport("scsqlprocessor.dll")]
-        public static extern uint scsql_create_runtime_metadata();
+        private static extern uint scsql_create_runtime_metadata();
         [DllImport("scsqlprocessor.dll")]
-        public static extern uint scsql_clean_clrview();
+        private static extern uint scsql_clean_clrview();
+        [DllImport("scsqlprocessor.dll")]
+        private static extern uint scsql_populate_clrview([MarshalAs(UnmanagedType.LPWStr)]string type_name,
+            [MarshalAs(UnmanagedType.LPWStr)]string full_name,
+            [MarshalAs(UnmanagedType.LPWStr)]string full_class_name, 
+            [MarshalAs(UnmanagedType.LPWStr)]string base_type_name,
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType=UnmanagedType.LPWStr)]string[] property_names, 
+            [MarshalAs(UnmanagedType.LPArray)]ushort[] db_types,
+            [MarshalAs(UnmanagedType.LPWStr)]string table_name, 
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType=UnmanagedType.LPWStr)]string[] column_names);
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -40,6 +49,15 @@ namespace Starcounter.SqlProcessor {
 
         public static void CleanClrMetadata() {
             uint err = scsql_clean_clrview();
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+        }
+
+        public static void PopulateAClrView(string type_name, string full_name,
+            string full_class_name, string base_type_name,
+            string[] property_names, ushort[] db_types, string table_name, string[] column_names) {
+            uint err = scsql_populate_clrview(type_name, full_name, full_class_name, base_type_name, property_names, db_types,
+                table_name, column_names);
             if (err != 0)
                 throw ErrorCode.ToException(err);
         }
