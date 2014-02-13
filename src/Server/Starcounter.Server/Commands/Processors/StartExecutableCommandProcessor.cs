@@ -87,7 +87,7 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            var exeKey = Engine.ExecutableService.CreateKey(command.Application.BinaryFilePath);
+            var exeKey = Engine.ExecutableService.CreateKey(command.Application.FilePath);
             WithinTask(Task.PrepareExecutable, (task) => {
                 weaver = Engine.WeaverService;
                 appRuntimeDirectory = Path.Combine(database.ExecutableBasePath, exeKey);
