@@ -37,7 +37,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="fullName">The input full name string.</param>
         /// <returns>New string with dot separated names in reverse order</returns>
-        public static string ReverseFullName(this string fullName) {
+        public static string ReverseOrderDotWords(this string fullName) {
             if (fullName.Length == 0)
                 return fullName;
             StringBuilder reversed = new StringBuilder(fullName.Length, fullName.Length);
@@ -59,10 +59,10 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="fullName">The full name.</param>
         /// <returns>The first name without dots.</returns>
-        public static string FirstName(this string fullName) {
-            int dotPos = fullName.IndexOf('.');
+        public static string LastDotWord(this string fullName) {
+            int dotPos = fullName.LastIndexOf('.');
             if (dotPos > -1)
-                return fullName.Substring(0, dotPos);
+                return fullName.Substring(dotPos + 1);
             return fullName;
         }
     }

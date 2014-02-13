@@ -7,25 +7,25 @@ namespace Starcounter.Internal.Tests {
         [Test]
         public void TestReverseFullName() {
             string aClassName = "Starcounter.Metadata.BaseType";
-            Assert.AreEqual("BaseType.Metadata.Starcounter", aClassName.ReverseFullName());
+            Assert.AreEqual("BaseType.Metadata.Starcounter", aClassName.ReverseOrderDotWords());
             aClassName = "FirstName.SecondName";
-            Assert.AreEqual("SecondName.FirstName", aClassName.ReverseFullName());
+            Assert.AreEqual("SecondName.FirstName", aClassName.ReverseOrderDotWords());
             aClassName = "TableName";
-            Assert.AreEqual(aClassName, aClassName.ReverseFullName());
+            Assert.AreEqual(aClassName, aClassName.ReverseOrderDotWords());
             aClassName = "";
-            Assert.AreEqual(aClassName, aClassName.ReverseFullName());
+            Assert.AreEqual(aClassName, aClassName.ReverseOrderDotWords());
         }
 
         [Test]
         public void TestReverseFirstName() {
             string aClassName = "Starcounter.Metadata.BaseType";
-            Assert.AreEqual("Starcounter", aClassName.FirstName());
+            Assert.AreEqual("BaseType", aClassName.LastDotWord());
             aClassName = "FirstName.SecondName";
-            Assert.AreEqual("FirstName", aClassName.FirstName());
+            Assert.AreEqual("SecondName", aClassName.LastDotWord());
             aClassName = "TableName";
-            Assert.AreEqual(aClassName, aClassName.FirstName());
+            Assert.AreEqual(aClassName, aClassName.LastDotWord());
             aClassName = "";
-            Assert.AreEqual(aClassName, aClassName.FirstName());
+            Assert.AreEqual(aClassName, aClassName.LastDotWord());
         }
     }
 }
