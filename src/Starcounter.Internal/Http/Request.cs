@@ -80,6 +80,40 @@ namespace Starcounter {
             set { port_number_ = value; }
         }
 
+        /// <summary>
+        /// Returns a preferred MIME type in string format.
+        /// </summary>
+        public String PreferredMimeTypeString
+        {
+            get
+            {
+                EnsureHttpV1IsUsed();
+
+                var a = this[HttpHeadersUtf8.GetAcceptHeader];
+
+                if (a != null)
+                    return a.Split(new Char[] { ',' }, 2)[0];
+
+                return "*/*";
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of requested mime types in preference order as discovered in the Accept header
+        /// of the request.
+        /// </summary>
+        public IEnumerator<String> PreferredMimeTypesStrings
+        {
+            get
+            {
+                EnsureHttpV1IsUsed();
+
+                var l = new List<String>();
+                l.Add(PreferredMimeTypeString);
+                return l.GetEnumerator();
+            }
+        }
+
         /// Returns the single most preferred mime type according to the Accept header of the request amongst a 
         /// set of common mime types. If the mime type is not in the enum of known common mime types, the
         /// value MimeType.Other is returned. If there is no Accept header or if the Accept header is empty,
