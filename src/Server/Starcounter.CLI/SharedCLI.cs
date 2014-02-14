@@ -397,6 +397,18 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Writes the given output if the CLI context indicates
+        /// it's in verbose mode.
+        /// </summary>
+        /// <param name="output">The output to write.</param>
+        /// <param name="color">The color to write it with.</param>
+        public static void ShowVerbose(string output, ConsoleColor color = ConsoleColor.Yellow) {
+            if (SharedCLI.Verbose) {
+                ConsoleUtil.ToConsoleWithColor(output, color);
+            }
+        }
+
+        /// <summary>
         /// Writes <paramref name="msg"/> to the console using the default
         /// shared CLI error color and formatting, setting the exit code to
         /// the error given in the strongly typed error message. Possibly
