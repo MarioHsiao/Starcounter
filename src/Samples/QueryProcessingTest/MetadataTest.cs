@@ -10,6 +10,7 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Test populated meta-data");
             TestTypeMetadata();
             TestRuntimeColumnMetadata();
+            ClrMetadatTest();
             HelpMethods.LogEvent("Finished testing populated meta-data");
         }
 
@@ -171,6 +172,18 @@ namespace QueryProcessingTest {
             MaterializedIndex i = Db.SQL<MaterializedIndex>("select i from materializedindex i where name = ?",
                 "TableColumnPrimaryKey").First;
             Trace.Assert(i != null);
+        }
+
+        public static void ClrMetadatTest() {
+            int nrCc = 0;
+            int nrcc = 0;
+            foreach (ClrView v in Db.SQL<ClrView>("select c from clrview c where name = ?", "commonclass")) {
+                nrCc++;
+                if (v.Name == "commonclass")
+                    nrcc++;
+            }
+            Trace.Assert(nrCc == 4);
+            Trace.Assert(nrcc == 2);
         }
     }
 }
