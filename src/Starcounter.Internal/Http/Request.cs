@@ -52,6 +52,11 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Is single chunk?
+        /// </summary>
+        Boolean isSingleChunk_;
+
+        /// <summary>
         /// Internal structure with HTTP request information.
         /// </summary>
         unsafe HttpRequestInternal* http_request_struct_;
@@ -307,6 +312,7 @@ namespace Starcounter {
             data_stream_ = data_stream;
             handler_id_ = handler_id;
             protocol_type_ = protocol_type;
+            isSingleChunk_ = single_chunk;
 
             // Checking if session is correct.
             GetAppsSessionInterface();
@@ -394,6 +400,10 @@ namespace Starcounter {
                 }
                 else
                 {
+                    // Releasing the plain buffer that was allocated when linked chunks were copied.
+                    if (!isSingleChunk_)
+                        BitsAndBytes.Free(new IntPtr((Byte*)http_request_struct_ - MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA - MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST));
+
                     // Releasing data stream resources like chunks, etc.
                     data_stream_.Destroy(isStarcounterThread);
                 }
