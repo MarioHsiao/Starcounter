@@ -278,6 +278,9 @@ namespace Starcounter.VisualStudio.Projects {
             exe.Path = debugConfig.AssemblyPath;
             exe.ApplicationFilePath = exe.Path;
             exe.Name = Path.GetFileName(exe.Path);
+            if (args.ContainsProperty(Option.AppName)) {
+                exe.Name = args.GetProperty(Option.AppName);
+            }
             exe.WorkingDirectory = debugConfig.WorkingDirectory;
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
             foreach (var arg in args.CommandParameters.ToArray()) {
