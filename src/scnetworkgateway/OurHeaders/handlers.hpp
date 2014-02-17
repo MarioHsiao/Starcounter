@@ -251,6 +251,13 @@ public:
                 break;
             }
 
+            case bmx::HANDLER_TYPE::WS_HANDLER:
+            {
+                // Copying the WS channel string.
+                if (original_uri_len_chars > 0)
+                    strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
+            }
+
             default:
             {
                 return SCERRGWWRONGHANDLERTYPE;

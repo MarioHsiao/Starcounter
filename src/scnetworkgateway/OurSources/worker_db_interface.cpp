@@ -639,7 +639,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
 
                 break;
             }
-            
+
             case bmx::BMX_REGISTER_PORT_SUBPORT:
             {
                 // Reading handler info.
@@ -678,6 +678,57 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                     if (SCERRHANDLERALREADYREGISTERED == err_code)
                         err_code = 0;
                 }
+
+                break;
+            }
+            
+            case bmx::BMX_REGISTER_WS:
+            {
+                // Reading handler info.
+                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
+
+                // Reading port number.
+                uint16_t port = resp_chunk->read_uint16();
+
+                // Reading channel id.
+                uint32_t channel_id = resp_chunk->read_uint32();
+
+                // Reading channel name.
+                char channel_name[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t channel_name_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(channel_name, channel_name_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
+
+                GW_PRINT_WORKER << "New WebSocket " << channel_name << "(" << channel_id << ")" << " port " << port << " user handler registration with handler id: " << handler_info << GW_ENDL;
+                
+                // Registering handler on active database.
+                HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
+
+                ServerPort* server_port = g_gateway.FindServerPort(port);
+                if (NULL == server_port)
+                    GW_ASSERT(0);
+
+                if (server_port->get_port_ws_channels()->FindRegisteredChannelName(channel_name))
+                    err_code = SCERRHANDLERALREADYREGISTERED;
+
+                if (err_code)
+                {
+                    wchar_t temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+                    swprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, L"Can't register WebSocket handler %s on port %d", channel_name, port);
+
+                    // Pushing error message to initial database.
+                    PushErrorMessage(sched_id, err_code, temp_str);
+
+                    // Ignoring error code if its existing handler.
+                    if (SCERRHANDLERALREADYREGISTERED == err_code)
+                        err_code = 0;
+                }
+
+                server_port->get_port_ws_channels()->AddNewEntry(
+                    handler_info,
+                    channel_id,
+                    channel_name,
+                    channel_name_len_chars,
+                    db_index_);
 
                 break;
             }

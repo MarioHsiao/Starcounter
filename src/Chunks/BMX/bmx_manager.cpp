@@ -150,7 +150,40 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
     _SC_END_FUNC
 }
 
-// Registers raw port handler.
+EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
+    const uint16_t port_num,
+    const char* channel_name,
+    const uint32_t channel_id,
+    const GENERIC_HANDLER_CALLBACK callback,
+    BMX_HANDLER_TYPE* handler_id,
+    int32_t* max_num_entries
+    )
+{
+    _SC_BEGIN_FUNC
+
+    _SC_ASSERT(NULL != g_bmx_data);
+
+    BMX_HANDLER_INDEX_TYPE handler_index;
+    uint32_t err_code = g_bmx_data->FindPortHandler(port_num, &handler_index);
+    if (0 == err_code)
+        return SCERRHANDLERALREADYREGISTERED;
+
+    // Performing operation on a copy.
+    BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
+    err_code = g_bmx_data_copy->RegisterWsHandler(port_num, channel_name, channel_id, callback, handler_id);
+    LeaveSafeBmxManagement(g_bmx_data_copy);
+
+    if (err_code)
+        return err_code;
+
+    // Pushing registered handler.
+    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredWsHandler(g_bmx_data);
+
+    return err_code;
+
+    _SC_END_FUNC
+};
+
 EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     uint16_t port_num,
     char* original_uri_info,

@@ -87,23 +87,31 @@ namespace Starcounter
         /// The subport_handlers_
         /// </summary>
         private static SubportCallback[] subport_handlers_;
+        
         /// <summary>
         /// The uri_handlers_
         /// </summary>
         private static HandlersManagement.UriCallbackDelegate[] uri_handlers_;
 
         /// <summary>
-        /// The port_outer_handler_
+        /// The outer port handler.
         /// </summary>
 		private static bmx.BMX_HANDLER_CALLBACK port_outer_handler_;
+        
         /// <summary>
-        /// The subport_outer_handler_
+        /// The outer sub-port handler.
         /// </summary>
         private static bmx.BMX_HANDLER_CALLBACK subport_outer_handler_;
+
         /// <summary>
-        /// The uri_outer_handler_
+        /// The outer URI handler.
         /// </summary>
         private static bmx.BMX_HANDLER_CALLBACK uri_outer_handler_;
+
+        /// <summary>
+        /// The outer WebSocket handler.
+        /// </summary>
+        private static bmx.BMX_HANDLER_CALLBACK websocket_outer_handler_;
 
         /// <summary>
         /// Initializes static members of the <see cref="GatewayHandlers" /> class.
@@ -117,6 +125,7 @@ namespace Starcounter
             port_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(PortOuterHandler);
             subport_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(SubportOuterHandler);
             uri_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(HandleIncomingHttpRequest);
+            websocket_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(HandleWebSocket);
 		}
 
         /// <summary>
@@ -340,6 +349,113 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// This is the main entry point of incoming WebSocket requests.
+        /// It is called from the Gateway via the shared memory IPC (interprocess communication).
+        /// </summary>
+        /// <param name="session_id">The session_id.</param>
+        /// <param name="raw_chunk">The raw_chunk.</param>
+        /// <param name="task_info">The task_info.</param>
+        /// <param name="is_handled">The is_handled.</param>
+        /// <returns>UInt32.</returns>
+        private unsafe static UInt32 HandleWebSocket(
+            UInt64 session_id,
+            Byte* raw_chunk,
+            bmx.BMX_TASK_INFO* task_info,
+            Boolean* is_handled)
+        {
+            try
+            {
+                *is_handled = false;
+
+                UInt32 chunk_index = task_info->chunk_index;
+                //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
+
+                // Determining if chunk is single.
+                Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+
+                // Socket data begin.
+                Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+
+                WebSocket ws = null;
+
+                // Checking if we need to process linked chunks.
+                if (!is_single_chunk)
+                {
+                    // Creating network data stream object.
+                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+
+                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
+
+                    Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
+
+                    fixed (Byte* p_plain_chunks_data = plain_chunks_data)
+                    {
+                        // Copying all chunks data.
+                        UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                            chunk_index,
+                            raw_chunk,
+                            p_plain_chunks_data);
+
+                        if (errorCode != 0)
+                            throw ErrorCode.ToException(errorCode);
+
+                        ws = new WebSocket(data_stream, null, null);
+
+                        // Obtaining Request structure.
+                        /*http_request = new Request(
+                            raw_chunk,
+                            is_single_chunk,
+                            chunk_index,
+                            task_info->handler_id,
+                            p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                            p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
+                            data_stream,
+                            protocol_type);*/
+                    }
+                }
+                else
+                {
+                    /*if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_AGGREGATED) != 0)
+                    {
+                        data_stream.Init(raw_chunk, true, chunk_index);
+                        data_stream.SendResponseInternal(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+
+                        return 0;
+                    }*/
+
+                    // Creating network data stream object.
+                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+
+                    ws = new WebSocket(data_stream, null, null);
+
+                    // Obtaining Request structure.
+                    /*http_request = new Request(
+                        raw_chunk,
+                        is_single_chunk,
+                        task_info->chunk_index,
+                        task_info->handler_id,
+                        socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                        socket_data_begin,
+                        data_stream,
+                        protocol_type);*/
+                }
+
+                // Calling user callback.
+                //*is_handled = user_callback(http_request);
+            
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
+            }
+            catch (Exception exc)
+            {
+                LogSources.Hosting.LogException(exc);
+                throw exc;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
         /// Registers the port handler.
         /// </summary>
         /// <param name="port">The port.</param>
@@ -467,6 +583,45 @@ namespace Starcounter
 
                 // TODO
                 handlerId = (UInt16) handler_id;
+            }
+        }
+
+        /// <summary>
+        /// Registers the WebSocket handler.
+        /// </summary>
+        public static void RegisterWsHandler(
+            UInt16 port,
+            String channelName,
+            UInt32 channelId,
+            HandlersManagement.UriCallbackDelegate wsCallback,
+            out UInt16 handlerId,
+            out Int32 maxNumEntries)
+        {
+            Int32 maxNumEntriesTemp;
+            UInt64 handler_id;
+
+            // Ensuring correct multi-threading handlers creation.
+            lock (uri_handlers_)
+            {
+                unsafe
+                {
+                    UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
+                        port,
+                        channelName,
+                        channelId,
+                        uri_outer_handler_,
+                        &handler_id,
+                        &maxNumEntriesTemp);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                }
+
+                uri_handlers_[handler_id] = uriCallback;
+                maxNumEntries = maxNumEntriesTemp;
+
+                // TODO
+                handlerId = (UInt16)handler_id;
             }
         }
 

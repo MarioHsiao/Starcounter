@@ -79,9 +79,10 @@ namespace bmx
     const uint8_t BMX_REGISTER_PORT = 0;
     const uint8_t BMX_REGISTER_PORT_SUBPORT = 1;
     const uint8_t BMX_REGISTER_URI = 2;
-    const uint8_t BMX_UNREGISTER = 3;
-    const uint8_t BMX_ERROR = 4;
-    const uint8_t BMX_SESSION_DESTROY = 5;
+    const uint8_t BMX_REGISTER_WS = 3;
+    const uint8_t BMX_UNREGISTER = 4;
+    const uint8_t BMX_ERROR = 5;
+    const uint8_t BMX_SESSION_DESTROY = 6;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
 
@@ -113,7 +114,8 @@ namespace bmx
         UNUSED_HANDLER,
         PORT_HANDLER,
         SUBPORT_HANDLER,
-        URI_HANDLER
+        URI_HANDLER,
+        WS_HANDLER
     };
 
     class BmxData;
@@ -274,9 +276,9 @@ namespace bmx
             BMX_HANDLER_TYPE handler_info,
             uint16_t port,
             BMX_SUBPORT_TYPE subport,
-            char* original_uri_info,
+            const char* original_uri_info,
             uint32_t original_uri_len_chars,
-            char* processed_uri_info,
+            const char* processed_uri_info,
             uint32_t processed_uri_len_chars,
             uint8_t* param_types,
             int32_t num_params,
@@ -403,11 +405,32 @@ namespace bmx
             return resp_chunk->get_offset();
         }
 
+        // Writes needed WebSocket handler data into chunk.
+        uint32_t WriteRegisteredWsHandler(response_chunk_part *resp_chunk)
+        {
+            // Checking if message fits the chunk.
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + sizeof(subport_) + original_uri_info_len_chars_ + 1)
+            {
+                return 0;
+            }
+
+            resp_chunk->write(BMX_REGISTER_WS);
+            resp_chunk->write(handler_info_);
+            resp_chunk->write(port_);
+            resp_chunk->write(subport_);
+            resp_chunk->write_string(original_uri_info_, original_uri_info_len_chars_);
+
+            return resp_chunk->get_offset();
+        }
+
         // Pushes registered URI handler.
         uint32_t PushRegisteredUriHandler(BmxData* bmx_data);
 
         // Pushes registered port handler.
         uint32_t PushRegisteredPortHandler(BmxData* bmx_data);
+
+        uint32_t PushRegisteredWsHandler(BmxData* bmx_data);
 
         // Pushes registered subport handler.
         uint32_t PushRegisteredSubportHandler(BmxData* bmx_data);
@@ -575,6 +598,14 @@ namespace bmx
             GENERIC_HANDLER_CALLBACK uri_handler, 
             BMX_HANDLER_TYPE* handler_id,
             starcounter::MixedCodeConstants::NetworkProtocolType proto_type);
+
+        // Registers WebSocket handler.
+        uint32_t RegisterWsHandler(
+            uint16_t port,
+            const char* channel_name,
+            uint32_t channel_id,
+            GENERIC_HANDLER_CALLBACK ws_handler, 
+            BMX_HANDLER_TYPE* handler_id);
 
         // Constructor.
         BmxData(uint32_t max_total_handlers)
