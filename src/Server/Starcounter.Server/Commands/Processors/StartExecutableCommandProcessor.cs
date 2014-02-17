@@ -1,13 +1,9 @@
-﻿// ***********************************************************************
-// <copyright file="ExecCommandProcessor.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management;
 using Starcounter.Internal;
 using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Diagnostics;
@@ -17,41 +13,45 @@ using System.Threading;
 namespace Starcounter.Server.Commands {
 
     /// <summary>
-    /// Executes a queued and dispatched <see cref="ExecCommand"/>.
+    /// Executes a queued and dispatched <see cref="StartExecutableCommand"/>.
     /// </summary>
-    [CommandProcessor(typeof(ExecCommand))]
-    internal sealed partial class ExecCommandProcessor : CommandProcessor {
+    [CommandProcessor(typeof(StartExecutableCommand))]
+    internal sealed partial class StartExecutableCommandProcessor : CommandProcessor {
 
         /// <summary>
-        /// Initializes a new <see cref="ExecCommandProcessor"/>.
+        /// Initializes a new <see cref="StartExecutableCommandProcessor"/>.
         /// </summary>
         /// <param name="server">The server in which the processor executes.</param>
-        /// <param name="command">The <see cref="ExecCommand"/> the
+        /// <param name="command">The <see cref="StartExecutableCommand"/> the
         /// processor should exeucte.</param>
-        public ExecCommandProcessor(ServerEngine server, ServerCommand command)
+        public StartExecutableCommandProcessor(ServerEngine server, ServerCommand command)
             : base(server, command) {
         }
 
         /// <inheritdoc />
         protected override void Execute() {
-            ExecCommand command;
+            StartExecutableCommand command;
             WeaverService weaver;
             string appRuntimeDirectory;
             string weavedExecutable;
             Database database;
-            DatabaseApp app;
+            DatabaseApplication app;
             Process codeHostProcess;
             bool databaseExist;
 
-            command = (ExecCommand)this.Command;
+            command = (StartExecutableCommand)this.Command;
             databaseExist = false;
             weavedExecutable = null;
             database = null;
             codeHostProcess = null;
 
-            if (!File.Exists(command.ExecutablePath)) {
+            if (!File.Exists(command.Application.BinaryFilePath)) {
                 throw ErrorCode.ToException(
-                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.ExecutablePath));
+                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.Application.BinaryFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(command.Application.Name)) {
+                throw ErrorCode.ToException(Error.SCERRMISSINGAPPLICATIONNAME);
             }
 
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
@@ -61,14 +61,22 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            app = database.Apps.Find(delegate(DatabaseApp candidate) {
-                return candidate.OriginalExecutablePath.Equals(command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
+            app = database.Apps.Find((candidate) => {
+                return candidate.Info.EqualBinaryFile(command.Application);
             });
             if (app != null) {
                 throw ErrorCode.ToException(
                     Error.SCERREXECUTABLEALREADYRUNNING,
-                    string.Format("Executable {0} is already running in engine {1}.", command.ExecutablePath, command.DatabaseName)
+                    string.Format("Executable {0} is already running in database {1}.", command.Application.BinaryFilePath, command.DatabaseName)
                     );
+            }
+
+            app = database.Apps.Find((candidate) => {
+                return candidate.Info.Name.Equals(command.Application.Name, StringComparison.InvariantCultureIgnoreCase);
+            });
+            if (app != null) {
+                throw ErrorCode.ToException(
+                    Error.SCERRAPPLICATIONALREADYRUNNING, string.Format("Name \"{0}\".", command.Application.Name));
             }
 
             codeHostProcess = database.GetRunningCodeHostProcess();
@@ -79,16 +87,16 @@ namespace Starcounter.Server.Commands {
                     );
             }
 
-            var exeKey = Engine.ExecutableService.CreateKey(command.ExecutablePath);
+            var exeKey = Engine.ExecutableService.CreateKey(command.Application.FilePath);
             WithinTask(Task.PrepareExecutable, (task) => {
                 weaver = Engine.WeaverService;
                 appRuntimeDirectory = Path.Combine(database.ExecutableBasePath, exeKey);
 
                 if (command.NoDb) {
-                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.ExecutablePath, appRuntimeDirectory);
+                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.BinaryFilePath, appRuntimeDirectory);
                     OnAssembliesCopiedToRuntimeDirectory();
                 } else {
-                    weavedExecutable = weaver.Weave(command.ExecutablePath, appRuntimeDirectory);
+                    weavedExecutable = weaver.Weave(command.Application.BinaryFilePath, appRuntimeDirectory);
                     OnWeavingCompleted();
                 }
             });
@@ -99,17 +107,14 @@ namespace Starcounter.Server.Commands {
 
                     var node = Node.LocalhostSystemPortNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-                    app = new DatabaseApp() {
-                        OriginalExecutablePath = command.ExecutablePath,
-                        ApplicationFilePath = command.ApplicationFilePath,
-                        WorkingDirectory = command.WorkingDirectory,
-                        Arguments = command.Arguments,
-                        ExecutionPath = weavedExecutable,
-                        Key = exeKey,
-                        IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous
-                    };
-                    var exe = app.ToExecutable();
 
+                    command.Application.Key = exeKey;
+                    command.Application.HostedFilePath = weavedExecutable;
+
+                    app = new DatabaseApplication(command.Application);
+                    app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;
+
+                    var exe = app.ToExecutable();
                     if (exe.RunEntrypointAsynchronous) {
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.

@@ -151,9 +151,7 @@ namespace StarcounterInternal.Hosting
                     VMView.CreateTypeDef(), ClrView.CreateTypeDef(), BaseMember.CreateTypeDef(), 
                     TableColumn.CreateTypeDef(), CodeProperty.CreateTypeDef()
                 },
-                null,
-                stopwatch_,
-                true
+                stopwatch_
                 );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
@@ -209,47 +207,48 @@ namespace StarcounterInternal.Hosting
         }
 
         /// <summary>
-        /// Execs the app.
+        /// Executes an application in the code host.
         /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="filePath">The file path.</param>
-        /// <param name="primaryApplicationFile">The full path of the primary
+        /// <param name="hsched">Handle to the environment.</param>
+        /// <param name="applicationName">The name of the application.</param>
+        /// <param name="applicationFile">The application file as specified by
+        /// the user, requesting the application to be started.</param>
+        /// <param name="applicationBinaryFile">A compiled version of the
         /// application file.</param>
-        /// <param name="workingDirectory">The logical working directory the assembly
-        /// will execute in.</param>
-        /// <param name="entrypointArguments">Arguments to be passed to the assembly
-        /// entry point, if any.</param>
-        /// <param name="executeEntryPointSynchronously">
-        /// If true the event for processing complete will be set after the entrypoint returns, 
-        /// if set to false the event will be set before the entrypoint executes and execute the 
-        /// entrypoint async.
-        /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
-        public static unsafe void ExecApp(
+        /// <param name="applicationHostFile">The path to the binary that are
+        /// actually to be loaded (i.e. the assembly).</param>
+        /// <param name="workingDirectory">The application working directory.</param>
+        /// <param name="entrypointArguments">Arguments to be passed to the
+        /// application entrypoint, if one exist.</param>
+        /// <param name="execEntryPointSynchronously">Indicates if the entrypoint
+        /// should be executed synchrounously, i.e. before this method return.</param>
+        /// <param name="stopwatch">An optional stopwatch to use for timing.</param>
+        public static unsafe void ExecuteApplication(
             void* hsched,
-            string filePath,
-            string primaryApplicationFile,
-            Stopwatch stopwatch = null,
-            string workingDirectory = null,
-            string[] entrypointArguments = null,
-            bool execEntryPointSynchronously = false
-            )
-        {
+            string applicationName,
+            string applicationFile,
+            string applicationBinaryFile,
+            string applicationHostFile,
+            string workingDirectory,
+            string[] entrypointArguments,
+            bool execEntryPointSynchronously = false,
+            Stopwatch stopwatch = null) {
+
+            var application = new Application(applicationName, applicationFile, applicationBinaryFile, applicationHostFile, workingDirectory, entrypointArguments);
+
             stopwatch_ = stopwatch ?? Stopwatch.StartNew();
 
             OnLoaderStarted();
 
-            try
-            {
+            var filePath = application.HostedFilePath;
+            try {
                 filePath = filePath.Trim('\"', '\\');
                 filePath = Path.GetFullPath(filePath);
-            }
-            catch (ArgumentException pathEx)
-            {
+            } catch (ArgumentException pathEx) {
                 throw new LoaderException(string.Format("{0} ({1})", pathEx.Message, filePath));
             }
 
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-            {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
                 throw new LoaderException(string.Format("File not found: {0}.", filePath));
             }
 
@@ -266,16 +265,12 @@ namespace StarcounterInternal.Hosting
             OnSchemaVerifiedAndLoaded();
 
             var unregisteredTypeDefs = new List<TypeDef>(typeDefs.Count);
-            for (int i = 0; i < typeDefs.Count; i++)
-            {
+            for (int i = 0; i < typeDefs.Count; i++) {
                 var typeDef = typeDefs[i];
                 var alreadyRegisteredTypeDef = Bindings.GetTypeDef(typeDef.Name);
-                if (alreadyRegisteredTypeDef == null)
-                {
+                if (alreadyRegisteredTypeDef == null) {
                     unregisteredTypeDefs.Add(typeDef);
-                }
-                else
-                {
+                } else {
                     // TODO:
                     // Assure that the already loaded type definition has
                     // the same structure.
@@ -288,16 +283,13 @@ namespace StarcounterInternal.Hosting
 
             OnTargetAssemblyLoaded();
 
-            Package package = new Package(unregisteredTypeDefs.ToArray(), 
-                                          assembly, 
-                                          stopwatch_, 
-                                          execEntryPointSynchronously);
-            if (!string.IsNullOrEmpty(workingDirectory))
-            {
-                package.WorkingDirectory = workingDirectory;
-            }
-            package.EntrypointArguments = entrypointArguments;
-            package.PrimaryFilePath = primaryApplicationFile;
+            Package package = new Package(
+                unregisteredTypeDefs.ToArray(),
+                stopwatch_,
+                assembly,
+                application,
+                execEntryPointSynchronously
+            );
 
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
@@ -340,6 +332,7 @@ namespace StarcounterInternal.Hosting
             } finally {
                 stopwatch_ = null;
             }
+
         }
 
         private static void OnLoaderStarted() { Trace("Loader started."); }

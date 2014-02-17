@@ -217,7 +217,7 @@ namespace Starcounter {
                         ReceiveOffsetBytes = 0;
 
                         // Getting the whole response size.
-                        ResponseSizeBytes = Resp.ResponseLength;
+                        ResponseSizeBytes = Resp.ResponseSizeBytes;
                     }
                     catch (Exception exc)
                     {
@@ -387,7 +387,7 @@ namespace Starcounter {
                 Resp = new Response(bytes, offset, resp_len_bytes, null, false);
 
                 // Getting the whole response size.
-                ResponseSizeBytes = Resp.ResponseLength;
+                ResponseSizeBytes = Resp.ResponseSizeBytes;
             }
             catch (Exception exc)
             {
@@ -490,7 +490,7 @@ namespace Starcounter {
                             ReceiveOffsetBytes = 0;
 
                             // Getting the whole response size.
-                            ResponseSizeBytes = Resp.ResponseLength;
+                            ResponseSizeBytes = Resp.ResponseSizeBytes;
                         }
                         catch (Exception exc)
                         {
@@ -553,7 +553,7 @@ namespace Starcounter {
 
             // Parsing the response.
             Resp.ConstructFromFields();
-            Resp.ParseResponseFromUncompressed();
+            Resp.ParseResponseFromPlainBuffer();
 
             // Invoking user delegate.
             if (null != UserDelegate)

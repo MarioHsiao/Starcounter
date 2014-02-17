@@ -8,6 +8,18 @@ using System;
 using MySampleNamespace.Something;
 using SomeOtherNamespace;
 
+public class ClassWithoutNamespace : Page {
+    static void Main() {
+        using (string s = "") {
+
+        }
+
+        Handle.POST("/init-demo-data", () => {
+            return 201;
+        });
+    }
+}
+
 namespace MySampleNamespace
 {
     namespace WrongNamespace
