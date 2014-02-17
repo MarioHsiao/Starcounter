@@ -292,9 +292,9 @@ namespace Starcounter.Internal
         public Boolean use_session_cookie_;
 
         /// <summary>
-        /// Custom user object attached to a session.
+        /// Specific saved user object ID.
         /// </summary>
-        public Object UserObject { get; set; }
+        public UInt64 CargoId { get; set; }
 
         /// <summary>
         /// Time when session was created.
@@ -404,7 +404,7 @@ namespace Starcounter.Internal
             // Removing linear index node.
             linear_index_node_ = null;
 
-            UserObject = null;
+            CargoId = 0;
         }
 
         // Session stored in ASCII bytes.

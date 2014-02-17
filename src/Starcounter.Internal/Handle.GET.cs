@@ -9,6 +9,18 @@ namespace Starcounter {
     
     public partial class Handle {
 
+        public static void Socket(String channel, Action<Byte[], WebSocket> handler) {
+            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+        }
+
+        public static void Socket(String channel, Action<String, WebSocket> handler) {
+            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+        }
+
+        public static void SocketDisconnect(String channel, Action<WebSocket> handler) {
+            _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+        }
+
         /// <summary>
         /// Register a uri template (e.g. <c>/mypath</c>) to catch an
         /// incoming GET request on the default port.

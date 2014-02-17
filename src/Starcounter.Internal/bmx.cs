@@ -164,9 +164,6 @@ namespace Starcounter.Internal
             UInt32 subport
         );
 
-        /// <summary>
-        /// Sc_bmx_register_uri_handlers the specified port.
-        /// </summary>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_register_uri_handler(
             UInt16 port,
@@ -176,6 +173,16 @@ namespace Starcounter.Internal
             Byte num_params,
             BMX_HANDLER_CALLBACK callback,
             MixedCodeConstants.NetworkProtocolType proto_type,
+            UInt64* handler_id,
+            Int32* max_num_entries
+        );
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_register_ws_handler(
+            UInt16 port,
+            String channel_name,
+            UInt32 channel_id,
+            BMX_HANDLER_CALLBACK callback,
             UInt64* handler_id,
             Int32* max_num_entries
         );

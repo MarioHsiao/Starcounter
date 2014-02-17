@@ -162,7 +162,8 @@ enum GatewayErrorCodes
     SCERRGWWRONGDBINDEX,
     SCERRGWMAXHTTPHEADERSSIZEREACHED,
     SCERRGWMAXCHUNKSIZEREACHED,
-    SCERRGWMAXDATASIZEREACHED
+    SCERRGWMAXDATASIZEREACHED,
+    SCERRGWWEBSOCKET
 };
 
 // Maximum number of ports the gateway operates with.
@@ -1270,6 +1271,7 @@ class HandlersList;
 class SocketDataChunk;
 class PortHandlers;
 class RegisteredUris;
+class PortWsChannels;
 class RegisteredSubports;
 class ServerPort
 {
@@ -1292,6 +1294,9 @@ class ServerPort
 
     // All registered URIs belonging to this port.
     RegisteredUris* registered_uris_;
+
+    // All registered WebSockets belonging to this port.
+    PortWsChannels* port_ws_channels_;
 
     // All registered subports belonging to this port.
     // TODO: Fix full support!
@@ -1324,6 +1329,12 @@ public:
     RegisteredUris* get_registered_uris()
     {
         return registered_uris_;
+    }
+
+    // Getting registered port WebSocket channels.
+    PortWsChannels* get_port_ws_channels()
+    {
+        return port_ws_channels_;
     }
 
     // Getting registered port handlers.

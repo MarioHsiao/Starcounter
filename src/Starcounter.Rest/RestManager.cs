@@ -17,7 +17,6 @@ using Starcounter.Logging;
 
 namespace Starcounter.Rest
 {
-
     internal class UserHandlerCodegen
     {
         unsafe static Int32 USER_PARAM_INFO_SIZE = sizeof(MixedCodeConstants.UserDelegateParamInfo);
@@ -693,6 +692,8 @@ namespace Starcounter.Rest
 
             return (Func<Request, IntPtr, IntPtr, Response>)lambdaExpr.Compile();
         }
+
+
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate(
             UInt16 port,
