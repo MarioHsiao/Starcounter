@@ -18,6 +18,7 @@
         "Uri": "http://example.com/api/engines/foo/executables",
         "Executing": [
             {
+			    "Name": "foo.exe",
                 "Path": "C:\\path\to\\the\\exe\\foo.exe",
                 "Uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789"
             }
