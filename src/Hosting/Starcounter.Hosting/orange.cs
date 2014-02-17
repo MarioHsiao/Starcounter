@@ -146,17 +146,33 @@ namespace StarcounterInternal.Hosting
 	        {
 		        ulong tpid;
 		        r = coalmine.cm3_get_tpid(0, &tpid);
-                if (r == 0) r = sccoredb.SCAttachThread(tpid, wtds, init);
+                if (r == 0) r = sccoredb.star_attach(tpid, wtds, init);
 	        }
             if (r == 0) return;
             orange_fatal_error(r);
         }
+#endif
 
+#if false
         private static unsafe void orange_thread_leave(void* hsched, byte cpun, void* p, uint yr)
         {
-            uint e = sccoredb.SCDetachThread(yr);
-            if (e == 0) return;
-            orange_fatal_error(e);
+        	uint arg;
+	        switch (yr)
+	        {
+            case 4: // coalmine.CM5_YIELD_REASON_DETACHED:
+            case 5: // coalmine.CM5_YIELD_REASON_BLOCKED:
+		        arg = sccoredb.STAR_RELEASE_SNAPHOT;
+		        break;
+	        case 7:
+		        arg = sccoredb.STAR_RELEASE_ALL;
+		        break;
+	        default:
+                arg = sccoredb.STAR_RELEASE_NOTHING;
+		        break;
+	        };
+            uint r = sccoredb.star_detach(arg);
+            if (r == 0) return;
+            orange_fatal_error(r);
         }
 #endif
 
@@ -190,12 +206,9 @@ namespace StarcounterInternal.Hosting
 #if false
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p)
         {
-            uint e = sccoredb.SCResetThread();
-            if (e == 0)
-            {
-                return;
-            }
-            orange_fatal_error(e);
+            uint r = sccoredb.star_reset();
+            if (r == 0) return;
+            orange_fatal_error(r);
         }
 #endif
 
@@ -270,15 +283,14 @@ namespace StarcounterInternal.Hosting
 #if false
         private static unsafe void orange_alert_lowmem(void* hsched, void* p, uint lr)
         {
-            uint e;
-            
-            e = sccoredb.SCLowMemoryAlert(lr);
-            if (e == 0)
+            uint rt = lr; // Resource type matched callback code.
+            uint r = sccoredb.star_star_alert_low_memory(rt);
+            if (r == 0)
             {
                 byte cpun;
-                e = sccorelib.cm3_get_cpun(null, &cpun);
+                r = sccorelib.cm3_get_cpun(null, &cpun);
 
-                if (e == 0)
+                if (r == 0)
                 {
                     // This is a worker thread.
 
@@ -297,7 +309,7 @@ namespace StarcounterInternal.Hosting
                 return;
             }
 
-            orange_fatal_error(e);
+            orange_fatal_error(r);
         }
 #endif
 

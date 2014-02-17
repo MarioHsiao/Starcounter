@@ -63,9 +63,9 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                                     if (latestVersion != null) {
                                         jsonChannel.latestVersion = latestVersion.Version;
                                         jsonChannel.latestVersionDate = latestVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                                        jsonChannel.downloadUrl = string.Format("http://{0}/download/{1}/{2}/{3}", VersionHandlerApp.StarcounterTrackerUrl, latestVersion.Edition, latestVersion.Channel, latestVersion.Version);
+                                        jsonChannel.downloadUrl = string.Format("http://{0}/download/{1}/{2}/{3}", VersionHandlerApp.StarcounterTrackerUrl, latestVersion.Edition, latestVersion.Channel, "latest");
                                         if (!string.IsNullOrEmpty(latestVersion.DocumentationFolder)) {
-                                            jsonChannel.documentationUrl = string.Format("http://{0}/doc/{1}/{2}/{3}/{4}", VersionHandlerApp.StarcounterTrackerUrl, latestVersion.Edition, latestVersion.Channel, latestVersion.Version, "webframe.html");
+                                            jsonChannel.documentationUrl = string.Format("http://{0}/doc/{1}/{2}/{3}/{4}", VersionHandlerApp.StarcounterTrackerUrl, latestVersion.Edition, latestVersion.Channel, "latest", "webframe.html");
                                         }
                                     }
 
