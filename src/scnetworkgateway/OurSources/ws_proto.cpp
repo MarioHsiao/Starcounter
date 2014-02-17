@@ -180,17 +180,6 @@ uint32_t WsProto::ProcessWsDataToDb(
 
     uint32_t err_code = 0;
 
-    // Getting the corresponding port number.
-    ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
-    uint16_t port_num = server_port->get_port_number();
-    PortWsChannels* port_ws_channels = server_port->get_port_ws_channels();
-    uint32_t channel_id = sd->get_ws_proto()->get_channel_id();
-    user_handler_id = port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
-    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
-    {
-        return SCERRGWWEBSOCKET;
-    }
-
     // Obtaining saved user handler id.
     user_handler_id = sd->GetSavedUserHandlerId();
     GW_ASSERT_DEBUG(bmx::BMX_INVALID_HANDLER_INFO != user_handler_id);

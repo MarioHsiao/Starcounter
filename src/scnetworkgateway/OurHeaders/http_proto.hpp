@@ -34,6 +34,24 @@ public:
         return session_param_index_;
     }
 
+    // Converts handler id and database index.
+    static BMX_HANDLER_TYPE CreateHandlerInfoType(
+        BMX_HANDLER_TYPE handler_info,
+        db_index_type db_index)
+    {
+        return db_index | (handler_info << 8);
+    }
+
+    // Converts handler id and database index.
+    static void ParseHandlerInfoType(
+        BMX_HANDLER_TYPE handler_info,
+        BMX_HANDLER_TYPE& handler_id,
+        db_index_type& db_index)
+    {
+        db_index = (db_index_type) handler_info;
+        handler_id = (BMX_HANDLER_TYPE) (handler_info >> 8);
+    }
+
     // Getting first handler entry.
     void WriteUserParameters(
         uint8_t* param_types,
@@ -310,7 +328,7 @@ public:
     }
 
     // Printing the registered URIs.
-    void PrintRegisteredUris(std::stringstream& stats_stream)
+    void PrintRegisteredUris(std::stringstream& stats_stream, uint16_t port_num)
     {
         stats_stream << "Following URIs are registered: " << "<br>";
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)

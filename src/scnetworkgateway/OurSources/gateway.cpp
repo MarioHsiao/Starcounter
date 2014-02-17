@@ -453,7 +453,6 @@ void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening
     // Allocating needed tables.
     port_handlers_ = new PortHandlers();
     registered_uris_ = new RegisteredUris(port_number);
-    port_ws_channels_ = new PortWsChannels(port_number);
     registered_subports_ = new RegisteredSubports();
 
     listening_sock_ = listening_sock;
@@ -587,7 +586,7 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
     stats_stream << "<br>";
 
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
-    registered_uris_->PrintRegisteredUris(stats_stream);
+    registered_uris_->PrintRegisteredUris(stats_stream, port_number_);
 }
 
 // Printing the database information.
