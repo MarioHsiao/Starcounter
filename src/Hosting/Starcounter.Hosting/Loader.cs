@@ -150,6 +150,7 @@ namespace StarcounterInternal.Hosting
                     RuntimeView.CreateTypeDef(), VirtualTable.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef()
                 },
+                stopwatch_
                 );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
