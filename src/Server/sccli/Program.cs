@@ -23,7 +23,7 @@ namespace star {
             string serverHost;
             
             if (args.Length == 0) {
-                Usage(null);
+                AdminCLI.ListApplications();
                 return;
             }
 

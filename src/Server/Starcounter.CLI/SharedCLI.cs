@@ -161,6 +161,9 @@ namespace Starcounter.CLI {
             "Type \"star {0}\" to launch the help page for error {0}"
         };
 
+        static string HintHelp = "Type \"star -h\" to see help";
+        static string HintShowErrorPage = "Type \"star {0}\" to launch the help page for error {0}";
+
         /// <summary>
         /// Gets or sets a value indicating if the current client/host
         /// should display verbose output.
@@ -397,6 +400,18 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Writes the given output if the CLI context indicates
+        /// it's in verbose mode.
+        /// </summary>
+        /// <param name="output">The output to write.</param>
+        /// <param name="color">The color to write it with.</param>
+        public static void ShowVerbose(string output, ConsoleColor color = ConsoleColor.Yellow) {
+            if (SharedCLI.Verbose) {
+                ConsoleUtil.ToConsoleWithColor(output, color);
+            }
+        }
+
+        /// <summary>
         /// Writes <paramref name="msg"/> to the console using the default
         /// shared CLI error color and formatting, setting the exit code to
         /// the error given in the strongly typed error message. Possibly
@@ -489,8 +504,9 @@ namespace Starcounter.CLI {
                 ConsoleUtil.ToConsoleWithColor(specificHint, color);
             }
             if (showStandardHints) {
-                foreach (var hint in StandardHints) {
-                    ConsoleUtil.ToConsoleWithColor(string.Format(hint, error), color);
+                ConsoleUtil.ToConsoleWithColor(HintHelp, color);
+                if (error > 0) {
+                    ConsoleUtil.ToConsoleWithColor(string.Format(HintShowErrorPage, error), color);
                 }
             }
         }
