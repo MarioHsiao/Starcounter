@@ -161,6 +161,9 @@ namespace Starcounter.CLI {
             "Type \"star {0}\" to launch the help page for error {0}"
         };
 
+        static string HintHelp = "Type \"star -h\" to see help";
+        static string HintShowErrorPage = "Type \"star {0}\" to launch the help page for error {0}";
+
         /// <summary>
         /// Gets or sets a value indicating if the current client/host
         /// should display verbose output.
@@ -501,8 +504,9 @@ namespace Starcounter.CLI {
                 ConsoleUtil.ToConsoleWithColor(specificHint, color);
             }
             if (showStandardHints) {
-                foreach (var hint in StandardHints) {
-                    ConsoleUtil.ToConsoleWithColor(string.Format(hint, error), color);
+                ConsoleUtil.ToConsoleWithColor(HintHelp, color);
+                if (error > 0) {
+                    ConsoleUtil.ToConsoleWithColor(string.Format(HintShowErrorPage, error), color);
                 }
             }
         }
