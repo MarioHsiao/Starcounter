@@ -692,11 +692,6 @@ namespace Starcounter.Internal
         public const ushort Mdb_DataValueFlag_Null = 0x0001;
 
         /// <summary>
-        /// The MDB_ data value flag_ transactional
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_Transactional = 0x0002;
-
-        /// <summary>
         /// The MDB_ data value flag_ error
         /// </summary>
         public const ushort Mdb_DataValueFlag_Error = 0x1000;
@@ -707,19 +702,9 @@ namespace Starcounter.Internal
         public const ushort Mdb_DataValueFlag_WouldBlock = 0x2000;
 
         /// <summary>
-        /// The MDB_ data value flag_ deleted version
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_DeletedVersion = 0x0010;
-
-        /// <summary>
-        /// The MDB_ data value flag_ deleted public
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_DeletedPublic = 0x0020;
-
-        /// <summary>
         /// The MDB_ data value flag_ exceptional
         /// </summary>
-        public const ushort Mdb_DataValueFlag_Exceptional = 0x1030; // (Mdb_DataValueFlag_Error | Mdb_DataValueFlag_DeletedVersion | Mdb_DataValueFlag_DeletedPublic);
+        public const ushort Mdb_DataValueFlag_Exceptional = Mdb_DataValueFlag_Error;
 
         /// <summary>
         /// Checks if there are any pending changes on given transaction.
