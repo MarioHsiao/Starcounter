@@ -10,7 +10,7 @@ namespace Starcounter.SqlProcessor {
                 string typeName = typeDef.Name.LastDotWord();
                 string assemblyName = "";
                 try {
-                    string assemblyPath = Application.Current.FileName;
+                    string assemblyPath = Application.Current.FilePath;
                     assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
                 } catch (InvalidOperationException) { }
                 string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
