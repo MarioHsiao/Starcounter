@@ -23,7 +23,7 @@ namespace star {
             string serverHost;
             
             if (args.Length == 0) {
-                Usage(null);
+                AdminCLI.ListApplications();
                 return;
             }
 
@@ -32,7 +32,13 @@ namespace star {
                 if (uint.TryParse(args[0], out code)) {
                     var helpPageUri = ErrorCode.ToHelpLink(code);
                     ConsoleUtil.ToConsoleWithColor(string.Format("Opening help page \"{0}\"", helpPageUri), ConsoleColor.DarkGray);
-                    Process.Start(helpPageUri);
+                    try {
+                        Process.Start(helpPageUri);
+                    } catch {
+                        ConsoleUtil.ToConsoleWithColor(
+                            string.Format("Couldn't open \"{0}\". Please open it in your browser.", helpPageUri),
+                            ConsoleColor.Yellow);
+                    }
                     return;
                 }
             }
