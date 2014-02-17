@@ -13,15 +13,17 @@ namespace star {
         public const string Server = SharedCLI.Option.Server;
         public const string ServerHost = SharedCLI.Option.ServerHost;
         public const string Db = SharedCLI.Option.Db;
+        public const string AppName = SharedCLI.Option.AppName;
         public const string ResourceDirectory = SharedCLI.Option.ResourceDirectory;
         public const string LogSteps = SharedCLI.Option.LogSteps;
         public const string NoDb = SharedCLI.Option.NoDb;
-        public const string Restart = SharedCLI.Option.Restart;
+        public const string NoRestart = SharedCLI.Option.NoRestart;
         public const string Stop = SharedCLI.Option.Stop;
         public const string NoAutoCreateDb = SharedCLI.Option.NoAutoCreateDb;
         public const string Verbose = SharedCLI.Option.Verbose;
         public const string Async = SharedCLI.Option.Async;
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
+        public const string CompileOnly = "sc-compile";
     }
 }

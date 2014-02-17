@@ -163,8 +163,8 @@ namespace Starcounter.CLI {
 
                 try {
                     Engine engine;
-                    DoStop(node, admin, exePath, database, args, out engine);
-                    ShowStopResultAndSetExitCode(node, database, engine, exePath, args);
+                    DoStop(node, admin, exePath, applicationFilePath, database, args, out engine);
+                    ShowStopResultAndSetExitCode(node, database, engine, applicationFilePath, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
                     return;
@@ -252,14 +252,13 @@ namespace Starcounter.CLI {
                 }
             }
             else {
-                var disabledRestartFlag = new DateTime(2013, 11, 26, 3, 0, 0);
-                if (!args.ContainsFlag(Option.Restart) && DateTime.Now < disabledRestartFlag) {
+                if (args.ContainsFlag(Option.NoRestart)) {
                     var file = Path.GetFileName(applicationFilePath);
                     var alreadyStarted = string.Format("\"{0}\" already running in database \"{1}\"", file, databaseName);
                     SharedCLI.ShowInformationAndSetExitCode(
                         alreadyStarted,
                         Error.SCERREXECUTABLEALREADYRUNNING,
-                        string.Format("Type \"star --{0} {1}\" to restart it.", Option.Restart, file),
+                        string.Format("Omit the --{0} option to restart it.", Option.NoRestart),
                         false,
                         true,
                         ConsoleColor.Green,
@@ -299,10 +298,16 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
+            string applicationName;
+            if (!args.TryGetProperty(Option.AppName, out applicationName)) {
+                applicationName = Path.GetFileName(applicationFilePath);
+            }
+
             ShowStatus("Starting executable", true);
             exe = new Executable();
             exe.Path = exePath;
             exe.ApplicationFilePath = applicationFilePath;
+            exe.Name = applicationName;
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
             exe.IsTool = !args.ContainsFlag(Option.Async);
             if (userArgs != null) {
@@ -322,7 +327,7 @@ namespace Starcounter.CLI {
             exe.PopulateFromJson(response.Body);
         }
 
-        static void DoStop(Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, out Engine engine) {
+        static void DoStop(Node node, AdminAPI admin, string exePath, string applicationFilePath, string databaseName, ApplicationArguments args, out Engine engine) {
             ErrorDetail errorDetail;
             int statusCode;
             var uris = admin.Uris;
@@ -353,7 +358,7 @@ namespace Starcounter.CLI {
             engine = new Engine();
             engine.PopulateFromJson(response.Body);
 
-            ExecutableReference exeRef = engine.GetExecutable(exePath);
+            ExecutableReference exeRef = engine.GetExecutable(applicationFilePath);
             if (exeRef == null) {
                 var notRunning = ErrorCode.ToMessage(Error.SCERREXECUTABLENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
                 SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
@@ -438,12 +443,12 @@ namespace Starcounter.CLI {
             Environment.ExitCode = 0;
         }
 
-        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string exe, ApplicationArguments args) {
+        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationFile, ApplicationArguments args) {
             var color = ConsoleColor.Green;
 
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("Stopped \"{0}\" in database \"{1}\"",
-                Path.GetFileName(exe),
+                Path.GetFileName(applicationFile),
                 database),
                 color);
 

@@ -54,7 +54,8 @@ namespace star {
             var provider = CSharpCodeProvider.CreateProvider("CSharp");
             var parameters = new CompilerParameters() {
                 GenerateExecutable = true,
-                GenerateInMemory = false
+                GenerateInMemory = false,
+                IncludeDebugInformation = true
             };
 
             // Create a unique directory under temp, one which we will later
@@ -84,6 +85,7 @@ namespace star {
             }
 
             parameters.TempFiles.AddFile(temporaryDiskExePath, true);
+            parameters.TempFiles.AddFile(Path.ChangeExtension(temporaryDiskExePath, ".pdb"), true);
 
             parameters.OutputAssembly = temporaryDiskExePath;
             

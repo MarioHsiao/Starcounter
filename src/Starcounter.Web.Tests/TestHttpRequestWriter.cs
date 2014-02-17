@@ -50,8 +50,8 @@ namespace Starcounter.Internal.Tests {
 			for (int i = 0; i < repeats; i++) {
 				response = new Response() { BodyBytes = content, ContentLength = content.Length };
 				response.ConstructFromFields();
-				ret = response.Uncompressed;
-				retSize = response.UncompressedLength;
+				ret = response.ResponseBytes;
+				retSize = response.ResponseSizeBytes;
 			}
 			sw.Stop();
 			Console.WriteLine(Encoding.UTF8.GetString(ret, 0, retSize));

@@ -111,9 +111,25 @@ namespace Starcounter.Internal
         public unsafe struct sccoredb_callbacks
         {
             /// <summary>
+            /// </summary>
+            public void* yield;
+
+            /// <summary>
+            /// </summary>
+            public void* ping;
+
+            /// <summary>
+            /// </summary>
+            public void* query_highmem_cond;
+            
+            /// <summary>
             /// The on_new_schema
             /// </summary>
             public void* on_new_schema;
+
+            /// <summary>
+            /// </summary>
+            public void* on_thread_not_attached;
 
             /// <summary>
             /// </summary>
@@ -157,7 +173,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sccoredb_connect(uint flags, void* hsched, ulong hmenv, ulong hlogs, int* pempty);
+        public static extern unsafe uint sccoredb_connect(uint flags, uint scheduler_count, ulong hmenv, ulong hlogs, void* hperf);
 
         /// <summary>
         /// </summary>
@@ -169,13 +185,9 @@ namespace Starcounter.Internal
         public static extern uint sccoredb_disconnect(uint flags);
 
         /// <summary>
-        /// SCs the attach thread.
         /// </summary>
-        /// <param name="scheduler_number">The scheduler_number.</param>
-        /// <param name="init">The init.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCAttachThread(byte scheduler_number, int init);
+        public static extern unsafe uint SCAttachThread(ulong thread_id, void* thread_data192, int init);
 
         /// <summary>
         /// SCs the detach thread.
