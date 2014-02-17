@@ -184,25 +184,38 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint sccoredb_disconnect(uint flags);
 
+#if false
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint SCAttachThread(ulong thread_id, void* thread_data192, int init);
+        public static extern unsafe uint star_attach(ulong thread_id, void* thread_data192, int init);
+#endif
+
+#if false
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern uint star_detach(uint release);
 
         /// <summary>
-        /// SCs the detach thread.
         /// </summary>
-        /// <param name="yield_reason">The yield_reason.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCDetachThread(uint yield_reason);
+        public const uint STAR_RELEASE_NOTHING = 0;
 
         /// <summary>
-        /// SCs the reset thread.
         /// </summary>
-        /// <returns>System.UInt32.</returns>
+        public const uint STAR_RELEASE_SNAPHOT = 1;
+
+        /// <summary>
+        /// </summary>
+        public const uint STAR_RELEASE_ALL = 2;
+#endif
+
+#if false
+        /// <summary>
+        /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCResetThread();
+        public static extern uint star_reset();
+#endif
 
         /// <summary>
         /// SCs the configure VP.
@@ -234,13 +247,12 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint SCIdleTask(int* pCallAgainIfStillIdle);
 
+#if false
         /// <summary>
-        /// SCs the low memory alert.
         /// </summary>
-        /// <param name="lr">The lr.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCLowMemoryAlert(uint lr);
+        public static extern uint star_alert_low_memory(uint resource_type);
+#endif
 
         /// <summary>
         /// The MD b_ ATTRFLA g_ DERIVED

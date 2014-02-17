@@ -31,7 +31,7 @@ extern "C" void __stdcall sccoredbh_thread_enter(void* hsched, uint8_t cpun, voi
 	{
 		uint64_t tpid;
 		r = cm3_get_tpid(0, &tpid);
-		if (r == 0) r = SCAttachThread(tpid, wtds, init);
+		if (r == 0) r = star_attach(tpid, wtds, init);
 	}
     if (r == 0) return;
     _fatal_error(r);
@@ -39,14 +39,28 @@ extern "C" void __stdcall sccoredbh_thread_enter(void* hsched, uint8_t cpun, voi
 
 extern "C" void __stdcall sccoredbh_thread_leave(void* hsched, uint8_t cpun, void* p, uint32_t yr)
 {
-	uint32_t r = SCDetachThread(yr);
+	uint32_t arg;
+	switch (yr)
+	{
+	case CM5_YIELD_REASON_DETACHED:
+	case CM5_YIELD_REASON_BLOCKED:
+		arg = STAR_RELEASE_SNAPHOT;
+		break;
+	case CM5_YIELD_REASON_RELEASED:
+		arg = STAR_RELEASE_ALL;
+		break;
+	default:
+		arg = STAR_RELEASE_NOTHING;
+		break;
+	};
+	uint32_t r = star_detach(arg);
     if (r == 0) return;
     _fatal_error(r);
 }
 
 extern "C" void __stdcall sccoredbh_thread_reset(void* hsched, uint8_t cpun, void* p)
 {
-    uint32_t r = SCResetThread();
+    uint32_t r = star_reset();
     if (r == 0) return;
     _fatal_error(r);
 }
@@ -83,9 +97,8 @@ extern "C" void __stdcall sccoredbh_vproc_wait(void* hsched, uint8_t cpun, void*
 
 extern "C" void __stdcall sccoredbh_alert_lowmem(void* hsched, void* p, uint32_t lr)
 {
-    uint32_t r;
-            
-    r = SCLowMemoryAlert(lr);
+	uint32_t rt = lr; // Resource type matched callback code.
+    uint32_t r = star_alert_low_memory(lr);
     if (r == 0)
     {
         uint8_t cpun;
