@@ -199,18 +199,16 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Specific saved user object ID.
+        /// Setting or getting user object.
         /// </summary>
-        public UInt64 CargoId
+        public Object UserObject
         {
-            get
-            {
-                return InternalSession.CargoId;
+            get {
+                return InternalSession.UserObject;
             }
 
-            set
-            {
-                InternalSession.CargoId = value;
+            set {
+                InternalSession.UserObject = value;
             }
         }
 

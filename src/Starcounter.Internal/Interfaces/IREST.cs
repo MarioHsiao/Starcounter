@@ -19,27 +19,6 @@ namespace Starcounter.Advanced {
         void RegisterResponsesMerger(Func<Request, List<Response>, List<String>, Response> mergerRoutine);
 
         /// <summary>
-        /// Registers a handler for a WebSocket.
-        /// </summary>
-        /// <param name="channel">The WebSocket channel, for example "chat"</param>
-        /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterWsHandler(ushort port, string channel, Action<Byte[], WebSocket> handler);
-
-        /// <summary>
-        /// Registers a handler for a WebSocket.
-        /// </summary>
-        /// <param name="channel">The WebSocket channel, for example "chat"</param>
-        /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterWsHandler(ushort port, string channel, Action<String, WebSocket> handler);
-
-        /// <summary>
-        /// Registers a disconnect handler for a WebSocket.
-        /// </summary>
-        /// <param name="channel">The WebSocket channel, for example "chat"</param>
-        /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterWsDisconnectHandler(ushort port, string channel, Action<WebSocket> handler);
-
-        /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /test</param>
