@@ -19,6 +19,8 @@ namespace Starcounter.CommandLine
     /// </summary>
     public sealed class ApplicationArguments : IApplicationInput
     {
+        static ApplicationArguments empty;
+
         /// <summary>
         /// The global options
         /// </summary>
@@ -46,6 +48,19 @@ namespace Starcounter.CommandLine
         /// </para>
         /// </remarks>
         Dictionary<string, GivenOption> OptionIndex;
+
+        /// <summary>
+        /// Gets an <see cref="ApplicationArguments"/> with no arguments given.
+        /// </summary>
+        public static ApplicationArguments Empty {
+            get {
+                if (empty == null) {
+                    empty = new ApplicationArguments();
+                    empty.OptionIndex = new Dictionary<string, GivenOption>(0);
+                }
+                return empty;
+            }
+        }
 
         #region Standard API, used by clients to consult given input
 

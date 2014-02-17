@@ -184,25 +184,38 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint sccoredb_disconnect(uint flags);
 
+#if false
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint SCAttachThread(ulong thread_id, void* thread_data192, int init);
+        public static extern unsafe uint star_attach(ulong thread_id, void* thread_data192, int init);
+#endif
+
+#if false
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern uint star_detach(uint release);
 
         /// <summary>
-        /// SCs the detach thread.
         /// </summary>
-        /// <param name="yield_reason">The yield_reason.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCDetachThread(uint yield_reason);
+        public const uint STAR_RELEASE_NOTHING = 0;
 
         /// <summary>
-        /// SCs the reset thread.
         /// </summary>
-        /// <returns>System.UInt32.</returns>
+        public const uint STAR_RELEASE_SNAPHOT = 1;
+
+        /// <summary>
+        /// </summary>
+        public const uint STAR_RELEASE_ALL = 2;
+#endif
+
+#if false
+        /// <summary>
+        /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCResetThread();
+        public static extern uint star_reset();
+#endif
 
         /// <summary>
         /// SCs the configure VP.
@@ -234,13 +247,12 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint SCIdleTask(int* pCallAgainIfStillIdle);
 
+#if false
         /// <summary>
-        /// SCs the low memory alert.
         /// </summary>
-        /// <param name="lr">The lr.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCLowMemoryAlert(uint lr);
+        public static extern uint star_alert_low_memory(uint resource_type);
+#endif
 
         /// <summary>
         /// The MD b_ ATTRFLA g_ DERIVED
@@ -680,11 +692,6 @@ namespace Starcounter.Internal
         public const ushort Mdb_DataValueFlag_Null = 0x0001;
 
         /// <summary>
-        /// The MDB_ data value flag_ transactional
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_Transactional = 0x0002;
-
-        /// <summary>
         /// The MDB_ data value flag_ error
         /// </summary>
         public const ushort Mdb_DataValueFlag_Error = 0x1000;
@@ -695,19 +702,9 @@ namespace Starcounter.Internal
         public const ushort Mdb_DataValueFlag_WouldBlock = 0x2000;
 
         /// <summary>
-        /// The MDB_ data value flag_ deleted version
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_DeletedVersion = 0x0010;
-
-        /// <summary>
-        /// The MDB_ data value flag_ deleted public
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_DeletedPublic = 0x0020;
-
-        /// <summary>
         /// The MDB_ data value flag_ exceptional
         /// </summary>
-        public const ushort Mdb_DataValueFlag_Exceptional = 0x1030; // (Mdb_DataValueFlag_Error | Mdb_DataValueFlag_DeletedVersion | Mdb_DataValueFlag_DeletedPublic);
+        public const ushort Mdb_DataValueFlag_Exceptional = Mdb_DataValueFlag_Error;
 
         /// <summary>
         /// Checks if there are any pending changes on given transaction.

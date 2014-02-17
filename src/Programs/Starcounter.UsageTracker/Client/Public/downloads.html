@@ -73,6 +73,7 @@
                 <h5>{{channel.name}} channel</h5>
 
                 <a href="{{channel.downloadUrl}}" class="btn btn-success">Download latest ({{channel.latestVersion}})</a>
+                <a ng-show="channel.documentationUrl" target="_blank" href="{{channel.documentationUrl}}" class="btn btn-info">Latest Documentation ({{channel.latestVersion}})</a>
                 <br />
                 <br />
 
