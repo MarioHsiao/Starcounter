@@ -1235,18 +1235,9 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// MDB_s the OID to ETI ex.
         /// </summary>
-        /// <param name="objID">The obj ID.</param>
-        /// <param name="pEtiPubl">The p eti publ.</param>
-        /// <param name="pCodeClassIndex">Index of the p code class.</param>
-        /// <returns>Boolean.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static Boolean Mdb_OIDToETIEx(
-            UInt64 objID,
-            UInt64* pEtiPubl,
-            UInt16* pCodeClassIndex
-        );
+        public unsafe extern static uint star_lookup(ulong record_id, /*OUT*/ ulong *precord_addr, /*OUT*/ ushort *ptable_id);
 
         /// <summary>
         /// </summary>
