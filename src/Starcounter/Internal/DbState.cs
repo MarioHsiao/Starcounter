@@ -756,14 +756,10 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteBoolean(ulong oid, ulong address, Int32 index, Boolean value) {
-            Boolean br;
-            
-            br = sccoredb.Mdb_ObjectWriteBool2(oid, address, index, value ? (Byte)1 : (Byte)0);
-            if (br) {
-                return;
-            }
-
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            uint r;
+            r = sccoredb.star_put_ulong(oid, address, index, value ? 1UL : 0UL);
+            if (r == 0) return;
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -842,17 +838,17 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         /// <exception cref="System.NotImplementedException">Negative timestamps are currently not supported.</exception>
         private static void WriteDateTimeEx(ulong oid, ulong address, Int32 index, Int64 value) {
-            Boolean br;
+            uint r;
             if (value < 0) {
                 throw new NotImplementedException("Negative timestamps are currently not supported.");
             }
             
-            br = sccoredb.Mdb_ObjectWriteUInt64(oid, address, index, (UInt64)value);
-            if (br) {
+            r = sccoredb.star_put_ulong(oid, address, index, (UInt64)value);
+            if (r == 0) {
                 return;
             }
 
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -866,7 +862,7 @@ namespace Starcounter.Internal
             UInt32 ec;
             long value2 = X6Decimal.ToRaw(value);
 
-            ec = sccoredb.sccoredb_put_decimal(recordID, recordAddr, (UInt32)columnIndex, value2);
+            ec = sccoredb.star_put_decimal(recordID, recordAddr, columnIndex, value2);
             if (ec != 0)
                 throw ErrorCode.ToException(ec);
         }
@@ -894,12 +890,12 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteDouble(ulong oid, ulong address, Int32 index, Double value) {
-            Boolean br;
-            br = sccoredb.Mdb_ObjectWriteDouble(oid, address, index, value);
-            if (br) {
+            uint r;
+            r = sccoredb.star_put_double(oid, address, index, value);
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -977,12 +973,12 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteInt64(ulong oid, ulong address, Int32 index, Int64 value) {
-            Boolean br;
-            br = sccoredb.Mdb_ObjectWriteInt64(oid, address, index, value);
-            if (br) {
+            uint r;
+            r = sccoredb.star_put_long(oid, address, index, value);
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1009,7 +1005,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteObject(ulong oid, ulong address, Int32 index, IObjectProxy value) {
             ObjectRef valueRef;
-            Boolean br;
+            uint r;
             
             if (value != null) {
                 valueRef.ObjectID = value.Identity;
@@ -1019,18 +1015,18 @@ namespace Starcounter.Internal
                 valueRef.ETI = sccoredb.INVALID_RECORD_ADDR;
             }
             
-            br = sccoredb.Mdb_ObjectWriteObjRef(
+            r = sccoredb.star_put_reference(
                      oid,
                      address,
                      index,
                      valueRef.ObjectID,
                      valueRef.ETI
                  );
-            if (br) {
+            if (r == 0) {
                 return;
             }
 
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1067,12 +1063,12 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteSingle(ulong oid, ulong address, Int32 index, Single value) {
-            Boolean br;
-            br = sccoredb.Mdb_ObjectWriteSingle(oid, address, index, value);
-            if (br) {
+            uint r;
+            r = sccoredb.star_put_float(oid, address, index, value);
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1098,10 +1094,10 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteString(ulong oid, ulong address, int index, string value) {
-            Boolean br;
+            uint r;
             unsafe {
-                fixed (Char* p = value) {
-                    br = sccoredb.Mdb_ObjectWriteString16(
+                fixed (char* p = value) {
+                    r = sccoredb.star_put_string(
                         oid,
                         address,
                         index,
@@ -1109,10 +1105,10 @@ namespace Starcounter.Internal
                     );
                 }
             }
-            if (br) {
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1151,7 +1147,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         /// <exception cref="System.NotImplementedException">Negative timestamps are currently not supported.</exception>
         private static void WriteTimeSpanEx(ulong oid, ulong address, Int32 index, Int64 value) {
-            Boolean br;
+            uint r;
             // TODO:
             // DateTime and Timestamp values should be represented as a signed integer
             // in the storage to match use of signed integer in the CLR. Currently they
@@ -1161,11 +1157,11 @@ namespace Starcounter.Internal
             if (value < 0) {
                 throw new NotImplementedException("Negative timestamps are currently not supported.");
             }
-            br = sccoredb.Mdb_ObjectWriteUInt64(oid, address, index, (UInt64)value);
-            if (br) {
+            r = sccoredb.star_put_ulong(oid, address, index, (UInt64)value);
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1228,10 +1224,8 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteUInt64(ulong oid, ulong address, Int32 index, UInt64 value) {
-            var br = sccoredb.Mdb_ObjectWriteUInt64(oid, address, index, value);
-            if (!br) {
-                throw ErrorCode.ToException(sccoredb.star_get_last_error());
-            }
+            var r = sccoredb.star_put_ulong(oid, address, index, value);
+            if (r != 0) throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1257,17 +1251,17 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteBinary(ulong oid, ulong address, Int32 index, Binary value) {
-            UInt32 ret;
-            ret = sccoredb.Mdb_ObjectWriteBinary(
+            uint r;
+            r = sccoredb.star_put_binary(
                       oid,
                       address,
                       index,
                       value.GetInternalBuffer()
                   );
-            if (ret == 0) {
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(ret);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1278,17 +1272,17 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteLargeBinary(ulong oid, ulong address, Int32 index, LargeBinary value) {
-            UInt32 ret;
-            ret = sccoredb.SCObjectWriteLargeBinary(
+            uint r;
+            r = sccoredb.star_put_lbinary(
                       oid,
                       address,
                       index,
                       value.GetBuffer()
                   );
-            if (ret == 0) {
+            if (r == 0) {
                 return;
             }
-            throw ErrorCode.ToException(ret);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1298,7 +1292,7 @@ namespace Starcounter.Internal
         /// <param name="address"></param>
         /// <param name="index"></param>
         internal static void WriteNull(ulong oid, ulong address, Int32 index) {
-            var r = sccoredb.sccoredb_put_default(oid, address, index);
+            var r = sccoredb.star_put_default(oid, address, index);
             if (r == 0) return;
             throw ErrorCode.ToException(r);
         }

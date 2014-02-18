@@ -1018,19 +1018,19 @@ namespace Starcounter.Binding
         {
             if (value_.ObjectID != sccoredb.MDBIT_OBJECTID)
             {
-                Boolean br;
-                br = sccoredb.Mdb_ObjectWriteObjRef(
+                uint r;
+                r = sccoredb.star_put_reference(
                          target.ObjectID,
                          target.ETI,
                          targetIndex_,
                          value_.ObjectID,
                          value_.ETI
                      );
-                if (br)
+                if (r == 0)
                 {
                     return;
                 }
-                throw ErrorCode.ToException(sccoredb.star_get_last_error());
+                throw ErrorCode.ToException(r);
             }
         }
     }
