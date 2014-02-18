@@ -128,19 +128,16 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Boolean ReadBoolean(ulong oid, ulong address, Int32 index) {
-            Byte value;
-            UInt16 flags;
-            UInt32 ec;
+            ulong value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadBool2(oid, address, index, &value);
+                r = sccoredb.star_get_ulong(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                return (value == 1);
+            if (r == 0) {
+                return (value != 0);
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -151,22 +148,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<Boolean> ReadNullableBoolean(ulong oid, ulong address, Int32 index) {
-            Byte value;
-            UInt16 flags;
-            UInt32 ec;
+            ulong value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadBool2(oid, address, index, &value);
+                r = sccoredb.star_get_ulong(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                    return (value == 1);
-                }
+            if (r == 0) {
+                return (value != 0);
+            }
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
                 return null;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -199,20 +195,16 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static DateTime ReadDateTime(ulong oid, ulong address, Int32 index) {
-            UInt64 ticks;
-            UInt16 flags;
-            UInt32 ec;
+            ulong ticks;
+            uint r;
+
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &ticks);
+                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                    return DateTime.MinValue;
-                }
-                return new DateTime((Int64)ticks);
+            if (r == 0) {
+                return new DateTime((long)ticks);
             }
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -223,22 +215,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<DateTime> ReadNullableDateTime(ulong oid, ulong address, Int32 index) {
-            UInt64 ticks;
-            UInt16 flags;
-            UInt32 ec;
-            
-            unsafe {
-                flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &ticks);
-            }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                    return null;
-                }
-                return new DateTime((Int64)ticks);
-            }
+            ulong ticks;
+            uint r;
 
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            unsafe {
+                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
+            }
+            if (r == 0) {
+                return new DateTime((long)ticks);
+            }
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                return null;
+            }
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -249,17 +240,18 @@ namespace Starcounter.Internal
         /// <param name="columnIndex"></param>
         /// <returns></returns>
         public static Decimal ReadDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
-            UInt16 flags;
+            uint r;
 			long value;
 
             unsafe {
-                flags = sccoredb.sccoredb_get_decimal(recordID, recordAddr, columnIndex, &value);
+                r = sccoredb.star_get_decimal(recordID, recordAddr, columnIndex, &value);
             }
-
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+            if (r == 0) {
                 return X6Decimal.FromRaw(value);
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -270,21 +262,21 @@ namespace Starcounter.Internal
         /// <param name="columnIndex"></param>
         /// <returns></returns>
         public static Nullable<Decimal> ReadNullableDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
-            Int64 value;
-            UInt16 flags;
+            long value;
+            uint r;
             
             unsafe {
-                flags = sccoredb.sccoredb_get_decimal(recordID, recordAddr, columnIndex, &value);
+                r = sccoredb.star_get_decimal(recordID, recordAddr, columnIndex, &value);
             }
-
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                    return X6Decimal.FromRaw(value);
-                } else {
-                    return null;
-                }
+            if (r == 0) {
+                return X6Decimal.FromRaw(value);
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                return null;
+            }
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -295,19 +287,18 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Double ReadDouble(ulong oid, ulong address, Int32 index) {
-            Double value;
-            UInt16 flags;
-            UInt32 ec;
+            double value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadDouble(oid, address, index, &value);
+                r = sccoredb.star_get_double(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -318,22 +309,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<Double> ReadNullableDouble(ulong oid, ulong address, Int32 index) {
-            Double value;
-            UInt16 flags;
-            UInt32 ec;
+            double value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadDouble(oid, address, index, &value);
+                r = sccoredb.star_get_double(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                    return null;
-                }
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                return null;
+            }
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -388,19 +378,18 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Int64 ReadInt64(ulong oid, ulong address, Int32 index) {
-            Int64 value;
-            UInt16 flags;
-            UInt32 ec;
+            long value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadInt64(oid, address, index, &value);
+                r = sccoredb.star_get_long(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -411,23 +400,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<Int64> ReadNullableInt64(ulong oid, ulong address, Int32 index) {
-            Int64 value;
-            UInt16 flags;
-
-            UInt32 ec;
+            long value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadInt64(oid, address, index, &value);
+                r = sccoredb.star_get_long(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                    return null;
-                }
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                return null;
+            }
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -438,32 +425,29 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static IObjectView ReadObject(ulong oid, ulong address, Int32 index) {
-            UInt16 flags;
+            uint r;
             ObjectRef value;
-            UInt16 cci;
-            UInt32 ec;
+            ushort cci;
 
-            flags = 0;
             unsafe {
-                sccoredb.Mdb_ObjectReadObjRef(
+                r = sccoredb.star_get_reference(
                     oid,
                     address,
                     index,
                     &value.ObjectID,
                     &value.ETI,
-                    &cci,
-                    &flags
-                );
-            }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
+                    &cci
+                    );
+                if (r == 0) {
                     return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
                 }
-                return null;
+                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                    return null;
+                }
+                else {
+                    throw ErrorCode.ToException(r);
+                }
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
         }
 
         /// <summary>
@@ -496,19 +480,18 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Single ReadSingle(ulong oid, ulong address, Int32 index) {
-            Single value;
-            UInt16 flags;
-            UInt32 ec;
+            float value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadSingle(oid, address, index, &value);
+                r = sccoredb.star_get_float(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -519,23 +502,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<Single> ReadNullableSingle(ulong oid, ulong address, Int32 index) {
-            Single value;
-            UInt16 flags;
-
-            UInt32 ec;
+            float value;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadSingle(oid, address, index, &value);
+                r = sccoredb.star_get_float(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                    return null;
-                }
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                return null;
+            }
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -550,28 +531,21 @@ namespace Starcounter.Internal
         /// <returns>The value of the string at the given index.</returns>
         public static string ReadString(ulong oid, ulong address, int index) {
             unsafe {
-                UInt16 flags;
-                Byte* value;
-                Int32 sl;
-                UInt32 ec;
+                uint r;
+                byte* value;
+                int sl;
 
-                flags = sccoredb.SCObjectReadStringW2(
-                    oid,
-                    address,
-                    index,
-                    &value
-                );
-
-                if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                    if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                        sl = *((Int32*)value);
-                        return new String((Char*)(value + 4), 0, sl);
-                    }
+                r = sccoredb.star_get_string(oid, address, index, &value);
+                if (r == 0) {
+                    sl = *((Int32*)value);
+                    return new String((Char*)(value + 4), 0, sl);
+                }
+                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
                     return null;
                 }
-
-                ec = sccoredb.star_get_last_error();
-                throw ErrorCode.ToException(ec);
+                else {
+                    throw ErrorCode.ToException(r);
+                }
             }
         }
 
@@ -584,23 +558,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Binary ReadBinary(ulong oid, ulong address, Int32 index) {
-            UInt16 flags;
-            UInt32 ec;
-
             unsafe {
-                Byte* pValue;
-                flags = sccoredb.Mdb_ObjectReadBinary(oid, address, index, &pValue);
+                byte* pValue;
+                uint r;
 
-                if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                    if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                        return Binary.FromNative(pValue);
-                    }
+                r = sccoredb.star_get_binary(oid, address, index, &pValue);
+                if (r == 0) {
+                    return Binary.FromNative(pValue);
+                }
+                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
                     return Binary.Null;
                 }
+                else {
+                    throw ErrorCode.ToException(r);
+                }
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
         }
 
         /// <summary>
@@ -611,21 +583,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static LargeBinary ReadLargeBinary(ulong oid, ulong address, Int32 index) {
-            UInt16 flags;
-
             unsafe {
-                Byte* pValue;
-                flags = sccoredb.SCObjectReadLargeBinary(oid, address, index, &pValue);
+                uint r;
+                byte* pValue;
 
-                if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                    if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                        return LargeBinary.FromNative(pValue);
-                    }
+                r = sccoredb.star_get_lbinary(oid, address, index, &pValue);
+                if (r == 0) {
+                    return LargeBinary.FromNative(pValue);
+                }
+                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
                     return LargeBinary.Null;
                 }
+                else {
+                    throw ErrorCode.ToException(r);
+                }
             }
-
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>
@@ -647,21 +619,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<TimeSpan> ReadNullableTimeSpan(ulong oid, ulong address, Int32 index) {
-            UInt64 ticks;
-            UInt16 flags;
-            UInt32 ec;
+            ulong ticks;
+            uint r;
             
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &ticks);
+                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) != 0) {
-                ec = sccoredb.star_get_last_error();
-                throw ErrorCode.ToException(ec);
+            if (r == 0) {
+                return new TimeSpan((long)ticks);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
                 return null;
             }
-            return new Nullable<TimeSpan>(new TimeSpan((Int64)ticks));
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -672,22 +644,18 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         private static Int64 ReadTimeSpanEx(ulong oid, ulong address, Int32 index) {
-            UInt64 ticks;
-            UInt16 flags;
-            UInt32 ec;
+            ulong ticks;
+            uint r;
 
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &ticks);
+                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) != 0) {
-                ec = sccoredb.star_get_last_error();
-                throw ErrorCode.ToException(ec);
+            if (r == 0) {
+                return (long)ticks;
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                return TimeSpan.MinValue.Ticks;
+            else {
+                throw ErrorCode.ToException(r);
             }
-            
-            return (Int64)ticks;
         }
 
         /// <summary>
@@ -742,19 +710,18 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static UInt64 ReadUInt64(ulong oid, ulong address, Int32 index) {
-            UInt16 flags;
-            UInt64 value;
-            UInt32 ec;
+            uint r;
+            ulong value;
             
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &value);
+                r = sccoredb.star_get_ulong(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>
@@ -765,22 +732,21 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static Nullable<UInt64> ReadNullableUInt64(ulong oid, ulong address, Int32 index) {
-            UInt16 flags;
-            UInt64 value;
-            UInt32 ec;
+            uint r;
+            ulong value;
             
             unsafe {
-                flags = sccoredb.Mdb_ObjectReadUInt64(oid, address, index, &value);
+                r = sccoredb.star_get_ulong(oid, address, index, &value);
             }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) != 0) {
-                    return null;
-                }
+            if (r == 0) {
                 return value;
             }
-
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
+            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                return null;
+            }
+            else {
+                throw ErrorCode.ToException(r);
+            }
         }
 
         /// <summary>

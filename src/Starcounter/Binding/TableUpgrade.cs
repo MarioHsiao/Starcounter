@@ -982,38 +982,32 @@ namespace Starcounter.Binding
         /// <returns>ObjectRef.</returns>
         private ObjectRef DoRead(ObjectRef source)
         {
-            UInt16 flags;
-            ObjectRef value;
-            UInt16 cci;
-            UInt32 ec;
-            flags = 0;
             unsafe
             {
-                sccoredb.Mdb_ObjectReadObjRef(
+                uint r;
+                ObjectRef value;
+                ushort cci;
+
+                r = sccoredb.star_get_reference(
                     source.ObjectID,
                     source.ETI,
                     sourceIndex_,
                     &value.ObjectID,
                     &value.ETI,
-                    &cci,
-                    &flags
-                );
-            }
-            if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0)
-            {
-                if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
-                {
+                    &cci
+                    );
+                if (r == 0) {
                     return value;
                 }
-                else
-                {
+                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
                     value.ObjectID = sccoredb.MDBIT_OBJECTID;
                     value.ETI = sccoredb.INVALID_RECORD_ADDR;
                     return value;
                 }
+                else {
+                    throw ErrorCode.ToException(r);
+                }
             }
-            ec = sccoredb.star_get_last_error();
-            throw ErrorCode.ToException(ec);
         }
 
         /// <summary>
