@@ -999,7 +999,7 @@ namespace Starcounter.Binding
                 if (r == 0) {
                     return value;
                 }
-                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                else if (r == Error.SCERRVALUEUNDEFINED) {
                     value.ObjectID = sccoredb.MDBIT_OBJECTID;
                     value.ETI = sccoredb.INVALID_RECORD_ADDR;
                     return value;

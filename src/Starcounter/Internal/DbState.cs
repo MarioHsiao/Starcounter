@@ -157,7 +157,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return (value != 0);
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -224,7 +224,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return new DateTime((long)ticks);
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -271,7 +271,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return X6Decimal.FromRaw(value);
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -318,7 +318,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return value;
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -409,7 +409,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return value;
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -441,7 +441,7 @@ namespace Starcounter.Internal
                 if (r == 0) {
                     return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
                 }
-                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                else if (r == Error.SCERRVALUEUNDEFINED) {
                     return null;
                 }
                 else {
@@ -511,7 +511,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return value;
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -540,7 +540,7 @@ namespace Starcounter.Internal
                     sl = *((Int32*)value);
                     return new String((Char*)(value + 4), 0, sl);
                 }
-                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                else if (r == Error.SCERRVALUEUNDEFINED) {
                     return null;
                 }
                 else {
@@ -566,7 +566,7 @@ namespace Starcounter.Internal
                 if (r == 0) {
                     return Binary.FromNative(pValue);
                 }
-                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                else if (r == Error.SCERRVALUEUNDEFINED) {
                     return Binary.Null;
                 }
                 else {
@@ -591,7 +591,7 @@ namespace Starcounter.Internal
                 if (r == 0) {
                     return LargeBinary.FromNative(pValue);
                 }
-                else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+                else if (r == Error.SCERRVALUEUNDEFINED) {
                     return LargeBinary.Null;
                 }
                 else {
@@ -628,7 +628,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return new TimeSpan((long)ticks);
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
@@ -741,7 +741,7 @@ namespace Starcounter.Internal
             if (r == 0) {
                 return value;
             }
-            else if (r == Error.SCERRCOLUMNVALUEUNDEFINED) {
+            else if (r == Error.SCERRVALUEUNDEFINED) {
                 return null;
             }
             else {
