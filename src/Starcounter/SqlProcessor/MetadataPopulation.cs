@@ -2,10 +2,11 @@
 using Starcounter.Internal;
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public static class MetadataPopulation {
-        public static void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
+        public static unsafe void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
             foreach (TypeDef typeDef in typeDefs) {
                 string typeName = typeDef.Name.LastDotWord();
                 string assemblyName = "";
@@ -15,26 +16,41 @@ namespace Starcounter.SqlProcessor {
                 } catch (InvalidOperationException) { }
                 string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
                 string fullName = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
-                string[] propertyNames = new string[typeDef.PropertyDefs.Length];
+                char*[] propertyNames = new char*[typeDef.PropertyDefs.Length];
                 ushort[] dbTypes = new ushort[typeDef.PropertyDefs.Length];
-                string[] columnNames = new string[typeDef.PropertyDefs.Length];
-                string[] codePropertyNames = new string[typeDef.PropertyDefs.Length];
+                char*[] columnNames = new char*[typeDef.PropertyDefs.Length];
+                char*[] codePropertyNames = new char*[typeDef.PropertyDefs.Length];
                 int nrCols = 0;
                 int nrCodeprops = 0;
                 for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
                     if (typeDef.PropertyDefs[i].ColumnName == null) {
-                        codePropertyNames[nrCodeprops] = typeDef.PropertyDefs[i].Name;
+                        codePropertyNames[nrCodeprops] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].Name);
                         nrCodeprops++;
                     } else {
-                        propertyNames[nrCols] = typeDef.PropertyDefs[i].Name;
+                        propertyNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].Name);
                         dbTypes[nrCols] = (ushort)typeDef.PropertyDefs[i].Type;
-                        columnNames[nrCols] = typeDef.PropertyDefs[i].ColumnName;
+                        columnNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].ColumnName);
                         nrCols++;
                     }
                 }
                 Debug.Assert(nrCodeprops + nrCols <= typeDef.PropertyDefs.Length);
-                Starcounter.SqlProcessor.SqlProcessor.PopulateAClrView(typeName, fullName, typeDef.Name, typeDef.BaseName,
-                    propertyNames, dbTypes, typeDef.TableDef.Name, columnNames);
+                ClrView aView;
+                aView.TypeName = (char*)Marshal.StringToCoTaskMemUni(typeName);
+                aView.FullName = (char*)Marshal.StringToCoTaskMemUni(fullName);
+                aView.FullClassName = (char*)Marshal.StringToCoTaskMemUni(typeDef.Name);
+                aView.ParentTypeName = (char*)Marshal.StringToCoTaskMemUni(typeDef.BaseName);
+                aView.TableName = (char*)Marshal.StringToCoTaskMemUni(typeDef.TableDef.Name);
+                fixed (UInt16* dbTypesPtr = dbTypes)
+                fixed (char** properyNamesPtr = propertyNames, columnNamesPtr = columnNames,
+                    codePropertyNamesPtr = codePropertyNames) {
+                    aView.PropertyNames = properyNamesPtr;
+                    aView.CodePropertyNames = codePropertyNamesPtr;
+                    aView.ColumnNames = columnNamesPtr;
+                    aView.DbTypes = dbTypesPtr;
+                    uint err = Starcounter.SqlProcessor.SqlProcessor.scsql_populate_clrview(&aView);
+                    if (err != 0)
+                        throw ErrorCode.ToException(err);
+                }
             }
         }
     }
