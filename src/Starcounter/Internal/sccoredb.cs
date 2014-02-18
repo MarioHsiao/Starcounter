@@ -720,185 +720,56 @@ namespace Starcounter.Internal
             Int32* pValue);
 
         /// <summary>
-        /// MDB_s the object read binary.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="ppReturnValue">The pp return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 Mdb_ObjectReadBinary(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte** ppReturnValue
-        );
+        public unsafe extern static uint star_get_binary(ulong record_id, ulong record_addr, int column_index, /*OUT*/ byte **pvalue);
 
         /// <summary>
-        /// MDB_s the object read bool2.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnValue">The p return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 Mdb_ObjectReadBool2(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte* pReturnValue
-        );
-
-        ///// <summary>
-        ///// SCs the object read decimal2.
-        ///// </summary>
-        ///// <param name="objectOID">The object OID.</param>
-        ///// <param name="objectETI">The object ETI.</param>
-        ///// <param name="index">The index.</param>
-        ///// <param name="ppArray4">The pp array4.</param>
-        ///// <returns>UInt16.</returns>
-        //[DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        //public unsafe extern static UInt16 SCObjectReadDecimal2(
-        //    UInt64 objectOID,
-        //    UInt64 objectETI,
-        //    Int32 index,
-        //    Int32** ppArray4
-        //);
+        public unsafe extern static uint star_get_decimal(ulong record_id, ulong record_addr, int column_index, long *pvalue);
 
         /// <summary>
-        /// 
         /// </summary>
-        /// <param name="recordID"></param>
-        /// <param name="recordAddr"></param>
-        /// <param name="index"></param>
-        /// <param name="pvalue"></param>
-        /// <returns></returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 sccoredb_get_decimal(
-            UInt64 recordID,
-            UInt64 recordAddr,
-            Int32 index,
-            Int64* pvalue
-        );
+        public unsafe extern static uint star_get_double(ulong record_id, ulong record_addr, int column_index, double* pvalue);
 
         /// <summary>
-        /// MDB_s the object read double.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnValue">The p return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 Mdb_ObjectReadDouble(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Double* pReturnValue
-        );
+        public unsafe extern static uint star_get_long(ulong record_id, ulong record_addr, int column_index, long *pvalue);
 
         /// <summary>
-        /// MDB_s the object read int64.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnValue">The p return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 Mdb_ObjectReadInt64(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Int64* pReturnValue
-        );
+        public unsafe extern static uint star_get_lbinary(ulong record_id, ulong record_addr, int column_index, byte** pvalue);
 
         /// <summary>
-        /// SCs the object read large binary.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="ppReturnValue">The pp return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 SCObjectReadLargeBinary(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte** ppReturnValue
-        );
+        public unsafe extern static uint star_get_reference(
+	        ulong record_id,
+            ulong record_addr,
+	        int column_index,
+            ulong* ptarget_record_id,
+            ulong* ptarget_record_addr,
+            ushort* ptarget_table_id
+	        );            
 
         /// <summary>
-        /// MDB_s the object read obj ref.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnOID">The p return OID.</param>
-        /// <param name="pReturnETI">The p return ETI.</param>
-        /// <param name="pClassIndex">Index of the p class.</param>
-        /// <param name="pFlags">The p flags.</param>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static void Mdb_ObjectReadObjRef(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt64* pReturnOID,
-            UInt64* pReturnETI,
-            UInt16* pClassIndex,
-            UInt16* pFlags
-        );
+        public unsafe extern static uint star_get_float(ulong record_id, ulong record_addr, int column_index, float* pvalue);
 
         /// <summary>
-        /// MDB_s the object read single.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnValue">The p return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 Mdb_ObjectReadSingle(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Single* pReturnValue
-        );
+        public unsafe extern static uint star_get_string(ulong record_id, ulong record_addr, int column_index, byte** pvalue);
 
         /// <summary>
-        /// SCs the object read string w2.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnValue">The p return value.</param>
-        /// <returns>UInt16.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 SCObjectReadStringW2(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte** pReturnValue
-        );
-
-        /// <summary>
-        /// MDB_s the object read U int64.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pReturnValue">The p return value.</param>
-        /// <returns>UInt16.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 Mdb_ObjectReadUInt64(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt64* pReturnValue
-        );
+        public unsafe extern static uint star_get_ulong(ulong record_id, ulong record_addr, int column_index, ulong* pvalue);
 
         /// <summary>
         /// MDB_s the object write binary.
