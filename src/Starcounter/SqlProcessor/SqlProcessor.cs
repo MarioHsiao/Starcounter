@@ -105,11 +105,10 @@ namespace Starcounter.SqlProcessor {
         internal char* ParentTypeName;
         internal UInt16 NrProperties;
         internal char** PropertyNames;
+        internal char** ColumnNames;
+        internal UInt16* DbTypes;
         internal UInt16 NrCodeProperties;
         internal char** CodePropertyNames;
-        internal UInt16* DbTypes;
         internal char* TableName;
-        internal UInt16 NrColumns;
-        internal char** ColumnNames;
     }
 }

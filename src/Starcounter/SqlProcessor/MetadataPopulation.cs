@@ -20,8 +20,8 @@ namespace Starcounter.SqlProcessor {
                 ushort[] dbTypes = new ushort[typeDef.PropertyDefs.Length];
                 char*[] columnNames = new char*[typeDef.PropertyDefs.Length];
                 char*[] codePropertyNames = new char*[typeDef.PropertyDefs.Length];
-                int nrCols = 0;
-                int nrCodeprops = 0;
+                ushort nrCols = 0;
+                ushort nrCodeprops = 0;
                 for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
                     if (typeDef.PropertyDefs[i].ColumnName == null) {
                         codePropertyNames[nrCodeprops] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].Name);
@@ -40,6 +40,8 @@ namespace Starcounter.SqlProcessor {
                 aView.FullClassName = (char*)Marshal.StringToCoTaskMemUni(typeDef.Name);
                 aView.ParentTypeName = (char*)Marshal.StringToCoTaskMemUni(typeDef.BaseName);
                 aView.TableName = (char*)Marshal.StringToCoTaskMemUni(typeDef.TableDef.Name);
+                aView.NrProperties = nrCols;
+                aView.NrCodeProperties = nrCodeprops;
                 fixed (UInt16* dbTypesPtr = dbTypes)
                 fixed (char** properyNamesPtr = propertyNames, columnNamesPtr = columnNames,
                     codePropertyNamesPtr = codePropertyNames) {
