@@ -772,196 +772,59 @@ namespace Starcounter.Internal
         public unsafe extern static uint star_get_ulong(ulong record_id, ulong record_addr, int column_index, ulong* pvalue);
 
         /// <summary>
-        /// MDB_s the object write binary.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 Mdb_ObjectWriteBinary(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte[] value
-        );
-
-        /// <summary>
-        /// MDB_s the object write bool2.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteBool2(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte value
-        );
-
-        ///// <summary>
-        ///// MDB_s the object write decimal.
-        ///// </summary>
-        ///// <param name="objectOID">The object OID.</param>
-        ///// <param name="objectETI">The object ETI.</param>
-        ///// <param name="index">The index.</param>
-        ///// <param name="low">The low.</param>
-        ///// <param name="mid">The mid.</param>
-        ///// <param name="high">The high.</param>
-        ///// <param name="scale_sign">The scale_sign.</param>
-        ///// <returns>Boolean.</returns>
-        //[DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        //public extern static Boolean Mdb_ObjectWriteDecimal(
-        //    UInt64 objectOID,
-        //    UInt64 objectETI,
-        //    Int32 index,
-        //    Int32 low,
-        //    Int32 mid,
-        //    Int32 high,
-        //    Int32 scale_sign
-        //);
-
-        /// <summary>
-        /// </summary>
-        /// <param name="recordID"></param>
-        /// <param name="recordAddr"></param>
-        /// <param name="columnIndex"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 sccoredb_put_decimal(
-            UInt64 recordID, 
-            UInt64 recordAddr, 
-            UInt32 columnIndex,
-            Int64 value
-        );
-
-        /// <summary>
-        /// MDB_s the object write double.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteDouble(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Double value
-        );
-
-        /// <summary>
-        /// MDB_s the object write int64.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteInt64(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Int64 value
-        );
-
-        /// <summary>
-        /// SCs the object write large binary.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 SCObjectWriteLargeBinary(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Byte[] value
-        );
-
-        /// <summary>
-        /// MDB_s the object write obj ref.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="valueOID">The value OID.</param>
-        /// <param name="valueETI">The value ETI.</param>
-        /// <returns>Boolean.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteObjRef(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt64 valueOID,
-            UInt64 valueETI
-        );
-
-        /// <summary>
-        /// MDB_s the object write single.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteSingle(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Single value
-        );
+        public extern static uint star_put_binary(ulong record_id, ulong record_addr, int column_index, byte[] value);
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_put_default(
+        public extern static UInt32 star_put_decimal(ulong record_id, ulong record_addr, int column_index, long value);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_put_double(ulong record_id, ulong record_addr, int column_index, double value);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_put_long(ulong record_id, ulong record_addr, int column_index, long value);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_put_lbinary(
             ulong record_id,
             ulong record_addr,
-            int index
-            );
-
-        /// <summary>
-        /// MDB_s the object write string16.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="pValue">The p value.</param>
-        /// <returns>Boolean.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static Boolean Mdb_ObjectWriteString16(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Char* pValue
+            int column_index,
+            byte[] value
         );
 
         /// <summary>
-        /// MDB_s the object write U int64.
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>Boolean.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteUInt64(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            UInt64 value
-        );
+        public extern static uint star_put_reference(ulong record_id, ulong record_addr, int column_index, ulong target_record_id, ulong target_record_addr);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_put_float(ulong record_id, ulong record_addr, int column_index, float value);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_put_default(ulong record_id, ulong record_addr, int column_index);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static uint star_put_string(ulong record_id, ulong record_addr, int column_index, char *value);
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_put_ulong(ulong record_id, ulong record_addr, int column_index, ulong value);
 
         /// <summary>
         /// The S c_ ITERATO r_ RANG e_ INCLUD e_ LSKEY
