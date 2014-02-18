@@ -274,30 +274,28 @@ namespace Starcounter
 
                     UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
-                    Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
+                    // Allocating space to copy linked chunks (freed on Request destruction).
+                    IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
 
-                    fixed (Byte* p_plain_chunks_data = plain_chunks_data)
-                    {
-                        // Copying all chunks data.
-                        UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                            chunk_index,
-                            raw_chunk,
-                            p_plain_chunks_data);
+                    // Copying all chunks data.
+                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                        chunk_index,
+                        raw_chunk,
+                        (Byte*) plain_chunks_data);
 
-                        if (errorCode != 0)
-                            throw ErrorCode.ToException(errorCode);
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode);
 
-                        // Obtaining Request structure.
-                        http_request = new Request(
-                            raw_chunk,
-                            is_single_chunk,
-                            chunk_index,
-                            task_info->handler_id,
-                            p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                            p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
-                            data_stream,
-                            protocol_type);
-                    }
+                    // Obtaining Request structure.
+                    http_request = new Request(
+                        raw_chunk,
+                        is_single_chunk,
+                        chunk_index,
+                        task_info->handler_id,
+                        (Byte*) plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                        (Byte*) plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
+                        data_stream,
+                        protocol_type);
                 }
                 else
                 {
@@ -326,7 +324,7 @@ namespace Starcounter
 
                 // Calling user callback.
                 *is_handled = user_callback(http_request);
-            
+
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
             }
