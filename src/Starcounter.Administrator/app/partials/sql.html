@@ -18,7 +18,6 @@
 
 <br />
 
-
 <div ng-show='isBusy == true' class="progress progress-striped active">
     <div class="bar" style="width: 100%;">Executing sql query</div>
 </div>
@@ -47,10 +46,10 @@
                 fragmentselection="true">
             </ui-handsontable>
           </div>
-     
         </pane>
+
         <pane heading="Queryplan">
-            <div ng-bind-html-unsafe="queryState.queryPlan" />
+            <div ng-bind-html="queryState.queryPlan"></div>
        </pane>
     </tabs>
 
