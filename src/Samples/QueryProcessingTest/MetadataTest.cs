@@ -184,7 +184,7 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrCc == 4);
             Trace.Assert(nrcc == 2);
-            TableColumn c = Db.SQL<TableColumn>("select c from tablecolumn c where name = ?", "UserIdNr").First;
+            TableColumn c = Db.SQL<TableColumn>("select c from tablecolumn c where name = ? and c.basetable is clrview", "UserIdNr").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "UserIdNr");
             Trace.Assert(c.BaseTable != null);
