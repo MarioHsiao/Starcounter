@@ -189,6 +189,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Name == "UserIdNr");
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "User");
+            Trace.Assert(c.BaseTable is ClrView);
+            Trace.Assert((c.BaseTable as ClrView).FullClassName == "QueryProcessingTest.User");
         }
     }
 }
