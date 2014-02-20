@@ -45,9 +45,16 @@ namespace QueryProcessingTest {
             Trace.Assert(m != null);
             Trace.Assert(m.BaseTable == null);
             Trace.Assert(m.Name == "BaseType");
-            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", "parenttable").First;
+            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?", 
+                "parenttable", "basetable").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Table.Name == "BaseTable");
+            count = 0;
+            foreach(MaterializedColumn mc in Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", 
+                "parenttable")) {
+                count++;
+                }
+            Trace.Assert(count == 5);
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "BaseType").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.FullName == "BaseType.Raw.Starcounter");
@@ -191,6 +198,10 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable.Name == "User");
             Trace.Assert(c.BaseTable is ClrView);
             Trace.Assert((c.BaseTable as ClrView).FullClassName == "QueryProcessingTest.User");
+            Trace.Assert(c.MaterializedColumn != null);
+            Trace.Assert(c.MaterializedColumn.Name == c.Name);
+            Trace.Assert(c.MaterializedColumn.Table.Equals((c.BaseTable as HostMaterializedTable).MaterializedTable));
+            Trace.Assert(c.MaterializedColumn.Table.Name == (c.BaseTable as ClrView).FullClassName);
         }
     }
 }
