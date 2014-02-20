@@ -173,6 +173,11 @@ namespace Starcounter {
             return application;
         }
 
+        /// <inheritdoc />
+        public override string ToString() {
+            return DisplayName;
+        }
+
         /// <summary>
         /// Returns a copy of all applications currently indexed.
         /// </summary>
