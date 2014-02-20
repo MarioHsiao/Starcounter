@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Internal;
+using System;
 using System.IO;
 
 namespace Starcounter.Hosting {
@@ -80,6 +81,22 @@ namespace Starcounter.Hosting {
             this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
             this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
             this.Arguments = arguments;
+        }
+
+        /// <summary>
+        /// Creates the display name for a given application, hosted in a
+        /// specified database.
+        /// </summary>
+        /// <param name="databaseName">The database/host the application runs in.
+        /// </param>
+        /// <param name="applicationName">The short name of the application.</param>
+        /// <returns>The application display name.</returns>
+        internal static string CreateDisplayName(string databaseName, string applicationName) {
+            var displayName = applicationName;
+            if (!StarcounterConstants.DefaultDatabaseName.Equals(databaseName, StringComparison.InvariantCultureIgnoreCase)) {
+                displayName = string.Concat(databaseName, @"\", applicationName);
+            }
+            return displayName;
         }
     }
 }
