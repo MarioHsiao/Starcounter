@@ -42,6 +42,15 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets the full name of the current application.
+        /// </summary>
+        public string FullName {
+            get {
+                return ApplicationBase.CreateFullName(Db.Environment.DatabaseNameLower, Name);
+            }
+        }
+
+        /// <summary>
         /// Gets the file that was used to launch the current
         /// application.
         /// </summary>
