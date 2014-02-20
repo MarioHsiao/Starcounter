@@ -1,4 +1,5 @@
 ﻿using Starcounter.Internal;
+using System;
 using System.IO;
 
 namespace staradmin {
@@ -51,6 +52,27 @@ namespace staradmin {
             }
 
             return result;
+        }
+
+        public string Instantiate(string name = "app", string directory = null) {
+            directory = directory ?? Environment.CurrentDirectory;
+
+            if (Path.GetExtension(name) == string.Empty) {
+                name = Path.Combine(name, Path.GetExtension(TemplateFile));
+            }
+
+            var candidate = Path.Combine(directory, name);
+            int number = 0;
+            while (File.Exists(candidate)) {
+                number++;
+                candidate = Path.GetFileNameWithoutExtension(name);
+                candidate += number.ToString();
+                candidate = Path.Combine(directory, candidate, Path.GetExtension(name));
+            }
+
+            name = candidate;
+            File.WriteAllText(name, File.ReadAllText(TemplateFile));
+            return name;
         }
     }
 }
