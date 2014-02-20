@@ -10,6 +10,7 @@ namespace staradmin {
     internal sealed class CLITemplate {
         const string templatesFolder = "cli-templates";
         const string defaultFileExtension = ".cs";
+        const string defaultAppName = "app";
 
         private CLITemplate(string templatePath) {
             TemplateFile = templatePath;
@@ -42,7 +43,7 @@ namespace staradmin {
             if (Directory.Exists(TemplateHome)) {
                 var templateFileName = template;
                 if (Path.GetExtension(templateFileName) == string.Empty) {
-                    templateFileName = Path.Combine(templateFileName, defaultFileExtension);
+                    templateFileName = Path.ChangeExtension(templateFileName, defaultFileExtension);
                 }
 
                 var templatePath = Path.Combine(TemplateHome, templateFileName);
@@ -54,11 +55,12 @@ namespace staradmin {
             return result;
         }
 
-        public string Instantiate(string name = "app", string directory = null) {
+        public string Instantiate(string name = defaultAppName, string directory = null) {
             directory = directory ?? Environment.CurrentDirectory;
+            name = name ?? defaultAppName;
 
             if (Path.GetExtension(name) == string.Empty) {
-                name = Path.Combine(name, Path.GetExtension(TemplateFile));
+                name = Path.ChangeExtension(name, Path.GetExtension(TemplateFile));
             }
 
             var candidate = Path.Combine(directory, name);
@@ -67,7 +69,7 @@ namespace staradmin {
                 number++;
                 candidate = Path.GetFileNameWithoutExtension(name);
                 candidate += number.ToString();
-                candidate = Path.Combine(directory, candidate, Path.GetExtension(name));
+                candidate = Path.Combine(directory, Path.ChangeExtension(candidate, Path.GetExtension(name)));
             }
 
             name = candidate;
