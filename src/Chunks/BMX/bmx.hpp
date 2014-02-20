@@ -129,6 +129,9 @@ namespace bmx
         // Assigned handler info.
         BMX_HANDLER_TYPE handler_info_;
 
+        // Managed handler index.
+        uint16_t managed_handler_index_;
+
         // Current number of handlers.
         uint8_t num_entries_;
 
@@ -274,6 +277,7 @@ namespace bmx
         uint32_t Init(
             bmx::HANDLER_TYPE type,
             BMX_HANDLER_TYPE handler_info,
+            uint16_t managed_handler_index,
             uint16_t port,
             BMX_SUBPORT_TYPE subport,
             const char* original_uri_info,
@@ -294,6 +298,7 @@ namespace bmx
 
             subport_ = subport;
             handler_info_ = handler_info;
+            managed_handler_index_ = managed_handler_index;
 
             original_uri_info_len_chars_ = original_uri_len_chars;
             processed_uri_info_len_chars_ = processed_uri_len_chars;
@@ -524,9 +529,9 @@ namespace bmx
     public:
 
         // Gets specific registered handler.
-        HandlersList* GetRegisteredHandler(BMX_HANDLER_TYPE handler_id)
+        HandlersList* GetRegisteredHandlerByIndex(BMX_HANDLER_INDEX_TYPE handler_index)
         {
-            return registered_handlers_ + handler_id;
+            return registered_handlers_ + handler_index;
         }
 
         int32_t get_max_num_entries()
@@ -576,14 +581,16 @@ namespace bmx
         uint32_t RegisterPortHandler(
             uint16_t port_num,
             GENERIC_HANDLER_CALLBACK port_handler,
-            BMX_HANDLER_TYPE* handler_id);
+            uint16_t managed_handler_index,
+            BMX_HANDLER_TYPE* phandler_info);
 
         // Registers sub-port handler.
         uint32_t RegisterSubPortHandler(
             uint16_t port,
             BMX_SUBPORT_TYPE subport,
             GENERIC_HANDLER_CALLBACK subport_handler,
-            BMX_HANDLER_TYPE* handler_id);
+            uint16_t managed_handler_index,
+            BMX_HANDLER_TYPE* phandler_info);
 
         // Finds certain handler.
         bool IsHandlerExist(BMX_HANDLER_INDEX_TYPE handler_index);
@@ -596,8 +603,8 @@ namespace bmx
             uint8_t* param_types,
             int32_t num_params,
             GENERIC_HANDLER_CALLBACK uri_handler, 
-            BMX_HANDLER_TYPE* handler_id,
-            starcounter::MixedCodeConstants::NetworkProtocolType proto_type);
+            uint16_t managed_handler_index,
+            BMX_HANDLER_TYPE* phandler_info);
 
         // Registers WebSocket handler.
         uint32_t RegisterWsHandler(
@@ -605,7 +612,8 @@ namespace bmx
             const char* channel_name,
             uint32_t channel_id,
             GENERIC_HANDLER_CALLBACK ws_handler, 
-            BMX_HANDLER_TYPE* handler_id);
+            uint16_t managed_handler_index,
+            BMX_HANDLER_TYPE* phandler_info);
 
         // Constructor.
         BmxData(uint32_t max_total_handlers)

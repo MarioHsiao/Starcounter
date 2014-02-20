@@ -137,10 +137,10 @@ namespace Starcounter
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
         private unsafe static UInt32 PortOuterHandler(
-			UInt64 session_id,
-			Byte* raw_chunk, 
-			bmx.BMX_TASK_INFO* task_info,
-			Boolean* is_handled)
+            UInt16 handler_id,
+            Byte* raw_chunk,
+            bmx.BMX_TASK_INFO* task_info,
+            Boolean* is_handled)
 		{
             *is_handled = false;
 
@@ -184,7 +184,7 @@ namespace Starcounter
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
         private unsafe static UInt32 SubportOuterHandler(
-            UInt64 session_id,
+            UInt16 handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
@@ -240,7 +240,7 @@ namespace Starcounter
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
         private unsafe static UInt32 HandleIncomingHttpRequest(
-            UInt64 session_id,
+            UInt16 managed_handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
@@ -358,7 +358,7 @@ namespace Starcounter
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
         private unsafe static UInt32 HandleWebSocket(
-            UInt64 session_id,
+            UInt16 managed_handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
@@ -464,21 +464,17 @@ namespace Starcounter
         public static void RegisterPortHandler(
 			UInt16 port, 
 			PortCallback portCallback,
-            out UInt16 handlerId)
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
 		{
-            UInt64 handler_id;
-
             // Ensuring correct multi-threading handlers creation.
             lock (port_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, port_outer_handler_, &handler_id);
+                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, port_outer_handler_, managedHandlerIndex, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port);
 
-                port_handlers_[handler_id] = portCallback;
-
-                // TODO
-                handlerId = (UInt16)handler_id;
+                port_handlers_[managedHandlerIndex] = portCallback;
             }
 		}
 
@@ -505,21 +501,17 @@ namespace Starcounter
             UInt16 port,
             UInt32 subport,
             SubportCallback subportCallback,
-            out UInt16 handlerId)
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
         {
-            UInt64 handler_id;
-
             // Ensuring correct multi-threading handlers creation.
             lock (subport_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, subport, subport_outer_handler_, &handler_id);
+                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, subport, subport_outer_handler_, managedHandlerIndex, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
 
-                subport_handlers_[handler_id] = subportCallback;
-
-                // TODO
-                handlerId = (UInt16)handler_id;
+                subport_handlers_[managedHandlerIndex] = subportCallback;
             }
         }
 
@@ -545,12 +537,9 @@ namespace Starcounter
             String processedUriInfo,
             Byte[] paramTypes,
             HandlersManagement.UriCallbackDelegate uriCallback,
-            MixedCodeConstants.NetworkProtocolType protoType,
-            out UInt16 handlerId,
-            out Int32 maxNumEntries)
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
         {
-            Int32 maxNumEntriesTemp;
-            UInt64 handler_id;
             Byte numParams = 0;
             if (null != paramTypes)
                 numParams = (Byte)paramTypes.Length;
@@ -569,20 +558,15 @@ namespace Starcounter
                             pp,
                             numParams,
                             uri_outer_handler_,
-                            protoType,
-                            &handler_id,
-                            &maxNumEntriesTemp);
+                            managedHandlerIndex,
+                            out handlerInfo);
 
                         if (errorCode != 0)
                             throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
                     }
                 }
 
-                uri_handlers_[handler_id] = uriCallback;
-                maxNumEntries = maxNumEntriesTemp;
-
-                // TODO
-                handlerId = (UInt16) handler_id;
+                uri_handlers_[managedHandlerIndex] = uriCallback;
             }
         }
 
@@ -594,12 +578,9 @@ namespace Starcounter
             String channelName,
             UInt32 channelId,
             HandlersManagement.UriCallbackDelegate wsCallback,
-            out UInt16 handlerId,
-            out Int32 maxNumEntries)
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
         {
-            Int32 maxNumEntriesTemp;
-            UInt64 handler_id;
-
             // Ensuring correct multi-threading handlers creation.
             lock (uri_handlers_)
             {
@@ -610,18 +591,14 @@ namespace Starcounter
                         channelName,
                         channelId,
                         uri_outer_handler_,
-                        &handler_id,
-                        &maxNumEntriesTemp);
+                        managedHandlerIndex,
+                        out handlerInfo);
 
                     if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                        throw ErrorCode.ToException(errorCode, "Channel string: " + channelName);
                 }
 
-                uri_handlers_[handler_id] = uriCallback;
-                maxNumEntries = maxNumEntriesTemp;
-
-                // TODO
-                handlerId = (UInt16)handler_id;
+                uri_handlers_[managedHandlerIndex] = wsCallback;
             }
         }
 
