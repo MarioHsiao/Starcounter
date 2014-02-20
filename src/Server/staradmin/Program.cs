@@ -1,7 +1,9 @@
 ﻿
 using Starcounter;
+using Starcounter.CLI;
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 
 namespace staradmin {
 
@@ -37,8 +39,8 @@ namespace staradmin {
                         }
                         var name = args.Length > 1 ? args[1] : null;
                         var path = template.Instantiate(name);
-                        Console.WriteLine("Created {0}", path);
-
+                        ConsoleUtil.ToConsoleWithColor(string.Format("Created {0}", path), ConsoleColor.DarkGray);
+                        LaunchEditorOnNewAppIfConfigured(path);
                         break;
                 }
 
@@ -48,6 +50,21 @@ namespace staradmin {
                 Environment.ExitCode = 1;
             } finally {
                 Console.ResetColor();
+            }
+        }
+
+        static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
+            var editor = Environment.GetEnvironmentVariable("STAR_CLI_APP_EDITOR");
+            editor = editor ?? string.Empty;
+            switch (editor) {
+                case "shell":
+                    Process.Start(applicationFile);
+                    break;
+                case "":
+                    break;
+                default:
+                    Process.Start(editor, applicationFile);
+                    break;
             }
         }
     }
