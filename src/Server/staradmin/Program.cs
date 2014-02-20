@@ -31,7 +31,15 @@ namespace staradmin {
                         ServerServiceUtilities.Stop();
                         break;
                     default:
-                        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+                        var template = CLITemplate.GetTemplate(command);
+                        if (template == null) {
+                            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+                        }
+                        var name = args.Length > 1 ? args[1] : null;
+                        var path = template.Instantiate(name);
+                        Console.WriteLine("Created {0}", path);
+
+                        break;
                 }
 
             } catch(Exception e) {
