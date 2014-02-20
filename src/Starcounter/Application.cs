@@ -1,5 +1,7 @@
 ﻿
+using Starcounter.Advanced;
 using Starcounter.Hosting;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +29,15 @@ namespace Starcounter {
         public string Name {
             get {
                 return state.Name;
+            }
+        }
+
+        /// <summary>
+        /// Gets the display name of the current application.
+        /// </summary>
+        public string DisplayName {
+            get {
+                return ApplicationBase.CreateDisplayName(Db.Environment.DatabaseNameLower, Name);
             }
         }
 
