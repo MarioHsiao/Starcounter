@@ -263,16 +263,15 @@ namespace NetworkIoTestApp
         static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
         {
             String db_postfix = "_db" + db_number;
-            UInt16 handler_id;
+            UInt64 handler_id;
             String handler_uri;
-            Int32 numEntriesTotal;
 
             switch(test_type)
             {
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
                     handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -281,7 +280,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
                     handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
                     break;
@@ -289,7 +288,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_RAW:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, OnRawPortEcho, out handler_id);
+                    GatewayHandlers.RegisterPortHandler(port_number, OnRawPortEcho, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;
@@ -297,7 +296,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_PORT:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, OnWebSocket, out handler_id);
+                    GatewayHandlers.RegisterPortHandler(port_number, OnWebSocket, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;
@@ -334,7 +333,7 @@ namespace NetworkIoTestApp
                     AppsBootstrapper.Bootstrap();
 
                     handler_uri = "/testrest";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;

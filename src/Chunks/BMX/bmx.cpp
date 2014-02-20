@@ -143,7 +143,8 @@ uint32_t HandlersList::PushRegisteredWsHandler(BmxData* bmx_data)
 uint32_t BmxData::RegisterPortHandler(
     uint16_t port_num,
     GENERIC_HANDLER_CALLBACK port_handler,
-    BMX_HANDLER_TYPE* handler_id)
+    uint16_t managed_handler_index,
+    BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -182,17 +183,21 @@ uint32_t BmxData::RegisterPortHandler(
                 }
 
                 // Assigning existing handler id.
-                *handler_id = i;
+                *phandler_info = MakeHandlerInfo(i, unique_handler_num_);
 
                 return err_code;
             }
         }
     }
 
+    // Constructing handler info from slot index and unique number.
+    *phandler_info = MakeHandlerInfo(empty_slot, unique_handler_num_);
+
     // Initializing new handlers list.
     err_code = registered_handlers_[empty_slot].Init(
         PORT_HANDLER,
-        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        *phandler_info,
+        managed_handler_index,
         port_num,
         0,
         NULL,
@@ -212,7 +217,6 @@ uint32_t BmxData::RegisterPortHandler(
         return err_code;
 
     // Adding new handler.
-    *handler_id = empty_slot;
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
 
@@ -224,7 +228,8 @@ uint32_t BmxData::RegisterSubPortHandler(
     uint16_t port,
     BMX_SUBPORT_TYPE subport,
     GENERIC_HANDLER_CALLBACK subport_handler, 
-    BMX_HANDLER_TYPE* handler_id)
+    uint16_t managed_handler_index,
+    BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -265,8 +270,8 @@ uint32_t BmxData::RegisterSubPortHandler(
                             return err_code;
                     }
 
-                    // Assigning existing handler id.
-                    *handler_id = i;
+                    // Constructing handler info from slot index and unique number.
+                    *phandler_info = MakeHandlerInfo(i, unique_handler_num_);
 
                     return err_code;
                 }
@@ -274,10 +279,14 @@ uint32_t BmxData::RegisterSubPortHandler(
         }
     }
 
+    // Constructing handler info from slot index and unique number.
+    *phandler_info = MakeHandlerInfo(empty_slot, unique_handler_num_);
+
     // Initializing new handlers list.
     err_code = registered_handlers_[empty_slot].Init(
         SUBPORT_HANDLER,
-        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        *phandler_info,
+        managed_handler_index,
         port,
         subport,
         NULL,
@@ -297,7 +306,6 @@ uint32_t BmxData::RegisterSubPortHandler(
         return err_code;
 
     // Saving handler id.
-    *handler_id = empty_slot;
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
 
@@ -312,8 +320,8 @@ uint32_t BmxData::RegisterUriHandler(
     uint8_t* param_types,
     int32_t num_params,
     GENERIC_HANDLER_CALLBACK uri_handler, 
-    BMX_HANDLER_TYPE* handler_id,
-    starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
+    uint16_t managed_handler_index,
+    BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -352,7 +360,6 @@ uint32_t BmxData::RegisterUriHandler(
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
 
-                    /*
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
                     {
@@ -362,20 +369,23 @@ uint32_t BmxData::RegisterUriHandler(
                             return err_code;
                     }
 
-                    // Assigning existing handler id.
-                    *handler_id = i;
+                    // Constructing handler info from slot index and unique number.
+                    *phandler_info = MakeHandlerInfo(i, unique_handler_num_);
 
                     return err_code;
-                    */
                 }
             }
         }
     }
 
+    // Constructing handler info from slot index and unique number.
+    (*phandler_info) = MakeHandlerInfo(empty_slot, unique_handler_num_);
+
     // Initializing new handlers list.
     err_code = registered_handlers_[empty_slot].Init(
         bmx::HANDLER_TYPE::URI_HANDLER,
-        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        *phandler_info,
+        managed_handler_index,
         port,
         0,
         original_uri_info,
@@ -384,7 +394,7 @@ uint32_t BmxData::RegisterUriHandler(
         processed_uri_len_chars,
         param_types,
         num_params,
-        proto_type);
+        starcounter::MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
     if (err_code)
         return err_code;
@@ -395,7 +405,6 @@ uint32_t BmxData::RegisterUriHandler(
         return err_code;
 
     // Adding new handler.
-    *handler_id = empty_slot;
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
 
@@ -408,7 +417,8 @@ uint32_t BmxData::RegisterWsHandler(
     const char* channel_name,
     uint32_t channel_id,
     GENERIC_HANDLER_CALLBACK ws_handler, 
-    BMX_HANDLER_TYPE* handler_id)
+    uint16_t managed_handler_index,
+    BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -449,10 +459,14 @@ uint32_t BmxData::RegisterWsHandler(
         }
     }
 
+    // Constructing handler info from slot index and unique number.
+    *phandler_info = MakeHandlerInfo(empty_slot, unique_handler_num_);
+
     // Initializing new handlers list.
     err_code = registered_handlers_[empty_slot].Init(
         bmx::HANDLER_TYPE::URI_HANDLER,
-        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        *phandler_info,
+        managed_handler_index,
         port,
         channel_id,
         channel_name,
@@ -472,7 +486,6 @@ uint32_t BmxData::RegisterWsHandler(
         return err_code;
 
     // Adding new handler.
-    *handler_id = empty_slot;
     if (empty_slot == max_num_entries_)
         max_num_entries_++;
 
