@@ -25,6 +25,7 @@ namespace Starcounter.Tools {
         private System.ComponentModel.IContainer applicationContainer;
         private NotifyIcon mNotifyIcon;
         private ContextMenuStrip mContextMenu;
+        private ToolStripMenuItem mShowNotifications;
         private ToolStripMenuItem mDisplayForm;
         private ToolStripMenuItem mShutDown;
         private ToolStripMenuItem mStartServer;
@@ -35,7 +36,7 @@ namespace Starcounter.Tools {
         private ushort Port;
         private string IPAddress;
 
-        private StarcounterService service;
+        private StarcounterWatcher service;
 
         // True if this program was started from the StartUp Folder
         private bool AutoStarted;
@@ -53,6 +54,7 @@ namespace Starcounter.Tools {
         [STAThread]
         public static void Main(string[] args) {
 
+            // Assure single instance
             if (mutex.WaitOne(TimeSpan.Zero, true)) {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
@@ -83,10 +85,11 @@ namespace Starcounter.Tools {
 
         }
 
+
         /// <summary>
         /// Setup 
         /// </summary>
-        public void Setup() {
+        private void Setup() {
 
             // Setup icons
             this.SetupIcons();
@@ -98,9 +101,11 @@ namespace Starcounter.Tools {
             this.SetupEndPoint();
 
             // Setup and start polling service
-            this.service = new StarcounterService();
-            this.service.StatusChanged += service_StatusChanged;
-            this.service.Error += service_Error;
+            this.service = new StarcounterWatcher();
+            this.service.StatusChanged += OnServiceStatusChanged;
+            this.service.ExecutablesStarted += OnExecutablesStarted;
+
+            this.service.Error += OnServiceError;
             this.service.Start(this.IPAddress, this.Port);
         }
 
@@ -116,7 +121,7 @@ namespace Starcounter.Tools {
             if (result == false) {
                 //MessageBox.Show(errorMessage, "Starcounter scTrayIcon Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                this.mNotifyIcon.ShowBalloonTip(0, "Starcounter Error", errorMessage, ToolTipIcon.Error);
+                this.ShowError("Starcounter Error", errorMessage);
 
                 this.Port = Starcounter.Internal.StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
             }
@@ -128,24 +133,63 @@ namespace Starcounter.Tools {
 
         }
 
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void service_Error(object sender, ErrorEventArgs e) {
+        private void OnServiceError(object sender, ErrorEventArgs e) {
+
             if (e.HasError) {
-                mNotifyIcon.ShowBalloonTip(0, "Starcounter service error", e.ErrorMessage, ToolTipIcon.Error);
+                this.ShowError("Starcounter service error", e.ErrorMessage);
             }
 
         }
 
         /// <summary>
+        /// Show error message as an BallonTip
+        /// and log error to EventViewer
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="content"></param>
+        private void ShowError(string header, string content) {
+            if (this.mNotifyIcon != null) {
+                this.mNotifyIcon.ShowBalloonTip(0, header, content, ToolTipIcon.Error);
+            }
+            else {
+                Console.WriteLine("ERROR: {0}, {1}", header, content);
+            }
+
+            this.WriteLog(header + Environment.NewLine + content);
+
+        }
+
+
+        /// <summary>
+        /// Write log to Event viewer
+        /// </summary>
+        /// <param name="message"></param>
+        private void WriteLog(string message) {
+
+            string sSource = "Starcounter TrayIcon";
+            string sLog = "Application";
+
+            if (!EventLog.SourceExists(sSource)) {
+                EventLog.CreateEventSource(sSource, sLog);
+            }
+
+            EventLog.WriteEntry(sSource, message, EventLogEntryType.Error);
+
+        }
+
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void service_StatusChanged(object sender, StatusEventArgs e) {
+        private void OnServiceStatusChanged(object sender, StatusEventArgs e) {
 
             // Exit program if it was auto started (from StartUp folder) and if
             // scservice is not running
@@ -161,11 +205,23 @@ namespace Starcounter.Tools {
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnExecutablesStarted(object sender, ExecutableMessageEventArgs e) {
+
+            if (this.mShowNotifications != null && this.mShowNotifications.Checked) {
+                this.mNotifyIcon.ShowBalloonTip(3000, e.Header, e.Content, ToolTipIcon.Info);
+            }
+
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
         private void CreateSystemTray() {
 
             mNotifyIcon = new NotifyIcon(this.applicationContainer);
-            //mNotifyIcon.Icon = new Icon(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Starcounter.Tools.sc.ico"));
-            //mNotifyIcon.Icon = new Icon(this.GetType(), "sc.ico");
             mNotifyIcon.Icon = this.Disconnected;
 
             mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
@@ -178,15 +234,12 @@ namespace Starcounter.Tools {
 
             //Instantiate the context menu and items   
             mContextMenu = new ContextMenuStrip();
-            mDisplayForm = new ToolStripMenuItem();
-            mStartServer = new ToolStripMenuItem();
-            mShutDown = new ToolStripMenuItem();
-            mExitApplication = new ToolStripMenuItem();
 
             //Attach the menu to the notify icon    
             mNotifyIcon.ContextMenuStrip = mContextMenu;
 
             // Administrator
+            mDisplayForm = new ToolStripMenuItem();
             mDisplayForm.Text = "Administrator";
             mDisplayForm.Image = this.Connected.ToBitmap();
             mDisplayForm.Click += new EventHandler(mDisplayForm_Click);
@@ -197,6 +250,7 @@ namespace Starcounter.Tools {
             mContextMenu.Items.Add("-");
 
             // Shutdown
+            mStartServer = new ToolStripMenuItem();
             mStartServer.Text = "Start Server";
             mStartServer.Click += mStartServer_Click;
             mStartServer.Enabled = false;
@@ -204,6 +258,7 @@ namespace Starcounter.Tools {
             mContextMenu.Items.Add(mStartServer);
 
             // Shutdown
+            mShutDown = new ToolStripMenuItem();
             mShutDown.Text = "Stop Server";
             mShutDown.Click += new EventHandler(mShutDown_Click);
             mShutDown.Enabled = false;
@@ -212,25 +267,38 @@ namespace Starcounter.Tools {
             // Devider
             mContextMenu.Items.Add("-");
 
+            // Display notifications
+            mShowNotifications = new ToolStripMenuItem();
+            mShowNotifications.Text = "Display Notifications";
+            mShowNotifications.CheckOnClick = true;
+            mShowNotifications.Checked = Properties.Settings.Default.ShowNotifications;
+            mShowNotifications.CheckedChanged += mShowNotifications_CheckedChanged;
+            mShowNotifications.Enabled = true;
+            mContextMenu.Items.Add(mShowNotifications);
+
+            // Devider
+            mContextMenu.Items.Add("-");
+
             // Exit Trayicon program
+            mExitApplication = new ToolStripMenuItem();
             mExitApplication.Text = "Exit";
             mExitApplication.Click += new EventHandler(mExitApplication_Click);
             mContextMenu.Items.Add(mExitApplication);
         }
 
 
+        /// <summary>
+        /// Show Notifications property changes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void mShowNotifications_CheckedChanged(object sender, EventArgs e) {
 
-        //void mNotifyIcon_MouseClick(object sender, MouseEventArgs e) {
+            // Save user settings
+            Properties.Settings.Default.ShowNotifications = mShowNotifications.Checked;
+            Properties.Settings.Default.Save();
 
-        //    if (e.Button == MouseButtons.Left) {
-        //        this.ShowContextMenu();
-        //    }
-        //}
-
-        //private void ShowContextMenu() {
-        //    MethodInfo methodInfo = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
-        //    methodInfo.Invoke(this.mNotifyIcon, null);
-        //}
+        }
 
 
         /// <summary>
@@ -307,6 +375,7 @@ namespace Starcounter.Tools {
         /// 
         /// </summary>
         private void CleanUpResources() {
+
             if (this.service != null) {
                 this.service.Stop();
             }
@@ -314,64 +383,6 @@ namespace Starcounter.Tools {
             if (mNotifyIcon != null) {
                 mNotifyIcon.Dispose();
             }
-        }
-
-
-        /// <summary>
-        /// User choosed the 'Exit' menu choice
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void mExitApplication_Click(object sender, EventArgs e) {
-            // Exit
-            ExitThreadCore();
-        }
-
-        /// <summary>
-        /// Start Starcounter server
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void mStartServer_Click(object sender, EventArgs e) {
-
-            try {
-                mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
-                mNotifyIcon.Text += "Starting...";
-                StarcounterService.StartService();
-            }
-            catch (Exception ee) {
-                this.mNotifyIcon.ShowBalloonTip(0, "Starcounter Server Error", ee.Message, ToolTipIcon.Error);
-            }
-        }
-
-        /// <summary>
-        /// Stop starcounter server
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void mShutDown_Click(object sender, EventArgs e) {
-            mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
-            mNotifyIcon.Text += "Stopping...";
-            this.service.Shutdown();
-        }
-
-        void mNotifyIcon_MouseDoubleClick(object sender, MouseEventArgs e) {
-
-            if (mDisplayForm.Enabled) {
-                this.OpenStarcounterAdministrator();
-            }
-
-        }
-
-        /// <summary>
-        /// User choosed the 'Show Administrator' menu choice
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void mDisplayForm_Click(object sender, EventArgs e) {
-
-            this.OpenStarcounterAdministrator();
-
         }
 
 
@@ -392,14 +403,83 @@ namespace Starcounter.Tools {
                 }
                 catch (Win32Exception ee) {
                     string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + parameter;
-                    Console.WriteLine(message);
+                    this.ShowError("Starcounter TrayIcon  error", message);
                 }
 
             }
         }
 
+
+        #region UserInteraction
+
+
+        /// <summary>
+        /// User choosed the 'Exit' menu choice
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void mExitApplication_Click(object sender, EventArgs e) {
+            // Exit
+            ExitThreadCore();
+        }
+
+
+        /// <summary>
+        /// Start Starcounter server
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void mStartServer_Click(object sender, EventArgs e) {
+
+            try {
+                mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
+                mNotifyIcon.Text += "Starting...";
+                StarcounterWatcher.StartStarcounterService();
+            }
+            catch (Exception ee) {
+                this.ShowError("Starcounter Server Error", ee.Message);
+            }
+        }
+
+
+        /// <summary>
+        /// Stop starcounter server
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void mShutDown_Click(object sender, EventArgs e) {
+            mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
+            mNotifyIcon.Text += "Stopping...";
+            this.service.Shutdown();
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void mNotifyIcon_MouseDoubleClick(object sender, MouseEventArgs e) {
+
+            if (mDisplayForm.Enabled) {
+                this.OpenStarcounterAdministrator();
+            }
+
+        }
+
+
+        /// <summary>
+        /// User choosed the 'Show Administrator' menu choice
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void mDisplayForm_Click(object sender, EventArgs e) {
+
+            this.OpenStarcounterAdministrator();
+
+        }
+
+        #endregion
+
     }
-
-
-
 }
