@@ -22,10 +22,6 @@ namespace Starcounter.Administrator.Server.Handlers {
 
         public static void Database_GET(ushort port, IServerRuntime server) {
 
-
-            // Start Database: POST /api/engines/{name}
-            // Stop Database: DELETE <EngineUri>/{name}
-
             // Get a list of all databases with running status
             //{
             //  "Databases":[
@@ -65,8 +61,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                         if (engineInfo != null && engineInfo.DatabaseProcessRunning) {
                             db.running = true;
                         }
-
-
                     }
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };

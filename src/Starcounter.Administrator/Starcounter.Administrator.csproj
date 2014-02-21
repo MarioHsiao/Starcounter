@@ -80,7 +80,6 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
-    <Compile Include="Server\Handlers\ConsoleHandler.GET.cs" />
     <Compile Include="Server\Handlers\ExecutableCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
@@ -89,7 +88,6 @@
     <Compile Include="Server\Handlers\VerifyServerPropertiesHandler.POST.cs" />
     <Compile Include="Server\Handlers\ServerCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\ServerCollectionHandler.PUT.cs" />
-    <Compile Include="Server\Handlers\SQLHandler.GET.cs" />
     <Compile Include="Server\Handlers\ServerLogHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseCollectionHandler.PUT.cs" />
     <Compile Include="Server\Handlers\VerifyDatabasePropertiesHandler.POST.cs" />
@@ -410,6 +408,9 @@
     <None Include="app\vendor\jquery\jquery-2.0.3.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\ErrorResponse.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
