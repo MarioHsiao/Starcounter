@@ -208,7 +208,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
                 }],
                 "DefaultUserPort": 0,
                 "ResourceDirectories": [],
-                "WorkingDirectory": "",
+                "WorkingDirectory": null,
                 "IsTool": true,
                 "StartedBy": "Starcounter Administrator",
                 "Engine": { "Uri": "" },
