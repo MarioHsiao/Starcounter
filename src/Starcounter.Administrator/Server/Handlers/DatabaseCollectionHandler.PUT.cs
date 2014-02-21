@@ -7,9 +7,10 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void Database_PUT(ushort port, IServerRuntime server) {
 
@@ -27,7 +28,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             dynamic incomingJson = DynamicJson.Parse(content);
 
-                            DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
+                            DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(name);
 
                             if (database == null) {
                                 // Database not found
@@ -86,7 +87,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                 resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
 
                                 // Get new database with the new settings
-                                database = Master.ServerInterface.GetDatabaseByName(database.Name);
+                                database = Program.ServerInterface.GetDatabaseByName(database.Name);
                                 if (database == null) {
                                     // Database not found
 

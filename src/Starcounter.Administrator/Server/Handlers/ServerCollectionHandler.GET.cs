@@ -8,9 +8,10 @@ using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void Server_GET(ushort port, IServerRuntime server) {
 
@@ -21,7 +22,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                     try {
 
-                        ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+                        ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
                         if (serverInfo == null) {
                             throw new InvalidProgramException("Could not retrive server informaiton");
                         }

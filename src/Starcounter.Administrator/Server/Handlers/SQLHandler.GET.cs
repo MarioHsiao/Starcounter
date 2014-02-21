@@ -7,14 +7,15 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
         public static void SQL_GET(ushort port) {
             Handle.POST("/api/admin/databases/{?}/sql", (string name, Request req) => {
                 lock (LOCK) {
                     try {
-                        DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
+                        DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(name);
 
                         string bodyData = req.Body;   // Retrieve the sql command in the body
 

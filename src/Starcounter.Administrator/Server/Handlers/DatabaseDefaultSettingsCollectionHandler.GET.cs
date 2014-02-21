@@ -7,9 +7,10 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Advanced;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void DatabaseDefaultSettings_GET(ushort port, IServerRuntime server) {
 
@@ -22,7 +23,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                         DatabaseConfiguration d = new DatabaseConfiguration();
 
-                        ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+                        ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
 
                         dynamic json = new DynamicJson();
 

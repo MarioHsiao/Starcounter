@@ -1,7 +1,0 @@
-﻿{
-	"SystemHttpPort": 8888,
-	"ServerName": "some Name",
-	"DatabaseDirectory" :"some DatabaseDirectory",
-	"LogDirectory": "some LogDirectory",
-	"TempDirectory": "some TempDirectory"
-}

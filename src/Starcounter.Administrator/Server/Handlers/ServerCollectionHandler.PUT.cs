@@ -8,9 +8,10 @@ using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void Server_PUT(ushort port, IServerRuntime server) {
 
@@ -31,7 +32,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             dynamic incomingJson = DynamicJson.Parse(content);
 
-                            ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+                            ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
                             if (serverInfo == null) {
                                 throw new InvalidProgramException("Could not retrieve server information");
                             }
@@ -49,7 +50,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             resultJson.message = "Settings saved. The new settings will be used at the next start of the server";
 
                             // Get new database settings
-                            serverInfo = Master.ServerInterface.GetServerInfo();
+                            serverInfo = Program.ServerInterface.GetServerInfo();
                             if (serverInfo == null) {
                                 throw new InvalidProgramException("Could not retrieve server information");
                             }

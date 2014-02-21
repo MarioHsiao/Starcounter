@@ -9,9 +9,10 @@ using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.IO;
 using System.Timers;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         /// <summary>
         /// List of WebSocket sessions
@@ -115,7 +116,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                 WebSocketSessions[i] = new List<Session>();
             }
 
-            ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+            ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
 
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = serverInfo.Configuration.LogDirectory;
