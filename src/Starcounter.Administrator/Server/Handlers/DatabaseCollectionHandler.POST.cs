@@ -9,9 +9,10 @@ using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void Database_POST(ushort port, IServerRuntime server) {
 
@@ -29,12 +30,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             dynamic incomingJson = DynamicJson.Parse(content);
 
-                            DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
+                            DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(name);
 
 
                             dynamic resultJson = new DynamicJson();
 
-                            var command = new CreateDatabaseCommand(Master.ServerEngine, incomingJson.name) {
+                            var command = new CreateDatabaseCommand(Program.ServerEngine, incomingJson.name) {
                                 EnableWaiting = true
                             };
 

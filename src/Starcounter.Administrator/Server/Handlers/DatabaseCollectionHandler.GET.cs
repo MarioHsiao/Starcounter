@@ -15,9 +15,10 @@ using Starcounter.CommandLine;
 using System.IO;
 using Starcounter.Rest.ExtensionMethods;
 using System.Collections.Generic;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void Database_GET(ushort port, IServerRuntime server) {
 
@@ -83,7 +84,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                     try {
 
-                        DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
+                        DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(name);
 
                         if (database == null) {
                             // Database not found

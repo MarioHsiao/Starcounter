@@ -2,7 +2,7 @@
 using Codeplex.Data;
 using Starcounter.Advanced;
 
-namespace Starcounter.Administrator.FrontEndAPI {
+namespace Starcounter.Administrator.Server.Utilities {
     /// <summary>
     /// General utils
     /// </summary>

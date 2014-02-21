@@ -7,14 +7,14 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void VerifyDatabaseProperties_POST(ushort port, IServerRuntime server) {
 
 
-            #region Verify database properties (/adminapi/verify/databaseproperties)
             Handle.POST("/api/admin/verify/databaseproperties", (Request req) => {
 
                 lock (LOCK) {
@@ -98,7 +98,6 @@ namespace Starcounter.Administrator.FrontEndAPI {
                 }
 
             });
-            #endregion
 
 
         }

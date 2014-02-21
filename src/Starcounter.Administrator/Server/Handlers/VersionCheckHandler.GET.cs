@@ -15,9 +15,10 @@ using Starcounter.CommandLine;
 using System.IO;
 using Starcounter.Rest.ExtensionMethods;
 using System.Globalization;
+using Starcounter.Administrator.Server.Utilities;
 
-namespace Starcounter.Administrator.FrontEndAPI {
-    internal static partial class FrontEndAPI {
+namespace Starcounter.Administrator.Server.Handlers {
+    internal static partial class StarcounterAdminAPI {
 
         public static void VersionCheck_GET(ushort port, IServerRuntime server) {
 

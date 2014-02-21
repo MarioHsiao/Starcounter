@@ -1,4 +1,5 @@
 ﻿{
+	"$": { Namespace: "Starcounter.Administrator.Server" },
     "VersionCheck":
         {
 			"currentEdition":"oem",
