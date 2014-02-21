@@ -89,11 +89,6 @@ namespace Starcounter
         private static SubportCallback[] subport_handlers_;
         
         /// <summary>
-        /// The uri_handlers_
-        /// </summary>
-        private static HandlersManagement.UriCallbackDelegate[] uri_handlers_;
-
-        /// <summary>
         /// The outer port handler.
         /// </summary>
 		private static bmx.BMX_HANDLER_CALLBACK port_outer_handler_;
@@ -104,28 +99,15 @@ namespace Starcounter
         private static bmx.BMX_HANDLER_CALLBACK subport_outer_handler_;
 
         /// <summary>
-        /// The outer URI handler.
-        /// </summary>
-        private static bmx.BMX_HANDLER_CALLBACK uri_outer_handler_;
-
-        /// <summary>
-        /// The outer WebSocket handler.
-        /// </summary>
-        private static bmx.BMX_HANDLER_CALLBACK websocket_outer_handler_;
-
-        /// <summary>
         /// Initializes static members of the <see cref="GatewayHandlers" /> class.
         /// </summary>
         static GatewayHandlers()
 		{
             port_handlers_ = new PortCallback[MAX_HANDLERS];
             subport_handlers_ = new SubportCallback[MAX_HANDLERS];
-            uri_handlers_ = new HandlersManagement.UriCallbackDelegate[MAX_HANDLERS];
 
             port_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(PortOuterHandler);
             subport_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(SubportOuterHandler);
-            uri_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(HandleIncomingHttpRequest);
-            websocket_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(HandleWebSocket);
 		}
 
         /// <summary>
@@ -234,12 +216,7 @@ namespace Starcounter
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
-        /// <param name="session_id">The session_id.</param>
-        /// <param name="raw_chunk">The raw_chunk.</param>
-        /// <param name="task_info">The task_info.</param>
-        /// <param name="is_handled">The is_handled.</param>
-        /// <returns>UInt32.</returns>
-        private unsafe static UInt32 HandleIncomingHttpRequest(
+        internal unsafe static UInt32 HandleIncomingHttpRequest(
             UInt16 managed_handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
@@ -251,11 +228,6 @@ namespace Starcounter
 
                 UInt32 chunk_index = task_info->chunk_index;
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
-
-                // Fetching the callback.
-                HandlersManagement.UriCallbackDelegate user_callback = uri_handlers_[task_info->handler_id];
-                if (user_callback == null)
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
 
                 // Determining if chunk is single.
                 Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
@@ -334,7 +306,7 @@ namespace Starcounter
                 }
 
                 // Calling user callback.
-                *is_handled = user_callback(http_request);
+                *is_handled = HandlersManagement.OnHttpMessageRoot_(http_request);
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
@@ -352,11 +324,6 @@ namespace Starcounter
         /// This is the main entry point of incoming WebSocket requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
-        /// <param name="session_id">The session_id.</param>
-        /// <param name="raw_chunk">The raw_chunk.</param>
-        /// <param name="task_info">The task_info.</param>
-        /// <param name="is_handled">The is_handled.</param>
-        /// <returns>UInt32.</returns>
         private unsafe static UInt32 HandleWebSocket(
             UInt16 managed_handler_id,
             Byte* raw_chunk,
@@ -458,9 +425,6 @@ namespace Starcounter
         /// <summary>
         /// Registers the port handler.
         /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="portCallback">The port callback.</param>
-        /// <param name="handlerId">The handler id.</param>
         public static void RegisterPortHandler(
 			UInt16 port, 
 			PortCallback portCallback,
@@ -489,14 +453,9 @@ namespace Starcounter
             }
 		}
 
-        // Registers subport handler.
         /// <summary>
         /// Registers the subport handler.
         /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="subport">The subport.</param>
-        /// <param name="subportCallback">The subport callback.</param>
-        /// <param name="handlerId">The handler id.</param>
         public static void RegisterSubportHandler(
             UInt16 port,
             UInt32 subport,
@@ -525,93 +484,6 @@ namespace Starcounter
                 UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
-            }
-        }
-
-        /// <summary>
-        /// Registers the URI handler.
-        /// </summary>
-        public static void RegisterUriHandler(
-            UInt16 port,
-            String originalUriInfo,
-            String processedUriInfo,
-            Byte[] paramTypes,
-            HandlersManagement.UriCallbackDelegate uriCallback,
-            UInt16 managedHandlerIndex,
-            out UInt64 handlerInfo)
-        {
-            Byte numParams = 0;
-            if (null != paramTypes)
-                numParams = (Byte)paramTypes.Length;
-
-            // Ensuring correct multi-threading handlers creation.
-            lock (uri_handlers_)
-            {
-                unsafe
-                {
-                    fixed (Byte* pp = paramTypes)
-                    {
-                        UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
-                            port,
-                            originalUriInfo,
-                            processedUriInfo,
-                            pp,
-                            numParams,
-                            uri_outer_handler_,
-                            managedHandlerIndex,
-                            out handlerInfo);
-
-                        if (errorCode != 0)
-                            throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
-                    }
-                }
-
-                uri_handlers_[managedHandlerIndex] = uriCallback;
-            }
-        }
-
-        /// <summary>
-        /// Registers the WebSocket handler.
-        /// </summary>
-        public static void RegisterWsHandler(
-            UInt16 port,
-            String channelName,
-            UInt32 channelId,
-            HandlersManagement.UriCallbackDelegate wsCallback,
-            UInt16 managedHandlerIndex,
-            out UInt64 handlerInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (uri_handlers_)
-            {
-                unsafe
-                {
-                    UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
-                        port,
-                        channelName,
-                        channelId,
-                        uri_outer_handler_,
-                        managedHandlerIndex,
-                        out handlerInfo);
-
-                    if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode, "Channel string: " + channelName);
-                }
-
-                uri_handlers_[managedHandlerIndex] = wsCallback;
-            }
-        }
-
-        public static void UnregisterUriHandler(
-            UInt16 port,
-            String originalUriInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (uri_handlers_)
-            {
-                UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
             }
         }
 	}

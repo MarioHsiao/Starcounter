@@ -42,7 +42,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterWsHandler(ushort port, string channel, Action<Byte[], WebSocket> handler)
         {
-            AllWsChannels.WsChannels.RegisterWsDelegate(port, channel, handler);
+            AllWsChannels.WsManager.RegisterWsDelegate(port, channel, handler);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterWsHandler(ushort port, string channel, Action<String, WebSocket> handler)
         {
-            AllWsChannels.WsChannels.RegisterWsDelegate(port, channel, handler);
+            AllWsChannels.WsManager.RegisterWsDelegate(port, channel, handler);
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterWsDisconnectHandler(ushort port, string channel, Action<WebSocket> handler)
         {
-            AllWsChannels.WsChannels.RegisterWsDisconnectDelegate(port, channel, handler);
+            AllWsChannels.WsManager.RegisterWsDisconnectDelegate(port, channel, handler);
         }
 
         /// <summary>

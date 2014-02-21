@@ -895,12 +895,12 @@ namespace Starcounter.Rest
         }
 
         public static void Setup(
-            HandlersManagement.RegisterUriHandlerNative registerUriHandlerNew,
+            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
             HandlersManagement.UriCallbackDelegate onHttpMessageRoot,
             HandlersManagement.HandleInternalRequestDelegate handleInternalRequest)
         {
             handlers_manager_.SetRegisterUriHandlerNew(
-                registerUriHandlerNew,
+                httpOuterHandler,
                 onHttpMessageRoot,
                 handleInternalRequest);
 
