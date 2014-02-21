@@ -15,15 +15,12 @@ namespace Starcounter.Administrator.Server.Utilities {
         /// <returns>Response</returns>
         public static Response CreateErrorResponse(Exception e) {
 
-            dynamic response = new DynamicJson();
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.message = e.Message;
+            errorResponse.stackTrace = e.StackTrace;
+            errorResponse.helpLink = e.HelpLink;
 
-            // Create error response
-            response.exception = new { };
-            response.exception.message = e.Message;
-            response.exception.stackTrace = e.StackTrace;
-            response.exception.helpLink = e.HelpLink;
-
-            return new Response() { Body = response.ToString(), StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError };
+            return new Response() { BodyBytes = errorResponse.ToJsonUtf8(), StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError };
         }
 
 

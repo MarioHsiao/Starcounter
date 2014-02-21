@@ -70,11 +70,7 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -183,11 +179,7 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -283,11 +275,7 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error

@@ -92,15 +92,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                }
-                else if (response.data.hasOwnProperty("exception") == true) {
-                    var exception = response.data.exception;
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, exception.message, exception.helpLink, exception.stackTrace);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -118,11 +110,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
                 errorCallback(messageObject);
             }
 
-
         });
-
-
-
     }
 
 
