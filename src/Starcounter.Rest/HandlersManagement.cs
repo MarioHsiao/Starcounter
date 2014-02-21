@@ -237,18 +237,9 @@ namespace Starcounter.Rest
             return HandleInternalRequest_ != null;
         }
 
-        public delegate void RegisterUriHandlerNative(
-            UInt16 port,
-            String originalUriInfo,
-            String processedUriInfo,
-            Byte[] paramTypes,
-            UriCallbackDelegate uriCallback,
-            UInt16 managed_handler_index,
-            out UInt64 phandler_info);
-
-        RegisterUriHandlerNative RegisterUriHandlerNative_;
-        public UriCallbackDelegate OnHttpMessageRoot_;
+        public static UriCallbackDelegate OnHttpMessageRoot_;
         static Action<string, ushort> OnHandlerRegistered_;
+        bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
 
         public static void SetHandlerRegisteredCallback(Action<string, ushort> callback)
         {
@@ -256,11 +247,11 @@ namespace Starcounter.Rest
         }
 
         public void SetRegisterUriHandlerNew(
-            RegisterUriHandlerNative registerUriHandlerNew,
+            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
             UriCallbackDelegate onHttpMessageRoot,
             HandleInternalRequestDelegate handleInternalRequest)
         {
-            RegisterUriHandlerNative_ = registerUriHandlerNew;
+            HttpOuterHandler_ = httpOuterHandler;
             OnHttpMessageRoot_ = onHttpMessageRoot;
             HandleInternalRequest_ = handleInternalRequest;
         }
@@ -368,16 +359,52 @@ namespace Starcounter.Rest
             }
         }
 
+        void UnregisterUriHandler(UInt16 port, String originalUriInfo)
+        {
+            // Ensuring correct multi-threading handlers creation.
+            lock (allUriHandlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+            }
+        }
+
+        void RegisterUriHandlerNative(
+            UInt16 port,
+            String originalUriInfo,
+            String processedUriInfo,
+            Byte[] paramTypes,
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
+        {
+            Byte numParams = 0;
+            if (null != paramTypes)
+                numParams = (Byte)paramTypes.Length;
+
+            unsafe
+            {
+                fixed (Byte* pp = paramTypes)
+                {
+                    UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
+                        port,
+                        originalUriInfo,
+                        processedUriInfo,
+                        pp,
+                        numParams,
+                        HttpOuterHandler_,
+                        managedHandlerIndex,
+                        out handlerInfo);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                }
+            }
+        }
+
         /// <summary>
         /// Registers URI handler on a specific port.
         /// </summary>
-        /// <param name="port"></param>
-        /// <param name="originalUriInfo"></param>
-        /// <param name="processedUriInfo"></param>
-        /// <param name="nativeParamTypes"></param>
-        /// <param name="messageType"></param>
-        /// <param name="wrappedDelegate"></param>
-        /// <param name="protoType"></param>
         public void RegisterUriHandler(
             UInt16 port,
             String originalUriInfo,
@@ -416,17 +443,13 @@ namespace Starcounter.Rest
                 UInt64 handlerInfo = UInt64.MaxValue;
 
                 // Registering the outer native handler (if any).
-                if (RegisterUriHandlerNative_ != null)
-                {
-                    RegisterUriHandlerNative_(
-                        port,
-                        originalUriInfo,
-                        processedUriInfo,
-                        nativeParamTypes,
-                        OnHttpMessageRoot_,
-                        handlerId,
-                        out handlerInfo);
-                }
+                RegisterUriHandlerNative(
+                    port,
+                    originalUriInfo,
+                    processedUriInfo,
+                    nativeParamTypes,
+                    handlerId,
+                    out handlerInfo);
 
                 if (handlerId >= MAX_USER_HANDLERS)
                     throw new ArgumentOutOfRangeException("Too many user handlers registered!");

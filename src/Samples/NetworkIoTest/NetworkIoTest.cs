@@ -264,24 +264,18 @@ namespace NetworkIoTestApp
         {
             String db_postfix = "_db" + db_number;
             UInt64 handler_id;
-            String handler_uri;
 
             switch(test_type)
             {
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
-                    handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, 5, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
+                    Handle.POST<Request>(port_number, "/smc-http-echo", OnHttpEcho);
                     break;
                 }
 
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
-                    handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, 5, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    Handle.POST<Request>(port_number, "/smc-http-echo", OnHttpEcho);
                     
                     break;
                 }
@@ -331,10 +325,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_HTTP_REST_CLIENT:
                 {
                     AppsBootstrapper.Bootstrap();
-
-                    handler_uri = "/testrest";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, 5, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    Handle.POST<Request>(port_number, "/testrest", OnTestRest);
 
                     break;
                 }
@@ -1042,7 +1033,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpEcho(Request p)
+        private static Response OnHttpEcho(Request p)
         {
             String responseBody = p.Body;
             Debug.Assert(responseBody.Length == 8);
@@ -1058,26 +1049,26 @@ namespace NetworkIoTestApp
             // Converting string to byte array.
             Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
 
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
             // Counting performance.
             perf_counter++;
 
-            return true;
+            try
+            {
+                return new Response() {
+                    BodyBytes = responseBytes
+                };
+            }
+            catch
+            {
+                return new Response() {
+                    BodyBytes = kHttpServiceUnavailable
+                };
+            }
         }
 
         static Node someNode = new Node("127.0.0.1");
 
-        private static Boolean OnTestRest(Request p)
+        private static Response OnTestRest(Request p)
         {
             String jsonContent = "{\"FirstName\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
 
@@ -1092,16 +1083,18 @@ namespace NetworkIoTestApp
 
             try
             {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                return new Response()
+                {
+                    BodyBytes = responseBytes
+                };
             }
             catch
             {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                return new Response()
+                {
+                    BodyBytes = kHttpServiceUnavailable
+                };
             }
-
-            return true;
         }
 
         private static Boolean OnHttpUsers(Request p)

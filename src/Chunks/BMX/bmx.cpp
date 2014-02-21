@@ -492,7 +492,6 @@ uint32_t BmxData::RegisterWsHandler(
     return err_code;
 }
 
-
 // Unregisters certain handler.
 uint32_t BmxData::UnregisterHandler(
     BMX_HANDLER_INDEX_TYPE handler_index,
@@ -743,7 +742,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     if (handler_info == registered_handlers_[handler_index].get_handler_info())
     {
         // Running user handler.
-        err_code = registered_handlers_[handler_index].RunHandlers(0 /*session_id*/, smc, &task_info);
+        err_code = registered_handlers_[handler_index].RunHandlers(smc, &task_info);
         goto finish;
     }
     else

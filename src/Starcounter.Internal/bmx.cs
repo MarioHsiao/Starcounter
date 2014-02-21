@@ -34,7 +34,7 @@ namespace Starcounter.Internal
         /// A callback from BMX layer.
         /// </summary>
         public unsafe delegate UInt32 BMX_HANDLER_CALLBACK(
-            UInt16 handler_id,
+            UInt16 managed_handler_id,
             Byte* raw_chunk,
             BMX_TASK_INFO* task_info,
             Boolean* is_handled

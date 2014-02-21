@@ -41,7 +41,7 @@ struct TASK_INFO_TYPE
 
 // User handler callback.
 typedef uint32_t (__stdcall *GENERIC_HANDLER_CALLBACK)(
-    uint64_t session_id,
+    uint16_t managed_handler_id,
     shared_memory_chunk* smc, 
     TASK_INFO_TYPE* task_info,
     bool* is_handled
@@ -102,7 +102,7 @@ namespace bmx
 
     // Entrance to process any BMX message.
     extern uint32_t OnIncomingBmxMessage(
-        uint64_t session_id,
+        uint16_t managed_handler_id,
         shared_memory_chunk* smc,
         TASK_INFO_TYPE* task_info,
         bool* is_handled
@@ -489,7 +489,6 @@ namespace bmx
 
         // Runs user handlers.
         uint32_t RunHandlers(
-            uint64_t session_id,
             shared_memory_chunk* smc, 
             TASK_INFO_TYPE* task_info)
         {
@@ -500,7 +499,7 @@ namespace bmx
             for (uint8_t i = 0; i < num_entries_; ++i)
             {
                 // Running the handler.
-                err_code = handlers_[i](session_id, smc, task_info, &is_handled);
+                err_code = handlers_[i](managed_handler_index_, smc, task_info, &is_handled);
 
                 // Checking if information was handled and no errors occurred.
                 if (is_handled || err_code)
