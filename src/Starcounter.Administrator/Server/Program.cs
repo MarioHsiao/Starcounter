@@ -1,0 +1,158 @@
+﻿
+using System;
+using System.IO;
+using System.Net;
+using Starcounter.Administrator.API;
+using Starcounter.Administrator.Server.Handlers;
+using Starcounter.Internal;
+using Starcounter.Internal.REST;
+using Starcounter.Server;
+using Starcounter.Server.PublicModel;
+using Starcounter.Server.Rest;
+
+namespace Starcounter.Administrator.Server {
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class Program {
+
+        public static IServerRuntime ServerInterface;
+        public static ServerEngine ServerEngine;
+
+        // Argument <path to server configuraton file> <portnumber>
+        static void Main(string[] args) {
+
+            if (args == null || args.Length < 1) {
+                Console.WriteLine("Starcounter Administrator: Invalid arguments: Usage <path to server configuraton file>");
+                return;
+            }
+
+            // Server configuration file.
+            if (string.IsNullOrEmpty(args[0]) || !File.Exists(args[0])) {
+                Console.WriteLine("Starcounter Administrator: Missing server configuration file {0}", args[0]);
+            }
+
+            // Administrator port.
+            UInt16 adminPort = StarcounterEnvironment.Default.SystemHttpPort;
+            Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
+
+#if ANDWAH
+            AppsBootstrapper.Bootstrap(@"c:\github\Level1\src\Starcounter.Administrator", adminPort);
+#else
+            AppsBootstrapper.Bootstrap("scadmin", adminPort);
+#endif
+
+            // Create a Server Engine
+            Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
+            Program.ServerEngine.Setup();
+            Program.ServerInterface = Program.ServerEngine.Start();
+
+            // Start listening on log-events
+            ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
+            LogApp.Setup(serverInfo.Configuration.LogDirectory);
+
+            // Register and setup the API subsystem handlers
+            var admin = new AdminAPI();
+            RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
+
+            // Boostrap Admin API handlers
+            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface);
+
+            // Registering Default handlers.
+            RegisterHandlers();
+
+            // Start User Tracking (Send data to tracking server each hour and crash reports)
+            if (serverInfo.Configuration.SendUsageAndCrashReports) {
+                Tracking.Client.Instance.StartTrackUsage(Program.ServerInterface, Program.ServerEngine.HostLog);
+            }
+        }
+
+        /// <summary>
+        /// Register default handlers
+        /// </summary>
+        static void RegisterHandlers() {
+
+            // Registering default handler for ALL static resources on the server.
+            Handle.GET("/{?}", (string res) => {
+                return HandlerStatus.NotHandled;
+            });
+
+            // Redirecting root to index.html.
+            Handle.GET("/", () => {
+                // Returns this response to original request.
+                return Node.LocalhostSystemPortNode.GET("/index.html", null);
+            });
+
+            // Register a static resource folder
+            Handle.POST("/addstaticcontentdir", (Request req) => {
+
+                // Getting POST contents.
+                String content = req.Body;
+
+                // Splitting contents.
+                String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Getting port of the resource.
+                UInt16 port = UInt16.Parse(settings[0]);
+
+                // Adding static files serving directory.
+                AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
+
+                try {
+                    // Registering static handler on given port.
+                    Handle.GET(port, "/{?}", (string res) => {
+                        return HandlerStatus.NotHandled;
+                    });
+                }
+                catch (Exception exc) {
+                    UInt32 errCode;
+
+                    // Checking if this handler is already registered.
+                    if (ErrorCode.TryGetCode(exc, out errCode)) {
+                        if (Starcounter.Error.SCERRHANDLERALREADYREGISTERED == errCode)
+                            return "Success!";
+                    }
+                    throw exc;
+                }
+
+                return "Success!";
+            });
+
+            #region Debug/Test
+
+            Handle.GET("/return/{?}", (int code) => {
+                return code;
+            });
+
+            Handle.GET("/returnstatus/{?}", (int code) => {
+                return (System.Net.HttpStatusCode)code;
+            });
+
+            Handle.GET("/returnwithreason/{?}", (string codeAndReason) => {
+                // Example input: 404ThisIsMyCustomReason
+                var code = int.Parse(codeAndReason.Substring(0, 3));
+                var reason = codeAndReason.Substring(3);
+                return new HttpStatusCodeAndReason(code, reason);
+            });
+
+            Handle.GET("/test", () => {
+                return "hello";
+            });
+
+            Handle.POST("/echotest", (Request req) => {
+                return new Response() { BodyBytes = req.BodyBytes };
+            });
+
+            Handle.GET("/echotestws", (Request req) => {
+                return new Response() { BodyBytes = req.BodyBytes };
+            });
+
+            #endregion
+
+        }
+
+    }
+
+}
