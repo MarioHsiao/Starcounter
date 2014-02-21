@@ -59,11 +59,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -334,11 +330,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -398,12 +390,8 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
 
                 var messageObject = null;
                 if (response.data.hasOwnProperty("message") == true) {
-
                     messageObject = UtilsFactory.createMessage("success", response.data.message, null);
-
-                    //$scope.alerts.push({ type: 'success', msg: response.data.message });
                 }
-
 
                 if (successCallback != null) {
                     // TODO: Return the new settings
@@ -428,15 +416,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                }
-                else if (response.data.hasOwnProperty("exception") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.exception.message, response.data.exception.helpLink, response.data.exception.stackTrace);
-                }
-                else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -504,11 +484,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -580,11 +556,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -669,11 +641,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
@@ -693,6 +661,5 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
         });
 
     }
-
 
 }]);

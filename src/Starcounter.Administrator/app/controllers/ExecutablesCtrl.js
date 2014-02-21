@@ -15,7 +15,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'E
     $scope.btnStopExecutable = function (executable) {
 
         var title = "Stop executable";
-        var message = "Do you want to stop the executable " + executable.fileName;
+        var message = "Do you want to stop the executable " + executable.Name;
         var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
@@ -47,7 +47,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'E
     $scope.btnRestartExecutable = function (executable) {
 
         var title = "Restart executable";
-        var message = "Do you want to restart the executable " + executable.fileName;
+        var message = "Do you want to restart the executable " + executable.Name;
         var buttons = [{ result: 0, label: 'Restart', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {

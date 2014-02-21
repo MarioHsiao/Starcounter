@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Starcounter.Tools.Service.Task {
     internal class StatusTask {
 
-        public static void Execute(StarcounterService service, out StatusEventArgs status) {
+        public static void Execute(StarcounterWatcher service, out StatusEventArgs statusEventArgs) {
 
             string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
 
@@ -31,11 +31,11 @@ namespace Starcounter.Tools.Service.Task {
                     throw new Exception(e.ToString());
                 }
 
-                status = new StatusEventArgs() { Connected = true, InteractiveMode = interactiveMode };
+                statusEventArgs = new StatusEventArgs() { Connected = true, InteractiveMode = interactiveMode };
 
             }
             else {
-                status = new StatusEventArgs() { Connected = false };
+                statusEventArgs = new StatusEventArgs() { Connected = false };
             }
         }
 

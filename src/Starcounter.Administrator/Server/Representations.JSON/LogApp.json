@@ -1,0 +1,15 @@
+﻿{
+	"$": { Namespace: "Starcounter.Administrator.Server" },
+	"LogEntries": [{
+		"DateTimeStr" : "DateTime",
+		"TypeStr" : "Type",
+		"HostName" : "HostName",
+		"Source" : "Source",
+		"Message" : "Message"
+	}],
+	"FilterNotice" : true,
+	"FilterWarning" : true,
+	"FilterError" : true,
+	"FilterDebug" : true,
+	"FilterSource": "Starcounter;Starcounter.Host"
+}
