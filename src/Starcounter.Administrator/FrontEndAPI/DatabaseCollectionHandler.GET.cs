@@ -14,6 +14,7 @@ using Starcounter.Server.Rest;
 using Starcounter.CommandLine;
 using System.IO;
 using Starcounter.Rest.ExtensionMethods;
+using System.Collections.Generic;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -75,64 +76,6 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
             });
 
-            // Start Executable: POST /api/engines/{enginename}/executables   [Bodydata]
-            // Stop All Executables: DELETE /api/engines/{enginename}/host
-            // Stop Executable: DELETE 
-
-            // Get a list of all running Executables
-            //{
-            //  "Executables":[
-            //      {
-            //          "path":"C:\\path\to\\the\\exe\\foo.exe",
-            //          "uri":"http://example.com/api/engines/foo/executables/foo.exe-123456789",
-            //          "applicationFilePath":"",
-            //          "databaseName":"default"
-            //      }
-            //  ]
-            //}
-            Handle.GET("/api/admin/executables", (Request req) => {
-
-                try {
-
-                    IServerRuntime serverRuntime = RootHandler.Host.Runtime;
-                    DatabaseInfo[] applicationDatabases = serverRuntime.GetDatabases();
-                    var admin = RootHandler.API;
-
-                    var result = new executables();
-
-                    foreach (DatabaseInfo databaseInfo in applicationDatabases) {
-
-                        EngineInfo engineInfo = databaseInfo.Engine;
-
-                        if (engineInfo != null && engineInfo.HostProcessId != 0) {
-
-                            if (engineInfo.HostedApps != null) {
-                                foreach (AppInfo appInfo in engineInfo.HostedApps) {
-                                    var executable = result.Executables.Add();
-                                    executable.path = appInfo.BinaryFilePath;
-                                    executable.applicationFilePath = appInfo.FilePath;
-                                    executable.uri = admin.Uris.Executable.ToAbsoluteUri(databaseInfo.Name, appInfo.Key);
-                                    executable.databaseName = databaseInfo.Name;
-                                    if (appInfo.Arguments != null) {
-                                        foreach (string arg in appInfo.Arguments) {
-                                            var item = executable.arguments.Add();
-                                            item.dummy = arg;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
-                }
-
-            });
-
 
             Handle.GET("/api/admin/databases/{?}/settings", (string name, Request req) => {
 
@@ -183,14 +126,6 @@ namespace Starcounter.Administrator.FrontEndAPI {
                 }
 
             });
-
-
-
-
-
         }
-
-
-
     }
 }

@@ -49,14 +49,26 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Service\ExecutableMessageEventArgs.cs" />
+    <Compile Include="Service\ExecutablesEventArgs.cs" />
+    <Compile Include="Service\ExecutableTask.cs" />
     <Compile Include="Service\ErrorEventArgs.cs" />
-    <Compile Include="Service\StarcounterService.cs" />
+    <Compile Include="Service\StarcounterWatcher.cs" />
     <Compile Include="Service\ShutdownTask.cs" />
     <Compile Include="Service\StatusEventArgs.cs" />
     <Compile Include="Service\StatusTask.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Server\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
+      <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
+      <Name>Starcounter.Server.Rest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Server\Starcounter.Server\Starcounter.Server.csproj">
       <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
       <Name>Starcounter.Server</Name>
@@ -79,6 +91,13 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="sc_grayscale.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -22,6 +22,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
         /// <param name="admin">The AdminAPI providing the context.</param>
         public static void Bootstrap(ushort port, ServerEngine engine, IServerRuntime server) {
 
+            FrontEndAPI.Executable_GET();
             FrontEndAPI.Database_GET(port, server);
             FrontEndAPI.Database_PUT(port, server);
             FrontEndAPI.Database_POST(port, server);
