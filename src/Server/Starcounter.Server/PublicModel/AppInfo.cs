@@ -22,7 +22,7 @@ namespace Starcounter.Server.PublicModel {
         /// Gets the time when the current application started.
         /// </summary>
         /// <seealso cref="LastRestart"/>
-        public DateTime Started {
+        public DateTime? Started {
             get;
             internal set;
         }
@@ -33,7 +33,7 @@ namespace Starcounter.Server.PublicModel {
         /// restart.
         /// </summary>
         /// <seealso cref="LastRestart"/>
-        public DateTime LastRestart {
+        public DateTime? LastRestart {
             get;
             internal set;
         }
