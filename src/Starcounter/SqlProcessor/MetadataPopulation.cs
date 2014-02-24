@@ -45,6 +45,8 @@ namespace Starcounter.SqlProcessor {
                 aView.FullClassName = (char*)Marshal.StringToCoTaskMemUni(typeDef.Name);
                 aView.ParentTypeName = (char*)Marshal.StringToCoTaskMemUni(typeDef.BaseName);
                 aView.TableName = (char*)Marshal.StringToCoTaskMemUni(typeDef.TableDef.Name);
+                aView.AssemblyName = (char*)Marshal.StringToCoTaskMemUni(assemblyName);
+                aView.AppDomainName = (char*)Marshal.StringToCoTaskMemUni(AppDomain.CurrentDomain.FriendlyName);
                 aView.NrProperties = nrCols;
                 aView.NrCodeProperties = nrCodeprops;
                 fixed (UInt16* dbTypesPtr = dbTypes)
