@@ -32,6 +32,13 @@ namespace staradmin {
                     case "stopservice":
                         ServerServiceUtilities.Stop();
                         break;
+                    case "console":
+                        var session = ConsoleSession.StartNew(new CodeHostConsole("default"));
+                        Console.CancelKeyPress += (s, e) => {
+                            session.Stop();
+                        };
+                        session.Wait();
+                        break;
                     default:
                         var template = CLITemplate.GetTemplate(command);
                         if (template == null) {
