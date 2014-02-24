@@ -19,7 +19,6 @@ namespace Starcounter.Advanced {
 
             DatabaseNameLower = databaseName.ToLower();
             StarcounterEnvironment.DatabaseNameLower = DatabaseNameLower;
-            StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
 
             HasDatabase = hasDatabase;
         }
