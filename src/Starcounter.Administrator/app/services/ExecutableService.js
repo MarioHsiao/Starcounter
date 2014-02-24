@@ -33,29 +33,41 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
         //-----------------------
         //{
         //    "Executables":[{
-        //        "path":"c:\\StarcounterApplication.exe",
-        //        "applicationFilePath":"c:\\StarcounterApplication.exe",
-        //        "uri":"http://headsutv19:8181/api/engines/default/executables/304809CC71D77ACA274FBFAE6CEA17DD25A75ED0",
-        //        "databaseName":"default",
-        //        "arguments":[{
-        //            "dummy":"c:\\StarcounterApplication.exe"
-        //        }]
+        //      "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
+        //      "Path": "C:\\path\to\\the\\exe\\foo.exe",
+        //      "ApplicationFilePath" : "C:\\optional\\path\to\\the\\input\\file.cs",
+        //      "Name" : "Name of the application",
+        //      "Description": "Implements the Foo module",
+        //      "Arguments": [{"dummy":""}],
+        //      "DefaultUserPort": 1,
+        //      "ResourceDirectories": [{"dummy":""}],
+        //      "WorkingDirectory": "C:\\path\\to\\default\\resource\\directory",
+        //      "IsTool":false,
+        //      "StartedBy": "Per Samuelsson, per@starcounter.com",
+        //      "Engine": {
+        //          "Uri": "http://example.com/api/executables/foo"
+        //      },
+        //      "RuntimeInfo": {
+        //         "LoadPath": "\\relative\\path\\to\\weaved\\server\\foo.exe",
+        //         "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
+        //         "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
+        //      }
         //    }]
         //}
         $http.get(uri).then(function (response) {
             // Success
 
             // Validate response
-            if (response.data.hasOwnProperty("Executables") == true) {
-                $log.info("Executables (" + response.data.Executables.length + ") successfully retrived");
+            if (response.data.hasOwnProperty("Items") == true) {
+                $log.info("Executables (" + response.data.Items.length + ") successfully retrived");
                 if (typeof (successCallback) == "function") {
 
-                    // Add a Nice FileName
-                    for (var i = 0; i < response.data.Executables.length; i++) {
-                        response.data.Executables[i].fileName = response.data.Executables[i].path.replace(/^.*[\\\/]/, '')
+                    // Recover databasename
+                    for (var i = 0; i < response.data.Items.length; i++) {
+                        response.data.Items[i].databaseName = response.data.Items[i].Engine.Uri.replace(/^.*[\\\/]/, '')
                     }
 
-                    successCallback(response.data.Executables);
+                    successCallback(response.data.Items);
                 }
             }
             else {
@@ -80,17 +92,14 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
                 // Unhandle Error
                 if (response.data.hasOwnProperty("Text") == true) {
                     messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
+                }
+                else {
                     messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
                 }
             }
@@ -101,11 +110,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
                 errorCallback(messageObject);
             }
 
-
         });
-
-
-
     }
 
 
@@ -156,7 +161,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
         this.stopExecutable(executable, function () {
             // Success
-            self.startExecutable(executable.path, executable.databaseName, successCallback, errorCallback)
+            self.startExecutable(executable.Path, executable.databaseName, successCallback, errorCallback)
 
         }, function (messageObject) {
             // Error
@@ -179,13 +184,27 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
         this.startEngine(databaseName, function () {
             // Success
+
             var bodyData = {
+                "Uri": "",
                 "Path": file,
                 "ApplicationFilePath": file,
-                "StartedBy" : "Starcounter Administrator",
-                "Arguments" : [{
-                    "dummy" : file
-                }]
+                "Name": file.replace(/^.*[\\\/]/, ''),
+                "Description": "",
+                "Arguments": [{
+                    "dummy": file
+                }],
+                "DefaultUserPort": 0,
+                "ResourceDirectories": [],
+                "WorkingDirectory": null,
+                "IsTool": true,
+                "StartedBy": "Starcounter Administrator",
+                "Engine": { "Uri": "" },
+                "RuntimeInfo": {
+                    "LoadPath": "",
+                    "Started": "",
+                    "LastRestart": ""
+                }
             };
 
             // Add job
@@ -295,16 +314,16 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
         $log.info("Stopping executable");
 
-        var job = { message: "Stopping executable " + executable.fileName };
+        var job = { message: "Stopping executable " + executable.Name };
         JobFactory.AddJob(job);
 
-        var uri = UtilsFactory.toRelativePath(executable.uri);
+        var uri = UtilsFactory.toRelativePath(executable.Uri);
 
         $http.delete(uri).then(function (response) {
             // Success, 204 No Content 
             JobFactory.RemoveJob(job);
 
-            $log.info("Executable " + executable.fileName + " was successfully stopped");
+            $log.info("Executable " + executable.Name + " was successfully stopped");
 
             // Refresh databases
             self.refreshExecutables(successCallback, errorCallback);

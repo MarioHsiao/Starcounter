@@ -4,6 +4,7 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest.Representations.JSON;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 
 namespace Starcounter.Administrator.API.Handlers {
@@ -49,6 +50,12 @@ namespace Starcounter.Administrator.API.Handlers {
                 exe.Name = exeState.Name;
                 exe.DefaultUserPort = state.Configuration.Runtime.DefaultUserHttpPort;
                 exe.RuntimeInfo.LoadPath = exeState.HostedFilePath;
+                exe.RuntimeInfo.Started = exeState.Started.HasValue ? 
+                    exeState.Started.Value.ToString("s", CultureInfo.InvariantCulture) : 
+                    string.Empty;
+                exe.RuntimeInfo.LastRestart = exeState.LastRestart.HasValue ?
+                    exeState.LastRestart.Value.ToString("s", CultureInfo.InvariantCulture) :
+                    string.Empty;
 
                 if (headers != null) {
                     headers.Add("ETag", engineState.Fingerprint);

@@ -111,6 +111,7 @@ namespace Starcounter.Server.Commands {
                             response.FailIfNotSuccess();
                         }
 
+                        fellow.Info.LastRestart = DateTime.Now;
                         database.Apps.Add(fellow);
                     }
 
