@@ -1,5 +1,6 @@
 ﻿
 using System;
+using WebSocket4Net;
 
 namespace staradmin {
 
@@ -10,6 +11,7 @@ namespace staradmin {
         Action<CodeHostConsole> openedCallback;
         Action<CodeHostConsole> closedCallback;
         Action<CodeHostConsole, string> messageCallback;
+        WebSocket socket;
 
         /// <summary>
         /// Gets the name of the database running in the code host
@@ -43,7 +45,17 @@ namespace staradmin {
         }
 
         public void Open() {
-            throw new NotImplementedException();
+            socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console/ws", DatabaseName.ToLowerInvariant()));
+            
+            var handshake = new byte[1] { 0 };
+            socket.Opened += (s, e) => {
+                socket.Send(handshake, 0, handshake.Length);
+                if (openedCallback != null) {
+                    openedCallback(this);
+                }
+            };
+
+            socket.Open();
         }
 
         public void Close() {
