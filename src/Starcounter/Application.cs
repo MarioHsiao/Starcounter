@@ -109,12 +109,8 @@ namespace Starcounter {
         public static Application Current {
             get {
                 var current = CurrentAssigned;
-                try {
-                    current = current ?? GetApplication(Assembly.GetCallingAssembly());
-                } catch (ArgumentNullException ne) {
-                    throw CreateInvalidOperationExceptionWithCode(null, ne);
-                } catch (ArgumentException ae) {
-                    throw CreateInvalidOperationExceptionWithCode(null, ae);
+                if (current == null) {
+                    throw CreateInvalidOperationExceptionWithCode();
                 }
                 return current;
             }
