@@ -20,8 +20,15 @@ namespace Starcounter {
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
 
-        [ThreadStatic]
-        internal static Application CurrentAssigned;
+        internal static Application CurrentAssigned {
+            get {
+                var app = StarcounterEnvironment.AppName != null ? indexName[StarcounterEnvironment.AppName] : null;
+                return app;
+            }
+            set {
+                StarcounterEnvironment.AppName = value == null ? null : value.Name;
+            }
+        }
 
         /// <summary>
         /// Gets the name of the application.
