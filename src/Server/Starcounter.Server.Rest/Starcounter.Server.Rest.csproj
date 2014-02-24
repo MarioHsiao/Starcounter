@@ -48,7 +48,7 @@
     <Compile Include="Representations.JSON\Server.json.cs">
       <DependentUpon>Server.json</DependentUpon>
     </Compile>
-	<Compile Include="Representations.JSON\Executable.json.cs">
+    <Compile Include="Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
     <Compile Include="Representations.JSON\Engine.json.cs">
@@ -74,7 +74,7 @@
     <TypedJSON Include="Representations.JSON\Server.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Representations.JSON\Executable.json">
+    <TypedJSON Include="Representations.JSON\Executable.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Representations.JSON\Engine.json">
@@ -123,6 +123,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Representations.JSON\Executables.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />

@@ -149,6 +149,8 @@ namespace Starcounter.Server.Commands {
                     // The app is successfully loaded in the worker process. We should
                     // keep it referenced in the server and consider the execution of this
                     // processor a success.
+
+                    app.Info.Started = DateTime.Now;
                     database.Apps.Add(app);
                     OnDatabaseAppRegistered();
 
