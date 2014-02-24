@@ -35,7 +35,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// Name of the application.
         /// </summary>
-        public static string AppName { get; set; }
+        [ThreadStatic]
+        public static string AppName;
 
         /// <summary>
         /// Obtains current scheduler id.
