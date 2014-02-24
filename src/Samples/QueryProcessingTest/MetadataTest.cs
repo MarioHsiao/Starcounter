@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Metadata;
+using Starcounter.Binding;
 
 namespace QueryProcessingTest {
     public static class MetadataTest {
@@ -202,6 +203,10 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.BaseTable as HostMaterializedTable).MaterializedTable));
             Trace.Assert(c.MaterializedColumn.Table.Name == (c.BaseTable as ClrView).FullClassName);
+            Trace.Assert(c.Type != null);
+            Trace.Assert(c.Type is MappedType);
+            Trace.Assert((c.Type as MappedType).DbTypeCode == (ushort)DbTypeCode.Int32);
+            Trace.Assert(c.Type.Name == "Int32");
         }
     }
 }

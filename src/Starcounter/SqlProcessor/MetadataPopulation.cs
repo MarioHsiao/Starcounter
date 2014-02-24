@@ -18,6 +18,7 @@ namespace Starcounter.SqlProcessor {
                 string fullName = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
                 char*[] propertyNames = new char*[typeDef.PropertyDefs.Length];
                 ushort[] dbTypes = new ushort[typeDef.PropertyDefs.Length];
+                char*[] typeNames = new char*[typeDef.PropertyDefs.Length];
                 char*[] columnNames = new char*[typeDef.PropertyDefs.Length];
                 char*[] codePropertyNames = new char*[typeDef.PropertyDefs.Length];
                 ushort nrCols = 0;
@@ -29,12 +30,16 @@ namespace Starcounter.SqlProcessor {
                     } else {
                         propertyNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].Name);
                         dbTypes[nrCols] = (ushort)typeDef.PropertyDefs[i].Type;
+                        if (typeDef.PropertyDefs[i].Type == DbTypeCode.Object)
+                            typeNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].TargetTypeName);
+                        else
+                            typeNames[nrCols] = null;
                         columnNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].ColumnName);
                         nrCols++;
                     }
                 }
                 Debug.Assert(nrCodeprops + nrCols <= typeDef.PropertyDefs.Length);
-                ClrView aView;
+                CLRVIEW aView;
                 aView.TypeName = (char*)Marshal.StringToCoTaskMemUni(typeName);
                 aView.FullName = (char*)Marshal.StringToCoTaskMemUni(fullName);
                 aView.FullClassName = (char*)Marshal.StringToCoTaskMemUni(typeDef.Name);
@@ -44,10 +49,11 @@ namespace Starcounter.SqlProcessor {
                 aView.NrCodeProperties = nrCodeprops;
                 fixed (UInt16* dbTypesPtr = dbTypes)
                 fixed (char** properyNamesPtr = propertyNames, columnNamesPtr = columnNames,
-                    codePropertyNamesPtr = codePropertyNames) {
+                    codePropertyNamesPtr = codePropertyNames, typeNamesPtr = typeNames) {
                     aView.PropertyNames = properyNamesPtr;
                     aView.CodePropertyNames = codePropertyNamesPtr;
                     aView.ColumnNames = columnNamesPtr;
+                    aView.TypeNames = typeNamesPtr;
                     aView.DbTypes = dbTypesPtr;
                     uint err = Starcounter.SqlProcessor.SqlProcessor.scsql_populate_clrview(&aView);
                     if (err != 0)
