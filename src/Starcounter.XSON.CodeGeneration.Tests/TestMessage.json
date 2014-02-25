@@ -31,4 +31,7 @@
     "ADecimal": 23.00,
     "ADouble": 2e4,
     "UserLink": "/users/admin",
+    "Filler": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "EmptyArray": [],
+    "AfterEmptyArray": 1
 }
