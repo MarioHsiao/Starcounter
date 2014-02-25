@@ -80,10 +80,10 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 		[Test]
 		public static void TestStandardSerializer() {
-			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
-			RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), false);
-			RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
-			RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
+            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
+            RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), false);
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
+            RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
 			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
 		}
 
