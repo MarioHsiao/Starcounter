@@ -192,6 +192,7 @@ namespace Starcounter.Hosting {
                     OnRuntimeMetadataPopulated();
                     // Call CLR view clean up
                     Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
+                    OnCleanClrViewsMetadata();
                 }
 
                 for (int i = 0; i < typeDefs.Length; i++)
@@ -295,6 +296,7 @@ namespace Starcounter.Hosting {
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
+        private void OnCleanClrViewsMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrViewsMetaData() { Trace("CLR view meta-data were populated for the given types."); }
 
         [Conditional("TRACE")]
