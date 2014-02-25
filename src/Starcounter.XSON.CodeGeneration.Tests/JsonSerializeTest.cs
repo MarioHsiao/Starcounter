@@ -80,11 +80,12 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 
 		[Test]
 		public static void TestStandardSerializer() {
-			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
-			RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), false);
-			RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
-			RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
+            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
+            RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), false);
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
+            RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
 			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("JsonWithFiller.json"), false);
 		}
 
 		[Test]
@@ -94,6 +95,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
 			RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
 			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("JsonWithFiller.json"), true);
 		}
 
 		private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
