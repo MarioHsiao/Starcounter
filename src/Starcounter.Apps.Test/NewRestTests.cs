@@ -15,6 +15,7 @@ using TJson = Starcounter.Templates.TObject;
 using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 using Starcounter.Templates;
 using Starcounter.Rest;
+using System.IO;
 
 namespace Starcounter.Internal.Test
 {
@@ -31,6 +32,7 @@ namespace Starcounter.Internal.Test
         public void NewRestTestsSetupInit()
         {
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
+            StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
 
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
