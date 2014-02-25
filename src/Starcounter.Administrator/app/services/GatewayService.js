@@ -80,9 +80,7 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
 
         this.getGatewayStatistics(function (statistics) {
             // Success
-      
-            self.model.statistics = $sce.trustAsHtml(statistics);
-
+            self.model.statistics = statistics;
             if (typeof (successCallback) == "function") {
                 successCallback();
             }
