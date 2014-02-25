@@ -22,12 +22,12 @@ public:
 
     void PrintInfo(std::stringstream& stats_stream)
     {
-        stats_stream << "Allocated chunks: ";
-
-        for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
-            stats_stream << num_allocated_chunks_[i] << ", ";
-
-        stats_stream << "<br>";
+        for (int32_t i = 0; i < NumGatewayChunkSizes; i++) 
+        {
+            stats_stream << num_allocated_chunks_[i];
+            if ((i + 1) < NumGatewayChunkSizes)
+                stats_stream << ", "; 
+        }
     }
 
     int32_t GetNumberAllocatedChunks(chunk_store_type store_index)
@@ -436,12 +436,15 @@ public:
     // Printing the worker information.
     void PrintInfo(std::stringstream& stats_stream)
     {
-        stats_stream << "Bytes received: " << worker_stats_bytes_received_ << "<br>";
-        stats_stream << "Packets received: " << worker_stats_recv_num_ << "<br>";
-        stats_stream << "Bytes sent: " << worker_stats_bytes_sent_ << "<br>";
-        stats_stream << "Packets sent: " << worker_stats_sent_num_ << "<br>";
-        stats_stream << "Bound sockets: " << worker_stats_num_bound_sockets_ << "<br>";
+        stats_stream << "{\"id\":" << static_cast<int32_t>(worker_id_) << ",";
+        stats_stream << "\"bytesReceived\":" << worker_stats_bytes_received_ << ",";
+        stats_stream << "\"packetsReceived\":" << worker_stats_recv_num_ << ",";
+        stats_stream << "\"bytesSent\":" << worker_stats_bytes_sent_ << ",";
+        stats_stream << "\"packetsSent\":" << worker_stats_sent_num_ << ",";
+        stats_stream << "\"boundSockets\":" << worker_stats_num_bound_sockets_ << ",";
+        stats_stream << "\"allocatedChunks\":\"";
         worker_chunks_.PrintInfo(stats_stream);
+        stats_stream << "\"}";
     }
 
     // Worker initialization function.
