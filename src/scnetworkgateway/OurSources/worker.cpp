@@ -1692,19 +1692,19 @@ uint32_t GatewayWorker::SendHttpBody(
     char temp_resp[2048];
 
     // Copying predefined header.
-    memcpy(temp_resp, kHttpStatsHeader, kHttpStatsHeaderLength);
+    memcpy(temp_resp, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
 
     // Making length a white space.
-    *(uint64_t*)(temp_resp + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
+    *(uint64_t*)(temp_resp + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
 
     // Converting content length to string.
-    WriteUIntToString(temp_resp + kHttpStatsHeaderInsertPoint, body_len);
+    WriteUIntToString(temp_resp + kHttpGenericHtmlHeaderInsertPoint, body_len);
 
     // Copying body to response.
-    memcpy(temp_resp + kHttpStatsHeaderLength, body, body_len);
+    memcpy(temp_resp + kHttpGenericHtmlHeaderLength, body, body_len);
 
     // Sending predefined response.
-    return SendPredefinedMessage(sd, temp_resp, kHttpStatsHeaderLength + body_len);
+    return SendPredefinedMessage(sd, temp_resp, kHttpGenericHtmlHeaderLength + body_len);
 }
 
 // Sends given predefined response.
