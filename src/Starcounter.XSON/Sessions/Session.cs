@@ -169,12 +169,9 @@ namespace Starcounter {
             }
 
             set {
-                // If we are replacing the JSON tree, we need to dispose previous one.
-                if (_Current != null)
-                    _Current.DisposeJsonRecursively(_Current._Data);
-
                 // Creating new empty session.
                 _Current = value;
+
             }
         }
 
@@ -188,7 +185,6 @@ namespace Starcounter {
 
             set {
                 _Data = value;
-
                 if (value != null) {
                     value._Session = this;
                 }
