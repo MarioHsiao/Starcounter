@@ -1,6 +1,8 @@
 ﻿
 using SuperSocket.ClientEngine;
 using System;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WebSocket4Net;
@@ -60,34 +62,34 @@ namespace staradmin {
 
                 while (true) {
                     socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console/ws", DatabaseName.ToLowerInvariant()));
-                    var state = WebSocketState.None;
-
+                    
                     EventHandler opened = (s, e) => {
                         socket.Send(handshake, 0, handshake.Length);
-                        state = WebSocketState.Open;
                         x.Set();
                     };
                     EventHandler<ErrorEventArgs> errored = (s, e) => {
-                        Console.WriteLine("Error: {0}, State: {1}", e.Exception.Message, socket.State);
+                        Trace.WriteLine("Error when opening web socket: {0}", e.Exception.Message);
                         x.Set();
                     };
-                    
+
                     socket.Opened += opened;
                     socket.Error += errored;
+                    socket.DataReceived += (s, e) => {
+                        InvokeMessageCallback(e.Data);
+                    };
                     socket.MessageReceived += (s, e) => {
-                        if (messageCallback != null) {
-                            messageCallback(this, e.Message);
-                        }
+                        InvokeMessageCallback(e.Message);
                     };
                     socket.Closed += OnClosed;
 
                     socket.Open();
                     x.WaitOne();
+
                     socket.Opened -= opened;
                     socket.Error -= errored;
 
-                    if (state == WebSocketState.Open) {
-                        Console.WriteLine("Opened");
+                    if (socket.State == WebSocketState.Open) {
+                        socket.Error += OnError;
                         if (openedCallback != null) {
                             openedCallback(this);
                         }
@@ -105,12 +107,33 @@ namespace staradmin {
             }
         }
 
-        void OnClosed(object sender, EventArgs args) {
-            Console.WriteLine("Event on closed");
+        void OnError(object sender, ErrorEventArgs error) {
+            Trace.WriteLine("Error on web socket connection: {0}", error.Exception.Message);
             closed.Set();
             if (!issuedClose) {
                 closed.Reset();
                 DoOpen();
+            }
+        }
+
+        void OnClosed(object sender, EventArgs args) {
+            Trace.WriteLine("Web socket connection closed (Issued: {0})", issuedClose ? bool.TrueString : bool.FalseString);
+            closed.Set();
+            if (!issuedClose) {
+                closed.Reset();
+                DoOpen();
+            }
+        }
+
+        void InvokeMessageCallback(byte[] data) {
+            if (messageCallback != null) {
+                messageCallback(this, Encoding.UTF8.GetString(data));
+            }
+        }
+
+        void InvokeMessageCallback(string message) {
+            if (messageCallback != null) {
+                messageCallback(this, message);
             }
         }
     }
