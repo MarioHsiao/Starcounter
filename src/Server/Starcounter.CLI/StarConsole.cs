@@ -91,6 +91,15 @@ namespace Starcounter.CLI {
             return this;
         }
 
+        /// <summary>
+        /// Instructs the current console to display a message that
+        /// a new task is ongoing.
+        /// </summary>
+        /// <param name="task">The task that is starting.</param>
+        /// <returns>Reference to self.</returns>
+        public StarConsole WriteTask(string task) {
+            return Write(currentJob, task, ProgressColor);
+        }
         StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
             int left, top;
             left = Console.CursorLeft;
