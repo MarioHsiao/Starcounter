@@ -25,6 +25,7 @@ namespace QueryProcessingTest {
     [Database]
     public class Visit {
         public int Id;
+        public Company Company;
         public DateTime Start;
         public DateTime End;
         public int Spent;
@@ -35,5 +36,16 @@ namespace QueryProcessingTest {
         public string TrackingCookie;
         public string Protocol;
         public string DomainName;
+    }
+
+    [Database]
+    public class Company {
+        public string Name;
+        public Country Country;
+    }
+
+    [Database]
+    public class Country {
+        public string Name;
     }
 }
