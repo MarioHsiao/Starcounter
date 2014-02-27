@@ -188,9 +188,34 @@ namespace Starcounter {
 					}
 				}
 
+                if (_data == null)
+                    ClearBoundValues(template);
+
 				InitBoundArrays(template);
 			}
             OnData();
+        }
+
+        /// <summary>
+        /// If a dataobject is set to null we need to clear out all already bound values since
+        /// we treat a dataobject that is null as unbound json. So we loop through all properties
+        /// and if they have an existing binding we invalidate it and add a change to the session
+        /// if it exists.
+        /// </summary>
+        /// <param name="template"></param>
+        private void ClearBoundValues(TObject template) {
+            TValue child;
+
+            for (Int32 i = 0; i < template.Properties.Count; i++) {
+                child = template.Properties[i] as TValue;
+
+                if (child.BindingStrategy != BindingStrategy.Unbound && !child.isVerifiedUnbound) {
+                    child.InvalidateBoundGetterAndSetter();
+                    child.SetDefaultValue(this);
+                    if (Session.Current != null)
+                        Session.Current.UpdateValue(this, child);
+                }
+            }
         }
 
         /// <summary>
