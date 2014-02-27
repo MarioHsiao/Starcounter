@@ -100,6 +100,17 @@ namespace Starcounter.CLI {
         public StarConsole WriteTask(string task) {
             return Write(currentJob, task, ProgressColor);
         }
+
+        /// <summary>
+        /// Writes the given application output to the current console.
+        /// </summary>
+        /// <param name="content">The application output content.</param>
+        /// <returns>Reference to self.</returns>
+        public StarConsole WriteApplicationOutput(string content) {
+            ConsoleUtil.ToConsoleWithColor(content, ApplicationOutputColor);
+            return this;
+        }
+
         StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
             int left, top;
             left = Console.CursorLeft;
