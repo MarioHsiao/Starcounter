@@ -330,24 +330,34 @@ public:
     // Printing the registered URIs.
     void PrintRegisteredUris(std::stringstream& stats_stream, uint16_t port_num)
     {
-        stats_stream << "Following URIs are registered: " << "<br>";
-        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
+        bool first = true;
+        int32_t num_entries = reg_uris_.get_num_entries();
+
+        for (int32_t i = 0; i < num_entries; i++)
         {
-            stats_stream << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" in";
+            if (!first) 
+                stats_stream << ",";
+            first = false;
+
+            stats_stream << "{\"uri\":\"" << reg_uris_[i].get_processed_uri_info() << "\",";
+            stats_stream << "\"location\":";
 
             // Checking if its gateway or database URI.
             if (!reg_uris_[i].get_is_gateway_uri())
             {
                 // Database handler.
-                stats_stream << " database \"" << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << "\"";
+                stats_stream << '"' << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << '"';
+                // TODO: change this to correct application name when available.
+                stats_stream << ",\"application\":" << "\"dummyApp\""; 
             }
             else
             {
                 // Gateway handler.
-                stats_stream << " gateway";
+                stats_stream << "\"gateway\"";
+                stats_stream << ",\"application\":" << "\"\"";
             }
 
-            stats_stream << "<br>";
+            stats_stream << "}";
         }
     }
 
@@ -582,16 +592,27 @@ public:
 #endif
 };
 
-const char* const kHttpStatsHeader =
+const char* const kHttpGenericHtmlHeader =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
     "Cache-control: no-cache\r\n"
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 
-const int32_t kHttpStatsHeaderLength = static_cast<int32_t> (strlen(kHttpStatsHeader));
+const int32_t kHttpGenericHtmlHeaderLength = static_cast<int32_t> (strlen(kHttpGenericHtmlHeader));
 
-const int32_t kHttpStatsHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpStatsHeader, "@") - kHttpStatsHeader);
+const int32_t kHttpGenericHtmlHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpGenericHtmlHeader, "@") - kHttpGenericHtmlHeader);
+
+const char* const kHttpStatisticsHeader =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: application/json\r\n"
+    "Cache-control: no-cache\r\n"
+    "Content-Length: @@@@@@@@\r\n"
+    "\r\n";
+
+const int32_t kHttpStatisticsHeaderLength = static_cast<int32_t> (strlen(kHttpStatisticsHeader));
+
+const int32_t kHttpStatisticsHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpStatisticsHeader, "@") - kHttpStatisticsHeader);
 
 const char* const kHttpEchoResponse =
     "HTTP/1.1 200 OK\r\n"

@@ -1,3 +1,36 @@
 ﻿<button class="btn pull-right" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
 
-<div ng-bind-html="model.statistics"></div>
+<h2>Ports</h2>
+<div ng-repeat="port in model.statistics.ports">
+	<h4>Port {{port.port}}</h4>	
+	<div>Accepting sockets: {{port.acceptingSockets}}</div>
+	<div>Active connections: {{port.activeConnections}}</div>
+	
+	<h5>Registered URIs</h5>
+	<div ng-repeat="uri in port.registeredUris">
+		<div>{{uri.uri}} in "{{uri.location}}"</div>
+	</div>
+</div>
+<h2>Databases</h2>
+<div ng-repeat="database in model.statistics.databases">
+	<h4>Database "{{database.name}}"</h4>
+	<div>Index: {{database.index}}</div>
+	<div>Overflow chunks: {{database.overflowChunks}}</div>
+</div>
+<h2>Workers</h2> 
+<div ng-repeat="worker in model.statistics.workers">
+	<h4>Worker {{worker.id}}</h4>
+	<div>Bytes received: {{worker.bytesReceived}}</div>
+	<div>Packets received: {{worker.packetsReceived}}</div>
+	<div>Bytes sent: {{worker.bytesSent}}</div>
+	<div>Packets sent: {{worker.packetsSent}}</div>
+	<div>Bound sockets: {{worker.boundSockets}}</div>
+	<div>Allocated chunks: {{worker.allocatedChunks}}</div>
+</div>
+<h2>Global</h2>
+<h4>All workers last second</h4>
+<div>HTTP requests: {{model.statistics.global.allWorkersLastSecond.httpRequests}}</div>
+<div>Received times: {{model.statistics.global.allWorkersLastSecond.receivedTimes}}</div>
+<div>Receive bandwidth: {{model.statistics.global.allWorkersLastSecond.receiveBandwidth}} mbit/sec</div>
+<div>Sent times: {{model.statistics.global.allWorkersLastSecond.sentTimes}}</div>
+<div>Send bandwidth: {{model.statistics.global.allWorkersLastSecond.sendBandwidth}} mbit/sec</div>
