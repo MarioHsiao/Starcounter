@@ -61,7 +61,9 @@ namespace Starcounter.CLI {
         /// <returns>A new console.</returns>
         public static StarConsole Open(int lines = 1) {
             if (lines < 1) throw new ArgumentOutOfRangeException();
-            return new StarConsole(lines, Console.CursorLeft, Console.CursorTop);
+            var console = new StarConsole(lines, Console.CursorLeft, Console.CursorTop);
+            while (lines-- > 0) Console.WriteLine();
+            return console;
         }
 
         /// <summary>
@@ -69,11 +71,30 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="job">The description of the job being started.</param>
         /// <returns>Reference to self.</returns>
-        public StarConsole Start(string job) {
+        public StarConsole StartNewJob(string job) {
             if (string.IsNullOrEmpty(job)) {
                 throw new ArgumentNullException("job");
             }
             currentJob = job;
+            return Write(job, string.Empty, ProgressColor);
+        }
+
+        StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
+            int left, top;
+            left = Console.CursorLeft;
+            top = Console.CursorTop;
+
+            try {
+                var content = string.Format("{0} {1}", currentJob, taskOrResult);
+                content = content.PadRight(Console.WindowWidth);
+
+                Console.SetCursorPosition(cursorLeft, cursorTop);
+                ConsoleUtil.ToConsoleWithColor(content, color);
+
+            } finally {
+                Console.SetCursorPosition(left, top);
+            }
+
             return this;
         }
     }
