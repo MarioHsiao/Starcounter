@@ -79,6 +79,18 @@ namespace Starcounter.CLI {
             return Write(job, string.Empty, ProgressColor);
         }
 
+        /// <summary>
+        /// Completes the job bound to the current console.
+        /// </summary>
+        /// <param name="result">An optional result to display.</param>
+        /// <returns>Reference to self.</returns>
+        public StarConsole CompleteJob(string result = null) {
+            result = result ?? string.Empty;
+            Write(currentJob, result, CompletionColor);
+            currentJob = null;
+            return this;
+        }
+
         StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
             int left, top;
             left = Console.CursorLeft;
