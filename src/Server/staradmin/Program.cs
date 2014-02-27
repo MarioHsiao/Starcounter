@@ -3,6 +3,7 @@ using Starcounter;
 using Starcounter.CLI;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace staradmin {
@@ -33,11 +34,7 @@ namespace staradmin {
                         ServerServiceUtilities.Stop();
                         break;
                     case "console":
-                        var session = ConsoleSession.StartNew(new CodeHostConsole("default"));
-                        Console.CancelKeyPress += (s, e) => {
-                            session.Stop();
-                        };
-                        session.Wait();
+                        RunConsoleSessionInCurrentProcess(args);
                         break;
                     default:
                         var template = CLITemplate.GetTemplate(command);
@@ -58,6 +55,23 @@ namespace staradmin {
             } finally {
                 Console.ResetColor();
             }
+        }
+
+        static void RunConsoleSessionInCurrentProcess(string[] args) {
+            var consoles = new List<CodeHostConsole>();
+            if (args.Length == 1) {
+                consoles.Add(new CodeHostConsole(StarcounterConstants.DefaultDatabaseName));
+            } else {
+                for (int i = 1; i < args.Length; i++) {
+                    consoles.Add(new CodeHostConsole(args[i]));
+                }
+            }
+
+            var session = ConsoleSession.StartNew(consoles.ToArray());
+            Console.CancelKeyPress += (s, e) => {
+                session.Stop();
+            };
+            session.Wait();
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
