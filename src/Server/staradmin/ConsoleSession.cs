@@ -18,7 +18,7 @@ namespace staradmin {
         }
 
         public static ConsoleSession StartNew(params CodeHostConsole[] consoles) {
-            Trace.WriteLine("Trace session starting");
+            Trace.WriteLine("Console session starting");
             Trace.Assert(consoles != null && consoles.Length > 0);
 
             var all = new CodeHostConsole[consoles.Length];
@@ -28,13 +28,13 @@ namespace staradmin {
         }
 
         public void Stop() {
-            Trace.WriteLine("Trace session stopping");
+            Trace.WriteLine("Console session stopping");
             CloseAll();
             stopped.Set();
         }
 
         public void Wait() {
-            Trace.WriteLine("Waiting for trace session to stop");
+            Trace.WriteLine("Waiting for console session to stop");
             stopped.WaitOne();
         }
 
