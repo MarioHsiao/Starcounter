@@ -29,6 +29,7 @@ namespace staradmin {
 
         public void Stop() {
             Trace.WriteLine("Trace session stopping");
+            CloseAll();
             stopped.Set();
         }
 
@@ -43,6 +44,13 @@ namespace staradmin {
                 console.Closed = OnConsoleClosed;
                 console.MessageWritten = OnConsoleMessage;
                 console.Open();
+            }
+            return this;
+        }
+
+        ConsoleSession CloseAll() {
+            foreach (var console in consoles) {
+                console.Close();
             }
             return this;
         }
