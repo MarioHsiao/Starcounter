@@ -3,18 +3,38 @@
  * Executables Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobFactory', function ($http, $log, UtilsFactory, JobFactory) {
+adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleService', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, ConsoleService, UtilsFactory, JobFactory) {
+
+    var self = this;
 
     // List of executables
     //  {
-    //      "path":"c:\path\to\executable\foo.exe",
-    //      "uri":"http://example.com/foo.exe-12345",
-    //      "databaseName":"default",
-    //      "applicationFilePath":""
+    //      "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
+    //      "Path": "C:\\path\to\\the\\exe\\foo.exe",
+    //      "ApplicationFilePath" : "C:\\optional\\path\to\\the\\input\\file.cs",
+    //      "Name" : "Name of the application",
+    //      "Description": "Implements the Foo module",
+    //      "Arguments": [{"dummy":""}],
+    //      "DefaultUserPort": 1,
+    //      "ResourceDirectories": [{"dummy":""}],
+    //      "WorkingDirectory": "C:\\path\\to\\default\\resource\\directory",
+    //      "IsTool":false,
+    //      "StartedBy": "Per Samuelsson, per@starcounter.com",
+    //      "Engine": {
+    //          "Uri": "http://example.com/api/executables/foo"
+    //      },
+    //      "RuntimeInfo": {
+    //         "LoadPath": "\\relative\\path\\to\\weaved\\server\\foo.exe",
+    //         "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
+    //         "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
+    //      },
+    //
+    //      databaseName : "default",
+    //      key : "foo.exe-123456789",
+    //      console : "console output",
+    //      consoleManualMode : false
     //  }
     this.executables = [];
-
-    var self = this;
 
 
     /**
@@ -23,8 +43,6 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
      * @param {errorCallback} errorCallback function
      */
     this.getExecutables = function (successCallback, errorCallback) {
-
-        $log.info("Retriving executables");
 
         var errorHeader = "Failed to retrive a list of executables";
         var uri = "/api/admin/executables";
@@ -57,60 +75,57 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
         $http.get(uri).then(function (response) {
             // Success
 
-            // Validate response
-            if (response.data.hasOwnProperty("Items") == true) {
-                $log.info("Executables (" + response.data.Items.length + ") successfully retrived");
-                if (typeof (successCallback) == "function") {
-
-                    // Recover databasename
-                    for (var i = 0; i < response.data.Items.length; i++) {
-                        response.data.Items[i].databaseName = response.data.Items[i].Engine.Uri.replace(/^.*[\\\/]/, '')
-                    }
-
-                    successCallback(response.data.Items);
-                }
+            $log.info("Executables (" + response.data.Items.length + ") successfully retrived");
+            if (typeof (successCallback) == "function") {
+                successCallback(response.data.Items);
             }
-            else {
-                // Error
-                $log.error(errorHeader, response);
-
-                if (typeof (errorCallback) == "function") {
-                    var messageObject = UtilsFactory.createErrorMessage(errorHeader, "Invalid response content", null, null);
-                    errorCallback(messageObject);
-                }
-            }
-
 
         }, function (response) {
-
             // Error
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                }
-                else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
 
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    }
+                    else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
         });
+    }
+
+
+    /**
+     * Get executable
+     * @param {executableName} executableName Executable name
+     * @return {executable} Executable or null
+     */
+    this.getExecutable = function (executableName) {
+
+        for (var i = 0 ; i < self.executables.length ; i++) {
+            if (self.executables[i].Name == executableName) {
+                return self.executables[i];
+            }
+        }
+        return null;
     }
 
 
@@ -124,16 +139,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
         this.getExecutables(function (executables) {
             // Success
 
-            // TODO: Update current executable with new values
-            //       instead of replacing the executables list
-
-            // Clear executable list
-            self.executables.length = 0;
-
-            // Populate the executable list with the response
-            for (var i = 0; i < executables.length; i++) {
-                self.executables.push(executables[i]);
-            }
+            self._updateExecutableList(executables);
 
             if (typeof (successCallback) == "function") {
                 successCallback();
@@ -148,6 +154,154 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
         });
 
+    }
+
+
+    /**
+     * Refresh executable console output
+     * @param {successCallback} successCallback function
+     * @param {errorCallback} errorCallback function
+     */
+    this.refreshConsoleOuput = function (executable, successCallback, errorCallback) {
+
+        var filter = executable.Name;
+
+        ConsoleService.refreshConsoleOuput(executable.databaseName, filter, function (text) {
+            // Success
+
+            self._onConsoleOutputEvent(executable, text, false);
+
+            if (typeof (successCallback) == "function") {
+                successCallback();
+            }
+
+        }, errorCallback);
+
+    }
+
+
+    /**
+     * Callback when there is an incoming console message
+     * @param {executable} executable
+     * @param {text} text
+     * @param {bAppend} bAppend
+     */
+    this._onConsoleOutputEvent = function (executable, text, bAppend) {
+
+        var htmlText = text.replace(/\r\n/g, "<br>");
+
+        if (bAppend) {
+            executable.console = $sce.trustAsHtml(executable.console + htmlText);
+        }
+        else {
+            executable.console = $sce.trustAsHtml(htmlText);
+        }
+
+        // Limit the buffer
+        if (executable.console.length > self.bufferSize) {
+            executable.console = $sce.trustAsHtml(executable.console.substr(executable.console.length - self.bufferSize));
+        }
+
+    }
+
+
+    /**
+     * Update current executable list with new list
+     * @param {newExecutables} New Executable list
+     */
+    this._updateExecutableList = function (newExecutables) {
+
+        var newList = [];
+        var removeList = [];
+
+        // Check for new executabels and update current executables
+        for (var i = 0; i < newExecutables.length; i++) {
+            var newExecutable = newExecutables[i];
+            var executable = this.getExecutable(newExecutable.Name);
+            if (executable == null) {
+                newList.push(newExecutable);
+            } else {
+                UtilsFactory.updateObject(newExecutable, executable);
+            }
+        }
+
+        // Remove removed executables from executable list
+        for (var i = 0; i < self.executables.length; i++) {
+
+            var executable = self.executables[i];
+            var bExists = false;
+            // Check if it exist in newList
+            for (var i = 0; i < newExecutables.length; i++) {
+                var newExecutable = newExecutables[i];
+
+                if (executable.Name == newExecutable.Name) {
+                    bExists = true;
+                    break;
+                }
+            }
+
+            if (bExists == false) {
+                removeList.push(executable);
+            }
+        }
+
+
+        // Remove executable from executable list
+        for (var i = 0; i < removeList.length; i++) {
+            var index = self.executables.indexOf(removeList[i]);
+            if (index > -1) {
+                self.executables.splice(index, 1);
+            }
+            this._onRemovedExecutable(executable);
+        }
+
+        // Add new executables
+        for (var i = 0; i < newList.length; i++) {
+            self.executables.push(newList[i]);
+            this._onNewExecutable(newList[i]);
+        }
+
+    }
+
+
+    /**
+     * On New Executable Event
+     * @param {executable} Executable
+     */
+    this._onNewExecutable = function (executable) {
+
+        // Add additional properties
+        executable.databaseName = executable.Engine.Uri.replace(/^.*[\\\/]/, '')
+        executable.key = executable.Uri.replace(/^.*[\\\/]/, '')
+        executable.console = "";
+        executable.consoleManualMode = false;
+
+        // Socket event listener
+        executable.consoleListener = {
+            databaseName: executable.databaseName,
+            onEvent: function (text) {
+                self._onConsoleOutputEvent(executable, text, true);
+            },
+            onError: function (messageObject) {
+
+                // Sliently fallback to manual mode
+                executable.consoleManualMode = true;
+                $log.error("Socket error", messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+
+            },
+            filter: executable.Name
+        }
+
+        ConsoleService.registerEventListener(executable.consoleListener);
+    }
+
+
+    /**
+     * On Executable Removed event
+     * @param {executable} Executable
+     */
+    this._onRemovedExecutable = function (executable) {
+        ConsoleService.unregisterEventListener(executable.consoleListener);
     }
 
 
@@ -179,8 +333,6 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
      * @param {errorCallback} errorCallback function
      */
     this.startExecutable = function (file, databaseName, successCallback, errorCallback) {
-
-        $log.info("Starting executable");
 
         this.startEngine(databaseName, function () {
             // Success
@@ -250,45 +402,45 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
                 JobFactory.RemoveJob(job);
 
                 var errorHeader = "Failed to start executable";
-
-                var messageObject;
-                if (response instanceof SyntaxError) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-                }
-                else if (response.status == 404) {
-                    // 404 A database with the specified name was not found.
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                }
-                else if (response.status == 409) {
-                    // 409 The executable is already running or the Engine is not started.
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                }
-                else if (response.status == 422) {
-                    // 422 The executable can not be found or The weaver failed to load a binary user code file.
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                }
-                else if (response.status == 500) {
-                    // 500 Server Error
-                    errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
-
-                }
-                else {
-                    // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
-                }
-
                 $log.error(errorHeader, response);
 
                 if (typeof (errorCallback) == "function") {
+
+                    var messageObject;
+                    if (response instanceof SyntaxError) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                    }
+                    else if (response.status == 404) {
+                        // 404 A database with the specified name was not found.
+                        messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    }
+                    else if (response.status == 409) {
+                        // 409 The executable is already running or the Engine is not started.
+                        messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    }
+                    else if (response.status == 422) {
+                        // 422 The executable can not be found or The weaver failed to load a binary user code file.
+                        messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    }
+                    else if (response.status == 500) {
+                        // 500 Server Error
+                        errorHeader = "Internal Server Error";
+                        if (response.data.hasOwnProperty("Text") == true) {
+                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                        } else {
+                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                        }
+
+                    }
+                    else {
+                        // Unhandle Error
+                        if (response.data.hasOwnProperty("Text") == true) {
+                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                        } else {
+                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                        }
+                    }
+
                     errorCallback(messageObject);
                 }
 
@@ -312,8 +464,6 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
      */
     this.stopExecutable = function (executable, successCallback, errorCallback) {
 
-        $log.info("Stopping executable");
-
         var job = { message: "Stopping executable " + executable.Name };
         JobFactory.AddJob(job);
 
@@ -333,40 +483,41 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
             // Error
             var errorHeader = "Failed to stop executable";
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 404) {
-                // 404 A database with the specified name was not found.
-                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-            }
-            else if (response.status == 409) {
-                // 409 The executable is already running or the Engine is not started.
-                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 404) {
+                    // 404 A database with the specified name was not found.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 409) {
+                    // 409 The executable is already running or the Engine is not started.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
@@ -382,8 +533,6 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
      * @return {Promise} promise
      */
     this.startEngine = function (name, successCallback, errorCallback) {
-
-        $log.info("Starting engine");
 
         var errorHeader = "Failed to start database";
 
@@ -444,40 +593,41 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             JobFactory.RemoveJob(job);
 
             var errorHeader = "Failed to start executable";
-
-            var messageObject;
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 404) {
-                // 404 A database with the specified name was not found.
-                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-            }
-            else if (response.status == 422) {
-                // 422 The executable can not be found or The weaver failed to load a binary user code file.
-                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 404) {
+                    // 404 A database with the specified name was not found.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 422) {
+                    // 422 The executable can not be found or The weaver failed to load a binary user code file.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
+
                 errorCallback(messageObject);
             }
 
