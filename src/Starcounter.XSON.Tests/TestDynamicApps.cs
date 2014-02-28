@@ -215,16 +215,15 @@ namespace Starcounter.Internal.XSON.Tests {
                 jsonItem["dummy"] = "dummy";
             }
 
-            //for (int i = 0; i < 2; i++) {
-            //    dynamic jsonItem = new Json();
-            //    jsonItem.dummy = "dummy";
-            //}
+            for (int i = 0; i < 2; i++) {
+                dynamic jsonItem = new Json();
+                jsonItem.dummy = "dummy";
+            }
 
             TObject template = new TObject();
             template.Add<TString>("dummy");
-            dynamic json = new Json() { Template = template };
-
             for (int i = 0; i < 2; i++) {
+                dynamic json = new Json() { Template = template };
                 json.dummy = "dummy";
             }
 		}
