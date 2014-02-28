@@ -100,6 +100,9 @@
     <Compile Include="Server\Program.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\controllers\ExecutableCtrl.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\controllers\DatabaseSettingsCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -169,6 +172,9 @@
     <Content Include="app\js\scTypesPlugin.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="app\partials\executable.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\partials\database.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -205,10 +211,13 @@
     <Content Include="app\partials\sql.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\services\VersionCheckService.js">
+    <Content Include="app\services\ConsoleService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\services\DatabaseConsoleService.js">
+    <Content Include="app\services\HostModelService.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\services\VersionCheckService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\services\SqlService.js">
