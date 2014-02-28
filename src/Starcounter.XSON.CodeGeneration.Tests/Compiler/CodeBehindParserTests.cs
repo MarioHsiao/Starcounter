@@ -56,7 +56,13 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
 		[Test]
 		public static void CodeBehindIncorrectAnalyzeTest() {
-			Assert.Throws<Exception>(() => MonoAnalyze("Incorrect", @"Compiler\incorrect.json.cs"));
+            Exception ex;
+            
+            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect", @"Compiler\incorrect.json.cs"));
+            Assert.IsTrue(ex.Message.Contains("Generic declaration"));
+
+            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect2", @"Compiler\incorrect2.json.cs"));
+            Assert.IsTrue(ex.Message.Contains("constructors are not"));
 		}
     }
 }
