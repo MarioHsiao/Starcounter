@@ -1,17 +1,58 @@
 ﻿using Starcounter;
 using Starcounter.Internal;
 using System;
+using System.Net;
 using System.Text;
 
 namespace Starcounter
 {
     public class WebSocket
     {
-        // Reference to corresponding session.
+        internal enum WsHandlerType
+        {
+            StringMessage,
+            BinaryData,
+            Disconnect,
+            Empty
+        }
+
+        /// <summary>
+        /// Current WebSocket object.
+        /// </summary>
+        [ThreadStatic]
+        internal static WebSocket Current_;
+
+        /// <summary>
+        /// Current WebSocket object.
+        /// </summary>
+        public static WebSocket Current
+        {
+            get { return Current_; }
+            set { Current_ = value; }
+        }
+
+        /// <summary>
+        /// Socket index on gateway.
+        /// </summary>
+        internal UInt32 socketIndexNum_;
+
+        /// <summary>
+        /// Unique socket id on gateway.
+        /// </summary>
+        internal UInt64 socketUniqueId_;
+
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        internal Byte gatewayWorkerId_;
+
+        /// <summary>
+        /// Reference to existing session if any.
+        /// </summary>
         public IAppsSession Session
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -19,32 +60,93 @@ namespace Starcounter
         /// </summary>
         public UInt64 CargoId
         {
-            get;
-            set;
+            get
+            {
+                return WebSocketCargos[socketIndexNum_];
+            }
+
+            set
+            {
+                WebSocketCargos[socketIndexNum_] = value;
+            }
         }
 
-        // Disconnects existing socket.
-        public void Disconnect()
+        /// <summary>
+        /// WebSocket close codes.
+        /// </summary>
+        public enum WebSocketCloseCodes
         {
+            WS_CLOSE_NORMAL = 1000,
+            WS_CLOSE_GOING_DOWN = 1001,
+            WS_CLOSE_PROTOCOL_ERROR = 1002,
+            WS_CLOSE_CANT_ACCEPT_DATA = 1003,
+            WS_CLOSE_WRONG_DATA_TYPE = 1007,
+            WS_CLOSE_POLICY_VIOLATED = 1008,
+            WS_CLOSE_MESSAGE_TOO_BIG = 1009,
+            WS_CLOSE_UNEXPECTED_CONDITION = 1011
+        }
 
+        /// <summary>
+        /// Disconnects active WebSocket.
+        /// </summary>
+        /// <param name="message">Optional error message.</param>
+        /// <param name="code">Optional error code.</param>
+        public void Disconnect(String message = null, WebSocketCloseCodes code = WebSocketCloseCodes.WS_CLOSE_NORMAL)
+        {
+            Int32 bufLen = 2;            
+
+            if (message != null)
+                bufLen += message.Length * 2;
+
+            Byte[] buf = new Byte[bufLen];
+
+            Int32 bytesWritten = 0;
+
+            unsafe
+            {
+                fixed (byte* p = buf)
+                {
+                    // Writing error code in network order.
+                    *(Int16*)p = IPAddress.HostToNetworkOrder((Int16)code);
+                    bytesWritten += 2;
+
+                    // Writing status description if any.
+                    if (null != message)
+                    {
+                        Utf8Writer writer = new Utf8Writer(p + 2);
+
+                        writer.Write(message);
+                        bytesWritten += writer.Written;
+                    }
+                }
+            }
+
+            PushServerMessage(this, buf, bytesWritten, true, Response.ConnectionFlags.GracefullyCloseConnection);
         }
 
         // Executes given user delegate on all active sockets.
-        public static void RunOnAllActiveWebSockets(Action<WebSocket> userDelegate, String channel)
+        internal static void RunOnAllActiveWebSockets(Action<WebSocket> userDelegate, String channel)
         {
 
         }
 
-        // Server push on WebSocket.
+        /// <summary>
+        /// Server push on WebSocket.
+        /// </summary>
+        /// <param name="data">Data to push.</param>
+        /// <param name="isText">Is given data a text?</param>
+        /// <param name="connFlags">Connection flags on the push.</param>
         public void Send(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
-            Request req = Request.GenerateNewRequest(Session.InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
-
-            req.SendResponse(data, 0, data.Length, connFlags);
-
+            PushServerMessage(this, data, data.Length, isText, connFlags);
         }
 
-        // Server push on WebSocket.
+        /// <summary>
+        /// Server push on WebSocket.
+        /// </summary>
+        /// <param name="data">Data to push.</param>
+        /// <param name="isText">Is given data a text?</param>
+        /// <param name="connFlags">Connection flags on the push.</param>
         public void Send(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
             Send(Encoding.UTF8.GetBytes(data), isText, connFlags);
@@ -82,11 +184,90 @@ namespace Starcounter
 
         NetworkDataStream dataStream_;
 
-        internal WebSocket(NetworkDataStream dataStream, String message, Byte[] bytes)
+        WsHandlerType wsHandlerType_;
+
+        internal WsHandlerType HandlerType
+        {
+            get { return wsHandlerType_; }
+        }
+
+        internal WebSocket(NetworkDataStream dataStream, String message, Byte[] bytes, WsHandlerType wsHandlerType)
         {
             dataStream_ = dataStream;
             message_ = message;
             bytes_ = bytes;
+            wsHandlerType_ = wsHandlerType;
         }
+
+        internal void ManualDestroy()
+        {
+            // Releasing data stream resources like chunks, etc.
+            if (dataStream_ != null)
+                dataStream_.Destroy(true);
+        }
+
+        /// <summary>
+        /// Releases resources.
+        /// </summary>
+        ~WebSocket()
+        {
+            // Releasing data stream resources like chunks, etc.
+            if (dataStream_ != null)
+                dataStream_.Destroy(false);
+        }
+        
+        /// <summary>
+        /// Creates new Request based on session.
+        /// </summary>
+        internal unsafe static void PushServerMessage(
+            WebSocket ws,
+            Byte[] data,
+            Int32 dataLen,
+            Boolean isText,
+            Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
+        {
+            UInt32 new_chunk_index;
+            Byte* new_chunk_mem;
+            UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&new_chunk_index, &new_chunk_mem);
+            if (0 != err_code)
+                throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
+
+            // Creating network data stream object.
+            NetworkDataStream data_stream = new NetworkDataStream(new_chunk_mem, new_chunk_index, ws.gatewayWorkerId_);
+
+            Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+
+            if (ws.Session != null)
+            {
+                (*(ScSessionStruct*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = ws.Session.InternalSession.session_struct_;
+
+                // Updating last active date.
+                ws.Session.InternalSession.UpdateLastActive();
+            }
+
+            (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
+
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte)MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
+
+            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = ws.socketIndexNum_;
+            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.socketUniqueId_;
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = ws.gatewayWorkerId_;
+
+            (*(UInt16*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+                MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
+
+            // Checking if we have text or binary WebSocket frame.
+            if (isText)
+                (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = (Byte) MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT;
+            else
+                (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = (Byte) MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY;
+
+            data_stream.SendResponse(data, 0, dataLen, connFlags);
+        }
+
+        /// <summary>
+        /// TODO: Fix permanent storage of WebSockets in shared memory.
+        /// </summary>
+        static UInt64[] WebSocketCargos = new UInt64[10000];
     }
 }

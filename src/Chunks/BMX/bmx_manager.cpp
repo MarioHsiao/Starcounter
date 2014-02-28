@@ -64,7 +64,7 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
         return err_code;
 
     // Checking that handler id is 0 for BMX management.
-    _SC_ASSERT(bmx_handler_info == BMX_MANAGEMENT_HANDLER_ID);
+    _SC_ASSERT(bmx_handler_info == BMX_MANAGEMENT_HANDLER_INFO);
 
     g_destroy_apps_session_callback = destroy_apps_session_callback;
     g_create_new_apps_session_callback = create_new_apps_session_callback;
@@ -166,7 +166,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
     _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
-    uint32_t err_code = g_bmx_data->FindPortHandler(port_num, &handler_index);
+    uint32_t err_code = g_bmx_data->FindWsHandler(port_num, channel_name, &handler_index);
     if (0 == err_code)
         return SCERRHANDLERALREADYREGISTERED;
 
@@ -193,7 +193,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     uint8_t* param_types,
     uint8_t num_params,
     GENERIC_HANDLER_CALLBACK callback, 
-    starcounter::MixedCodeConstants::NetworkProtocolType proto_type,
     uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info
     )
@@ -394,8 +393,8 @@ uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc,
 // The specific handler that is responsible for handling responses
 // from the gateway registration process.
 uint32_t starcounter::bmx::OnIncomingBmxMessage(
-    uint64_t session_id, 
-    shared_memory_chunk* smc, 
+    uint16_t managed_handler_id,
+    shared_memory_chunk* smc,
     TASK_INFO_TYPE* task_info,
     bool* is_handled)
 {

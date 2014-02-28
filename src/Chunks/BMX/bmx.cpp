@@ -379,7 +379,7 @@ uint32_t BmxData::RegisterUriHandler(
     }
 
     // Constructing handler info from slot index and unique number.
-    (*phandler_info) = MakeHandlerInfo(empty_slot, unique_handler_num_);
+    *phandler_info = MakeHandlerInfo(empty_slot, unique_handler_num_);
 
     // Initializing new handlers list.
     err_code = registered_handlers_[empty_slot].Init(
@@ -464,7 +464,7 @@ uint32_t BmxData::RegisterWsHandler(
 
     // Initializing new handlers list.
     err_code = registered_handlers_[empty_slot].Init(
-        bmx::HANDLER_TYPE::URI_HANDLER,
+        bmx::HANDLER_TYPE::WS_HANDLER,
         *phandler_info,
         managed_handler_index,
         port,
@@ -554,7 +554,7 @@ bool BmxData::IsHandlerExist(
 // Finds certain handler.
 uint32_t BmxData::FindUriHandler(
     uint16_t port_num,
-    char* processed_uri_info,
+    const char* processed_uri_info,
     BMX_HANDLER_INDEX_TYPE* handler_index)
 {
     // Checking all registered handlers.
@@ -566,7 +566,34 @@ uint32_t BmxData::FindUriHandler(
             {
                 if (port_num == registered_handlers_[i].get_port())
                 {
-                    if (!strcmp(processed_uri_info, registered_handlers_[i].get_original_uri_info()))
+                    if (!strcmp(processed_uri_info, registered_handlers_[i].get_processed_uri_info()))
+                    {
+                        *handler_index = i;
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND;
+}
+
+uint32_t BmxData::FindWsHandler(
+    uint16_t port_num,
+    const char* channel_name,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (WS_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    if (!strcmp(channel_name, registered_handlers_[i].get_original_uri_info()))
                     {
                         *handler_index = i;
                         return 0;
@@ -725,7 +752,6 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     if (registered_handlers_[handler_index].IsEmpty())
         goto release_chunks;
 
-    task_info.handler_index = (BMX_HANDLER_INDEX_TYPE)handler_info;
     if (smc->get_link() != smc->link_terminator)
         task_info.flags |= MixedCodeConstants::LINKED_CHUNKS_FLAG;
 

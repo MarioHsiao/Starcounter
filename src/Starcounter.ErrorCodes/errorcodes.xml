@@ -3154,6 +3154,12 @@
     <code hex="010F" severity="Error" name="ScErrThreadDetachBlocked">
       <message>Attempt to detach thread when not allowed to detach thread.</message>
     </code>
+    <code hex="0110" severity="Error" name="ScErrValueUndefined">
+      <message>Value is undefined.</message>
+    </code>
+    <code hex="0111" severity="Error" name="ScErrRecordNotFound">
+      <message>Record with specified id not found.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

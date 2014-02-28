@@ -267,16 +267,6 @@ namespace Starcounter.Internal
         public ScSessionStruct session_struct_;
 
         /// <summary>
-        /// Socket number.
-        /// </summary>
-        public UInt32 socket_index_num_;
-
-        /// <summary>
-        /// Unique socket id for the gateway.
-        /// </summary>
-        public UInt64 socket_unique_id_;
-
-        /// <summary>
         /// Apps session object reference.
         /// </summary>
         public IAppsSession apps_session_int_;

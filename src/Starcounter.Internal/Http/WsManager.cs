@@ -1,5 +1,4 @@
-﻿using Starcounter.Internal.Uri;
-using Starcounter.Internal;
+﻿using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,10 +8,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Codeplex.Data;
 using System.IO;
 using System.Globalization;
-using Starcounter.Logging;
 using Starcounter.Rest;
 
 namespace Starcounter.Internal
@@ -23,9 +20,9 @@ namespace Starcounter.Internal
 
         Action<String, WebSocket> receiveStringHandler_;
 
-        Action<WebSocket> disconnectHandler_;
+        Action<UInt64, IAppsSession> disconnectHandler_;
 
-        public String Channel { get; set; }
+        public String ChannelName { get; set; }
 
         UInt16 port_;
 
@@ -52,7 +49,7 @@ namespace Starcounter.Internal
 
         public WsChannelInfo(UInt16 handlerId, UInt16 port, String channel)
         {
-            Channel = channel;
+            ChannelName = channel;
             channelId_ = (UInt32)channel.GetHashCode();
             handlerId_ = handlerId;
             port_ = port;
@@ -75,65 +72,72 @@ namespace Starcounter.Internal
             alive_ = true;
         }
 
-        public void SetDisconnectHandler(Action<WebSocket> disconnectHandler)
+        public void SetDisconnectHandler(Action<UInt64, IAppsSession> disconnectHandler)
         {
             disconnectHandler_ = disconnectHandler;
             alive_ = true;
         }
 
-        public void DetermineAndRunHandler(UInt64 handlerInfo, WebSocket ws)
+        public void DetermineAndRunHandler(WebSocket ws)
         {
-            if (handlerInfo != handlerInfo_)
-                return;
+            switch (ws.HandlerType)
+            {
+                case WebSocket.WsHandlerType.BinaryData:
+                {
+                    if (receiveBinaryHandler_ != null)
+                        receiveBinaryHandler_(ws.Bytes, ws);
 
-            if (ws.Message != null)
-            {
-                if (receiveStringHandler_ != null)
-                    receiveStringHandler_(ws.Message, ws);
-            }
-            else if (ws.Bytes != null)
-            {
-                if (receiveBinaryHandler_ != null)
-                    receiveBinaryHandler_(ws.Bytes, ws);
-            }
-            else
-            {
-                if (disconnectHandler_ != null)
-                    disconnectHandler_(ws);
+                    break;
+                }
+
+                case WebSocket.WsHandlerType.StringMessage:
+                {
+                    if (receiveStringHandler_ != null)
+                        receiveStringHandler_(ws.Message, ws);
+
+                    break;
+                }
+
+                case WebSocket.WsHandlerType.Disconnect:
+                {
+                    if (disconnectHandler_ != null)
+                        disconnectHandler_(ws.CargoId, ws.Session);
+
+                    break;
+                }
+
+                default:
+                    throw new Exception("Unknown WebSocket handler is attempted to run!");
             }
         }
     }
 
     internal class AllWsChannels
     {
-        WsChannelInfo[] allWsChannels_ = new WsChannelInfo[HandlersManagement.MAX_USER_HANDLERS];
+        public const Int32 MAX_WS_HANDLERS = 512;
 
-        Int32 maxWsChannels_ = 0;
+        WsChannelInfo[] allWsChannels_ = new WsChannelInfo[MAX_WS_HANDLERS];
 
-        public WsChannelInfo FindChannel(String channel)
+        UInt16 maxWsChannels_ = 0;
+
+        public WsChannelInfo FindChannel(String channelName)
         {
-            foreach (WsChannelInfo p in allWsChannels_)
+            for (Int32 i = 0; i < maxWsChannels_; i++)
             {
-                if (0 == String.Compare(p.Channel, channel, StringComparison.InvariantCultureIgnoreCase))
-                    return p;
+                if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
+                {
+                    if (0 == String.Compare(allWsChannels_[i].ChannelName, channelName))
+                        return allWsChannels_[i];
+                }
             }
-            return null;
-        }
 
-        public WsChannelInfo FindChannelById(Int32 channelId)
-        {
-            foreach (WsChannelInfo p in allWsChannels_)
-            {
-                if (p.ChannelId == channelId)
-                    return p;
-            }
             return null;
         }
 
         /// <summary>
         /// Registers the WebSocket handler.
         /// </summary>
-        void RegisterWsHandler(
+        void RegisterWsHandlerBmx(
             UInt16 port,
             String channelName,
             UInt32 channelId,
@@ -166,38 +170,50 @@ namespace Starcounter.Internal
             WebsocketOuterHandler_ = WebsocketOuterHandler;
         }
 
-        WsChannelInfo CreateOrFindWsChannel(UInt16 port, String channelName)
+        WsChannelInfo CreateWsChannel(UInt16 port, String channelName)
         {
-            if (maxWsChannels_ >= HandlersManagement.MAX_USER_HANDLERS)
+            if (maxWsChannels_ >= MAX_WS_HANDLERS)
                 throw ErrorCode.ToException(Error.SCERRMAXHANDLERSREACHED);
 
-            // Searching WebSocket channel.
-            UInt16 i;
-            for (i = 0; i < maxWsChannels_; i++)
-            {
-                if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
-                {
-                    if ((allWsChannels_[i].Port == port) && (allWsChannels_[i].Channel == channelName))
-                        return allWsChannels_[i];
-                }
-            }
-
-            if (i == maxWsChannels_)
-                maxWsChannels_++;
-
             // Not found, creating new.
-            WsChannelInfo w = new WsChannelInfo(i, port, channelName);
-            allWsChannels_[i] = w;
+            WsChannelInfo w = new WsChannelInfo(maxWsChannels_, port, channelName);
+            allWsChannels_[maxWsChannels_] = w;
+
+            maxWsChannels_++;
 
             return w;
         }
 
+        WsChannelInfo FindWsChannel(UInt16 port, String channelName)
+        {
+            // Searching WebSocket channel.
+            for (UInt16 i = 0; i < maxWsChannels_; i++)
+            {
+                if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
+                {
+                    if ((allWsChannels_[i].Port == port) && (allWsChannels_[i].ChannelName == channelName))
+                        return allWsChannels_[i];
+                }
+            }
+
+            return null;
+        }
+
         WsChannelInfo RegisterHandler(UInt16 port, String channelName)
         {
-            WsChannelInfo w = CreateOrFindWsChannel(port, channelName);
-            UInt64 handlerInfo;
-            RegisterWsHandler(port, channelName, w.ChannelId, w.HandlerId, out handlerInfo);
-            w.HandlerInfo = handlerInfo;
+            if (channelName.Length > 32)
+                throw new Exception("Registering too long channel name: " + channelName);
+
+            WsChannelInfo w = FindWsChannel(port, channelName);
+
+            if (w == null)
+            {
+                w = CreateWsChannel(port, channelName);
+
+                UInt64 handlerInfo;
+                RegisterWsHandlerBmx(port, channelName, w.ChannelId, w.HandlerId, out handlerInfo);
+                w.HandlerInfo = handlerInfo;
+            }
 
             return w;
         }
@@ -207,6 +223,9 @@ namespace Starcounter.Internal
             String channelName,
             Action<Byte[], WebSocket> userDelegate)
         {
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
+                port = StarcounterEnvironment.Default.UserHttpPort;
+
             lock (wsManager_)
             {
                 WsChannelInfo w = RegisterHandler(port, channelName);
@@ -220,6 +239,9 @@ namespace Starcounter.Internal
             String channelName,
             Action<String, WebSocket> userDelegate)
         {
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
+                port = StarcounterEnvironment.Default.UserHttpPort;
+
             lock (wsManager_)
             {
                 WsChannelInfo w = RegisterHandler(port, channelName);
@@ -231,8 +253,11 @@ namespace Starcounter.Internal
         public void RegisterWsDisconnectDelegate(
             UInt16 port,
             String channelName,
-            Action<WebSocket> userDelegate)
+            Action<UInt64, IAppsSession> userDelegate)
         {
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
+                port = StarcounterEnvironment.Default.UserHttpPort;
+
             lock (wsManager_)
             {
                 WsChannelInfo w = RegisterHandler(port, channelName); 
@@ -241,10 +266,15 @@ namespace Starcounter.Internal
             }
         }
 
-        public void RunHandler(UInt16 id, UInt64 handlerInfo, WebSocket ws)
+        public Boolean RunHandler(UInt16 id, WebSocket ws)
         {
             if (allWsChannels_[id] != null && allWsChannels_[id].Alive)
-                allWsChannels_[id].DetermineAndRunHandler(handlerInfo, ws);
+            {
+                allWsChannels_[id].DetermineAndRunHandler(ws);
+                return true;
+            }
+
+            return false;
         }
     }
 }

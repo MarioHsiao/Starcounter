@@ -65,12 +65,13 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\bin\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemGroup>
-    <Media Include="..\errorcodes.xml" />
+    <Media Include="..\errorcodes.xml">
+      <SubType>Designer</SubType>
+    </Media>
     <Media Include="Format.cpp" />
     <Media Include="Format.h" />
     <Media Include="Format.def" />
   </ItemGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -105,7 +106,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  
   <!-- Building error codes manually. -->
   <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll;scerrres.h">
     <!-- <Message Text="Path to SDK: $(FrameworkSdkDir) " Importance="high" /> -->

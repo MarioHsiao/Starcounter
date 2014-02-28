@@ -43,33 +43,5 @@ namespace Starcounter.Internal
                 }
             }
         }
-
-        /// <summary>
-        /// Managed callback to handle errors.
-        /// </summary>
-        /// <param name="err_code"></param>
-        /// <param name="err_string"></param>
-        public unsafe delegate void ErrorHandlingCallback(
-            UInt32 err_code,
-            Char* err_string,
-            Int32 err_string_len
-            );
-
-        public static unsafe ErrorHandlingCallback g_error_handling_callback = ErrorHandlingCallbackFunc;
-
-        /// <summary>
-        /// Managed callback to handle errors.
-        /// </summary>
-        /// <param name="err_code"></param>
-        /// <param name="err_string"></param>
-        public static unsafe void ErrorHandlingCallbackFunc(
-            UInt32 err_code,
-            Char* err_string,
-            Int32 err_string_len
-            )
-        {
-            String managed_err_string = new String(err_string, 0, err_string_len);
-            throw ErrorCode.ToException(err_code, managed_err_string);
-        }
     }
 }

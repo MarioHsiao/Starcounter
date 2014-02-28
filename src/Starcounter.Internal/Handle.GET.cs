@@ -17,7 +17,7 @@ namespace Starcounter {
             _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
 
-        public static void SocketDisconnect(String channel, Action<WebSocket> handler) {
+        public static void SocketDisconnect(String channel, Action<UInt64, IAppsSession> handler) {
             _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
 

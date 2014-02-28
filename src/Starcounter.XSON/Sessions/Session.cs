@@ -255,27 +255,10 @@ namespace Starcounter {
             get { return InternalSession.ToAsciiString(); }
         }
 
-        /// <summary>
-        /// Pushes data on existing session.
-        /// </summary>
-        /// <param name="data"></param>
-        public void Push(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
-        {
-            Push(Encoding.UTF8.GetBytes(data), isText, connFlags);
-        }
-
-        /// <summary>
-        /// Pushes data on existing session.
-        /// </summary>
-        /// <param name="data"></param>
-        public void Push(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
-        {
-            // Updating last active date.
-            InternalSession.UpdateLastActive();
-
-            Request req = Request.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
-
-            req.SendResponse(data, 0, data.Length, connFlags);
+        // Last active WebSocket connection.
+        public WebSocket ActiveWebsocket {
+            get;
+            internal set;
         }
 
         /// <summary>

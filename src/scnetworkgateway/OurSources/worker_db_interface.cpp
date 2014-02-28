@@ -354,7 +354,7 @@ void WorkerDbInterface::ReturnAllPrivateChunksToSharedPool()
 }
 
 // Push given chunk to database queue.
-uint32_t WorkerDbInterface::PushSocketDataToDb(
+void WorkerDbInterface::PushSocketDataToDb(
     GatewayWorker* gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE user_handler_id)
@@ -399,43 +399,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(first_chunk_index, sched_id);
-
-    return 0;
-}
-
-// Pushes session destroyed message.
-uint32_t WorkerDbInterface::PushSessionDestroy(
-    session_index_type linear_index,
-    random_salt_type random_salt,
-    uint8_t sched_id)
-{
-    // Get a reference to the chunk.
-    shared_memory_chunk *ipc_smc = NULL;
-
-    // Getting a free chunk.
-    core::chunk_index new_chunk;
-    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &ipc_smc);
-    GW_ERR_CHECK(err_code);
-
-    // Predefined BMX management handler.
-    ipc_smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
-
-    request_chunk_part* request = ipc_smc->get_request_chunk();
-    request->reset_offset();
-
-    // Writing BMX message type.
-    request->write(bmx::BMX_SESSION_DESTROY);
-
-    // Writing Apps unique session number.
-    request->write(linear_index);
-
-    // Writing Apps unique salt.
-    request->write(random_salt);
-
-    // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk, sched_id);
-
-    return 0;
 }
 
 // Sends error message.
@@ -705,15 +668,31 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
 
                 ServerPort* server_port = g_gateway.FindServerPort(port);
                 if (NULL == server_port)
-                    GW_ASSERT(0);
+                {
+                    // Registering handler on active database.
+                    err_code = g_gateway.AddPortHandler(
+                        gw,
+                        g_gateway.get_gw_handlers(),
+                        port,
+                        handler_info,
+                        0,
+                        OuterUriProcessData);
 
-                if (server_port->get_port_ws_channels()->FindRegisteredChannelName(channel_name))
+                    GW_ASSERT(0 == err_code);
+
+                    server_port = g_gateway.FindServerPort(port);
+
+                    GW_ASSERT(NULL != server_port);
+                }
+
+                // Searching existing WebSocket handler with the same channel name.
+                if (INVALID_URI_INDEX != server_port->get_registered_ws_channels()->FindRegisteredChannelName(channel_name))
                     err_code = SCERRHANDLERALREADYREGISTERED;
 
                 if (err_code)
                 {
                     wchar_t temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
-                    swprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, L"Can't register WebSocket handler %s on port %d", channel_name, port);
+                    swprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, L"Can't register WebSocket handler '%S' on port %d", channel_name, port);
 
                     // Pushing error message to initial database.
                     PushErrorMessage(sched_id, err_code, temp_str);
@@ -723,7 +702,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                         err_code = 0;
                 }
 
-                server_port->get_port_ws_channels()->AddNewEntry(
+                server_port->get_registered_ws_channels()->AddNewEntry(
                     handler_info,
                     channel_id,
                     channel_name,

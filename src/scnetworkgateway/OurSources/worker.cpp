@@ -1667,7 +1667,9 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
 
     // Pushing chunk to that database.
     if (NULL != db)
-        return db->PushSocketDataToDb(this, sd, handler_id);
+        db->PushSocketDataToDb(this, sd, handler_id);
+    else
+        ReturnSocketDataChunksToPool(sd);
 
     return 0;
 }

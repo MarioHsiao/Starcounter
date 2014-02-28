@@ -134,7 +134,7 @@ namespace StarcounterInternal.Bootstrap
                 bmx.sc_init_bmx_manager(
                     GlobalSessions.g_destroy_apps_session_callback,
                     GlobalSessions.g_create_new_apps_session_callback,
-                    Diagnostics.g_error_handling_callback);
+                    Starcounter.Internal.ExceptionManager.ErrorHandlingCallbackFunc);
 
                 OnBmxManagerInitialized();
 

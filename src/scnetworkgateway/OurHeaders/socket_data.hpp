@@ -8,24 +8,6 @@ namespace network {
 class GatewayWorker;
 class HttpProto;
 
-enum SOCKET_DATA_FLAGS
-{
-    SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
-    SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
-    SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 2 << 1,
-    SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
-    SOCKET_DATA_FLAGS_ACTIVE_CONN = 2 << 3,
-    SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
-    SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
-    SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 2 << 7,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2 << 8,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2 << 9,
-    HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
-    SOCKET_DATA_FLAGS_AGGREGATED = MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED,
-    SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = MixedCodeConstants::SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION
-};
-
 // Socket data chunk.
 class WorkerDbInterface;
 class SocketDataChunk
@@ -101,12 +83,6 @@ class SocketDataChunk
     uint8_t data_blob_[1];
 
 public:
-
-    // Setting accumulating flag.
-    void set_accumulating_flag()
-    {
-        flags_ |= SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
-    }
 
     // Checking that gateway chunk is valid.
     void CheckForValidity()
@@ -225,6 +201,11 @@ public:
         reset_complete_header_flag();
     }
 
+    void ResetAllFlags()
+    {
+        flags_ = 0;
+    }
+
 #ifdef GW_LOOPED_TEST_MODE
 
     // Pushing given sd to network emulation queue.
@@ -295,6 +276,9 @@ public:
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_BOUND_WORKER_ID = "<< ((uint8_t*)&(session_.gw_worker_id_) - sd) << std::endl;
+        std::cout << "CHUNK_OFFSET_WS_PAYLOAD_LEN = "<< ((uint8_t*)&(ws_proto_.get_frame_info()->payload_len_) - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = "<< ((uint8_t*)&(ws_proto_.get_frame_info()->payload_offset_) - smc) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_WS_CHANNEL_ID = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
@@ -343,6 +327,12 @@ public:
 
         GW_ASSERT(((uint8_t*)&(session_.gw_worker_id_) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_BOUND_WORKER_ID);
 
+        GW_ASSERT(((uint8_t*)&(ws_proto_.get_frame_info()->payload_len_) - smc) == MixedCodeConstants::CHUNK_OFFSET_WS_PAYLOAD_LEN);
+
+        GW_ASSERT(((uint8_t*)&(ws_proto_.get_frame_info()->payload_offset_) - smc) == MixedCodeConstants::CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD);
+
+        GW_ASSERT(((uint8_t*)&accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_CHANNEL_ID);
+
         return 0;
     }
 
@@ -373,49 +363,64 @@ public:
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
     {
-        return flags_ & SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+        return flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
     // Setting to database direction flag.
     void set_to_database_direction_flag()
     {
-        flags_ |= SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
     // ReSetting to database direction flag.
     void reset_to_database_direction_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
 
     // Getting socket just send flag.
     bool get_socket_just_send_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_JUST_SEND) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND) != 0;
     }
 
     // Setting socket just send flag.
     void reset_socket_just_send_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_JUST_SEND;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND;
     }
 
     // Getting socket representer flag.
     bool get_socket_representer_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_SOCKET_REPRESENTER) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_SOCKET_REPRESENTER) != 0;
     }
 
     // Setting socket representer flag.
     void set_socket_representer_flag()
     {
-        flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
     }
 
     // Resetting socket representer flag.
     void reset_socket_representer_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+    }
+
+    bool get_ws_upgrade_approved_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_APPROVED) != 0;
+    }
+
+    void set_ws_upgrade_approved_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_APPROVED;
+    }
+
+    void reset_ws_upgrade_approved_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_APPROVED;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -423,19 +428,19 @@ public:
     // Getting socket diagnostics active connection flag.
     bool get_socket_diag_active_conn_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_ACTIVE_CONN) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACTIVE_CONN) != 0;
     }
 
     // Setting socket diagnostics active connection flag.
     void set_socket_diag_active_conn_flag()
     {
-        flags_ |= SOCKET_DATA_FLAGS_ACTIVE_CONN;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACTIVE_CONN;
     }
 
     // ReSetting socket diagnostics active connection flag.
     void reset_socket_diag_active_conn_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_ACTIVE_CONN;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACTIVE_CONN;
     }
 
 #endif
@@ -445,117 +450,138 @@ public:
     // Getting proxying unknown protocol flag.
     bool get_unknown_proxied_proto_flag()
     {
-        return (flags_ & HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO) != 0;
     }
 
     // Setting proxying unknown protocol flag.
     void set_unknown_proxied_proto_flag()
     {
-        flags_ |= HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
     }
 
 #endif
 
+    // Setting accumulating flag.
+    void set_accumulating_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+    }
+
     // Getting accumulating flag.
     bool get_accumulating_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_ACCUMULATING_STATE) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACCUMULATING_STATE) != 0;
     }
 
     // ReSetting accumulating flag.
     void reset_accumulating_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACCUMULATING_STATE;
     }
 
     // Getting disconnect after send flag.
     bool get_disconnect_after_send_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND) != 0;
     }
 
     // Setting disconnect after send flag.
     void set_disconnect_after_send_flag()
     {
-        flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
     // ReSetting disconnect after send flag.
     void reset_disconnect_after_send_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
     // Getting gracefully close flag.
     bool get_gracefully_close_flag()
     {
-        return (flags_ & HTTP_WS_FLAGS_GRACEFULLY_CLOSE) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_GRACEFULLY_CLOSE) != 0;
     }
 
     // Setting gracefully close flag.
     void set_gracefully_close_flag()
     {
-        flags_ |= HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
     }
 
     // ReSetting gracefully close flag.
     void reset_gracefully_close_flag()
     {
-        flags_ &= ~HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_GRACEFULLY_CLOSE;
+    }
+
+    bool get_ws_upgrade_request_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_REQUEST) != 0;
+    }
+
+    void set_ws_upgrade_request_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_REQUEST;
+    }
+
+    void reset_ws_upgrade_request_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_REQUEST;
     }
 
     bool get_aggregated_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_AGGREGATED) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_AGGREGATED) != 0;
     }
 
     void set_aggregated_flag()
     {
-        flags_ |= SOCKET_DATA_FLAGS_AGGREGATED;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_AGGREGATED;
     }
 
     void reset_aggregated_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_AGGREGATED;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_AGGREGATED;
     }
 
     bool get_on_host_accumulation_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION) != 0;
     }
 
     void set_on_host_accumulation_flag()
     {
-        flags_ |= SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
     }
 
     void reset_on_host_accumulation_flag()
     {
-        flags_ &= ~SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
     }
 
     // Getting disconnect socket flag.
     bool get_disconnect_socket_flag()
     {
-        return (flags_ & SOCKET_DATA_FLAGS_JUST_DISCONNECT) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_DISCONNECT) != 0;
     }
 
     // Getting complete header flag.
     bool get_complete_header_flag()
     {
-        return (flags_ & HTTP_WS_FLAGS_COMPLETE_HEADER) != 0;
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER) != 0;
     }
 
     // Setting complete header flag.
     void set_complete_header_flag()
     {
-        flags_ |= HTTP_WS_FLAGS_COMPLETE_HEADER;
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // ReSetting complete header flag.
     void reset_complete_header_flag()
     {
-        flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting scheduler id.
@@ -614,6 +640,16 @@ public:
         g_gateway.SetTypeOfNetworkProtocol(socket_info_index_, proto_type);
     }
 
+    void SetWebSocketChannelId(uint32_t ws_channel_id)
+    {
+        g_gateway.SetWebSocketChannelId(socket_info_index_, ws_channel_id);
+    }
+
+    uint32_t GetWebSocketChannelId()
+    {
+        return g_gateway.GetWebSocketChannelId(socket_info_index_);
+    }
+
     // Setting aggregated flag on socket.
     void SetSocketAggregatedFlag()
     {
@@ -642,18 +678,6 @@ public:
     void SetDestDbIndex(db_index_type db_index)
     {
         return g_gateway.SetDestDbIndex(socket_info_index_, db_index);
-    }
-
-    // Getting saved user handler id.
-    BMX_HANDLER_TYPE GetSavedUserHandlerId()
-    {
-        return g_gateway.GetSavedUserHandlerId(socket_info_index_);
-    }
-
-    // Setting user handler id.
-    void SetSavedUserHandlerId(BMX_HANDLER_TYPE saved_user_handler_id)
-    {
-        g_gateway.SetSavedUserHandlerId(socket_info_index_, saved_user_handler_id);
     }
 
     // Setting new unique socket number.
@@ -753,6 +777,16 @@ public:
     bool IsProxyConnectSocket()
     {
         return g_gateway.IsProxyConnectSocket(socket_info_index_);
+    }
+
+    uint32_t GetWebSocketChannelId(session_index_type socket_index)
+    {
+        return g_gateway.GetWebSocketChannelId(socket_info_index_);
+    }
+
+    void SetWebSocketChannelId(session_index_type socket_index, uint32_t ws_channel_id)
+    {
+        g_gateway.SetWebSocketChannelId(socket_info_index_, ws_channel_id);
     }
 
     // Returns aggregation socket index.
@@ -896,6 +930,15 @@ public:
     void PreInitSocketDataFromDb()
     {
         type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
+
+        // Checking if WebSocket handshake was approved.
+        if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) && get_ws_upgrade_approved_flag())
+        {
+            // Since we have sent this chunk over IPC.
+            set_socket_diag_active_conn_flag();
+
+            SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
+        }
     }
 
     // Initialization.

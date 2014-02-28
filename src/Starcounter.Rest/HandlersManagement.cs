@@ -297,7 +297,7 @@ namespace Starcounter.Rest
             get { return maxNumHandlersEntries_; }
         }
 
-        public const Int32 MAX_USER_HANDLERS = 512;
+        public const Int32 MAX_URI_HANDLERS = 1024;
 
         internal void Reset()
         {
@@ -305,8 +305,8 @@ namespace Starcounter.Rest
 
             portUris_ = new List<PortUris>();
 
-            allUriHandlers_ = new UserHandlerInfo[MAX_USER_HANDLERS];
-            for (Int32 i = 0; i < MAX_USER_HANDLERS; i++)
+            allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
+            for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 allUriHandlers_[i] = new UserHandlerInfo();
         }
 
@@ -315,8 +315,8 @@ namespace Starcounter.Rest
             // Initializing port uris.
             PortUris.GlobalInit();
 
-            allUriHandlers_ = new UserHandlerInfo[MAX_USER_HANDLERS];
-            for (Int32 i = 0; i < MAX_USER_HANDLERS; i++)
+            allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
+            for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 allUriHandlers_[i] = new UserHandlerInfo();
         }
 
@@ -324,7 +324,7 @@ namespace Starcounter.Rest
         {
             unsafe
             {
-                UserHandlerInfo uhi = allUriHandlers_[r.HandlerId];
+                UserHandlerInfo uhi = allUriHandlers_[r.ManagedHandlerId];
 
                 // Checking if we had custom type user Message argument.
                 if (uhi.ArgMessageType != null)
@@ -334,27 +334,10 @@ namespace Starcounter.Rest
                 r.PortNumber = uhi.UriInfo.port_;
                 r.MethodEnum = uhi.UriInfo.http_method_;
 
-                IntPtr methodAndUri;
-
-                // Checking what underlying protocol we have.
-                switch (r.ProtocolType)
-                {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                        methodAndUri = r.GetRawMethodAndUri();
-                    break;
-
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
-                        methodAndUri = IntPtr.Zero;
-                    break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException("Trying to call handler for unsupported protocol: " + r.ProtocolType);
-                }
-
                 // Calling user delegate.
                 resp = uhi.RunUserDelegates(
                     r,
-                    methodAndUri,
+                    r.GetRawMethodAndUri(),
                     r.GetRawParametersInfo());
             }
         }
@@ -443,15 +426,18 @@ namespace Starcounter.Rest
                 UInt64 handlerInfo = UInt64.MaxValue;
 
                 // Registering the outer native handler (if any).
-                RegisterUriHandlerNative(
-                    port,
-                    originalUriInfo,
-                    processedUriInfo,
-                    nativeParamTypes,
-                    handlerId,
-                    out handlerInfo);
+                if (HttpOuterHandler_ != null)
+                {
+                    RegisterUriHandlerNative(
+                        port,
+                        originalUriInfo,
+                        processedUriInfo,
+                        nativeParamTypes,
+                        handlerId,
+                        out handlerInfo);
+                }
 
-                if (handlerId >= MAX_USER_HANDLERS)
+                if (handlerId >= MAX_URI_HANDLERS)
                     throw new ArgumentOutOfRangeException("Too many user handlers registered!");
 
                 allUriHandlers_[handlerId].Init(
@@ -483,7 +469,7 @@ namespace Starcounter.Rest
         {
             lock (allUriHandlers_)
             {
-                for (Int32 i = 0; i < MAX_USER_HANDLERS; i++)
+                for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 {
                     if (allUriHandlers_[i].ProcessedUriInfo == methodAndUri)
                     {

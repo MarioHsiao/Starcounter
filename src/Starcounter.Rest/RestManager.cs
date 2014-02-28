@@ -58,10 +58,6 @@ namespace Starcounter.Rest
 
         public static Int32 ReadInt32Param(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return 0;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -76,10 +72,6 @@ namespace Starcounter.Rest
 
         public static Int64 ReadInt64Param(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return 0;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -94,10 +86,6 @@ namespace Starcounter.Rest
 
         public static String ReadStringParam(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return null;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -112,10 +100,6 @@ namespace Starcounter.Rest
 
         public static Boolean ReadBooleanParam(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return false;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -134,10 +118,6 @@ namespace Starcounter.Rest
 
         public static Decimal ReadDecimalParam(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return 0;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -152,10 +132,6 @@ namespace Starcounter.Rest
 
         public static Double ReadDoubleParam(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return 0;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -170,10 +146,6 @@ namespace Starcounter.Rest
 
         public static DateTime ReadDateTimeParam(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return DateTime.MinValue;
-
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
@@ -188,10 +160,6 @@ namespace Starcounter.Rest
 
         public static Json ReadMessageParam(Request req)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return null;
-
             unsafe
             {
                 IntPtr bodyPtr;
@@ -208,10 +176,6 @@ namespace Starcounter.Rest
 
         public static DynamicJson ReadDynamicJsonParam(Request req)
         {
-            // Checking protocol support.
-            if (MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS == req.ProtocolType)
-                return null;
-
             unsafe
             {
                 return DynamicJson.Parse(req.Body);
@@ -965,7 +929,7 @@ namespace Starcounter.Rest
                 {
                     // Creating HTTP request.
                     Request req = new Request(requestBytes, requestBytesLength, native_params_bytes);
-                    req.HandlerId = (UInt16)handler_id;
+                    req.ManagedHandlerId = (UInt16)handler_id;
                     req.MethodEnum = UserHandlerCodegen.HandlersManager.AllUserHandlerInfos[handler_id].UriInfo.http_method_;
 
                     // Invoking original user delegate with parameters here.

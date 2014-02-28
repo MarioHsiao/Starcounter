@@ -32,6 +32,8 @@ namespace Starcounter
         /// </summary>
         Byte gw_worker_id_ = 0;
 
+        internal Byte GatewayWorkerId { get { return gw_worker_id_; } }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="NetworkDataStream" /> struct.
         /// </summary>
