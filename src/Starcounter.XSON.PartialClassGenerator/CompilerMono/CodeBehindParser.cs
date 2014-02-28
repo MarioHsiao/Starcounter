@@ -28,7 +28,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             CSharpToken token;
             MonoCSharpEnumerator mce;
 			bool beforeNS = true;
-
+           
             if ((codebehind == null) || codebehind.Equals("") ) {
                 return CodeBehindMetadata.Empty;
             }
@@ -79,6 +79,13 @@ namespace Starcounter.XSON.Compiler.Mono {
                         // need to look for STATIC token since Handle methods cannot be static.
                         AnalyzeHandleMethodNode(lastClassInfo, mce, metadata);
                         break;
+                    case CSharpToken.IDENTIFIER:
+                        // Since there is no specific token for constructor we check the name. If the name
+                        // of the identifier is the same as the current class we check if it's a constructor.
+                        if (mce.Value.Equals(mce.CurrentClass)) {
+                            AnalyzeConstructor(mce);
+                        }
+                        break;
                 }
 
             }
@@ -95,6 +102,20 @@ namespace Starcounter.XSON.Compiler.Mono {
             }*/
 
             return metadata;
+        }
+
+        private static void AnalyzeConstructor(MonoCSharpEnumerator mce) {
+            string identifier = mce.Value;
+
+            if (mce.PreviousToken != CSharpToken.STATIC && identifier.Equals(mce.CurrentClass)) {
+                if (mce.Peek() == CSharpToken.OPEN_PARENS) {
+                    // This is an constructor. Since we don't support constructors that take parameters and
+                    // a default constructor is already defined in the generated code we always throw an 
+                    // exception here. If the extension is used in visual studio it will generate a nice
+                    // compiler-error.
+                    throw new Exception("Custom constructors are not currently supported in typed json.");
+                }
+            }
         }
 
 		private static void AddUsingDirective(MonoCSharpEnumerator mce, CodeBehindMetadata metadata) {
