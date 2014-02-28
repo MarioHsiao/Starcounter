@@ -1,24 +1,24 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Database page Controller
+ * Executable page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'NoticeFactory', 'HostModelService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $routeParams, NoticeFactory, HostModelService, DatabaseService, UserMessageFactory) {
+adminModule.controller('ExecutableCtrl', ['$scope', '$log', '$sce', '$routeParams', 'UserMessageFactory', 'NoticeFactory', 'HostModelService', 'ExecutableService', function ($scope, $log, $sce, $routeParams, UserMessageFactory, NoticeFactory, HostModelService, ExecutableService) {
 
     $scope.model = {
-        database: null
+        executable: null
     }
 
 
     /**
      * Get Console output
-     * @param {database} database Database name
+     * @param {executableName} Database name
      */
-    $scope.btnGetConsoleOutput = function (database) {
+    $scope.btnGetConsoleOutput = function (executable) {
 
-        DatabaseService.refreshConsoleOuput(database, function () {
+        ExecutableService.refreshConsoleOuput(executable, function () {
 
-             $("#console").scrollTop($("#console")[0].scrollHeight);
+            $("#console").scrollTop($("#console")[0].scrollHeight);
 
             // Success
         }, function (messageObject) {
@@ -34,12 +34,13 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
     // Refresh host model
     HostModelService.refreshHostModel(function () {
 
-        $scope.model.database = DatabaseService.getDatabase($routeParams.name);
+        $scope.model.executable = HostModelService.getExecutable($routeParams.name);
 
     }, function (messageObject) {
         // Error
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
+
 
 
     // Console fixe the height.

@@ -12,10 +12,10 @@
     <div class="row-fluid">
 
         <legend>Console output
-            <button ng-show="model.manualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnRefreshConsole(model.database.name)"><i class="icon-repeat"></i></button>
+            <button ng-show="model.database.consoleManualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnGetConsoleOutput(model.database)"><i class="icon-refresh"></i></button>
         </legend>
 
-        <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.console" />
+        <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.database.console" />
 
 
     </div>
