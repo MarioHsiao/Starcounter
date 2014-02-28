@@ -300,7 +300,7 @@ Gateway::Gateway()
     sc_log_handle_ = MixedCodeConstants::INVALID_SERVER_LOG_HANDLE;
 
     // Empty global statistics.
-    memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
+    memcpy(global_statistics_string_, kHttpStatisticsHeader, kHttpStatisticsHeaderLength);
 
     codegen_uri_matcher_ = NULL;
 
@@ -589,25 +589,26 @@ void ServerPort::Erase()
 // Printing the registered URIs.
 void ServerPort::PrintInfo(std::stringstream& stats_stream)
 {
-    stats_stream << "Accepting sockets: " << get_num_accepting_sockets() << "<br>";
+    stats_stream << "{\"port\":" << get_port_number() << ",";
+    stats_stream << "\"acceptingSockets\":" << get_num_accepting_sockets() << ",";
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-    stats_stream << "Active connections: " << NumberOfActiveConnections() << "<br>";
-    //stats_stream << "Allocated Accept sockets: " << get_num_allocated_accept_sockets() << "<br>";
-    //stats_stream << "Allocated Connect sockets: " << get_num_allocated_connect_sockets() << "<br>";
+    stats_stream << "\"activeConnections\":" << NumberOfActiveConnections() << ",";
+    //stats_stream << "\"allocatedAcceptSockets\":" << get_num_allocated_accept_sockets() << ",";
+    //stats_stream << "\"allocatedConnectSockets\": " << get_num_allocated_connect_sockets() << ",";
 #endif
-
-    stats_stream << "<br>";
-
+    stats_stream << "\"registeredUris\":[";
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
+    stats_stream << "]}";
 }
 
 // Printing the database information.
 void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
 {
-    stats_stream << "Database \"" << db_name_ << "\" (index " << db_index_ << ") info: " << "<br>";
-    stats_stream << "Overflow chunks: " << g_gateway.NumberOverflowChunksPerDatabase(db_index_) << "<br><br>";
+    stats_stream << "{\"name\":\"" << db_name_ << "\",";
+    stats_stream << "\"index\":" << static_cast<int32_t>(db_index_) << ",";
+    stats_stream << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksPerDatabase(db_index_) << "}";
 }
 
 ServerPort::ServerPort()
@@ -1905,58 +1906,72 @@ uint32_t Gateway::Init()
 // Printing statistics for all workers.
 void Gateway::PrintWorkersStatistics(std::stringstream& stats_stream)
 {
+    bool first = true;
+
     // Emptying the statistics stream.
     stats_stream.str(std::string());
 
     // Going through all ports.
-    stats_stream << "<h4>WORKERS</h4>";
+    stats_stream << "[";
     for (int32_t w = 0; w < setting_num_workers_; w++)
     {
-        stats_stream << "<b>Worker " << w << ":</b><br>";
+        if (!first)
+            stats_stream << ",";
+        first = false;
 
         gw_workers_[w].PrintInfo(stats_stream);
-
-        stats_stream << "<br>";
     }
+    stats_stream << "]";
 }
 
 // Printing statistics for all ports.
 void Gateway::PrintPortStatistics(std::stringstream& stats_stream)
 {
+    bool first = true;
+
     // Emptying the statistics stream.
     stats_stream.str(std::string());
 
     // Going through all ports.
-    stats_stream << "<h4>PORTS</h4>";
+    stats_stream << "[";
     for (int32_t p = 0; p < num_server_ports_slots_; p++)
     {
         // Checking that port is not empty.
         if (!server_ports_[p].IsEmpty())
         {
-            stats_stream << "<b>Port " << server_ports_[p].get_port_number() << ":</b><br>";
+            if (!first)
+                stats_stream << ",";
+            first = false;
 
             server_ports_[p].PrintInfo(stats_stream);
-
-            stats_stream << "<br>";
         }
+        
     }
+    stats_stream << "]";
 }
 
 // Printing statistics for all databases.
 void Gateway::PrintDatabaseStatistics(std::stringstream& stats_stream)
 {
+    bool first = true;
+
     // Emptying the statistics stream.
     stats_stream.str(std::string());
 
     // Going through all databases.
-    stats_stream << "<h4>DATABASES</h4>";
+    stats_stream << "[";
     for (int32_t d = 0; d < num_dbs_slots_; d++)
     {
         if (!active_databases_[d].IsEmpty())
         {
+            if (!first)
+                stats_stream << ",";
+            first = false;
+
             active_databases_[d].PrintInfo(stats_stream);
         }
     }
+    stats_stream << "]";
 }
 
 // Current global statistics value.
@@ -1977,13 +1992,19 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
 
     // Filing everything into one stream.
     std::stringstream all_stats_stream;
+
+    all_stats_stream << "{\"ports\":";
     all_stats_stream << global_port_statistics_stream_.str();
+    all_stats_stream << ",\"databases\":";
     all_stats_stream << global_databases_statistics_stream_.str();
+    all_stats_stream << ",\"workers\":";
     all_stats_stream << global_workers_statistics_stream_.str();
+    all_stats_stream << ",\"global\":";
     all_stats_stream << global_statistics_stream_.str();
+    all_stats_stream << "}";
 
     // Total number of bytes in HTTP response.
-    int32_t total_response_bytes = kHttpStatsHeaderLength;
+    int32_t total_response_bytes = kHttpStatisticsHeaderLength;
 
     // Getting number of written bytes to the stream.
     int32_t all_stats_bytes = static_cast<int32_t> (all_stats_stream.tellp());
@@ -1992,22 +2013,22 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
     // Checking for not too big statistics.
     if (total_response_bytes >= MAX_STATS_LENGTH)
     {
-        all_stats_bytes = MAX_STATS_LENGTH - kHttpStatsHeaderLength;
+        all_stats_bytes = MAX_STATS_LENGTH - kHttpStatisticsHeaderLength;
         total_response_bytes = MAX_STATS_LENGTH;
     }
 
     // Copying characters from stream to given buffer.
     all_stats_stream.seekg(0);
-    all_stats_stream.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, all_stats_bytes);
+    all_stats_stream.rdbuf()->sgetn(global_statistics_string_ + kHttpStatisticsHeaderLength, all_stats_bytes);
 
     // Sealing the string.
     global_statistics_string_[total_response_bytes] = '\0';
 
     // Making length a white space.
-    *(uint64_t*)(global_statistics_string_ + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
+    *(uint64_t*)(global_statistics_string_ + kHttpStatisticsHeaderInsertPoint) = 0x2020202020202020;
     
     // Converting content length to string.
-    WriteUIntToString(global_statistics_string_ + kHttpStatsHeaderInsertPoint, total_response_bytes - kHttpStatsHeaderLength);
+    WriteUIntToString(global_statistics_string_ + kHttpStatisticsHeaderInsertPoint, total_response_bytes - kHttpStatisticsHeaderLength);
 
     LeaveCriticalSection(&cs_statistics_);
 
@@ -2606,6 +2627,8 @@ void Gateway::ShutdownGateway(GatewayWorker* gw, int32_t exit_code)
 // Prints statistics, monitors all gateway threads, etc.
 uint32_t Gateway::StatisticsAndMonitoringRoutine()
 {
+    bool first = true;
+
     // Previous statistics values.
     int64_t prevBytesReceivedAllWorkers = 0,
         prevBytesSentAllWorkers = 0,
@@ -2709,70 +2732,90 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_.str(std::string());
 
         // Global statistics.
-        global_statistics_stream_ << "<h4>GLOBAL</h4>";
+        global_statistics_stream_ << "{";
 
         // Printing all workers stats.
-        global_statistics_stream_ << "All workers last second: " <<
-            "received times " << diffRecvNumAllWorkers <<
-            ", HTTP requests " << diffProcessedHttpRequestsAllWorkers <<
-            ", receive bandwidth " << recv_bandwidth_mbit_total << " mbit/sec" <<
-            ", sent times " << diffSentNumAllWorkers <<
-            ", send bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
-            "<br>" << GW_ENDL;
+        global_statistics_stream_ 
+            << "\"allWorkersLastSecond\":{"
+            << "\"receivedTimes\":" << diffRecvNumAllWorkers 
+            << ",\"httpRequests\":" << diffProcessedHttpRequestsAllWorkers 
+            << ",\"receiveBandwidth\":" << recv_bandwidth_mbit_total 
+            << ",\"sentTimes\":" << diffSentNumAllWorkers 
+            << ",\"sendBandwidth\":" << send_bandwidth_mbit_total
+            << "}";
 
 #ifdef GW_LOGGING_ON
 
         // Individual workers statistics.
+        first = true;
+        global_statistics_stream_ << ",\"workers\":[";
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
         {
-            global_statistics_stream_ << "Worker " << worker_id_ << ": " <<
-                "recv_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_received() <<
-                ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
-                ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
-                ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() <<
-                ", bound_sockets " << gw_workers_[worker_id_].get_worker_stats_num_bound_sockets() <<
-                "<br>" << GW_ENDL;
+            if (!first)
+                global_statistics_stream_ << ",";
+            first = false;
+            global_statistics_stream_ 
+                << "{\"id\":" << worker_id_ 
+                << ",\"receivedBytes\":" << gw_workers_[worker_id_].get_worker_stats_bytes_received() 
+                << ",\"receivedTimes\":" << gw_workers_[worker_id_].get_worker_stats_recv_num() 
+                << ",\"sentBytes\":" << gw_workers_[worker_id_].get_worker_stats_bytes_sent() 
+                << ",\"sentTimes\":" << gw_workers_[worker_id_].get_worker_stats_sent_num() 
+                << ",\"boundSockets\":" << gw_workers_[worker_id_].get_worker_stats_num_bound_sockets() 
+                << "}";
         }
+        global_statistics_stream_ << "]";
 
         // !!!!!!!!!!!!!
         // NOTE: The following statistics can be dangerous since its not protected by global lock!
         // That's why we enable it only for tests.
 
-        global_statistics_stream_ << "Overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
-            ", active sockets " << g_gateway.get_num_active_sockets() <<
-            ", created sockets " << g_gateway.NumberCreatedSocketsAllWorkers() <<
-            ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
-            "<br>" << GW_ENDL;
+        global_statistics_stream_ 
+            << ",\"misc\":{"
+            << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() 
+            << ",\"activeSockets\":" << g_gateway.get_num_active_sockets() 
+            << ",\"createdSockets\":" << g_gateway.NumberCreatedSocketsAllWorkers() 
+            << ",\"reusableConn-socks\":" << g_gateway.NumberOfReusableConnectSockets()
 
+#ifdef GW_TESTING_MODE
+            << ",\"perfTestInfo\":{"
+            << "\"settingNumEchoesToMaster\":" << setting_num_echoes_to_master_ 
+            << ",\"numConfirmedEchoes\":" << num_confirmed_echoes_unsafe_ 
+            << ",\"numSentEchoes\":" << (current_echo_number_unsafe_ + 1) 
+            << "}"
+#endif
+            << "}";
+
+        first = true;
+        global_statistics_stream_ << ",\"ports\":[";
         // Printing handlers information for each attached database and gateway.
         for (int32_t p = 0; p < num_server_ports_slots_; p++)
         {
             // Checking if port is alive.
             if (!server_ports_[p].IsEmpty())
             {
-                global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() << ":" <<
+                if (!first)
+                    global_statistics_stream_ << ",";
+                first = false;
 
+                global_statistics_stream_ 
+                    << "{\"port\":" << server_ports_[p].get_port_number() 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                    " active conns " << server_ports_[p].NumberOfActiveConnections() <<
+                    << ",\"activeConnections\":" << server_ports_[p].NumberOfActiveConnections()
 #endif
-
-                    " accepting socks " << server_ports_[p].get_num_accepting_sockets() <<
+                    << ",\"acceptingSockets\":" << server_ports_[p].get_num_accepting_sockets()
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                    ", alloc acc-socks " << server_ports_[p].get_num_allocated_accept_sockets() <<
-                    ", alloc conn-socks " << server_ports_[p].get_num_allocated_connect_sockets() <<
+                    << ",\"allocAccSockets\":" << server_ports_[p].get_num_allocated_accept_sockets()
+                    << ",\"allocConnSockets\":" << server_ports_[p].get_num_allocated_connect_sockets()
 #endif                        
-                    "<br>" << GW_ENDL;
+                    << "}";
             }
         }
-
-#ifdef GW_TESTING_MODE
-        global_statistics_stream_ << "Perf Test Info: num confirmed echoes " << num_confirmed_echoes_unsafe_ <<
-            "(" << setting_num_echoes_to_master_ << "), num sent echoes " << (current_echo_number_unsafe_ + 1) <<
-            "(" << setting_num_echoes_to_master_ << ")" << "<br>" << GW_ENDL;
-#endif
+        global_statistics_stream_ << "]";
 
 #endif
+
+        global_statistics_stream_ << "}";
 
         // Printing the statistics string to console.
 #ifdef GW_LOG_TO_CONSOLE

@@ -118,7 +118,7 @@ internal class JoinNode : IOptimizationNode
         return new JoinNode(rowTypeBind, joinType, leftNode.Clone(), rightNode.Clone(), varArray, query);
     }
 
-    public Int32 EstimateCost()
+    public Double EstimateCost()
     {
         return leftNode.EstimateCost() * rightNode.EstimateCost();
     }

@@ -3,10 +3,33 @@
  * Executables page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'ExecutableService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, ExecutableService, UserMessageFactory) {
+adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'ExecutableService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, ExecutableService, UserMessageFactory) {
 
     // List of Executables
-    $scope.executables = ExecutableService.executables;
+    $scope.executables = HostModelService.executables;
+
+
+    /**
+     * Get Console output
+     * @param {executableName} Database name
+     */
+    $scope.btnGetConsoleOutput = function (executable) {
+
+        ExecutableService.refreshConsoleOuput(executable, function () {
+
+            // TODO
+            // $("#console").scrollTop($("#console")[0].scrollHeight);
+
+
+            // Success
+        }, function (messageObject) {
+            // Error
+            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+
+        });
+
+    }
+
 
     /**
      * Stop Executable
@@ -79,10 +102,24 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'E
     }
 
     // Init
-    ExecutableService.refreshExecutables(function () { },
-        function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
+    // Refresh host model
+    HostModelService.refreshHostModel(function () {
+    }, function (messageObject) {
+        // Error
+        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    });
+
+
+    // Save user state
+    if (localStorage.getItem('executablesViewMode') != null) {
+        $scope.view = localStorage.getItem('executablesViewMode');
+    }
+    else {
+        $scope.view = "list";
+    }
+
+    $scope.$watch('view', function (newValue, oldValue) {
+        localStorage.setItem('executablesViewMode', newValue);
+    });
 
 }]);

@@ -64,8 +64,9 @@
     <script src="/app/js/app.js"></script>
 
     <!-- Services -->
+    <script src="/app/services/HostModelService.js"></script>
+    <script src="/app/services/ConsoleService.js"></script>
     <script src="/app/services/DatabaseService.js"></script>
-    <script src="/app/services/DatabaseConsoleService.js"></script>
     <script src="/app/services/ExecutableService.js"></script>
     <script src="/app/services/SqlService.js"></script>
     <script src="/app/services/LogService.js"></script>
@@ -85,6 +86,7 @@
     <script src="/app/controllers/DatabaseCtrl.js"></script>
     <script src="/app/controllers/DatabaseCreateCtrl.js"></script>
     <script src="/app/controllers/DatabaseSettingsCtrl.js"></script>
+    <script src="/app/controllers/ExecutableCtrl.js"></script>
     <script src="/app/controllers/ExecutablesCtrl.js"></script>
     <script src="/app/controllers/ExecutableStartCtrl.js"></script>
     <script src="/app/controllers/SqlCtrl.js"></script>
@@ -97,6 +99,19 @@
     <script src="/app/directives/Jobs.js"></script>
     <script src="/app/directives/VersionCheck.js"></script>
 
+    <!-- Angular localisation -->
+    <script type='text/javascript'>
+
+        var l_lang;
+        if (navigator.userLanguage) // Explorer
+            l_lang = navigator.userLanguage;
+        else if (navigator.language) // Chrome
+            l_lang = navigator.language;
+        else
+            l_lang = "en";
+
+        document.write('<scr' + 'ipt type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.0.7/angular-locale_' + l_lang.toLowerCase() + '.js"></sc' + 'ript>');
+    </script>
 
 </head>
 

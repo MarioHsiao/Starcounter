@@ -3,7 +3,7 @@
  * Gateway Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce,$log, UtilsFactory) {
+adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce, $log, UtilsFactory) {
 
     // Gateway model
     // {
@@ -20,8 +20,6 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
      */
     this.getGatewayStatistics = function (successCallback, errorCallback) {
 
-        $log.info("Retriving Gateway statistics");
-
         var errorHeader = "Failed to retrive Gateway statistics";
         var uri = "/gwstats";
 
@@ -31,36 +29,37 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
             if (typeof (successCallback) == "function") {
                 successCallback(response.data);
             }
-       
+
 
         }, function (response) {
             // Error
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
@@ -80,9 +79,7 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
 
         this.getGatewayStatistics(function (statistics) {
             // Success
-      
-            self.model.statistics = $sce.trustAsHtml(statistics);
-
+            self.model.statistics = statistics;
             if (typeof (successCallback) == "function") {
                 successCallback();
             }
