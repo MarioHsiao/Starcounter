@@ -113,7 +113,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     // a default constructor is already defined in the generated code we always throw an 
                     // exception here. If the extension is used in visual studio it will generate a nice
                     // compiler-error.
-                    throw new Exception("Custom constructors are not currently supported in typed json.");
+                    throw new Exception("Custom constructors are not currently supported in typed json (" + identifier +").");
                 }
             }
         }
