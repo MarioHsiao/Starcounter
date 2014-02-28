@@ -11,6 +11,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         private string Code;
         private Tokenizer tokenizer;
         private CSharpToken currentToken;
+        private CSharpToken previousToken;
         private Stack<string> nsStack;
         private Stack<string> classStack;
         private Stack<CSharpToken> tokenStack;
@@ -19,6 +20,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             this.filePathNote = filePathNote;
             this.Code = codebehind;
             currentToken = CSharpToken.UNDEFINED;
+            previousToken = CSharpToken.UNDEFINED;
             nsStack = new Stack<string>();
             classStack = new Stack<string>();
             tokenStack = new Stack<CSharpToken>();
@@ -27,8 +29,9 @@ namespace Starcounter.XSON.Compiler.Mono {
         }
 
         internal bool MoveNext() {
+            previousToken = currentToken;
             currentToken = (CSharpToken)tokenizer.token();
-            if (currentToken == CSharpToken.EOF) // EOF
+            if (currentToken == CSharpToken.EOF)
                 currentToken = CSharpToken.UNDEFINED;
             return (currentToken != CSharpToken.UNDEFINED);
         }
@@ -45,7 +48,13 @@ namespace Starcounter.XSON.Compiler.Mono {
 
         internal CSharpToken Token {
             get {
-                return (CSharpToken)currentToken;
+                return currentToken;
+            }
+        }
+
+        internal CSharpToken PreviousToken {
+            get {
+                return previousToken;
             }
         }
 
@@ -70,7 +79,9 @@ namespace Starcounter.XSON.Compiler.Mono {
 
         internal string CurrentClass {
             get {
-                return classStack.Peek();
+                if (classStack.Count > 0)
+                    return classStack.Peek();
+                return null;
             }
         }
 

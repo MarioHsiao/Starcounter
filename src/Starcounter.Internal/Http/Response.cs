@@ -898,7 +898,11 @@ namespace Starcounter
                         }
                     } else {
 
-                        if (null != bodyBytes_) {
+                        if (_Hypermedia != null) {
+                            MimeType m;
+                            responseBytes_ = _Hypermedia.AsMimeType(MimeType.Application_Json, out m);
+                            responseSizeBytes_ = responseBytes_.Length;
+                        } else if (null != bodyBytes_) {
                             responseBytes_ = bodyBytes_;
                             responseSizeBytes_ = responseBytes_.Length;
                         } else if (null != bodyString_) {
