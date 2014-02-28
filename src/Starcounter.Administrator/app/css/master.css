@@ -1,7 +1,7 @@
 ﻿/*body { padding-top: 45px; }*/
 
 
-#spanExeBox {
+/*#spanExeBox {
     display: inline-block;
     padding: 7px;
     margin-right: 5px;
@@ -10,7 +10,7 @@
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     border-radius: 6px;
-}
+}*/
 
 /* APP/DATABASE STATUS */
 
@@ -127,3 +127,66 @@
 .tab-content {
     overflow: visible;
 }
+
+
+<!-- Executable box handling -->
+
+#executableIconList {
+    list-style-type: none;
+}
+
+
+#executableIconList li {
+    width: 300px;
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #d4d4d4;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    padding:0px 20px 10px 10px;
+}
+
+
+#executableIconList li .console {
+    background-color: #000000;
+    color: white;
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 70%;
+    font-family: "Courier New", Courier, monospace;
+}
+
+
+
+
+<!-- Database box handling -->
+
+#databaseIconList {
+    list-style-type: none;
+}
+
+
+#databaseIconList li {
+    width: 300px;
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #d4d4d4;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    padding:0px 20px 10px 10px;
+}
+
+
+#databaseIconList li .console {
+    background-color: #000000;
+    color: white;
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 70%;
+    font-family: "Courier New", Courier, monospace;
+}
+

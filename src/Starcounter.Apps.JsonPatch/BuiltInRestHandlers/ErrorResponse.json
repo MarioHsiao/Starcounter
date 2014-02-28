@@ -1,0 +1,6 @@
+﻿{
+	"$": { Namespace: "Starcounter.JsonPatch.BuiltInRestHandlers" },
+    "message": "message",
+    "stackTrace": "stackTrace",
+	"helpLink":"helpLink"
+}
