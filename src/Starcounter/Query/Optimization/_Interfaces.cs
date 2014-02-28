@@ -19,7 +19,7 @@ internal interface IOptimizationNode
 
     void InstantiateNodesByExtentNumber(ExtentNode[] nodesByExtentNumber);
 
-    Int32 EstimateCost();
+    Double EstimateCost();
 
     List<IOptimizationNode> CreateAllPermutations();
 

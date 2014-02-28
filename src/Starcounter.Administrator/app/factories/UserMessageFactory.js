@@ -2,7 +2,7 @@
  * User Message Factory
  * Show messages to user (alert's, modal windows, etc..)
  */
-adminModule.factory('UserMessageFactory', function ($dialog, $log) {
+adminModule.factory('UserMessageFactory', ['$dialog', '$log', function ($dialog, $log) {
     var factory = {};
 
     /**
@@ -51,5 +51,4 @@ adminModule.factory('UserMessageFactory', function ($dialog, $log) {
 
     return factory;
 
-});
-
+}]);

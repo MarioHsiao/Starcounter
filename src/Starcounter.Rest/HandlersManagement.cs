@@ -118,14 +118,18 @@ namespace Starcounter.Rest
             Debug.Assert(user_delegates_ != null);
 
             // Checking if there is only one delegate.
-            if (user_delegates_.Count == 1)
+            if (user_delegates_.Count == 1) {
+                StarcounterEnvironment.AppName = app_names_[0];
                 return user_delegates_[0](req, methodAndUri, rawParamsInfo);
+            }
             
             List<Response> responses = new List<Response>();
 
             // Running every delegate from the list.
-            foreach(Func<Request, IntPtr, IntPtr, Response> func in user_delegates_) {
-                responses.Add(func(req, methodAndUri, rawParamsInfo));
+            for (int i = 0; i < user_delegates_.Count; i++) {
+                var func = user_delegates_[i];
+                StarcounterEnvironment.AppName = app_names_[i];
+                responses.Add(func(req, methodAndUri, rawParamsInfo));   
             }
 
             Debug.Assert(UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null);

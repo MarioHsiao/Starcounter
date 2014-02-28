@@ -76,10 +76,10 @@ internal class AggregationNode : IOptimizationNode
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Not supported.");
     }
 
-    public Int32 EstimateCost()
+    public Double EstimateCost()
     {
-        Int32 subCost = subNode.EstimateCost();
-        return (subCost * Convert.ToInt32(Math.Log(Convert.ToDouble(subCost), 2)));
+        Double subCost = subNode.EstimateCost();
+        return (subCost * Math.Log(Convert.ToDouble(subCost), 2));
     }
 
     public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,

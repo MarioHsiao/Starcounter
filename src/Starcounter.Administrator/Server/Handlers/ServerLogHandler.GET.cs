@@ -136,7 +136,6 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="WebSocketSessions"></param>
         private static void SetupLogListener() {
 
-            DbSession dbSession = new DbSession();
             for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
                 WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
             }
@@ -191,8 +190,6 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
                     Byte k = i;
-
-                    // TODO: Avoid calling RunAsync when there is no "listeners"
 
                     dbSession.RunAsync(() => {
 

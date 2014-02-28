@@ -21,7 +21,6 @@ namespace Starcounter.Internal {
     /// with public Session.Data (aka. view-models or puppets) objects and/or with a potentially exposed SQL engine.
     /// </summary>
     public static class SqlRestHandler {
-        private static StreamWriter consoleWriter;
 
         /// <summary>
         /// Registers the built in REST handlers.
@@ -30,9 +29,6 @@ namespace Starcounter.Internal {
         /// <param name="defaultSystemHttpPort">The SQL access uses the system port</param>
         public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
             string dbName = Db.Environment.DatabaseNameLower;
-
-            Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
-            UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
 
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseNameLower) == false, "Db.Environment.DatabaseName is empty or null");
@@ -50,115 +46,6 @@ namespace Starcounter.Internal {
                 });
             }
 
-            // Do not redirect the administrator console output
-            if (!StarcounterEnvironment.IsAdministratorApp) {
-
-                Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console", (Request req) => {
-                    return GetConsoleOutput();
-                });
-
-                // Handle Console WebSocket connections
-                Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/ws", (Request req) => {
-
-                    if (req.WebSocketUpgrade)
-                    {
-                        Byte schedId = ThreadData.Current.Scheduler.Id;
-                        UniqueWebSocketIdentifier[schedId]++;
-
-                        WebSocket ws = req.Upgrade("console", UniqueWebSocketIdentifier[schedId]);
-                        WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
-
-                        return HandlerStatus.Handled;
-                    }
-
-                    return new Response() {
-                        StatusCode = 500,
-                        StatusDescription = "WebSocket upgrade on " + req.Uri + " was not approved."
-                    };
-                });
-
-                Handle.SocketDisconnect("console", (UInt64 cargoId, IAppsSession session) =>
-                {
-                    Byte schedId = ThreadData.Current.Scheduler.Id;
-                    if (WebSocketSessions[schedId].ContainsKey(cargoId))
-                        WebSocketSessions[schedId].Remove(cargoId);
-                });
-
-                Handle.Socket("console", (String s, WebSocket ws) =>
-                {
-                    // We don't use client messages.
-                });
-
-                // Setup console handling and callbacks to sessions etc..
-                SetupConsoleHandling(WebSocketSessions);
-            }
-
-        }
-
-        private static void SetupConsoleHandling(Dictionary<UInt64, WebSocket>[] WebSocketSessions) {
-
-            DbSession dbSession = new DbSession();
-            for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
-            }
-
-            CircularStream circularStream = new CircularStream(2048, (String text) => {
-
-                dbSession.RunSync(() => {
-
-
-                    lock (consoleWriter) {
-
-                        // When something is writing to the console we will get a callback here.
-                        for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                            Byte k = i;
-
-                            // TODO: Avoid calling RunAsync when there is no "listeners"
-
-
-                            Byte sched = k;
-
-                            foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched]) {
-                                ws.Value.Send(text);
-                            }
-                        }
-                    }
-                });
-            });
-
-            // Redirect console output to circular memory buffer
-            SqlRestHandler.consoleWriter = new StreamWriter(circularStream);
-            SqlRestHandler.consoleWriter.AutoFlush = true;
-            Console.SetOut(SqlRestHandler.consoleWriter);
-        }
-
-        private static string GetConsoleOutputRaw() {
-
-            CircularStream circularMemoryStream = (CircularStream)SqlRestHandler.consoleWriter.BaseStream;
-            byte[] buffer = new byte[circularMemoryStream.Length];
-            int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
-            if (count > 0) {
-                return System.Text.Encoding.UTF8.GetString(buffer);
-            }
-
-            return string.Empty;
-
-        }
-
-        private static string GetConsoleOutput() {
-
-            dynamic resultJson = new DynamicJson();
-            resultJson.console = null;
-            resultJson.exception = null;
-
-            try {
-                resultJson.console = GetConsoleOutputRaw();
-            }
-            catch (Exception e) {
-                resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
-            }
-
-            return resultJson.ToString();
 
         }
 
@@ -492,110 +379,4 @@ namespace Starcounter.Internal {
 
     }
 
-
-    internal class CircularStream : Stream {
-
-        private long _Position = 0;
-        private bool _IsBufferFull = false;
-        private byte[] _Buffer;
-        Action<string> CallbackDelegate;
-
-        #region properties
-
-        public override bool CanRead {
-            get { return true; }
-        }
-
-        public override bool CanSeek {
-            get { return false; }
-        }
-
-        public override bool CanWrite {
-            get { return true; }
-        }
-
-        #endregion
-
-
-        public CircularStream(long size) {
-            if (size <= 0) throw new ArgumentException("size");
-            this._Buffer = new byte[size];
-        }
-
-        public CircularStream(long size, Action<string> callbackDelegate) {
-            if (size <= 0) throw new ArgumentException("size");
-            this._Buffer = new byte[size];
-            CallbackDelegate = callbackDelegate;
-        }
-
-        public override void Flush() {
-
-        }
-
-        public override long Length {
-            get {
-                if (this._IsBufferFull) return this._Buffer.Length;
-                return this._Position;
-            }
-        }
-
-        public override long Position {
-            get {
-                throw new NotImplementedException();
-            }
-            set {
-                throw new NotImplementedException();
-            }
-        }
-
-        public override long Seek(long offset, SeekOrigin origin) {
-            throw new NotImplementedException();
-        }
-
-        public override void SetLength(long value) {
-            throw new NotImplementedException();
-        }
-
-        public override int Read(byte[] buffer, int offset, int count) {
-
-            lock (this) {
-                long pos = 0;
-                if (this._IsBufferFull) {
-                    pos = this._Position;
-                }
-
-                int i = 0;
-                for (; i < count && i <= (this.Length - 1); i++) {
-                    buffer[offset + i] = this._Buffer[pos++];
-                    if (pos > (this._Buffer.Length - 1)) {
-                        pos = 0;
-                    }
-                }
-                return i;
-            }
-        }
-
-
-        public override void Write(byte[] buffer, int offset, int count) {
-
-            lock (this) {
-
-                for (int i = 0; i < count; i++) {
-
-                    _Buffer[this._Position++] = buffer[i];
-
-                    if (this._Position == this._Buffer.Length) {
-                        this._Position = 0;
-                        this._IsBufferFull = true;
-                    }
-                }
-
-                if (CallbackDelegate != null) {
-                    CallbackDelegate.Invoke(System.Text.Encoding.Default.GetString(buffer, offset, count));
-                }
-
-            }
-
-        }
-    }
 }

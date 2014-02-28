@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppsBootstrapper.cs" />
+    <Compile Include="BuiltInRestHandlers\ConsoleOuputRestHandler.cs" />
     <Compile Include="BuiltInRestHandlers\PuppetRestHandler.cs" />
     <Compile Include="AppRestServer.cs" />
     <Compile Include="BuiltInRestHandlers\SqlRestHandler.cs" />
@@ -130,6 +131,21 @@
   <ItemGroup>
     <TypedJSON Include="BuiltInRestHandlers\SqlQueryResult.json">
       <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="BuiltInRestHandlers\ErrorResponse.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="BuiltInRestHandlers\ConsoleEvent.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="BuiltInRestHandlers\ConsoleEvents.json">
+      <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

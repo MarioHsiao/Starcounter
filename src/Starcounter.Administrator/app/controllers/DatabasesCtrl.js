@@ -3,11 +3,31 @@
  * Databases page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, DatabaseService, UserMessageFactory) {
+adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, DatabaseService, UserMessageFactory) {
 
     // List of databases
-    $scope.databases = DatabaseService.databases;
-    $scope.console = "";
+    $scope.databases = HostModelService.databases;
+
+    /**
+     * Get Console output
+     * @param {database} database Database name
+     */
+    $scope.btnGetConsoleOutput = function (database) {
+
+        DatabaseService.refreshConsoleOuput(database, function () {
+
+            // TODO
+            // $("#console").scrollTop($("#console")[0].scrollHeight);
+
+
+            // Success
+        }, function (messageObject) {
+            // Error
+            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+
+        });
+
+    }
 
     /**
      * Start database
@@ -60,16 +80,30 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Dat
 
 
 
-  
+
     }
 
 
     // Init
-    DatabaseService.refreshDatabases(function () { },
-        function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
+    // Refresh host model
+    HostModelService.refreshHostModel(function () {
+    }, function (messageObject) {
+        // Error
+        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    });
+
+
+    // Save user state
+    if (localStorage.getItem('databaseViewMode') != null) {
+        $scope.view = localStorage.getItem('databaseViewMode');
+    }
+    else {
+        $scope.view = "list";
+    }
+
+    $scope.$watch('view', function (newValue, oldValue) {
+        localStorage.setItem('databaseViewMode', newValue);
+    });
 
 
 }]);
