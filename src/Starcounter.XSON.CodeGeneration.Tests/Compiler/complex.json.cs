@@ -1,10 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="MySampleJson.json.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
+﻿using System;
 using MySampleNamespace.Something;
 using SomeOtherNamespace;
 
@@ -20,16 +14,10 @@ public class ClassWithoutNamespace : Page {
     }
 }
 
-namespace MySampleNamespace
-{
-    namespace WrongNamespace
-    {
-        /// <summary>
-        /// Class WrongClass
-        /// </summary>
+namespace MySampleNamespace {
+    namespace WrongNamespace {
         [Test]
-        public class WrongClass
-        {
+        public class WrongClass {
             public string Apa;
 
             public void GetApa() {
@@ -38,102 +26,55 @@ namespace MySampleNamespace
         }
     }
 
-    /// <summary>
-    /// Class MySampleJson
-    /// </summary>
-	[Complex_json]
-    partial class Complex : MyBaseJsonClass, ISomeInterface, IBound<Order>
-    {
-        /// <summary>
-        /// Handles the specified input.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        public void Handle(Input.userLink input)
-        {
+    [Complex_json]
+    partial class Complex : MyBaseJsonClass, ISomeInterface, IBound<Order> {
+        static Complex() {
+            // Some comment inside a method.
+            string Complex = "";
         }
 
-        /// <summary>
-        /// Handles the specified input.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        public void Handle(Input.child.test input)
-        {
+        public void Handle(Input.userLink input) {
         }
 
-#region Test of several inputhandler registration and sortorder.
-        /// <summary>
-        /// Handles the specified input.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input)
-        {
+        public void Handle(Input.child.test input) {
         }
 
-        /// <summary>
-        /// Class SubPage3Impl
-        /// </summary>
-        [Another(Fake=true), Test]
+        #region Test of several inputhandler registration and sortorder.
+        public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
+        }
+
+        [Another(Fake = true), Test]
         [json.ActivePage.SubPage1.SubPage2.SubPage3]
         [SomeOther]
-        public partial class SubPage3Impl : Json, IFoo, IFoo3, IBound<OrderItem>
-        {
+        public partial class SubPage3Impl : Json, IFoo, IFoo3, IBound<OrderItem> {
             [json.Blabla.bla]
             public partial class SubPage3Sub1 : Json {
             }
 
-            /// <summary>
-            /// Handles the specified input.
-            /// </summary>
-            /// <param name="input">The input.</param>
-            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input)
-            {
+            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }
         }
 
         /// <summary>
-        /// Class ActivePageImpl
+        /// Testing comments in code for the analyzer.
         /// </summary>
         [json.ActivePage]
-        public partial class ActivePageImpl : Json, IFoo
-        {
-            /// <summary>
-            /// Handles the specified input.
-            /// </summary>
-            /// <param name="input">The input.</param>
-            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input)
-            {
+        public partial class ActivePageImpl : Json, IFoo {
+            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }
         }
 
-        /// <summary>
-        /// Class SubPage2Impl
-        /// </summary>
         [json.ActivePage.SubPage1.SubPage2]
-        public partial class SubPage2Impl : Json
-        {
-            /// <summary>
-            /// Handles the specified input.
-            /// </summary>
-            /// <param name="input">The input.</param>
-            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input)
-            {
+        public partial class SubPage2Impl : Json {
+            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }
         }
-   
-        /// <summary>
-        /// Class SubPage1Impl
-        /// </summary>
+
         [json.ActivePage.SubPage1]
-        public partial class SubPage1Impl : Json
-        {
-            /// <summary>
-            /// Handles the specified input.
-            /// </summary>
-            /// <param name="input">The input.</param>
-            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input)
-            {
+        public partial class SubPage1Impl : Json {
+            public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }
         }
-#endregion
+        #endregion
     }
 }
