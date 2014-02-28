@@ -49,19 +49,22 @@ namespace Starcounter {
         /// <param name="oid">The oid.</param>
         /// <returns>Entity.</returns>
         public static IObjectView FromID(ulong oid) {
-            Boolean br;
-            UInt16 codeClassIdx;
-            ulong addr;
             unsafe {
-                br = sccoredb.Mdb_OIDToETIEx(oid, &addr, &codeClassIdx);
-            }
-            if (br) {
-                if (addr != sccoredb.INVALID_RECORD_ADDR) {
-                    return Bindings.GetTypeBinding(codeClassIdx).NewInstance(addr, oid);
+                uint r;
+                ulong addr;
+                ushort tableId;
+
+                r = sccoredb.star_lookup(oid, &addr, &tableId);
+                if (r == 0) {
+                    return Bindings.GetTypeBinding(tableId).NewInstance(addr, oid);
                 }
-                return null;
+                else if (r == Error.SCERRRECORDNOTFOUND) {
+                    return null;
+                }
+                else {
+                    throw ErrorCode.ToException(r);
+                }
             }
-            throw ErrorCode.ToException(sccoredb.star_get_last_error());
         }
 
         /// <summary>

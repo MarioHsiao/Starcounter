@@ -31,7 +31,8 @@ namespace Starcounter.Internal {
         public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
             string dbName = Db.Environment.DatabaseNameLower;
 
-            List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulerCount];
+            Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
+            UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
 
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseNameLower) == false, "Db.Environment.DatabaseName is empty or null");
@@ -57,28 +58,35 @@ namespace Starcounter.Internal {
                 });
 
                 // Handle Console WebSocket connections
-                Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/ws", (Request req, Session session) => {
+                Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/ws", (Request req) => {
 
+                    if (req.WebSocketUpgrade)
+                    {
+                        Byte schedId = ThreadData.Current.Scheduler.Id;
+                        UniqueWebSocketIdentifier[schedId]++;
 
+                        WebSocket ws = req.Upgrade("console", UniqueWebSocketIdentifier[schedId]);
+                        WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
+
+                        return HandlerStatus.Handled;
+                    }
+
+                    return new Response() {
+                        StatusCode = 500,
+                        StatusDescription = "WebSocket upgrade on " + req.Uri + " was not approved."
+                    };
+                });
+
+                Handle.SocketDisconnect("console", (UInt64 cargoId, IAppsSession session) =>
+                {
                     Byte schedId = ThreadData.Current.Scheduler.Id;
-                    lock (consoleWriter) {
-                        if (!WebSocketSessions[schedId].Contains(session)) {
-                            WebSocketSessions[schedId].Add(session);
-                            session.SetSessionDestroyCallback((Session s) => {
-                                WebSocketSessions[schedId].Remove(s);
-                            });
-                        }
-                    }
+                    if (WebSocketSessions[schedId].ContainsKey(cargoId))
+                        WebSocketSessions[schedId].Remove(cargoId);
+                });
 
-                    try {
-                        return GetConsoleOutputRaw();
-                    }
-                    catch (Exception) {
-                        session.StopUsing(); // TODO: Is this the correct way to close an socket sesstion?
-                    }
-
-                    return "";
-
+                Handle.Socket("console", (String s, WebSocket ws) =>
+                {
+                    // We don't use client messages.
                 });
 
                 // Setup console handling and callbacks to sessions etc..
@@ -87,11 +95,11 @@ namespace Starcounter.Internal {
 
         }
 
-        private static void SetupConsoleHandling(List<Session>[] WebSocketSessions) {
+        private static void SetupConsoleHandling(Dictionary<UInt64, WebSocket>[] WebSocketSessions) {
 
             DbSession dbSession = new DbSession();
             for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                WebSocketSessions[i] = new List<Session>();
+                WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
             }
 
             CircularStream circularStream = new CircularStream(2048, (String text) => {
@@ -101,7 +109,7 @@ namespace Starcounter.Internal {
 
                     lock (consoleWriter) {
 
-                        // When someting is writing to the console we will get a callback here.
+                        // When something is writing to the console we will get a callback here.
                         for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
                             Byte k = i;
 
@@ -110,50 +118,18 @@ namespace Starcounter.Internal {
 
                             Byte sched = k;
 
-                            for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
-                                Session s = WebSocketSessions[sched][m];
-
-                                // Checking if session is not yet dead.
-                                if (s.IsAlive()) {
-                                    s.Push(text);
-                                }
-                                else {
-                                    // Removing dead session from broadcast.
-                                    WebSocketSessions[sched].Remove(s);
-                                }
+                            foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched]) {
+                                ws.Value.Send(text);
                             }
-
-
-                            //dbSession.RunAsync(() => {
-
-                            //    Byte sched = k;
-
-                            //    for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
-                            //        Session s = WebSocketSessions[sched][m];
-
-                            //        // Checking if session is not yet dead.
-                            //        if (s.IsAlive()) {
-                            //            s.Push(text);
-                            //        }
-                            //        else {
-                            //            // Removing dead session from broadcast.
-                            //            WebSocketSessions[sched].Remove(s);
-                            //        }
-                            //    }
-                            //}, i);
                         }
                     }
                 });
-
-
             });
-
 
             // Redirect console output to circular memory buffer
             SqlRestHandler.consoleWriter = new StreamWriter(circularStream);
             SqlRestHandler.consoleWriter.AutoFlush = true;
             Console.SetOut(SqlRestHandler.consoleWriter);
-
         }
 
         private static string GetConsoleOutputRaw() {

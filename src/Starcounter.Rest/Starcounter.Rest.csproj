@@ -86,7 +86,6 @@
     <Compile Include="RestManager.cs" />
     <Compile Include="RestInitialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WsManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">

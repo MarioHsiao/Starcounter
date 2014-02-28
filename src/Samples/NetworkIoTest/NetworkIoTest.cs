@@ -366,15 +366,6 @@ namespace NetworkIoTestApp
                         return new Response() { BodyBytes = req.BodyBytes };
                     });
 
-                    Handle.GET(8080, "/ws2", (Request req) =>
-                    {
-                        return new Response()
-                        {
-                            StatusDescription = "Closing connection!",
-                            StatusCode = (UInt16)Response.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN
-                        };
-                    });
-
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>
                     {
                         return "CUSTOM method " + method + " with parameter " + p1;
@@ -505,7 +496,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_WEBSOCKETS_URIS:
                 {
                     for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
-                        WebSocketSessions[i] = new List<Session>();
+                        WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
 
                     Random rand = new Random();
                     DbSession dbSession = new DbSession();
@@ -524,22 +515,10 @@ namespace NetworkIoTestApp
                                 // NOTE: Very important to make a copy of looped variable here!
                                 Byte sched = k;
 
-                                // Going through all registered sessions for this scheduler.
-                                for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++)
+                                foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched])
                                 {
-                                    Session s = WebSocketSessions[sched][m];
-
-                                    // Checking if session is not yet dead.
-                                    if (s.IsAlive())
-                                    {
-                                        String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and session: " + s.SessionIdString + " and weight: " + new String('A', 1 + rand.Next(20000));
-                                        s.Push(Encoding.UTF8.GetBytes(pushMsg));
-                                    }
-                                    else
-                                    {
-                                        // Removing dead session from broadcast.
-                                        WebSocketSessions[sched].Remove(s);
-                                    }
+                                    String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and weight: " + new String('A', 1 + rand.Next(20000));
+                                    ws.Value.Send(pushMsg); // Log has changed
                                 }
 
                             }, i);
@@ -549,23 +528,39 @@ namespace NetworkIoTestApp
                     }, null, interval, interval);
 
                     // Registering WebSocket handler.
-                    Handle.GET("/ws", (Request req, Session session) =>
+                    Handle.GET("/ws", (Request req) =>
                     {
-                        Byte schedId = ThreadData.Current.Scheduler.Id;
-
-                        // Adding session if its not yet added.
-                        if (!WebSocketSessions[schedId].Contains(session))
+                        if (req.WebSocketUpgrade)
                         {
-                            Console.WriteLine("Add new session: " + session.SessionIdString);
+                            Byte schedId = ThreadData.Current.Scheduler.Id;
+                            UniqueWebSocketIdentifier[schedId]++;
 
-                            WebSocketSessions[schedId].Add(session);
+                            WebSocket ws = req.Upgrade("test", UniqueWebSocketIdentifier[schedId]);
+                            WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
+
+                            return HandlerStatus.Handled;
                         }
 
-                        session.Push(req.BodyBytes);
+                        return new Response()
+                        {
+                            StatusCode = 500,
+                            StatusDescription = "WebSocket upgrade on " + req.Uri + " was not approved."
+                        };
+                    });
 
-                        String body = req.Body;
-                        Console.WriteLine(body);
-                        return body;
+                    Handle.Socket("test", (String s, WebSocket ws) => {
+                        ws.Send(s);
+                    });
+
+                    Handle.Socket("test", (Byte[] s, WebSocket ws) => {
+                        ws.Send(s);
+                    });
+
+                    Handle.SocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
+                    {
+                        Byte schedId = ThreadData.Current.Scheduler.Id;
+                        if (WebSocketSessions[schedId].ContainsKey(cargoId))
+                            WebSocketSessions[schedId].Remove(cargoId);
                     });
 
                     break;
@@ -573,7 +568,9 @@ namespace NetworkIoTestApp
             }
         }
 
-        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulerCount];
+        static Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
+        static UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
+
         static volatile Int32 TimerSeconds = 0;
 
         // NOTE: Timer should be static, otherwise its garbage collected.

@@ -9,15 +9,15 @@ namespace network {
 enum WS_OPCODE
 {
     WS_OPCODE_CONTINUATION = 0,
-    WS_OPCODE_TEXT = 1,
-    WS_OPCODE_BINARY = 2,
+    WS_OPCODE_TEXT = MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_TEXT,
+    WS_OPCODE_BINARY = MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_BINARY,
     WS_OPCODE_RESERVED1 = 3,
     WS_OPCODE_RESERVED2 = 4,
     WS_OPCODE_RESERVED3 = 5,
     WS_OPCODE_RESERVED4 = 6,
     WS_OPCODE_RESERVED5 = 7,
-    WS_OPCODE_CLOSE = 8,
-    WS_OPCODE_PING = 9,
+    WS_OPCODE_CLOSE = MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_CLOSE,
+    WS_OPCODE_PING = MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_PING,
     WS_OPCODE_PONG = 10,
     WS_OPCODE_RESERVED6 = 11,
     WS_OPCODE_RESERVED7 = 12,
@@ -71,21 +71,12 @@ class WsProto
     // Frame information.
     WsProtoFrameInfo frame_info_;
 
-    // Channel ID.
-    uint32_t channel_id_;
-
 public:
 
     // WebSockets frame info.
     WsProtoFrameInfo* get_frame_info()
     {
         return &frame_info_;
-    }
-
-    // Channel ID.
-    uint32_t get_channel_id()
-    {
-        return channel_id_;
     }
 
     // Sets the client key.
@@ -102,6 +93,8 @@ public:
     uint32_t UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id);
 
     uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
+
+    static void SendDisconnectToDb(GatewayWorker *gw, SocketDataChunk* sd);
 
     uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
@@ -181,6 +174,12 @@ class PortWsChannels
 
 public:
 
+    // Checking if handlers list is empty.
+    bool IsEmpty()
+    {
+        return reg_ws_channels_.IsEmpty();
+    }
+
     uint16_t get_port_number()
     {
         return port_number_;
@@ -190,6 +189,29 @@ public:
     PortWsChannels(uint16_t port_number)
     {
         port_number_ = port_number;
+    }
+
+    // Removes certain entry.
+    bool RemoveEntry(db_index_type db_index)
+    {
+        bool removed = false;
+
+        // Going through all handler list.
+        for (int32_t i = 0; i < reg_ws_channels_.get_num_entries(); i++)
+        {
+            // Checking if database index is the same.
+            if (reg_ws_channels_[i].ContainsDb(db_index))
+            {
+                reg_ws_channels_.RemoveByIndex(i);
+                i--;
+
+                removed = true;
+
+                // Not stopping, going through all entries.
+            }
+        }
+
+        return removed;
     }
 
     // Printing the registered URIs.

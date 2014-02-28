@@ -34,7 +34,6 @@ struct TASK_INFO_TYPE
 {
     uint8_t flags;
     uint8_t scheduler_number;
-    BMX_HANDLER_INDEX_TYPE handler_index;
     uint8_t client_worker_id;
     starcounter::core::chunk_index the_chunk_index;
 };
@@ -60,14 +59,14 @@ namespace bmx
     const BMX_HANDLER_INDEX_TYPE BMX_INVALID_HANDLER_INDEX = ~((BMX_HANDLER_INDEX_TYPE) 0);
 
     // Predefined BMX management handler.
-    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_ID = 0;
+    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INDEX = 0;
 
     inline BMX_HANDLER_TYPE MakeHandlerInfo(BMX_HANDLER_INDEX_TYPE handler_index, BMX_HANDLER_UNIQUE_NUM_TYPE unique_num)
     {
         return (((uint64_t)unique_num) << 16) | handler_index;
     }
 
-    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INFO = MakeHandlerInfo(bmx::BMX_MANAGEMENT_HANDLER_ID, 1);
+    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INFO = MakeHandlerInfo(bmx::BMX_MANAGEMENT_HANDLER_INDEX, 1);
 
     // Maximum total number of registered handlers.
     const uint32_t MAX_TOTAL_NUMBER_OF_HANDLERS = 256;
@@ -310,8 +309,11 @@ namespace bmx
                 delete processed_uri_info_;
 
             // Allocating space for new URI infos.
-            original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
-            processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
+            if (original_uri_info_len_chars_ > 0)
+                original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
+            
+            if (processed_uri_info_len_chars_ > 0)
+                processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
 
             num_params_ = num_params;
             if (num_params_ > 0)
@@ -340,6 +342,15 @@ namespace bmx
 
                     if (processed_uri_len_chars > 0)
                         strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
+
+                    break;
+                }
+
+                case bmx::HANDLER_TYPE::WS_HANDLER:
+                {
+                    // Copying the URI string.
+                    if (original_uri_len_chars > 0)
+                        strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
 
                     break;
                 }
@@ -564,13 +575,21 @@ namespace bmx
         // Unregisters certain handler.
         uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler);
         uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, GENERIC_HANDLER_CALLBACK user_handler, bool* is_empty_handler);
+
         uint32_t FindUriHandler(
             uint16_t port_num,
-            char* processed_uri_info,
+            const char* processed_uri_info,
             BMX_HANDLER_INDEX_TYPE* handler_index);
+
+        uint32_t FindWsHandler(
+            uint16_t port_num,
+            const char* channel_name,
+            BMX_HANDLER_INDEX_TYPE* handler_index);
+
         uint32_t FindPortHandler(
             uint16_t port_num,
             BMX_HANDLER_INDEX_TYPE* handler_index);
+
         uint32_t FindSubportHandler(
             uint16_t port_num,
             BMX_SUBPORT_TYPE subport_num,

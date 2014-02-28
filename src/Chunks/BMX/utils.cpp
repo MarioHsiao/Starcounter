@@ -409,8 +409,10 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
 {
     _SC_BEGIN_FUNC
 
+    uint32_t err_code;
+
     uint8_t* cur_chunk_buf;
-    uint32_t err_code = cm_get_shared_memory_chunk(*the_chunk_index, &cur_chunk_buf);
+    err_code = cm_get_shared_memory_chunk(*the_chunk_index, &cur_chunk_buf);
     _SC_ASSERT(err_code == 0);
 
     _SC_ASSERT(buf_len_bytes >= 0);

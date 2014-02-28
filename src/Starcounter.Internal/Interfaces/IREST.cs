@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 
@@ -37,7 +38,7 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="channel">The WebSocket channel, for example "chat"</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterWsDisconnectHandler(ushort port, string channel, Action<WebSocket> handler);
+        void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler);
 
         /// <summary>
         /// Registers a handler with no parameters

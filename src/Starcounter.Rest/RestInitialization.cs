@@ -60,7 +60,7 @@ namespace Starcounter.Rest
         /// </summary>
         /// <param name="channel">The WebSocket channel, for example "chat"</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterWsDisconnectHandler(ushort port, string channel, Action<WebSocket> handler)
+        public void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler)
         {
             AllWsChannels.WsManager.RegisterWsDisconnectDelegate(port, channel, handler);
         }

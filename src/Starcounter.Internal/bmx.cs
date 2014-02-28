@@ -25,7 +25,6 @@ namespace Starcounter.Internal
         {
             internal Byte flags;
             internal Byte scheduler_number;
-            internal UInt16 handler_id;
             internal Byte client_worker_id;
             internal UInt32 chunk_index;
         };
@@ -39,13 +38,6 @@ namespace Starcounter.Internal
             BMX_TASK_INFO* task_info,
             Boolean* is_handled
         );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 sc_init_bmx_manager(
-            GlobalSessions.DestroyAppsSessionCallback destroy_apps_session_callback,
-            GlobalSessions.CreateNewAppsSessionCallback create_new_apps_session_callback,
-            Diagnostics.ErrorHandlingCallback error_handling_callback
-            );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_copy_all_chunks(
@@ -136,5 +128,23 @@ namespace Starcounter.Internal
             UInt16 port,
             String originalUriInfo
         );
+
+        /// <summary>
+        /// Managed callback to handle errors.
+        /// </summary>
+        /// <param name="err_code"></param>
+        /// <param name="err_string"></param>
+        internal unsafe delegate void ErrorHandlingCallback(
+            UInt32 err_code,
+            Char* err_string,
+            Int32 err_string_len
+            );
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        internal extern static UInt32 sc_init_bmx_manager(
+            GlobalSessions.DestroyAppsSessionCallback destroy_apps_session_callback,
+            GlobalSessions.CreateNewAppsSessionCallback create_new_apps_session_callback,
+            ErrorHandlingCallback error_handling_callback
+            );
     }
 }
