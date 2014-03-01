@@ -275,6 +275,14 @@ namespace NodeTest
 
             ws.DataReceived += (s, e) => 
             {
+                // Checking that echo size is correct.
+                if (e.Data.Length != respBytes.Length)
+                {
+                    Console.WriteLine("Incorrect WebSocket response size: " + e.Data.Length + ", should be " + respBytes.Length);
+                    NodeTest.WorkersMonitor.FailTest();
+                    return;
+                }
+
                 e.Data.CopyTo(respBytes, 0);
 
                 // Creating response from received byte array.
@@ -285,6 +293,7 @@ namespace NodeTest
                 {
                     Console.WriteLine("Incorrect WebSocket response of length: " + respBytes.Length);
                     NodeTest.WorkersMonitor.FailTest();
+                    return;
                 }
 
                 // Sending data again if number of runs is not exhausted.
