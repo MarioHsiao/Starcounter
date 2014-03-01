@@ -661,6 +661,10 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                 uint32_t channel_name_len_chars = resp_chunk->read_uint32();
                 resp_chunk->read_string(channel_name, channel_name_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
 
+#ifdef GW_TESTING_MODE
+                break;
+#endif
+
                 GW_PRINT_WORKER << "New WebSocket " << channel_name << "(" << channel_id << ")" << " port " << port << " user handler registration with handler id: " << handler_info << GW_ENDL;
                 
                 // Registering handler on active database.
