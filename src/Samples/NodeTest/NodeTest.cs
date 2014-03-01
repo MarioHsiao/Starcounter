@@ -318,7 +318,7 @@ namespace NodeTest
             ws.Open();
 
             // Waiting for all tests to finish.
-            if (!allDataReceivedEvent.WaitOne(3000))
+            if (!allDataReceivedEvent.WaitOne(10000))
             {
                 throw new Exception("Failed to get WebSocket response in time!");
             }
