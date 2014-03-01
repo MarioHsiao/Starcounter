@@ -226,26 +226,38 @@ namespace Starcounter
             Boolean isText,
             Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
-            UInt32 new_chunk_index;
-            Byte* new_chunk_mem;
-            UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&new_chunk_index, &new_chunk_mem);
-            if (0 != err_code)
-                throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
+            NetworkDataStream data_stream;
+            UInt32 chunk_index;
+            Byte* chunk_mem;
 
-            // Creating network data stream object.
-            NetworkDataStream data_stream = new NetworkDataStream(new_chunk_mem, new_chunk_index, ws.gatewayWorkerId_);
+            // Checking if we still have the data stream with original chunk available.
+            if (ws.dataStream_ == null || ws.dataStream_.IsDestroyed())
+            {
+                UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunk_index, &chunk_mem);
+                if (0 != err_code)
+                    throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
 
-            Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+                // Creating network data stream object.
+                data_stream = new NetworkDataStream(chunk_mem, chunk_index, ws.gatewayWorkerId_);
+            }
+            else
+            {
+                data_stream = ws.dataStream_;
+                chunk_index = data_stream.ChunkIndex;
+                chunk_mem = data_stream.RawChunk;
+            }
+
+            Byte* socket_data_begin = chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
             if (ws.Session != null)
             {
-                (*(ScSessionStruct*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = ws.Session.InternalSession.session_struct_;
+                (*(ScSessionStruct*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = ws.Session.InternalSession.session_struct_;
 
                 // Updating last active date.
                 ws.Session.InternalSession.UpdateLastActive();
             }
 
-            (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
+            (*(UInt32*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte)MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
 
@@ -253,7 +265,7 @@ namespace Starcounter
             (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.socketUniqueId_;
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = ws.gatewayWorkerId_;
 
-            (*(UInt16*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+            (*(UInt16*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             // Checking if we have text or binary WebSocket frame.

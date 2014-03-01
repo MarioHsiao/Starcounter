@@ -9,15 +9,33 @@ namespace Starcounter {
     
     public partial class Handle {
 
-        public static void Socket(String channel, Action<Byte[], WebSocket> handler) {
+        public static void Socket(UInt16 port, String channel, Action<Byte[], WebSocket> handler)
+        {
+            _REST.RegisterWsHandler(port, channel, handler);
+        }
+
+        public static void Socket(UInt16 port, String channel, Action<String, WebSocket> handler)
+        {
+            _REST.RegisterWsHandler(port, channel, handler);
+        }
+
+        public static void SocketDisconnect(UInt16 port,String channel, Action<UInt64, IAppsSession> handler)
+        {
+            _REST.RegisterWsDisconnectHandler(port, channel, handler);
+        }
+
+        public static void Socket(String channel, Action<Byte[], WebSocket> handler)
+        {
             _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
 
-        public static void Socket(String channel, Action<String, WebSocket> handler) {
+        public static void Socket(String channel, Action<String, WebSocket> handler)
+        {
             _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
 
-        public static void SocketDisconnect(String channel, Action<UInt64, IAppsSession> handler) {
+        public static void SocketDisconnect(String channel, Action<UInt64, IAppsSession> handler)
+        {
             _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
 

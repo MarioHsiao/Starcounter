@@ -363,7 +363,29 @@ namespace NetworkIoTestApp
 
                     Handle.GET(8080, "/echotestws", (Request req) =>
                     {
-                        return new Response() { BodyBytes = req.BodyBytes };
+                        if (req.WebSocketUpgrade)
+                        {
+                            req.Upgrade("echotestws");
+
+                            return HandlerStatus.Handled;
+                        }
+
+                        return 513;
+                    });
+
+                    Handle.Socket(8080, "echotestws", (String s, WebSocket ws) =>
+                    {
+                        ws.Send(s);
+                    });
+
+                    Handle.Socket(8080, "echotestws", (Byte[] bs, WebSocket ws) =>
+                    {
+                        ws.Send(bs);
+                    });
+
+                    Handle.SocketDisconnect(8080, "echotestws", (UInt64 cargoId, IAppsSession session) =>
+                    {
+                        // Do nothing!
                     });
 
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>
@@ -1032,35 +1054,13 @@ namespace NetworkIoTestApp
 
         private static Response OnHttpEcho(Request p)
         {
-            String responseBody = p.Body;
-            Debug.Assert(responseBody.Length == 8);
-
-            //Console.WriteLine(responseBody);
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html\r\n" +
-                "Content-Length: 8\r\n" +
-                "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
+            if (p.Body.Length != 8)
+                return 513;
 
             // Counting performance.
             perf_counter++;
 
-            try
-            {
-                return new Response() {
-                    BodyBytes = responseBytes
-                };
-            }
-            catch
-            {
-                return new Response() {
-                    BodyBytes = kHttpServiceUnavailable
-                };
-            }
+            return p.Body;
         }
 
         static Node someNode = new Node("127.0.0.1");

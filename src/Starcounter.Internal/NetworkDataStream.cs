@@ -22,10 +22,14 @@ namespace Starcounter
         /// </summary>
         Byte* raw_chunk_ = (Byte*) 0;
 
+        internal Byte* RawChunk { get { return raw_chunk_; } }
+
         /// <summary>
         /// The chunk_index_
         /// </summary>
         UInt32 chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
+
+        internal UInt32 ChunkIndex { get { return chunk_index_; } }
 
         /// <summary>
         /// Gateway worker id from which the chunk came.
@@ -165,6 +169,19 @@ namespace Starcounter
             // This data stream becomes unusable.
             raw_chunk_ = null;
             chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
+        }
+
+        /// <summary>
+        /// Checks if data stream is destroyed.
+        /// </summary>
+        /// <returns></returns>
+        public Boolean IsDestroyed()
+        {
+            // Checking if already destroyed.
+            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+                return true;
+
+            return false;
         }
 
         /// <summary>

@@ -363,7 +363,9 @@ namespace Starcounter
                     if (errorCode != 0)
                         throw ErrorCode.ToException(errorCode);
 
+                    // Adjusting pointers to a new plain byte array.
                     raw_chunk = (Byte*) plain_chunks_data;
+                    socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
                 }
 
                 switch (wsType)
@@ -403,6 +405,7 @@ namespace Starcounter
                         throw new Exception("Unknown WebSocket frame type: " + wsType);
                 }
 
+                // Cleaning the linear buffer in case of multiple chunks.
                 if (!is_single_chunk)
                 {
                     BitsAndBytes.Free((IntPtr)raw_chunk);
