@@ -276,9 +276,11 @@ namespace NodeTest
             ws.DataReceived += (s, e) => 
             {
                 // Checking that echo size is correct.
-                if (e.Data.Length != respBytes.Length)
+                if (e.Data.Length != bodyBytes.Length)
                 {
-                    Console.WriteLine("Incorrect WebSocket response size: " + e.Data.Length + ", should be " + respBytes.Length);
+                    Console.WriteLine("Incorrect WebSocket response size: " + e.Data.Length + ", should be " + bodyBytes.Length);
+                    Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(e.Data));
+
                     NodeTest.WorkersMonitor.FailTest();
                     return;
                 }
