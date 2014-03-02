@@ -281,6 +281,17 @@ namespace NodeTest
                     Console.WriteLine("Incorrect WebSocket response size: " + e.Data.Length + ", should be " + bodyBytes.Length);
                     Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(e.Data));
 
+#if !FILL_RANDOMLY
+                    for (Int32 i = 0; i < e.Data.Length; i++)
+                    {
+                        if (e.Data[i] != '1')
+                        {
+                            Console.WriteLine("Response contains illegal symbols: " + e.Data[i]);
+                            break;
+                        }
+                    }
+#endif
+
                     NodeTest.WorkersMonitor.FailTest();
                     return;
                 }
