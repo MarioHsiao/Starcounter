@@ -1,5 +1,5 @@
 ﻿//#define FASTEST_POSSIBLE
-#define FILL_RANDOMLY
+//#define FILL_RANDOMLY
 #if FASTEST_POSSIBLE
 #undef FILL_RANDOMLY
 #endif
@@ -440,6 +440,7 @@ namespace NodeTest
                             }
                         }
 
+                        Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(resp_body));
                         Console.WriteLine("Wrong echo contents! Correct echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
                         NodeTest.WorkersMonitor.FailTest();
                         return false;
