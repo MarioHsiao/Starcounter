@@ -2,6 +2,7 @@
 using Starcounter.Internal;
 using Starcounter.Tools.Service;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -193,7 +194,7 @@ namespace Starcounter.Tools {
 
             // Exit program if it was auto started (from StartUp folder) and if
             // scservice is not running
-            if (this.AutoStarted && e.Connected == false) {
+            if (this.AutoStarted && e.Running == false) {
                 ExitThreadCore();
                 return;
             }
@@ -203,16 +204,56 @@ namespace Starcounter.Tools {
 
 
         /// <summary>
-        /// 
+        /// Event when one or several exectuables as been started
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnExecutablesStarted(object sender, ExecutableMessageEventArgs e) {
+        private void OnExecutablesStarted(object sender, ExecutablesEventArgs e) {
 
             if (this.mShowNotifications != null && this.mShowNotifications.Checked) {
-                this.mNotifyIcon.ShowBalloonTip(3000, e.Header, e.Content, ToolTipIcon.Info);
+
+                string contentText = string.Empty;
+
+                foreach (Executable executable in e.Items) {
+
+                    if (!string.IsNullOrEmpty(contentText)) {
+                        contentText += Environment.NewLine + Environment.NewLine;
+                    }
+                    contentText += this.CreateMessage(executable);
+
+                }
+
+                // Show ballow with 5 sec delay until it closes
+                this.mNotifyIcon.ShowBalloonTip(5000, "Application(s) started", contentText, ToolTipIcon.Info);
             }
 
+        }
+
+
+        /// <summary>
+        /// Create an messages assosiated to one started executable
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private string CreateMessage(Executable message) {
+
+            string portsStr = string.Empty;
+
+            foreach (int port in message.Ports) {
+                if (!string.IsNullOrEmpty(portsStr)) {
+                    portsStr += ", ";
+                }
+                portsStr += port.ToString();
+            }
+
+            string listeningPorts = string.Empty;
+
+            if (!string.IsNullOrEmpty(portsStr)) {
+                listeningPorts += Environment.NewLine + "Listening on port(s) " + portsStr;
+
+            }
+
+            return string.Format("{0} is now running{1}", message.Name, listeningPorts);
         }
 
 
@@ -328,12 +369,12 @@ namespace Starcounter.Tools {
 
             mNotifyIcon.Text = "Starcounter " + CurrentVersion.Version + Environment.NewLine;
 
-            this.mDisplayForm.Enabled = statusArgs.Connected;
+            this.mDisplayForm.Enabled = statusArgs.Running;
 
-            this.mStartServer.Enabled = !statusArgs.Connected;
-            this.mShutDown.Enabled = statusArgs.Connected;
+            this.mStartServer.Enabled = !statusArgs.Running;
+            this.mShutDown.Enabled = statusArgs.Running;
 
-            if (statusArgs.Connected) {
+            if (statusArgs.Running) {
                 mNotifyIcon.Icon = this.Connected;
 
                 if (statusArgs.InteractiveMode) {
