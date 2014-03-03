@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Starcounter.CLI {
@@ -10,11 +11,60 @@ namespace Starcounter.CLI {
     /// Manage the output of the star.exe command and it's
     /// shell bootstrapper counterpart.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An instance of this class represents an area of the console,
+    /// normally a single line, where a hosting application write
+    /// output about an onging job, and intermediate tasks.
+    /// </para>
+    /// <para>
+    /// This class is not thread-safe.
+    /// </para>
+    /// </remarks>
     public sealed class StarConsole {
         readonly int cursorLeft;
         readonly int cursorTop;
         readonly int lines;
         string currentJob;
+        PulseTimer timer;
+        DateTime? latestUpdate;
+        object writeLock;
+        
+        private class PulseTimer {
+            const int interval = 750;
+            readonly StarConsole console;
+            Timer timer;
+            string dots;
+            DateTime? lastWrite;
+
+            public PulseTimer(StarConsole c) {
+                console = c;
+                dots = ".";
+                timer = new Timer(OnPulseProgressTimer, c, 0, interval);
+            }
+
+            public void Dispose() {
+                timer.Dispose();
+            }
+
+            void OnPulseProgressTimer(object state) {
+                StarConsole console = (StarConsole)state;
+                lock (console.writeLock) {
+                    var latest = console.latestUpdate;
+                    if (latest.HasValue) {
+                        if (!lastWrite.HasValue) {
+                            lastWrite = latest.Value;
+                        } else {
+                            if (lastWrite == latest.Value) {
+                                dots = dots.Length == 3 ? "." : dots + ".";
+                                console.ExclusiveWrite(console.currentJob, dots, console.ProgressColor);
+                            }
+                            lastWrite = console.latestUpdate.Value;
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the console color used to display output
@@ -50,6 +100,7 @@ namespace Starcounter.CLI {
             ProgressColor = ConsoleColor.DarkGray;
             CompletionColor = ConsoleColor.DarkGreen;
             ApplicationOutputColor = Console.ForegroundColor;
+            writeLock = new object();
         }
 
         /// <summary>
@@ -74,8 +125,12 @@ namespace Starcounter.CLI {
         public StarConsole StartNewJob(string job) {
             if (string.IsNullOrEmpty(job)) {
                 throw new ArgumentNullException("job");
+            } else if (currentJob != null) {
+                CompleteJob();
             }
+
             currentJob = job;
+            timer = new PulseTimer(this);
             return Write(job, string.Empty, ProgressColor);
         }
 
@@ -87,6 +142,8 @@ namespace Starcounter.CLI {
         public StarConsole CompleteJob(string result = null) {
             result = result ?? string.Empty;
             Write(currentJob, result, CompletionColor);
+            timer.Dispose();
+            timer = null;
             currentJob = null;
             return this;
         }
@@ -112,11 +169,21 @@ namespace Starcounter.CLI {
         }
 
         StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
+            lock (writeLock) {
+                ExclusiveWrite(job, taskOrResult, color);
+                return this;
+            }
+        }
+
+        StarConsole ExclusiveWrite(string job, string taskOrResult, ConsoleColor color) {
             int left, top;
+
             left = Console.CursorLeft;
             top = Console.CursorTop;
 
             try {
+                latestUpdate = DateTime.Now;
+
                 var content = string.Format("{0} {1}", currentJob, taskOrResult);
                 content = content.PadRight(Console.WindowWidth);
 
