@@ -54,9 +54,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Service\ExecutableMessageEventArgs.cs" />
+    <Compile Include="Service\GatewayTask.cs" />
+    <Compile Include="Service\Executable.cs" />
     <Compile Include="Service\ExecutablesEventArgs.cs" />
-    <Compile Include="Service\ExecutableTask.cs" />
+    <Compile Include="Service\ExecutablesTask.cs" />
     <Compile Include="Service\ErrorEventArgs.cs" />
     <Compile Include="Service\StarcounterWatcher.cs" />
     <Compile Include="Service\ShutdownTask.cs" />

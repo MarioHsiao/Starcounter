@@ -166,7 +166,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
         var filter = executable.Name;
 
-        ConsoleService.refreshConsoleOuput(executable.databaseName, filter, function (text) {
+        ConsoleService.getConsoleOuput(executable.databaseName, filter, function (text) {
             // Success
 
             self._onConsoleOutputEvent(executable, text, false);
@@ -286,7 +286,6 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
                 // Sliently fallback to manual mode
                 executable.consoleManualMode = true;
-                $log.error("Socket error", messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
 
             },
             filter: executable.Name

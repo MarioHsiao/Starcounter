@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.JsonPatch.BuiltInRestHandlers;
 using SuperSocket.ClientEngine;
 using System;
 using System.Diagnostics;
@@ -59,13 +60,12 @@ namespace staradmin {
         void DoOpen() {
             opening = Task.Run(() => {
                 var x = new AutoResetEvent(false);
-                var handshake = new byte[1] { 0 };
-
+                
                 while (!closeIssued) {
-                    socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console/ws", DatabaseName.ToLowerInvariant()));
+                    socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console", DatabaseName.ToLowerInvariant()));
+                    socket.EnableAutoSendPing = false;
                     
                     EventHandler opened = (s, e) => {
-                        socket.Send(handshake, 0, handshake.Length);
                         x.Set();
                     };
                     EventHandler<ErrorEventArgs> errored = (s, e) => {
@@ -128,13 +128,22 @@ namespace staradmin {
 
         void InvokeMessageCallback(byte[] data) {
             if (messageCallback != null) {
-                messageCallback(this, Encoding.UTF8.GetString(data));
+                UnpackAndInvokeMessageCallback(messageCallback, Encoding.UTF8.GetString(data));
             }
         }
 
         void InvokeMessageCallback(string message) {
             if (messageCallback != null) {
-                messageCallback(this, message);
+                UnpackAndInvokeMessageCallback(messageCallback, message);
+            }
+        }
+
+        void UnpackAndInvokeMessageCallback(Action<CodeHostConsole, string> callback, string content) {
+            var events = new ConsoleEvents();
+            events.PopulateFromJson(content);
+
+            foreach (ConsoleEvents.ItemsElementJson item in events.Items) {
+                callback(this, item.text);
             }
         }
     }
