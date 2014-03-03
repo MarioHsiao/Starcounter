@@ -84,16 +84,30 @@ namespace Starcounter.Internal
             {
                 case WebSocket.WsHandlerType.BinaryData:
                 {
-                    if (receiveBinaryHandler_ != null)
-                        receiveBinaryHandler_(ws.Bytes, ws);
+                    if (receiveBinaryHandler_ == null)
+                    {
+                        ws.Disconnect("WebSocket binary messages handler on the requested channel is not registered. Closing the connection.",
+                            WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
+
+                        return;
+                    }
+
+                    receiveBinaryHandler_(ws.Bytes, ws);
 
                     break;
                 }
 
                 case WebSocket.WsHandlerType.StringMessage:
                 {
-                    if (receiveStringHandler_ != null)
-                        receiveStringHandler_(ws.Message, ws);
+                    if (receiveStringHandler_ == null)
+                    {
+                        ws.Disconnect("WebSocket string messages handler on the requested channel is not registered. Closing the connection.",
+                            WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
+
+                        return;
+                    }
+
+                    receiveStringHandler_(ws.Message, ws);
 
                     break;
                 }
@@ -166,8 +180,9 @@ namespace Starcounter.Internal
 
         bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler_;
 
-        internal void SetWebsocketOuterHandler(bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler) {
+        internal void InitWebSockets(bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler) {
             WebsocketOuterHandler_ = WebsocketOuterHandler;
+            WebSocket.InitWebSocketsInternal();
         }
 
         WsChannelInfo CreateWsChannel(UInt16 port, String channelName)

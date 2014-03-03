@@ -337,7 +337,7 @@ namespace Starcounter {
             if (w == null)
                 throw new Exception("Specified WebSocket channel is not registered: " + channelName);
 
-            WebSocket ws = new WebSocket(null, null, null, WebSocket.WsHandlerType.Empty);
+            WebSocket ws = new WebSocket(null, null, null, null, WebSocket.WsHandlerType.Empty);
 
             if (resp == null)
                 resp = new Response();
@@ -355,8 +355,7 @@ namespace Starcounter {
             resp.WsHandshakeResp = wsHandshakeResp;
             resp.ConstructFromFields();
 
-            InitWebSocket(ws, w.ChannelId);
-            ws.CargoId = cargoId;
+            InitWebSocket(ws, w.ChannelId, cargoId);
 
             SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
             Destroy();
@@ -473,15 +472,17 @@ namespace Starcounter {
         /// Initializes some WebSocket fields.
         /// </summary>
         /// <param name="ws"></param>
-        internal unsafe void InitWebSocket(WebSocket ws, UInt32 channelId) {
+        internal unsafe void InitWebSocket(WebSocket ws, UInt32 channelId, UInt64 cargoId) {
             System.Diagnostics.Debug.Assert(http_request_struct_->socket_data_ != null);
 
             *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = channelId;
             *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |= (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
 
-            ws.socketIndexNum_ = *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
-            ws.socketUniqueId_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
-            ws.gatewayWorkerId_ = dataStream_.GatewayWorkerId;
+            ws.ConstructFromRequest(
+                *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                dataStream_.GatewayWorkerId,
+                cargoId);
         }
 
         /// <summary>

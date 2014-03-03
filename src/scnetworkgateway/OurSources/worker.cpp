@@ -684,12 +684,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
-    {
-        // Only non-representative socket data can have wrong socket id.
-        GW_ASSERT(false == sd->get_socket_representer_flag());
-
         return SCERRGWOPERATIONONWRONGSOCKET;
-    }
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -846,10 +841,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
 
-    // Setting socket representer.
-    sd->set_socket_representer_flag();
-    sd->set_socket_diag_active_conn_flag();
-
     uint32_t err_code;
 
 #ifdef GW_PROFILER_ON
@@ -933,6 +924,15 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 #endif
+
+    // Checking if this is a socket representer.
+    if (false == sd->get_socket_representer_flag())
+    {
+        // Returning chunks to pool.
+        ReturnSocketDataChunksToPool(sd);
+
+        return 0;
+    }
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
