@@ -26,6 +26,7 @@ namespace Starcounter.CLI {
         readonly int cursorTop;
         readonly int lines;
         string currentJob;
+        string currentTask;
         PulseTimer timer;
         DateTime? latestUpdate;
         object writeLock;
@@ -130,8 +131,10 @@ namespace Starcounter.CLI {
             }
 
             currentJob = job;
+            Write(job, string.Empty, ProgressColor);
+
             timer = new PulseTimer(this);
-            return Write(job, string.Empty, ProgressColor);
+            return this;
         }
 
         /// <summary>
@@ -145,6 +148,7 @@ namespace Starcounter.CLI {
             timer.Dispose();
             timer = null;
             currentJob = null;
+            currentTask = null;
             return this;
         }
 
@@ -155,6 +159,7 @@ namespace Starcounter.CLI {
         /// <param name="task">The task that is starting.</param>
         /// <returns>Reference to self.</returns>
         public StarConsole WriteTask(string task) {
+            currentTask = task;
             return Write(currentJob, task, ProgressColor);
         }
 
