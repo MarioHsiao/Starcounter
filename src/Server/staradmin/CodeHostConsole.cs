@@ -62,7 +62,7 @@ namespace staradmin {
                 var handshake = new byte[1] { 0 };
 
                 while (!closeIssued) {
-                    socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console/ws", DatabaseName.ToLowerInvariant()));
+                    socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console", DatabaseName.ToLowerInvariant()));
                     
                     EventHandler opened = (s, e) => {
                         socket.Send(handshake, 0, handshake.Length);
