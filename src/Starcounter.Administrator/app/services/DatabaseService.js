@@ -126,7 +126,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
         var filter = null;
 
-        ConsoleService.refreshConsoleOuput(database.name, filter, function (text) {
+        ConsoleService.getConsoleOuput(database.name, filter, function (text) {
             // Success
 
             self._onConsoleOutputEvent(database, text, false);
@@ -162,6 +162,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
         }
 
     }
+
 
     /**
      * Update current database list with new list
@@ -259,8 +260,6 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
                 // Sliently fallback to manual mode
                 database.consoleManualMode = true;
-
-                $log.error("Socket error", messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
 
             },
             filter: null

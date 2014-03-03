@@ -125,7 +125,7 @@
                     <img src="/app/images/sc_logo_24x24.png" style="margin: -3px 0px 0px 0px">
                     Starcounter Administrator</a>
                 <ul class="nav pull-right">
-                    <li><a href="http://www.starcounter.com/wiki" target="_blank">Help</a></li>
+                    <li><a href="https://github.com/starcounter/starcounter/wiki" target="_blank">Help</a></li>
                 </ul>
             </div>
         </div>
@@ -134,12 +134,63 @@
 
     <div class="toplinks">
         <ul class="nav nav-pills" data-ng-controller="NavbarController">
-            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
-            <li data-ng-class="{active: getClass('/databases')}"><a href="#/databases">Databases</a></li>
+
+            <li data-ng-class="{active: getClass('/databases/.*/executables/.*|/executables')}" class="dropdown">
+                <a id="A1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Executables <b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/executables">View all</a>
+                    </li>
+
+                    <li role="presentation" class="divider"></li>
+
+
+                    <li ng-repeat="executable in model.executables" role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databases/{{executable.databaseName}}/executables/{{executable.Name}}">{{executable.Name}}</a>
+                    </li>
+
+                    <li ng-hide="model.executables.length == 0" role="presentation" class="divider"></li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/executableStart">Start...</a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$')}" class="dropdown">
+                <a id="drop1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Databases <b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databases">View all</a>
+                    </li>
+
+                    <li role="presentation" class="divider"></li>
+
+
+                    <li ng-repeat="database in model.databases" role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databases/{{database.name}}">{{database.name}}<span ng-show="database.running" class="pull-right label label-success">Running</span></a>
+                    </li>
+
+                    <li ng-hide="model.databases.length == 0" role="presentation" class="divider"></li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databaseCreate">Create...</a>
+                    </li>
+                </ul>
+            </li>
+
             <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
             <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
-            <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Gateway</a></li>
+            <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Network</a></li>
             <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
+
+<!--            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
+            <li data-ng-class="{active: getClass('/databases')}"><a href="#/databases">Databases</a></li>-->
+
+
         </ul>
     </div>
 
