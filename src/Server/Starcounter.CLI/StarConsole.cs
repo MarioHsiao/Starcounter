@@ -208,7 +208,13 @@ namespace Starcounter.CLI {
                 latestUpdate = DateTime.Now;
 
                 var content = output.ToString();
-                content = content.PadRight(Console.WindowWidth);
+                var maxLength = Console.WindowWidth * lines;
+                
+                if (content.Length > maxLength) {
+                    content = content.Substring(0, maxLength);
+                } else {
+                    content = content.PadRight(maxLength);
+                }
 
                 Console.SetCursorPosition(cursorLeft, cursorTop);
                 ConsoleUtil.ToConsoleWithColor(content, col);
