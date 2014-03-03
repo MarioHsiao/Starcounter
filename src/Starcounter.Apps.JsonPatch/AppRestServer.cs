@@ -85,50 +85,7 @@ namespace Starcounter.Internal.Web {
 				return errResp;
             }
         }
-
-        /// <summary>
-        /// Handles the response returned from the user handler.
-        /// </summary>
-        /// <param name="request">Incomming HTTP request.</param>
-        /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
-        /// <returns>The same object as provide in the response parameter</returns>
-        public Response OnResponseWebSockets(Request request, Response response)
-        {
-            try
-            {
-                // NOTE: Checking if its internal request then just returning response without modification.
-                if (request.IsInternal)
-                    return response;
-
-                // Checking if JSON object is attached.
-                if (response.Hypermedia is Json)
-                {
-
-                    Json r = (Json)response.Hypermedia;
-
-                    while (r.Parent != null)
-                        r = r.Parent;
-
-                    response.Hypermedia = (Json)r;
-                }
-
-                response.Request = request;
-                response.ConstructFromFields();
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                // Logging the exception to server log.
-                LogSources.Hosting.LogException(ex);
-                var errResp = Response.FromStatusCode(500);
-                errResp.Body = GetExceptionString(ex);
-                errResp.ContentType = "text/plain";
-                errResp.ConstructFromFields();
-                return errResp;
-            }
-        }
-
+        
         /// <summary>
         /// Handles request.
         /// </summary>
@@ -136,198 +93,115 @@ namespace Starcounter.Internal.Web {
         /// <returns>The bytes according to the appropriate protocol</returns>
         public Response HandleRequest(Request request) {
             Response response = null;
-            UInt32 errCode;
             Boolean cameWithSession = request.CameWithCorrectSession;
 
-            switch (request.ProtocolType)
+            try
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    try
-                    {
-                        // Checking if we are in session already.
-                        if (!request.IsInternal) {
+                // Checking if we are in session already.
+                if (!request.IsInternal) {
 
-                            // Setting the original request.
-                            Session.InitialRequest = request;
+                    // Setting the original request.
+                    Session.InitialRequest = request;
 
-                            // Obtaining session.
-                            Session s = (Session) request.GetAppsSessionInterface();
+                    // Obtaining session.
+                    Session s = (Session) request.GetAppsSessionInterface();
 
-                            if (cameWithSession && (null != s)) {
+                    if (cameWithSession && (null != s)) {
 
-                                // Starting session.
-                                Session.Start(s);
+                        // Starting session.
+                        Session.Start(s);
 
-                                // Checking if we can reuse the cache.
-                                if (request.IsInternal && X.CheckLocalCache(request.Uri, null, null, out response)) {
+                        // Checking if we can reuse the cache.
+                        if (request.IsInternal && X.CheckLocalCache(request.Uri, null, null, out response)) {
 
-                                    // Setting the session again.
-                                    response.AppsSession = Session.Current.InternalSession;
+                            // Setting the session again.
+                            response.AppsSession = Session.Current.InternalSession;
 
-                                    // Handling and returning the HTTP response.
-                                    response = OnResponseHttp(request, response);
+                            // Handling and returning the HTTP response.
+                            response = OnResponseHttp(request, response);
 
-                                    return response;
-                                }
-                            }
-                        }
-
-                        // Invoking original user delegate with parameters here.
-                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
-
-                        // In case of returned JSON object within current session we need to save it
-                        // for later reuse.
-                        
-                        Json rootJsonObj = null;
-                        if (null != Session.Current)
-                            rootJsonObj = Session.Current.Data;
-
-                        Json curJsonObj = null;
-                        if (null != response) {
-
-                            // Checking if response is processed later.
-                            if (response.HandlingStatus == HandlerStatusInternal.Handled)
-                                return response;
-
-                            // Setting session on result only if its original request.
-                            if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
-                                response.AppsSession = Session.Current.InternalSession;
-
-                            // Converting response to JSON.
-                            curJsonObj = response;
-
-                            if ((null != curJsonObj) &&
-                                (null != rootJsonObj) &&
-                                (request.IsCachable()) &&
-                                (curJsonObj.HasThisRoot(rootJsonObj)))
-                            {
-                                Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
-                            }
-                        } else {
-                            // Null equals 404.
-                            response = Response.FromStatusCode(404);
-                            response["Connection"] = "close";
-                            response.ConstructFromFields();
                             return response;
                         }
-
-                        // Handling and returning the HTTP response.
-                        response = OnResponseHttp(request, response);
-
-                        return response;
-                    }
-                    catch (ResponseException exc)
-                    {
-                        // NOTE: if internal request then throw the exception up.
-                        if (request.IsInternal)
-                            throw exc;
-
-                        response = exc.ResponseObject;
-                        response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                        response.ConstructFromFields();
-                        return response;
-                    }
-                    catch (HandlersManagement.IncorrectSessionException)
-                    {
-                        response = Response.FromStatusCode(400);
-                        response["Connection"] = "close";
-                        response.ConstructFromFields();
-                        return response;
-                    }
-                    catch (Exception exc)
-                    {
-						// Logging the exception to server log.
-						LogSources.Hosting.LogException(exc);
-						response = Response.FromStatusCode(500);
-						response.Body = GetExceptionString(exc);
-						response.ContentType = "text/plain";
-						response.ConstructFromFields();
-						return response;
-                    }
-                    finally
-                    {
-                        // Checking if a new session was created during handler call.
-                        if ((null != Session.Current) && (!request.IsInternal))
-                            Session.End();
                     }
                 }
 
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
-                {
-                    try
-                    {
-                        // Setting the original request.
-                        Session.InitialRequest = request;
+                // Invoking original user delegate with parameters here.
+                UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
 
-                        // Checking if we are in session already.
-                        if (!cameWithSession)
-                        {
-                            // Creating new current session.
-                            Session.Current = new Session();
+                // In case of returned JSON object within current session we need to save it
+                // for later reuse.
+                        
+                Json rootJsonObj = null;
+                if (null != Session.Current)
+                    rootJsonObj = Session.Current.Data;
 
-                            // Creating session on Request as well.
-                            errCode = request.GenerateNewSession(Session.Current);
-                            if (errCode != 0)
-                                throw ErrorCode.ToException(errCode);
-                        }
-                        else
-                        {
-                            // Start using specific session.
-                            Session.Start((Session)request.GetAppsSessionInterface());
-                        }
+                Json curJsonObj = null;
+                if (null != response) {
 
-                        // Updating session information (sockets info, WebSockets, etc).
-                        request.UpdateSessionDetails();
-
-                        // Invoking original user delegate with parameters here.
-                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
-
-                        // Handling result.
-                        if (null == response)
-                        {
-                            // Simply disconnecting if response is null.
-                            response = new Response()
-                            {
-                                ConnFlags = Response.ConnectionFlags.DisconnectImmediately,
-                                HandlingStatus = HandlerStatusInternal.Done
-                            };
-                        }
-                        else
-                        {
-                            // Checking if WebSockets response status is unhandled.
-                            if (response.HandlingStatus == HandlerStatusInternal.NotHandled)
-                            {
-                                response.ConnFlags = Response.ConnectionFlags.DisconnectImmediately;
-                                response.HandlingStatus = HandlerStatusInternal.Done;
-                            }
-                        }
-
-                        response.ProtocolType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
-
-                        // Checking if response is processed later.
-                        if (response.HandlingStatus == HandlerStatusInternal.Done)
-                            response = OnResponseWebSockets(request, response);
-
+                    // Checking if response is processed later.
+                    if (response.HandlingStatus == HandlerStatusInternal.Handled)
                         return response;
-                    }
-                    catch (ResponseException exc)
+
+                    // Setting session on result only if its original request.
+                    if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
+                        response.AppsSession = Session.Current.InternalSession;
+
+                    // Converting response to JSON.
+                    curJsonObj = response;
+
+                    if ((null != curJsonObj) &&
+                        (null != rootJsonObj) &&
+                        (request.IsCachable()) &&
+                        (curJsonObj.HasThisRoot(rootJsonObj)))
                     {
-                        response = exc.ResponseObject;
-                        response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                        response.ConstructFromFields();
-                        return response;
+                        Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
                     }
-                    finally
-                    {
-                        Session.End();
-                    }
+                } else {
+                    // Null equals 404.
+                    response = Response.FromStatusCode(404);
+                    response["Connection"] = "close";
+                    response.ConstructFromFields();
+                    return response;
                 }
 
-                default:
-                {
-                    throw ErrorCode.ToException(Error.SCERRUNKNOWNNETWORKPROTOCOL);
-                }
+                // Handling and returning the HTTP response.
+                response = OnResponseHttp(request, response);
+
+                return response;
+            }
+            catch (ResponseException exc)
+            {
+                // NOTE: if internal request then throw the exception up.
+                if (request.IsInternal)
+                    throw exc;
+
+                response = exc.ResponseObject;
+                response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
+                response.ConstructFromFields();
+                return response;
+            }
+            catch (HandlersManagement.IncorrectSessionException)
+            {
+                response = Response.FromStatusCode(400);
+                response["Connection"] = "close";
+                response.ConstructFromFields();
+                return response;
+            }
+            catch (Exception exc)
+            {
+				// Logging the exception to server log.
+				LogSources.Hosting.LogException(exc);
+				response = Response.FromStatusCode(500);
+				response.Body = GetExceptionString(exc);
+				response.ContentType = "text/plain";
+				response.ConstructFromFields();
+				return response;
+            }
+            finally
+            {
+                // Checking if a new session was created during handler call.
+                if ((null != Session.Current) && (!request.IsInternal))
+                    Session.End();
             }
         }
 

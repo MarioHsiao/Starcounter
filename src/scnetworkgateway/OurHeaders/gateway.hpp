@@ -162,7 +162,8 @@ enum GatewayErrorCodes
     SCERRGWWRONGDBINDEX,
     SCERRGWMAXHTTPHEADERSSIZEREACHED,
     SCERRGWMAXCHUNKSIZEREACHED,
-    SCERRGWMAXDATASIZEREACHED
+    SCERRGWMAXDATASIZEREACHED,
+    SCERRGWWEBSOCKET
 };
 
 // Maximum number of ports the gateway operates with.
@@ -1053,9 +1054,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Unique number for socket.
     random_salt_type unique_socket_id_;
 
-    // Determined handler id.
-    BMX_HANDLER_TYPE saved_user_handler_id_;
-
     // Socket number.
     SOCKET socket_;
 
@@ -1074,6 +1072,9 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Number of bytes left for accumulation.
     uint32_t accum_data_bytes_left_;
+
+    // WebSockets channel id.
+    uint32_t ws_channel_id_;
 
     //////////////////////////////
     //////// 16 bits data ////////
@@ -1140,7 +1141,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
         ResetTimestamp();
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
-        saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
         flags_ = 0;
         dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SESSION_INDEX;
@@ -1270,6 +1270,7 @@ class HandlersList;
 class SocketDataChunk;
 class PortHandlers;
 class RegisteredUris;
+class PortWsChannels;
 class RegisteredSubports;
 class ServerPort
 {
@@ -1292,6 +1293,9 @@ class ServerPort
 
     // All registered URIs belonging to this port.
     RegisteredUris* registered_uris_;
+
+    // All registered WebSockets belonging to this port.
+    PortWsChannels* registered_ws_channels_;
 
     // All registered subports belonging to this port.
     // TODO: Fix full support!
@@ -1324,6 +1328,12 @@ public:
     RegisteredUris* get_registered_uris()
     {
         return registered_uris_;
+    }
+
+    // Getting registered port WebSocket channels.
+    PortWsChannels* get_registered_ws_channels()
+    {
+        return registered_ws_channels_;
     }
 
     // Getting registered port handlers.
@@ -1876,22 +1886,6 @@ public:
         return (MixedCodeConstants::NetworkProtocolType) all_sockets_infos_unsafe_[socket_index].type_of_network_protocol_;
     }
 
-    // Setting client IP address info.
-    void SetSavedUserHandlerId(session_index_type socket_index, BMX_HANDLER_TYPE saved_user_handler_id)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].saved_user_handler_id_ = saved_user_handler_id;
-    }
-
-    // Getting client IP address info.
-    BMX_HANDLER_TYPE GetSavedUserHandlerId(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].saved_user_handler_id_;
-    }
-
     // Resets socket info when socket is disconnected.
     void ResetSocketInfoOnDisconnect(session_index_type socket_index)
     {
@@ -1962,6 +1956,20 @@ public:
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].get_socket_proxy_connect_flag();
+    }
+
+    uint32_t GetWebSocketChannelId(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[socket_index].ws_channel_id_;
+    }
+
+    void SetWebSocketChannelId(session_index_type socket_index, uint32_t ws_channel_id)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].ws_channel_id_ = ws_channel_id;
     }
 
     // Getting aggregation socket index.

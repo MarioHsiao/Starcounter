@@ -59,6 +59,18 @@ uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
             break;
         }
 
+        case bmx::HANDLER_TYPE::WS_HANDLER:
+        {
+            // Unregister globally.
+            PortWsChannels* w = g_gateway.FindServerPort(port_)->get_registered_ws_channels();
+            w->RemoveEntry(db_index);
+
+            // Collecting empty ports.
+            g_gateway.CleanUpEmptyPorts();
+
+            break;
+        }
+
         default:
         {
             return SCERRGWWRONGHANDLERTYPE;

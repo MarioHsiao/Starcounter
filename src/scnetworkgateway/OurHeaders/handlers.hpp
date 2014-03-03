@@ -219,8 +219,11 @@ public:
             delete processed_uri_info_;
 
         // Allocating space for URIs if needed.
-        original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
-        processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
+        if (original_uri_len_chars > 0)
+            original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
+
+        if (processed_uri_info_len_chars_ > 0)
+            processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
 
         num_params_ = num_params;
         if (num_params_ > 0)
@@ -247,6 +250,15 @@ public:
 
                 if (processed_uri_len_chars > 0)
                     strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
+
+                break;
+            }
+
+            case bmx::HANDLER_TYPE::WS_HANDLER:
+            {
+                // Copying the WS channel string.
+                if (original_uri_len_chars > 0)
+                    strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
 
                 break;
             }

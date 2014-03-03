@@ -100,7 +100,7 @@ void WsProto::Init()
 // Unmasks frame and pushes it to database.
 uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
-    uint8_t* payload = sd->get_accum_buf()->get_chunk_orig_buf_ptr() + frame_info_.payload_offset_;
+    uint8_t* payload = (uint8_t*) sd + frame_info_.payload_offset_;
 
     switch (frame_info_.opcode_)
     {
@@ -110,13 +110,6 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
         {
             // Unmasking data.
             UnMaskPayload(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
-
-            // Setting request offsets.
-            HttpRequest* req = sd->get_http_proto()->get_http_request();
-            req->request_len_bytes_ = frame_info_.payload_len_;
-            req->request_offset_ = static_cast<uint32_t> (payload - (uint8_t*)sd);
-            req->content_len_bytes_ = req->request_len_bytes_;
-            req->content_offset_ = req->request_offset_;
 
             // Determining user data offset.
             uint32_t user_data_offset = static_cast<uint32_t> (payload - (uint8_t *) sd);
@@ -168,6 +161,39 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
     }
 }
 
+// Obtains user handler info from channel name of the WebSocket.
+inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
+{
+    // Getting the corresponding port number.
+    ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
+    uint16_t port_num = server_port->get_port_number();
+    PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
+    uint32_t channel_id = sd->GetWebSocketChannelId();
+    return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
+}
+
+// Send disconnect to database.
+void WsProto::SendDisconnectToDb(
+    GatewayWorker *gw,
+    SocketDataChunk* sd)
+{
+    // Obtaining handler info from channel id.
+    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(sd);
+    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
+        return;
+
+    // TODO: Skip creating a push clone.
+    SocketDataChunk* sd_push_to_db = NULL;
+    sd->CloneToPush(gw, &sd_push_to_db);
+    sd_push_to_db->ResetAllFlags();
+
+    // Setting the opcode indicating socket disconnect.
+    sd_push_to_db->get_ws_proto()->get_frame_info()->opcode_ = (MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_CLOSE);
+
+    // Push chunk to corresponding channel/scheduler.
+    gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
+}
+
 // Processes incoming WebSocket frames.
 uint32_t WsProto::ProcessWsDataToDb(
     GatewayWorker *gw,
@@ -180,9 +206,10 @@ uint32_t WsProto::ProcessWsDataToDb(
 
     uint32_t err_code = 0;
 
-    // Obtaining saved user handler id.
-    user_handler_id = sd->GetSavedUserHandlerId();
-    GW_ASSERT_DEBUG(bmx::BMX_INVALID_HANDLER_INFO != user_handler_id);
+    // Obtaining handler info from channel id.
+    user_handler_id = SearchUserHandlerInfoByChannelId(sd);
+    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
+        return SCERRGWWEBSOCKET;
 
     SocketDataChunk* sd_push_to_db = NULL;
     uint8_t* orig_data_ptr = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
@@ -215,7 +242,7 @@ uint32_t WsProto::ProcessWsDataToDb(
             return gw->Receive(sd);
         }
 
-        uint8_t* payload = sd->get_accum_buf()->get_chunk_orig_buf_ptr() + frame_info_.payload_offset_;
+        uint8_t* payload = (uint8_t*) sd + frame_info_.payload_offset_;
 
         // Calculating number of bytes processed.
         int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
@@ -346,8 +373,6 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Handled successfully.
     *is_handled = true;
 
-    uint32_t err_code;
-
     // Generating handshake response.
     char handshake_resp_temp[128];
     strncpy_s(handshake_resp_temp, 128, g_ts_client_key_, _TRUNCATE);
@@ -369,8 +394,16 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     GW_ASSERT_DEBUG(g_ts_sub_protocol_len_ < 32);
     memcpy(sub_protocol_temp, g_ts_sub_protocol_, g_ts_sub_protocol_len_);
 
+    // Checking if data that needs accumulation fits into chunk.
+    if (sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() < 256)
+    {
+        uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accum_buf()->get_accum_len_bytes() + 256);
+        if (err_code)
+            return err_code;
+    }
+
     // Pointing to the beginning of the data.
-    uint8_t* resp_data_begin = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+    uint8_t* resp_data_begin = sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes();
 
     // Copying initial header in response buffer.
     int32_t resp_len_bytes = InjectData(resp_data_begin, 0, kWsHsResponseStaticPart, kWsHsResponseStaticPartLen);
@@ -390,21 +423,27 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     }
     
     // Remaining empty line.
-    resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
+    //resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
+
+    frame_info_.payload_len_ = resp_len_bytes;
+    frame_info_.payload_offset_ = static_cast<uint16_t> (resp_data_begin - (uint8_t*)sd);
+    sd->get_accum_buf()->AddAccumulatedBytes(resp_len_bytes);
 
     // Setting WebSocket handshake flag.
     sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
 
-    // Setting fixed handler id.
-    sd->SetSavedUserHandlerId(user_handler_id);
-
     // Prepare buffer to send outside.
-    sd->PrepareForSend(resp_data_begin, resp_len_bytes);
 
-    // Sending data.
-    err_code = gw->Send(sd);
-    if (err_code)
-        return err_code;
+    //sd->PrepareForSend(resp_data_begin, resp_len_bytes);
+
+    // Indicating for the host that WebSocket upgrade is made.
+    sd->set_ws_upgrade_request_flag();
+
+    // Since we need to send this chunk over IPC.
+    sd->reset_socket_diag_active_conn_flag();
+
+    // Push chunk to corresponding channel/scheduler.
+    gw->PushSocketDataToDb(sd, user_handler_id);
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
@@ -530,7 +569,8 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
     if (data < limit)
         sd->set_complete_header_flag();
     
-    frame_info_.payload_offset_ = static_cast<uint32_t> (data - sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    // Calculating payload offset relatively to socket data.
+    frame_info_.payload_offset_ = static_cast<uint32_t> (data - (uint8_t*)sd);
 
     return 0;
 }

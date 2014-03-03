@@ -453,6 +453,7 @@ void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening
     // Allocating needed tables.
     port_handlers_ = new PortHandlers();
     registered_uris_ = new RegisteredUris(port_number);
+    registered_ws_channels_ = new PortWsChannels(port_number);
     registered_subports_ = new RegisteredSubports();
 
     listening_sock_ = listening_sock;
@@ -490,6 +491,9 @@ void ServerPort::EraseDb(db_index_type db_index)
     
     // Deleting subport handlers if any.
     registered_subports_->RemoveEntry(db_index);
+
+    // Deleting WebSocket channels if any.
+    registered_ws_channels_->RemoveEntry(db_index);
 }
 
 // Checking if port is unused by any database.
@@ -509,6 +513,10 @@ bool ServerPort::IsEmpty()
 
     // Checking subports.
     if (registered_subports_ && (!registered_subports_->IsEmpty()))
+        return false;
+
+    // Checking WebSocket channels.
+    if (registered_ws_channels_ && (!registered_ws_channels_->IsEmpty()))
         return false;
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -566,6 +574,12 @@ void ServerPort::Erase()
         registered_subports_ = NULL;
     }
 
+    if (registered_ws_channels_)
+    {
+        delete registered_ws_channels_;
+        registered_ws_channels_ = NULL;
+    }
+
     port_number_ = INVALID_PORT_NUMBER;
     port_index_ = INVALID_PORT_INDEX;
 
@@ -585,7 +599,7 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 #endif
     stats_stream << "\"registeredUris\":[";
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
-    registered_uris_->PrintRegisteredUris(stats_stream, port_number_);
+    registered_uris_->PrintRegisteredUris(stats_stream);
     stats_stream << "]}";
 }
 
@@ -603,6 +617,7 @@ ServerPort::ServerPort()
     port_handlers_ = NULL;
     registered_uris_ = NULL;
     registered_subports_ = NULL;
+    registered_ws_channels_ = NULL;
 
     Erase();
 }

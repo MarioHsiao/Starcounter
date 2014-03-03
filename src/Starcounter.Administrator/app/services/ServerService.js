@@ -28,8 +28,6 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
      */
     this.getServerSettings = function (successCallback, errorCallback) {
 
-        $log.info("Retriving server settings");
-
         var errorHeader = "Failed to retrive server settings";
         var uri = "/api/admin/servers/personal/settings";
 
@@ -62,28 +60,29 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
         }, function (response) {
 
             // Error
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
@@ -137,8 +136,6 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
      */
     this.verifyServerSettings = function (settings, successCallback, errorCallback) {
 
-        $log.info("Verifying server settings");
-
         var errorHeader = "Failed to verify server settings";
         var job = { message: "Verifying server settings" };
         JobFactory.AddJob(job);
@@ -167,32 +164,33 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
         }, function (response) {
             // Error
             JobFactory.RemoveJob(job);
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 403) {
-                // 403 forbidden
-                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 403) {
+                    // 403 forbidden
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
@@ -210,8 +208,6 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
      */
     this.saveSettings = function (settings, successCallback, errorCallback) {
 
-        $log.info("Saving server settings");
-
         var errorHeader = "Failed to save server settings";
 
         var job = { message: "Saving server settings" };
@@ -220,8 +216,6 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
         $http.put('/api/admin/servers/personal/settings', settings).then(function (response) {
             // success handler
             JobFactory.RemoveJob(job);
-
-
 
             if (response.data.hasOwnProperty("errors") == true) {
                 var messageObjectList = [];
@@ -238,12 +232,15 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
             }
             else {
 
+                // TODO: There is not a proper error checking here.
+
                 var messageObject = null;
                 if (response.data.hasOwnProperty("message") == true) {
 
+                    $log.info("Server settings successfully saved");
+
                     messageObject = UtilsFactory.createMessage("success", response.data.message, null);
 
-                    //$scope.alerts.push({ type: 'success', msg: response.data.message });
                 }
 
 
@@ -258,37 +255,38 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
 
             // Error
             JobFactory.RemoveJob(job);
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 403) {
-                // 403 forbidden
-                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-            }
-                //else if (response.status == 422) {
-                //    // 422 Unprocessable Entity (WebDAV; RFC 4918)
-                //    // The request was well-formed but was unable to be followed due to semantic errors
-                //    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                //}
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 403) {
+                    // 403 forbidden
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                    //else if (response.status == 422) {
+                    //    // 422 Unprocessable Entity (WebDAV; RFC 4918)
+                    //    // The request was well-formed but was unable to be followed due to semantic errors
+                    //    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    //}
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 

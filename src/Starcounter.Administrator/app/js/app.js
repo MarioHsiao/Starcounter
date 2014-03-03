@@ -20,6 +20,11 @@ var adminModule = angular.module('scadmin', ['ngRoute','ui.bootstrap', 'ui.selec
         controller: 'DatabaseSettingsCtrl'
     });
 
+    $routeProvider.when('/databases/:dbName/executables/:name', {
+        templateUrl: '/app/partials/executable.html',
+        controller: 'ExecutableCtrl'
+    });
+
     $routeProvider.when('/executables', {
         templateUrl: '/app/partials/executables.html',
         controller: 'ExecutablesCtrl'

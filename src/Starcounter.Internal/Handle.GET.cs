@@ -10,6 +10,69 @@ namespace Starcounter {
     public partial class Handle {
 
         /// <summary>
+        /// Socket data receive event handler.
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="channel"></param>
+        /// <param name="handler"></param>
+        public static void Socket(UInt16 port, String channel, Action<Byte[], WebSocket> handler)
+        {
+            _REST.RegisterWsHandler(port, channel, handler);
+        }
+
+        /// <summary>
+        /// Socket data receive event handler.
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="channel"></param>
+        /// <param name="handler"></param>
+        public static void Socket(UInt16 port, String channel, Action<String, WebSocket> handler)
+        {
+            _REST.RegisterWsHandler(port, channel, handler);
+        }
+
+        /// <summary>
+        /// Handler on socket disconnect event.
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="channel"></param>
+        /// <param name="handler"></param>
+        public static void SocketDisconnect(UInt16 port,String channel, Action<UInt64, IAppsSession> handler)
+        {
+            _REST.RegisterWsDisconnectHandler(port, channel, handler);
+        }
+
+        /// <summary>
+        /// Socket data receive event handler.
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="handler"></param>
+        public static void Socket(String channel, Action<Byte[], WebSocket> handler)
+        {
+            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+        }
+
+        /// <summary>
+        /// Socket receive event handler.
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="handler"></param>
+        public static void Socket(String channel, Action<String, WebSocket> handler)
+        {
+            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+        }
+
+        /// <summary>
+        /// Handler on socket disconnect event.
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="handler"></param>
+        public static void SocketDisconnect(String channel, Action<UInt64, IAppsSession> handler)
+        {
+            _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+        }
+
+        /// <summary>
         /// Register a uri template (e.g. <c>/mypath</c>) to catch an
         /// incoming GET request on the default port.
         /// </summary>

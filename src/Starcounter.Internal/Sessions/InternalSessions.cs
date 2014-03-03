@@ -267,16 +267,6 @@ namespace Starcounter.Internal
         public ScSessionStruct session_struct_;
 
         /// <summary>
-        /// Socket number.
-        /// </summary>
-        public UInt32 socket_index_num_;
-
-        /// <summary>
-        /// Unique socket id for the gateway.
-        /// </summary>
-        public UInt64 socket_unique_id_;
-
-        /// <summary>
         /// Apps session object reference.
         /// </summary>
         public IAppsSession apps_session_int_;
@@ -292,9 +282,9 @@ namespace Starcounter.Internal
         public Boolean use_session_cookie_;
 
         /// <summary>
-        /// Custom user object attached to a session.
+        /// Specific saved user object ID.
         /// </summary>
-        public Object UserObject { get; set; }
+        public UInt64 CargoId { get; set; }
 
         /// <summary>
         /// Time when session was created.
@@ -404,7 +394,7 @@ namespace Starcounter.Internal
             // Removing linear index node.
             linear_index_node_ = null;
 
-            UserObject = null;
+            CargoId = 0;
         }
 
         // Session stored in ASCII bytes.
