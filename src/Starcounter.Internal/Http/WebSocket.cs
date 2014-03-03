@@ -6,6 +6,56 @@ using System.Text;
 
 namespace Starcounter
 {
+    internal class WebSocketInternal
+    {
+        /// <summary>
+        /// Unique socket id on gateway.
+        /// </summary>
+        internal UInt64 socketUniqueId_;
+
+        /// <summary>
+        /// User cargo id.
+        /// </summary>
+        internal UInt64 cargoId_;
+
+        /// <summary>
+        /// Socket index on gateway.
+        /// </summary>
+        internal UInt32 socketIndexNum_;
+
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        internal Byte gatewayWorkerId_;
+
+        internal WebSocketInternal()
+        {
+            Reset();
+        }
+
+        internal void Init(
+            UInt32 socketIndexNum,
+            UInt64 socketUniqueId,
+            Byte gatewayWorkerId,
+            UInt64 cargoId)
+        {
+            socketIndexNum_ = socketIndexNum;
+            socketUniqueId_ = socketUniqueId;
+            gatewayWorkerId_ = gatewayWorkerId;
+            cargoId_ = cargoId;
+        }
+
+        void Reset()
+        {
+            gatewayWorkerId_ = 255;
+        }
+
+        Boolean IsDead()
+        {
+            return (gatewayWorkerId_ == 255);
+        }
+    }
+
     public class WebSocket
     {
         internal enum WsHandlerType
@@ -31,20 +81,7 @@ namespace Starcounter
             set { Current_ = value; }
         }
 
-        /// <summary>
-        /// Socket index on gateway.
-        /// </summary>
-        internal UInt32 socketIndexNum_;
-
-        /// <summary>
-        /// Unique socket id on gateway.
-        /// </summary>
-        internal UInt64 socketUniqueId_;
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
-        internal Byte gatewayWorkerId_;
+        internal WebSocketInternal wsInternal_;
 
         /// <summary>
         /// Reference to existing session if any.
@@ -62,12 +99,7 @@ namespace Starcounter
         {
             get
             {
-                return WebSocketCargos[socketIndexNum_];
-            }
-
-            set
-            {
-                WebSocketCargos[socketIndexNum_] = value;
+                return wsInternal_.cargoId_;
             }
         }
 
@@ -191,12 +223,49 @@ namespace Starcounter
             get { return wsHandlerType_; }
         }
 
-        internal WebSocket(NetworkDataStream dataStream, String message, Byte[] bytes, WsHandlerType wsHandlerType)
+        internal static WebSocketInternal ObtainWebSocketInternal(NetworkDataStream dataStream)
         {
+            unsafe
+            {
+                // Obtaining socket index and unique id.
+                UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
+                UInt64 uniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
+
+                // Comparing with WebSocket internal belonging to that index.
+                WebSocketInternal ws = allWebSockets[StarcounterEnvironment.GetCurrentSchedulerId(), socketIndex];
+                if ((ws == null) || (ws.socketUniqueId_ != uniqueId))
+                    return null;
+
+                return ws;
+            }
+        }
+
+        internal WebSocket(WebSocketInternal wsInternal, NetworkDataStream dataStream, String message, Byte[] bytes, WsHandlerType wsHandlerType)
+        {
+            wsInternal_ = wsInternal;
             dataStream_ = dataStream;
             message_ = message;
             bytes_ = bytes;
             wsHandlerType_ = wsHandlerType;
+        }
+
+        internal void ConstructFromRequest(
+            UInt32 socketIndexNum,
+            UInt64 socketUniqueId,
+            Byte gatewayWorkerId,
+            UInt64 cargoId)
+        {
+            Byte schedId = StarcounterEnvironment.GetCurrentSchedulerId();
+            if (allWebSockets[schedId, socketIndexNum] == null)
+                allWebSockets[schedId, socketIndexNum] = new WebSocketInternal();
+
+            allWebSockets[schedId, socketIndexNum].Init(
+                socketIndexNum,
+                socketUniqueId,
+                gatewayWorkerId,
+                cargoId);
+
+            wsInternal_ = allWebSockets[schedId, socketIndexNum];
         }
 
         internal void ManualDestroy()
@@ -238,7 +307,8 @@ namespace Starcounter
                     throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
 
                 // Creating network data stream object.
-                data_stream = new NetworkDataStream(chunk_mem, chunk_index, ws.gatewayWorkerId_);
+                System.Diagnostics.Debug.Assert(ws.wsInternal_ != null);
+                data_stream = new NetworkDataStream(chunk_mem, chunk_index, ws.wsInternal_.gatewayWorkerId_);
             }
             else
             {
@@ -261,9 +331,9 @@ namespace Starcounter
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte)MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
 
-            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = ws.socketIndexNum_;
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.socketUniqueId_;
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = ws.gatewayWorkerId_;
+            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = ws.wsInternal_.socketIndexNum_;
+            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.wsInternal_.socketUniqueId_;
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = ws.wsInternal_.gatewayWorkerId_;
 
             (*(UInt16*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
@@ -277,9 +347,11 @@ namespace Starcounter
             data_stream.SendResponse(data, 0, dataLen, connFlags);
         }
 
-        /// <summary>
-        /// TODO: Fix permanent storage of WebSockets in shared memory.
-        /// </summary>
-        static UInt64[] WebSocketCargos = new UInt64[10000];
+        static WebSocketInternal[,] allWebSockets = null;
+
+        internal static void InitWebSocketsInternal()
+        {
+            allWebSockets = new WebSocketInternal[StarcounterEnvironment.SchedulerCount, 10000];
+        }
     }
 }

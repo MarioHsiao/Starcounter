@@ -517,9 +517,6 @@ namespace bmx
                     return err_code;
             }
 
-            // All handlers should be called at this point.
-            _SC_ASSERT(false);
-
             return 0;
         }
     };
