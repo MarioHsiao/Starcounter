@@ -21,16 +21,19 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
         /// </summary>
         static Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
 
+
         /// <summary>
         /// Unique identifier for WebSocket aka cargo ID.
         /// </summary>
         static UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
 
+
         /// <summary>
         /// List of Console Write Event's
         /// </summary>
         static ObservableCollection<ConsoleEventArgs> ConsoleWriteEvents = new ObservableCollection<ConsoleEventArgs>();
-        
+
+
         /// <summary>
         /// Registers the built in REST handlers.
         /// </summary>
@@ -38,18 +41,18 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
         /// <param name="defaultSystemHttpPort">The SQL access uses the system port</param>
         public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
 
-            // Handle Console WebSocket connections
+            // Handle Console connections (Socket and non socket)
             Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console", (Request req) => {
 
-                if (req.WebSocketUpgrade)
-                {
+                // Check if the request was a websocket request
+                if (req.WebSocketUpgrade) {
                     Byte schedId = ThreadData.Current.Scheduler.Id;
                     UniqueWebSocketIdentifier[schedId]++;
 
                     WebSocket ws = req.Upgrade("console", UniqueWebSocketIdentifier[schedId]);
                     WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
 
-                    ConsoleEvents consoleEvents = GetConsoleEvents(null);
+                    ConsoleEvents consoleEvents = GetConsoleEvents();
 
                     // Pushing current console buffer.
                     ws.Send(consoleEvents.ToJson());
@@ -57,17 +60,20 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                     return HandlerStatus.Handled;
                 }
 
+                // Get and return the console buffer
                 return ConsoleOuputRestHandler.GetConsoleResponse();
             });
 
+            // Socket channel disconnected event
             Handle.SocketDisconnect("console", (UInt64 cargoId, IAppsSession session) => {
                 Byte schedId = ThreadData.Current.Scheduler.Id;
                 if (WebSocketSessions[schedId].ContainsKey(cargoId))
                     WebSocketSessions[schedId].Remove(cargoId);
             });
 
+            // Socket incoming message event
             Handle.Socket("console", (String s, WebSocket ws) => {
-                // We don't use client messages.
+                // We don't use incoming client messages.
             });
 
             // Setup console handling and callbacks to sessions etc..
@@ -76,7 +82,8 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
 
         /// <summary>
-        /// 
+        /// Setup The console handling
+        /// Redirect the console output to a circular buffer with callback events
         /// </summary>
         /// <param name="WebSocketSessions"></param>
         private static void SetupConsoleHandling() {
@@ -98,7 +105,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
 
         /// <summary>
-        /// 
+        /// Event when a new console event has been made.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -109,18 +116,19 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
                 // New console event
                 // Send to listeners
-
                 DbSession dbSession = new DbSession();
 
-                for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
-                {
+                for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
                     Byte k = i;
 
                     dbSession.RunAsync(() => {
+
+                        // Collect and create console events
                         foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
 
                             ConsoleEvent consoleEvent = new ConsoleEvent();
-                            consoleEvent.id = consoleEventArg.Id;
+                            consoleEvent.databaseName = consoleEventArg.DatabaseName;
+                            consoleEvent.applicationName = consoleEventArg.ApplicationName;
                             consoleEvent.text = consoleEventArg.Text;
 
                             ConsoleEvents consoleEvents = new ConsoleEvents();
@@ -130,6 +138,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
                             Byte sched = k;
 
+                            // Send content to websocket listeners
                             foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched]) {
                                 ws.Value.Send(s);
                             }
@@ -137,17 +146,17 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                     }, i);
                 }
 
+                // Limith the console event list size
                 ObservableCollection<ConsoleEventArgs> list = sender as ObservableCollection<ConsoleEventArgs>;
                 while (list.Count > 2000) {
                     list.RemoveAt(0);
-
                 }
             }
         }
 
 
         /// <summary>
-        /// 
+        /// Event when a console.write has been made
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -158,23 +167,14 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private static Response GetConsoleResponse() {
-            return ConsoleOuputRestHandler.GetConsoleResponse(null);
-        }
-
-
-        /// <summary>
-        /// 
+        /// Retrive the current console buffer 
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        private static Response GetConsoleResponse(string id) {
+        private static Response GetConsoleResponse() {
 
             try {
-                return GetConsoleEvents(id);
+                return GetConsoleEvents();
             }
             catch (Exception e) {
 
@@ -187,15 +187,18 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
             }
         }
 
-        private static ConsoleEvents GetConsoleEvents(string id) {
+
+        /// <summary>
+        /// Get console events
+        /// </summary>
+        /// <returns>ConsoleEvents</returns>
+        private static ConsoleEvents GetConsoleEvents() {
             ConsoleEvents list = new ConsoleEvents();
 
             foreach (ConsoleEventArgs item in ConsoleWriteEvents) {
-
-                if (id != null && item.Id != id) continue;
-
                 ConsoleEvent consoleEvent = new ConsoleEvent();
-                consoleEvent.id = item.Id;
+                consoleEvent.databaseName = item.DatabaseName;
+                consoleEvent.applicationName = item.ApplicationName;
                 consoleEvent.text = item.Text;
                 list.Items.Add(consoleEvent);
             }
@@ -207,15 +210,17 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
 
     /// <summary>
-    /// 
+    /// Console Event
     /// </summary>
     internal class ConsoleEventArgs : EventArgs {
-        public string Id { get; private set; }
+        public string DatabaseName { get; private set; }
+        public string ApplicationName { get; private set; }
         public string Text { get; private set; }
 
-        public ConsoleEventArgs(string id, string text)
+        public ConsoleEventArgs(string databaseName, string applicationName, string text)
             : base() {
-            this.Id = id;
+            this.DatabaseName = databaseName;
+            this.ApplicationName = applicationName;
             this.Text = text;
         }
 
@@ -300,6 +305,14 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
             throw new NotImplementedException();
         }
 
+
+        /// <summary>
+        /// Read from buffer
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count) {
 
             lock (this) {
@@ -320,6 +333,12 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
         }
 
 
+        /// <summary>
+        /// Write to buffer and invoke event to listeners
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
         public override void Write(byte[] buffer, int offset, int count) {
 
             lock (this) {
@@ -334,10 +353,10 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                     }
                 }
 
-
                 // Invoke listeners
                 if (OnWrite != null) {
                     ConsoleEventArgs args = new ConsoleEventArgs(
+                        StarcounterEnvironment.DatabaseNameLower,
                         this.GetAppName(),
                         System.Text.Encoding.Default.GetString(buffer, offset, count));
 
