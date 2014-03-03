@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.JsonPatch.BuiltInRestHandlers;
 using SuperSocket.ClientEngine;
 using System;
 using System.Diagnostics;
@@ -128,13 +129,22 @@ namespace staradmin {
 
         void InvokeMessageCallback(byte[] data) {
             if (messageCallback != null) {
-                messageCallback(this, Encoding.UTF8.GetString(data));
+                UnpackAndInvokeMessageCallback(messageCallback, Encoding.UTF8.GetString(data));
             }
         }
 
         void InvokeMessageCallback(string message) {
             if (messageCallback != null) {
-                messageCallback(this, message);
+                UnpackAndInvokeMessageCallback(messageCallback, message);
+            }
+        }
+
+        void UnpackAndInvokeMessageCallback(Action<CodeHostConsole, string> callback, string content) {
+            var events = new ConsoleEvents();
+            events.PopulateFromJson(content);
+
+            foreach (ConsoleEvents.ItemsElementJson item in events.Items) {
+                callback(this, item.text);
             }
         }
     }
