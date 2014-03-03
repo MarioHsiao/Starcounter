@@ -63,6 +63,7 @@ namespace staradmin {
                 
                 while (!closeIssued) {
                     socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console", DatabaseName.ToLowerInvariant()));
+                    socket.EnableAutoSendPing = false;
                     
                     EventHandler opened = (s, e) => {
                         x.Set();
