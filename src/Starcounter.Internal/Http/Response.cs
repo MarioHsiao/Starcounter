@@ -164,47 +164,47 @@ namespace Starcounter
         /// <summary>
         /// The plain response size bytes.
         /// </summary>
-        private int responseSizeBytes_ = 0;
+        internal int responseSizeBytes_ = 0;
 
         /// <summary>
         /// Response body offset.
         /// </summary>
-        public int responseBodyOffset_ = 0;
+        internal int responseBodyOffset_ = 0;
 
         /// <summary>
         /// Response body size.
         /// </summary>
-        public int responseBodySizeBytes_ = 0;
+        internal int responseBodySizeBytes_ = 0;
 
         /// <summary>
         /// The URIs.
         /// </summary>
-        public List<string> Uris = new List<string>();
+        internal List<string> Uris = new List<string>();
 
         /// <summary>
         /// The file path
         /// </summary>
-        public string FilePath;
+        internal string FilePath;
 
         /// <summary>
         /// The file directory
         /// </summary>
-        public string FileDirectory;
+        internal string FileDirectory;
 
         /// <summary>
         /// The file name
         /// </summary>
-        public string FileName;
+        internal string FileName;
 
         /// <summary>
         /// The file exists
         /// </summary>
-        public bool FileExists;
+        internal bool FileExists;
 
         /// <summary>
         /// The file modified
         /// </summary>
-        public DateTime FileModified;
+        internal DateTime FileModified;
 
         /// <summary>
         /// As the session id is a fixed size field, the session id of a cached
@@ -212,7 +212,7 @@ namespace Starcounter
         /// </summary>
         /// <value>The session id offset.</value>
         /// <remarks>The offset is only valid in the plain response.</remarks>
-        public int SessionIdOffset { get; set; }
+        internal int SessionIdOffset { get; set; }
 
         /// <summary>
         /// Indicates if user wants to send custom response.
@@ -239,29 +239,14 @@ namespace Starcounter
         HandlerStatusInternal handlingStatus_;
 
         /// <summary>
-        /// WebSocket close codes.
-        /// </summary>
-        public enum WebSocketCloseCodes
-        {
-            WS_CLOSE_NORMAL = 1000,
-            WS_CLOSE_GOING_DOWN = 1001,
-            WS_CLOSE_PROTOCOL_ERROR = 1002,
-            WS_CLOSE_CANT_ACCEPT_DATA = 1003,
-            WS_CLOSE_WRONG_DATA_TYPE = 1007,
-            WS_CLOSE_POLICY_VIOLATED = 1008,
-            WS_CLOSE_MESSAGE_TOO_BIG = 1009,
-            WS_CLOSE_UNEXPECTED_CONDITION = 1011
-        }
-
-        /// <summary>
         /// Special connection flags.
         /// </summary>
         public enum ConnectionFlags
         {
             NoSpecialFlags = 0,
-            DisconnectAfterSend = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
-            DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS_DISCONNECT,
-            GracefullyCloseConnection = MixedCodeConstants.HTTP_WS_FLAGS_GRACEFULLY_CLOSE
+            DisconnectAfterSend = MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
+            DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_DISCONNECT,
+            GracefullyCloseConnection = MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_GRACEFULLY_CLOSE
         }
 
         /// <summary>
@@ -272,7 +257,7 @@ namespace Starcounter
         /// <summary>
         /// Indicates if corresponding connection should be shut down.
         /// </summary>
-        public ConnectionFlags ConnFlags
+        internal ConnectionFlags ConnFlags
         {
             get
             {
@@ -293,8 +278,6 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 if (0 == statusCode_)
                 {
                     unsafe
@@ -311,8 +294,6 @@ namespace Starcounter
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
                 statusCode_ = value;
             }
@@ -327,8 +308,6 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 if (null == statusDescription_)
                 {
                     unsafe
@@ -345,8 +324,6 @@ namespace Starcounter
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
                 statusDescription_ = value;
             }
@@ -359,15 +336,11 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 return this[HttpHeadersUtf8.ContentTypeHeader];
             }
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
                 this[HttpHeadersUtf8.ContentTypeHeader] = value;
             }
@@ -382,15 +355,11 @@ namespace Starcounter
         {
 			get
             {
-                EnsureHttpV1IsUsed();
-
                 return cacheControl_;
             }
 
 			set
             {
-                EnsureHttpV1IsUsed();
-
 				customFields_ = true;
 				cacheControl_ = value;
 			}
@@ -403,15 +372,11 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 return this[HttpHeadersUtf8.ContentEncodingHeader];
             }
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
                 this[HttpHeadersUtf8.ContentEncodingHeader] = value;
             }
@@ -592,13 +557,6 @@ namespace Starcounter
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal void SetCustomFieldsFlag() {
-			customFields_ = true;
-		}
-
         /// <summary>
         /// Resets all custom fields.
         /// </summary>
@@ -675,52 +633,28 @@ namespace Starcounter
             }
         }
 
-        // Type of network protocol.
-        MixedCodeConstants.NetworkProtocolType protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
+        Byte[] WsHandshakeResp_;
 
         /// <summary>
-        /// Returns protocol type.
+        /// Saved WebSocket handshake response.
         /// </summary>
-        public MixedCodeConstants.NetworkProtocolType ProtocolType
-        {
-            get { return protocol_type_; }
-
-            internal set { protocol_type_ = value; }
-        }
-
-        /// <summary>
-        /// Ensures that only HTTP v1 protocol is allowed.
-        /// </summary>
-        void EnsureHttpV1IsUsed()
-        {
-            switch (protocol_type_)
+        internal Byte[] WsHandshakeResp {
+            get
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                return;
+                return WsHandshakeResp_;
             }
 
-            throw new NotSupportedException("Network protocol does not support this method call.");
-        }
-
-        /// <summary>
-        /// Ensures that only HTTP v1 or WebSockets protocol is allowed.
-        /// </summary>
-        void EnsureHttpV1OrWebSocketsIsUsed()
-        {
-            switch (protocol_type_)
+            set
             {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
-                return;
+                customFields_ = true;
+                WsHandshakeResp_ = value;
             }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
 		/// <summary>
 		/// Constructs Response from fields that are set.
 		/// </summary>
-		public void ConstructFromFields() {
+		internal void ConstructFromFields() {
 
 			// Checking if we have a custom response.
 			if (!customFields_)
@@ -729,190 +663,140 @@ namespace Starcounter
             byte[] buf;
             Utf8Writer writer;
 
-            EnsureHttpV1OrWebSocketsIsUsed();
+			byte[] bytes = bodyBytes_;
+			if (_Hypermedia != null) {
+				var mimetype = request_.PreferredMimeType;
+				try {
+					bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
+				} catch (UnsupportedMimeTypeException exc) {
+					throw new Exception(
+						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", request_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
+				}
 
-            switch (protocol_type_) {
+				if (bytes == null) {
+					// The preferred requested mime type was not supported, try to see if there are
+					// other options.
+					IEnumerator<MimeType> secondaryChoices = request_.PreferredMimeTypes;
+					secondaryChoices.MoveNext(); // The first one is already accounted for
+					while (bytes == null && secondaryChoices.MoveNext()) {
+						mimetype = secondaryChoices.Current;
+						bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					}
+					if (bytes == null) {
+						// None of the requested mime types were supported.
+						// We will have to respond with a "Not Acceptable" message.
+						statusCode_ = 406;
+					} else {
+						this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
+					}
+				}
+				// We have our precious bytes. Let's wrap them up in a response.
+			}
 
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1: {
-
-			        byte[] bytes = bodyBytes_;
-			        if (_Hypermedia != null) {
-				        var mimetype = request_.PreferredMimeType;
-				        try {
-					        bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
-					        this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
-				        } catch (UnsupportedMimeTypeException exc) {
-					        throw new Exception(
-						        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", request_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
-				        }
-
-				        if (bytes == null) {
-					        // The preferred requested mime type was not supported, try to see if there are
-					        // other options.
-					        IEnumerator<MimeType> secondaryChoices = request_.PreferredMimeTypes;
-					        secondaryChoices.MoveNext(); // The first one is already accounted for
-					        while (bytes == null && secondaryChoices.MoveNext()) {
-						        mimetype = secondaryChoices.Current;
-						        bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
-					        }
-					        if (bytes == null) {
-						        // None of the requested mime types were supported.
-						        // We will have to respond with a "Not Acceptable" message.
-						        statusCode_ = 406;
-					        } else {
-						        this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
-					        }
-				        }
-				        // We have our precious bytes. Let's wrap them up in a response.
-			        }
-
-			        buf = new byte[EstimateNeededSize(bytes)];
+			buf = new byte[EstimateNeededSize(bytes)];
 			
-			        unsafe {
-				        fixed (byte* p = buf) {
-                            writer = new Utf8Writer(p);
-					        writer.Write(HttpHeadersUtf8.Http11);
+			unsafe {
+				fixed (byte* p = buf) {
+                    writer = new Utf8Writer(p);
 
-					        if (statusCode_ > 0) {
-						        writer.Write(statusCode_);
-						        writer.Write(' ');
+                    if (WsHandshakeResp_ == null) {
+
+					    writer.Write(HttpHeadersUtf8.Http11);
+
+					    if (statusCode_ > 0) {
+						    writer.Write(statusCode_);
+						    writer.Write(' ');
 						
-						        // Checking if Status Description is set.
-						        if (null != statusDescription_)
-							        writer.Write(statusDescription_);
-						        else 
-							        writer.Write("OK");
+						    // Checking if Status Description is set.
+						    if (null != statusDescription_)
+							    writer.Write(statusDescription_);
+						    else 
+							    writer.Write("OK");
 
-						        writer.Write(HttpHeadersUtf8.CRLF);
-					        } else {
-						        // Checking if Status Description is set.
-						        if (null != statusDescription_) {
-							        writer.Write(200);
-							        writer.Write(' ');
-							        writer.Write(statusDescription_);
-						        } else
-							        writer.Write("200 OK");
-						        writer.Write(HttpHeadersUtf8.CRLF);
-					        }
-
-					        writer.Write(HttpHeadersUtf8.ServerSc);
-
-					        // TODO:
-					        // What should the default cache control be?
-					        if (null != cacheControl_) {
-						        writer.Write(HttpHeadersUtf8.CacheControlStart);
-						        writer.Write(cacheControl_);
-						        writer.Write(HttpHeadersUtf8.CRLF);
-					        } else
-						        writer.Write(HttpHeadersUtf8.CacheControlNoCache);
-
-                            if (null != customHeaderFields_) {
-
-                                foreach (KeyValuePair<string, string> h in customHeaderFields_) {
-                                    writer.Write(h.Key);
-                                    writer.Write(": ");
-                                    writer.Write(h.Value);
-                                    writer.Write(HttpHeadersUtf8.CRLF);
-                                }
-                            }
-
-                            // Checking if session is defined.
-                            if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
-                                if (AppsSession.use_session_cookie_) {
-                                    writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
-                                    writer.Write(AppsSession.ToAsciiString());
-                                } else {
-                                    writer.Write(HttpHeadersUtf8.SetCookieLocationStart);
-                                    writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-                                    writer.Write(AppsSession.ToAsciiString());
-                                }
-                                writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
-                            }
-
-                            // Checking the cookies list.
-                            if (null != _Cookies) {
-                                foreach (String c in _Cookies) {
-                                    writer.Write(HttpHeadersUtf8.SetCookieStart);
-                                    writer.Write(c);
-                                    writer.Write(HttpHeadersUtf8.CRLF);
-                                }
-                            }
-
-					        if (null != bodyString_) {
-						        if (null != bytes)
-							        throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
-
-						        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						        writer.Write(writer.GetByteCount(bodyString_));
-						        writer.Write(HttpHeadersUtf8.CRLFCRLF);	
-
-						        writer.Write(bodyString_);
-					        } else if (null != bytes) {
-						        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						        writer.Write(bytes.Length);
-						        writer.Write(HttpHeadersUtf8.CRLFCRLF);
-						        writer.Write(bytes);
-					        } else {
-						        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						        writer.Write('0');
-						        writer.Write(HttpHeadersUtf8.CRLFCRLF);
-					        }
-				        }
-			        }
-
-                    // Finally setting the response bytes.
-                    responseBytes_ = buf;
-                    responseSizeBytes_ = writer.Written;
-
-                    break;
-                }
-
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS: {
-
-                    if (statusCode_ > 0) {
-                        unsafe {
-                            buf = new byte[EstimateNeededSize(bodyBytes_)];
-
-                            Int32 written = 0;
-
-                            fixed (byte* p = buf) {
-                                // Setting close flag.
-                                ConnFlags = ConnectionFlags.GracefullyCloseConnection;
-
-                                // Writing error code in network order.
-                                *(Int16*)p = IPAddress.HostToNetworkOrder((Int16)statusCode_);
-                                written += 2;
-
-                                // Writing status description if any.
-                                if (null != statusDescription_) {
-                                    writer = new Utf8Writer(p + 2);
-
-                                    writer.Write(statusDescription_);
-                                    written += writer.Written;
-                                }
-                            }
-
-                            // Finally setting the response bytes.
-                            responseBytes_ = buf;
-                            responseSizeBytes_ = written;
-                        }
+						    writer.Write(HttpHeadersUtf8.CRLF);
+					    } else {
+						    // Checking if Status Description is set.
+						    if (null != statusDescription_) {
+							    writer.Write(200);
+							    writer.Write(' ');
+							    writer.Write(statusDescription_);
+						    } else
+							    writer.Write("200 OK");
+						    writer.Write(HttpHeadersUtf8.CRLF);
+					    }
                     } else {
+                        writer.Write(WsHandshakeResp_);
+                    }
 
-                        if (null != bodyBytes_) {
-                            responseBytes_ = bodyBytes_;
-                            responseSizeBytes_ = responseBytes_.Length;
-                        } else if (null != bodyString_) {
-                            responseBytes_ = UTF8Encoding.UTF8.GetBytes(bodyString_);
-                            responseSizeBytes_ = responseBytes_.Length;
+					writer.Write(HttpHeadersUtf8.ServerSc);
+
+					// TODO:
+					// What should the default cache control be?
+					if (null != cacheControl_) {
+						writer.Write(HttpHeadersUtf8.CacheControlStart);
+						writer.Write(cacheControl_);
+						writer.Write(HttpHeadersUtf8.CRLF);
+					} else
+						writer.Write(HttpHeadersUtf8.CacheControlNoCache);
+
+                    if (null != customHeaderFields_) {
+
+                        foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                            writer.Write(h.Key);
+                            writer.Write(": ");
+                            writer.Write(h.Value);
+                            writer.Write(HttpHeadersUtf8.CRLF);
                         }
                     }
-                    
-                    break;
-                }
 
-                default:
-                    throw ErrorCode.ToException(Error.SCERRUNKNOWNNETWORKPROTOCOL);
-            }
+                    // Checking if session is defined.
+                    if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
+                        if (AppsSession.use_session_cookie_) {
+                            writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
+                            writer.Write(AppsSession.ToAsciiString());
+                        } else {
+                            writer.Write(HttpHeadersUtf8.SetCookieLocationStart);
+                            writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+                            writer.Write(AppsSession.ToAsciiString());
+                        }
+                        writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+                    }
+
+                    // Checking the cookies list.
+                    if (null != _Cookies) {
+                        foreach (String c in _Cookies) {
+                            writer.Write(HttpHeadersUtf8.SetCookieStart);
+                            writer.Write(c);
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        }
+                    }
+
+					if (null != bodyString_) {
+						if (null != bytes)
+							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
+
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write(writer.GetByteCount(bodyString_));
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);	
+
+						writer.Write(bodyString_);
+					} else if (null != bytes) {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write(bytes.Length);
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
+						writer.Write(bytes);
+					} else {
+						writer.Write(HttpHeadersUtf8.ContentLengthStart);
+						writer.Write('0');
+						writer.Write(HttpHeadersUtf8.CRLFCRLF);
+					}
+				}
+			}
+
+            // Finally setting the response bytes.
+            responseBytes_ = buf;
+            responseSizeBytes_ = writer.Written;
 
 			customFields_ = false;
 		}
@@ -921,6 +805,10 @@ namespace Starcounter
 			// The sizes of the strings here is not accurate. We are mainly interested in making sure
 			// that we will never have a buffer overrun so we take the length of the strings * 2.
 			int size = HttpHeadersUtf8.TotalByteSize;
+
+            if (WsHandshakeResp_ != null) {
+                size += WsHandshakeResp_.Length;
+            }
 
 			if (statusDescription_ != null)
 				size += statusDescription_.Length;
@@ -933,6 +821,7 @@ namespace Starcounter
 
 			if (null != cacheControl_)
 				size += cacheControl_.Length;
+
 			if (null != AppsSession) {
 				size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
 				size += AppsSession.ToAsciiString().Length;
@@ -953,8 +842,6 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 UInt16 statusCode = StatusCode;
                 return (statusCode >= 200) && (statusCode <= 226);
             }
@@ -1000,8 +887,6 @@ namespace Starcounter
             }
             set
             {
-                EnsureHttpV1IsUsed();
-
                 responseBodySizeBytes_ = value;
             }
         }
@@ -1038,7 +923,7 @@ namespace Starcounter
         /// <summary>
         /// Getting full response length.
         /// </summary>
-        public Int32 ResponseSizeBytes
+        internal Int32 ResponseSizeBytes
         {
             get
             {
@@ -1068,7 +953,7 @@ namespace Starcounter
         /// <summary>
         /// Indicates if this Response is internally constructed from Apps.
         /// </summary>
-        Boolean is_internal_response_ = false;
+        Boolean isInternalResponse_ = false;
 
         /// <summary>
         /// Parses internal HTTP response.
@@ -1082,9 +967,9 @@ namespace Starcounter
         /// <summary>
         /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
-        public Response(MixedCodeConstants.NetworkProtocolType protocol_type = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
+        public Response()
         {
-            protocol_type_ = protocol_type;
+            
         }
 
         /// <summary>
@@ -1165,7 +1050,7 @@ namespace Starcounter
                 Destroy();
 
                 // Indicating that we internally constructing Response.
-                is_internal_response_ = true;
+                isInternalResponse_ = true;
 
                 // Allocating space just for response structure.
                 http_response_struct_ = (HttpResponseInternal*) BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
@@ -1204,8 +1089,6 @@ namespace Starcounter
 
                 // NOTE: No internal sessions support.
                 session_ = null;
-
-                protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
             }
         }
 
@@ -1223,9 +1106,6 @@ namespace Starcounter
 
                 // Setting corresponding HTTP request.
                 request_ = httpRequest;
-
-                if (request_ != null)
-                    protocol_type_ = request_.ProtocolType;
             }
         }
 
@@ -1249,7 +1129,7 @@ namespace Starcounter
 
                 // Checking if we have constructed this Response
                 // internally in Apps or externally in Gateway.
-                if (is_internal_response_)
+                if (isInternalResponse_)
                 {
                     // Checking if have not allocated anything yet.
                     if (null != http_response_struct_->socket_data_)
@@ -1265,18 +1145,6 @@ namespace Starcounter
 
                 http_response_struct_ = null;
                 session_ = null;
-            }
-        }
-
-        /// <summary>
-        /// Checks if request is destroyed already.
-        /// </summary>
-        /// <returns>True if destroyed.</returns>
-        public bool IsDestroyed()
-        {
-            unsafe
-            {
-                return (http_response_struct_ == null) && (session_ == null);
             }
         }
 
@@ -1335,8 +1203,6 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 unsafe
                 {
                     // Concatenating headers from dictionary.
@@ -1378,8 +1244,6 @@ namespace Starcounter
         /// <param name="sizeBytes">The size bytes.</param>
         public UInt32 GetHeadersLength()
         {
-            EnsureHttpV1IsUsed();
-
             unsafe
             {
                 if (null == http_response_struct_)
@@ -1514,8 +1378,6 @@ namespace Starcounter
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            EnsureHttpV1IsUsed();
-
             unsafe
             {
                 if (null == http_response_struct_)
@@ -1569,8 +1431,6 @@ namespace Starcounter
         {
             get 
             {
-                EnsureHttpV1IsUsed();
-
                 if (null == customHeaderFields_)
                 {
                     String headersString = headersString_;
@@ -1591,8 +1451,6 @@ namespace Starcounter
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customHeaderFields_ = value;
             }
         }
@@ -1606,8 +1464,6 @@ namespace Starcounter
         {
             get
             {
-                EnsureHttpV1IsUsed();
-
                 if (null != customHeaderFields_)
                 {
                     if (customHeaderFields_.ContainsKey(name))
@@ -1627,8 +1483,6 @@ namespace Starcounter
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
 
                 if (null == customHeaderFields_)

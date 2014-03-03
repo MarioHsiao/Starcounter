@@ -755,6 +755,9 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             return 0;
         }
 
+        // Calculating total request size.
+        http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
+
         // Checking if we have WebSockets upgrade.
         if (g_ts_http_parser_.upgrade)
         {
@@ -816,9 +819,6 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                 http_request_.http_method_ = bmx::HTTP_METHODS::OTHER_METHOD;
                 break;
             }
-
-            // Calculating total request size.
-            http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
 
             // Checking if we have any content at all.
             if (http_request_.content_len_bytes_ > 0)

@@ -276,16 +276,7 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
 {
     // Verifying that session is correct and sending delete session to database.
-    if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
-    {
-        ScSessionStruct s = g_gateway.GetGlobalSessionCopy(socket_info_index_);
-
-        WorkerDbInterface *db = gw->GetWorkerDb(GetDestDbIndex());
-
-        // Pushing chunk to that database.
-        if (NULL != db)
-            return (db->PushSessionDestroy(s.linear_index_, s.random_salt_, s.scheduler_id_));
-    }
+    WsProto::SendDisconnectToDb(gw, this);
 
     return 0;
 }

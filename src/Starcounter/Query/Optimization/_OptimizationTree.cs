@@ -35,7 +35,7 @@ internal class OptimizationTree
     /// <summary>
     /// The estimated execution cost for the execution represented by this optimization tree.
     /// </summary>
-    Int32 estimatedCost;
+    Double estimatedCost;
 
     /// <summary>
     /// Constructor.
@@ -62,7 +62,7 @@ internal class OptimizationTree
         }
     }
 
-    internal Int32 EstimatedCost
+    internal Double EstimatedCost
     {
         get
         {

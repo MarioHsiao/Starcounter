@@ -28,11 +28,8 @@ uint32_t DefaultHttpEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t
 
 uint32_t DefaultHttpEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id)
 {
-    // Asserting correct number of bytes received.
-    GW_ASSERT(buf_len == kHttpEchoResponseLength);
-
     // Obtaining original echo number.
-    *echo_id = hex_string_to_uint64(buf + kHttpEchoResponseInsertPoint, kHttpEchoContentLength);
+    *echo_id = hex_string_to_uint64(buf + buf_len - kHttpEchoContentLength, kHttpEchoContentLength);
 
     return 0;
 }

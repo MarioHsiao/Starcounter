@@ -9,6 +9,7 @@ EXPORTS
 	sc_bmx_register_subport_handler
     sc_bmx_unregister_subport
 	sc_bmx_register_uri_handler
+    sc_bmx_register_ws_handler
     sc_bmx_unregister_uri
 	sc_bmx_unregister_handler
     sc_bmx_obtain_new_chunk

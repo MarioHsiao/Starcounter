@@ -53,10 +53,6 @@ namespace Starcounter {
             return Response.FromStatusCode(code);
         }
 
-        public static implicit operator Response(Response.WebSocketCloseCodes wsCode) {
-            return new Response() { StatusCode = (UInt16) wsCode };
-        }
-
         public static implicit operator Response(HandlerStatus status) {
             return new Response() { HandlingStatus = (HandlerStatusInternal) status };
         }

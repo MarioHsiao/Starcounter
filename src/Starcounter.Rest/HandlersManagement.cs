@@ -23,6 +23,7 @@ namespace Starcounter.Rest
         public Byte[] native_param_types_ = null;
         public Byte num_params_ = 0;
         public UInt16 handler_id_ = UInt16.MaxValue;
+        public UInt64 handler_info_ = UInt64.MaxValue;
         public UInt16 port_ = 0;
         public MixedCodeConstants.NetworkProtocolType proto_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
         public HTTP_METHODS http_method_ = HTTP_METHODS.GET;
@@ -190,12 +191,14 @@ namespace Starcounter.Rest
             Byte[] native_param_types,
             Type param_message_type,
             UInt16 handler_id,
+            UInt64 handler_info,
             MixedCodeConstants.NetworkProtocolType protoType)
         {
             uri_info_.original_uri_info_ = original_uri_info;
             uri_info_.processed_uri_info_ = processed_uri_info;
             uri_info_.param_message_type_ = param_message_type;
             uri_info_.handler_id_ = handler_id;
+            uri_info_.handler_info_ = handler_info;
             uri_info_.port_ = port;
             uri_info_.native_param_types_ = native_param_types;
             uri_info_.num_params_ = (Byte)native_param_types.Length;
@@ -218,7 +221,7 @@ namespace Starcounter.Rest
     /// </summary>
     internal class HandlersManagement
     {
-        UserHandlerInfo[] allUserHandlers_ = null;
+        UserHandlerInfo[] allUriHandlers_ = null;
 
         List<PortUris> portUris_ = new List<PortUris>();
 
@@ -238,19 +241,9 @@ namespace Starcounter.Rest
             return HandleInternalRequest_ != null;
         }
 
-        public delegate void RegisterUriHandlerNative(
-            UInt16 port,
-            String originalUriInfo,
-            String processedUriInfo,
-            Byte[] paramTypes,
-            UriCallbackDelegate uriCallback,
-            MixedCodeConstants.NetworkProtocolType protoType,
-            out UInt16 handlerId,
-            out Int32 maxNumEntries);
-
-        RegisterUriHandlerNative RegisterUriHandlerNative_;
-        public UriCallbackDelegate OnHttpMessageRoot_;
+        public static UriCallbackDelegate OnHttpMessageRoot_;
         static Action<string, ushort> OnHandlerRegistered_;
+        bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
 
         public static void SetHandlerRegisteredCallback(Action<string, ushort> callback)
         {
@@ -258,11 +251,11 @@ namespace Starcounter.Rest
         }
 
         public void SetRegisterUriHandlerNew(
-            RegisterUriHandlerNative registerUriHandlerNew,
+            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
             UriCallbackDelegate onHttpMessageRoot,
             HandleInternalRequestDelegate handleInternalRequest)
         {
-            RegisterUriHandlerNative_ = registerUriHandlerNew;
+            HttpOuterHandler_ = httpOuterHandler;
             OnHttpMessageRoot_ = onHttpMessageRoot;
             HandleInternalRequest_ = handleInternalRequest;
         }
@@ -300,7 +293,7 @@ namespace Starcounter.Rest
 
         public UserHandlerInfo[] AllUserHandlerInfos
         {
-            get { return allUserHandlers_; }
+            get { return allUriHandlers_; }
         }
 
         public Int32 NumRegisteredHandlers
@@ -308,7 +301,7 @@ namespace Starcounter.Rest
             get { return maxNumHandlersEntries_; }
         }
 
-        public const Int32 MAX_USER_HANDLERS = 256;
+        public const Int32 MAX_URI_HANDLERS = 1024;
 
         internal void Reset()
         {
@@ -316,9 +309,9 @@ namespace Starcounter.Rest
 
             portUris_ = new List<PortUris>();
 
-            allUserHandlers_ = new UserHandlerInfo[MAX_USER_HANDLERS];
-            for (Int32 i = 0; i < MAX_USER_HANDLERS; i++)
-                allUserHandlers_[i] = new UserHandlerInfo();
+            allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
+            for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
+                allUriHandlers_[i] = new UserHandlerInfo();
         }
 
         public HandlersManagement()
@@ -326,16 +319,16 @@ namespace Starcounter.Rest
             // Initializing port uris.
             PortUris.GlobalInit();
 
-            allUserHandlers_ = new UserHandlerInfo[MAX_USER_HANDLERS];
-            for (Int32 i = 0; i < MAX_USER_HANDLERS; i++)
-                allUserHandlers_[i] = new UserHandlerInfo();
+            allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
+            for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
+                allUriHandlers_[i] = new UserHandlerInfo();
         }
 
         public void RunDelegate(Request r, out Response resp)
         {
             unsafe
             {
-                UserHandlerInfo uhi = allUserHandlers_[r.HandlerId];
+                UserHandlerInfo uhi = allUriHandlers_[r.ManagedHandlerId];
 
                 // Checking if we had custom type user Message argument.
                 if (uhi.ArgMessageType != null)
@@ -345,41 +338,60 @@ namespace Starcounter.Rest
                 r.PortNumber = uhi.UriInfo.port_;
                 r.MethodEnum = uhi.UriInfo.http_method_;
 
-                IntPtr methodAndUri;
-
-                // Checking what underlying protocol we have.
-                switch (r.ProtocolType)
-                {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                        methodAndUri = r.GetRawMethodAndUri();
-                    break;
-
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
-                        methodAndUri = IntPtr.Zero;
-                    break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException("Trying to call handler for unsupported protocol: " + r.ProtocolType);
-                }
-
                 // Calling user delegate.
                 resp = uhi.RunUserDelegates(
                     r,
-                    methodAndUri,
+                    r.GetRawMethodAndUri(),
                     r.GetRawParametersInfo());
+            }
+        }
+
+        void UnregisterUriHandler(UInt16 port, String originalUriInfo)
+        {
+            // Ensuring correct multi-threading handlers creation.
+            lock (allUriHandlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+            }
+        }
+
+        void RegisterUriHandlerNative(
+            UInt16 port,
+            String originalUriInfo,
+            String processedUriInfo,
+            Byte[] paramTypes,
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
+        {
+            Byte numParams = 0;
+            if (null != paramTypes)
+                numParams = (Byte)paramTypes.Length;
+
+            unsafe
+            {
+                fixed (Byte* pp = paramTypes)
+                {
+                    UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
+                        port,
+                        originalUriInfo,
+                        processedUriInfo,
+                        pp,
+                        numParams,
+                        HttpOuterHandler_,
+                        managedHandlerIndex,
+                        out handlerInfo);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                }
             }
         }
 
         /// <summary>
         /// Registers URI handler on a specific port.
         /// </summary>
-        /// <param name="port"></param>
-        /// <param name="originalUriInfo"></param>
-        /// <param name="processedUriInfo"></param>
-        /// <param name="nativeParamTypes"></param>
-        /// <param name="messageType"></param>
-        /// <param name="wrappedDelegate"></param>
-        /// <param name="protoType"></param>
         public void RegisterUriHandler(
             UInt16 port,
             String originalUriInfo,
@@ -389,15 +401,15 @@ namespace Starcounter.Rest
             Func<Request, IntPtr, IntPtr, Response> wrappedDelegate,
             MixedCodeConstants.NetworkProtocolType protoType)
         {
-            lock (allUserHandlers_)
+            lock (allUriHandlers_)
             {
                 UInt16 handlerId = 0;
 
                 // Checking if URI already registered.
                 for (Int32 i = 0; i < maxNumHandlersEntries_; i++)
                 {
-                    if ((0 == String.Compare(allUserHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
-                        (port == allUserHandlers_[i].Port))
+                    if ((0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
+                        (port == allUriHandlers_[i].Port))
                     {
                         if (ResponsesMergerRoutine_ == null)
                         {
@@ -405,35 +417,34 @@ namespace Starcounter.Rest
                         }
                         else
                         {
-                            allUserHandlers_[i].AddDelegateToList(wrappedDelegate);
+                            allUriHandlers_[i].AddDelegateToList(wrappedDelegate);
                             return;
                         }
                     }
                 }
 
+                // TODO: Search for unoccupied slot.
+                handlerId = (UInt16)maxNumHandlersEntries_;
+                maxNumHandlersEntries_++;
+
+                UInt64 handlerInfo = UInt64.MaxValue;
+
                 // Registering the outer native handler (if any).
-                if (RegisterUriHandlerNative_ != null)
+                if (HttpOuterHandler_ != null)
                 {
-                    RegisterUriHandlerNative_(
+                    RegisterUriHandlerNative(
                         port,
                         originalUriInfo,
                         processedUriInfo,
                         nativeParamTypes,
-                        OnHttpMessageRoot_,
-                        protoType,
-                        out handlerId,
-                        out maxNumHandlersEntries_);
-                }
-                else
-                {
-                    handlerId = (UInt16)maxNumHandlersEntries_;
-                    maxNumHandlersEntries_++;
+                        handlerId,
+                        out handlerInfo);
                 }
 
-                if (handlerId >= MAX_USER_HANDLERS)
+                if (handlerId >= MAX_URI_HANDLERS)
                     throw new ArgumentOutOfRangeException("Too many user handlers registered!");
 
-                allUserHandlers_[handlerId].Init(
+                allUriHandlers_[handlerId].Init(
                     port,
                     originalUriInfo,
                     processedUriInfo,
@@ -441,6 +452,7 @@ namespace Starcounter.Rest
                     nativeParamTypes,
                     messageType,
                     handlerId,
+                    handlerInfo,
                     protoType);
 
                 if (OnHandlerRegistered_ != null)
@@ -459,15 +471,15 @@ namespace Starcounter.Rest
         /// <param name="methodAndUri"></param>
         public void UnregisterUriHandler(String methodAndUri)
         {
-            lock (allUserHandlers_)
+            lock (allUriHandlers_)
             {
-                for (Int32 i = 0; i < MAX_USER_HANDLERS; i++)
+                for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 {
-                    if (allUserHandlers_[i].ProcessedUriInfo == methodAndUri)
+                    if (allUriHandlers_[i].ProcessedUriInfo == methodAndUri)
                     {
                         // TODO: Call underlying BMX handler destructor.
 
-                        allUserHandlers_[i].Destroy();
+                        allUriHandlers_[i].Destroy();
                         maxNumHandlersEntries_--;
 
                         throw new NotImplementedException();

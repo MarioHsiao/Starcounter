@@ -62,16 +62,16 @@ internal class SortNode : IOptimizationNode
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Not supported.");
     }
 
-    public Int32 EstimateCost()
+    public Double EstimateCost()
     {
-        Int32 subCost = subNode.EstimateCost();
-        return (subCost * Convert.ToInt32(Math.Log(Convert.ToDouble(subCost), 2)));
+        Double subCost = subNode.EstimateCost();
+        return (subCost * Math.Log(Convert.ToDouble(subCost), 2));
     }
 
     internal IOptimizationNode CreateSortOptimizedTopNode(List<Int32> extentOrder, ExtentNode[] nodesByExtentNumber)
     {
         // Save the estimated cost before sort optimization.
-        Int32 estimatedCostBefore = EstimateCost();
+        Double estimatedCostBefore = EstimateCost();
         // Investigate if the input extent order is compatible with the sort extent order required by the sort specification.
         List<Int32> sortExtentOrder = sortSpec.CreateSortExtentOrder();
         if (sortExtentOrder == null)
@@ -111,7 +111,7 @@ internal class SortNode : IOptimizationNode
             nodesByExtentNumber[sortExtentOrder[i]].SortIndexInfo = indexUseInfoList[i];
         }
         // Save the estimated cost after sort optimization.
-        Int32 estimatedCostAfter = subNode.EstimateCost();
+        Double estimatedCostAfter = subNode.EstimateCost();
         // If the sort optimized node tree is preferable then return a node tree without sort node.
         if (estimatedCostAfter < estimatedCostBefore)
         {
