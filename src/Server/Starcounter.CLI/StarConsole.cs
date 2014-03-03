@@ -40,7 +40,7 @@ namespace Starcounter.CLI {
 
             public PulseTimer(StarConsole c) {
                 console = c;
-                dots = ".";
+                dots = " .";
                 timer = new Timer(OnPulseProgressTimer, c, 0, interval);
             }
 
@@ -57,8 +57,13 @@ namespace Starcounter.CLI {
                             lastWrite = latest.Value;
                         } else {
                             if (lastWrite == latest.Value) {
-                                dots = dots.Length == 3 ? "." : dots + ".";
-                                console.ExclusiveWrite(console.currentJob, dots, console.ProgressColor);
+                                dots = dots.Length == 4 ? " ." : dots + ".";
+                                console.ExclusiveWrite(
+                                    console.currentJob,
+                                    console.currentTask, 
+                                    dots,
+                                    console.ProgressColor
+                                );
                             }
                             lastWrite = console.latestUpdate.Value;
                         }
@@ -175,25 +180,38 @@ namespace Starcounter.CLI {
 
         StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
             lock (writeLock) {
-                ExclusiveWrite(job, taskOrResult, color);
+                ExclusiveWrite(job, taskOrResult, color: color);
                 return this;
             }
         }
 
-        StarConsole ExclusiveWrite(string job, string taskOrResult, ConsoleColor color) {
+        StarConsole ExclusiveWrite(string job, string taskOrResult, string pulse = null, ConsoleColor? color = null) {
+            var col = color.HasValue ? color.Value : ProgressColor;
             int left, top;
+            var output = new StringBuilder();
 
             left = Console.CursorLeft;
             top = Console.CursorTop;
+            pulse = pulse ?? string.Empty;
+
+            output.Append(job);
+            if (!string.IsNullOrEmpty(taskOrResult)) {
+                output.Append(" (");
+                output.Append(taskOrResult);
+            }
+            output.Append(pulse);
+            if (!string.IsNullOrEmpty(taskOrResult)) {
+                output.Append(")");
+            }
 
             try {
                 latestUpdate = DateTime.Now;
 
-                var content = string.Format("{0} {1}", currentJob, taskOrResult);
+                var content = output.ToString();
                 content = content.PadRight(Console.WindowWidth);
 
                 Console.SetCursorPosition(cursorLeft, cursorTop);
-                ConsoleUtil.ToConsoleWithColor(content, color);
+                ConsoleUtil.ToConsoleWithColor(content, col);
 
             } finally {
                 Console.SetCursorPosition(left, top);
