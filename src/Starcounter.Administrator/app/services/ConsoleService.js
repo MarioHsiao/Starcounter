@@ -41,7 +41,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
                     var consoleEvent = response.data.Items[i];
 
                     if (filter) {
-                        if (filter == consoleEvent.id) {
+                        if (filter == consoleEvent.applicationName) {
                             text = text + consoleEvent.text;
                         }
 
@@ -226,7 +226,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
                             if (self.listeners[x].databaseName == databaseName) {
                                 if (self.listeners[x].filter) {
-                                    if (self.listeners[x].filter == consoleEvent.id) {
+                                    if (self.listeners[x].filter == consoleEvent.applicationName) {
                                         self.listeners[x].onEvent(consoleEvent.text);
                                     }
                                 }
