@@ -1,5 +1,4 @@
-﻿using Starcounter.Server.Rest.Representations.JSON;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,19 +9,18 @@ namespace Starcounter.Tools.Service {
     /// <summary>
     /// 
     /// </summary>
-    public class ExecutableMessageEventArgs : EventArgs {
+    public class Executable {
 
         /// <summary>
-        /// Message Header
+        /// Application name
         /// </summary>
-        public string Header;
-
+        public string Name;
 
         /// <summary>
-        /// Message Content
+        /// Application listening ports
+        /// This can be empty
         /// </summary>
-        public string Content;
-
+        public IList<int> Ports;
     }
 
 }

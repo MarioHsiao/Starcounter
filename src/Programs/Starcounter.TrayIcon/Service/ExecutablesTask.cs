@@ -16,8 +16,8 @@ namespace Starcounter.Tools.Service.Task {
         /// 
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="executablesArgs"></param>
-        public static void Execute(StarcounterWatcher service, out ExecutablesEventArgs executablesArgs) {
+        /// <param name="executables"></param>
+        public static void Execute(StarcounterWatcher service, out Executables executables) {
 
             string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/executables");
 
@@ -42,8 +42,8 @@ namespace Starcounter.Tools.Service.Task {
             //          },
             //          "RuntimeInfo": {
             //             "LoadPath": "\\relative\\path\\to\\weaved\\server\\foo.exe",
-            //                "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
-            //                "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
+            //             "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
+            //             "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
             //          }            
             //      }
             //  ]
@@ -52,38 +52,16 @@ namespace Starcounter.Tools.Service.Task {
 
             if (response.IsSuccessStatusCode) {
 
-                //List<Executable> executables = new List<Executable>();
-
                 try {
-                    //dynamic incomingJson = DynamicJson.Parse(response.Body);
-                    //bool bValid = incomingJson.IsDefined("Executables");
-                    //if (bValid) {
+                    executables = new Executables();
+                    executables.PopulateFromJson(response.Body);
+                    
+                    //executablesArgs = new ExecutablesEventArgs() { Executables = executables };
 
-                        Executables executables = new Executables();
-                        executables.PopulateFromJson(response.Body);
-                        executablesArgs = new ExecutablesEventArgs() { Executables = executables };
-
-                        //foreach (Engine.ExecutablesJson.ExecutingElementJson application in incomingJson.Executables) {
-                        //}
-
-                        //// TODO: Try to use JSON directly
-                        //foreach (var item in incomingJson.Executables) {
-                        //    Executable executable = new Executable();
-                        //    executable.Name = item.Name;
-                        //    executable.Path = item.Path;
-                        //    executable.Uri = item.Uri;
-                        //    executable.RuntimeInfo.Started = item.RuntimeInfo.Started;          //"ISO-8601, e.g. 2013-04-25T06.24:32"
-                        //    executable.RuntimeInfo.LastRestart = item.RuntimeInfo.LastRestart;  //"ISO-8601, e.g. 2013-04-25T06.24:32"
-                        //    executables.Add(executable);
-                        //}
-                    //}
                 }
                 catch (Exception e) {
                     throw new Exception(e.ToString());
                 }
-
-                //executablesArgs = new ExecutablesEventArgs() { Executables = executables };
-
             }
             else {
                 throw new TaskCanceledException();

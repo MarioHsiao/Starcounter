@@ -14,7 +14,7 @@ namespace Starcounter.Tools.Service {
         /// <summary>
         /// 
         /// </summary>
-        public bool Connected { get; set; }
+        public bool Running { get; set; }
 
 
         /// <summary>
