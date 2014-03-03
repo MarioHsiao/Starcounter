@@ -60,13 +60,11 @@ namespace staradmin {
         void DoOpen() {
             opening = Task.Run(() => {
                 var x = new AutoResetEvent(false);
-                var handshake = new byte[1] { 0 };
-
+                
                 while (!closeIssued) {
                     socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console", DatabaseName.ToLowerInvariant()));
                     
                     EventHandler opened = (s, e) => {
-                        socket.Send(handshake, 0, handshake.Length);
                         x.Set();
                     };
                     EventHandler<ErrorEventArgs> errored = (s, e) => {
