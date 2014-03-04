@@ -13,9 +13,9 @@ namespace Starcounter.Tools.Service {
     public class ExecutablesEventArgs : EventArgs {
 
         /// <summary>
-        /// 
+        /// List of Started executables
         /// </summary>
-        public Executables Executables { get; set; }
+        public IList<Executable> Items = new List<Executable>();
 
     }
 

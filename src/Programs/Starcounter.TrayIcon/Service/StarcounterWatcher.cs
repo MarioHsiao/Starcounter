@@ -98,7 +98,7 @@ namespace Starcounter.Tools.Service {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public delegate void ExecutablesStartedEventHandler(object sender, ExecutableMessageEventArgs e);
+        public delegate void ExecutablesStartedEventHandler(object sender, ExecutablesEventArgs e);
 
 
         /// <summary>
@@ -155,8 +155,9 @@ namespace Starcounter.Tools.Service {
 
             // Send current status
             StatusEventArgs statusArgs = new StatusEventArgs();
-            statusArgs.Connected = ServerServiceProcess.IsOnline();
+            statusArgs.Running = ServerServiceProcess.IsOnline();
             OnStatusChanged(statusArgs);
+
         }
 
 
@@ -196,12 +197,15 @@ namespace Starcounter.Tools.Service {
                 }
 
                 if (modeFlag) {
+
+                    // Get starcounter server status
                     StatusEventArgs statusEventArgs;
                     StatusTask.Execute(this, out statusEventArgs);
 
+                    // Report starcounter server status
                     worker.ReportProgress(0, statusEventArgs);
 
-                    if (statusEventArgs.Connected) {
+                    if (statusEventArgs.Running) {
                         // Switch to polling Executables
                         modeFlag = false;
                         continue;
@@ -209,10 +213,12 @@ namespace Starcounter.Tools.Service {
                 }
                 else {
 
+                    // Starcounter server is running
+                    // Get Executables
                     try {
-                        ExecutablesEventArgs executablesArgs;
-                        ExecutablesTask.Execute(this, out executablesArgs);
-                        worker.ReportProgress(0, executablesArgs);
+                        Executables executables;
+                        ExecutablesTask.Execute(this, out executables);
+                        worker.ReportProgress(0, executables);
                     }
                     catch (TaskCanceledException) {
                         // Switch to polling the service status
@@ -237,9 +243,9 @@ namespace Starcounter.Tools.Service {
                 // Status changed
                 OnStatusChanged(e.UserState as StatusEventArgs);
             }
-            else if (e.UserState is ExecutablesEventArgs) {
+            else if (e.UserState is Executables) {
                 // Got Executable list
-                OnExecutablesList(e.UserState as ExecutablesEventArgs);
+                OnExecutablesList(e.UserState as Executables);
             }
         }
 
@@ -263,42 +269,43 @@ namespace Starcounter.Tools.Service {
                 if (e.Result is StatusEventArgs) {
                     OnStatusChanged(e.Result as StatusEventArgs);
                 }
-                else if (e.Result is ExecutablesEventArgs) {
-                    OnExecutablesList(e.Result as ExecutablesEventArgs);
+                else if (e.Result is Executables) {
+                    OnExecutablesList(e.Result as Executables);
                 }
             }
         }
 
 
-        /// <summary>
-        /// Starcounter service status changed
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnStatusChanged(StatusEventArgs e) {
-            if (StatusChanged != null) {
-                StatusChanged(this, e);
-            }
-        }
-
 
         /// <summary>
         /// Got a list of running Executables
         /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnExecutablesList(ExecutablesEventArgs e) {
+        /// <param name="executables"></param>
+        protected virtual void OnExecutablesList(Executables executables) {
 
-            this.InvokeEventForStartedExecutables(e.Executables.Items);
+            // Got a list of running executables
+            ExecutablesEventArgs startedExecutablesArgs;
+
+            this.GetStartedExecutables(executables.Items, out startedExecutablesArgs);
+
+            if (startedExecutablesArgs.Items.Count > 0) {
+                this.ProcessExecutableStats(startedExecutablesArgs);
+            }
 
         }
 
 
         /// <summary>
-        /// Invoke an event for newly started executables
+        /// Get started executables
+        /// Filter out the started executables
         /// </summary>
         /// <param name="executables"></param>
-        private void InvokeEventForStartedExecutables(Arr<Executables.ItemsElementJson> executables) {
+        /// <param name="startedExecutablesArgs"></param>
+        private void GetStartedExecutables(Arr<Executables.ItemsElementJson> executables, out ExecutablesEventArgs startedExecutablesArgs) {
 
             DateTime lastCheck = DateTime.MinValue;
+            startedExecutablesArgs = new ExecutablesEventArgs();
+
 
             foreach (Executables.ItemsElementJson executable in executables) {
 
@@ -315,12 +322,10 @@ namespace Starcounter.Tools.Service {
                     }
 
                     if (ExecutablesStarted != null) {
-                        // Create message and invoke event
-                        ExecutableMessageEventArgs message = new ExecutableMessageEventArgs();
-                        message.Header = "Starcounter Executable Started";
-                        // TODO: Add the port(s) that the executable is listening to.
-                        message.Content = string.Format("Your starcounter application {0} is now running", executable.Name); ;
-                        ExecutablesStarted(this, message);
+
+                        Executable startedExecutable = new Executable();
+                        startedExecutable.Name = executable.Name;
+                        startedExecutablesArgs.Items.Add(startedExecutable);
                     }
                 }
 
@@ -329,11 +334,85 @@ namespace Starcounter.Tools.Service {
             if (lastCheck != DateTime.MinValue) {
                 this.LatestExectuableStarted = lastCheck;
             }
+
         }
 
 
         #endregion
 
+        #region Gatewaystats task
+
+
+        /// <summary>
+        /// Proccess Executables
+        /// Add port(s) information to each started started executable
+        /// </summary>
+        /// <param name="executablesArgs">Started Executables</param>
+        private void ProcessExecutableStats(ExecutablesEventArgs executablesArgs) {
+
+            BackgroundWorker bgWorker = new BackgroundWorker();
+            bgWorker.DoWork += new DoWorkEventHandler(GatewayBackgroundWorker);
+            bgWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(OnGatewayBackgroundWorkerCompleted);
+            bgWorker.RunWorkerAsync(executablesArgs);
+        }
+
+
+        /// <summary>
+        /// Retrive executables stats (gwstats)
+        /// Port(s)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GatewayBackgroundWorker(object sender, DoWorkEventArgs e) {
+
+            Dictionary<string, IList<int>> executablesStats;
+            ExecutablesEventArgs executablesArgs = e.Argument as ExecutablesEventArgs;
+
+            // Get Gateway stats for all running executables
+            GatewayTask.Execute(this, out executablesStats);
+
+            // Create a list with application name and it's listening ports
+            foreach (Executable item in executablesArgs.Items) {
+
+                if (executablesStats.ContainsKey(item.Name)) {
+                    // Add this to our result list
+                    item.Ports = executablesStats[item.Name];
+                }
+                else {
+                    item.Ports = new List<int>();
+                }
+            }
+
+            e.Result = executablesArgs;
+
+        }
+
+        /// <summary>
+        /// Event when retriving the gateway stats is done 
+        /// (with or without errors)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnGatewayBackgroundWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
+
+            if ((e.Cancelled == true)) {
+                // Canceled
+            }
+            else if (!(e.Error == null)) {
+                // Error
+                OnError(new ErrorEventArgs() { ErrorMessage = e.Error.Message });
+            }
+            else {
+                // Done
+                if (ExecutablesStarted != null) {
+                    // Invoke listeners with the list
+                    ExecutablesStarted(this, e.Result as ExecutablesEventArgs);
+                }
+            }
+
+        }
+
+        #endregion
 
         #region Shutdown Task
 
@@ -344,7 +423,7 @@ namespace Starcounter.Tools.Service {
         public void Shutdown() {
 
             BackgroundWorker bgWorker = new BackgroundWorker();
-            bgWorker.DoWork += new DoWorkEventHandler(ShutdownBackgroundWorkerWork);
+            bgWorker.DoWork += new DoWorkEventHandler(ShutdownBackgroundWorker);
             bgWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(OnShutdownBackgroundWorkerCompleted);
             bgWorker.RunWorkerAsync();
         }
@@ -355,7 +434,7 @@ namespace Starcounter.Tools.Service {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ShutdownBackgroundWorkerWork(object sender, DoWorkEventArgs e) {
+        private void ShutdownBackgroundWorker(object sender, DoWorkEventArgs e) {
             ShutdownTask.Execute(this);
         }
 
@@ -382,6 +461,17 @@ namespace Starcounter.Tools.Service {
 
 
         #endregion
+
+
+        /// <summary>
+        /// Invoke Starcounter service status changed
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnStatusChanged(StatusEventArgs e) {
+            if (StatusChanged != null) {
+                StatusChanged(this, e);
+            }
+        }
 
 
         /// <summary>

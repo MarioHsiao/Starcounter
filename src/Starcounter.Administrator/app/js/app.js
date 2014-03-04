@@ -3,7 +3,7 @@
  * Starcounter Administrator module
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['ngRoute','ui.bootstrap', 'ui.select2', 'uiHandsontable', 'ui', 'ui.config'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.select2', 'uiHandsontable', 'ui', 'ui.config'], function ($routeProvider) {
 
     $routeProvider.when('/databases', {
         templateUrl: '/app/partials/databases.html',
@@ -68,10 +68,10 @@ var adminModule = angular.module('scadmin', ['ngRoute','ui.bootstrap', 'ui.selec
         templateUrl: '/app/partials/ServerSettings.html',
         controller: 'ServerSettingsCtrl'
     });
-    
-    $routeProvider.otherwise({ redirectTo: '/databases' });
 
- 
+    $routeProvider.otherwise({ redirectTo: '/executables' });
+
+
 
 
 }).value('ui.config', {
@@ -88,8 +88,12 @@ var adminModule = angular.module('scadmin', ['ngRoute','ui.bootstrap', 'ui.selec
  * Navbar Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', 'NoticeFactory', function ($scope, $rootScope, $location, NoticeFactory) {
+adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, HostModelService) {
 
+    $scope.model = {
+        databases: HostModelService.databases,
+        executables: HostModelService.executables
+    };
 
     $scope.newVersion = null;
 
@@ -103,11 +107,28 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 
     // Make selected nav pile to be selected 'active'
     $scope.getClass = function (path) {
-        if ($location.path().substr(0, path.length) == path) {
-            return true
+
+        var re = new RegExp(path);
+        var locationStr = $location.path();
+        if (locationStr.match(re)) {
+            return true;
         } else {
             return false;
         }
+
+        //var res = path.match($location.path());
+
+        //if (res != null) {
+
+        //    $log.debug(res);
+        //}
+
+        //return res;
+        //if ($location.path().substr(0, path.length) == path) {
+        //    return true
+        //} else {
+        //    return false;
+        //}
     }
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
@@ -116,7 +137,14 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
     });
 
 
-   
+    // Init
+    // Refresh host model
+    HostModelService.refreshHostModel(function () {
+    }, function (messageObject) {
+        // Error
+        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    });
+
 
 }]);
 

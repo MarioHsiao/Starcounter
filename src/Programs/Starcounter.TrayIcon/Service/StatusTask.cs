@@ -31,11 +31,11 @@ namespace Starcounter.Tools.Service.Task {
                     throw new Exception(e.ToString());
                 }
 
-                statusEventArgs = new StatusEventArgs() { Connected = true, InteractiveMode = interactiveMode };
+                statusEventArgs = new StatusEventArgs() { Running = true, InteractiveMode = interactiveMode };
 
             }
             else {
-                statusEventArgs = new StatusEventArgs() { Connected = false };
+                statusEventArgs = new StatusEventArgs() { Running = false };
             }
         }
 

@@ -1,18 +1,4 @@
-﻿/*body { padding-top: 45px; }*/
-
-
-/*#spanExeBox {
-    display: inline-block;
-    padding: 7px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    border: 1px solid #d4d4d4;
-    -webkit-border-radius: 6px;
-    -moz-border-radius: 6px;
-    border-radius: 6px;
-}*/
-
-/* APP/DATABASE STATUS */
+﻿/* APP/DATABASE STATUS */
 
 .Running {
     color: #46a546;
@@ -91,8 +77,6 @@
 }
 
 
-
-
 .toplinks, navbar-inner {
     padding-top: 5px;
     padding-right: 20px;
@@ -113,10 +97,9 @@
 }
 
 
-    .toplinks .nav-pills {
-        margin-bottom: 5px;
-    }
-
+.toplinks .nav-pills {
+    margin-bottom: 5px;
+}
 
 
 .fix-word-wrap-table {
@@ -129,10 +112,11 @@
 }
 
 
-<!-- Executable box handling -->
+/* Executable box handling */
 
 #executableIconList {
     list-style-type: none;
+    margin-left:0px;
 }
 
 
@@ -145,7 +129,7 @@
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     border-radius: 6px;
-    padding:0px 20px 10px 10px;
+    padding:0px 10px 10px 10px;
 }
 
 
@@ -159,12 +143,11 @@
 }
 
 
-
-
-<!-- Database box handling -->
+/* Database box handling */
 
 #databaseIconList {
     list-style-type: none;
+    margin-left:0px;
 }
 
 
@@ -177,7 +160,7 @@
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     border-radius: 6px;
-    padding:0px 20px 10px 10px;
+    padding:0px 10px 10px 10px;
 }
 
 
@@ -190,3 +173,10 @@
     font-family: "Courier New", Courier, monospace;
 }
 
+
+.workspace {
+    border: 1px solid #d4d4d4;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+}
