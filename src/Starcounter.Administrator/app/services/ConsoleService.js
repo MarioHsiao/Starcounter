@@ -26,7 +26,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
      * @param {successCallback} successCallback Success callback function
      * @param {errorCallback} errorCallback Error callback function
      */
-    this.refreshConsoleOuput = function (databaseName, filter, successCallback, errorCallback) {
+    this.getConsoleOuput = function (databaseName, filter, successCallback, errorCallback) {
 
         $log.info("Retriving console output for database " + databaseName);
 
