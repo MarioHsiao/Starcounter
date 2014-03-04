@@ -1,5 +1,5 @@
 ﻿//#define FASTEST_POSSIBLE
-//#define FILL_RANDOMLY
+#define FILL_RANDOMLY
 #if FASTEST_POSSIBLE
 #undef FILL_RANDOMLY
 #endif
@@ -183,19 +183,11 @@ namespace NodeTest
             resp_bytes_ = new Byte[num_echo_bytes_];
 
 #if FILL_RANDOMLY
-            // Generating random bytes.
-            worker_.Rand.NextBytes(body_bytes_);
-#else
-
-            // Filling bytes continuously between 0 and 9
-            Byte k = 0;
             for (Int32 i = 0; i < num_echo_bytes_; i++)
-            {
-                body_bytes_[i] = (Byte)('1' + k);
-                //k++;
-                //if (k >= 10) k = 0;
-            }
-
+                body_bytes_[i] = (Byte)(worker_.Rand.Next(48, 57));
+#else
+            for (Int32 i = 0; i < num_echo_bytes_; i++)
+                body_bytes_[i] = (Byte)('5');
 #endif
 
 #if !FASTEST_POSSIBLE
@@ -426,6 +418,22 @@ namespace NodeTest
                 Console.WriteLine(worker_.Id + ": echoed: " + num_echo_bytes_ + " bytes");
 
             Byte[] resp_body = resp.BodyBytes;
+
+            // Checking first characters.
+            for (Int32 i = 0; i < resp_body.Length; i++)
+            {
+                if (resp_body[i] != body_bytes_[i])
+                {
+                    Console.WriteLine("Completely wrong response (first 16 characters are different).");
+                    NodeTest.WorkersMonitor.FailTest();
+                    return false;
+                }
+
+                if (i >= 16)
+                    break;
+            }
+
+            // Checking if response length is correct.
             if (resp_body.Length != num_echo_bytes_)
             {
                 Console.WriteLine("Wrong echo size! Correct echo size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
