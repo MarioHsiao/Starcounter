@@ -15,13 +15,16 @@ namespace Starcounter.CLI {
     /// <para>
     /// An instance of this class represents an area of the console,
     /// normally a single line, where a hosting application write
-    /// output about an onging job, and intermediate tasks.
+    /// output about an onging job, and intermediate tasks. It's
+    /// comparable to the Visual Studio status bar in that output
+    /// that is written to it is written on a fixed surface and will
+    /// overwrite any previous content.
     /// </para>
     /// <para>
     /// This class is not thread-safe.
     /// </para>
     /// </remarks>
-    public sealed class StarConsole {
+    public sealed class StatusConsole {
         readonly int cursorLeft;
         readonly int cursorTop;
         readonly int lines;
@@ -33,12 +36,12 @@ namespace Starcounter.CLI {
         
         private class PulseTimer {
             const int interval = 750;
-            readonly StarConsole console;
+            readonly StatusConsole console;
             Timer timer;
             string dots;
             DateTime? lastWrite;
 
-            public PulseTimer(StarConsole c) {
+            public PulseTimer(StatusConsole c) {
                 console = c;
                 dots = " .";
                 timer = new Timer(OnPulseProgressTimer, c, 0, interval);
@@ -49,7 +52,7 @@ namespace Starcounter.CLI {
             }
 
             void OnPulseProgressTimer(object state) {
-                StarConsole console = (StarConsole)state;
+                StatusConsole console = (StatusConsole)state;
                 lock (console.writeLock) {
                     var latest = console.latestUpdate;
                     if (latest.HasValue) {
@@ -99,7 +102,7 @@ namespace Starcounter.CLI {
             set;
         }
 
-        private StarConsole(int lineCount, int left, int top) {
+        private StatusConsole(int lineCount, int left, int top) {
             lines = lineCount;
             cursorLeft = left;
             cursorTop = top;
@@ -116,9 +119,9 @@ namespace Starcounter.CLI {
         /// <param name="lines">The number of lines to reserve for the
         /// console being opened; single (1) line if not given.</param>
         /// <returns>A new console.</returns>
-        public static StarConsole Open(int lines = 1) {
+        public static StatusConsole Open(int lines = 1) {
             if (lines < 1) throw new ArgumentOutOfRangeException();
-            var console = new StarConsole(lines, Console.CursorLeft, Console.CursorTop);
+            var console = new StatusConsole(lines, Console.CursorLeft, Console.CursorTop);
             while (lines-- > 0) Console.WriteLine();
             return console;
         }
@@ -128,7 +131,7 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="job">The description of the job being started.</param>
         /// <returns>Reference to self.</returns>
-        public StarConsole StartNewJob(string job) {
+        public StatusConsole StartNewJob(string job) {
             if (string.IsNullOrEmpty(job)) {
                 throw new ArgumentNullException("job");
             } else if (currentJob != null) {
@@ -147,7 +150,7 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="result">An optional result to display.</param>
         /// <returns>Reference to self.</returns>
-        public StarConsole CompleteJob(string result = null) {
+        public StatusConsole CompleteJob(string result = null) {
             result = result ?? string.Empty;
             Write(currentJob, result, CompletionColor);
             timer.Dispose();
@@ -163,7 +166,7 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="task">The task that is starting.</param>
         /// <returns>Reference to self.</returns>
-        public StarConsole WriteTask(string task) {
+        public StatusConsole WriteTask(string task) {
             currentTask = task;
             return Write(currentJob, task, ProgressColor);
         }
@@ -173,19 +176,19 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="content">The application output content.</param>
         /// <returns>Reference to self.</returns>
-        public StarConsole WriteApplicationOutput(string content) {
+        public StatusConsole WriteApplicationOutput(string content) {
             ConsoleUtil.ToConsoleWithColor(content, ApplicationOutputColor);
             return this;
         }
 
-        StarConsole Write(string job, string taskOrResult, ConsoleColor color) {
+        StatusConsole Write(string job, string taskOrResult, ConsoleColor color) {
             lock (writeLock) {
                 ExclusiveWrite(job, taskOrResult, color: color);
                 return this;
             }
         }
 
-        StarConsole ExclusiveWrite(string job, string taskOrResult, string pulse = null, ConsoleColor? color = null) {
+        StatusConsole ExclusiveWrite(string job, string taskOrResult, string pulse = null, ConsoleColor? color = null) {
             var col = color.HasValue ? color.Value : ProgressColor;
             int left, top;
             var output = new StringBuilder();

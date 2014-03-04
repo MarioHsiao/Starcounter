@@ -56,7 +56,7 @@
     <Compile Include="ExeCLI.cs" />
     <Compile Include="SharedCLI.cs" />
     <Compile Include="Shell.cs" />
-    <Compile Include="StarConsole.cs" />
+    <Compile Include="StatusConsole.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
