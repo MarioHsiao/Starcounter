@@ -288,6 +288,11 @@ namespace Starcounter.Internal
                 allWsChannels_[id].DetermineAndRunHandler(ws);
                 return true;
             }
+            else
+            {
+                ws.Disconnect("WebSocket handlers on the requested channel are not registered. Closing the connection.",
+                    WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
+            }
 
             return false;
         }
