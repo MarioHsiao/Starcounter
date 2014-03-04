@@ -166,7 +166,6 @@ inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
     ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
-    uint16_t port_num = server_port->get_port_number();
     PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
     uint32_t channel_id = sd->GetWebSocketChannelId();
     return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);

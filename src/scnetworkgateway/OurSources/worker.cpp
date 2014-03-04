@@ -841,6 +841,12 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
 
+    // NOTE: The following is needed because the actual owner of the socket
+    // will not pass the CompareUniqueSocketId check on the next IO operation.
+    // Setting socket representer.
+    sd->set_socket_representer_flag();
+    sd->set_socket_diag_active_conn_flag();
+
     uint32_t err_code;
 
 #ifdef GW_PROFILER_ON
@@ -880,6 +886,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
         PrintLastError();
 #endif
+        GW_ASSERT(false);
 
         // Finish disconnect operation.
         // (e.g. returning to pool or starting accept).
@@ -925,17 +932,12 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 #endif
 
-    // Checking if this is a socket representer.
-    if (false == sd->get_socket_representer_flag())
-    {
-        // Returning chunks to pool.
-        ReturnSocketDataChunksToPool(sd);
-
-        return 0;
-    }
-
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
+
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Deleting session.
     sd->DeleteGlobalSessionOnDisconnect();

@@ -145,8 +145,31 @@ namespace Starcounter.Administrator.Server {
                 return new Response() { BodyBytes = req.BodyBytes };
             });
 
-            Handle.GET("/echotestws", (Request req) => {
-                return new Response() { BodyBytes = req.BodyBytes };
+            Handle.GET("/echotestws", (Request req) =>
+            {
+                if (req.WebSocketUpgrade)
+                {
+                    req.Upgrade("echotestws");
+
+                    return HandlerStatus.Handled;
+                }
+
+                return 513;
+            });
+
+            Handle.Socket("echotestws", (String s, WebSocket ws) =>
+            {
+                ws.Send(s);
+            });
+
+            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) =>
+            {
+                ws.Send(bs);
+            });
+
+            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) =>
+            {
+                // Do nothing!
             });
 
             #endregion

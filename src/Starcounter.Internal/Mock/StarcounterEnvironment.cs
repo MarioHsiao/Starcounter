@@ -38,16 +38,27 @@ namespace Starcounter.Internal
         [ThreadStatic]
         public static string AppName;
 
+        [ThreadStatic]
+        static Byte currentSchedulerId_ = 255;
+
         /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
-        public static Byte GetCurrentSchedulerId()
+        public static Byte CurrentSchedulerId
         {
-            unsafe
+            get
             {
-                Byte cpun;
-                cm3_get_cpun(null, &cpun);
-                return cpun;
+                if (255 == currentSchedulerId_)
+                {
+                    unsafe
+                    {
+                        Byte cpun = 0;
+                        cm3_get_cpun(null, &cpun);
+                        currentSchedulerId_ = cpun;
+                    }
+                }
+
+                return currentSchedulerId_;
             }
         }
 

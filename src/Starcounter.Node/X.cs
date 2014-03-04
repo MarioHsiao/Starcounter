@@ -130,7 +130,7 @@ namespace Starcounter
 
                 if (IsInSccode)
                 {
-                    Byte curSchedulerId = StarcounterEnvironment.GetCurrentSchedulerId();
+                    Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
                     // Getting Node dictionary from array by current scheduler index.
                     if (null == StaticThisNodeArray[curSchedulerId])
@@ -158,7 +158,7 @@ namespace Starcounter
 
             if (IsInSccode)
             {
-                Byte curSchedulerId = StarcounterEnvironment.GetCurrentSchedulerId();
+                Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
                 // Checking if node dictionary is already created.
                 if (null == StaticNodeDictArray[curSchedulerId])

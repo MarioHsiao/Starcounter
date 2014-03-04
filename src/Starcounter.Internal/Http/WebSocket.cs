@@ -232,7 +232,7 @@ namespace Starcounter
                 UInt64 uniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
                 // Comparing with WebSocket internal belonging to that index.
-                WebSocketInternal ws = allWebSockets[StarcounterEnvironment.GetCurrentSchedulerId(), socketIndex];
+                WebSocketInternal ws = allWebSockets[StarcounterEnvironment.CurrentSchedulerId, socketIndex];
                 if ((ws == null) || (ws.socketUniqueId_ != uniqueId))
                     return null;
 
@@ -255,7 +255,7 @@ namespace Starcounter
             Byte gatewayWorkerId,
             UInt64 cargoId)
         {
-            Byte schedId = StarcounterEnvironment.GetCurrentSchedulerId();
+            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
             if (allWebSockets[schedId, socketIndexNum] == null)
                 allWebSockets[schedId, socketIndexNum] = new WebSocketInternal();
 
@@ -351,7 +351,7 @@ namespace Starcounter
 
         internal static void InitWebSocketsInternal()
         {
-            allWebSockets = new WebSocketInternal[StarcounterEnvironment.SchedulerCount, 10000];
+            allWebSockets = new WebSocketInternal[StarcounterEnvironment.SchedulerCount, 30000];
         }
     }
 }
