@@ -424,7 +424,11 @@ namespace NodeTest
             {
                 if (resp_body[i] != body_bytes_[i])
                 {
-                    Console.WriteLine("Completely wrong response (first 16 characters are different).");
+                    Console.WriteLine("Completely wrong response (first 16 characters are different). Received length: " +
+                        resp_body.Length + " where correct: " + body_bytes_.Length);
+
+                    Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(resp_body));
+
                     NodeTest.WorkersMonitor.FailTest();
                     return false;
                 }
@@ -437,7 +441,8 @@ namespace NodeTest
             if (resp_body.Length != num_echo_bytes_)
             {
                 Console.WriteLine("Wrong echo size! Correct echo size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
-                Console.WriteLine("Incorrect response: " + resp.Body);
+                Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(resp_body));
+
                 NodeTest.WorkersMonitor.FailTest();
                 return false;
             }
