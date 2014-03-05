@@ -2,6 +2,9 @@
 using Starcounter.Advanced;
 using Starcounter.CommandLine;
 using Starcounter.Internal;
+using Starcounter.Hosting;
+using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Server;
 using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 using System;
@@ -9,8 +12,6 @@ using System.IO;
 using System.Net.Sockets;
 
 namespace Starcounter.CLI {
-    using Starcounter.Rest.ExtensionMethods;
-    using Starcounter.Server;
     using EngineReference = EngineCollection.EnginesElementJson;
     using ExecutableReference = Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
@@ -20,7 +21,13 @@ namespace Starcounter.CLI {
     /// Provides the principal entrypoint to use when a CLI client
     /// want to use the common way to start or stop an application.
     /// </summary>
-    public static class ExeCLI {
+    public class ExeCLI {
+        readonly ApplicationBase Application;
+
+        private ExeCLI(ApplicationBase application) {
+            Application = application;
+        }
+
         /// <summary>
         /// Starts or stops a given application.
         /// </summary>
