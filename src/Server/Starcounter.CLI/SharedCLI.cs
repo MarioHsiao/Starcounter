@@ -9,6 +9,7 @@ using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System.Net;
 using System.Diagnostics;
+using System.IO;
 
 namespace Starcounter.CLI {
 
@@ -417,6 +418,26 @@ namespace Starcounter.CLI {
                 database = SharedCLI.DefaultDatabaseName;
             }
             name = database;
+        }
+
+        /// <summary>
+        /// Resolves the name of the application from a given set of
+        /// command-line arguments, and/or defaults.
+        /// </summary>
+        /// <param name="args">Command-line arguments to consult.</param>
+        /// <param name="applicationFilePath">The full path to the logical application
+        /// file.</param>
+        /// <param name="name">The name of the application.</param>
+        public static void ResolveApplication(
+            ApplicationArguments args, 
+            string applicationFilePath,
+            out string name) {
+
+            string application;
+            if (!args.TryGetProperty(Option.AppName, out application)) {
+                application = Path.GetFileName(applicationFilePath);
+            }
+            name = application;
         }
 
         /// <summary>
