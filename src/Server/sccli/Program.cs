@@ -226,7 +226,8 @@ namespace star {
             // work executing.
 
             try {
-                ExeCLI.StartOrStop(filePath, appArgs, applicationFilePath, userArgs);
+                var cli = ApplicationCLICommand.Create(applicationFilePath, filePath, appArgs, userArgs);
+                cli.Execute();
             } finally {
                 // Delete the temporary executable if we have executed
                 // from a script being given.
@@ -274,6 +275,7 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0}=path", StarOption.ResourceDirectory), "Sets the default directory for static resources.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Async), "Returns before the entrypoint has finished.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.Detailed), "Instructs star.exe to show detailed output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
                 Console.WriteLine(formatting, string.Format("-hxx, -{0}", StarOption.HelpUnofficial), "Shows unofficial help about star.exe.");
