@@ -53,19 +53,23 @@ namespace Starcounter.Rest
         {
             unsafe
             {
-                original_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(original_uri_info_.Length);
+                original_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(original_uri_info_.Length + 1);
                 Byte[] temp = Encoding.ASCII.GetBytes(original_uri_info_);
                 fixed (Byte* t = temp)
                 {
                     BitsAndBytes.MemCpy((Byte*)original_uri_info_ascii_bytes_, t, (uint)original_uri_info_.Length);
                 }
 
-                processed_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(processed_uri_info_.Length);
+                ((Byte*)original_uri_info_ascii_bytes_)[original_uri_info_.Length] = 0;
+
+                processed_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(processed_uri_info_.Length + 1);
                 temp = Encoding.ASCII.GetBytes(processed_uri_info_);
                 fixed (Byte* t = temp)
                 {
                     BitsAndBytes.MemCpy((Byte*)processed_uri_info_ascii_bytes_, t, (uint)processed_uri_info_.Length);
                 }
+
+                ((Byte*)processed_uri_info_ascii_bytes_)[processed_uri_info_.Length] = 0;
             }
         }
 
@@ -73,10 +77,7 @@ namespace Starcounter.Rest
         {
             MixedCodeConstants.RegisteredUriManaged r = new MixedCodeConstants.RegisteredUriManaged();
 
-            r.original_uri_info_len_chars = (UInt32)original_uri_info_.Length;
             r.original_uri_info_string = original_uri_info_ascii_bytes_;
-
-            r.processed_uri_info_len_chars = (UInt32)processed_uri_info_.Length;
             r.processed_uri_info_string = processed_uri_info_ascii_bytes_;
 
             r.num_params = num_params_;
@@ -156,6 +157,19 @@ namespace Starcounter.Rest
         {
             get { return uri_info_.param_message_type_; }
             set { uri_info_.param_message_type_ = value; }
+        }
+
+        public String AppNames
+        {
+            get {
+                String combinedAppNames = "";
+                foreach (String a in app_names_)
+                    combinedAppNames += a + "-";
+
+                combinedAppNames.TrimEnd(new Char[] { '-' });
+
+                return combinedAppNames;
+            }
         }
 
         public String OriginalUriInfo
@@ -366,6 +380,7 @@ namespace Starcounter.Rest
 
         void RegisterUriHandlerNative(
             UInt16 port,
+            String appName,
             String originalUriInfo,
             String processedUriInfo,
             Byte[] paramTypes,
@@ -382,6 +397,7 @@ namespace Starcounter.Rest
                 {
                     UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
                         port,
+                        appName,
                         originalUriInfo,
                         processedUriInfo,
                         pp,
@@ -429,18 +445,6 @@ namespace Starcounter.Rest
 
                 UInt64 handlerInfo = UInt64.MaxValue;
 
-                // Registering the outer native handler (if any).
-                if (HttpOuterHandler_ != null)
-                {
-                    RegisterUriHandlerNative(
-                        port,
-                        originalUriInfo,
-                        processedUriInfo,
-                        nativeParamTypes,
-                        handlerId,
-                        out handlerInfo);
-                }
-
                 if (handlerId >= MAX_URI_HANDLERS)
                     throw new ArgumentOutOfRangeException("Too many user handlers registered!");
 
@@ -454,6 +458,22 @@ namespace Starcounter.Rest
                     handlerId,
                     handlerInfo,
                     protoType);
+
+                // Registering the outer native handler (if any).
+                if (HttpOuterHandler_ != null)
+                {
+                    RegisterUriHandlerNative(
+                        port,
+                        allUriHandlers_[handlerId].AppNames,
+                        originalUriInfo,
+                        processedUriInfo,
+                        nativeParamTypes,
+                        handlerId,
+                        out handlerInfo);
+                }
+
+                // Updating handler info from received value.
+                allUriHandlers_[handlerId].UriInfo.handler_info_ = handlerInfo;
 
                 if (OnHandlerRegistered_ != null)
                     OnHandlerRegistered_(originalUriInfo, port);

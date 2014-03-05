@@ -141,9 +141,10 @@ uint32_t HandlersList::PushRegisteredWsHandler(BmxData* bmx_data)
 
 // Registers port handler.
 uint32_t BmxData::RegisterPortHandler(
-    uint16_t port_num,
-    GENERIC_HANDLER_CALLBACK port_handler,
-    uint16_t managed_handler_index,
+    const uint16_t port_num,
+    const char* app_name,
+    const GENERIC_HANDLER_CALLBACK port_handler,
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
@@ -199,11 +200,10 @@ uint32_t BmxData::RegisterPortHandler(
         *phandler_info,
         managed_handler_index,
         port_num,
+        app_name,
         0,
         NULL,
-        0,
         NULL,
-        0,
         NULL,
         0,
         MixedCodeConstants::PROTOCOL_RAW_PORT);
@@ -225,10 +225,11 @@ uint32_t BmxData::RegisterPortHandler(
 
 // Registers sub-port handler.
 uint32_t BmxData::RegisterSubPortHandler(
-    uint16_t port,
-    BMX_SUBPORT_TYPE subport,
-    GENERIC_HANDLER_CALLBACK subport_handler, 
-    uint16_t managed_handler_index,
+    const uint16_t port,
+    const char* app_name,
+    const BMX_SUBPORT_TYPE subport,
+    const GENERIC_HANDLER_CALLBACK subport_handler,
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
@@ -288,11 +289,10 @@ uint32_t BmxData::RegisterSubPortHandler(
         *phandler_info,
         managed_handler_index,
         port,
+        app_name,
         subport,
         NULL,
-        0,
         NULL,
-        0,
         NULL,
         0,
         MixedCodeConstants::PROTOCOL_SUB_PORT);
@@ -314,13 +314,14 @@ uint32_t BmxData::RegisterSubPortHandler(
 
 // Registers URI handler.
 uint32_t BmxData::RegisterUriHandler(
-    uint16_t port,
-    char* original_uri_info,
-    char* processed_uri_info,
-    uint8_t* param_types,
-    int32_t num_params,
-    GENERIC_HANDLER_CALLBACK uri_handler, 
-    uint16_t managed_handler_index,
+    const uint16_t port,
+    const char* app_name,
+    const char* original_uri_info,
+    const char* processed_uri_info,
+    const uint8_t* param_types,
+    const int32_t num_params,
+    const GENERIC_HANDLER_CALLBACK uri_handler, 
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
@@ -387,11 +388,10 @@ uint32_t BmxData::RegisterUriHandler(
         *phandler_info,
         managed_handler_index,
         port,
+        app_name,
         0,
         original_uri_info,
-        original_uri_len_chars,
         processed_uri_info,
-        processed_uri_len_chars,
         param_types,
         num_params,
         starcounter::MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
@@ -413,11 +413,12 @@ uint32_t BmxData::RegisterUriHandler(
 
 // Registers WebSocket handler.
 uint32_t BmxData::RegisterWsHandler(
-    uint16_t port,
+    const uint16_t port,
+    const char* app_name,
     const char* channel_name,
-    uint32_t channel_id,
-    GENERIC_HANDLER_CALLBACK ws_handler, 
-    uint16_t managed_handler_index,
+    const uint32_t channel_id,
+    const GENERIC_HANDLER_CALLBACK ws_handler, 
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info)
 {
     // Checking number of handlers.
@@ -468,11 +469,10 @@ uint32_t BmxData::RegisterWsHandler(
         *phandler_info,
         managed_handler_index,
         port,
+        app_name,
         channel_id,
         channel_name,
-        channel_name_len_chars,
         NULL,
-        0,
         0,
         0,
         MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);

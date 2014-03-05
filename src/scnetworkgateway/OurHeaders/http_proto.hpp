@@ -69,22 +69,16 @@ public:
         return handler_lists_[0]->get_original_uri_info();
     }
 
-    // Getting URI length in characters.
-    uint32_t get_original_uri_info_len_chars()
-    {
-        return handler_lists_[0]->get_original_uri_info_len_chars();
-    }
-
     // Getting registered URI.
     char* get_processed_uri_info()
     {
         return handler_lists_[0]->get_processed_uri_info();
     }
 
-    // Getting URI length in characters.
-    uint32_t get_processed_uri_info_len_chars()
+    // Getting application name.
+    char* get_app_name()
     {
-        return handler_lists_[0]->get_processed_uri_info_len_chars();
+        return handler_lists_[0]->get_app_name();
     }
 
     // Constructor.
@@ -261,13 +255,8 @@ public:
             {
                 MixedCodeConstants::RegisteredUriManaged reg_uri;
 
-                // Getting original uri info.
                 reg_uri.original_uri_info_string = reg_uris_[i].get_original_uri_info();
-                reg_uri.original_uri_info_len_chars = reg_uris_[i].get_original_uri_info_len_chars();
-
-                // Getting processed uri info.
                 reg_uri.processed_uri_info_string = reg_uris_[i].get_processed_uri_info();
-                reg_uri.processed_uri_info_len_chars = reg_uris_[i].get_processed_uri_info_len_chars();
 
                 reg_uris_[i].WriteUserParameters(reg_uri.param_types, &reg_uri.num_params);
 
@@ -313,9 +302,8 @@ public:
     void PrintRegisteredUris(std::stringstream& stats_stream)
     {
         bool first = true;
-        int32_t num_entries = reg_uris_.get_num_entries();
 
-        for (int32_t i = 0; i < num_entries; i++)
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             if (!first) 
                 stats_stream << ",";
@@ -329,8 +317,7 @@ public:
             {
                 // Database handler.
                 stats_stream << '"' << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << '"';
-                // TODO: change this to correct application name when available.
-                stats_stream << ",\"application\":" << "\"dummyApp\""; 
+                stats_stream << ",\"application\":\"" << reg_uris_[i].get_app_name() << "\""; 
             }
             else
             {
