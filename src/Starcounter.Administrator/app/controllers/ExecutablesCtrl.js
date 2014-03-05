@@ -11,7 +11,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
     /**
      * Get Console output
-     * @param {executableName} Database name
+     * @param {object} executable Executable
      */
     $scope.btnGetConsoleOutput = function (executable) {
 
@@ -33,7 +33,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
     /**
      * Stop Executable
-     * @param {Executable} executable
+     * @param {object} executable Executable
      */
     $scope.btnStopExecutable = function (executable) {
 
@@ -65,7 +65,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
     /**
      * Restart Executable
-     * @param {Executable} executable
+     * @param {object} executable Executable
      */
     $scope.btnRestartExecutable = function (executable) {
 
@@ -100,6 +100,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
 
     }
+
 
     // Init
     // Refresh host model

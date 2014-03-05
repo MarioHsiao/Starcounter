@@ -7,16 +7,21 @@ adminModule.service('JobFactory', ['$log', function ($log) {
 
     var factory = {};
 
+    // object { type: "error", msg: "message", helpLink: "helpLink" }
     factory.jobs = [];
 
-    //factory.jobs.push({ message: "Stopping all executables running in database " });
-
-    // Notice object { type: "error", msg: "message", helpLink: "helpLink" }
+    /**
+     * Add job
+     * @param {object} job Job
+     */
     factory.AddJob = function (job) {
         factory.jobs.push(job);
     }
 
-    // Close notice
+    /**
+     * Remove job
+     * @param {object} job Job
+     */
     factory.RemoveJob = function (job) {
         var index = factory.jobs.indexOf(job);
         if (index > -1) {

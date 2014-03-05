@@ -11,8 +11,6 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
     //     httpPort:8080,
     //     version:"2.0.0.0"
     // }
-    //this.settings = { name:"test",httpPort:1234,"Version":"2.3.4.5"};
-
 
     this.model = {
         settings: null
@@ -23,8 +21,8 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
 
     /**
      * Get Server settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getServerSettings = function (successCallback, errorCallback) {
 
@@ -94,8 +92,8 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
 
     /**
      * Refresh Server Settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshServerSettings = function (successCallback, errorCallback) {
 
@@ -130,9 +128,9 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
 
     /**
      * Verify server settings
-     * @param {settings} Settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.verifyServerSettings = function (settings, successCallback, errorCallback) {
 
@@ -202,9 +200,9 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
 
     /**
      * Save server settings
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.saveSettings = function (settings, successCallback, errorCallback) {
 

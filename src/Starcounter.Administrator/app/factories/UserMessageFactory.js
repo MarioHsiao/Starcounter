@@ -7,10 +7,10 @@ adminModule.factory('UserMessageFactory', ['$dialog', '$log', function ($dialog,
 
     /**
      * Show Error message modal popup
-     * @param {title} Title
-     * @param {message} Message
-     * @param {helpLink} HelpLink Url
-     * @param {stackTrace} stackTrace
+     * @param {string} title Title
+     * @param {string} message Message
+     * @param {string} helpLink HelpLink Url
+     * @param {string} stackTrace stackTrace
      */
     factory.showErrorMessage = function (title, message, helpLink, stackTrace) {
 
@@ -30,10 +30,10 @@ adminModule.factory('UserMessageFactory', ['$dialog', '$log', function ($dialog,
 
     /**
      * Show Message box
-     * @param {title} Title
-     * @param {message} Message
-     * @param {buttons} Buttons, Example: [{ result: 0, label: 'Ok', cssClass: 'btn' }, { result: 1, label: 'Cancel', cssClass: 'btn-danger' }]
-     * @param {responseCallback} Response Callback function
+     * @param {string} title Title
+     * @param {string} message Message
+     * @param {object} buttons Buttons, Example: [{ result: 0, label: 'Ok', cssClass: 'btn' }, { result: 1, label: 'Cancel', cssClass: 'btn-danger' }]
+     * @param {function} responseCallback Response Callback function
      */
     factory.showMessageBox = function (title, message, buttons, responseCallback) {
 
