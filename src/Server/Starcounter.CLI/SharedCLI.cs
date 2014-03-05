@@ -165,10 +165,19 @@ namespace Starcounter.CLI {
         static string HintShowErrorPage = "Type \"star {0}\" to launch the help page for error {0}";
 
         /// <summary>
+        /// Defines the verbosity of the current CLI context.
+        /// </summary>
+        public static OutputLevel Verbosity = CLI.OutputLevel.Minimal;
+
+        /// <summary>
         /// Gets or sets a value indicating if the current client/host
         /// should display verbose output.
         /// </summary>
-        public static bool Verbose { get; set; }
+        public static bool Verbose {
+            get {
+                return Verbosity == CLI.OutputLevel.Verbose;
+            }
+        }
 
         /// <summary>
         /// Defines and includes the well-known, shared CLI options in
@@ -263,11 +272,10 @@ namespace Starcounter.CLI {
         /// and set the environment exit code accordingly.
         /// </remarks>
         public static bool TryParse(string[] args, IApplicationSyntax syntax, out ApplicationArguments appArgs) {
-            Verbose = false;
             try {
                 appArgs = new Parser(args).Parse(syntax);
                 if (appArgs.ContainsFlag(Option.Verbose)) {
-                    Verbose = true;
+                    Verbosity = CLI.OutputLevel.Verbose;
                 }
             } catch (InvalidCommandLineException e) {
                 ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
