@@ -65,14 +65,14 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
             });
 
             // Socket channel disconnected event
-            Handle.SocketDisconnect("console", (UInt64 cargoId, IAppsSession session) => {
+            Handle.SocketDisconnect(defaultSystemHttpPort, "console", (UInt64 cargoId, IAppsSession session) => {
                 Byte schedId = ThreadData.Current.Scheduler.Id;
                 if (WebSocketSessions[schedId].ContainsKey(cargoId))
                     WebSocketSessions[schedId].Remove(cargoId);
             });
 
             // Socket incoming message event
-            Handle.Socket("console", (String s, WebSocket ws) => {
+            Handle.Socket(defaultSystemHttpPort, "console", (String s, WebSocket ws) => {
                 // We don't use incoming client messages.
             });
 
