@@ -69,12 +69,12 @@ namespace Starcounter.Binding
                 try {
                     typeDefsByName.Add(typeDef.Name, typeDef);
                 } catch (ArgumentException) {
-#if DEBUG
+#if false // DEBUG
                     TypeDef alreadyTypeDef;
                     typeDefsByName.TryGetValue(typeDef.Name, out alreadyTypeDef);
                     if (alreadyTypeDef != null)
                         Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
-#endif
+#endif // DEBUG
                     typeDefsByName[typeDef.Name] = typeDef;
                 }
                 // Add lower case name if the name is not already in lower case.

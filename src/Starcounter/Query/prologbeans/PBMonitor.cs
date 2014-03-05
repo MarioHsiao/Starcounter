@@ -148,7 +148,7 @@ class PBMonitor: SupportClass.ThreadClass
             // and we do not want new queries to be blocked.
             for (int i = 0; i < cancelCount; i++)
             {
-                System.Console.Error.WriteLine("PBMonitor: need to interrupt read/write!");
+                logSource.LogError("PBMonitor: need to interrupt read/write!");
                 cancelList[i].cancelQuery();
                 cancelList[i] = null;
             }
