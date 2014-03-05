@@ -134,16 +134,17 @@ namespace Starcounter.Internal
 
         UInt16 maxWsChannels_ = 0;
 
-        public WsChannelInfo FindChannel(String channelName)
+        internal WsChannelInfo FindChannel(UInt16 port, String channelName)
         {
             // Pre-pending database name for automatic uniqueness.
             channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
 
-            for (Int32 i = 0; i < maxWsChannels_; i++)
+            // Searching WebSocket channel.
+            for (UInt16 i = 0; i < maxWsChannels_; i++)
             {
                 if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
                 {
-                    if (0 == String.Compare(allWsChannels_[i].ChannelName, channelName))
+                    if ((allWsChannels_[i].Port == port) && (0 == String.Compare(allWsChannels_[i].ChannelName, channelName)))
                         return allWsChannels_[i];
                 }
             }
@@ -202,30 +203,15 @@ namespace Starcounter.Internal
             return w;
         }
 
-        WsChannelInfo FindWsChannel(UInt16 port, String channelName)
-        {
-            // Searching WebSocket channel.
-            for (UInt16 i = 0; i < maxWsChannels_; i++)
-            {
-                if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
-                {
-                    if ((allWsChannels_[i].Port == port) && (allWsChannels_[i].ChannelName == channelName))
-                        return allWsChannels_[i];
-                }
-            }
-
-            return null;
-        }
-
         WsChannelInfo RegisterHandlerInternal(UInt16 port, String channelName)
         {
             if (channelName.Length > 32)
                 throw new Exception("Registering too long channel name: " + channelName);
 
+            WsChannelInfo w = FindChannel(port, channelName);
+
             // Pre-pending database name for automatic uniqueness.
             channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
-
-            WsChannelInfo w = FindWsChannel(port, channelName);
 
             if (w == null)
             {

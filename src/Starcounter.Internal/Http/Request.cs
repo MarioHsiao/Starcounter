@@ -333,7 +333,7 @@ namespace Starcounter {
                 Marshal.Copy((IntPtr)(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
             }
 
-            WsChannelInfo w = AllWsChannels.WsManager.FindChannel(channelName);
+            WsChannelInfo w = AllWsChannels.WsManager.FindChannel(PortNumber, channelName);
             if (w == null)
                 throw new Exception("Specified WebSocket channel is not registered: " + channelName);
 
