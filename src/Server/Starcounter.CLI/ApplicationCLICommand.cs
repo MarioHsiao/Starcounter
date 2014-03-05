@@ -21,7 +21,7 @@ namespace Starcounter.CLI {
     /// Provides the principal entrypoint to use when a CLI client
     /// want to use the common way to start or stop an application.
     /// </summary>
-    public class ExeCLI {
+    public class ApplicationCLICommand {
         AdminAPI AdminAPI;
         string ServerHost;
         int ServerPort;
@@ -32,11 +32,11 @@ namespace Starcounter.CLI {
         string[] EntrypointArguments;
         Node Node;
         
-        private ExeCLI() {
+        private ApplicationCLICommand() {
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ExeCLI"/> class based on
+        /// Creates a new instance of the <see cref="ApplicationCLICommand"/> class based on
         /// the given arguments. This instance can thereafter be executed with
         /// the <see cref="Execute"/> method.
         /// </summary>
@@ -46,13 +46,13 @@ namespace Starcounter.CLI {
         /// <param name="entrypointArgs">Arguments that are to be passed along
         /// to the application entrypoint, if the given arguments indicate it's
         /// being started/restarted.</param>
-        /// <returns>An instance of <see cref="ExeCLI"/>.</returns>
-        public static ExeCLI Create(
+        /// <returns>An instance of <see cref="ApplicationCLICommand"/>.</returns>
+        public static ApplicationCLICommand Create(
             string applicationFilePath,
             string exePath,
             ApplicationArguments args,
             string[] entrypointArgs = null) {
-            var result = new ExeCLI();
+            var result = new ApplicationCLICommand();
             
             if (string.IsNullOrWhiteSpace(applicationFilePath)) {
                 applicationFilePath = exePath;

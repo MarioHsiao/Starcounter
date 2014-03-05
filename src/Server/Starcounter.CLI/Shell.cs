@@ -95,7 +95,7 @@ namespace Starcounter.CLI {
 
             int exitCode = 0;
             try {
-                var cli = ExeCLI.Create(exePath, exePath, appArgs);
+                var cli = ApplicationCLICommand.Create(exePath, exePath, appArgs);
                 cli.Execute();
             } catch {
                 exitCode = -1;
