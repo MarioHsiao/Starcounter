@@ -57,7 +57,9 @@
     <Compile Include="ApplicationCLICommand.cs" />
     <Compile Include="SharedCLI.cs" />
     <Compile Include="Shell.cs" />
+    <Compile Include="StartApplicationCommand.cs" />
     <Compile Include="StatusConsole.cs" />
+    <Compile Include="StopApplicationCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
