@@ -23,7 +23,9 @@
             <button title="Refresh console" ng-show="model.executable.consoleManualMode == true" class="btn pull-right" ng-click="btnGetConsoleOutput(model.executable)"><i class="icon-refresh"></i></button>
     </legend>
 
-    <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.executable.console" />
+    <!--<div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.executable.console" />-->
+    <consolewindow  id="console" width-attr="100%" height-attr='{{calcHeight()}}px' id="console"  ng-model="model.executable.console"></consolewindow>
+
 
 </div>
 
