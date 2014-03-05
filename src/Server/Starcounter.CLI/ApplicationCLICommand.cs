@@ -31,6 +31,7 @@ namespace Starcounter.CLI {
         internal ApplicationArguments CLIArguments;
         internal string[] EntrypointArguments;
         internal Node Node;
+        internal StatusConsole Status;
 
         /// <summary>
         /// Creates a new instance of this class.
@@ -90,10 +91,13 @@ namespace Starcounter.CLI {
         /// </summary>
         public void Execute() {
             Node = new Node(ServerHost, (ushort)ServerPort);
+            Status = StatusConsole.Open();
+
             try {
                 Run();
             } finally {
                 Node = null;
+                Status = null;
             }
         }
 
@@ -143,13 +147,18 @@ namespace Starcounter.CLI {
         }
 
         internal static void ShowHeadline(string headline) {
-            ConsoleUtil.ToConsoleWithColor(headline, ConsoleColor.DarkGray);
+            if (SharedCLI.Verbosity > OutputLevel.Minimal) {
+                ConsoleUtil.ToConsoleWithColor(headline, ConsoleColor.DarkGray);
+            }
         }
 
-        internal static void ShowStatus(string status, bool onlyIfVerbose = false) {
+        internal void ShowStatus(string status, bool onlyIfVerbose = false) {
             var show = !onlyIfVerbose || SharedCLI.Verbose;
             if (show) {
-                ConsoleUtil.ToConsoleWithColor(string.Format("  - {0}", status), ConsoleColor.DarkGray);
+                Status.WriteTask(status);
+                if (SharedCLI.Verbosity > OutputLevel.Minimal) {
+                    ConsoleUtil.ToConsoleWithColor(string.Format("  - {0}", status), ConsoleColor.DarkGray);
+                }
             }
         }
 
