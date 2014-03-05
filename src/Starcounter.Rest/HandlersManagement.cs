@@ -132,10 +132,17 @@ namespace Starcounter.Rest
                 responses.Add(func(req, methodAndUri, rawParamsInfo));   
             }
 
-            Debug.Assert(UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null);
-
-            // Creating merged response.
-            return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses, app_names_);
+            // Checking if we have a response merging function defined.
+            if (UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null)
+            {
+                // Creating merged response.
+                return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses, app_names_);
+            }
+            
+            return new Response() {
+                StatusDescription = "Response merging function is not defined",
+                StatusCode = 404
+            };
         }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();
@@ -411,15 +418,8 @@ namespace Starcounter.Rest
                     if ((0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
                         (port == allUriHandlers_[i].Port))
                     {
-                        if (ResponsesMergerRoutine_ == null)
-                        {
-                            throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Processed URI: " + processedUriInfo);
-                        }
-                        else
-                        {
-                            allUriHandlers_[i].AddDelegateToList(wrappedDelegate);
-                            return;
-                        }
+                        allUriHandlers_[i].AddDelegateToList(wrappedDelegate);
+                        return;
                     }
                 }
 
