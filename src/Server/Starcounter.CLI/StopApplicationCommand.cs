@@ -21,6 +21,7 @@ namespace Starcounter.CLI {
         protected override void Run() {
             var app = Application;
             try {
+                Status.StartNewJob(string.Format("{0} <- {1}", app.Name, DatabaseName.ToLowerInvariant()));
                 ShowHeadline(
                     string.Format("[Stopping \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
                     app.Name,
@@ -30,7 +31,7 @@ namespace Starcounter.CLI {
                     Node.BaseAddress.Port));
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(ServerName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowStatus("Retrieving server status", true);
+                    ShowStatus("retrieving server status", true);
                     if (!ServerServiceProcess.IsOnline()) {
                         SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
                     }
@@ -63,7 +64,7 @@ namespace Starcounter.CLI {
 
             ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
 
-            ShowStatus("Retreiving engine status", true);
+            ShowStatus("retreiving engine status", true);
 
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
             statusCode = response.FailIfNotSuccessOr(404);
@@ -93,7 +94,7 @@ namespace Starcounter.CLI {
                 SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
             } else {
                 var fellowCount = engine.Executables.Executing.Count - 1;
-                var status = string.Format("Restarting database \"{0}\"", databaseName);
+                var status = string.Format("restarting {0}", databaseName);
                 if (fellowCount > 0) {
                     status += string.Format(" (and {0} other executable(s))", fellowCount);
                 }
@@ -103,14 +104,17 @@ namespace Starcounter.CLI {
             }
         }
 
-        static void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationFile, ApplicationArguments args) {
+        void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationFile, ApplicationArguments args) {
             var color = ConsoleColor.Green;
 
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("Stopped \"{0}\" in database \"{1}\"",
-                Path.GetFileName(applicationFile),
-                database),
-                color);
+            Status.CompleteJob("stopped");
+            if (SharedCLI.Verbosity > OutputLevel.Minimal) {
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("Stopped \"{0}\" in {1}",
+                    Path.GetFileName(applicationFile),
+                    database),
+                    color);
+            }
 
             Environment.ExitCode = 0;
         }
