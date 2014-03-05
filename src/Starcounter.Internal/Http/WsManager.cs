@@ -136,6 +136,9 @@ namespace Starcounter.Internal
 
         public WsChannelInfo FindChannel(String channelName)
         {
+            // Pre-pending database name for automatic uniqueness.
+            channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
+
             for (Int32 i = 0; i < maxWsChannels_; i++)
             {
                 if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
@@ -214,10 +217,13 @@ namespace Starcounter.Internal
             return null;
         }
 
-        WsChannelInfo RegisterHandler(UInt16 port, String channelName)
+        WsChannelInfo RegisterHandlerInternal(UInt16 port, String channelName)
         {
             if (channelName.Length > 32)
                 throw new Exception("Registering too long channel name: " + channelName);
+
+            // Pre-pending database name for automatic uniqueness.
+            channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
 
             WsChannelInfo w = FindWsChannel(port, channelName);
 
@@ -243,7 +249,7 @@ namespace Starcounter.Internal
 
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandler(port, channelName);
+                WsChannelInfo w = RegisterHandlerInternal(port, channelName);
 
                 w.SetReceiveBinaryHandler(userDelegate);
             }
@@ -259,7 +265,7 @@ namespace Starcounter.Internal
 
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandler(port, channelName);
+                WsChannelInfo w = RegisterHandlerInternal(port, channelName);
 
                 w.SetReceiveStringHandler(userDelegate);
             }
@@ -275,7 +281,7 @@ namespace Starcounter.Internal
 
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandler(port, channelName); 
+                WsChannelInfo w = RegisterHandlerInternal(port, channelName); 
 
                 w.SetDisconnectHandler(userDelegate);
             }

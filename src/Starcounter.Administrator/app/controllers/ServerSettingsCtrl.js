@@ -11,9 +11,9 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
     /**
      * Verify server settings
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     $scope.verifySettings = function (settings, successCallback, errorCallback) {
 
@@ -36,9 +36,9 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
     /**
      * Save settings
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     $scope.saveSettings = function (settings, successCallback, errorCallback) {
 
@@ -70,8 +70,6 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
     /**
      * Refresh server settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
      */
     $scope.refreshServerSettings = function () {
 
@@ -95,6 +93,10 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
     }
 
 
+    /**
+     * Button click, Save settings
+     * @param {object} settings Settings
+     */
     $scope.btnSaveSettings = function (settings) {
 
         $scope.verifySettings(settings, function (validationErrors) {
@@ -165,6 +167,10 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
     }
 
+
+    /**
+     * Button click, Reset settings
+     */
     $scope.btnResetSettings = function () {
         $scope.refreshServerSettings();
     }
