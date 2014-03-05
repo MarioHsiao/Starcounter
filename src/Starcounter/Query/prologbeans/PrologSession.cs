@@ -544,10 +544,10 @@ public class PrologSession
                 output.commit();
                 return parser.parseProlog(input);
             }
-            catch (System.IO.IOException e)
+            catch (System.IO.IOException)
             {
                 close();
-                throw e;
+                throw;
             }
             finally
             {
@@ -700,7 +700,7 @@ public class PrologSession
         }
         catch (System.Exception e)
         {
-            logSource.LogException(e);
+            Starcounter.LogSources.Sql.LogException(e);
         }
     }
 
