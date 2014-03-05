@@ -146,9 +146,7 @@ namespace bmx
         // URI string.
         char* original_uri_info_;
         char* processed_uri_info_;
-
-        uint32_t original_uri_info_len_chars_;
-        uint32_t processed_uri_info_len_chars_;
+        char* app_name_;
 
         uint8_t num_params_;
         uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
@@ -161,10 +159,11 @@ namespace bmx
     public:
 
         // Constructor.
-        explicit HandlersList()
+        HandlersList()
         {
             original_uri_info_ = NULL;
             processed_uri_info_ = NULL;
+            app_name_ = NULL;
 
             Unregister();
         }
@@ -211,22 +210,15 @@ namespace bmx
             return original_uri_info_;
         }
 
+        char* get_app_name()
+        {
+            return app_name_;
+        }
+
         // Gets URI.
         char* get_processed_uri_info()
         {
             return processed_uri_info_;
-        }
-
-        // Get URI length.
-        uint32_t get_original_uri_info_len_chars()
-        {
-            return original_uri_info_len_chars_;
-        }
-
-        // Get URI length.
-        uint32_t get_processed_uri_info_len_chars()
-        {
-            return processed_uri_info_len_chars_;
         }
 
         // Get number of URI callback parameters.
@@ -274,22 +266,18 @@ namespace bmx
 
         // Init.
         uint32_t Init(
-            bmx::HANDLER_TYPE type,
-            BMX_HANDLER_TYPE handler_info,
-            uint16_t managed_handler_index,
-            uint16_t port,
-            BMX_SUBPORT_TYPE subport,
+            const bmx::HANDLER_TYPE type,
+            const BMX_HANDLER_TYPE handler_info,
+            const uint16_t managed_handler_index,
+            const uint16_t port,
+            const char* app_name,
+            const BMX_SUBPORT_TYPE subport,
             const char* original_uri_info,
-            uint32_t original_uri_len_chars,
             const char* processed_uri_info,
-            uint32_t processed_uri_len_chars,
-            uint8_t* param_types,
-            int32_t num_params,
-            starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
+            const uint8_t* param_types,
+            const int32_t num_params,
+            const starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
         {
-            _SC_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
-            _SC_ASSERT(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
-
             num_entries_ = 0;
 
             type_ = type;
@@ -299,21 +287,29 @@ namespace bmx
             handler_info_ = handler_info;
             managed_handler_index_ = managed_handler_index;
 
-            original_uri_info_len_chars_ = original_uri_len_chars;
-            processed_uri_info_len_chars_ = processed_uri_len_chars;
-
             // Deleting previous allocations if any.
             if (original_uri_info_)
+            {
                 delete original_uri_info_;
-            if (processed_uri_info_)
-                delete processed_uri_info_;
+                original_uri_info_ = NULL;
+            }
 
-            // Allocating space for new URI infos.
-            if (original_uri_info_len_chars_ > 0)
-                original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
-            
-            if (processed_uri_info_len_chars_ > 0)
-                processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
+            if (processed_uri_info_)
+            {
+                delete processed_uri_info_;
+                processed_uri_info_ = NULL;
+            }
+
+            if (app_name_)
+            {
+                delete app_name_;
+                app_name_ = NULL;
+            }
+
+            _SC_ASSERT(app_name != NULL);
+            uint32_t len = (uint32_t) strlen(app_name);
+            app_name_ = new char[len + 1];
+            strncpy_s(app_name_, len + 1, app_name, len);
 
             num_params_ = num_params;
             if (num_params_ > 0)
@@ -337,20 +333,27 @@ namespace bmx
                 case bmx::HANDLER_TYPE::URI_HANDLER:
                 {
                     // Copying the URI string.
-                    if (original_uri_len_chars > 0)
-                        strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
+                    _SC_ASSERT (original_uri_info != NULL);
+                    len = (uint32_t) strlen(original_uri_info);
+                    original_uri_info_ = new char[len + 1];
+                    strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
 
-                    if (processed_uri_len_chars > 0)
-                        strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
+                    _SC_ASSERT (processed_uri_info != NULL);
+                    len = (uint32_t) strlen(processed_uri_info);
+                    processed_uri_info_ = new char[len + 1];
+                    strncpy_s(processed_uri_info_, len + 1, processed_uri_info, len);
 
                     break;
                 }
 
                 case bmx::HANDLER_TYPE::WS_HANDLER:
                 {
-                    // Copying the URI string.
-                    if (original_uri_len_chars > 0)
-                        strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
+                    // Copying the WS channel string.
+                    _SC_ASSERT(original_uri_info != NULL);
+
+                    len = (uint32_t) strlen(original_uri_info);
+                    original_uri_info_ = new char[len + 1];
+                    strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
 
                     break;
                 }
@@ -369,7 +372,7 @@ namespace bmx
         {
             // Checking if message fits the chunk.
             if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_PORT) + sizeof(handler_info_) + sizeof(port_))
+                sizeof(BMX_REGISTER_PORT) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_))
             {
                 return 0;
             }
@@ -377,6 +380,7 @@ namespace bmx
             resp_chunk->write(BMX_REGISTER_PORT);
             resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
+            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
 
             return resp_chunk->get_offset();
         }
@@ -386,7 +390,7 @@ namespace bmx
         {
             // Checking if message fits the chunk.
             if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_PORT_SUBPORT) + sizeof(handler_info_) + sizeof(port_) + sizeof(subport_))
+                sizeof(BMX_REGISTER_PORT_SUBPORT) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_) + sizeof(subport_))
             {
                 return 0;
             }
@@ -394,6 +398,7 @@ namespace bmx
             resp_chunk->write(BMX_REGISTER_PORT_SUBPORT);
             resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
+            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
             resp_chunk->write(subport_);
 
             return resp_chunk->get_offset();
@@ -404,7 +409,7 @@ namespace bmx
         {
             // Checking if message fits the chunk.
             if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + original_uri_info_len_chars_ + processed_uri_info_len_chars_ + 1)
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_) + strlen(original_uri_info_) + strlen(processed_uri_info_) + 1)
             {
                 return 0;
             }
@@ -412,8 +417,9 @@ namespace bmx
             resp_chunk->write(BMX_REGISTER_URI);
             resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
-            resp_chunk->write_string(original_uri_info_, original_uri_info_len_chars_);
-            resp_chunk->write_string(processed_uri_info_, processed_uri_info_len_chars_);
+            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
+            resp_chunk->write_string(original_uri_info_, (uint32_t) strlen(original_uri_info_));
+            resp_chunk->write_string(processed_uri_info_, (uint32_t) strlen(processed_uri_info_));
             resp_chunk->write(num_params_);
             resp_chunk->write_data_only(param_types_, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
             resp_chunk->write((uint8_t)proto_type_);
@@ -426,7 +432,7 @@ namespace bmx
         {
             // Checking if message fits the chunk.
             if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + sizeof(subport_) + original_uri_info_len_chars_ + 1)
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_) + sizeof(subport_) + strlen(original_uri_info_) + 1)
             {
                 return 0;
             }
@@ -434,8 +440,9 @@ namespace bmx
             resp_chunk->write(BMX_REGISTER_WS);
             resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
+            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
             resp_chunk->write(subport_);
-            resp_chunk->write_string(original_uri_info_, original_uri_info_len_chars_);
+            resp_chunk->write_string(original_uri_info_, (uint32_t) strlen(original_uri_info_));
 
             return resp_chunk->get_offset();
         }
@@ -594,46 +601,50 @@ namespace bmx
 
         // Registers port handler.
         uint32_t RegisterPortHandler(
-            uint16_t port_num,
-            GENERIC_HANDLER_CALLBACK port_handler,
-            uint16_t managed_handler_index,
+            const uint16_t port_num,
+            const char* app_name,
+            const GENERIC_HANDLER_CALLBACK port_handler,
+            const uint16_t managed_handler_index,
             BMX_HANDLER_TYPE* phandler_info);
 
         // Registers sub-port handler.
         uint32_t RegisterSubPortHandler(
-            uint16_t port,
-            BMX_SUBPORT_TYPE subport,
-            GENERIC_HANDLER_CALLBACK subport_handler,
-            uint16_t managed_handler_index,
+            const uint16_t port,
+            const char* app_name,
+            const BMX_SUBPORT_TYPE subport,
+            const GENERIC_HANDLER_CALLBACK subport_handler,
+            const uint16_t managed_handler_index,
+            BMX_HANDLER_TYPE* phandler_info);
+
+        // Registers URI handler.
+        uint32_t RegisterUriHandler(
+            const uint16_t port,
+            const char* app_name,
+            const char* original_uri_info,
+            const char* processed_uri_info,
+            const uint8_t* param_types,
+            const int32_t num_params,
+            const GENERIC_HANDLER_CALLBACK uri_handler, 
+            const uint16_t managed_handler_index,
+            BMX_HANDLER_TYPE* phandler_info);
+
+        // Registers WebSocket handler.
+        uint32_t RegisterWsHandler(
+            const uint16_t port,
+            const char* app_name,
+            const char* channel_name,
+            const uint32_t channel_id,
+            const GENERIC_HANDLER_CALLBACK ws_handler, 
+            const uint16_t managed_handler_index,
             BMX_HANDLER_TYPE* phandler_info);
 
         // Finds certain handler.
         bool IsHandlerExist(BMX_HANDLER_INDEX_TYPE handler_index);
 
-        // Registers URI handler.
-        uint32_t RegisterUriHandler(
-            uint16_t port,
-            char* original_uri_info,
-            char* processed_uri_info,
-            uint8_t* param_types,
-            int32_t num_params,
-            GENERIC_HANDLER_CALLBACK uri_handler, 
-            uint16_t managed_handler_index,
-            BMX_HANDLER_TYPE* phandler_info);
-
-        // Registers WebSocket handler.
-        uint32_t RegisterWsHandler(
-            uint16_t port,
-            const char* channel_name,
-            uint32_t channel_id,
-            GENERIC_HANDLER_CALLBACK ws_handler, 
-            uint16_t managed_handler_index,
-            BMX_HANDLER_TYPE* phandler_info);
-
         // Constructor.
         BmxData(uint32_t max_total_handlers)
         {
-            registered_handlers_ = new HandlersList[max_total_handlers];
+            registered_handlers_ = new HandlersList[max_total_handlers]();
             max_num_entries_ = 0;
             unique_handler_num_ = 0;
         }

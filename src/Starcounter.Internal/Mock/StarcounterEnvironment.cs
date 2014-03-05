@@ -36,7 +36,7 @@ namespace Starcounter.Internal
         /// Name of the application.
         /// </summary>
         [ThreadStatic]
-        public static string AppName;
+        public static string AppName = "";
 
         [ThreadStatic]
         static Byte currentSchedulerId_ = 255;

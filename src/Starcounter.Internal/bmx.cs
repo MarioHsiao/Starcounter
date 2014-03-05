@@ -77,19 +77,16 @@ namespace Starcounter.Internal
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_register_port_handler(
             UInt16 port,
+            String app_name,
             BMX_HANDLER_CALLBACK callback,
             UInt16 managed_handler_id,
             out UInt64 handlerInfo
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_unregister_port(
-            UInt16 port
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_register_subport_handler(
             UInt16 port,
+            String app_name,
             UInt32 subport,
             BMX_HANDLER_CALLBACK callback,
             UInt16 managed_handler_id,
@@ -97,14 +94,9 @@ namespace Starcounter.Internal
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_unregister_subport(
-            UInt16 port,
-            UInt32 subport
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_register_uri_handler(
             UInt16 port,
+            String app_name,
             String originalUriInfo,
             String processedUriInfo,
             Byte* param_types,
@@ -116,11 +108,23 @@ namespace Starcounter.Internal
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_register_ws_handler(
             UInt16 port,
+            String app_name,
             String channel_name,
             UInt32 channel_id,
             BMX_HANDLER_CALLBACK callback,
             UInt16 managed_handler_id,
             out UInt64 handlerInfo
+        );
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_unregister_port(
+            UInt16 port
+        );
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_unregister_subport(
+            UInt16 port,
+            UInt32 subport
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]

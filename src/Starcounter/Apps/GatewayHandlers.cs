@@ -461,7 +461,8 @@ namespace Starcounter
         /// Registers the port handler.
         /// </summary>
         public static void RegisterPortHandler(
-			UInt16 port, 
+			UInt16 port,
+            String appName,
 			PortCallback portCallback,
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo)
@@ -469,7 +470,7 @@ namespace Starcounter
             // Ensuring correct multi-threading handlers creation.
             lock (port_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, port_outer_handler_, managedHandlerIndex, out handlerInfo);
+                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, appName, port_outer_handler_, managedHandlerIndex, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port);
 
@@ -493,6 +494,7 @@ namespace Starcounter
         /// </summary>
         public static void RegisterSubportHandler(
             UInt16 port,
+            String appName,
             UInt32 subport,
             SubportCallback subportCallback,
             UInt16 managedHandlerIndex,
@@ -501,7 +503,7 @@ namespace Starcounter
             // Ensuring correct multi-threading handlers creation.
             lock (subport_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, subport, subport_outer_handler_, managedHandlerIndex, out handlerInfo);
+                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, appName, subport, subport_outer_handler_, managedHandlerIndex, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
 
