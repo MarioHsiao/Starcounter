@@ -21,6 +21,7 @@ namespace Starcounter.CLI {
         protected override void Run() {
             var app = Application;
             try {
+                Status.StartNewJob(string.Format("{0} -> {1}", app.Name, DatabaseName.ToLowerInvariant()));
                 ShowHeadline(
                     string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
                     app.Name,
@@ -30,12 +31,12 @@ namespace Starcounter.CLI {
                     Node.BaseAddress.Port));
 
                 if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(ServerName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowStatus("Retrieving server status", true);
+                    ShowStatus("retrieving server status", true);
                     if (!ServerServiceProcess.IsOnline()) {
-                        ShowStatus("Starting server");
+                        ShowStatus("starting server");
                         ServerServiceProcess.StartInteractiveOnDemand();
                     }
-                    ShowStatus("Server is online", true);
+                    ShowStatus("server is online", true);
                 }
 
                 try {
@@ -62,7 +63,7 @@ namespace Starcounter.CLI {
             var node = Node;
             var admin = AdminAPI;
             var uris = admin.Uris;
-            var databaseName = DatabaseName;
+            var databaseName = DatabaseName.ToLowerInvariant();
             var args = CLIArguments;
             var app = Application;
             var entrypointArgs = EntrypointArguments;
@@ -70,7 +71,7 @@ namespace Starcounter.CLI {
             ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
 
             // GET or START the engine
-            ShowStatus("Retreiving engine status", true);
+            ShowStatus("retreiving engine status", true);
 
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
             statusCode = response.FailIfNotSuccessOr(404);
@@ -87,11 +88,11 @@ namespace Starcounter.CLI {
                         SharedCLI.ShowErrorAndSetExitCode(notAllowed, true);
                     }
 
-                    ShowStatus("Creating database");
+                    ShowStatus("creating database");
                     CreateDatabase(node, uris, databaseName);
                 }
 
-                ShowStatus("Starting database");
+                ShowStatus("starting database");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -120,7 +121,7 @@ namespace Starcounter.CLI {
                 // If it's not running, we'll check that the code host is
                 // running, and start it if not.
                 if (engine.CodeHostProcess.PID == 0) {
-                    ShowStatus("Starting database");
+                    ShowStatus("starting database");
                     engineRef = new EngineReference();
                     engineRef.Name = databaseName;
                     engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -150,7 +151,7 @@ namespace Starcounter.CLI {
                 }
 
                 var fellowCount = engine.Executables.Executing.Count - 1;
-                var status = string.Format("Restarting database \"{0}\"", databaseName);
+                var status = string.Format("restarting database \"{0}\"", databaseName);
                 if (fellowCount > 0) {
                     status += string.Format(" (and {0} other executable(s))", fellowCount);
                 }
@@ -180,7 +181,7 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
-            ShowStatus("Starting executable", true);
+            ShowStatus("starting executable", true);
             exe = new Executable();
             exe.Path = app.BinaryFilePath;
             exe.ApplicationFilePath = app.FilePath;
@@ -199,16 +200,19 @@ namespace Starcounter.CLI {
             exe.PopulateFromJson(response.Body);
         }
         
-        static void ShowStartResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
+        void ShowStartResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
-            
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("\"{0}\" started in database \"{1}\". Default port is {2} (Executable), {3} (Admin))",
-                Path.GetFileName(exe.ApplicationFilePath),
-                database,
-                exe.DefaultUserPort,
-                node.PortNumber), 
-                color);
+
+            Status.CompleteJob(string.Format("app default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber));
+            if (SharedCLI.Verbosity > OutputLevel.Minimal) {
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("\"{0}\" started in database \"{1}\". Default port is {2} (Executable), {3} (Admin))",
+                    Path.GetFileName(exe.ApplicationFilePath),
+                    database,
+                    exe.DefaultUserPort,
+                    node.PortNumber),
+                    color);
+            }
 
             color = ConsoleColor.DarkGray;
             ShowVerbose(
