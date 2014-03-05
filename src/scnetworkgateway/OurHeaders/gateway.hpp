@@ -314,7 +314,7 @@ const int32_t NumGatewayChunkSizes = 6;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
-    512,
+    768,
     2 * 1024, // Default chunk size.
     8 * 1024,
     32 * 1024,
