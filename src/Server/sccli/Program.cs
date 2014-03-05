@@ -226,7 +226,8 @@ namespace star {
             // work executing.
 
             try {
-                ExeCLI.StartOrStop(filePath, appArgs, applicationFilePath, userArgs);
+                var cli = ExeCLI.Create(applicationFilePath, filePath, appArgs, userArgs);
+                cli.Execute();
             } finally {
                 // Delete the temporary executable if we have executed
                 // from a script being given.
