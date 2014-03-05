@@ -10,8 +10,8 @@ adminModule.service('VersionCheckService', ['$http', '$log', 'UtilsFactory', 'Jo
 
     /**
      * Get latest starcounter version information
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getLatestVersionInfo = function (successCallback, errorCallback) {
 
@@ -97,6 +97,5 @@ adminModule.service('VersionCheckService', ['$http', '$log', 'UtilsFactory', 'Jo
 
         });
     }
-
 
 }]);
