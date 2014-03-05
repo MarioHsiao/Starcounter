@@ -151,7 +151,7 @@ namespace Starcounter.CLI {
                 }
 
                 var fellowCount = engine.Executables.Executing.Count - 1;
-                var status = string.Format("restarting database \"{0}\"", databaseName);
+                var status = string.Format("restarting {0}", databaseName);
                 if (fellowCount > 0) {
                     status += string.Format(" (and {0} other executable(s))", fellowCount);
                 }
@@ -203,10 +203,10 @@ namespace Starcounter.CLI {
         void ShowStartResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
 
-            Status.CompleteJob(string.Format("app default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber));
+            Status.CompleteJob(string.Format("started, default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber));
             if (SharedCLI.Verbosity > OutputLevel.Minimal) {
                 ConsoleUtil.ToConsoleWithColor(
-                    string.Format("\"{0}\" started in database \"{1}\". Default port is {2} (Executable), {3} (Admin))",
+                    string.Format("\"{0}\" started in {1}. Default port is {2} (Application), {3} (Admin))",
                     Path.GetFileName(exe.ApplicationFilePath),
                     database,
                     exe.DefaultUserPort,
