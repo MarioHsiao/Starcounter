@@ -127,6 +127,11 @@ public:
         return handler_list_->get_original_uri_info();
     }
 
+    uint16_t get_port()
+    {
+        return handler_list_->get_port();
+    }
+
     // Getting registered channel id.
     int32_t get_channel_id()
     {
