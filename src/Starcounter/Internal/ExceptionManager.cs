@@ -60,7 +60,6 @@ namespace Starcounter.Internal
             String managed_err_string = new String(err_string, 0, err_string_len);
             Exception exc = ErrorCode.ToException(err_code, managed_err_string);
             LogSources.Hosting.LogException(exc);
-            throw exc;
         }
     }
 }

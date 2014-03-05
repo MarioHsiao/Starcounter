@@ -8,9 +8,10 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     // List of databases
     $scope.databases = HostModelService.databases;
 
+
     /**
      * Get Console output
-     * @param {database} database Database name
+     * @param {object} database Database
      */
     $scope.btnGetConsoleOutput = function (database) {
 
@@ -29,9 +30,10 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
 
     }
 
+
     /**
      * Start database
-     * @param {Database} database
+     * @param {object} database Database
      */
     $scope.btnStartDatabase = function (database) {
 
@@ -51,7 +53,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
 
     /**
      * Stop Database
-     * @param {Executable} executable
+     * @param {object} database Database
      */
     $scope.btnStopDatabase = function (database) {
 
@@ -104,6 +106,10 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     $scope.$watch('view', function (newValue, oldValue) {
         localStorage.setItem('databaseViewMode', newValue);
     });
+
+    $scope.change = function (database) {
+        $log.warn("console changed");
+    }
 
 
 }]);

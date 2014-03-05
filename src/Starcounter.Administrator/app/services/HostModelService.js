@@ -12,7 +12,8 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
     //     "Uri":"http://machine:1234/api/databases/mydatabase",
     //     "HostUri":"http://machine:1234/api/engines/mydatabase/db",
     //     "Running":true,
-    //     "console":""
+    //     "console":"",
+    //      consoleManualMode : false
     // }
     this.databases = DatabaseService.databases;
 
@@ -48,8 +49,8 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
 
     /**
      * Get executable
-     * @param {executableName} executableName Executable name
-     * @return {executable} Executable or null
+     * @param {string} executableName Executable name
+     * @return {object} Executable or null
      */
     this.getExecutable = function (executableName) {
         return ExecutableService.getExecutable(executableName);
@@ -58,8 +59,8 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
 
     /**
      * Get database
-     * @param {databaseName} databaseName Database name
-     * @return {database} Database or null
+     * @param {string} databaseName Database name
+     * @return {object} Database or null
      */
     this.getDatabase = function (databaseName) {
         return DatabaseService.getDatabase(databaseName);
@@ -68,8 +69,8 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
 
     /**
      * Refresh host model (Databases and Executables)
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshHostModel = function (successCallback, errorCallback) {
 
@@ -84,16 +85,22 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
                 }
 
             }, function (messageObject) {
+
                 // Error
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                if (typeof (errorCallback) == "function") {
+                    errorCallback(messageObject);
+                }
+
             });
 
-
         }, function (messageObject) {
+
             // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
+            }
         });
-     
+
     }
 
 }]);

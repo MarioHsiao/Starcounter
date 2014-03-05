@@ -39,8 +39,8 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Get all running executables
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getExecutables = function (successCallback, errorCallback) {
 
@@ -115,8 +115,8 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Get executable
-     * @param {executableName} executableName Executable name
-     * @return {executable} Executable or null
+     * @param {string} executableName Executable name
+     * @return {object} Executable or null
      */
     this.getExecutable = function (executableName) {
 
@@ -131,8 +131,8 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Refresh executables
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshExecutables = function (successCallback, errorCallback) {
 
@@ -159,17 +159,20 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Refresh executable console output
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} executable Executable
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshConsoleOuput = function (executable, successCallback, errorCallback) {
 
-        var filter = executable.Name;
-
-        ConsoleService.getConsoleOuput(executable.databaseName, filter, function (text) {
+        ConsoleService.getConsoleOuput(executable.databaseName, { databaseName: executable.databaseName, applicationName: executable.Name }, function (consoleEvents) {
             // Success
 
-            self._onConsoleOutputEvent(executable, text, false);
+            var consoleText = "";
+            for (var i = 0; i < consoleEvents.length; i++) {
+                consoleText = consoleText + consoleEvents[i].text;
+            }
+            self._onConsoleOutputEvent(executable, consoleText, false);
 
             if (typeof (successCallback) == "function") {
                 successCallback();
@@ -182,9 +185,9 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Callback when there is an incoming console message
-     * @param {executable} executable
-     * @param {text} text
-     * @param {bAppend} bAppend
+     * @param {object} executable Executable
+     * @param {text} text Text to console
+     * @param {boolean} bAppend True is Text will be appended to current console text
      */
     this._onConsoleOutputEvent = function (executable, text, bAppend) {
 
@@ -207,7 +210,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Update current executable list with new list
-     * @param {newExecutables} New Executable list
+     * @param {array} newDatabases New executable list
      */
     this._updateExecutableList = function (newExecutables) {
 
@@ -266,7 +269,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * On New Executable Event
-     * @param {executable} Executable
+     * @param {object} executable Executable
      */
     this._onNewExecutable = function (executable) {
 
@@ -279,8 +282,12 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
         // Socket event listener
         executable.consoleListener = {
             databaseName: executable.databaseName,
-            onEvent: function (text) {
-                self._onConsoleOutputEvent(executable, text, true);
+            onEvent: function (consoleEvents) {
+
+                for (var i = 0; i < consoleEvents.length; i++) {
+                    self._onConsoleOutputEvent(executable, consoleEvents[i].text, true);
+                }
+
             },
             onError: function (messageObject) {
 
@@ -288,7 +295,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
                 executable.consoleManualMode = true;
 
             },
-            filter: executable.Name
+            filter: { databaseName: executable.databaseName, applicationName: executable.Name }
         }
 
         ConsoleService.registerEventListener(executable.consoleListener);
@@ -297,7 +304,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * On Executable Removed event
-     * @param {executable} Executable
+     * @param {object} executable Executable
      */
     this._onRemovedExecutable = function (executable) {
         ConsoleService.unregisterEventListener(executable.consoleListener);
@@ -306,9 +313,9 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Restart Executable
-     * @param {Executable} executable
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} executable Executable
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.restartExecutable = function (executable, successCallback, errorCallback) {
 
@@ -327,9 +334,9 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Start Executable
-     * @param {Executable} executable
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} executable Executable
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.startExecutable = function (file, databaseName, successCallback, errorCallback) {
 
@@ -457,9 +464,9 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Stop Executable
-     * @param {Executable} executable
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} executable Executable
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.stopExecutable = function (executable, successCallback, errorCallback) {
 
@@ -528,8 +535,10 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Start engine/database
-     * @param {name} name
-     * @return {Promise} promise
+     * @param {string} name Database name
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     * @return {object} promise
      */
     this.startEngine = function (name, successCallback, errorCallback) {
 

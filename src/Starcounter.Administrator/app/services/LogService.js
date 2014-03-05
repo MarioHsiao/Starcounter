@@ -5,19 +5,17 @@
  */
 adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory', 'JobFactory', function ($http, $log, $rootScope, UtilsFactory, JobFactory) {
 
-
+    var self = this;
     this.socket = null,
     this.isWebsocketSupport = ("WebSocket" in window)
     this.listeners = [];
 
-    //    this.isWebsocketSupport = ("WebSocket" in window);
-
-    var self = this;
 
     /**
      * Get log Entries
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} filter filter
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getLogEntries = function (filter, successCallback, errorCallback) {
 
@@ -85,7 +83,7 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
 
     /**
      * Register log listener
-     * @param {listener} { onEvent: function () { },  onError: function (messageObject) {}  }
+     * @param {object} listener Listener { onEvent: function () { },  onError: function (messageObject) {}  }
      */
     this.registerEventListener = function (listener) {
         this.listeners.push(listener);
@@ -99,7 +97,7 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
 
     /**
      * Unregister log listener
-     * @param {listener} { onEvent: function () { },  onError: function (messageObject) {}  }
+     * @param {object} listener Listener { onEvent: function () { },  onError: function (messageObject) {}  }
      */
     this.unregisterEventListener = function (listener) {
         var index = this.listeners.indexOf(listener);
@@ -114,8 +112,9 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
     }
 
 
-    // Retrive the event when the log has changed
-    // Connect socket listener
+    /**
+     * Connect socket listener
+     */
     this.startListener = function () {
 
         if (this.isWebsocketSupport == false) return;
@@ -190,7 +189,10 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
         }
     }
 
-    // Disconnect socket listener
+
+    /**
+     * Disconnect socket listener
+     */
     this.stopListener = function () {
 
         if (this.socket != null) {
@@ -198,7 +200,6 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
             this.socket.close();
         }
     }
-
 
 
 }]);
