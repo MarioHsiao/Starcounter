@@ -142,7 +142,9 @@
     <Content Include="app\directives\ConsoleWindow.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\directives\Jobs.js" />
+    <Content Include="app\directives\Jobs.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\directives\VersionCheck.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
