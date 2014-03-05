@@ -7,14 +7,14 @@ namespace Starcounter.CLI {
         /// <summary>
         /// Minimal output.
         /// </summary>
-        Minimal,
+        Minimal = 0,
         /// <summary>
         /// Normal output.
         /// </summary>
-        Normal,
+        Normal = 1,
         /// <summary>
         /// Verbose (detailed) output
         /// </summary>
-        Verbose
+        Verbose = 2
     }
 }
