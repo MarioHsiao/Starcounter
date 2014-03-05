@@ -22,11 +22,67 @@ namespace Starcounter.CLI {
     /// want to use the common way to start or stop an application.
     /// </summary>
     public class ExeCLI {
-        readonly ApplicationBase Application;
-
-        private ExeCLI(ApplicationBase application) {
-            Application = application;
+        AdminAPI AdminAPI;
+        string ServerHost;
+        int ServerPort;
+        string ServerName;
+        string DatabaseName;
+        ApplicationBase Application;
+        ApplicationArguments CLIArguments;
+        string[] EntrypointArguments;
+        
+        private ExeCLI() {
         }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="ExeCLI"/> class based on
+        /// the given arguments. This instance can thereafter be executed with
+        /// the <see cref="Execute"/> method.
+        /// </summary>
+        /// <param name="applicationFilePath">The application file.</param>
+        /// <param name="exePath">The compiled application file.</param>
+        /// <param name="args">Arguments given to the CLI host.</param>
+        /// <param name="entrypointArgs">Arguments that are to be passed along
+        /// to the application entrypoint, if the given arguments indicate it's
+        /// being started/restarted.</param>
+        /// <returns>An instance of <see cref="ExeCLI"/>.</returns>
+        public static ExeCLI Create(
+            string applicationFilePath,
+            string exePath,
+            ApplicationArguments args,
+            string[] entrypointArgs = null) {
+            var result = new ExeCLI();
+            
+            if (string.IsNullOrWhiteSpace(applicationFilePath)) {
+                applicationFilePath = exePath;
+            }
+
+            string appName;
+            string workingDirectory;
+            ResolveWorkingDirectory(args, out workingDirectory);
+            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
+            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
+
+            SharedCLI.ResolveAdminServer(args, out result.ServerHost, out result.ServerPort, out result.ServerName);
+            SharedCLI.ResolveDatabase(args, out result.DatabaseName);
+
+            result.Application = app;
+            result.AdminAPI = new AdminAPI();
+            result.CLIArguments = args;
+            result.EntrypointArguments = entrypointArgs;
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Executes the logic of the given CLI arguments on the
+        /// application bound to the current instance, on the target
+        /// database on the target server.
+        /// </summary>
+        public void Execute() {
+            throw new NotImplementedException();
+        }
+
 
         /// <summary>
         /// Starts or stops a given application.
@@ -379,6 +435,15 @@ namespace Starcounter.CLI {
                 response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null);
                 response.FailIfNotSuccessOr();
             }
+        }
+
+        static void ResolveWorkingDirectory(ApplicationArguments args, out string workingDirectory) {
+            string dir;
+            if (!args.TryGetProperty(Option.ResourceDirectory, out dir)) {
+                dir = Environment.CurrentDirectory;
+            }
+            workingDirectory = dir;
+            workingDirectory = Path.GetFullPath(workingDirectory);
         }
 
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
