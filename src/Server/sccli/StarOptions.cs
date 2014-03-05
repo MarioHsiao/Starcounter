@@ -21,6 +21,7 @@ namespace star {
         public const string Stop = SharedCLI.Option.Stop;
         public const string NoAutoCreateDb = SharedCLI.Option.NoAutoCreateDb;
         public const string Verbose = SharedCLI.Option.Verbose;
+        public const string Detailed = SharedCLI.Option.Detailed;
         public const string Async = SharedCLI.Option.Async;
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";

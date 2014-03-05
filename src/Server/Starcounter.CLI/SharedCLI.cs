@@ -9,6 +9,7 @@ using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System.Net;
 using System.Diagnostics;
+using System.IO;
 
 namespace Starcounter.CLI {
 
@@ -101,6 +102,11 @@ namespace Starcounter.CLI {
             public const string Verbose = "verbose";
             /// <summary>
             /// Gets the option name of the parameter that instructs the
+            /// client to turn on detailed output.
+            /// </summary>
+            public const string Detailed = "detailed";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
             /// client to return as soon as the executable has been passed
             /// to the host, not awaiting the full entrypoint of the
             /// executable to return.
@@ -165,10 +171,19 @@ namespace Starcounter.CLI {
         static string HintShowErrorPage = "Type \"star {0}\" to launch the help page for error {0}";
 
         /// <summary>
+        /// Defines the verbosity of the current CLI context.
+        /// </summary>
+        public static OutputLevel Verbosity = CLI.OutputLevel.Minimal;
+
+        /// <summary>
         /// Gets or sets a value indicating if the current client/host
         /// should display verbose output.
         /// </summary>
-        public static bool Verbose { get; set; }
+        public static bool Verbose {
+            get {
+                return Verbosity == CLI.OutputLevel.Verbose;
+            }
+        }
 
         /// <summary>
         /// Defines and includes the well-known, shared CLI options in
@@ -235,6 +250,10 @@ namespace Starcounter.CLI {
                 Option.Verbose,
                 "Specifies that verbose output is to be written."
                 );
+            definition.DefineFlag(
+                Option.Detailed,
+                "Specifies that detailed output is to be written."
+                );
 
             if (includeUnofficial) {
                 definition.DefineFlag(
@@ -263,17 +282,19 @@ namespace Starcounter.CLI {
         /// and set the environment exit code accordingly.
         /// </remarks>
         public static bool TryParse(string[] args, IApplicationSyntax syntax, out ApplicationArguments appArgs) {
-            Verbose = false;
             try {
                 appArgs = new Parser(args).Parse(syntax);
-                if (appArgs.ContainsFlag(Option.Verbose)) {
-                    Verbose = true;
-                }
             } catch (InvalidCommandLineException e) {
                 ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
                 Environment.ExitCode = (int)e.ErrorCode;
                 appArgs = null;
                 return false;
+            }
+
+            if (appArgs.ContainsFlag(Option.Verbose)) {
+                Verbosity = OutputLevel.Verbose;
+            } else if (appArgs.ContainsFlag(Option.Detailed)) {
+                Verbosity = OutputLevel.Normal;
             }
 
             return true;
@@ -397,6 +418,26 @@ namespace Starcounter.CLI {
                 database = SharedCLI.DefaultDatabaseName;
             }
             name = database;
+        }
+
+        /// <summary>
+        /// Resolves the name of the application from a given set of
+        /// command-line arguments, and/or defaults.
+        /// </summary>
+        /// <param name="args">Command-line arguments to consult.</param>
+        /// <param name="applicationFilePath">The full path to the logical application
+        /// file.</param>
+        /// <param name="name">The name of the application.</param>
+        public static void ResolveApplication(
+            ApplicationArguments args, 
+            string applicationFilePath,
+            out string name) {
+
+            string application;
+            if (!args.TryGetProperty(Option.AppName, out application)) {
+                application = Path.GetFileName(applicationFilePath);
+            }
+            name = application;
         }
 
         /// <summary>
