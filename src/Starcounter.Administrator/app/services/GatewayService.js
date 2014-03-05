@@ -15,8 +15,8 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
 
     /**
      * Get Gateway Statistics
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getGatewayStatistics = function (successCallback, errorCallback) {
 
@@ -72,8 +72,8 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
 
     /**
      * Refresh Gateway Statistics
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshGatewayStatistics = function (successCallback, errorCallback) {
 

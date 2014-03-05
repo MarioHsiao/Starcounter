@@ -98,6 +98,7 @@
     <script src="/app/directives/Notices.js"></script>
     <script src="/app/directives/Jobs.js"></script>
     <script src="/app/directives/VersionCheck.js"></script>
+    <script src="/app/directives/ConsoleWindow.js"></script>
 
     <!-- Angular localisation -->
     <script type='text/javascript'>
@@ -187,7 +188,7 @@
             <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Network</a></li>
             <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
 
-<!--            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
+            <!--            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
             <li data-ng-class="{active: getClass('/databases')}"><a href="#/databases">Databases</a></li>-->
 
 
@@ -195,24 +196,21 @@
     </div>
 
 
+    <!-- Version check -->
     <version-check></version-check>
-
-    <!--    <div class="alert alert-info" data-ng-show="newVersion!=null">
-        <button type="button" class="close" data-ng-click="closeVersionNotice()" data-dismiss="alert">&times;</button>
-        <strong>New Version!</strong>
-        <p>A newer version of Starcounter is available.</p>
-        <a href="{{newVersion.downloadUri}}" target="_blank">Download ({{newVersion.version}})</a>
-    </div>-->
 
     <div class="progress progress-striped active" data-ng-repeat="job in jobs">
         <div class="bar" style="width: 100%;">{{job.message}}</div>
     </div>
 
+    <!-- Jobs -->
     <jobs></jobs>
 
+    <!-- Notices -->
     <notices></notices>
 
 
+    <!-- Content -->
     <div data-ng-view />
 
 

@@ -11,9 +11,9 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
 
     /**
      * Verify database settings
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     $scope.verifySettings = function (settings, successCallback, errorCallback) {
 
@@ -36,9 +36,9 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
 
     /**
      * Create database
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     $scope.createDatabase = function (settings, successCallback, errorCallback) {
 
@@ -62,8 +62,7 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
 
     /**
      * Refresh database default settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
      */
     $scope.btnCreateDatabase = function (settings) {
 
@@ -138,8 +137,6 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
 
     /**
      * Refresh database default settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
      */
     $scope.refreshDatabaseDefaultSettings = function () {
 

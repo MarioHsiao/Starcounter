@@ -25,8 +25,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Get all databases
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getDatabases = function (successCallback, errorCallback) {
 
@@ -78,8 +78,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Get database
-     * @param {databaseName} databaseName Database name
-     * @return {database} Database or null
+     * @param {string} databaseName Database name
+     * @return {object} Database or null
      */
     this.getDatabase = function (databaseName) {
 
@@ -93,8 +93,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Refresh databases
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshDatabases = function (successCallback, errorCallback) {
 
@@ -119,17 +119,22 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Refresh executable console output
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.refreshConsoleOuput = function (database, successCallback, errorCallback) {
 
-        var filter = null;
 
-        ConsoleService.getConsoleOuput(database.name, filter, function (text) {
+        ConsoleService.getConsoleOuput(database.name, { databaseName: database.name }, function (consoleEvents) {
+
             // Success
 
-            self._onConsoleOutputEvent(database, text, false);
+            var consoleText = "";
+            for (var i = 0; i < consoleEvents.length; i++) {
+                consoleText = consoleText + consoleEvents[i].text;
+            }
+            self._onConsoleOutputEvent(database, consoleText, false);
 
             if (typeof (successCallback) == "function") {
                 successCallback();
@@ -141,9 +146,9 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Callback when there is an incoming console message
-     * @param {database} database
-     * @param {text} text
-     * @param {bAppend} bAppend
+     * @param {string} database Database
+     * @param {text} text Text to console
+     * @param {boolean} bAppend True is Text will be appended to current console text
      */
     this._onConsoleOutputEvent = function (database, text, bAppend) {
 
@@ -166,7 +171,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Update current database list with new list
-     * @param {newDatabasess} New database list
+     * @param {array} newDatabases New database list
      */
     this._updateDatabaseList = function (newDatabases) {
 
@@ -187,10 +192,10 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                     if (arg.propertyName == "running") {
 
                         if (arg.newValue) {
-                            ConsoleService.registerEventListener(arg.source.consoleListener);
+                            self._onDatabaseStarted(arg.source);
                         }
                         else {
-                            ConsoleService.unregisterEventListener(arg.source.consoleListener);
+                            self._onDatabaseStopped(arg.source);
                         }
                     }
 
@@ -240,7 +245,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * On New database Event
-     * @param {database} database
+     * @param {object} database Database
      */
     this._onNewDatabase = function (database) {
 
@@ -251,9 +256,13 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
         // Socket event listener
         database.consoleListener = {
             databaseName: database.name,
-            onEvent: function (text) {
+            onEvent: function (consoleEvents) {
 
-                self._onConsoleOutputEvent(database, text, true);
+                var consoleText = "";
+                for (var i = 0; i < consoleEvents.length; i++) {
+                    consoleText = consoleText + consoleEvents[i].text;
+                }
+                self._onConsoleOutputEvent(database, consoleText, true);
 
             },
             onError: function (messageObject) {
@@ -262,7 +271,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 database.consoleManualMode = true;
 
             },
-            filter: null
+            filter: { databaseName: database.name }
         }
 
         if (database.running) {
@@ -273,8 +282,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
 
     /**
-     * On Executable Removed event
-     * @param {executable} Executable
+     * On database Removed event
+     * @param {object} database Database
      */
     this._onRemovedDatabase = function (database) {
         ConsoleService.unregisterEventListener(database.consoleListener);
@@ -282,10 +291,27 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
 
     /**
+     * On database started event
+     * @param {object} database Database
+     */
+    this._onDatabaseStarted = function (database) {
+        ConsoleService.registerEventListener(database.consoleListener);
+    }
+
+    /**
+     * On database stopped event
+     * @param {object} database Database
+     */
+    this._onDatabaseStopped = function (database) {
+        ConsoleService.unregisterEventListener(database.consoleListener);
+    }
+
+
+    /**
      * Start database
-     * @param {Database} database
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.startDatabase = function (database, successCallback, errorCallback) {
 
@@ -353,9 +379,9 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Stop database
-     * @param {Database} database
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.stopDatabase = function (database, successCallback, errorCallback) {
 
@@ -424,9 +450,9 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Get Database settings
-     * @param {Database} database
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getDatabaseSettings = function (database, successCallback, errorCallback) {
 
@@ -494,10 +520,10 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Save database settings
-     * @param {database} Database
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} database Database
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.saveDatabaseSettings = function (database, settings, successCallback, errorCallback) {
 
@@ -580,8 +606,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Get Database default settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getDatabaseDefaultSettings = function (successCallback, errorCallback) {
 
@@ -647,9 +673,9 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Verify database settings
-     * @param {settings} Settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.verifyDatabaseSettings = function (settings, successCallback, errorCallback) {
 
@@ -719,9 +745,9 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     /**
      * Create database
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.createDatabase = function (settings, successCallback, errorCallback) {
 
