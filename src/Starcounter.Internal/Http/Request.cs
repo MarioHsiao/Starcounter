@@ -319,7 +319,15 @@ namespace Starcounter {
             came_with_correct_session_ = (INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_));
         }
 
-        public WebSocket Upgrade(String channelName, UInt64 cargoId = 0, Response resp = null, IAppsSession session = null)
+        /// <summary>
+        /// Sends the WebSocket upgrade HTTP response and creates a WebSocket object.
+        /// </summary>
+        /// <param name="channelName">WebSocket channel name for subsequent events on created WebSocket.</param>
+        /// <param name="cargoId">Integer identifier supplied from user that comes inside WebSocket object in subsequent events.</param>
+        /// <param name="resp">Attached HTTP response if specific cookies or headers should be send in the WebSocket upgrade HTTP response.</param>
+        /// <param name="session">Session that should be attached to the created WebSocket.</param>
+        /// <returns>Created WebSocket object that immediately can be used.</returns>
+        public WebSocket SendUpgrade(String channelName, UInt64 cargoId = 0, Response resp = null, IAppsSession session = null)
         {
             Byte[] wsHandshakeResp;
 

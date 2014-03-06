@@ -49,7 +49,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                     Byte schedId = ThreadData.Current.Scheduler.Id;
                     UniqueWebSocketIdentifier[schedId]++;
 
-                    WebSocket ws = req.Upgrade("console", UniqueWebSocketIdentifier[schedId]);
+                    WebSocket ws = req.SendUpgrade("console", UniqueWebSocketIdentifier[schedId]);
                     WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
 
                     ConsoleEvents consoleEvents = GetConsoleEvents();
