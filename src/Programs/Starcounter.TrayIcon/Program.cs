@@ -213,7 +213,7 @@ namespace Starcounter.Tools {
                 foreach (Executable executable in e.Items) {
 
                     if (!string.IsNullOrEmpty(contentText)) {
-                        contentText += Environment.NewLine + Environment.NewLine;
+                        contentText += Environment.NewLine;
                     }
                     contentText += this.CreateMessage(executable);
 
@@ -244,7 +244,7 @@ namespace Starcounter.Tools {
             string listeningPorts = string.Empty;
 
             if (!string.IsNullOrEmpty(portsStr)) {
-                listeningPorts += Environment.NewLine + "Listening on port(s) " + portsStr;
+                listeningPorts += Environment.NewLine + "- Listening on port(s) " + portsStr;
 
             }
 
