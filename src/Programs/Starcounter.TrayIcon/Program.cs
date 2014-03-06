@@ -69,6 +69,8 @@ namespace Starcounter.Tools {
             else {
                 // An instance of scTrayIcon is already running.
             }
+           
+
         }
 
 
@@ -173,11 +175,14 @@ namespace Starcounter.Tools {
             string sSource = "Starcounter TrayIcon";
             string sLog = "Application";
 
-            if (!EventLog.SourceExists(sSource)) {
-                EventLog.CreateEventSource(sSource, sLog);
-            }
+            try {
+                if (!EventLog.SourceExists(sSource)) {
+                    EventLog.CreateEventSource(sSource, sLog);
+                }
 
-            EventLog.WriteEntry(sSource, message, EventLogEntryType.Error);
+                EventLog.WriteEntry(sSource, message, EventLogEntryType.Error);
+            }
+            catch (Exception) { }
         }
 
 
