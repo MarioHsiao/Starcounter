@@ -205,7 +205,7 @@ public:
                 stats_stream << ",";
             first = false;
 
-            stats_stream << "{\"channel\":\"" << reg_ws_channels_[i].get_channel_name() << "\",";
+            stats_stream << "{\"wschannel\":\"" << reg_ws_channels_[i].get_channel_name() << "\",";
             stats_stream << "\"location\":";
 
             stats_stream << '"' << g_gateway.GetDatabase(reg_ws_channels_[i].get_db_index())->get_db_name() << '"';
