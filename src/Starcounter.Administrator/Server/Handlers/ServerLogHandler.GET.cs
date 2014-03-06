@@ -103,7 +103,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     Byte schedId = ThreadData.Current.Scheduler.Id;
                     UniqueWebSocketIdentifier[schedId]++;
 
-                    WebSocket ws = req.Upgrade("logs", UniqueWebSocketIdentifier[schedId]);
+                    WebSocket ws = req.SendUpgrade("logs", UniqueWebSocketIdentifier[schedId]);
                     WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
 
                     return HandlerStatus.Handled;

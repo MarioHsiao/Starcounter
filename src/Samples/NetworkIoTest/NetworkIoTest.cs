@@ -365,7 +365,7 @@ namespace NetworkIoTestApp
                     {
                         if (req.WebSocketUpgrade)
                         {
-                            req.Upgrade("echotestws");
+                            req.SendUpgrade("echotestws");
 
                             return HandlerStatus.Handled;
                         }
@@ -557,7 +557,7 @@ namespace NetworkIoTestApp
                             Byte schedId = ThreadData.Current.Scheduler.Id;
                             UniqueWebSocketIdentifier[schedId]++;
 
-                            WebSocket ws = req.Upgrade("test", UniqueWebSocketIdentifier[schedId]);
+                            WebSocket ws = req.SendUpgrade("test", UniqueWebSocketIdentifier[schedId]);
                             WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
 
                             return HandlerStatus.Handled;
