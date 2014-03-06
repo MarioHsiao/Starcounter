@@ -475,28 +475,21 @@ namespace QueryProcessingTest {
             return key;
         }
 
-        static void DoOffsetkey(String query, byte[] key, int[] expectedResult, Boolean keyReinsert) {
+        static void DoOffsetkey(String query, byte[] key, int[] expectedResult) {
+            DoOffsetkey(query, key, expectedResult, false);
+        }
+
+        static void DoOffsetkey(String query, byte[] key, int[] expectedResult, bool firstCanIgnored) {
             int nrs = 0;
-            Boolean keyIncluded = true;
             Db.Transaction(delegate {
                 foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
-                    if (nrs == 0 && keyReinsert)
-                        keyIncluded = a.AccountId == expectedResult[nrs];
-                    if (keyIncluded)
-                        Trace.Assert(a.AccountId == expectedResult[nrs]);
-                    else
-                        Trace.Assert(a.AccountId == expectedResult[nrs + 1]);
+                    if (nrs == 0 && firstCanIgnored && a.AccountId > expectedResult[nrs])
+                        nrs++;
+                    Trace.Assert(a.AccountId == expectedResult[nrs]);
                     nrs++;
                 }
             });
-            if (keyIncluded)
-                Trace.Assert(nrs == expectedResult.Length);
-            else
-                Trace.Assert(nrs + 1 == expectedResult.Length);
-        }
-
-        static void DoOffsetkey(String query, byte[] key, int[] expectedResult) {
-            DoOffsetkey(query, key, expectedResult, false);
+            Trace.Assert(nrs == expectedResult.Length);
         }
 
         static User PopulateForTest() {
