@@ -46,7 +46,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
                 // Check if the request was a websocket request
                 if (req.WebSocketUpgrade) {
-                    Byte schedId = ThreadData.Current.Scheduler.Id;
+                    Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                     UniqueWebSocketIdentifier[schedId]++;
 
                     WebSocket ws = req.SendUpgrade("console", UniqueWebSocketIdentifier[schedId]);
@@ -66,7 +66,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
             // Socket channel disconnected event
             Handle.SocketDisconnect(defaultSystemHttpPort, "console", (UInt64 cargoId, IAppsSession session) => {
-                Byte schedId = ThreadData.Current.Scheduler.Id;
+                Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                 if (WebSocketSessions[schedId].ContainsKey(cargoId))
                     WebSocketSessions[schedId].Remove(cargoId);
             });
