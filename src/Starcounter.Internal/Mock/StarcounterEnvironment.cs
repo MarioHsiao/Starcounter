@@ -56,7 +56,7 @@ namespace Starcounter.Internal
                         cm3_eautodet(IntPtr.Zero);
                         errCode = cm3_get_cpun(null, &cpun);
                         if (errCode != 0) {
-                            return 255;
+                            return 0;
                         }
                     }
                     return cpun;
