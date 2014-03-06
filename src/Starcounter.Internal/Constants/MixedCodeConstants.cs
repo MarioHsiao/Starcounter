@@ -71,7 +71,8 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_AGGREGATED = 2 << 11,
             SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 12,
             HTTP_WS_FLAGS_UPGRADE_APPROVED = 2 << 13,
-            HTTP_WS_FLAGS_UPGRADE_REQUEST = 2 << 14
+            HTTP_WS_FLAGS_UPGRADE_REQUEST = 2 << 14,
+            HTTP_WS_DESTROY_SENT = 2 << 15
         };
 
         /// <summary>
