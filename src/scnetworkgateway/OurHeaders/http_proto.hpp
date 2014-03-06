@@ -302,6 +302,7 @@ public:
     void PrintRegisteredUris(std::stringstream& stats_stream)
     {
         bool first = true;
+        stats_stream << "\"registeredUris\":[";
 
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
@@ -309,7 +310,14 @@ public:
                 stats_stream << ",";
             first = false;
 
-            stats_stream << "{\"uri\":\"" << reg_uris_[i].get_processed_uri_info() << "\",";
+            stats_stream << "{";
+
+            std::string method_and_uri = std::string(reg_uris_[i].get_processed_uri_info());
+            std::string method = method_and_uri.substr(0, method_and_uri.find(' '));
+            std::string uri = method_and_uri.substr(method_and_uri.find(' ') + 1);
+
+            stats_stream << "\"method\":\"" << method << "\",";
+            stats_stream << "\"uri\":\"" << uri << "\",";
             stats_stream << "\"location\":";
 
             // Checking if its gateway or database URI.
@@ -328,6 +336,8 @@ public:
 
             stats_stream << "}";
         }
+
+        stats_stream << "]";
     }
 
     // Checking if entry already exists.

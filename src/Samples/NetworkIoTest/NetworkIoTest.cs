@@ -365,7 +365,7 @@ namespace NetworkIoTestApp
                     {
                         if (req.WebSocketUpgrade)
                         {
-                            req.Upgrade("echotestws");
+                            req.SendUpgrade("echotestws");
 
                             return HandlerStatus.Handled;
                         }
@@ -554,10 +554,10 @@ namespace NetworkIoTestApp
                     {
                         if (req.WebSocketUpgrade)
                         {
-                            Byte schedId = ThreadData.Current.Scheduler.Id;
+                            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                             UniqueWebSocketIdentifier[schedId]++;
 
-                            WebSocket ws = req.Upgrade("test", UniqueWebSocketIdentifier[schedId]);
+                            WebSocket ws = req.SendUpgrade("test", UniqueWebSocketIdentifier[schedId]);
                             WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
 
                             return HandlerStatus.Handled;
@@ -580,7 +580,7 @@ namespace NetworkIoTestApp
 
                     Handle.SocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
                     {
-                        Byte schedId = ThreadData.Current.Scheduler.Id;
+                        Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                         if (WebSocketSessions[schedId].ContainsKey(cargoId))
                             WebSocketSessions[schedId].Remove(cargoId);
                     });

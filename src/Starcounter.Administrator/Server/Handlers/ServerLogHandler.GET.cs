@@ -100,10 +100,10 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 if (req.WebSocketUpgrade)
                 {
-                    Byte schedId = ThreadData.Current.Scheduler.Id;
+                    Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                     UniqueWebSocketIdentifier[schedId]++;
 
-                    WebSocket ws = req.Upgrade("logs", UniqueWebSocketIdentifier[schedId]);
+                    WebSocket ws = req.SendUpgrade("logs", UniqueWebSocketIdentifier[schedId]);
                     WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
 
                     return HandlerStatus.Handled;
@@ -117,7 +117,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             Handle.SocketDisconnect("logs", (UInt64 cargoId, IAppsSession session) =>
             {
-                Byte schedId = ThreadData.Current.Scheduler.Id;
+                Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                 if (WebSocketSessions[schedId].ContainsKey(cargoId))
                     WebSocketSessions[schedId].Remove(cargoId);
             });

@@ -215,12 +215,12 @@ namespace Starcounter.Tools.Service {
 
                     // Starcounter server is running
                     // Get Executables
-                    try {
-                        Executables executables;
-                        ExecutablesTask.Execute(this, out executables);
+                    Executables executables;
+                    bool result = ExecutablesTask.Execute(this, out executables);
+                    if (result) {
                         worker.ReportProgress(0, executables);
                     }
-                    catch (TaskCanceledException) {
+                    else {
                         // Switch to polling the service status
                         modeFlag = true;
                         continue;

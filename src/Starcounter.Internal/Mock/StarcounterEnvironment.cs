@@ -27,6 +27,9 @@ namespace Starcounter.Internal
         [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         unsafe extern static UInt32 cm3_get_cpun(void* h_opt, Byte* pcpun);
 
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        extern static UInt32 cm3_eautodet(IntPtr h_opt);
+
         /// <summary>
         /// Name of the database.
         /// </summary>
@@ -36,10 +39,7 @@ namespace Starcounter.Internal
         /// Name of the application.
         /// </summary>
         [ThreadStatic]
-        public static string AppName = "";
-
-        [ThreadStatic]
-        static Byte currentSchedulerId_ = 255;
+        public static string AppName;
 
         /// <summary>
         /// Obtains current scheduler id.
@@ -48,17 +48,19 @@ namespace Starcounter.Internal
         {
             get
             {
-                if (255 == currentSchedulerId_)
+                unsafe
                 {
-                    unsafe
-                    {
-                        Byte cpun = 0;
-                        cm3_get_cpun(null, &cpun);
-                        currentSchedulerId_ = cpun;
+                    Byte cpun = 0;
+                    UInt32 errCode = cm3_get_cpun(null, &cpun);
+                    if (errCode != 0) {
+                        cm3_eautodet(IntPtr.Zero);
+                        errCode = cm3_get_cpun(null, &cpun);
+                        if (errCode != 0) {
+                            return 0;
+                        }
                     }
+                    return cpun;
                 }
-
-                return currentSchedulerId_;
             }
         }
 

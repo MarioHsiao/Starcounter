@@ -98,7 +98,7 @@ public:
 
     uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
-    uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
+    static uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
     void MaskUnMask(
         uint8_t* data,
@@ -196,8 +196,7 @@ public:
     {
         bool first = true;
 
-        if (reg_ws_channels_.get_num_entries() != 0)
-            stats_stream << ",";
+        stats_stream << ",\"registeredWsChannels\":[";
 
         for (int32_t i = 0; i < reg_ws_channels_.get_num_entries(); i++)
         {
@@ -205,7 +204,7 @@ public:
                 stats_stream << ",";
             first = false;
 
-            stats_stream << "{\"channel\":\"" << reg_ws_channels_[i].get_channel_name() << "\",";
+            stats_stream << "{\"wschannel\":\"" << reg_ws_channels_[i].get_channel_name() << "\",";
             stats_stream << "\"location\":";
 
             stats_stream << '"' << g_gateway.GetDatabase(reg_ws_channels_[i].get_db_index())->get_db_name() << '"';
@@ -213,6 +212,8 @@ public:
 
             stats_stream << "}";
         }
+
+        stats_stream << "]";
     }
 
     // Checking if handlers list is empty.

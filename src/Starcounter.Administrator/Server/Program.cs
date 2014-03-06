@@ -149,7 +149,7 @@ namespace Starcounter.Administrator.Server {
             {
                 if (req.WebSocketUpgrade)
                 {
-                    req.Upgrade("echotestws");
+                    req.SendUpgrade("echotestws");
 
                     return HandlerStatus.Handled;
                 }

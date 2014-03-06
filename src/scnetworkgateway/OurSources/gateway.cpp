@@ -597,11 +597,10 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
     //stats_stream << "\"allocatedAcceptSockets\":" << get_num_allocated_accept_sockets() << ",";
     //stats_stream << "\"allocatedConnectSockets\": " << get_num_allocated_connect_sockets() << ",";
 #endif
-    stats_stream << "\"registeredUris\":[";
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
     registered_ws_channels_->PrintRegisteredChannels(stats_stream);
-    stats_stream << "]}";
+    stats_stream << "}";
 }
 
 // Printing the database information.
