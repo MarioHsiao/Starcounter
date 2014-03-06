@@ -18,10 +18,10 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
 
     /**
      * Execute query
-     * @param {query} query
-     * @param {database} database
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {string} query Query
+     * @param {string} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.executeQuery = function (query, databaseName, successCallback, errorCallback) {
 

@@ -47,12 +47,17 @@ namespace Starcounter.Internal
 
         public Boolean Alive { get { return alive_; } }
 
-        public WsChannelInfo(UInt16 handlerId, UInt16 port, String channel)
+        String appName_;
+
+        public String AppName { get { return appName_; } }
+
+        public WsChannelInfo(String appName, UInt16 handlerId, UInt16 port, String channel)
         {
             ChannelName = channel;
             channelId_ = (UInt32)channel.GetHashCode();
             handlerId_ = handlerId;
             port_ = port;
+            appName_ = appName;
         }
 
         public void Destroy()
@@ -80,20 +85,36 @@ namespace Starcounter.Internal
 
         public void DetermineAndRunHandler(WebSocket ws)
         {
+            StarcounterEnvironment.AppName = appName_;
+
             switch (ws.HandlerType)
             {
                 case WebSocket.WsHandlerType.BinaryData:
                 {
-                    if (receiveBinaryHandler_ != null)
-                        receiveBinaryHandler_(ws.Bytes, ws);
+                    if (receiveBinaryHandler_ == null)
+                    {
+                        ws.Disconnect("WebSocket binary messages handler on the requested channel is not registered. Closing the connection.",
+                            WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
+
+                        return;
+                    }
+
+                    receiveBinaryHandler_(ws.Bytes, ws);
 
                     break;
                 }
 
                 case WebSocket.WsHandlerType.StringMessage:
                 {
-                    if (receiveStringHandler_ != null)
-                        receiveStringHandler_(ws.Message, ws);
+                    if (receiveStringHandler_ == null)
+                    {
+                        ws.Disconnect("WebSocket string messages handler on the requested channel is not registered. Closing the connection.",
+                            WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
+
+                        return;
+                    }
+
+                    receiveStringHandler_(ws.Message, ws);
 
                     break;
                 }
@@ -120,13 +141,17 @@ namespace Starcounter.Internal
 
         UInt16 maxWsChannels_ = 0;
 
-        public WsChannelInfo FindChannel(String channelName)
+        internal WsChannelInfo FindChannel(UInt16 port, String channelName)
         {
-            for (Int32 i = 0; i < maxWsChannels_; i++)
+            // Pre-pending database name for automatic uniqueness.
+            channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
+
+            // Searching WebSocket channel.
+            for (UInt16 i = 0; i < maxWsChannels_; i++)
             {
                 if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
                 {
-                    if (0 == String.Compare(allWsChannels_[i].ChannelName, channelName))
+                    if ((allWsChannels_[i].Port == port) && (0 == String.Compare(allWsChannels_[i].ChannelName, channelName)))
                         return allWsChannels_[i];
                 }
             }
@@ -139,6 +164,7 @@ namespace Starcounter.Internal
         /// </summary>
         void RegisterWsHandlerBmx(
             UInt16 port,
+            String appName,
             String channelName,
             UInt32 channelId,
             UInt16 managedHandlerIndex,
@@ -149,6 +175,7 @@ namespace Starcounter.Internal
             {
                 UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
                     port,
+                    appName,
                     channelName,
                     channelId,
                     WebsocketOuterHandler_,
@@ -166,8 +193,9 @@ namespace Starcounter.Internal
 
         bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler_;
 
-        internal void SetWebsocketOuterHandler(bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler) {
+        internal void InitWebSockets(bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler) {
             WebsocketOuterHandler_ = WebsocketOuterHandler;
+            WebSocket.InitWebSocketsInternal();
         }
 
         WsChannelInfo CreateWsChannel(UInt16 port, String channelName)
@@ -176,7 +204,7 @@ namespace Starcounter.Internal
                 throw ErrorCode.ToException(Error.SCERRMAXHANDLERSREACHED);
 
             // Not found, creating new.
-            WsChannelInfo w = new WsChannelInfo(maxWsChannels_, port, channelName);
+            WsChannelInfo w = new WsChannelInfo(StarcounterEnvironment.AppName, maxWsChannels_, port, channelName);
             allWsChannels_[maxWsChannels_] = w;
 
             maxWsChannels_++;
@@ -184,34 +212,22 @@ namespace Starcounter.Internal
             return w;
         }
 
-        WsChannelInfo FindWsChannel(UInt16 port, String channelName)
-        {
-            // Searching WebSocket channel.
-            for (UInt16 i = 0; i < maxWsChannels_; i++)
-            {
-                if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
-                {
-                    if ((allWsChannels_[i].Port == port) && (allWsChannels_[i].ChannelName == channelName))
-                        return allWsChannels_[i];
-                }
-            }
-
-            return null;
-        }
-
-        WsChannelInfo RegisterHandler(UInt16 port, String channelName)
+        WsChannelInfo RegisterHandlerInternal(UInt16 port, String channelName)
         {
             if (channelName.Length > 32)
                 throw new Exception("Registering too long channel name: " + channelName);
 
-            WsChannelInfo w = FindWsChannel(port, channelName);
+            WsChannelInfo w = FindChannel(port, channelName);
+
+            // Pre-pending database name for automatic uniqueness.
+            channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
 
             if (w == null)
             {
                 w = CreateWsChannel(port, channelName);
 
                 UInt64 handlerInfo;
-                RegisterWsHandlerBmx(port, channelName, w.ChannelId, w.HandlerId, out handlerInfo);
+                RegisterWsHandlerBmx(port, w.AppName, channelName, w.ChannelId, w.HandlerId, out handlerInfo);
                 w.HandlerInfo = handlerInfo;
             }
 
@@ -228,7 +244,7 @@ namespace Starcounter.Internal
 
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandler(port, channelName);
+                WsChannelInfo w = RegisterHandlerInternal(port, channelName);
 
                 w.SetReceiveBinaryHandler(userDelegate);
             }
@@ -244,7 +260,7 @@ namespace Starcounter.Internal
 
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandler(port, channelName);
+                WsChannelInfo w = RegisterHandlerInternal(port, channelName);
 
                 w.SetReceiveStringHandler(userDelegate);
             }
@@ -260,7 +276,7 @@ namespace Starcounter.Internal
 
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandler(port, channelName); 
+                WsChannelInfo w = RegisterHandlerInternal(port, channelName); 
 
                 w.SetDisconnectHandler(userDelegate);
             }
@@ -272,6 +288,11 @@ namespace Starcounter.Internal
             {
                 allWsChannels_[id].DetermineAndRunHandler(ws);
                 return true;
+            }
+            else
+            {
+                ws.Disconnect("WebSocket handlers on the requested channel are not registered. Closing the connection.",
+                    WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
             }
 
             return false;

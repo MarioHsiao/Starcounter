@@ -282,7 +282,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_RAW:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, OnRawPortEcho, 5, out handler_id);
+                    GatewayHandlers.RegisterPortHandler(port_number, "networkiotest", OnRawPortEcho, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;
@@ -290,7 +290,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_PORT:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, OnWebSocket, 5, out handler_id);
+                    GatewayHandlers.RegisterPortHandler(port_number, "networkiotest", OnWebSocket, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;

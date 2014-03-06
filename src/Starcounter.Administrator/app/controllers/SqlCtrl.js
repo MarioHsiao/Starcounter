@@ -30,9 +30,9 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', 'NoticeFactory', 'S
     //}
 
     /**
-     * Execut query
-     * @param {query} query
-     * @param {databaseName} databaseName
+     * Button click, Execut query
+     * @param {string} query Query
+     * @param {string} databaseName Database name
      */
     $scope.btnExecute = function (query, databaseName) {
 

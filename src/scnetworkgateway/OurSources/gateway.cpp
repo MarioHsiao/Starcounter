@@ -600,6 +600,7 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
     stats_stream << "\"registeredUris\":[";
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
+    registered_ws_channels_->PrintRegisteredChannels(stats_stream);
     stats_stream << "]}";
 }
 
@@ -1372,6 +1373,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         port_number,
+                        "gateway",
                         bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         GatewayPortProcessEcho);
@@ -1395,10 +1397,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         port_number,
+                        "gateway",
                         http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
-                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
                         http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
-                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
                         NULL,
                         0,
                         bmx::BMX_INVALID_HANDLER_INFO,
@@ -1432,10 +1433,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         reverse_proxies_[i].sc_proxy_port_,
+                        "gateway",
                         reverse_proxies_[i].matching_method_and_uri_.c_str(),
-                        reverse_proxies_[i].matching_method_and_uri_len_,
                         reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
-                        reverse_proxies_[i].matching_method_and_uri_processed_len_,
                         NULL,
                         0,
                         bmx::BMX_INVALID_HANDLER_INFO,
@@ -1460,10 +1460,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     &gw_workers_[0],
                     gw_handlers_,
                     setting_gw_stats_port_,
+                    "gateway",
                     "GET /gwstats",
-                    12,
                     "GET /gwstats ",
-                    13,
                     NULL,
                     0,
                     bmx::BMX_INVALID_HANDLER_INFO,
@@ -1484,10 +1483,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     &gw_workers_[0],
                     gw_handlers_,
                     setting_gw_stats_port_,
+                    "gateway",
                     "POST /socket",
-                    12,
                     "POST /socket ",
-                    13,
                     NULL,
                     0,
                     bmx::BMX_INVALID_HANDLER_INFO,
@@ -1508,10 +1506,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     &gw_workers_[0],
                     gw_handlers_,
                     setting_gw_stats_port_,
+                    "gateway",
                     "DELETE /socket",
-                    14,
                     "DELETE /socket ",
-                    15,
                     NULL,
                     0,
                     bmx::BMX_INVALID_HANDLER_INFO,
@@ -1534,6 +1531,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         setting_aggregation_port_,
+                        "gateway",
                         bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         PortAggregator);
@@ -3172,10 +3170,9 @@ uint32_t Gateway::AddUriHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
+    const char* app_name_string,
     const char* original_uri_info,
-    uint32_t original_uri_info_len_chars,
     const char* processed_uri_info,
-    uint32_t processed_uri_info_len_chars,
     uint8_t* param_types,
     int32_t num_params,
     BMX_HANDLER_TYPE handler_id,
@@ -3191,10 +3188,9 @@ uint32_t Gateway::AddUriHandler(
     err_code = handlers_table->RegisterUriHandler(
         gw,
         port,
+        app_name_string,
         original_uri_info,
-        original_uri_info_len_chars,
         processed_uri_info,
-        processed_uri_info_len_chars,
         param_types,
         num_params,
         handler_id,
@@ -3209,8 +3205,7 @@ uint32_t Gateway::AddUriHandler(
     // Search for handler index by URI string.
     BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(
         port,
-        processed_uri_info,
-        processed_uri_info_len_chars);
+        processed_uri_info);
 
     // Getting the port structure.
     ServerPort* server_port = g_gateway.FindServerPort(port);
@@ -3273,6 +3268,7 @@ uint32_t Gateway::AddPortHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
+    const char* app_name_string,
     BMX_HANDLER_TYPE handler_info,
     db_index_type db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
@@ -3281,6 +3277,7 @@ uint32_t Gateway::AddPortHandler(
     return handlers_table->RegisterPortHandler(
         gw,
         port,
+        app_name_string,
         handler_info,
         handler_proc,
         db_index,
@@ -3292,6 +3289,7 @@ uint32_t Gateway::AddSubPortHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
+    const char* app_name_string,
     bmx::BMX_SUBPORT_TYPE subport,
     BMX_HANDLER_TYPE handler_id,
     db_index_type db_index,
@@ -3301,6 +3299,7 @@ uint32_t Gateway::AddSubPortHandler(
     return handlers_table->RegisterSubPortHandler(
         gw,
         port,
+        app_name_string,
         subport,
         handler_id,
         handler_proc,

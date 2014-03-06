@@ -314,7 +314,7 @@ const int32_t NumGatewayChunkSizes = 6;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
-    512,
+    768,
     2 * 1024, // Default chunk size.
     8 * 1024,
     32 * 1024,
@@ -2155,10 +2155,9 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
+        const char* app_name_string,
         const char* original_uri_info,
-        uint32_t original_uri_info_len_chars,
         const char* processed_uri_info,
-        uint32_t processed_uri_info_len_chars,
         uint8_t* param_types,
         int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,
@@ -2172,6 +2171,7 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
+        const char* app_name_string,
         BMX_HANDLER_TYPE handler_info,
         db_index_type db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
@@ -2181,6 +2181,7 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
+        const char* app_name_string,
         bmx::BMX_SUBPORT_TYPE subport,
         BMX_HANDLER_TYPE handler_info,
         db_index_type db_index,
