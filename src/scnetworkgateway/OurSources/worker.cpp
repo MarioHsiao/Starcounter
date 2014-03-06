@@ -856,9 +856,17 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     // Sending dead session if its a WebSocket.
     if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol())
     {
-        // Verifying that session is correct and sending delete session to database.
-        err_code = sd->SendDeleteSession(this);
-        GW_ASSERT(0 == err_code);
+        // Verifying that session is correct and sending delete socket on database.
+        if (!sd->get_destroy_sent_flag())
+        {
+            err_code = sd->SendDeleteSession(this);
+            GW_ASSERT(0 == err_code);
+            sd->set_destroy_sent_flag();
+        }
+        else
+        {
+            sd->reset_destroy_sent_flag();
+        }
     }
 
     // Setting unique socket id.

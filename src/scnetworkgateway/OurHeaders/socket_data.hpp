@@ -423,6 +423,21 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_APPROVED;
     }
 
+    bool get_destroy_sent_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT) != 0;
+    }
+
+    void set_destroy_sent_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
+    }
+
+    void reset_destroy_sent_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
+    }
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Getting socket diagnostics active connection flag.
@@ -936,6 +951,8 @@ public:
         {
             // Since we have sent this chunk over IPC.
             set_socket_diag_active_conn_flag();
+
+            g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
 
             SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
         }
