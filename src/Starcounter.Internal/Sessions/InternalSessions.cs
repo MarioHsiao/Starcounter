@@ -123,7 +123,7 @@ namespace Starcounter.Internal
         public ScSessionStruct(Boolean initDefault) {
             random_salt_ = 0;
             linear_index_ = UInt32.MaxValue;
-            scheduler_id_ = StarcounterEnvironment.GetCurrentSchedulerId();
+            scheduler_id_ = StarcounterEnvironment.CurrentSchedulerId;
             gw_worker_id_ = Byte.MaxValue;
         }
 

@@ -12,7 +12,7 @@ adminModule.controller('ExecutableCtrl', ['$scope', '$log', '$sce', '$routeParam
 
     /**
      * Get Console output
-     * @param {executableName} Database name
+     * @param {object} executable Executable
      */
     $scope.btnGetConsoleOutput = function (executable) {
 
@@ -52,13 +52,6 @@ adminModule.controller('ExecutableCtrl', ['$scope', '$log', '$sce', '$routeParam
         $scope.winWidth = $window.width();
         $scope.$apply();
     });
-
-    $scope.style = function () {
-        return {
-            'height': ($scope.calcHeight()) + 'px',
-            'width': + '100%'
-        };
-    }
 
     $scope.calcHeight = function () {
         var border = 12;

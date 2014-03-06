@@ -166,7 +166,6 @@ inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
     ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
-    uint16_t port_num = server_port->get_port_number();
     PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
     uint32_t channel_id = sd->GetWebSocketChannelId();
     return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
@@ -367,6 +366,8 @@ JUST_SEND_SOCKET_DATA:
     return gw->Send(sd);
 }
 
+const int32_t MaxHandshakeResponseLenBytes = 256;
+
 // Performs the WebSocket handshake.
 uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
@@ -395,9 +396,9 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     memcpy(sub_protocol_temp, g_ts_sub_protocol_, g_ts_sub_protocol_len_);
 
     // Checking if data that needs accumulation fits into chunk.
-    if (sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() < 256)
+    if (sd->get_accum_buf()->get_chunk_num_available_bytes() < MaxHandshakeResponseLenBytes)
     {
-        uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accum_buf()->get_accum_len_bytes() + 256);
+        uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accum_buf()->get_accum_len_bytes() + MaxHandshakeResponseLenBytes);
         if (err_code)
             return err_code;
     }
@@ -421,6 +422,8 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
         resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, sub_protocol_temp, g_ts_sub_protocol_len_);
         resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
     }
+
+    GW_ASSERT(resp_len_bytes < MaxHandshakeResponseLenBytes);
     
     // Remaining empty line.
     //resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);

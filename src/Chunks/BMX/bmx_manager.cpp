@@ -59,7 +59,7 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
 
     // Adding BMX port handler.
     BMX_HANDLER_TYPE bmx_handler_info;
-    uint32_t err_code = g_bmx_data->RegisterPortHandler(0, OnIncomingBmxMessage, 0, &bmx_handler_info);
+    uint32_t err_code = g_bmx_data->RegisterPortHandler(0, "", OnIncomingBmxMessage, 0, &bmx_handler_info);
     if (err_code)
         return err_code;
 
@@ -87,9 +87,10 @@ uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 
 // Registers port handler.
 EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
-    uint16_t port_num, 
-    GENERIC_HANDLER_CALLBACK callback,
-    uint16_t managed_handler_index,
+    const uint16_t port_num,
+    const char* app_name,
+    const GENERIC_HANDLER_CALLBACK callback,
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info
     )
 {
@@ -104,7 +105,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
 
     // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    err_code = g_bmx_data_copy->RegisterPortHandler(port_num, callback, managed_handler_index, phandler_info);
+    err_code = g_bmx_data_copy->RegisterPortHandler(port_num, app_name, callback, managed_handler_index, phandler_info);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     if (err_code)
@@ -120,10 +121,11 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
 
 // Registers sub-port handler.
 EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
-    uint16_t port_num,
-    BMX_SUBPORT_TYPE sub_port,
-    GENERIC_HANDLER_CALLBACK callback,
-    uint16_t managed_handler_index,
+    const uint16_t port_num,
+    const char* app_name,
+    const BMX_SUBPORT_TYPE sub_port,
+    const GENERIC_HANDLER_CALLBACK callback,
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info
     )
 {
@@ -138,7 +140,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
 
     // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    err_code = g_bmx_data_copy->RegisterSubPortHandler(port_num, sub_port, callback, managed_handler_index, phandler_info);
+    err_code = g_bmx_data_copy->RegisterSubPortHandler(port_num, app_name, sub_port, callback, managed_handler_index, phandler_info);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     if (err_code)
@@ -154,6 +156,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
 
 EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
     const uint16_t port_num,
+    const char* app_name,
     const char* channel_name,
     const uint32_t channel_id,
     const GENERIC_HANDLER_CALLBACK callback,
@@ -172,7 +175,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
 
     // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    err_code = g_bmx_data_copy->RegisterWsHandler(port_num, channel_name, channel_id, callback, managed_handler_index, phandler_info);
+    err_code = g_bmx_data_copy->RegisterWsHandler(port_num, app_name, channel_name, channel_id, callback, managed_handler_index, phandler_info);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     if (err_code)
@@ -187,13 +190,14 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
 };
 
 EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
-    uint16_t port_num,
-    char* original_uri_info,
-    char* processed_uri_info,
-    uint8_t* param_types,
-    uint8_t num_params,
-    GENERIC_HANDLER_CALLBACK callback, 
-    uint16_t managed_handler_index,
+    const uint16_t port_num,
+    const char* app_name,
+    const char* original_uri_info,
+    const char* processed_uri_info,
+    const uint8_t* param_types,
+    const uint8_t num_params,
+    const GENERIC_HANDLER_CALLBACK callback, 
+    const uint16_t managed_handler_index,
     BMX_HANDLER_TYPE* phandler_info
     )
 {
@@ -210,6 +214,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
     err_code = g_bmx_data_copy->RegisterUriHandler(
         port_num,
+        app_name,
         original_uri_info,
         processed_uri_info,
         param_types,

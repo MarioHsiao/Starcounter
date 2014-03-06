@@ -121,10 +121,27 @@ public:
 
     RegisteredWsChannel() {}
 
+    // Getting owner app name.
+    char* get_app_name()
+    {
+        return handler_list_->get_app_name();
+    }
+
+    // Getting owner database index.
+    db_index_type get_db_index()
+    {
+        return handler_list_->get_db_index();
+    }
+
     // Getting registered channel name.
     char* get_channel_name()
     {
         return handler_list_->get_original_uri_info();
+    }
+
+    uint16_t get_port()
+    {
+        return handler_list_->get_port();
     }
 
     // Getting registered channel id.
@@ -173,6 +190,30 @@ class PortWsChannels
     uint16_t port_number_;
 
 public:
+
+    // Printing the registered channels.
+    void PrintRegisteredChannels(std::stringstream& stats_stream)
+    {
+        bool first = true;
+
+        if (reg_ws_channels_.get_num_entries() != 0)
+            stats_stream << ",";
+
+        for (int32_t i = 0; i < reg_ws_channels_.get_num_entries(); i++)
+        {
+            if (!first) 
+                stats_stream << ",";
+            first = false;
+
+            stats_stream << "{\"channel\":\"" << reg_ws_channels_[i].get_channel_name() << "\",";
+            stats_stream << "\"location\":";
+
+            stats_stream << '"' << g_gateway.GetDatabase(reg_ws_channels_[i].get_db_index())->get_db_name() << '"';
+            stats_stream << ",\"application\":\"" << reg_ws_channels_[i].get_app_name() << "\""; 
+
+            stats_stream << "}";
+        }
+    }
 
     // Checking if handlers list is empty.
     bool IsEmpty()
@@ -293,9 +334,9 @@ public:
 
     void AddNewEntry(
         BMX_HANDLER_TYPE handler_info,
+        const char* app_name_string,
         uint32_t channel_id,
         const char* channel_name,
-        uint32_t channel_name_len_chars,
         db_index_type db_index)
     {
         HandlersList* h = new HandlersList();
@@ -304,11 +345,10 @@ public:
             bmx::HANDLER_TYPE::WS_HANDLER,
             handler_info,
             port_number_,
+            app_name_string,
             channel_id,
             channel_name,
-            channel_name_len_chars,
             NULL,
-            0,
             NULL,
             0,
             db_index,

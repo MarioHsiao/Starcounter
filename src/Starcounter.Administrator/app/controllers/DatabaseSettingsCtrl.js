@@ -15,9 +15,9 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
     /**
      * Verify database settings
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     $scope.verifySettings = function (settings, successCallback, errorCallback) {
 
@@ -40,10 +40,10 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
     /**
      * Save settings
-     * @param {database} database
-     * @param {settings} settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} database Database
+     * @param {object} settings Settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     $scope.saveSettings = function (database, settings, successCallback, errorCallback) {
 
@@ -67,8 +67,6 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
     /**
      * Refresh database settings
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
      */
     $scope.refreshSettings = function () {
 
@@ -95,6 +93,8 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
     /**
      * Save settings
+     * @param {object} database Database
+     * @param {object} settings Settings
      */
     $scope.btnSaveSettings = function (database, settings) {
 

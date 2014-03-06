@@ -137,6 +137,15 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // Checking that socket arrived on correct worker.
             GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
+
+            // Checking correct unique socket.
+            if (!sd->CompareUniqueSocketId())
+            {
+                gw->DisconnectAndReleaseChunk(sd);
+                continue;
+            }
+
+            // Checking that socket is bound to the correct worker.
             GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
             // Checking for socket data correctness.
@@ -565,6 +574,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
+                // Reading application name.
+                char app_name[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t app_name_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(app_name, app_name_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
+
 #ifdef GW_TESTING_MODE
                 if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_RAW) &&
                     (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW))
@@ -583,6 +597,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                     gw,
                     handlers_table,
                     port,
+                    app_name,
                     handler_info,
                     db_index_,
                     AppsPortProcessData);
@@ -611,6 +626,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
+                // Reading application name.
+                char app_name[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t app_name_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(app_name, app_name_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
+
                 // Reading subport.
                 bmx::BMX_SUBPORT_TYPE subport = resp_chunk->read_uint32();
 
@@ -624,6 +644,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                     gw,
                     handlers_table,
                     port,
+                    app_name,
                     subport,
                     handler_info,
                     db_index_,
@@ -653,6 +674,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
+                // Reading application name.
+                char app_name[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t app_name_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(app_name, app_name_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
+
                 // Reading channel id.
                 uint32_t channel_id = resp_chunk->read_uint32();
 
@@ -678,6 +704,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                         gw,
                         g_gateway.get_gw_handlers(),
                         port,
+                        app_name,
                         handler_info,
                         0,
                         OuterUriProcessData);
@@ -708,9 +735,9 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
 
                 server_port->get_registered_ws_channels()->AddNewEntry(
                     handler_info,
+                    app_name,
                     channel_id,
                     channel_name,
-                    channel_name_len_chars,
                     db_index_);
 
                 break;
@@ -723,6 +750,11 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
 
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
+
+                // Reading application name.
+                char app_name[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t app_name_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(app_name, app_name_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
 
                 // Reading URIs.
                 char original_uri_info[MixedCodeConstants::MAX_URI_STRING_LEN];
@@ -762,10 +794,9 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                     gw,
                     handlers_table,
                     port,
+                    app_name,
                     original_uri_info,
-                    original_uri_info_len_chars,
                     processed_uri_info,
-                    processed_uri_info_len_chars,
                     param_types,
                     num_params,
                     handler_info,

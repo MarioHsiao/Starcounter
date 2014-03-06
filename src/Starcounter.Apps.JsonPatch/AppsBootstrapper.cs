@@ -69,7 +69,7 @@ namespace Starcounter.Internal {
                     OnHttpMessageRoot,
                     AppServer_.HandleRequest);
 
-                AllWsChannels.WsManager.SetWebsocketOuterHandler(GatewayHandlers.HandleWebSocket);
+                AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.HandleWebSocket);
             }
 
             // Injecting required hosted Node functionality.

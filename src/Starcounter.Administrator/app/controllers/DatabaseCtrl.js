@@ -12,7 +12,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
 
     /**
      * Get Console output
-     * @param {database} database Database name
+     * @param {object} database Database
      */
     $scope.btnGetConsoleOutput = function (database) {
 
@@ -52,16 +52,10 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
         $scope.$apply();
     });
 
-    $scope.style = function () {
-        return {
-            'height': ($scope.calcHeight()) + 'px',
-            'width': + '100%'
-        };
-    }
 
     $scope.calcHeight = function () {
+
         var border = 12;
-        //var topOffset = $("#console").offset().top;
         var ht = $("#console");
         var offset = ht.offset();
         if (!offset) {

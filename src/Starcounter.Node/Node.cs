@@ -896,7 +896,7 @@ namespace Starcounter
                 // Getting current scheduler number if in Starcounter.
                 Byte currentSchedulerId = 0;
                 if (StarcounterEnvironment.IsCodeHosted)
-                    currentSchedulerId = StarcounterEnvironment.GetCurrentSchedulerId();
+                    currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
                 // Initializing connection.
                 nt.Reset(requestBytes, requestBytesLength, userDelegate, userObject, receiveTimeoutMs, currentSchedulerId);

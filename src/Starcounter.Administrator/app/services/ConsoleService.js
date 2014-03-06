@@ -3,13 +3,10 @@
  * Executable Console output Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'UserMessageFactory', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, $rootScope, UserMessageFactory, UtilsFactory, JobFactory) {
+adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', '$filter', 'UserMessageFactory', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, $rootScope, $filter, UserMessageFactory, UtilsFactory, JobFactory) {
 
     var self = this;
     this.isWebsocketSupported = ("WebSocket" in window);
-
-    // Console buffer size
-    this.bufferSize = 10000;
 
     // Listeners
     // { databaseName: databaseName:"default", onEvent: function() {}, onError : function() {} }
@@ -19,12 +16,18 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
     // { socket:socket, databaseName:"default", listener:{} }
     this.connections = [];
 
+    // Console Events per databaseName
+    // (Websocket)
+    // [databaseName].[{ databaseName:"default", applicationName:"myApp", text:"some text" }]
+    this.consoleEvents = [];
+
 
     /**
      * Get Console ouput
-     * @param {databaseName} databaseName Databasename
-     * @param {successCallback} successCallback Success callback function
-     * @param {errorCallback} errorCallback Error callback function
+     * @param {string} databaseName Databasename
+     * @param {object} filter Filter object {databaseName:"default", applicationName:"myApp" }
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getConsoleOuput = function (databaseName, filter, successCallback, errorCallback) {
 
@@ -35,23 +38,8 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
             $log.info("Successfully retriving console output from database " + databaseName);
 
             if (typeof (successCallback) == "function") {
-
-                var text = "";
-                for (var i = 0 ; i < response.data.Items.length ; i++) {
-                    var consoleEvent = response.data.Items[i];
-
-                    if (filter) {
-                        if (filter == consoleEvent.applicationName) {
-                            text = text + consoleEvent.text;
-                        }
-
-                    } else {
-                        text = text + consoleEvent.text;
-                    }
-                }
-
-                successCallback(text);
-
+                var filteredConsoleEvents = $filter('filter')(response.data.Items, filter);
+                successCallback(filteredConsoleEvents);
             }
 
         }, function (response) {
@@ -93,7 +81,8 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
     /**
      * Register Console event listener
-     * @param { databaseName:"default", onEvent: function () { },  onError: function (messageObject) {}  } listener Listener
+     * (Websocket)
+     * @param {object} listener Listener object { databaseName:"default", onEvent: function (consoleEvents) { },  onError: function (messageObject) {}, filter: {databaseName:"default", applicationName:"myApp" } }
      */
     this.registerEventListener = function (listener) {
 
@@ -108,8 +97,13 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
         var connection = this.getConnection(listener.databaseName);
         if (connection == null) {
             this.openConnection(listener.databaseName);
-        } else {
-            // TODO: Get buffer 
+
+        } else if (connection.socket.readyState == 1) {    // 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED
+            // Connection already open and listened on for new console events
+            // Get current buffer and invoke the listener with it.
+            var filteredConsoleEvents = $filter('filter')(this.consoleEvents[listener.databaseName], listener.filter);
+            listener.onEvent(filteredConsoleEvents);
+
         }
 
     }
@@ -117,7 +111,8 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
     /**
      * Unregister log listener
-     * @param { databaseName:"default", onEvent: function () { },  onError: function (messageObject) {}  } listener Listener
+     * (Websocket)
+     * @param {object} listener Listener object { databaseName:"default", onEvent: function (consoleEvents) { },  onError: function (messageObject) {}, filter: {databaseName:"default", applicationName:"myApp" } }
      */
     this.unregisterEventListener = function (listener) {
 
@@ -167,7 +162,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
     /**
      * Get connection 
-     * @param {databaseName} databaseName Databasename
+     * @param {string} databaseName Databasename
      * @returns {connection} Connection
      */
     this.getConnection = function (databaseName) {
@@ -183,7 +178,8 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
     /**
      * Start listening on database console outputs
-     * @param {databaseName} databaseName Databasename
+     * (Websocket)
+     * @param {string} databaseName Databasename
      */
     this.openConnection = function (databaseName) {
 
@@ -194,17 +190,25 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
             var connection = { socket: null, databaseName: databaseName };
 
+            // Initilize the consoleEvent list for this database
+            self.consoleEvents[databaseName] = [];
+
             var errorHeader = "Websocket error";
 
             connection.socket = new WebSocket("ws://" + location.host + "/__" + databaseName + "/console");
 
+            // Socket Open
             connection.socket.onopen = function (evt) {
                 $log.info("Successfully connected to database " + databaseName);
             };
 
+            // Socket closed
             connection.socket.onclose = function (evt) {
 
-                $log.info("Diconnected from database " + databaseName );
+                $log.info("Diconnected from database " + databaseName);
+
+                // Remove consoleEvent list for this database
+                delete self.consoleEvents[databaseName];
 
                 var index = self.connections.indexOf(connection);
                 if (index > -1) {
@@ -212,36 +216,27 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
                 }
             };
 
+
+            // Socket Message
             connection.socket.onmessage = function (evt) {
 
                 $rootScope.$apply(function () {
                     var result = JSON.parse(evt.data);
 
-                    $log.warn("TODO: Consolidate message to each listener");
+                    // Added consoleEvent to our 'buffer' consoleEvents list per database
+                    self.consoleEvents[databaseName].push.apply(self.consoleEvents[databaseName], result.Items);
 
-                    for (var i = 0 ; i < result.Items.length ; i++) {
-                        var consoleEvent = result.Items[i];
-
-                        for (var x = 0; x < self.listeners.length ; x++) {
-
-                            if (self.listeners[x].databaseName == databaseName) {
-                                if (self.listeners[x].filter) {
-                                    if (self.listeners[x].filter == consoleEvent.applicationName) {
-                                        self.listeners[x].onEvent(consoleEvent.text);
-                                    }
-                                }
-                                else {
-                                    self.listeners[x].onEvent(consoleEvent.text);
-                                }
-                            }
-
-                        }
-
+                    // Invoke consoleEvent on our listeners
+                    for (var i = 0; i < self.listeners.length ; i++) {
+                        var filteredConsoleEvents = $filter('filter')(result.Items, self.listeners[i].filter);
+                        self.listeners[i].onEvent(filteredConsoleEvents);
                     }
+
                 });
 
             }
 
+            // Socket Error
             connection.socket.onerror = function (evt) {
 
                 $log.error(errorHeader, evt);
@@ -284,7 +279,8 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', 'U
 
     /**
      * Stop listening on database console outputs
-     * @param {connection} connection Connection
+     * (Websocket)
+     * @param {object} connection Connection
      */
     this.closeConnection = function (connection) {
 

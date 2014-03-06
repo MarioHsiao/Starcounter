@@ -54,6 +54,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'N
 
     /**
      * Select file
+     * @param {string} file Path to file
      */
     $scope.btnSetCurrent = function (file) {
         $scope.file = file.name;
@@ -62,7 +63,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'N
 
     /**
      * Remember file
-     * @param {File} file
+     * @param {string} file Path to file
      */
     $scope.rememberRecentFile = function (file) {
 
