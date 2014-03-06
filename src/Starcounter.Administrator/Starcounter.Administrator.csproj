@@ -80,49 +80,29 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
-    <Compile Include="AppApp.json.cs">
-      <DependentUpon>AppApp.json</DependentUpon>
-    </Compile>
-    <Compile Include="DatabaseApp.json.cs">
-      <DependentUpon>DatabaseApp.json</DependentUpon>
-    </Compile>
-    <Compile Include="DatabasesApp.json.cs">
-      <DependentUpon>DatabasesApp.json</DependentUpon>
-    </Compile>
-    <Compile Include="FrontEndAPI\ConsoleHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\VersionCheckHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\DatabaseCollectionHandler.POST.cs" />
-    <Compile Include="FrontEndAPI\DatabaseCollectionHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\VerifyServerPropertiesHandler.POST.cs" />
-    <Compile Include="FrontEndAPI\ServerCollectionHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\ServerCollectionHandler.PUT.cs" />
-    <Compile Include="FrontEndAPI\SQLHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\ServerLogHandler.GET.cs" />
-    <Compile Include="FrontEndAPI\DatabaseCollectionHandler.PUT.cs" />
-    <Compile Include="FrontEndAPI\VerifyDatabasePropertiesHandler.POST.cs" />
-    <Compile Include="FrontEndAPI\FrontEndAPI.cs" />
-    <Compile Include="FrontEndAPI\Utilities\RestUtils.cs" />
-    <Compile Include="LogApp.json.cs">
+    <Compile Include="Server\Handlers\ExecutableCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
+    <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\DatabaseCollectionHandler.POST.cs" />
+    <Compile Include="Server\Handlers\DatabaseCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\VerifyServerPropertiesHandler.POST.cs" />
+    <Compile Include="Server\Handlers\ServerCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\ServerCollectionHandler.PUT.cs" />
+    <Compile Include="Server\Handlers\ServerLogHandler.GET.cs" />
+    <Compile Include="Server\Handlers\DatabaseCollectionHandler.PUT.cs" />
+    <Compile Include="Server\Handlers\VerifyDatabasePropertiesHandler.POST.cs" />
+    <Compile Include="Server\Handlers\StarcounterAdminAPI.cs" />
+    <Compile Include="Server\Utilities\RestUtils.cs" />
+    <Compile Include="Server\Representations.JSON\LogApp.json.cs">
       <DependentUpon>LogApp.json</DependentUpon>
     </Compile>
-    <Compile Include="LogEntryApp.json.cs">
-      <DependentUpon>LogEntryApp.json</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Master.json.cs">
-      <DependentUpon>Master.json</DependentUpon>
-    </Compile>
-    <Compile Include="ServerApp.json.cs">
-      <DependentUpon>ServerApp.json</DependentUpon>
-    </Compile>
+    <Compile Include="Server\Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="Master.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="app\controllers\ExecutableCtrl.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\controllers\DatabaseSettingsCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -159,10 +139,13 @@
     <Content Include="app\css\master.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\directives\VersionCheck.js">
+    <Content Include="app\directives\ConsoleWindow.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\directives\Jobs.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\directives\VersionCheck.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\directives\Notices.js">
@@ -190,6 +173,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\js\scTypesPlugin.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\partials\executable.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\partials\database.html">
@@ -228,10 +214,13 @@
     <Content Include="app\partials\sql.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\services\VersionCheckService.js">
+    <Content Include="app\services\ConsoleService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\services\DatabaseConsoleService.js">
+    <Content Include="app\services\HostModelService.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\services\VersionCheckService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\services\SqlService.js">
@@ -398,30 +387,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="ServerApp.json">
+    <TypedJSON Include="Server\Representations.JSON\LogApp.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
-    <TypedJSON Include="DatabaseApp.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
-    <TypedJSON Include="DatabasesApp.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
-    <TypedJSON Include="AppApp.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
-    <TypedJSON Include="LogApp.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-    <TypedJSON Include="LogEntryApp.json">
+    <TypedJSON Include="Server\Representations.JSON\LogEntryApp.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
@@ -429,17 +398,12 @@
     <Compile Include="API\Handlers\DatabaseHandler.DELETE.cs" />
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="FrontEndAPI\Utilities\databases.json">
+    <TypedJSON Include="Server\Representations.JSON\databases.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="FrontEndAPI\Utilities\executables.json">
-      <Generator>MsBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
-    <TypedJSON Include="FrontEndAPI\Utilities\versioncheck.json">
+    <TypedJSON Include="Server\Representations.JSON\versioncheck.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
@@ -456,6 +420,9 @@
     <None Include="app\vendor\jquery\jquery-2.0.3.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\ErrorResponse.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />

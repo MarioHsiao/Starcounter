@@ -71,10 +71,14 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                     if (templ == null) {
                         // There is no property with this name, use default late binding mechanism
                         return base.BindGetMember(binder);
-                    }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */                Expression call = Expression.Call(Expression.Convert(this.Expression, this.LimitType), method, Expression.Constant(templ) );                // Expression wrapped = Expression.Block(call); // , Expression.New(typeof(object)));                Expression wrapped = Expression.Convert( call, binder.ReturnType );
-
+                    }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */
+                var jsonInstExpr = Expression.Convert(this.Expression, this.LimitType);                Expression call = Expression.Call(jsonInstExpr, method, Expression.Constant(templ) );
+                Expression wrapped = Expression.Convert(call, binder.ReturnType);                
                 var restrictions = BindingRestrictions.GetTypeRestriction(Expression, LimitType);
-//                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));                return new DynamicMetaObject(wrapped, restrictions);
+
+                var getTemplateExpr = Expression.Call(jsonInstExpr, LimitType.GetProperty("Template").GetGetMethod());
+                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(getTemplateExpr, template));
+                return new DynamicMetaObject(wrapped, restrictions);
             }
 
 			/// <summary>
@@ -153,13 +157,13 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
 
                 Expression wrapped;
 
-                var @this = Expression.Convert(
+                var jsonInstExpr = Expression.Convert(
                             this.Expression,
                             this.LimitType);
 
                 if (templ is TObjArr) {
                     Expression call = Expression.Call(
-                        @this, 
+                        jsonInstExpr, 
                         method,
                         Expression.Constant(templ),
                         Expression.Convert(value.Expression,typeof(IEnumerable))
@@ -167,11 +171,13 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                     wrapped = Expression.Block(call, Expression.Convert(value.Expression, typeof(object)));
                 }
                 else {
-                    Expression call = Expression.Call(@this, method, Expression.Constant(templ), Expression.Convert(value.Expression, templ.InstanceType));
+                    Expression call = Expression.Call(jsonInstExpr, method, Expression.Constant(templ), Expression.Convert(value.Expression, templ.InstanceType));
                     wrapped = Expression.Block(call, Expression.Convert(value.Expression, typeof(object)));
                 }
 
-                var restrictions = BindingRestrictions.GetTypeRestriction(Expression, LimitType);
-//                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));
+                var restrictions = BindingRestrictions.GetTypeRestriction(jsonInstExpr, LimitType);
+
+                var getTemplateExpr = Expression.Call(jsonInstExpr, LimitType.GetProperty("Template").GetGetMethod());
+                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(getTemplateExpr, ot));
                 return new DynamicMetaObject(wrapped, restrictions);
             }        }    }}

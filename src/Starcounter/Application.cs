@@ -1,5 +1,7 @@
 ﻿
+using Starcounter.Advanced;
 using Starcounter.Hosting;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,8 +20,15 @@ namespace Starcounter {
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
 
-        [ThreadStatic]
-        internal static Application CurrentAssigned;
+        internal static Application CurrentAssigned {
+            get {
+                var app = ((StarcounterEnvironment.AppName != null) && (StarcounterEnvironment.AppName.Length > 0)) ? indexName[StarcounterEnvironment.AppName] : null;
+                return app;
+            }
+            set {
+                StarcounterEnvironment.AppName = ((value == null) ? "" : value.Name);
+            }
+        }
 
         /// <summary>
         /// Gets the name of the application.
@@ -27,6 +36,24 @@ namespace Starcounter {
         public string Name {
             get {
                 return state.Name;
+            }
+        }
+
+        /// <summary>
+        /// Gets the display name of the current application.
+        /// </summary>
+        public string DisplayName {
+            get {
+                return ApplicationBase.CreateDisplayName(Db.Environment.DatabaseNameLower, Name);
+            }
+        }
+
+        /// <summary>
+        /// Gets the full name of the current application.
+        /// </summary>
+        public string FullName {
+            get {
+                return ApplicationBase.CreateFullName(Db.Environment.DatabaseNameLower, Name);
             }
         }
 
@@ -82,12 +109,8 @@ namespace Starcounter {
         public static Application Current {
             get {
                 var current = CurrentAssigned;
-                try {
-                    current = current ?? GetApplication(Assembly.GetCallingAssembly());
-                } catch (ArgumentNullException ne) {
-                    throw CreateInvalidOperationExceptionWithCode(null, ne);
-                } catch (ArgumentException ae) {
-                    throw CreateInvalidOperationExceptionWithCode(null, ae);
+                if (current == null) {
+                    throw CreateInvalidOperationExceptionWithCode();
                 }
                 return current;
             }
@@ -151,6 +174,11 @@ namespace Starcounter {
                 }
             }
             return application;
+        }
+
+        /// <inheritdoc />
+        public override string ToString() {
+            return DisplayName;
         }
 
         /// <summary>

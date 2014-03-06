@@ -5,23 +5,19 @@
  */
 adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory', 'JobFactory', function ($http, $log, $rootScope, UtilsFactory, JobFactory) {
 
-
+    var self = this;
     this.socket = null,
     this.isWebsocketSupport = ("WebSocket" in window)
     this.listeners = [];
 
-    //    this.isWebsocketSupport = ("WebSocket" in window);
-
-    var self = this;
 
     /**
      * Get log Entries
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {object} filter filter
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getLogEntries = function (filter, successCallback, errorCallback) {
-
-        $log.info("Retriving log entries");
 
         var errorHeader = "Failed to retrive a list of log entries";
         var uri = "/api/admin/log";
@@ -51,32 +47,30 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
 
         }, function (response) {
             // Error
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
 
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
@@ -89,7 +83,7 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
 
     /**
      * Register log listener
-     * @param {listener} { onEvent: function () { },  onError: function (messageObject) {}  }
+     * @param {object} listener Listener { onEvent: function () { },  onError: function (messageObject) {}  }
      */
     this.registerEventListener = function (listener) {
         this.listeners.push(listener);
@@ -103,7 +97,7 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
 
     /**
      * Unregister log listener
-     * @param {listener} { onEvent: function () { },  onError: function (messageObject) {}  }
+     * @param {object} listener Listener { onEvent: function () { },  onError: function (messageObject) {}  }
      */
     this.unregisterEventListener = function (listener) {
         var index = this.listeners.indexOf(listener);
@@ -118,8 +112,9 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
     }
 
 
-    // Retrive the event when the log has changed
-    // Connect socket listener
+    /**
+     * Connect socket listener
+     */
     this.startListener = function () {
 
         if (this.isWebsocketSupport == false) return;
@@ -194,7 +189,10 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
         }
     }
 
-    // Disconnect socket listener
+
+    /**
+     * Disconnect socket listener
+     */
     this.stopListener = function () {
 
         if (this.socket != null) {
@@ -202,7 +200,6 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
             this.socket.close();
         }
     }
-
 
 
 }]);

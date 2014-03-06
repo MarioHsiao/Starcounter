@@ -684,12 +684,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
-    {
-        // Only non-representative socket data can have wrong socket id.
-        GW_ASSERT(false == sd->get_socket_representer_flag());
-
         return SCERRGWOPERATIONONWRONGSOCKET;
-    }
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -846,6 +841,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
 
+    // NOTE: The following is needed because the actual owner of the socket
+    // will not pass the CompareUniqueSocketId check on the next IO operation.
     // Setting socket representer.
     sd->set_socket_representer_flag();
     sd->set_socket_diag_active_conn_flag();
@@ -889,6 +886,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
         PrintLastError();
 #endif
+        GW_ASSERT(false);
 
         // Finish disconnect operation.
         // (e.g. returning to pool or starting accept).
@@ -936,6 +934,10 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
+
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Deleting session.
     sd->DeleteGlobalSessionOnDisconnect();
@@ -1667,7 +1669,9 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
 
     // Pushing chunk to that database.
     if (NULL != db)
-        return db->PushSocketDataToDb(this, sd, handler_id);
+        db->PushSocketDataToDb(this, sd, handler_id);
+    else
+        ReturnSocketDataChunksToPool(sd);
 
     return 0;
 }
@@ -1692,19 +1696,19 @@ uint32_t GatewayWorker::SendHttpBody(
     char temp_resp[2048];
 
     // Copying predefined header.
-    memcpy(temp_resp, kHttpStatsHeader, kHttpStatsHeaderLength);
+    memcpy(temp_resp, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
 
     // Making length a white space.
-    *(uint64_t*)(temp_resp + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
+    *(uint64_t*)(temp_resp + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
 
     // Converting content length to string.
-    WriteUIntToString(temp_resp + kHttpStatsHeaderInsertPoint, body_len);
+    WriteUIntToString(temp_resp + kHttpGenericHtmlHeaderInsertPoint, body_len);
 
     // Copying body to response.
-    memcpy(temp_resp + kHttpStatsHeaderLength, body, body_len);
+    memcpy(temp_resp + kHttpGenericHtmlHeaderLength, body, body_len);
 
     // Sending predefined response.
-    return SendPredefinedMessage(sd, temp_resp, kHttpStatsHeaderLength + body_len);
+    return SendPredefinedMessage(sd, temp_resp, kHttpGenericHtmlHeaderLength + body_len);
 }
 
 // Sends given predefined response.

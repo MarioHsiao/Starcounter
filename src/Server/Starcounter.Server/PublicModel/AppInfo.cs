@@ -19,6 +19,26 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Gets the time when the current application started.
+        /// </summary>
+        /// <seealso cref="LastRestart"/>
+        public DateTime? Started {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Gets the time when the current application was last
+        /// restarted, due to the code host it lived in needed to
+        /// restart.
+        /// </summary>
+        /// <seealso cref="LastRestart"/>
+        public DateTime? LastRestart {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="AppInfo"/>.
         /// </summary>
         /// <param name="name">The name of the application.</param>

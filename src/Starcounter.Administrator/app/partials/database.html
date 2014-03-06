@@ -1,26 +1,24 @@
-﻿
-<div ng-hide='model.database == null'>
+﻿<legend>Database - {{model.database.name}} <span ng-show="model.database.running" class="Running">(Running)</span>
+    <a class="btn btn-mini pull-right" href="#/databases"><i class="icon-resize-small"></i></a>
+</legend>
 
-    <legend>Database - {{model.database.name}} <span ng-show="model.database.running" class="Running">(Running)</span></legend>
-
-    <div class="btn-toolbar">
-        <div class="btn-group">
-            <a class="btn btn-primary" href="#/databases/{{model.database.name}}/settings">Settings</a>
-        </div>
+<div class="btn-toolbar">
+    <div class="btn-group">
+        <a class="btn btn-primary" href="#/databases/{{model.database.name}}/settings">Settings</a>
     </div>
+</div>
 
-    <div class="row-fluid">
+<div class="row-fluid">
 
-        <legend>Console output
-            <button ng-show="model.manualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnRefreshConsole(model.database.name)"><i class="icon-repeat"></i></button>
-        </legend>
+    <legend>Console output
+            <button title="Refresh console" ng-show="model.database.consoleManualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnGetConsoleOutput(model.database)"><i class="icon-refresh"></i></button>
+    </legend>
 
-        <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.console" />
+    <consolewindow  id="console" width-attr="100%" height-attr='{{calcHeight()}}px' id="console"  ng-model="model.database.console"></consolewindow>
 
-
-    </div>
 
 </div>
+
 
 
 

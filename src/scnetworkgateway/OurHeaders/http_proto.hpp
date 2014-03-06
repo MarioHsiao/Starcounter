@@ -34,24 +34,6 @@ public:
         return session_param_index_;
     }
 
-    // Converts handler id and database index.
-    static BMX_HANDLER_TYPE CreateHandlerInfoType(
-        BMX_HANDLER_TYPE handler_info,
-        db_index_type db_index)
-    {
-        return db_index | (handler_info << 8);
-    }
-
-    // Converts handler id and database index.
-    static void ParseHandlerInfoType(
-        BMX_HANDLER_TYPE handler_info,
-        BMX_HANDLER_TYPE& handler_id,
-        db_index_type& db_index)
-    {
-        db_index = (db_index_type) handler_info;
-        handler_id = (BMX_HANDLER_TYPE) (handler_info >> 8);
-    }
-
     // Getting first handler entry.
     void WriteUserParameters(
         uint8_t* param_types,
@@ -87,22 +69,16 @@ public:
         return handler_lists_[0]->get_original_uri_info();
     }
 
-    // Getting URI length in characters.
-    uint32_t get_original_uri_info_len_chars()
-    {
-        return handler_lists_[0]->get_original_uri_info_len_chars();
-    }
-
     // Getting registered URI.
     char* get_processed_uri_info()
     {
         return handler_lists_[0]->get_processed_uri_info();
     }
 
-    // Getting URI length in characters.
-    uint32_t get_processed_uri_info_len_chars()
+    // Getting application name.
+    char* get_app_name()
     {
-        return handler_lists_[0]->get_processed_uri_info_len_chars();
+        return handler_lists_[0]->get_app_name();
     }
 
     // Constructor.
@@ -279,13 +255,8 @@ public:
             {
                 MixedCodeConstants::RegisteredUriManaged reg_uri;
 
-                // Getting original uri info.
                 reg_uri.original_uri_info_string = reg_uris_[i].get_original_uri_info();
-                reg_uri.original_uri_info_len_chars = reg_uris_[i].get_original_uri_info_len_chars();
-
-                // Getting processed uri info.
                 reg_uri.processed_uri_info_string = reg_uris_[i].get_processed_uri_info();
-                reg_uri.processed_uri_info_len_chars = reg_uris_[i].get_processed_uri_info_len_chars();
 
                 reg_uris_[i].WriteUserParameters(reg_uri.param_types, &reg_uri.num_params);
 
@@ -328,26 +299,34 @@ public:
     }
 
     // Printing the registered URIs.
-    void PrintRegisteredUris(std::stringstream& stats_stream, uint16_t port_num)
+    void PrintRegisteredUris(std::stringstream& stats_stream)
     {
-        stats_stream << "Following URIs are registered: " << "<br>";
+        bool first = true;
+
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
-            stats_stream << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" in";
+            if (!first) 
+                stats_stream << ",";
+            first = false;
+
+            stats_stream << "{\"uri\":\"" << reg_uris_[i].get_processed_uri_info() << "\",";
+            stats_stream << "\"location\":";
 
             // Checking if its gateway or database URI.
             if (!reg_uris_[i].get_is_gateway_uri())
             {
                 // Database handler.
-                stats_stream << " database \"" << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << "\"";
+                stats_stream << '"' << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << '"';
+                stats_stream << ",\"application\":\"" << reg_uris_[i].get_app_name() << "\""; 
             }
             else
             {
                 // Gateway handler.
-                stats_stream << " gateway";
+                stats_stream << "\"gateway\"";
+                stats_stream << ",\"application\":" << "\"\"";
             }
 
-            stats_stream << "<br>";
+            stats_stream << "}";
         }
     }
 
@@ -582,16 +561,27 @@ public:
 #endif
 };
 
-const char* const kHttpStatsHeader =
+const char* const kHttpGenericHtmlHeader =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
     "Cache-control: no-cache\r\n"
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 
-const int32_t kHttpStatsHeaderLength = static_cast<int32_t> (strlen(kHttpStatsHeader));
+const int32_t kHttpGenericHtmlHeaderLength = static_cast<int32_t> (strlen(kHttpGenericHtmlHeader));
 
-const int32_t kHttpStatsHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpStatsHeader, "@") - kHttpStatsHeader);
+const int32_t kHttpGenericHtmlHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpGenericHtmlHeader, "@") - kHttpGenericHtmlHeader);
+
+const char* const kHttpStatisticsHeader =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: application/json\r\n"
+    "Cache-control: no-cache\r\n"
+    "Content-Length: @@@@@@@@\r\n"
+    "\r\n";
+
+const int32_t kHttpStatisticsHeaderLength = static_cast<int32_t> (strlen(kHttpStatisticsHeader));
+
+const int32_t kHttpStatisticsHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpStatisticsHeader, "@") - kHttpStatisticsHeader);
 
 const char* const kHttpEchoResponse =
     "HTTP/1.1 200 OK\r\n"

@@ -10,12 +10,10 @@ adminModule.service('VersionCheckService', ['$http', '$log', 'UtilsFactory', 'Jo
 
     /**
      * Get latest starcounter version information
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.getLatestVersionInfo = function (successCallback, errorCallback) {
-
-        $log.info("Retriveing latest starcounter version information");
 
         var errorHeader = "Failed to check version";
         var uri = "/api/admin/versioncheck";
@@ -69,41 +67,35 @@ adminModule.service('VersionCheckService', ['$http', '$log', 'UtilsFactory', 'Jo
 
             $log.error(errorHeader, response);
 
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-            else if (response.status == 503) {
-                // 503 Service Unavailable
-                if (typeof (errorCallback) == "function") {
-                    messageObject = null;
-                }
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
-            $log.error(errorHeader, response);
-
             if (typeof (errorCallback) == "function") {
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else if (response.status == 503) {
+                    // 503 Service Unavailable
+                    if (typeof (errorCallback) == "function") {
+                        messageObject = null;
+                    }
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
         });
     }
-
 
 }]);

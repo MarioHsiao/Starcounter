@@ -35,18 +35,59 @@ namespace Starcounter.Internal
         /// <summary>
         /// Name of the application.
         /// </summary>
-        public static string AppName { get; set; }
+        [ThreadStatic]
+        public static string AppName = "";
+
+        [ThreadStatic]
+        static Byte currentSchedulerId_ = 255;
 
         /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
-        public static Byte GetCurrentSchedulerId()
+        public static Byte CurrentSchedulerId
         {
-            unsafe
+            get
             {
-                Byte cpun;
-                cm3_get_cpun(null, &cpun);
-                return cpun;
+                if (255 == currentSchedulerId_)
+                {
+                    unsafe
+                    {
+                        Byte cpun = 0;
+                        cm3_get_cpun(null, &cpun);
+                        currentSchedulerId_ = cpun;
+                    }
+                }
+
+                return currentSchedulerId_;
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of schedulers.
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        unsafe extern static UInt32 cm3_get_cpuc(void* h_opt, Byte* pcpuc);
+
+        static Byte schedulerCount_ = 0;
+
+        /// <summary>
+        /// Gets the number of schedulers.
+        /// </summary>
+        public static Byte SchedulerCount
+        {
+            get
+            {
+                if (0 == schedulerCount_)
+                {
+                    unsafe
+                    {
+                        Byte cpuc = 0;
+                        cm3_get_cpuc(null, &cpuc);
+                        schedulerCount_ = cpuc;
+                    }
+                }
+
+                return schedulerCount_;
             }
         }
 

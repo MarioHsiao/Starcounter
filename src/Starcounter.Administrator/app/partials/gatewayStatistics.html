@@ -1,8 +1,67 @@
-﻿<button class="btn pull-right" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
+﻿<div class="btn-toolbar">
 
-<!--<div ng-bind-html-unsafe="model.statistics"></div>
+    <div class="btn-group">
+    </div>
 
-<div ng-html-bind-unsafe="model.statistics"></div>-->
+    <div class="btn-group pull-right">
+        <button title="Refresh" class="btn btn-small" ng-click="btnRefresh()"><i class="icon-refresh"></i></button>
+    </div>
 
+</div>
 
-<div ng-bind-html="model.statistics"></div>
+<div>
+
+    <accordion close-others="oneAtATime">
+        <accordion-group heading="Ports (Registered URIs)" is-open="true">
+      
+        <div ng-repeat="port in model.statistics.ports">
+            <h4>Port {{port.port}}</h4>
+            <div>Accepting sockets: {{port.acceptingSockets}}</div>
+            <div>Active connections: {{port.activeConnections}}</div>
+
+            <h5>Registered URIs</h5>
+            <div ng-repeat="uri in port.registeredUris">
+                <div>{{uri.uri}} in "{{uri.location}}"</div>
+            </div>
+        </div>
+
+    </accordion-group>
+
+    <accordion-group heading="Databases" is-open="false">
+
+        <div ng-repeat="database in model.statistics.databases">
+            <h4>Database "{{database.name}}"</h4>
+            <div>Index: {{database.index}}</div>
+            <div>Overflow chunks: {{database.overflowChunks}}</div>
+        </div>
+
+    </accordion-group>
+
+    <accordion-group heading="Workers" is-open="false">
+
+        <div ng-repeat="worker in model.statistics.workers">
+            <h4>Worker {{worker.id}}</h4>
+            <div>Bytes received: {{worker.bytesReceived}}</div>
+            <div>Packets received: {{worker.packetsReceived}}</div>
+            <div>Bytes sent: {{worker.bytesSent}}</div>
+            <div>Packets sent: {{worker.packetsSent}}</div>
+            <div>Bound sockets: {{worker.boundSockets}}</div>
+            <div>Allocated chunks: {{worker.allocatedChunks}}</div>
+        </div>
+
+    </accordion-group>
+
+    <accordion-group heading="Global" is-open="false">
+
+        <h4>All workers last second</h4>
+        <div>HTTP requests: {{model.statistics.global.allWorkersLastSecond.httpRequests}}</div>
+        <div>Received times: {{model.statistics.global.allWorkersLastSecond.receivedTimes}}</div>
+        <div>Receive bandwidth: {{model.statistics.global.allWorkersLastSecond.receiveBandwidth}} mbit/sec</div>
+        <div>Sent times: {{model.statistics.global.allWorkersLastSecond.sentTimes}}</div>
+        <div>Send bandwidth: {{model.statistics.global.allWorkersLastSecond.sendBandwidth}} mbit/sec</div>
+
+    </accordion-group>
+  </accordion>
+
+</div>
+

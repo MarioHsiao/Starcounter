@@ -1,6 +1,0 @@
-﻿{
-	"DatabaseList": [
-		{ "DatabaseName": "Database name 1", "Uri": "Some uri" },
-		{ "DatabaseName": "Database name 2", "Uri": "Some uri" }
-	]
-}

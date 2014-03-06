@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Starcounter.Tools.Service.Task {
     internal class ShutdownTask {
 
-        public static void Execute(StarcounterService service) {
+        public static void Execute(StarcounterWatcher service) {
 
             string uri = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
 

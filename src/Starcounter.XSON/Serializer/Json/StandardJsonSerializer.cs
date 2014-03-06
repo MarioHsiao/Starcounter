@@ -106,7 +106,7 @@ restart:
                                     goto restart;
                             } else if (tProperty is TObjArr) {
                                 Json arr = ((TObjArr)tProperty).Getter(obj);
-                                if (buf.Length < (offset + arr.Count * 2 + 2))
+                                if (buf.Length < (offset + arr.Count * 2 + 3))
                                     goto restart;
 
                                 // We know that we at least have room for all start-end characters in the buf.

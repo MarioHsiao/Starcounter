@@ -105,12 +105,6 @@ public:
         return num_overflow_chunks;
     }
 
-    // Sends session destroyed message.
-    uint32_t PushSessionDestroy(
-        session_index_type linear_index,
-        random_salt_type random_salt,
-        uint8_t scheduler_id);
-
     // Sends error message.
     uint32_t PushErrorMessage(
         scheduler_id_type sched_id,
@@ -234,7 +228,7 @@ public:
         core::chunk_index chunk_index,
         int16_t scheduler_id);
 
-    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    void PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Releases chunks from private chunk pool to the shared chunk pool.
     uint32_t ReleaseToSharedChunkPool(int32_t num_ipc_chunks);

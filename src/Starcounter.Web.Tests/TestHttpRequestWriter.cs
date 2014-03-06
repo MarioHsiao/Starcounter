@@ -184,7 +184,6 @@ namespace Starcounter.Internal.Tests {
 			start = DateTime.Now;
 			for (int i = 0; i < repeats; i++) {
 				response.ConstructFromFields();
-				response.SetCustomFieldsFlag();
 			}
 			stop = DateTime.Now;
 			Console.Write((stop - start).TotalMilliseconds);

@@ -114,23 +114,44 @@ namespace Starcounter.Hosting {
         /// </summary>
         internal void Process()
         {
-            var application = application_;
+            Application.CurrentAssigned = application_;
+            try {
+                ProcessWithinCurrentApplication(application_);
+            } finally {
+                Application.CurrentAssigned = null;
+            }
+        }
+
+        /// <summary>
+        /// Waits the until processed.
+        /// </summary>
+        public uint WaitUntilProcessed() {
+            processedEvent_.WaitOne();
+            return processedResult;
+        }
+
+        /// <summary>
+        /// Disposes this instance.
+        /// </summary>
+        public void Dispose() {
+            processedEvent_.Dispose();
+        }
+
+        void ProcessWithinCurrentApplication(Application application) {
             if (application != null) {
-                Application.Index(application);
+                Application.Index(application_);
             }
 
-            try
-            {
+            try {
                 OnProcessingStarted();
 
                 UpdateDatabaseSchemaAndRegisterTypes();
 
-				if (application != null && !StarcounterEnvironment.IsAdministratorApp)
-					AppsBootstrapper.Bootstrap(application.WorkingDirectory); 
+                if (application != null && !StarcounterEnvironment.IsAdministratorApp)
+                    AppsBootstrapper.Bootstrap(application.WorkingDirectory);
 
                 // Initializing package for all executables.
-                if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_))
-                {
+                if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_)) {
                     // Registering internal HTTP handlers.
                     InitInternalHttpHandlers_();
 
@@ -162,21 +183,6 @@ namespace Starcounter.Hosting {
 
             if (application != null && !execEntryPointSynchronously_)
                 ExecuteEntryPoint(application);
-        }
-
-        /// <summary>
-        /// Waits the until processed.
-        /// </summary>
-        public uint WaitUntilProcessed() {
-            processedEvent_.WaitOne();
-            return processedResult;
-        }
-
-        /// <summary>
-        /// Disposes this instance.
-        /// </summary>
-        public void Dispose() {
-            processedEvent_.Dispose();
         }
 
         /// <summary>
@@ -264,7 +270,6 @@ namespace Starcounter.Hosting {
             var entrypoint = assembly_.EntryPoint;
 
             try {
-                Application.CurrentAssigned = application;
                 if (entrypoint.GetParameters().Length == 0) {
                     entrypoint.Invoke(null, null);
                 } else {
@@ -281,8 +286,6 @@ namespace Starcounter.Hosting {
                 }
 
                 throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
-            } finally {
-                Application.CurrentAssigned = null;
             }
 
             OnEntryPointExecuted();

@@ -1,18 +1,4 @@
-﻿/*body { padding-top: 45px; }*/
-
-
-#spanExeBox {
-    display: inline-block;
-    padding: 7px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    border: 1px solid #d4d4d4;
-    -webkit-border-radius: 6px;
-    -moz-border-radius: 6px;
-    border-radius: 6px;
-}
-
-/* APP/DATABASE STATUS */
+﻿/* APP/DATABASE STATUS */
 
 .Running {
     color: #46a546;
@@ -76,7 +62,7 @@
     padding: 5px;
     margin-top: 10px;
     font-size: 90%;
-    font-family: "Courier New", Courier, monospace;
+    font-family: Consolas, "Courier New", Courier, monospace;
 }
 
 
@@ -89,8 +75,6 @@
 .navbar {
     margin-bottom: 0px;
 }
-
-
 
 
 .toplinks, navbar-inner {
@@ -113,10 +97,9 @@
 }
 
 
-    .toplinks .nav-pills {
-        margin-bottom: 5px;
-    }
-
+.toplinks .nav-pills {
+    margin-bottom: 5px;
+}
 
 
 .fix-word-wrap-table {
@@ -126,4 +109,74 @@
 
 .tab-content {
     overflow: visible;
+}
+
+
+/* Executable box handling */
+
+#executableIconList {
+    list-style-type: none;
+    margin-left:0px;
+}
+
+
+#executableIconList li {
+    width: 300px;
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #d4d4d4;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    padding:0px 10px 10px 10px;
+}
+
+
+#executableIconList li .console {
+    background-color: #000000;
+    color: white;
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 70%;
+    font-family: Consolas, "Courier New", Courier, monospace;
+}
+
+
+/* Database box handling */
+
+#databaseIconList {
+    list-style-type: none;
+    margin-left:0px;
+}
+
+
+#databaseIconList li {
+    width: 300px;
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #d4d4d4;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    padding:0px 10px 10px 10px;
+}
+
+
+#databaseIconList li .console {
+    background-color: #000000;
+    color: white;
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 70%;
+    font-family: Consolas, "Courier New", Courier, monospace;
+}
+
+
+.workspace {
+    border: 1px solid #d4d4d4;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
 }

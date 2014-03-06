@@ -64,8 +64,9 @@
     <script src="/app/js/app.js"></script>
 
     <!-- Services -->
+    <script src="/app/services/HostModelService.js"></script>
+    <script src="/app/services/ConsoleService.js"></script>
     <script src="/app/services/DatabaseService.js"></script>
-    <script src="/app/services/DatabaseConsoleService.js"></script>
     <script src="/app/services/ExecutableService.js"></script>
     <script src="/app/services/SqlService.js"></script>
     <script src="/app/services/LogService.js"></script>
@@ -85,6 +86,7 @@
     <script src="/app/controllers/DatabaseCtrl.js"></script>
     <script src="/app/controllers/DatabaseCreateCtrl.js"></script>
     <script src="/app/controllers/DatabaseSettingsCtrl.js"></script>
+    <script src="/app/controllers/ExecutableCtrl.js"></script>
     <script src="/app/controllers/ExecutablesCtrl.js"></script>
     <script src="/app/controllers/ExecutableStartCtrl.js"></script>
     <script src="/app/controllers/SqlCtrl.js"></script>
@@ -96,7 +98,21 @@
     <script src="/app/directives/Notices.js"></script>
     <script src="/app/directives/Jobs.js"></script>
     <script src="/app/directives/VersionCheck.js"></script>
+    <script src="/app/directives/ConsoleWindow.js"></script>
 
+    <!-- Angular localisation -->
+    <script type='text/javascript'>
+
+        var l_lang;
+        if (navigator.userLanguage) // Explorer
+            l_lang = navigator.userLanguage;
+        else if (navigator.language) // Chrome
+            l_lang = navigator.language;
+        else
+            l_lang = "en";
+
+        document.write('<scr' + 'ipt type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.0.7/angular-locale_' + l_lang.toLowerCase() + '.js"></sc' + 'ript>');
+    </script>
 
 </head>
 
@@ -110,7 +126,7 @@
                     <img src="/app/images/sc_logo_24x24.png" style="margin: -3px 0px 0px 0px">
                     Starcounter Administrator</a>
                 <ul class="nav pull-right">
-                    <li><a href="http://www.starcounter.com/wiki" target="_blank">Help</a></li>
+                    <li><a href="https://github.com/starcounter/starcounter/wiki" target="_blank">Help</a></li>
                 </ul>
             </div>
         </div>
@@ -119,34 +135,82 @@
 
     <div class="toplinks">
         <ul class="nav nav-pills" data-ng-controller="NavbarController">
-            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
-            <li data-ng-class="{active: getClass('/databases')}"><a href="#/databases">Databases</a></li>
+
+            <li data-ng-class="{active: getClass('/databases/.*/executables/.*|/executables')}" class="dropdown">
+                <a id="A1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Executables <b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/executables">View all</a>
+                    </li>
+
+                    <li role="presentation" class="divider"></li>
+
+
+                    <li ng-repeat="executable in model.executables" role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databases/{{executable.databaseName}}/executables/{{executable.Name}}">{{executable.Name}}</a>
+                    </li>
+
+                    <li ng-hide="model.executables.length == 0" role="presentation" class="divider"></li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/executableStart">Start...</a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$')}" class="dropdown">
+                <a id="drop1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Databases <b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databases">View all</a>
+                    </li>
+
+                    <li role="presentation" class="divider"></li>
+
+
+                    <li ng-repeat="database in model.databases" role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databases/{{database.name}}">{{database.name}}<span ng-show="database.running" class="pull-right label label-success">Running</span></a>
+                    </li>
+
+                    <li ng-hide="model.databases.length == 0" role="presentation" class="divider"></li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#/databaseCreate">Create...</a>
+                    </li>
+                </ul>
+            </li>
+
             <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
             <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
-            <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Gateway</a></li>
+            <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Network</a></li>
             <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
+
+            <!--            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
+            <li data-ng-class="{active: getClass('/databases')}"><a href="#/databases">Databases</a></li>-->
+
+
         </ul>
     </div>
 
 
+    <!-- Version check -->
     <version-check></version-check>
-
-    <!--    <div class="alert alert-info" data-ng-show="newVersion!=null">
-        <button type="button" class="close" data-ng-click="closeVersionNotice()" data-dismiss="alert">&times;</button>
-        <strong>New Version!</strong>
-        <p>A newer version of Starcounter is available.</p>
-        <a href="{{newVersion.downloadUri}}" target="_blank">Download ({{newVersion.version}})</a>
-    </div>-->
 
     <div class="progress progress-striped active" data-ng-repeat="job in jobs">
         <div class="bar" style="width: 100%;">{{job.message}}</div>
     </div>
 
+    <!-- Jobs -->
     <jobs></jobs>
 
+    <!-- Notices -->
     <notices></notices>
 
 
+    <!-- Content -->
     <div data-ng-view />
 
 

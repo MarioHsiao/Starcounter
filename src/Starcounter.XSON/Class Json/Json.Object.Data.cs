@@ -12,8 +12,6 @@ using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     partial class Json {
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -52,47 +50,6 @@ namespace Starcounter {
             InternalSetData(data, (TObject)Template, true);
         }
 
-
-		///// <summary>
-		///// Gets the bound value from the dataobject.
-		///// </summary>
-		///// <typeparam name="TVal"></typeparam>
-		///// <param name="template"></param>
-		///// <returns></returns>
-		//internal TVal GetBound<TVal>(Property<TVal> template) {
-		//	if (template.UseBinding(this))
-		//		return template.BoundGetter(this);
-		//	return default(TVal);
-		//}
-
-		///// <summary>
-		///// Sets the value to the dataobject.
-		///// </summary>
-		///// <param name="template"></param>
-		///// <param name="value"></param>
-		//internal void SetBound<TVal>(Property<TVal> template, TVal value) {
-		//	if (template.UseBinding(this))
-		//		template.BoundSetter(this, value);
-		//}
-
-		//internal object GetBound(TValue template) {
-		//	IBindable data = DataAsBindable;
-		//	var thisj = AssertIsObject();
-		//	if (data == null)
-		//		return null;
-
-		//	return template.GetBoundValueAsObject(thisj);
-		//}
-
-		//internal void SetBound(TValue template, object value) {
-		//	var thisj = AssertIsObject();
-		//	IBindable data = DataAsBindable;
-		//	if (data == null)
-		//		return;
-
-		//	template.SetBoundValueAsObject(thisj, value);
-		//}
-
         /// <summary>
         /// For public API functions that does not operate on templates, this
         /// method should be used instead of a simple type cast to provide a 
@@ -105,69 +62,6 @@ namespace Starcounter {
             }
             return this as Json;
         }
-
-		///// <summary>
-		///// Gets the bound value from the dataobject.
-		///// </summary>
-		///// <remarks>
-		///// This method assumes that the cached binding on the template 
-		///// is correct and will not verify it.
-		///// </remarks>
-		///// <param name="template"></param>
-		///// <returns></returns>
-		//internal IEnumerable GetBound(TObjArr template) {
-		//	IBindable data = DataAsBindable;
-		//	if (data == null)
-		//		return default(Rows<object>);
-
-		//	return ((DataValueBinding<IEnumerable>)template.dataBinding).Get(data);
-		//}
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="template"></param>
-		///// <param name="value"></param>
-		//internal void SetBound(TObjArr template, IEnumerable value) {
-		//	IBindable data = DataAsBindable;
-		//	if (data == null)
-		//		return;
-		//	var binding = (DataValueBinding<IEnumerable>)template.dataBinding;
-		//	if (binding.HasSetBinding())
-		//		binding.Set(data, value);
-		//}
-
-		///// <summary>
-		///// Gets the bound value from the dataobject.
-		///// </summary>
-		///// <remarks>
-		///// This method assumes that the cached binding on the template 
-		///// is correct and will not verify it.
-		///// </remarks>
-		///// <param name="template"></param>
-		///// <returns></returns>
-		//internal IBindable GetBound(TObject template) {
-		//	IBindable data = DataAsBindable;
-		//	if (data == null)
-		//		return null;
-		//	return ((DataValueBinding<IBindable>)template.dataBinding).Get(data);
-		//}
-
-		///// <summary>
-		///// Sets the value to the dataobject.
-		///// </summary>
-		///// <remarks>
-		///// This method assumes that the cached binding on the template 
-		///// is correct and will not verify it.
-		///// </remarks>
-		///// <param name="template"></param>
-		///// <param name="value"></param>
-		//internal void SetBound(TObject template, IBindable value) {
-		//	IBindable data = DataAsBindable;
-		//	if (data == null)
-		//		return;
-		//	((DataValueBinding<IBindable>)template.dataBinding).Set(data, value);
-		//}
 
         /// <summary>
         /// Sets the underlying data object and refreshes all bound values.
@@ -188,9 +82,34 @@ namespace Starcounter {
 					}
 				}
 
+                if (_data == null)
+                    ClearBoundValues(template);
+
 				InitBoundArrays(template);
 			}
             OnData();
+        }
+
+        /// <summary>
+        /// If a dataobject is set to null we need to clear out all already bound values since
+        /// we treat a dataobject that is null as unbound json. So we loop through all properties
+        /// and if they have an existing binding we invalidate it and add a change to the session
+        /// if it exists.
+        /// </summary>
+        /// <param name="template"></param>
+        private void ClearBoundValues(TObject template) {
+            TValue child;
+
+            for (Int32 i = 0; i < template.Properties.Count; i++) {
+                child = template.Properties[i] as TValue;
+
+                if (child.BindingStrategy != BindingStrategy.Unbound && !child.isVerifiedUnbound) {
+                    child.InvalidateBoundGetterAndSetter();
+                    child.SetDefaultValue(this);
+                    if (Session.Current != null)
+                        Session.Current.UpdateValue(this, child);
+                }
+            }
         }
 
         /// <summary>

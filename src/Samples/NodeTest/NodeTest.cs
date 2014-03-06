@@ -183,19 +183,11 @@ namespace NodeTest
             resp_bytes_ = new Byte[num_echo_bytes_];
 
 #if FILL_RANDOMLY
-            // Generating random bytes.
-            worker_.Rand.NextBytes(body_bytes_);
-#else
-
-            // Filling bytes continuously between 0 and 9
-            Byte k = 0;
             for (Int32 i = 0; i < num_echo_bytes_; i++)
-            {
-                body_bytes_[i] = (Byte)('1' + k);
-                //k++;
-                //if (k >= 10) k = 0;
-            }
-
+                body_bytes_[i] = (Byte)(worker_.Rand.Next(48, 57));
+#else
+            for (Int32 i = 0; i < num_echo_bytes_; i++)
+                body_bytes_[i] = (Byte)('5');
 #endif
 
 #if !FASTEST_POSSIBLE
@@ -275,6 +267,27 @@ namespace NodeTest
 
             ws.DataReceived += (s, e) => 
             {
+                // Checking that echo size is correct.
+                if (e.Data.Length != bodyBytes.Length)
+                {
+                    Console.WriteLine("Incorrect WebSocket response size: " + e.Data.Length + ", should be " + bodyBytes.Length);
+                    Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(e.Data));
+
+#if !FILL_RANDOMLY
+                    for (Int32 i = 0; i < e.Data.Length; i++)
+                    {
+                        if (e.Data[i] != '1')
+                        {
+                            Console.WriteLine("Response contains illegal symbols: " + e.Data[i]);
+                            break;
+                        }
+                    }
+#endif
+
+                    NodeTest.WorkersMonitor.FailTest();
+                    return;
+                }
+
                 e.Data.CopyTo(respBytes, 0);
 
                 // Creating response from received byte array.
@@ -285,6 +298,7 @@ namespace NodeTest
                 {
                     Console.WriteLine("Incorrect WebSocket response of length: " + respBytes.Length);
                     NodeTest.WorkersMonitor.FailTest();
+                    return;
                 }
 
                 // Sending data again if number of runs is not exhausted.
@@ -318,7 +332,7 @@ namespace NodeTest
             ws.Open();
 
             // Waiting for all tests to finish.
-            if (!allDataReceivedEvent.WaitOne(3000))
+            if (!allDataReceivedEvent.WaitOne(10000))
             {
                 throw new Exception("Failed to get WebSocket response in time!");
             }
@@ -404,10 +418,31 @@ namespace NodeTest
                 Console.WriteLine(worker_.Id + ": echoed: " + num_echo_bytes_ + " bytes");
 
             Byte[] resp_body = resp.BodyBytes;
+
+            // Checking first characters.
+            for (Int32 i = 0; i < resp_body.Length; i++)
+            {
+                if (resp_body[i] != body_bytes_[i])
+                {
+                    Console.WriteLine("Completely wrong response (first 16 characters are different). Received length: " +
+                        resp_body.Length + " where correct: " + body_bytes_.Length);
+
+                    Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(resp_body));
+
+                    NodeTest.WorkersMonitor.FailTest();
+                    return false;
+                }
+
+                if (i >= 16)
+                    break;
+            }
+
+            // Checking if response length is correct.
             if (resp_body.Length != num_echo_bytes_)
             {
                 Console.WriteLine("Wrong echo size! Correct echo size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
-                Console.WriteLine("Incorrect response: " + resp.Body);
+                Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(resp_body));
+
                 NodeTest.WorkersMonitor.FailTest();
                 return false;
             }
@@ -431,6 +466,7 @@ namespace NodeTest
                             }
                         }
 
+                        Console.WriteLine("Received echo body: " + Encoding.UTF8.GetString(resp_body));
                         Console.WriteLine("Wrong echo contents! Correct echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
                         NodeTest.WorkersMonitor.FailTest();
                         return false;

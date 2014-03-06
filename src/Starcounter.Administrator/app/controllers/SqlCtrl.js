@@ -3,7 +3,7 @@
  * Sql page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('SqlCtrl', ['$scope', '$log', 'NoticeFactory', 'SqlService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, SqlService, DatabaseService, UserMessageFactory) {
+adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', 'NoticeFactory', 'SqlService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $sce, NoticeFactory, SqlService, DatabaseService, UserMessageFactory) {
 
     // List of databases
     $scope.databases = DatabaseService.databases;
@@ -30,9 +30,9 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', 'NoticeFactory', 'SqlServic
     //}
 
     /**
-     * Execut query
-     * @param {query} query
-     * @param {databaseName} databaseName
+     * Button click, Execut query
+     * @param {string} query Query
+     * @param {string} databaseName Database name
      */
     $scope.btnExecute = function (query, databaseName) {
 
@@ -61,8 +61,12 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', 'NoticeFactory', 'SqlServic
             }
 
             if (response.queryPlan) {
-                $scope.queryState.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
-                $scope.queryState.queryPlan = $scope.queryState.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
+
+                // Replace all occurrences of \r\n with the html tag <br>
+                // Replace all occurrences of \t with &emsp;
+                var plan = response.queryPlan.replace(/\r\n/g, "<br>").replace(/\t/g, "&emsp;");  
+
+                $scope.queryState.queryPlan = $sce.trustAsHtml(plan);
             }
 
 

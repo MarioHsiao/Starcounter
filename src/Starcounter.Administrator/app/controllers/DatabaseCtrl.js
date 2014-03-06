@@ -3,101 +3,43 @@
  * Database page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$routeParams', 'NoticeFactory', 'DatabaseService', 'DatabaseConsoleService', 'UserMessageFactory', function ($scope, $log, $sce, $routeParams, NoticeFactory, DatabaseService, DatabaseConsoleService, UserMessageFactory) {
+adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'NoticeFactory', 'HostModelService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $routeParams, NoticeFactory, HostModelService, DatabaseService, UserMessageFactory) {
 
     $scope.model = {
-        database: null,
-        console: "",
-        manualMode: !DatabaseConsoleService.isWebsocketSupported
-    }
-
-    // Socket log event listener
-    var socketEventListener = {
-        databaseName: $routeParams.name, // TODO
-        onEvent: function (text) {
-
-            $scope.model.console = $sce.trustAsHtml($scope.model.console + text);
-
-            // Limit the buffer
-            if ($scope.model.console.length > 8000) {
-                $scope.model.console = $sce.trustAsHtml($scope.model.console.substr($scope.model.console.length - 8000));
-            }
-
-            $("#console").scrollTop($("#console")[0].scrollHeight); 
-
-        },
-        onError: function (messageObject) {
-
-            $scope.model.manualMode = false;
-
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        }
-
-    }
-
-    // Destructor
-    $scope.$on('$destroy', function iVeBeenDismissed() {
-        DatabaseConsoleService.unregisterEventListener(socketEventListener);
-    })
-
-
-    /**
-     * Refresh console
-     */
-    $scope.btnRefreshConsole = function (databaseName) {
-        $scope.getConsole(databaseName);
+        database: null
     }
 
 
     /**
-     * Get Console output for a database
-     * @param {databaseName} Database name
+     * Get Console output
+     * @param {object} database Database
      */
-    $scope.getConsole = function (databaseName) {
+    $scope.btnGetConsoleOutput = function (database) {
 
-        // Get console output
-        DatabaseConsoleService.getConsoleOutput(databaseName, function (text) {
+        DatabaseService.refreshConsoleOuput(database, function () {
 
-            $scope.model.console = $sce.trustAsHtml(text);
-
-            $("#console").scrollTop($("#console")[0].scrollHeight); 
+             $("#console").scrollTop($("#console")[0].scrollHeight);
 
             // Success
         }, function (messageObject) {
-
             // Error
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-            }
-            else {
-                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
-            }
-
+            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
 
         });
 
     }
 
+
     // Init
+    // Refresh host model
+    HostModelService.refreshHostModel(function () {
 
-    // Register log listener
-    DatabaseConsoleService.registerEventListener(socketEventListener);
-    
-    // Refresh databases list
-    DatabaseService.refreshDatabases(
-        function () {
-            // Success
-            $scope.model.database = DatabaseService.getDatabase($routeParams.name);
+        $scope.model.database = DatabaseService.getDatabase($routeParams.name);
 
-            if ($scope.model.manualMode && $scope.model.database.running) {
-                $scope.getConsole($scope.model.database.name);
-            }
-
-        },
-        function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
+    }, function (messageObject) {
+        // Error
+        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    });
 
 
     // Console fixe the height.
@@ -110,16 +52,10 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$routeParams'
         $scope.$apply();
     });
 
-    $scope.style = function () {
-        return {
-            'height': ($scope.calcHeight()) + 'px',
-            'width': + '100%'
-        };
-    }
 
     $scope.calcHeight = function () {
+
         var border = 12;
-        //var topOffset = $("#console").offset().top;
         var ht = $("#console");
         var offset = ht.offset();
         if (!offset) {

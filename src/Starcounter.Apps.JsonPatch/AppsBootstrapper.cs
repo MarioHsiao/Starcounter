@@ -63,10 +63,14 @@ namespace Starcounter.Internal {
             Modules.Starcounter_XSON.Injections._JsonMimeConverter = new JsonMimeConverter();
 
             // Giving REST needed delegates.
-            UserHandlerCodegen.Setup(
-                GatewayHandlers.RegisterUriHandler,
-                OnHttpMessageRoot,
-                AppServer_.HandleRequest);
+            unsafe {
+                UserHandlerCodegen.Setup(
+                    GatewayHandlers.HandleIncomingHttpRequest,
+                    OnHttpMessageRoot,
+                    AppServer_.HandleRequest);
+
+                AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.HandleWebSocket);
+            }
 
             // Injecting required hosted Node functionality.
             Node.InjectHostedImpl(

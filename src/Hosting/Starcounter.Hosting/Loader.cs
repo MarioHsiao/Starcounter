@@ -95,6 +95,7 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
 
+        [ThreadStatic]
         private static Stopwatch stopwatch_;
 
         /// <summary>

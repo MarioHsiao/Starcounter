@@ -54,35 +54,25 @@ namespace Starcounter.Internal
         /// </summary>
         public const int SESSION_STRUCT_SIZE = 16;
 
-        /// <summary>
-        /// Just send flag.
-        /// </summary>
-        public const int SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4;
-
-        /// <summary>
-        /// Disconnect after send flag.
-        /// </summary>
-        public const int SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 2 << 2;
-
-        /// <summary>
-        /// Just disconnect flag.
-        /// </summary>
-        public const int SOCKET_DATA_FLAGS_DISCONNECT = 2 << 5;
-
-        /// <summary>
-        /// Gracefully close flag.
-        /// </summary>
-        public const int HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 2 << 10;
-
-        /// <summary>
-        /// Is socket data aggregated.
-        /// </summary>
-        public const int SOCKET_DATA_FLAGS_AGGREGATED = 2 << 11;
-
-        /// <summary>
-        /// Is socket data in host accumulation.
-        /// </summary>
-        public const int SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 12;
+        public enum SOCKET_DATA_FLAGS
+        {
+            SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
+            SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
+            SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 2 << 1,
+            SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 2 << 2,
+            SOCKET_DATA_FLAGS_ACTIVE_CONN = 2 << 3,
+            SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4,
+            SOCKET_DATA_FLAGS_JUST_DISCONNECT = 2 << 5,
+            SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
+            HTTP_WS_FLAGS_COMPLETE_HEADER = 2 << 7,
+            HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2 << 8,
+            HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2 << 9,
+            HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 2 << 10,
+            SOCKET_DATA_FLAGS_AGGREGATED = 2 << 11,
+            SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 12,
+            HTTP_WS_FLAGS_UPGRADE_APPROVED = 2 << 13,
+            HTTP_WS_FLAGS_UPGRADE_REQUEST = 2 << 14
+        };
 
         /// <summary>
         /// Invalid chunk index.
@@ -112,7 +102,9 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 48;
         public const int SOCKET_DATA_OFFSET_WS_OPCODE = 151;
         public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 165;
-        
+        public const int CHUNK_OFFSET_WS_PAYLOAD_LEN = 176;
+        public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 180;
+        public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 168;
         /// <summary>
         /// Maximum number of URI callback parameters.
         /// </summary>
@@ -214,6 +206,17 @@ namespace Starcounter.Internal
             PROTOCOL_HTTP2
         };
 
+        /// <summary>
+        /// WebSocket data types.
+        /// </summary>
+        public enum WebSocketDataTypes
+        {
+            WS_OPCODE_TEXT = 1,
+            WS_OPCODE_BINARY = 2,
+            WS_OPCODE_CLOSE = 8,
+            WS_OPCODE_PING = 9
+        };
+
 #if !__cplusplus
 
         // C# code
@@ -222,9 +225,7 @@ namespace Starcounter.Internal
         public unsafe struct RegisteredUriManaged
         {
             public unsafe IntPtr original_uri_info_string;
-            public UInt32 original_uri_info_len_chars;
             public unsafe IntPtr processed_uri_info_string;
-            public UInt32 processed_uri_info_len_chars;
             public Int32 handler_id;
             public fixed Byte param_types[MixedCodeConstants.MAX_URI_CALLBACK_PARAMS];
             public Byte num_params;
@@ -254,9 +255,7 @@ namespace Starcounter.Internal
     struct RegisteredUriManaged
     {
         char* original_uri_info_string;
-        uint32_t original_uri_info_len_chars;
         char* processed_uri_info_string;
-        uint32_t processed_uri_info_len_chars;
         int32_t handler_id;
         uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
         uint8_t num_params;

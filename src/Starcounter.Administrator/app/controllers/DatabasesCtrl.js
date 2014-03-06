@@ -3,15 +3,37 @@
  * Databases page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, DatabaseService, UserMessageFactory) {
+adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, DatabaseService, UserMessageFactory) {
 
     // List of databases
-    $scope.databases = DatabaseService.databases;
-    $scope.console = "";
+    $scope.databases = HostModelService.databases;
+
+
+    /**
+     * Get Console output
+     * @param {object} database Database
+     */
+    $scope.btnGetConsoleOutput = function (database) {
+
+        DatabaseService.refreshConsoleOuput(database, function () {
+
+            // TODO
+            // $("#console").scrollTop($("#console")[0].scrollHeight);
+
+
+            // Success
+        }, function (messageObject) {
+            // Error
+            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+
+        });
+
+    }
+
 
     /**
      * Start database
-     * @param {Database} database
+     * @param {object} database Database
      */
     $scope.btnStartDatabase = function (database) {
 
@@ -31,7 +53,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Dat
 
     /**
      * Stop Database
-     * @param {Executable} executable
+     * @param {object} database Database
      */
     $scope.btnStopDatabase = function (database) {
 
@@ -60,16 +82,34 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Dat
 
 
 
-  
+
     }
 
 
     // Init
-    DatabaseService.refreshDatabases(function () { },
-        function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
+    // Refresh host model
+    HostModelService.refreshHostModel(function () {
+    }, function (messageObject) {
+        // Error
+        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    });
+
+
+    // Save user state
+    if (localStorage.getItem('databaseViewMode') != null) {
+        $scope.view = localStorage.getItem('databaseViewMode');
+    }
+    else {
+        $scope.view = "list";
+    }
+
+    $scope.$watch('view', function (newValue, oldValue) {
+        localStorage.setItem('databaseViewMode', newValue);
+    });
+
+    $scope.change = function (database) {
+        $log.warn("console changed");
+    }
 
 
 }]);

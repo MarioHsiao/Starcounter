@@ -32,9 +32,7 @@ class HandlersList
     // URI string.
     char* original_uri_info_;
     char* processed_uri_info_;
-
-    uint32_t original_uri_info_len_chars_;
-    uint32_t processed_uri_info_len_chars_;
+    char* app_name_;
 
     uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
     uint8_t num_params_;
@@ -70,12 +68,13 @@ public:
     }
 
     // Constructor.
-    explicit HandlersList()
+    HandlersList()
     {
         Unregister();
 
         original_uri_info_ = NULL;
         processed_uri_info_ = NULL;
+        app_name_ = NULL;
     }
 
     ReverseProxyInfo* get_reverse_proxy_info()
@@ -119,6 +118,11 @@ public:
         return port_;
     }
 
+    char* get_app_name()
+    {
+        return app_name_;
+    }
+
     // Gets URI.
     char* get_original_uri_info()
     {
@@ -129,18 +133,6 @@ public:
     char* get_processed_uri_info()
     {
         return processed_uri_info_;
-    }
-
-    // Get URI length.
-    uint32_t get_original_uri_info_len_chars()
-    {
-        return original_uri_info_len_chars_;
-    }
-
-    // Get URI length.
-    uint32_t get_processed_uri_info_len_chars()
-    {
-        return processed_uri_info_len_chars_;
     }
 
     // Gets handler type.
@@ -181,23 +173,19 @@ public:
 
     // Init.
     uint32_t Init(
-        bmx::HANDLER_TYPE type,
-        BMX_HANDLER_TYPE handler_info,
-        uint16_t port,
-        bmx::BMX_SUBPORT_TYPE subport,
+        const bmx::HANDLER_TYPE type,
+        const BMX_HANDLER_TYPE handler_info,
+        const uint16_t port,
+        const char* app_name,
+        const bmx::BMX_SUBPORT_TYPE subport,
         const char* original_uri_info,
-        uint32_t original_uri_len_chars,
         const char* processed_uri_info,
-        uint32_t processed_uri_len_chars,
-        uint8_t* param_types,
-        int32_t num_params,
-        db_index_type db_index,
-        uint64_t unique_number,
+        const uint8_t* param_types,
+        const int32_t num_params,
+        const db_index_type db_index,
+        const uint64_t unique_number,
         ReverseProxyInfo* reverse_proxy_info)
     {
-        GW_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
-        GW_ASSERT(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
-
         type_ = type;
         port_ = port;
 
@@ -209,18 +197,29 @@ public:
 
         reverse_proxy_info_ = reverse_proxy_info;
 
-        original_uri_info_len_chars_ = original_uri_len_chars;
-        processed_uri_info_len_chars_ = processed_uri_len_chars;
-
         // Deleting previous allocations if any.
         if (original_uri_info_)
+        {
             delete original_uri_info_;
-        if (processed_uri_info_)
-            delete processed_uri_info_;
+            original_uri_info_ = NULL;
+        }
 
-        // Allocating space for URIs if needed.
-        original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
-        processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
+        if (processed_uri_info_)
+        {
+            delete processed_uri_info_;
+            processed_uri_info_ = NULL;
+        }
+
+        if (app_name_)
+        {
+            delete app_name_;
+            app_name_ = NULL;
+        }
+
+        GW_ASSERT(app_name != NULL);
+        uint32_t len = (uint32_t) strlen(app_name);
+        app_name_ = new char[len + 1];
+        strncpy_s(app_name_, len + 1, app_name, len);
 
         num_params_ = num_params;
         if (num_params_ > 0)
@@ -242,11 +241,29 @@ public:
             case bmx::HANDLER_TYPE::URI_HANDLER:
             {
                 // Copying the URI string.
-                if (original_uri_len_chars > 0)
-                    strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
+                GW_ASSERT(original_uri_info != NULL);
 
-                if (processed_uri_len_chars > 0)
-                    strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
+                len = (uint32_t) strlen(original_uri_info);
+                original_uri_info_ = new char[len + 1];
+                strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
+                
+                GW_ASSERT(processed_uri_info != NULL);
+
+                len = (uint32_t) strlen(processed_uri_info);
+                processed_uri_info_ = new char[len + 1];
+                strncpy_s(processed_uri_info_, len + 1, processed_uri_info, len);
+
+                break;
+            }
+
+            case bmx::HANDLER_TYPE::WS_HANDLER:
+            {
+                // Copying the WS channel string.
+                GW_ASSERT(original_uri_info != NULL);
+
+                len = (uint32_t) strlen(original_uri_info);
+                original_uri_info_ = new char[len + 1];
+                strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
 
                 break;
             }
@@ -370,7 +387,7 @@ public:
     }
 
     // Find URI handler id.
-    BMX_HANDLER_INDEX_TYPE FindUriHandlerIndex(uint16_t port_num, const char* processed_uri_info, uint32_t uri_len_chars)
+    BMX_HANDLER_INDEX_TYPE FindUriHandlerIndex(uint16_t port_num, const char* processed_uri_info)
     {
         int32_t longest_matched_uri = 0;
 
@@ -383,7 +400,7 @@ public:
                     if (port_num == registered_handlers_[i].get_port())
                     {
                         // Comparing URI as starts with.
-                        if (!strncmp(registered_handlers_[i].get_processed_uri_info(), processed_uri_info, uri_len_chars))
+                        if (!strncmp(registered_handlers_[i].get_processed_uri_info(), processed_uri_info, strlen(processed_uri_info)))
                         {
                             return i;
                         }
@@ -412,6 +429,7 @@ public:
     uint32_t RegisterPortHandler(
         GatewayWorker *gw,
         uint16_t port_num,
+        const char* app_name_string,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handler,
         db_index_type db_index,
@@ -421,6 +439,7 @@ public:
     uint32_t RegisterSubPortHandler(
         GatewayWorker *gw,
         uint16_t port,
+        const char* app_name_string,
         bmx::BMX_SUBPORT_TYPE subport,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
@@ -431,17 +450,16 @@ public:
     uint32_t RegisterUriHandler(
         GatewayWorker *gw,
         uint16_t port,
+        const char* app_name_string,
         const char* original_uri_string,
-        uint32_t original_uri_str_len,
         const char* processed_uri_string,
-        uint32_t processed_uri_str_len,
         uint8_t* param_types,
         int32_t num_params,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
         db_index_type db_index,
         BMX_HANDLER_INDEX_TYPE& out_handler_index,
-         ReverseProxyInfo* reverse_proxy_info);
+        ReverseProxyInfo* reverse_proxy_info);
 
     // Constructor.
     HandlersTable()

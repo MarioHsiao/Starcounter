@@ -450,7 +450,7 @@ internal class ExtentNode : IOptimizationNode
         return value;
     }
 
-    public Int32 EstimateCost()
+    public Double EstimateCost()
     {
         if (hintedIndexInfo != null || sortIndexInfo != null)
         {

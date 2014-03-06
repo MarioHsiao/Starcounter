@@ -263,33 +263,26 @@ namespace NetworkIoTestApp
         static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
         {
             String db_postfix = "_db" + db_number;
-            UInt16 handler_id;
-            String handler_uri;
-            Int32 numEntriesTotal;
+            UInt64 handler_id;
 
             switch(test_type)
             {
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
-                    handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
+                    Handle.POST<Request>(port_number, "/smc-http-echo", OnHttpEcho);
                     break;
                 }
 
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
-                    handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    Handle.POST<Request>(port_number, "/smc-http-echo", OnHttpEcho);
                     
                     break;
                 }
 
                 case TestTypes.MODE_GATEWAY_SMC_RAW:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, OnRawPortEcho, out handler_id);
+                    GatewayHandlers.RegisterPortHandler(port_number, "networkiotest", OnRawPortEcho, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;
@@ -297,7 +290,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_PORT:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, OnWebSocket, out handler_id);
+                    GatewayHandlers.RegisterPortHandler(port_number, "networkiotest", OnWebSocket, 5, out handler_id);
                     Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;
@@ -332,10 +325,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_HTTP_REST_CLIENT:
                 {
                     AppsBootstrapper.Bootstrap();
-
-                    handler_uri = "/testrest";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+                    Handle.POST<Request>(port_number, "/testrest", OnTestRest);
 
                     break;
                 }
@@ -373,16 +363,29 @@ namespace NetworkIoTestApp
 
                     Handle.GET(8080, "/echotestws", (Request req) =>
                     {
-                        return new Response() { BodyBytes = req.BodyBytes };
+                        if (req.WebSocketUpgrade)
+                        {
+                            req.Upgrade("echotestws");
+
+                            return HandlerStatus.Handled;
+                        }
+
+                        return 513;
                     });
 
-                    Handle.GET(8080, "/ws2", (Request req) =>
+                    Handle.Socket(8080, "echotestws", (String s, WebSocket ws) =>
                     {
-                        return new Response()
-                        {
-                            StatusDescription = "Closing connection!",
-                            StatusCode = (UInt16)Response.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN
-                        };
+                        ws.Send(s);
+                    });
+
+                    Handle.Socket(8080, "echotestws", (Byte[] bs, WebSocket ws) =>
+                    {
+                        ws.Send(bs);
+                    });
+
+                    Handle.SocketDisconnect(8080, "echotestws", (UInt64 cargoId, IAppsSession session) =>
+                    {
+                        // Do nothing!
                     });
 
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>
@@ -515,7 +518,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_WEBSOCKETS_URIS:
                 {
                     for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
-                        WebSocketSessions[i] = new List<Session>();
+                        WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
 
                     Random rand = new Random();
                     DbSession dbSession = new DbSession();
@@ -534,22 +537,10 @@ namespace NetworkIoTestApp
                                 // NOTE: Very important to make a copy of looped variable here!
                                 Byte sched = k;
 
-                                // Going through all registered sessions for this scheduler.
-                                for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++)
+                                foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched])
                                 {
-                                    Session s = WebSocketSessions[sched][m];
-
-                                    // Checking if session is not yet dead.
-                                    if (s.IsAlive())
-                                    {
-                                        String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and session: " + s.SessionIdString + " and weight: " + new String('A', 1 + rand.Next(20000));
-                                        s.Push(Encoding.UTF8.GetBytes(pushMsg));
-                                    }
-                                    else
-                                    {
-                                        // Removing dead session from broadcast.
-                                        WebSocketSessions[sched].Remove(s);
-                                    }
+                                    String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and weight: " + new String('A', 1 + rand.Next(20000));
+                                    ws.Value.Send(pushMsg); // Log has changed
                                 }
 
                             }, i);
@@ -559,23 +550,39 @@ namespace NetworkIoTestApp
                     }, null, interval, interval);
 
                     // Registering WebSocket handler.
-                    Handle.GET("/ws", (Request req, Session session) =>
+                    Handle.GET("/ws", (Request req) =>
                     {
-                        Byte schedId = ThreadData.Current.Scheduler.Id;
-
-                        // Adding session if its not yet added.
-                        if (!WebSocketSessions[schedId].Contains(session))
+                        if (req.WebSocketUpgrade)
                         {
-                            Console.WriteLine("Add new session: " + session.SessionIdString);
+                            Byte schedId = ThreadData.Current.Scheduler.Id;
+                            UniqueWebSocketIdentifier[schedId]++;
 
-                            WebSocketSessions[schedId].Add(session);
+                            WebSocket ws = req.Upgrade("test", UniqueWebSocketIdentifier[schedId]);
+                            WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
+
+                            return HandlerStatus.Handled;
                         }
 
-                        session.Push(req.BodyBytes);
+                        return new Response()
+                        {
+                            StatusCode = 500,
+                            StatusDescription = "WebSocket upgrade on " + req.Uri + " was not approved."
+                        };
+                    });
 
-                        String body = req.Body;
-                        Console.WriteLine(body);
-                        return body;
+                    Handle.Socket("test", (String s, WebSocket ws) => {
+                        ws.Send(s);
+                    });
+
+                    Handle.Socket("test", (Byte[] s, WebSocket ws) => {
+                        ws.Send(s);
+                    });
+
+                    Handle.SocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
+                    {
+                        Byte schedId = ThreadData.Current.Scheduler.Id;
+                        if (WebSocketSessions[schedId].ContainsKey(cargoId))
+                            WebSocketSessions[schedId].Remove(cargoId);
                     });
 
                     break;
@@ -583,7 +590,9 @@ namespace NetworkIoTestApp
             }
         }
 
-        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulerCount];
+        static Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
+        static UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
+
         static volatile Int32 TimerSeconds = 0;
 
         // NOTE: Timer should be static, otherwise its garbage collected.
@@ -1043,42 +1052,20 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpEcho(Request p)
+        private static Response OnHttpEcho(Request p)
         {
-            String responseBody = p.Body;
-            Debug.Assert(responseBody.Length == 8);
-
-            //Console.WriteLine(responseBody);
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html\r\n" +
-                "Content-Length: 8\r\n" +
-                "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
+            if (p.Body.Length != 8)
+                return 513;
 
             // Counting performance.
             perf_counter++;
 
-            return true;
+            return p.Body;
         }
 
         static Node someNode = new Node("127.0.0.1");
 
-        private static Boolean OnTestRest(Request p)
+        private static Response OnTestRest(Request p)
         {
             String jsonContent = "{\"FirstName\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
 
@@ -1093,16 +1080,18 @@ namespace NetworkIoTestApp
 
             try
             {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                return new Response()
+                {
+                    BodyBytes = responseBytes
+                };
             }
             catch
             {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
+                return new Response()
+                {
+                    BodyBytes = kHttpServiceUnavailable
+                };
             }
-
-            return true;
         }
 
         private static Boolean OnHttpUsers(Request p)

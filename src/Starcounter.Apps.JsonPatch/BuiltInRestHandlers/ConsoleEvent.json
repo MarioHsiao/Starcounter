@@ -1,0 +1,6 @@
+﻿{
+	"$": { Namespace: "Starcounter.JsonPatch.BuiltInRestHandlers" },
+    "applicationName": "myApp1",
+    "databaseName": "mydatabase1",
+    "text": "some text"
+}

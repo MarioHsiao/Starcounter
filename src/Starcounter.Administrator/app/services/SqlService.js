@@ -18,14 +18,12 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
 
     /**
      * Execute query
-     * @param {query} query
-     * @param {database} database
-     * @param {successCallback} successCallback function
-     * @param {errorCallback} errorCallback function
+     * @param {string} query Query
+     * @param {string} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
      */
     this.executeQuery = function (query, databaseName, successCallback, errorCallback) {
-
-        $log.info("Executing query");
 
         var errorHeader = "Failed to execute query";
         var uri = "/__" + databaseName + "/sql";
@@ -83,44 +81,39 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
 
         }, function (response) {
             // Error
-            var messageObject;
-
-            if (response instanceof SyntaxError) {
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-            }
-            else if (response.status == 404) {
-                // 404	Not Found
-                var message = "Failed to execute the query on " + databaseName + " database, Caused by a not started database or executable.";
-                messageObject = UtilsFactory.createMessage('error', message, null);
-
-            }
-            else if (response.status == 500) {
-                // 500 Server Error
-                errorHeader = "Internal Server Error";
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-            else {
-                // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
-            }
-
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 404) {
+                    // 404	Not Found
+                    var message = "Failed to execute the query on " + databaseName + " database, Caused by a not started database or executable.";
+                    messageObject = UtilsFactory.createMessage('error', message, null);
+
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                }
+                else {
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+
                 errorCallback(messageObject);
             }
 
-
         });
-
 
     }
 
