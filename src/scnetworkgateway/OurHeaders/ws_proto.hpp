@@ -196,8 +196,7 @@ public:
     {
         bool first = true;
 
-        if (reg_ws_channels_.get_num_entries() != 0)
-            stats_stream << ",";
+        stats_stream << ",\"registeredWsChannels\":[";
 
         for (int32_t i = 0; i < reg_ws_channels_.get_num_entries(); i++)
         {
@@ -213,6 +212,8 @@ public:
 
             stats_stream << "}";
         }
+
+        stats_stream << "]";
     }
 
     // Checking if handlers list is empty.

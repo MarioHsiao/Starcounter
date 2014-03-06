@@ -302,6 +302,7 @@ public:
     void PrintRegisteredUris(std::stringstream& stats_stream)
     {
         bool first = true;
+        stats_stream << "\"registeredUris\":[";
 
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
@@ -335,6 +336,8 @@ public:
 
             stats_stream << "}";
         }
+
+        stats_stream << "]";
     }
 
     // Checking if entry already exists.
