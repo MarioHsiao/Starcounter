@@ -428,8 +428,8 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Remaining empty line.
     //resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
 
-    frame_info_.payload_len_ = resp_len_bytes;
-    frame_info_.payload_offset_ = static_cast<uint16_t> (resp_data_begin - (uint8_t*)sd);
+    sd->get_ws_proto()->get_frame_info()->payload_len_ = resp_len_bytes;
+    sd->get_ws_proto()->get_frame_info()->payload_offset_ = static_cast<uint16_t> (resp_data_begin - (uint8_t*)sd);
     sd->get_accum_buf()->AddAccumulatedBytes(resp_len_bytes);
 
     // Setting WebSocket handshake flag.
