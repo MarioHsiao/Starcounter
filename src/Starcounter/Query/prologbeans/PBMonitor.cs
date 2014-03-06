@@ -114,24 +114,19 @@ class PBMonitor: SupportClass.ThreadClass
     private void  checkQueries()
     {
         long currentTime = (System.DateTime.Now.Ticks - 621355968000000000) / 10000;
-        lock (this)
-        {
-            if (cancelList.Length < activeCount)
-            {
+        lock (this) {
+            if (cancelList.Length < activeCount) {
                 cancelList = new PrologSession[activeCount];
             }
-            for (int i = 0; i < activeCount; i++)
-            {
+            for (int i = 0; i < activeCount; i++) {
                 PrologSession sess = sessions[i];
                 int timeout = sess.Timeout;
                 long startTime = sess.QueryStartTime;
-                if (currentTime > (startTime + timeout))
-                {
+                if (currentTime > (startTime + timeout)) {
                     activeCount--;
                     sessions[i] = sessions[activeCount];
                     sessions[activeCount] = null;
-                    if (startTime > 0L && timeout > 0)
-                    {
+                    if (startTime > 0L && timeout > 0) {
                         // The query has taken too long and need to be cancelled
                         cancelList[cancelCount++] = sess;
                     }
@@ -140,19 +135,17 @@ class PBMonitor: SupportClass.ThreadClass
                     i--;
                 }
             }
-        }
-        if (cancelCount > 0)
-        {
-            // Notify all sessions that need to be cancelled. This should
-            // not be done synchronized in case the cancellation takes time
-            // and we do not want new queries to be blocked.
-            for (int i = 0; i < cancelCount; i++)
-            {
-                System.Console.Error.WriteLine("PBMonitor: need to interrupt read/write!");
-                cancelList[i].cancelQuery();
-                cancelList[i] = null;
+            if (cancelCount > 0) {
+                // Notify all sessions that need to be cancelled. This should
+                // not be done synchronized in case the cancellation takes time
+                // and we do not want new queries to be blocked.
+                for (int i = 0; i < cancelCount; i++) {
+                    Starcounter.LogSources.Sql.LogError("PBMonitor: need to interrupt read/write!");
+                    cancelList[i].cancelQuery();
+                    cancelList[i] = null;
+                }
+                cancelCount = 0;
             }
-            cancelCount = 0;
         }
     }
     static PBMonitor()

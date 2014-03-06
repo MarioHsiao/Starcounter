@@ -172,34 +172,26 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
             se.sics.prologbeans.Bindings bindings = null;
-
-            while (loopCount < QueryModule.MaxQueryRetries)
-            {
-                try
-                {
+            Exception e = null;
+            try {
+                while (loopCount < QueryModule.MaxQueryRetries) {
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("DatabaseId", databaseId);
                     answer = session.executeQuery("delete_schemainfo_prolog(DatabaseId)", bindings);
-                    CheckQueryAnswerForError(answer);
-                    loopCount = QueryModule.MaxQueryRetries;
-                }
-                catch (Exception exception)
-                {
-                    loopCount++;
-                    if (loopCount < QueryModule.MaxQueryRetries)
-                    {
-                        logSource.LogWarning("Failed once to delete schema info.", exception);
-                    }
-                    else
-                    {
-                        LeaveConnectedSession(session, scheduler);
-                        // TODO: New error code SCERRSQLDELETESCHEMAFAILED
-                        throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception);
+                    e = CheckQueryAnswerForError(answer);
+                    if (e == null)
+                        loopCount = QueryModule.MaxQueryRetries;
+                    else {
+                        logSource.LogWarning("Failed once to delete schema info.", e);
+                        loopCount++;
                     }
                 }
+            } finally {
+                LeaveConnectedSession(session, scheduler);
             }
-            LeaveConnectedSession(session, scheduler);
+            if (e!= null)
+                throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, e);
 
             schemaFilePathList.Clear();
         }
@@ -231,20 +223,21 @@ namespace Starcounter.Query.Sql
         //    }
         //}
 
-        private static void CheckQueryAnswerForError(QueryAnswer answer)
+        private static Exception CheckQueryAnswerForError(QueryAnswer answer)
         {
             if (answer == null)
             {
-                throw new SqlExecutableException("Incorrect answer.");
+                return new SqlExecutableException("Incorrect answer.");
             }
             if (answer.IsError)
             {
-                throw new SqlExecutableException("SQL process error: " + answer.Error);
+                return new SqlExecutableException("SQL process error: " + answer.Error);
             }
             if (answer.queryFailed())
             {
-                throw new SqlExecutableException("SQL process query failure.");
+                return new SqlExecutableException("SQL process query failure.");
             }
+            return null;
         }
 
         private static void EstablishSqlProcess()
@@ -351,14 +344,16 @@ namespace Starcounter.Query.Sql
         private static String GetExistingSqlProcessVersion()
         {
             PrologSession session = null;
-
+            Exception e = null;
             try
             {
                 EstablishConnectedSession(ref session, null);
                 QueryAnswer answer = session.executeQuery("process_version_prolog(Version)");
-                CheckQueryAnswerForError(answer);
-                String existingProcessVersion = answer.getValue("Version").ToString();
-                return existingProcessVersion;
+                e = CheckQueryAnswerForError(answer);
+                if (e == null) {
+                    String existingProcessVersion = answer.getValue("Version").ToString();
+                    return existingProcessVersion;
+                }
             }
             catch (SocketException)
             {
@@ -368,6 +363,8 @@ namespace Starcounter.Query.Sql
             {
                 LeaveConnectedSession(session, null);
             }
+            Debug.Assert(e != null);
+            throw e;
         }
 
         /// <summary>
@@ -389,6 +386,7 @@ namespace Starcounter.Query.Sql
             PrologSession session = null;
             se.sics.prologbeans.Bindings bindings = null;
 
+            Exception e = null;
             try
             {
                 EstablishConnectedSession(ref session, scheduler);
@@ -396,10 +394,12 @@ namespace Starcounter.Query.Sql
                 bindings.bind("DatabaseId", databaseId);
                 QueryAnswer answer = session.executeQuery("process_version_and_delete_schemainfo_prolog(DatabaseId,Version)", bindings);
 
-                CheckQueryAnswerForError(answer);
-                String existingProcessVersion = answer.getValue("Version").ToString();
-                schemaFilePathList.Clear();
-                return existingProcessVersion;
+                e = CheckQueryAnswerForError(answer);
+                if (e == null) {
+                    String existingProcessVersion = answer.getValue("Version").ToString();
+                    schemaFilePathList.Clear();
+                    return existingProcessVersion;
+                }
             }
             catch (SocketException)
             {
@@ -409,6 +409,8 @@ namespace Starcounter.Query.Sql
             {
                 LeaveConnectedSession(session, scheduler);
             }
+            Debug.Assert(e != null);
+            throw e;
         }
 
         private static void EstablishConnectedSession(ref PrologSession session, Scheduler scheduler)
@@ -674,32 +676,26 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < QueryModule.MaxQueryRetries)
-            {
-                try
-                {
+            Exception e = null;
+            try {
+                while (loopCount < QueryModule.MaxQueryRetries) {
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaInfo", schemaInfo);
                     answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
-                    CheckQueryAnswerForError(answer);
-                    loopCount = QueryModule.MaxQueryRetries;
-                }
-                catch (Exception exception)
-                {
-                    loopCount++;
-                    if (loopCount < QueryModule.MaxQueryRetries)
-                    {
-                        logSource.LogWarning("Failed once to add schema info: " + schemaInfo, exception);
-                    }
-                    else
-                    {
-                        LeaveConnectedSession(session, scheduler);
-                        throw exception;
+                    e = CheckQueryAnswerForError(answer);
+                    if (e == null)
+                        loopCount = QueryModule.MaxQueryRetries;
+                    else {
+                        logSource.LogWarning("Failed once to add schema info: " + schemaInfo, e);
+                        loopCount++;
                     }
                 }
+            } finally {
+                LeaveConnectedSession(session, scheduler);
             }
-            LeaveConnectedSession(session, scheduler);
+            if (e != null)
+                throw e;
         }
 
         private static void WriteSchemaInfoToFile(String databaseId, String schemaFilePath, TypeDef[] typeDefArray)
@@ -894,32 +890,26 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < QueryModule.MaxQueryRetries)
-            {
-                try
-                {
+            Exception e = null;
+            try {
+                while (loopCount < QueryModule.MaxQueryRetries) {
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaFile", schemaFilePath);
                     answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
-                    CheckQueryAnswerForError(answer);
-                    loopCount = QueryModule.MaxQueryRetries;
-                }
-                catch (Exception exception)
-                {
-                    loopCount++;
-                    if (loopCount < QueryModule.MaxQueryRetries)
-                    {
-                        logSource.LogWarning("Failed once to load schema file: " + schemaFilePath, exception);
-                    }
-                    else
-                    {
-                        LeaveConnectedSession(session, scheduler);
-                        throw exception;
+                    e = CheckQueryAnswerForError(answer);
+                    if (e == null)
+                        loopCount = QueryModule.MaxQueryRetries;
+                    else {
+                        logSource.LogWarning("Failed once to load schema file: " + schemaFilePath, e);
+                        loopCount++;
                     }
                 }
+            } finally {
+                LeaveConnectedSession(session, scheduler);
             }
-            LeaveConnectedSession(session, scheduler);
+            if (e != null)
+                throw e;
         }
 
         private static List<String> GetCurrentSqlSchemaFiles(Scheduler scheduler)
@@ -928,30 +918,24 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
             Int32 loopCount = 0;
 
-            while (loopCount < QueryModule.MaxQueryRetries)
-            {
-                try
-                {
+            Exception e = null;
+            try {
+                while (loopCount < QueryModule.MaxQueryRetries) {
                     EstablishConnectedSession(ref session, scheduler);
                     answer = session.executeQuery("current_schemafiles_prolog(SchemaFiles)");
-                    CheckQueryAnswerForError(answer);
-                    loopCount = QueryModule.MaxQueryRetries;
-                }
-                catch (Exception exception)
-                {
-                    loopCount++;
-                    if (loopCount < QueryModule.MaxQueryRetries)
-                    {
-                        logSource.LogWarning("Failed to get current schema files.", exception);
-                    }
-                    else
-                    {
-                        LeaveConnectedSession(session, scheduler);
-                        throw exception;
+                    e = CheckQueryAnswerForError(answer);
+                    if (e == null)
+                        loopCount = QueryModule.MaxQueryRetries;
+                    else {
+                        logSource.LogWarning("Failed to get current schema files.", e);
+                        loopCount++;
                     }
                 }
+            } finally {
+                LeaveConnectedSession(session, scheduler);
             }
-            LeaveConnectedSession(session, scheduler);
+            if (e != null)
+                throw e;
 
             List<String> schemaFileList = new List<String>();
             Term cursor = answer.getValue("SchemaFiles");
@@ -1003,38 +987,32 @@ namespace Starcounter.Query.Sql
             PrologSession session = null;
             se.sics.prologbeans.Bindings bindings = null;
 
+            Exception e = null;
             // Try maximum maxQueryRetries times to process the query.
-            while (loopCount < QueryModule.MaxQueryRetries)
-            {
-                try
-                {
+            try {
+                while (loopCount < QueryModule.MaxQueryRetries) {
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("Query", query);
                     bindings.bind("DatabaseId", databaseId);
                     answer = session.executeQuery("sql_prolog(DatabaseId,Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
-                    CheckQueryAnswerForError(answer);
-                    loopCount = QueryModule.MaxQueryRetries;
-                }
-                catch (Exception exception)
-                {
-                    loopCount++;
-                    if (loopCount < QueryModule.MaxQueryRetries)
-                    {
-                        logSource.LogWarning("Failed to process query: " + query, exception);
+                    e = CheckQueryAnswerForError(answer);
+                    if (e == null)
+                        loopCount = QueryModule.MaxQueryRetries;
+                    else {
+                        logSource.LogWarning("Failed to process query: " + query, e);
                         EstablishSqlProcess();
-                        logSource.LogWarning("Restarted process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + 
+                        logSource.LogWarning("Restarted process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " +
                             QueryModule.ProcessPort);
                         ReExportAllSchemaInfo(scheduler);
-                    }
-                    else
-                    {
-                        LeaveConnectedSession(session, scheduler);
-                        throw;
+                        loopCount++;
                     }
                 }
+            } finally {
+                LeaveConnectedSession(session, scheduler);
             }
-            LeaveConnectedSession(session, scheduler);
+            if (e!=null)
+                throw e;
 
             // Check for errors.
             Term errListTerm = answer.getValue("ErrList");

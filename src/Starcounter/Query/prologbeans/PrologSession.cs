@@ -248,7 +248,7 @@ public class PrologSession
     private const int AUTO_CONNECT = 2;
 
     private long sendTime = - 1L;
-    private int timeout = 2000; // Wait for an answer max 2000 millis
+    private int timeout = 5000; // Wait for an answer max 2000 millis
 
     private FastParser parser;
     //      private System.String query;
@@ -544,14 +544,18 @@ public class PrologSession
                 output.commit();
                 return parser.parseProlog(input);
             }
-            catch (System.IO.IOException e)
+            catch (System.IO.IOException)
             {
                 close();
-                throw e;
+                throw;
             }
-            finally
+            catch (Exception e)
             {
-                finishSend();
+                try {
+                    finishSend();
+                } finally {
+                    throw e;
+                }
             }
         }
     }
@@ -700,7 +704,7 @@ public class PrologSession
         }
         catch (System.Exception e)
         {
-            logSource.LogException(e);
+            Starcounter.LogSources.Sql.LogException(e);
         }
     }
 
