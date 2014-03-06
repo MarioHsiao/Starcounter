@@ -554,7 +554,7 @@ namespace NetworkIoTestApp
                     {
                         if (req.WebSocketUpgrade)
                         {
-                            Byte schedId = ThreadData.Current.Scheduler.Id;
+                            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                             UniqueWebSocketIdentifier[schedId]++;
 
                             WebSocket ws = req.SendUpgrade("test", UniqueWebSocketIdentifier[schedId]);
@@ -580,7 +580,7 @@ namespace NetworkIoTestApp
 
                     Handle.SocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
                     {
-                        Byte schedId = ThreadData.Current.Scheduler.Id;
+                        Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                         if (WebSocketSessions[schedId].ContainsKey(cargoId))
                             WebSocketSessions[schedId].Remove(cargoId);
                     });
