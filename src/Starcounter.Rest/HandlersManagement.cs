@@ -166,9 +166,7 @@ namespace Starcounter.Rest
                 foreach (String a in app_names_)
                     combinedAppNames += a + "-";
 
-                combinedAppNames.TrimEnd(new Char[] { '-' });
-
-                return combinedAppNames;
+                return combinedAppNames.TrimEnd(new Char[] { '-' });
             }
         }
 
