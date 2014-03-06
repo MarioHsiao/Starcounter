@@ -17,7 +17,7 @@ namespace Starcounter.Tools.Service.Task {
         /// </summary>
         /// <param name="service"></param>
         /// <param name="executables"></param>
-        public static void Execute(StarcounterWatcher service, out Executables executables) {
+        public static bool Execute(StarcounterWatcher service, out Executables executables) {
 
             string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/executables");
 
@@ -51,21 +51,14 @@ namespace Starcounter.Tools.Service.Task {
             X.GET(url, out response, null, 10000);
 
             if (response.IsSuccessStatusCode) {
-
-                try {
-                    executables = new Executables();
-                    executables.PopulateFromJson(response.Body);
-                    
-                    //executablesArgs = new ExecutablesEventArgs() { Executables = executables };
-
-                }
-                catch (Exception e) {
-                    throw new Exception(e.ToString());
-                }
+                executables = new Executables();
+                executables.PopulateFromJson(response.Body);
+                return true;
             }
-            else {
-                throw new TaskCanceledException();
-            }
+
+            executables = null;
+
+            return false;
         }
 
 
