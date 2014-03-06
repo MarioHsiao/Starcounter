@@ -766,7 +766,7 @@ uint32_t HttpProto::AppsHttpWsProcessData(
 #endif
 
             // Perform WebSockets handshake.
-            return sd->get_ws_proto()->DoHandshake(gw, sd, handler_id, is_handled);
+            return WsProto::DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
@@ -1028,7 +1028,7 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
 #endif
 
             // Perform WebSockets handshake.
-            return sd->get_ws_proto()->DoHandshake(gw, sd, handler_id, is_handled);
+            return WsProto::DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
