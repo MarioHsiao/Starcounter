@@ -30,7 +30,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     //      },
     //
     //      databaseName : "default",
-    //      key : "foo.exe-123456789",
+    //      key : "D1730AE8464E90FE192C8B22AEE3F1C1E41A61BD",
     //      console : "console output",
     //      consoleManualMode : false
     //  }
@@ -115,13 +115,14 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
     /**
      * Get Application
+     * @param {string} databaseName Database name
      * @param {string} applicationName Application name
      * @return {object} Application or null
      */
-    this.getApplication = function (applicationName) {
+    this.getApplication = function (databaseName, applicationName) {
 
         for (var i = 0 ; i < self.applications.length ; i++) {
-            if (self.applications[i].Name == applicationName) {
+            if (self.applications[i].databaseName == databaseName && self.applications[i].Name == applicationName) {
                 return self.applications[i];
             }
         }
@@ -217,10 +218,14 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         var newList = [];
         var removeList = [];
 
+
         // Check for new executabels and update current applications
         for (var i = 0; i < newApplications.length; i++) {
             var newApplication = newApplications[i];
-            var application = this.getApplication(newApplication.Name);
+
+            newApplication.databaseName = newApplication.Engine.Uri.replace(/^.*[\\\/]/, '');
+
+            var application = this.getApplication(newApplication.databaseName, newApplication.Name);
             if (application == null) {
                 newList.push(newApplication);
             } else {
@@ -228,14 +233,15 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             }
         }
 
+
         // Remove removed applications from application list
         for (var i = 0; i < self.applications.length; i++) {
 
             var application = self.applications[i];
             var bExists = false;
             // Check if it exist in newList
-            for (var i = 0; i < newApplications.length; i++) {
-                var newApplication = newApplications[i];
+            for (var x = 0; x < newApplications.length; x++) {
+                var newApplication = newApplications[x];
 
                 if (application.Name == newApplication.Name) {
                     bExists = true;
@@ -247,6 +253,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 removeList.push(application);
             }
         }
+
 
 
         // Remove application from application list
@@ -261,7 +268,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         // Add new applications
         for (var i = 0; i < newList.length; i++) {
             self.applications.push(newList[i]);
-            this._onNewApplication(newList[i]);
+            //this._onNewApplication(newList[i]);
         }
 
     }
@@ -274,7 +281,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     this._onNewApplication = function (application) {
 
         // Add additional properties
-        application.databaseName = application.Engine.Uri.replace(/^.*[\\\/]/, '')
+        // Note the 'databaseName' is aleady added 
         application.key = application.Uri.replace(/^.*[\\\/]/, '')
         application.console = "";
         application.consoleManualMode = false;

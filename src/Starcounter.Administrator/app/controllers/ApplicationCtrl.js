@@ -34,7 +34,7 @@ adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routePara
     // Refresh host model
     HostModelService.refreshHostModel(function () {
 
-        $scope.model.application = HostModelService.getApplication($routeParams.name);
+        $scope.model.application = HostModelService.getApplication($routeParams.dbName, $routeParams.name);
 
     }, function (messageObject) {
         // Error
