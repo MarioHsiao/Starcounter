@@ -80,7 +80,7 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
-    <Compile Include="Server\Handlers\ExecutableCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\ApplicationCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseCollectionHandler.POST.cs" />
