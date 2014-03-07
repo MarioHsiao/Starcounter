@@ -180,9 +180,36 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
         }
 
         void ImplementEqualityOperator(TypeDefDeclaration typeDef) {
+            var eqOperator = new MethodDefDeclaration() {
+                Name = "op_Equality",
+                Attributes = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.Static
+            };
+            typeDef.Methods.Add(eqOperator);
+            eqOperator.MethodBody.MaxStack = 8;
+            eqOperator.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.Boolean)
+            };
+            var oneParameter = new ParameterDeclaration(0, "one", typeDef.Translate(module));
+            var twoParameter = new ParameterDeclaration(1, "two", typeDef.Translate(module));
+            eqOperator.Parameters.Add(oneParameter);
+            eqOperator.Parameters.Add(twoParameter);
+
+            // Implement this (C#)
+            //if (object.ReferenceEquals(f, f2)) {
+            //    return true;
+            //}
+
+            //if (((object)f == null) || ((object)f2 == null)) {
+            //    return false;
+            //}
+
+            //return f.Equals(f2);
         }
 
         void ImplementInequalityOperator(TypeDefDeclaration typeDef) {
+            // Implement this (C#)
+            // return !(f == f2);
         }
     }
 }
