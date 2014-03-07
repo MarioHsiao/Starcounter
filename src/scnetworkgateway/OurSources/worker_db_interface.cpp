@@ -385,16 +385,7 @@ void WorkerDbInterface::PushSocketDataToDb(
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
     // Obtaining the current scheduler id.
-    scheduler_id_type sched_id = 255;
-
-    // Checking if socket has active session.
-    if (ipc_sd->HasActiveSession())
-        sched_id = ipc_sd->get_scheduler_id();
-
-    // Modifying chunk data to use correct handler.
-    shared_memory_chunk *ipc_smc = (shared_memory_chunk*)((uint8_t*)ipc_sd - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-    ipc_smc->set_bmx_handler_info(user_handler_id); // User code handler id.
-    ipc_smc->set_request_size(4);
+    scheduler_id_type sched_id = ipc_sd->get_scheduler_id();
 
     // Checking scheduler id validity.
     if (sched_id >= num_schedulers_)
@@ -402,6 +393,11 @@ void WorkerDbInterface::PushSocketDataToDb(
         sched_id = GenerateSchedulerId();
         ipc_sd->set_scheduler_id(sched_id);
     }
+
+    // Modifying chunk data to use correct handler.
+    shared_memory_chunk *ipc_smc = (shared_memory_chunk*)((uint8_t*)ipc_sd - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    ipc_smc->set_bmx_handler_info(user_handler_id); // User code handler id.
+    ipc_smc->set_request_size(4);
 
     // Checking that scheduler is correct for this database.
     GW_ASSERT(sched_id < num_schedulers_);
