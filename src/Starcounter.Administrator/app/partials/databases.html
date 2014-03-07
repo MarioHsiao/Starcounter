@@ -1,9 +1,9 @@
 ﻿<div>
 
     <div class="btn-toolbar">
-        <!--        <div class="btn-group">
+        <div class="btn-group">
             <a class="btn btn-primary btn-small" href="#/databaseCreate">Create database</a>
-        </div>-->
+        </div>
 
         <div class="btn-group pull-right" data-toggle="buttons-radio" ng-hide="databases.length == 0">
             <button type="button" class="btn btn-small" ng-model="view" btn-radio="'list'"><i class="icon-th-list"></i></button>
@@ -37,7 +37,7 @@
 
                         <td>
                             <div class="btn-group pull-right">
-                                <button ng-disabled='isBusy == true || database.running == true' class="btn btn-small btn-primary" ng-click="btnStartDatabase(database)">Start</button>
+                                <button ng-disabled='isBusy == true || database.running == true' class="btn btn-small btn-success" ng-click="btnStartDatabase(database)">Start</button>
                                 <button ng-disabled='isBusy == true || database.running == false' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)">Stop</button>
                             </div>
                         </td>
@@ -65,7 +65,7 @@
 
                     <div class="btn-toolbar">
                         <div class="btn-group">
-                            <button ng-disabled='database.running == true' class="btn btn-small btn-primary" ng-click="btnStartDatabase(database)">Start</button>
+                            <button ng-disabled='database.running == true' class="btn btn-small btn-success" ng-click="btnStartDatabase(database)">Start</button>
                             <button ng-disabled='database.running == false' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)">Stop</button>
                         </div>
 
