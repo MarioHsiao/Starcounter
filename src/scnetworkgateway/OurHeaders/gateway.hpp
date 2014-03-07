@@ -1001,6 +1001,7 @@ struct ScSessionStruct
 
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
+        scheduler_id_ = INVALID_SCHEDULER_ID;
     }
 
     // Constructing session from string.

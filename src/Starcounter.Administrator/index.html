@@ -136,7 +136,11 @@
     <div class="toplinks">
         <ul class="nav nav-pills" data-ng-controller="NavbarController">
 
-            <li data-ng-class="{active: getClass('/databases/.*/executables/.*|/executables')}" class="dropdown">
+            <li data-ng-class="{active: getClass('/databases/.*/executables/.*|/executables')}"><a href="#/executables">Applications</a></li>
+            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$')}"><a href="#/databases">Databases</a></li>
+
+
+<!--            <li data-ng-class="{active: getClass('/databases/.*/executables/.*|/executables')}" class="dropdown">
                 <a id="A1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Executables <b class="caret"></b></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
 
@@ -182,14 +186,13 @@
                     </li>
                 </ul>
             </li>
+-->
 
             <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
             <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
             <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Network</a></li>
             <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
 
-            <!--            <li data-ng-class="{active: getClass('/executables')}"><a href="#/executables">Executables</a></li>
-            <li data-ng-class="{active: getClass('/databases')}"><a href="#/databases">Databases</a></li>-->
 
 
         </ul>

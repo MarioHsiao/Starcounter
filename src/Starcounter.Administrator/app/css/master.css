@@ -57,14 +57,14 @@
 }
 
 .console {
-    background-color: #000000;
-    color: white;
     padding: 5px;
     margin-top: 10px;
-    font-size: 90%;
-    font-family: Consolas, "Courier New", Courier, monospace;
+    font-size: 100%;
+    line-height:100%;
+    font-family: monospace, Consolas, "Courier New", Courier, monospace;
 }
 
+/*white-space: nowrap*/
 
 .navbar-inner {
     -webkit-border-radius: 0px;
@@ -134,12 +134,10 @@
 
 
 #executableIconList li .console {
-    background-color: #000000;
-    color: white;
     padding: 5px;
     margin-top: 10px;
     font-size: 70%;
-    font-family: Consolas, "Courier New", Courier, monospace;
+    font-family: monospace, Consolas, "Courier New", Courier, monospace;
 }
 
 
@@ -165,18 +163,16 @@
 
 
 #databaseIconList li .console {
-    background-color: #000000;
-    color: white;
     padding: 5px;
     margin-top: 10px;
     font-size: 70%;
-    font-family: Consolas, "Courier New", Courier, monospace;
+    font-family: monospace, Consolas, "Courier New", Courier, monospace;
 }
 
 
-.workspace {
+/*.workspace {
     border: 1px solid #d4d4d4;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     border-radius: 6px;
-}
+}*/
