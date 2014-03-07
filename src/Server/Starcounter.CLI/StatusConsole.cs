@@ -24,7 +24,7 @@ namespace Starcounter.CLI {
     /// This class is not thread-safe.
     /// </para>
     /// </remarks>
-    public sealed class StatusConsole {
+    public class StatusConsole {
         readonly int cursorLeft;
         readonly int cursorTop;
         readonly int lines;
@@ -102,6 +102,9 @@ namespace Starcounter.CLI {
             set;
         }
 
+        internal StatusConsole() {
+        }
+
         private StatusConsole(int lineCount, int left, int top) {
             lines = lineCount;
             cursorLeft = left;
@@ -121,9 +124,20 @@ namespace Starcounter.CLI {
         /// <returns>A new console.</returns>
         public static StatusConsole Open(int lines = 1) {
             if (lines < 1) throw new ArgumentOutOfRangeException();
-            var console = new StatusConsole(lines, Console.CursorLeft, Console.CursorTop);
-            while (lines-- > 0) Console.WriteLine();
-            return console;
+
+            StatusConsole console;
+            console =
+                Console.IsOutputRedirected || Console.IsInputRedirected || Console.IsErrorRedirected 
+                ? new RedirectedStatusConsole()
+                : new StatusConsole(lines, Console.CursorLeft, Console.CursorTop);
+
+            return console.OpenConsole();
+        }
+
+        internal virtual StatusConsole OpenConsole() {
+            var l = lines;
+            while (l-- > 0) Console.WriteLine();
+            return this;
         }
 
         /// <summary>
@@ -131,7 +145,7 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="job">The description of the job being started.</param>
         /// <returns>Reference to self.</returns>
-        public StatusConsole StartNewJob(string job) {
+        public virtual StatusConsole StartNewJob(string job) {
             if (string.IsNullOrEmpty(job)) {
                 throw new ArgumentNullException("job");
             } else if (currentJob != null) {
@@ -150,7 +164,7 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="result">An optional result to display.</param>
         /// <returns>Reference to self.</returns>
-        public StatusConsole CompleteJob(string result = null) {
+        public virtual StatusConsole CompleteJob(string result = null) {
             result = result ?? string.Empty;
             Write(currentJob, result, CompletionColor);
             timer.Dispose();
@@ -166,7 +180,7 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="task">The task that is starting.</param>
         /// <returns>Reference to self.</returns>
-        public StatusConsole WriteTask(string task) {
+        public virtual StatusConsole WriteTask(string task) {
             currentTask = task;
             return Write(currentJob, task, ProgressColor);
         }
