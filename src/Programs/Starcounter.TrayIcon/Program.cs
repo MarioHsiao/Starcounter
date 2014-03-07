@@ -69,7 +69,7 @@ namespace Starcounter.Tools {
             else {
                 // An instance of scTrayIcon is already running.
             }
-           
+
 
         }
 
@@ -104,7 +104,7 @@ namespace Starcounter.Tools {
             // Setup and start polling service
             this.service = new StarcounterWatcher();
             this.service.StatusChanged += OnServiceStatusChanged;
-            this.service.ExecutablesStarted += OnExecutablesStarted;
+            this.service.ApplicationsStarted += OnApplicationsStarted;
 
             this.service.Error += OnServiceError;
             this.service.Start(this.IPAddress, this.Port);
@@ -209,18 +209,18 @@ namespace Starcounter.Tools {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnExecutablesStarted(object sender, ExecutablesEventArgs e) {
+        private void OnApplicationsStarted(object sender, ScApplicationsEventArgs e) {
 
             if (this.mShowNotifications != null && this.mShowNotifications.Checked) {
 
                 string contentText = string.Empty;
 
-                foreach (Executable executable in e.Items) {
+                foreach (ScApplication application in e.Items) {
 
                     if (!string.IsNullOrEmpty(contentText)) {
                         contentText += Environment.NewLine;
                     }
-                    contentText += this.CreateMessage(executable);
+                    contentText += this.CreateMessage(application);
 
                 }
 
@@ -231,11 +231,11 @@ namespace Starcounter.Tools {
 
 
         /// <summary>
-        /// Create an messages assosiated to one started executable
+        /// Create an messages assosiated to one started application
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        private string CreateMessage(Executable message) {
+        private string CreateMessage(ScApplication message) {
 
             string portsStr = string.Empty;
 

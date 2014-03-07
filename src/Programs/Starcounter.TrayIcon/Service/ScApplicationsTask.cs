@@ -9,17 +9,17 @@ using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 
 namespace Starcounter.Tools.Service.Task {
-    internal class ExecutablesTask {
+    internal class ScApplicationsTask {
 
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="executables"></param>
-        public static bool Execute(StarcounterWatcher service, out Executables executables) {
+        /// <param name="applications"></param>
+        public static bool Execute(StarcounterWatcher service, out Executables applications) {
 
-            string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/executables");
+            string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/applications");
 
             Response response;
             // Example JSON response
@@ -51,12 +51,12 @@ namespace Starcounter.Tools.Service.Task {
             X.GET(url, out response, null, 10000);
 
             if (response.IsSuccessStatusCode) {
-                executables = new Executables();
-                executables.PopulateFromJson(response.Body);
+                applications = new Executables();
+                applications.PopulateFromJson(response.Body);
                 return true;
             }
 
-            executables = null;
+            applications = null;
 
             return false;
         }

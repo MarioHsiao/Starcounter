@@ -9,7 +9,7 @@ namespace Starcounter.Tools.Service {
     /// <summary>
     /// 
     /// </summary>
-    public class Executable {
+    public class ScApplication {
 
         /// <summary>
         /// Application name

@@ -112,15 +112,15 @@
 }
 
 
-/* Executable box handling */
+/* Application box handling */
 
-#executableIconList {
+#applicationIconList {
     list-style-type: none;
     margin-left:0px;
 }
 
 
-#executableIconList li {
+#applicationIconList li {
     width: 300px;
     display: inline-block;
     margin-right: 20px;
@@ -133,7 +133,7 @@
 }
 
 
-#executableIconList li .console {
+#applicationIconList li .console {
     padding: 5px;
     margin-top: 10px;
     font-size: 70%;

@@ -92,7 +92,7 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
                 }
                 else if (response.status == 404) {
                     // 404	Not Found
-                    var message = "Failed to execute the query on " + databaseName + " database, Caused by a not started database or executable.";
+                    var message = "Failed to execute the query on " + databaseName + " database, Caused by a not started database or application.";
                     messageObject = UtilsFactory.createMessage('error', message, null);
 
                 }
