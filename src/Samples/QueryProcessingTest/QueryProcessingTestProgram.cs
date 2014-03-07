@@ -12,6 +12,7 @@ namespace QueryProcessingTest {
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
                 TestErrorMessages.RunTestErrorMessages();
+                NamespacesTest.TestClassesNamespaces();
                 WebVisitTests.TestVisits();
                 PopulateData();
                 SqlBugsTest.QueryTests();
