@@ -19,7 +19,7 @@ namespace Starcounter.Tools.Service {
     /// <summary>
     /// Starcounter Service Watcher
     /// 
-    /// Checks Starcounter running mode and executables changes
+    /// Checks Starcounter running mode and applications changes
     /// </summary>
     public class StarcounterWatcher {
 
@@ -69,7 +69,7 @@ namespace Starcounter.Tools.Service {
 
 
         /// <summary>
-        /// Last Started Executable
+        /// Last Started Application
         /// </summary>
         private DateTime LatestExectuableStarted = DateTime.Now;
 
@@ -94,17 +94,17 @@ namespace Starcounter.Tools.Service {
 
 
         /// <summary>
-        /// Executable started event
+        /// applications started event
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public delegate void ExecutablesStartedEventHandler(object sender, ExecutablesEventArgs e);
+        public delegate void ApplicationsStartedEventHandler(object sender, ScApplicationsEventArgs e);
 
 
         /// <summary>
-        /// Executable started event
+        /// Applications started event
         /// </summary>
-        public event ExecutablesStartedEventHandler ExecutablesStarted;
+        public event ApplicationsStartedEventHandler ApplicationsStarted;
 
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Starcounter.Tools.Service {
 
 
         /// <summary>
-        /// Start worker thread that polls the status and the executable list
+        /// Start worker thread that polls the status and the application list
         /// </summary>
         public void Start(string ipAddress, ushort port) {
 
@@ -186,8 +186,8 @@ namespace Starcounter.Tools.Service {
             BackgroundWorker worker = sender as BackgroundWorker;
 
             // First we poll the onlone status, when status is online we poll
-            // for Executables.
-            bool modeFlag = true; // True = Polling status, False = Polling executables
+            // for applications.
+            bool modeFlag = true; // True = Polling status, False = Polling applications
 
             while (true) {
 
@@ -206,7 +206,7 @@ namespace Starcounter.Tools.Service {
                     worker.ReportProgress(0, statusEventArgs);
 
                     if (statusEventArgs.Running) {
-                        // Switch to polling Executables
+                        // Switch to polling applications
                         modeFlag = false;
                         continue;
                     }
@@ -214,11 +214,11 @@ namespace Starcounter.Tools.Service {
                 else {
 
                     // Starcounter server is running
-                    // Get Executables
-                    Executables executables;
-                    bool result = ExecutablesTask.Execute(this, out executables);
+                    // Get applications
+                    Executables applications;
+                    bool result = ScApplicationsTask.Execute(this, out applications);
                     if (result) {
-                        worker.ReportProgress(0, executables);
+                        worker.ReportProgress(0, applications);
                     }
                     else {
                         // Switch to polling the service status
@@ -244,8 +244,8 @@ namespace Starcounter.Tools.Service {
                 OnStatusChanged(e.UserState as StatusEventArgs);
             }
             else if (e.UserState is Executables) {
-                // Got Executable list
-                OnExecutablesList(e.UserState as Executables);
+                // Got Application list
+                OnApplicationsList(e.UserState as Executables);
             }
         }
 
@@ -270,7 +270,7 @@ namespace Starcounter.Tools.Service {
                     OnStatusChanged(e.Result as StatusEventArgs);
                 }
                 else if (e.Result is Executables) {
-                    OnExecutablesList(e.Result as Executables);
+                    OnApplicationsList(e.Result as Executables);
                 }
             }
         }
@@ -278,42 +278,42 @@ namespace Starcounter.Tools.Service {
 
 
         /// <summary>
-        /// Got a list of running Executables
+        /// Got a list of running applications
         /// </summary>
-        /// <param name="executables"></param>
-        protected virtual void OnExecutablesList(Executables executables) {
+        /// <param name="applications"></param>
+        protected virtual void OnApplicationsList(Executables applications) {
 
-            // Got a list of running executables
-            ExecutablesEventArgs startedExecutablesArgs;
+            // Got a list of running applications
+            ScApplicationsEventArgs startedApplicationsArgs;
 
-            this.GetStartedExecutables(executables.Items, out startedExecutablesArgs);
+            this.GetStartedApplications(applications.Items, out startedApplicationsArgs);
 
-            if (startedExecutablesArgs.Items.Count > 0) {
-                this.ProcessExecutableStats(startedExecutablesArgs);
+            if (startedApplicationsArgs.Items.Count > 0) {
+                this.ProcessApplicationStats(startedApplicationsArgs);
             }
 
         }
 
 
         /// <summary>
-        /// Get started executables
-        /// Filter out the started executables
+        /// Get started applications
+        /// Filter out the started applications
         /// </summary>
-        /// <param name="executables"></param>
-        /// <param name="startedExecutablesArgs"></param>
-        private void GetStartedExecutables(Arr<Executables.ItemsElementJson> executables, out ExecutablesEventArgs startedExecutablesArgs) {
+        /// <param name="applications"></param>
+        /// <param name="startedApplicationsArgs"></param>
+        private void GetStartedApplications(Arr<Executables.ItemsElementJson> applications, out ScApplicationsEventArgs startedApplicationsArgs) {
 
             DateTime lastCheck = DateTime.MinValue;
-            startedExecutablesArgs = new ExecutablesEventArgs();
+            startedApplicationsArgs = new ScApplicationsEventArgs();
 
 
-            foreach (Executables.ItemsElementJson executable in executables) {
+            foreach (Executables.ItemsElementJson application in applications) {
 
-                if (!string.IsNullOrEmpty(executable.RuntimeInfo.LastRestart) || string.IsNullOrEmpty(executable.RuntimeInfo.Started)) {
+                if (!string.IsNullOrEmpty(application.RuntimeInfo.LastRestart) || string.IsNullOrEmpty(application.RuntimeInfo.Started)) {
                     continue;
                 }
 
-                DateTime started = DateTime.Parse(executable.RuntimeInfo.Started);
+                DateTime started = DateTime.Parse(application.RuntimeInfo.Started);
 
                 if (started > this.LatestExectuableStarted) {
 
@@ -321,11 +321,11 @@ namespace Starcounter.Tools.Service {
                         lastCheck = started;
                     }
 
-                    if (ExecutablesStarted != null) {
+                    if (ApplicationsStarted != null) {
 
-                        Executable startedExecutable = new Executable();
-                        startedExecutable.Name = executable.Name;
-                        startedExecutablesArgs.Items.Add(startedExecutable);
+                        ScApplication startedApplication = new ScApplication();
+                        startedApplication.Name = application.Name;
+                        startedApplicationsArgs.Items.Add(startedApplication);
                     }
                 }
 
@@ -344,16 +344,16 @@ namespace Starcounter.Tools.Service {
 
 
         /// <summary>
-        /// Proccess Executables
+        /// Proccess Applications
         /// Add port(s) information to each started started executable
         /// </summary>
-        /// <param name="executablesArgs">Started Executables</param>
-        private void ProcessExecutableStats(ExecutablesEventArgs executablesArgs) {
+        /// <param name="applicationsArgs">Started Executables</param>
+        private void ProcessApplicationStats(ScApplicationsEventArgs applicationsArgs) {
 
             BackgroundWorker bgWorker = new BackgroundWorker();
             bgWorker.DoWork += new DoWorkEventHandler(GatewayBackgroundWorker);
             bgWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(OnGatewayBackgroundWorkerCompleted);
-            bgWorker.RunWorkerAsync(executablesArgs);
+            bgWorker.RunWorkerAsync(applicationsArgs);
         }
 
 
@@ -366,13 +366,13 @@ namespace Starcounter.Tools.Service {
         private void GatewayBackgroundWorker(object sender, DoWorkEventArgs e) {
 
             Dictionary<string, IList<int>> executablesStats;
-            ExecutablesEventArgs executablesArgs = e.Argument as ExecutablesEventArgs;
+            ScApplicationsEventArgs executablesArgs = e.Argument as ScApplicationsEventArgs;
 
             // Get Gateway stats for all running executables
-            GatewayTask.Execute(this, out executablesStats);
+            NetworkTask.Execute(this, out executablesStats);
 
             // Create a list with application name and it's listening ports
-            foreach (Executable item in executablesArgs.Items) {
+            foreach (ScApplication item in executablesArgs.Items) {
 
                 if (executablesStats.ContainsKey(item.Name)) {
                     // Add this to our result list
@@ -404,9 +404,9 @@ namespace Starcounter.Tools.Service {
             }
             else {
                 // Done
-                if (ExecutablesStarted != null) {
+                if (ApplicationsStarted != null) {
                     // Invoke listeners with the list
-                    ExecutablesStarted(this, e.Result as ExecutablesEventArgs);
+                    ApplicationsStarted(this, e.Result as ScApplicationsEventArgs);
                 }
             }
 

@@ -1,10 +1,10 @@
 ﻿/**
  * ----------------------------------------------------------------------------
  * Host model Service
- * Refreshes the databases model and executables model
+ * Refreshes the databases model and the applications model
  * ----------------------------------------------------------------------------
  */
-adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'DatabaseService', 'ExecutableService', function ($http, $log, UtilsFactory, DatabaseService, ExecutableService) {
+adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'DatabaseService', 'ApplicationService', function ($http, $log, UtilsFactory, DatabaseService, ApplicationService) {
 
     // List of databases
     // {
@@ -18,7 +18,7 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
     this.databases = DatabaseService.databases;
 
 
-    // List of executables
+    // List of applications
     //  {
     //      "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
     //      "Path": "C:\\path\to\\the\\exe\\foo.exe",
@@ -44,16 +44,17 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
     //      console : "console output",
     //      consoleManualMode : false
     //  }
-    this.executables = ExecutableService.executables;
+    this.applications = ApplicationService.applications;
 
 
     /**
-     * Get executable
-     * @param {string} executableName Executable name
-     * @return {object} Executable or null
+     * Get Application
+     * @param {string} databaseName Database name
+     * @param {string} applicationName Application name
+     * @return {object} Application or null
      */
-    this.getExecutable = function (executableName) {
-        return ExecutableService.getExecutable(executableName);
+    this.getApplication = function (databaseName, applicationName) {
+        return ApplicationService.getApplication(databaseName, applicationName);
     }
 
 
@@ -68,16 +69,20 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
 
 
     /**
-     * Refresh host model (Databases and Executables)
+     * Refresh host model (Databases and Applications)
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
     this.refreshHostModel = function (successCallback, errorCallback) {
 
+
+
         DatabaseService.refreshDatabases(function () {
             // Success
 
-            ExecutableService.refreshExecutables(function () {
+
+
+            ApplicationService.refreshApplications(function () {
 
                 // Success
                 if (typeof (successCallback) == "function") {

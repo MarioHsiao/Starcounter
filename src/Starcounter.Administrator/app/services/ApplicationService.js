@@ -1,13 +1,13 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Executables Service
+ * Applications Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleService', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, ConsoleService, UtilsFactory, JobFactory) {
+adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleService', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, ConsoleService, UtilsFactory, JobFactory) {
 
     var self = this;
 
-    // List of executables
+    // List of applications
     //  {
     //      "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
     //      "Path": "C:\\path\to\\the\\exe\\foo.exe",
@@ -30,22 +30,23 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
     //      },
     //
     //      databaseName : "default",
-    //      key : "foo.exe-123456789",
+    //      key : "D1730AE8464E90FE192C8B22AEE3F1C1E41A61BD",
     //      console : "console output",
-    //      consoleManualMode : false
+    //      consoleManualMode : false,
+    //      Running : true
     //  }
-    this.executables = [];
+    this.applications = [];
 
 
     /**
-     * Get all running executables
+     * Get all running applications
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.getExecutables = function (successCallback, errorCallback) {
+    this.getApplications = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive a list of executables";
-        var uri = "/api/admin/executables";
+        var errorHeader = "Failed to retrive a list of applications";
+        var uri = "/api/admin/applications";
 
         // Example JSON response 
         //-----------------------
@@ -75,7 +76,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
         $http.get(uri).then(function (response) {
             // Success
 
-            $log.info("Executables (" + response.data.Items.length + ") successfully retrived");
+            $log.info("Applications (" + response.data.Items.length + ") successfully retrived");
             if (typeof (successCallback) == "function") {
                 successCallback(response.data.Items);
             }
@@ -114,15 +115,16 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
 
     /**
-     * Get executable
-     * @param {string} executableName Executable name
-     * @return {object} Executable or null
+     * Get Application
+     * @param {string} databaseName Database name
+     * @param {string} applicationName Application name
+     * @return {object} Application or null
      */
-    this.getExecutable = function (executableName) {
+    this.getApplication = function (databaseName, applicationName) {
 
-        for (var i = 0 ; i < self.executables.length ; i++) {
-            if (self.executables[i].Name == executableName) {
-                return self.executables[i];
+        for (var i = 0 ; i < self.applications.length ; i++) {
+            if (self.applications[i].databaseName == databaseName && self.applications[i].Name == applicationName) {
+                return self.applications[i];
             }
         }
         return null;
@@ -130,16 +132,16 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
 
     /**
-     * Refresh executables
+     * Refresh applications
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.refreshExecutables = function (successCallback, errorCallback) {
+    this.refreshApplications = function (successCallback, errorCallback) {
 
-        this.getExecutables(function (executables) {
+        this.getApplications(function (applications) {
             // Success
 
-            self._updateExecutableList(executables);
+            self._updateApplicationsList(applications);
 
             if (typeof (successCallback) == "function") {
                 successCallback();
@@ -158,21 +160,21 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
 
     /**
-     * Refresh executable console output
-     * @param {object} executable Executable
+     * Refresh application console output
+     * @param {object} application Application
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.refreshConsoleOuput = function (executable, successCallback, errorCallback) {
+    this.refreshConsoleOuput = function (application, successCallback, errorCallback) {
 
-        ConsoleService.getConsoleOuput(executable.databaseName, { databaseName: executable.databaseName, applicationName: executable.Name }, function (consoleEvents) {
+        ConsoleService.getConsoleOuput(application.databaseName, { databaseName: application.databaseName, applicationName: application.Name }, function (consoleEvents) {
             // Success
 
             var consoleText = "";
             for (var i = 0; i < consoleEvents.length; i++) {
                 consoleText = consoleText + consoleEvents[i].text;
             }
-            self._onConsoleOutputEvent(executable, consoleText, false);
+            self._onConsoleOutputEvent(application, consoleText, false);
 
             if (typeof (successCallback) == "function") {
                 successCallback();
@@ -185,143 +187,183 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
     /**
      * Callback when there is an incoming console message
-     * @param {object} executable Executable
+     * @param {object} application Application
      * @param {text} text Text to console
      * @param {boolean} bAppend True is Text will be appended to current console text
      */
-    this._onConsoleOutputEvent = function (executable, text, bAppend) {
+    this._onConsoleOutputEvent = function (application, text, bAppend) {
 
         var htmlText = text.replace(/\r\n/g, "<br>");
 
         if (bAppend) {
-            executable.console = $sce.trustAsHtml(executable.console + htmlText);
+            application.console = $sce.trustAsHtml(application.console + htmlText);
         }
         else {
-            executable.console = $sce.trustAsHtml(htmlText);
+            application.console = $sce.trustAsHtml(htmlText);
         }
 
         // Limit the buffer
-        if (executable.console.length > self.bufferSize) {
-            executable.console = $sce.trustAsHtml(executable.console.substr(executable.console.length - self.bufferSize));
+        if (application.console.length > self.bufferSize) {
+            application.console = $sce.trustAsHtml(application.console.substr(application.console.length - self.bufferSize));
         }
 
     }
 
 
     /**
-     * Update current executable list with new list
-     * @param {array} newDatabases New executable list
+     * Update current application list with new list
+     * @param {array} newDatabases New application list
      */
-    this._updateExecutableList = function (newExecutables) {
+    this._updateApplicationsList = function (newApplications) {
 
         var newList = [];
         var removeList = [];
 
-        // Check for new executabels and update current executables
-        for (var i = 0; i < newExecutables.length; i++) {
-            var newExecutable = newExecutables[i];
-            var executable = this.getExecutable(newExecutable.Name);
-            if (executable == null) {
-                newList.push(newExecutable);
+
+        // Check for new executabels and update current applications
+        for (var i = 0; i < newApplications.length; i++) {
+            var newApplication = newApplications[i];
+
+            // Add extra needed property
+            newApplication.databaseName = newApplication.Engine.Uri.replace(/^.*[\\\/]/, '');
+
+            var application = this.getApplication(newApplication.databaseName, newApplication.Name);
+            if (application == null) {
+                newList.push(newApplication);
             } else {
-                UtilsFactory.updateObject(newExecutable, executable);
+                UtilsFactory.updateObject(newApplication, application);
             }
         }
 
-        // Remove removed executables from executable list
-        for (var i = 0; i < self.executables.length; i++) {
 
-            var executable = self.executables[i];
+        // Remove removed applications from application list
+        for (var i = 0; i < self.applications.length; i++) {
+
+            var application = self.applications[i];
             var bExists = false;
             // Check if it exist in newList
-            for (var i = 0; i < newExecutables.length; i++) {
-                var newExecutable = newExecutables[i];
+            for (var x = 0; x < newApplications.length; x++) {
+                var newApplication = newApplications[x];
 
-                if (executable.Name == newExecutable.Name) {
+                if (application.Name == newApplication.Name) {
                     bExists = true;
                     break;
                 }
             }
 
             if (bExists == false) {
-                removeList.push(executable);
+                removeList.push(application);
             }
         }
 
 
-        // Remove executable from executable list
+
+        // Remove application from application list
         for (var i = 0; i < removeList.length; i++) {
-            var index = self.executables.indexOf(removeList[i]);
+            var index = self.applications.indexOf(removeList[i]);
             if (index > -1) {
-                self.executables.splice(index, 1);
+                self.applications.splice(index, 1);
             }
-            this._onRemovedExecutable(executable);
+            this._onRemovedApplication(application);
         }
 
-        // Add new executables
+        // Add new applications
         for (var i = 0; i < newList.length; i++) {
-            self.executables.push(newList[i]);
-            this._onNewExecutable(newList[i]);
+            self.applications.push(newList[i]);
+            this._onNewApplication(newList[i]);
         }
 
     }
 
 
     /**
-     * On New Executable Event
-     * @param {object} executable Executable
+     * On New Application Event
+     * @param {object} application Application
      */
-    this._onNewExecutable = function (executable) {
+    this._onNewApplication = function (application) {
 
         // Add additional properties
-        executable.databaseName = executable.Engine.Uri.replace(/^.*[\\\/]/, '')
-        executable.key = executable.Uri.replace(/^.*[\\\/]/, '')
-        executable.console = "";
-        executable.consoleManualMode = false;
+        // Note the 'databaseName' is aleady added 
+        application.key = application.Uri.replace(/^.*[\\\/]/, '')
+        application.console = "";
+        application.consoleManualMode = false;
+        application.Running = true;
 
         // Socket event listener
-        executable.consoleListener = {
-            databaseName: executable.databaseName,
+        application.consoleListener = {
+            databaseName: application.databaseName,
             onEvent: function (consoleEvents) {
 
                 for (var i = 0; i < consoleEvents.length; i++) {
-                    self._onConsoleOutputEvent(executable, consoleEvents[i].text, true);
+                    self._onConsoleOutputEvent(application, consoleEvents[i].text, true);
                 }
 
             },
             onError: function (messageObject) {
 
                 // Sliently fallback to manual mode
-                executable.consoleManualMode = true;
+                application.consoleManualMode = true;
 
             },
-            filter: { databaseName: executable.databaseName, applicationName: executable.Name }
+            filter: { databaseName: application.databaseName, applicationName: application.Name }
         }
 
-        ConsoleService.registerEventListener(executable.consoleListener);
+        ConsoleService.registerEventListener(application.consoleListener);
     }
 
 
     /**
-     * On Executable Removed event
-     * @param {object} executable Executable
+     * On Application Removed event
+     * @param {object} application Application
      */
-    this._onRemovedExecutable = function (executable) {
-        ConsoleService.unregisterEventListener(executable.consoleListener);
+    this._onRemovedApplication = function (application) {
+        ConsoleService.unregisterEventListener(application.consoleListener);
     }
 
 
     /**
-     * Restart Executable
-     * @param {object} executable Executable
+     * Get cached applications
+     * Previous running applications will be cached
+     * @return {array} Applications
+     */
+    this._getCachedApplications = function () {
+
+        // Check for  web storage support..
+        if (typeof (Storage) !== "undefined") {
+            if (localStorage.cachedApplications !== "undefined") {
+                return JSON.parse(localStorage.cachedApplications);
+            }
+        }
+
+        return [];
+    }
+
+
+    /**
+     * Cached applications
+     * @return {array} Applications to be cached (this will replace current cache)
+     */
+    this._cacheApplications = function (applications) {
+
+        // Check for  web storage support..
+        if (typeof (Storage) !== "undefined") {
+            localStorage.cachedApplications = JSON.stringify(applications);
+        }
+    }
+
+
+
+    /**
+     * Restart Application
+     * @param {object} application Application
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.restartExecutable = function (executable, successCallback, errorCallback) {
+    this.restartApplication = function (application, successCallback, errorCallback) {
 
-        this.stopExecutable(executable, function () {
+        this.stopApplication(application, function () {
             // Success
-            self.startExecutable(executable.Path, executable.databaseName, successCallback, errorCallback)
+            self.startApplication(application.Path, application.databaseName, successCallback, errorCallback)
 
         }, function (messageObject) {
             // Error
@@ -333,12 +375,12 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
 
     /**
-     * Start Executable
-     * @param {object} executable Executable
+     * Start Application
+     * @param {object} application Application
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.startExecutable = function (file, databaseName, successCallback, errorCallback) {
+    this.startApplication = function (file, databaseName, successCallback, errorCallback) {
 
         this.startEngine(databaseName, function () {
             // Success
@@ -366,7 +408,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
             };
 
             // Add job
-            var job = { message: "Starting executable " + file + " in " + databaseName };
+            var job = { message: "Starting application " + file + " in " + databaseName };
             JobFactory.AddJob(job);
 
             // Example JSON response 
@@ -396,18 +438,18 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
                 // Success
                 JobFactory.RemoveJob(job);
 
-                $log.info("Executable " + response.data.Path + " was successfully started");
+                $log.info("Application " + response.data.Path + " was successfully started");
 
-                // Refresh executables
-                self.refreshExecutables(successCallback, errorCallback);
+                // Refresh applications
+                self.refreshApplications(successCallback, errorCallback);
 
-                // TODO: Return the started executable
+                // TODO: Return the started application
 
             }, function (response) {
                 // Error
                 JobFactory.RemoveJob(job);
 
-                var errorHeader = "Failed to start executable";
+                var errorHeader = "Failed to start application";
                 $log.error(errorHeader, response);
 
                 if (typeof (errorCallback) == "function") {
@@ -421,11 +463,11 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
                         messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                     }
                     else if (response.status == 409) {
-                        // 409 The executable is already running or the Engine is not started.
+                        // 409 The application is already running or the Engine is not started.
                         messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                     }
                     else if (response.status == 422) {
-                        // 422 The executable can not be found or The weaver failed to load a binary user code file.
+                        // 422 The application can not be found or The weaver failed to load a binary user code file.
                         messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                     }
                     else if (response.status == 500) {
@@ -463,32 +505,32 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
 
 
     /**
-     * Stop Executable
-     * @param {object} executable Executable
+     * Stop Application
+     * @param {object} application Application
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.stopExecutable = function (executable, successCallback, errorCallback) {
+    this.stopApplication = function (application, successCallback, errorCallback) {
 
-        var job = { message: "Stopping executable " + executable.Name };
+        var job = { message: "Stopping application " + application.Name };
         JobFactory.AddJob(job);
 
-        var uri = UtilsFactory.toRelativePath(executable.Uri);
+        var uri = UtilsFactory.toRelativePath(application.Uri);
 
         $http.delete(uri).then(function (response) {
             // Success, 204 No Content 
             JobFactory.RemoveJob(job);
 
-            $log.info("Executable " + executable.Name + " was successfully stopped");
+            $log.info("Application " + application.Name + " was successfully stopped");
 
             // Refresh databases
-            self.refreshExecutables(successCallback, errorCallback);
+            self.refreshApplications(successCallback, errorCallback);
 
         }, function (response) {
             JobFactory.RemoveJob(job);
 
             // Error
-            var errorHeader = "Failed to stop executable";
+            var errorHeader = "Failed to stop application";
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
@@ -503,7 +545,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 409) {
-                    // 409 The executable is already running or the Engine is not started.
+                    // 409 The application is already running or the Engine is not started.
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 500) {
@@ -600,7 +642,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
             // Error
             JobFactory.RemoveJob(job);
 
-            var errorHeader = "Failed to start executable";
+            var errorHeader = "Failed to start application";
             $log.error(errorHeader, response);
 
             if (typeof (errorCallback) == "function") {
@@ -614,7 +656,7 @@ adminModule.service('ExecutableService', ['$http', '$log', '$sce', 'ConsoleServi
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 422) {
-                    // 422 The executable can not be found or The weaver failed to load a binary user code file.
+                    // 422 The application can not be found or The weaver failed to load a binary user code file.
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 500) {

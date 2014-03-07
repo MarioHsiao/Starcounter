@@ -9,7 +9,7 @@ using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 
 namespace Starcounter.Tools.Service.Task {
-    internal class GatewayTask {
+    internal class NetworkTask {
 
 
         /// <summary>
