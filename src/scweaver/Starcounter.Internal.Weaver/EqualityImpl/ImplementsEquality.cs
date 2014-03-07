@@ -59,6 +59,8 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             
             ImplementEquals(typeDef, identityField);
             ImplementGetHashCode(typeDef, identityField);
+            ImplementEqualityOperator(typeDef);
+            ImplementInequalityOperator(typeDef);
         }
 
         void ImplementEquals(TypeDefDeclaration typeDef, FieldDefDeclaration identityField) {
@@ -175,6 +177,12 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
                 w.EmitInstructionMethod(OpCodeNumber.Call, ulongGetHashCode);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
+        }
+
+        void ImplementEqualityOperator(TypeDefDeclaration typeDef) {
+        }
+
+        void ImplementInequalityOperator(TypeDefDeclaration typeDef) {
         }
     }
 }
