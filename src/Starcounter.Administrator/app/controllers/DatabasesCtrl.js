@@ -95,15 +95,16 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     });
 
 
-    // Save user state
+    // Get user state
     if (localStorage.getItem('databaseViewMode') != null) {
         $scope.view = localStorage.getItem('databaseViewMode');
     }
     else {
-        $scope.view = "list";
+        $scope.view = "icon";
     }
 
     $scope.$watch('view', function (newValue, oldValue) {
+        // Save user state
         localStorage.setItem('databaseViewMode', newValue);
     });
 

@@ -111,15 +111,16 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
     });
 
 
-    // Save user state
+    // Get user state
     if (localStorage.getItem('executablesViewMode') != null) {
         $scope.view = localStorage.getItem('executablesViewMode');
     }
     else {
-        $scope.view = "list";
+        $scope.view = "icon";
     }
 
     $scope.$watch('view', function (newValue, oldValue) {
+        // Save user state
         localStorage.setItem('executablesViewMode', newValue);
     });
 
