@@ -32,7 +32,8 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     //      databaseName : "default",
     //      key : "D1730AE8464E90FE192C8B22AEE3F1C1E41A61BD",
     //      console : "console output",
-    //      consoleManualMode : false
+    //      consoleManualMode : false,
+    //      Running : true
     //  }
     this.applications = [];
 
@@ -223,6 +224,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         for (var i = 0; i < newApplications.length; i++) {
             var newApplication = newApplications[i];
 
+            // Add extra needed property
             newApplication.databaseName = newApplication.Engine.Uri.replace(/^.*[\\\/]/, '');
 
             var application = this.getApplication(newApplication.databaseName, newApplication.Name);
@@ -268,7 +270,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         // Add new applications
         for (var i = 0; i < newList.length; i++) {
             self.applications.push(newList[i]);
-            //this._onNewApplication(newList[i]);
+            this._onNewApplication(newList[i]);
         }
 
     }
@@ -285,6 +287,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         application.key = application.Uri.replace(/^.*[\\\/]/, '')
         application.console = "";
         application.consoleManualMode = false;
+        application.Running = true;
 
         // Socket event listener
         application.consoleListener = {
@@ -316,6 +319,38 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     this._onRemovedApplication = function (application) {
         ConsoleService.unregisterEventListener(application.consoleListener);
     }
+
+
+    /**
+     * Get cached applications
+     * Previous running applications will be cached
+     * @return {array} Applications
+     */
+    this._getCachedApplications = function () {
+
+        // Check for  web storage support..
+        if (typeof (Storage) !== "undefined") {
+            if (localStorage.cachedApplications !== "undefined") {
+                return JSON.parse(localStorage.cachedApplications);
+            }
+        }
+
+        return [];
+    }
+
+
+    /**
+     * Cached applications
+     * @return {array} Applications to be cached (this will replace current cache)
+     */
+    this._cacheApplications = function (applications) {
+
+        // Check for  web storage support..
+        if (typeof (Storage) !== "undefined") {
+            localStorage.cachedApplications = JSON.stringify(applications);
+        }
+    }
+
 
 
     /**
