@@ -128,7 +128,7 @@ namespace Starcounter.CLI {
             StatusConsole console;
             console =
                 Console.IsOutputRedirected || Console.IsInputRedirected || Console.IsErrorRedirected 
-                ? null
+                ? new RedirectedStatusConsole()
                 : new StatusConsole(lines, Console.CursorLeft, Console.CursorTop);
 
             return console.OpenConsole();

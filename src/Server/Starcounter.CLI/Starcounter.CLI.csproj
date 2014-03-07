@@ -55,6 +55,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConsoleUtil.cs" />
     <Compile Include="ApplicationCLICommand.cs" />
+    <Compile Include="RedirectedStatusConsole.cs" />
     <Compile Include="SharedCLI.cs" />
     <Compile Include="Shell.cs" />
     <Compile Include="StartApplicationCommand.cs" />
