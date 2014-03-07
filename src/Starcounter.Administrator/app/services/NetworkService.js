@@ -1,11 +1,11 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Gateway Service
+ * Network Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce, $log, UtilsFactory) {
+adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce, $log, UtilsFactory) {
 
-    // Gateway model
+    // Network model
     // {
     //    statistics : "<p>html text</p>";
     // }
@@ -14,18 +14,18 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
     var self = this;
 
     /**
-     * Get Gateway Statistics
+     * Get Network Statistics
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.getGatewayStatistics = function (successCallback, errorCallback) {
+    this.getNetworkStatistics = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive Gateway statistics";
+        var errorHeader = "Failed to retrive Network statistics";
         var uri = "/gwstats";
 
         $http.get(uri).then(function (response) {
             // Success
-            $log.info("Gateway statistics successfully retrived");
+            $log.info("Network statistics successfully retrived");
             if (typeof (successCallback) == "function") {
                 successCallback(response.data);
             }
@@ -71,13 +71,13 @@ adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', 
 
 
     /**
-     * Refresh Gateway Statistics
+     * Refresh Network Statistics
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.refreshGatewayStatistics = function (successCallback, errorCallback) {
+    this.refreshNetworkStatistics = function (successCallback, errorCallback) {
 
-        this.getGatewayStatistics(function (statistics) {
+        this.getNetworkStatistics(function (statistics) {
             // Success
             self.model.statistics = statistics;
             if (typeof (successCallback) == "function") {

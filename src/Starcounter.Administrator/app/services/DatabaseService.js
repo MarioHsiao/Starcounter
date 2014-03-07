@@ -118,7 +118,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
 
     /**
-     * Refresh executable console output
+     * Refresh database console output
      * @param {object} database Database
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
@@ -420,7 +420,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 409) {
-                    // 409 The executable is already running or the Engine is not started.
+                    // 409 The database is already running or the Engine is not started.
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 500) {

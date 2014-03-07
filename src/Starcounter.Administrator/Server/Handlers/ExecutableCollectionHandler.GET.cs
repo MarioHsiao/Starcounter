@@ -51,7 +51,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             //      }
             //  ]
             //}
-            Handle.GET("/api/admin/executables", (Request req) => {
+            Handle.GET("/api/admin/applications", (Request req) => {
 
                 try {
 

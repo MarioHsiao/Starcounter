@@ -1,22 +1,22 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Executable page Controller
+ * Application page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ExecutableCtrl', ['$scope', '$log', '$sce', '$routeParams', 'UserMessageFactory', 'NoticeFactory', 'HostModelService', 'ExecutableService', function ($scope, $log, $sce, $routeParams, UserMessageFactory, NoticeFactory, HostModelService, ExecutableService) {
+adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routeParams', 'UserMessageFactory', 'NoticeFactory', 'HostModelService', 'ApplicationService', function ($scope, $log, $sce, $routeParams, UserMessageFactory, NoticeFactory, HostModelService, ApplicationService) {
 
     $scope.model = {
-        executable: null
+        application: null
     }
 
 
     /**
      * Get Console output
-     * @param {object} executable Executable
+     * @param {object} application aplication
      */
-    $scope.btnGetConsoleOutput = function (executable) {
+    $scope.btnGetConsoleOutput = function (application) {
 
-        ExecutableService.refreshConsoleOuput(executable, function () {
+        ApplicationService.refreshConsoleOuput(application, function () {
 
             $("#console").scrollTop($("#console")[0].scrollHeight);
 
@@ -34,7 +34,7 @@ adminModule.controller('ExecutableCtrl', ['$scope', '$log', '$sce', '$routeParam
     // Refresh host model
     HostModelService.refreshHostModel(function () {
 
-        $scope.model.executable = HostModelService.getExecutable($routeParams.name);
+        $scope.model.application = HostModelService.getApplication($routeParams.name);
 
     }, function (messageObject) {
         // Error
