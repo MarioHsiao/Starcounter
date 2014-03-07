@@ -118,7 +118,7 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
                     $scope.myForm.$setPristine(); 
 
-                    // Navigate to Executable list if user has not navigated to another page
+                    // Navigate to database list if user has not navigated to another page
                     if ($location.path() == "/databases/" + database.name + "/settings") {
                         $location.path("/databases");
                     }

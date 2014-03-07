@@ -1,21 +1,21 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Executables page Controller
+ * Applications page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'ExecutableService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, ExecutableService, UserMessageFactory) {
+adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'ApplicationService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, ApplicationService, UserMessageFactory) {
 
-    // List of Executables
-    $scope.executables = HostModelService.executables;
+    // List of applications
+    $scope.applications = HostModelService.applications;
 
 
     /**
      * Get Console output
-     * @param {object} executable Executable
+     * @param {object} application Application
      */
-    $scope.btnGetConsoleOutput = function (executable) {
+    $scope.btnGetConsoleOutput = function (application) {
 
-        ExecutableService.refreshConsoleOuput(executable, function () {
+        ApplicationService.refreshConsoleOuput(application, function () {
 
             // TODO
             // $("#console").scrollTop($("#console")[0].scrollHeight);
@@ -32,20 +32,20 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
 
     /**
-     * Stop Executable
-     * @param {object} executable Executable
+     * Stop Application
+     * @param {object} application Application
      */
-    $scope.btnStopExecutable = function (executable) {
+    $scope.btnStop = function (application) {
 
-        var title = "Stop executable";
-        var message = "Do you want to stop the executable " + executable.Name;
+        var title = "Stop application";
+        var message = "Do you want to stop the application " + application.Name;
         var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
             if (result == 0) {
 
-                ExecutableService.stopExecutable(executable, function () { },
+                ApplicationService.stopApplication(application, function () { },
                     function (messageObject) {
                         // Error
 
@@ -64,22 +64,21 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
 
     /**
-     * Restart Executable
-     * @param {object} executable Executable
+     * Restart Application
+     * @param {object} application Application
      */
-    $scope.btnRestartExecutable = function (executable) {
+    $scope.btnRestart = function (application) {
 
-        var title = "Restart executable";
-        var message = "Do you want to restart the executable " + executable.Name;
+        var title = "Restart application";
+        var message = "Do you want to restart the application " + application.Name;
         var buttons = [{ result: 0, label: 'Restart', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
             if (result == 0) {
 
-                ExecutableService.restartExecutable(executable, function () {
+                ApplicationService.restartApplication(application, function () {
                     // Success
-                    //            NoticeFactory.ShowNotice({ type: "info", msg: "Executable " + executable.path + " successfully started" });
 
                 }, function (messageObject) {
                     // Error
@@ -112,8 +111,8 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
 
     // Get user state
-    if (localStorage.getItem('executablesViewMode') != null) {
-        $scope.view = localStorage.getItem('executablesViewMode');
+    if (localStorage.getItem('applicationsViewMode') != null) {
+        $scope.view = localStorage.getItem('applicationsViewMode');
     }
     else {
         $scope.view = "icon";
@@ -121,7 +120,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'H
 
     $scope.$watch('view', function (newValue, oldValue) {
         // Save user state
-        localStorage.setItem('executablesViewMode', newValue);
+        localStorage.setItem('applicationsViewMode', newValue);
     });
 
 }]);
