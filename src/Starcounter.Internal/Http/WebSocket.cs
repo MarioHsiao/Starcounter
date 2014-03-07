@@ -326,6 +326,10 @@ namespace Starcounter
                 // Updating last active date.
                 ws.Session.InternalSession.UpdateLastActive();
             }
+            else
+            {
+                (*(ScSessionStruct*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = new ScSessionStruct(true);
+            }
 
             (*(UInt32*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
