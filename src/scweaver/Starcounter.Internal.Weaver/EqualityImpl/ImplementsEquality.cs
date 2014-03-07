@@ -42,7 +42,8 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
                 Predicate<IMethod> dummy = (IMethod ignored) => { return true; };
                 var methods = typeDef.Methods;
                 if (methods.GetMethod("Equals", bindOps, dummy) == null &&
-                    methods.GetMethod("GetHashCode", bindOps, dummy) == null) {
+                    methods.GetMethod("GetHashCode", bindOps, dummy) == null &&
+                    methods.GetMethod("op_Equality", bindOps, dummy) == null) {
                     should = true;
                 }
             }
