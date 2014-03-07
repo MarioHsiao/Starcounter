@@ -3569,6 +3569,9 @@
 	<code hex="0023" severity="Error" name="ScErrUnexpMetadata">
 	  <message>Internal error in unmanaged runtime meta-data population.</message>
 	</code>
+	<code hex="0024" severity="Error" name="ScErrSqlInternalBufferSmall">
+	  <message>Internal error in native SQL processor that allocated buffer is too small.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
