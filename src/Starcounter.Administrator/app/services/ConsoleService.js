@@ -1,6 +1,6 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Executable Console output Service
+ * Console output Service
  * ----------------------------------------------------------------------------
  */
 adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', '$filter', 'UserMessageFactory', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, $rootScope, $filter, UserMessageFactory, UtilsFactory, JobFactory) {
@@ -57,7 +57,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', '$
 
                 else if (response.status == 404) {
                     // 404 Not found
-                    var message = "Caused by a not started database or there is no Executable running in the database";
+                    var message = "Caused by a not started database or there is no Application running in the database";
                     messageObject = UtilsFactory.createMessage(errorHeader, message, response.data.Helplink);
                 }
                 else if (response.status == 500) {

@@ -1,9 +1,9 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Executables page Controller
+ * Start Application page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'NoticeFactory', 'UserMessageFactory', 'DatabaseService', 'ExecutableService', function ($scope, $log, $location, NoticeFactory, UserMessageFactory, DatabaseService, ExecutableService) {
+adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', 'NoticeFactory', 'UserMessageFactory', 'DatabaseService', 'ApplicationService', function ($scope, $log, $location, NoticeFactory, UserMessageFactory, DatabaseService, ApplicationService) {
 
 
     // List of databases
@@ -15,25 +15,25 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'N
     // Selected databasename
     $scope.selectedDatabaseName = null;
 
-    // List of recent successfully started executables
-    $scope.recentExecutables = [];
+    // List of recent successfully started applications
+    $scope.recentApplications = [];
 
 
     /**
-     * Start Executable
+     * Start Application
      */
-    $scope.btnStartExecutable = function () {
+    $scope.btnStart = function () {
 
-        ExecutableService.startExecutable($scope.file, $scope.selectedDatabaseName,
+        ApplicationService.startApplication($scope.file, $scope.selectedDatabaseName,
             function () {
                 // Success
 
-                // Remember successfully started executables
+                // Remember successfully started applications
                 $scope.rememberRecentFile($scope.file);
 
-                // Navigate to Executable list if user has not navigated to another page
-                if ($location.path() == "/executableStart") {
-                    $location.path("/executables");
+                // Navigate to Application list if user has not navigated to another page
+                if ($location.path() == "/applicationStart") {
+                    $location.path("/applications");
                 }
 
             },
@@ -69,33 +69,33 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'N
 
         var maxItems = 5;
         // Check if file is already 'rememberd'
-        for (var i = 0; i < $scope.recentExecutables.length ; i++) {
+        for (var i = 0; i < $scope.recentApplications.length ; i++) {
 
             // File already rememberd
-            if (file == $scope.recentExecutables[i].name) {
+            if (file == $scope.recentApplications[i].name) {
                 return;
             }
 
         }
-        $scope.recentExecutables.unshift({ name: file });
+        $scope.recentApplications.unshift({ name: file });
 
-        var toMany = $scope.recentExecutables.length - maxItems;
+        var toMany = $scope.recentApplications.length - maxItems;
 
         if (toMany > 0) {
-            $scope.recentExecutables.splice(maxItems, toMany);
+            $scope.recentApplications.splice(maxItems, toMany);
         }
 
-        localStorage.recentExecutables = JSON.stringify($scope.recentExecutables);
+        localStorage.recentApplications = JSON.stringify($scope.recentApplications);
     }
 
 
     /**
-     * Refresh recent remembered executables list
+     * Refresh recent remembered applications list
      */
-    $scope.refreshRecentExecutables = function () {
+    $scope.refreshRecentApplications = function () {
         if (typeof (Storage) !== "undefined") {
-            if (localStorage.recentExecutables !== "undefined") {
-                $scope.recentExecutables = JSON.parse(localStorage.recentExecutables);
+            if (localStorage.recentApplications !== "undefined") {
+                $scope.recentApplications = JSON.parse(localStorage.recentApplications);
             }
         }
         else {
@@ -118,7 +118,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'N
         });
 
 
-    $scope.refreshRecentExecutables();
+    $scope.refreshRecentApplications();
 
 
 }]);

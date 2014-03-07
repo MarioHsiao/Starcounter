@@ -10,12 +10,12 @@ namespace Starcounter.Tools.Service {
     /// <summary>
     /// 
     /// </summary>
-    public class ExecutablesEventArgs : EventArgs {
+    public class ScApplicationsEventArgs : EventArgs {
 
         /// <summary>
-        /// List of Started executables
+        /// List of Started applications
         /// </summary>
-        public IList<Executable> Items = new List<Executable>();
+        public IList<ScApplication> Items = new List<ScApplication>();
 
     }
 

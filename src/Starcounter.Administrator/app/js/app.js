@@ -20,19 +20,19 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
         controller: 'DatabaseSettingsCtrl'
     });
 
-    $routeProvider.when('/databases/:dbName/executables/:name', {
-        templateUrl: '/app/partials/executable.html',
-        controller: 'ExecutableCtrl'
+    $routeProvider.when('/databases/:dbName/applications/:name', {
+        templateUrl: '/app/partials/application.html',
+        controller: 'ApplicationCtrl'
     });
 
-    $routeProvider.when('/executables', {
-        templateUrl: '/app/partials/executables.html',
-        controller: 'ExecutablesCtrl'
+    $routeProvider.when('/applications', {
+        templateUrl: '/app/partials/applications.html',
+        controller: 'ApplicationsCtrl'
     });
 
-    $routeProvider.when('/executableStart', {
-        templateUrl: '/app/partials/executableStart.html',
-        controller: 'ExecutableStartCtrl'
+    $routeProvider.when('/applicationStart', {
+        templateUrl: '/app/partials/applicationStart.html',
+        controller: 'ApplicationStartCtrl'
     });
 
     $routeProvider.when('/databaseCreate', {
@@ -58,9 +58,9 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
         }
     });
 
-    $routeProvider.when('/gateway', {
-        templateUrl: '/app/partials/gatewayStatistics.html',
-        controller: 'GatewayCtrl'
+    $routeProvider.when('/network', {
+        templateUrl: '/app/partials/network.html',
+        controller: 'NetworkCtrl'
     });
 
 
@@ -69,7 +69,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
         controller: 'ServerSettingsCtrl'
     });
 
-    $routeProvider.otherwise({ redirectTo: '/executables' });
+    $routeProvider.otherwise({ redirectTo: '/applications' });
 
 
 
@@ -90,10 +90,6 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
  */
 adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, HostModelService) {
 
-    $scope.model = {
-        databases: HostModelService.databases,
-        executables: HostModelService.executables
-    };
 
     $scope.newVersion = null;
 

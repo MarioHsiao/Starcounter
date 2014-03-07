@@ -1,25 +1,25 @@
 ﻿<form name="myForm" class="form-horizontal  well well-small">
 
-    <legend>Start Executable</legend>
+    <legend>Start Application</legend>
 
     <div class="control-group" ng-class="{error: myForm.file.$invalid}">
         <label class="control-label" for="file">File</label>
         <div class="controls">
 
             <div class="input-append">
-                <input name="file" id="file" class="span8" placeholder="path to the executable" id="appendedInputButton" type="text" ng-model="file" required>
-                <div class="btn-group" ng-hide="recentExecutables == 0">
+                <input name="file" id="file" class="span8" placeholder="path to the application" id="appendedInputButton" type="text" ng-model="file" required>
+                <div class="btn-group" ng-hide="recentApplications == 0">
                     <button class="btn dropdown-toggle" data-toggle="dropdown">
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu pull-right">
-                        <li ng-repeat="file in recentExecutables | orderBy:reverse">
+                        <li ng-repeat="file in recentApplications | orderBy:reverse">
                             <a ng-click="btnSetCurrent(file)">{{$index+1}}. {{file.name}}</a>
                         </li>
                     </ul>
                 </div>
             </div>
-            <span class="help-block">Full path to the executable (relative to the server).</span>
+            <span class="help-block">Full path to the application (relative to the server).</span>
         </div>
 
     </div>
@@ -38,7 +38,7 @@
     </div>
 
     <div class="form-actions">
-        <button type="submit" ng-disabled="myForm.$invalid || selectedDatabaseName == ''" class="btn btn-success" ng-click="btnStartExecutable()" type="button">Start Executable</button>
+        <button type="submit" ng-disabled="myForm.$invalid || selectedDatabaseName == ''" class="btn btn-success" ng-click="btnStart()" type="button">Start Application</button>
     </div>
 
 </form>
