@@ -74,11 +74,6 @@ namespace Starcounter.Administrator.Server {
         /// </summary>
         static void RegisterHandlers() {
 
-            // Registering default handler for ALL static resources on the server.
-            Handle.GET("/{?}", (string res) => {
-                return HandlerStatus.NotHandled;
-            });
-
             // Redirecting root to index.html.
             Handle.GET("/", () => {
                 // Returns this response to original request.
@@ -99,23 +94,6 @@ namespace Starcounter.Administrator.Server {
 
                 // Adding static files serving directory.
                 AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
-
-                try {
-                    // Registering static handler on given port.
-                    Handle.GET(port, "/{?}", (string res) => {
-                        return HandlerStatus.NotHandled;
-                    });
-                }
-                catch (Exception exc) {
-                    UInt32 errCode;
-
-                    // Checking if this handler is already registered.
-                    if (ErrorCode.TryGetCode(exc, out errCode)) {
-                        if (Starcounter.Error.SCERRHANDLERALREADYREGISTERED == errCode)
-                            return "Success!";
-                    }
-                    throw exc;
-                }
 
                 return "Success!";
             });
