@@ -1,6 +1,7 @@
 ﻿using Starcounter.Internal;
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Starcounter.Hosting {
 
@@ -77,7 +78,12 @@ namespace Starcounter.Hosting {
             }
 
             this.FilePath = applicationFile;
-            this.Name = name ?? Path.GetFileName(applicationFile);
+            this.Name = Path.GetFileNameWithoutExtension(name) ?? Path.GetFileNameWithoutExtension(applicationFile);
+
+            // Checking if application name consists only of letters, numbers and underscore.
+            if (!Regex.IsMatch(this.Name, @"^[\w]+$"))
+                throw ErrorCode.ToException(Error.SCERRBADAPPLICATIONNAME, "Application name that is not allowed: " + this.Name);
+
             this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
             this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
             this.Arguments = arguments;
