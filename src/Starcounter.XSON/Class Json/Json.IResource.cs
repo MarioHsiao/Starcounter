@@ -7,7 +7,7 @@ using System;
 using System.Text;
 
 namespace Starcounter {
-    public partial class Json : IHypermedia {
+    public partial class Json : IResource {
         
         /// <summary>
         /// Override this method to provide a custom conversion when a request
@@ -88,13 +88,13 @@ namespace Starcounter {
 
         public static implicit operator Response(Json x) {
             var response = new Response() {
-                Hypermedia = x
+                Resource = x
             };
             return response;
         }
 
         public static implicit operator Json(Response r) {            
-            return r.Hypermedia as Json;
+            return r.Resource as Json;
         }
     }
 }
