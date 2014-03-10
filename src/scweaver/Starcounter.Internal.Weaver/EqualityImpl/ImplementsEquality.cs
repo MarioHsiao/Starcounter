@@ -205,6 +205,37 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             //}
 
             //return f.Equals(f2);
+
+            using (var attached = new AttachedInstructionWriter(writer, eqOperator)) {
+                var w = attached.Writer;
+                var mainSequence = w.CurrentInstructionSequence;
+                var compareNullBranch = w.MethodBody.CreateInstructionSequence();
+                var callEqualsBranch = w.MethodBody.CreateInstructionSequence();
+
+                eqOperator.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                    compareNullBranch, NodePosition.After, mainSequence);
+                eqOperator.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                    callEqualsBranch, NodePosition.After, compareNullBranch);
+
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, oneParameter);
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, twoParameter);
+                w.EmitInstructionMethod(OpCodeNumber.Call, objectReferenceEqualsMethod);
+                w.EmitBranchingInstruction(OpCodeNumber.Brfalse_S, compareNullBranch);
+                w.EmitInstruction(OpCodeNumber.Ldc_I4_1);
+                w.EmitInstruction(OpCodeNumber.Ret);
+                w.DetachInstructionSequence();
+
+                w.AttachInstructionSequence(compareNullBranch);
+                //w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                //w.EmitInstructionParameter(OpCodeNumber.Ldarg, objParameter);
+                //w.EmitInstructionMethod(OpCodeNumber.Call, objectReferenceEqualsMethod);
+                //w.EmitBranchingInstruction(OpCodeNumber.Brfalse_S, compareIdentityBranch);
+                //w.EmitInstruction(OpCodeNumber.Ldc_I4_1);
+                //w.EmitInstruction(OpCodeNumber.Ret);
+                //w.DetachInstructionSequence();
+
+
+            }
         }
 
         void ImplementInequalityOperator(TypeDefDeclaration typeDef) {
