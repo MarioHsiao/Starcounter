@@ -30,7 +30,6 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
     }
 
-
     /**
      * Start Application
      * @param {object} application Application
