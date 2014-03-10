@@ -15,9 +15,11 @@ adminModule.service('NoticeFactory', ['$log', function ($log) {
     /**
      * Add notice
      * @param {object} notice Notice
+     * @return {object} Notice
      */
     factory.ShowNotice = function (notice) {
         factory.notises.push(notice);
+        return notice;
     }
 
 

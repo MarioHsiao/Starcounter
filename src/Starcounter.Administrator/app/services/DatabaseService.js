@@ -34,8 +34,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
         var uri = "/api/admin/databases";
 
         $http.get(uri).then(function (response) {
-            // Success
 
+            // Success
             $log.info("Databases (" + response.data.Databases.length + ") successfully retrived");
             if (typeof (successCallback) == "function") {
                 successCallback(response.data.Databases);
@@ -43,6 +43,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
 
         }, function (response) {
+
             // Error
             var messageObject;
 
@@ -55,6 +56,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
             }
             else {
+
                 // Unhandle Error
                 if (response.data.hasOwnProperty("Text") == true) {
                     messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
@@ -68,7 +70,6 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             if (typeof (errorCallback) == "function") {
                 errorCallback(messageObject);
             }
-
 
         });
 
@@ -99,6 +100,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
     this.refreshDatabases = function (successCallback, errorCallback) {
 
         this.getDatabases(function (databases) {
+
             // Success
             self._updateDatabaseList(databases);
 
@@ -107,8 +109,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             }
 
         }, function (response) {
-            // Error
 
+            // Error
             if (typeof (errorCallback) == "function") {
                 errorCallback(response);
             }
@@ -186,8 +188,6 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 newList.push(newDatabase);
             } else {
                 UtilsFactory.updateObject(newDatabase, database, function (arg) {
-
-                    $log.debug("Propertychanged", arg);
 
                     if (arg.propertyName == "running") {
 
@@ -327,6 +327,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
             $log.info("Database " + database.name + " was successfully started");
 
+            // TODO: Refresh applications (HostModelService)
+
             // Refresh databases
             self.refreshDatabases(successCallback, errorCallback);
 
@@ -392,19 +394,20 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
         var databaseUri = UtilsFactory.toRelativePath(database.engineUri);
 
         $http.delete(databaseUri, { Name: name }).then(function (response) {
-            // Success
-            // 202
-            // 204
-            JobFactory.RemoveJob(job);
 
+            // Success (202, 204)
+            JobFactory.RemoveJob(job);
             $log.info("Database " + database.name + " was successfully stopped");
+
+            // TODO: Refresh applications (HostModelService)
 
             // Refresh databases
             self.refreshDatabases(successCallback, errorCallback);
 
         }, function (response) {
-            JobFactory.RemoveJob(job);
+
             // Error
+            JobFactory.RemoveJob(job);
             var errorHeader = "Failed to stop database";
             var messageObject;
 
@@ -433,6 +436,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                     }
                 }
                 else {
+
                     // Unhandle Error
                     if (response.data.hasOwnProperty("Text") == true) {
                         messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
