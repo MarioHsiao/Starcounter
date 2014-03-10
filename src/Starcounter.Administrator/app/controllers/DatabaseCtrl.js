@@ -49,6 +49,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
     $window.resize(function () {
         $scope.winHeight = $window.height();
         $scope.winWidth = $window.width();
+        // TODO: $digest already in progress
         $scope.$apply();
     });
 

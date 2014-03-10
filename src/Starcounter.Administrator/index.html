@@ -136,8 +136,8 @@
     <div class="toplinks">
         <ul class="nav nav-pills" data-ng-controller="NavbarController">
 
-            <li data-ng-class="{active: getClass('/databases/.*/applications/.*|/applications')}"><a href="#/applications">Applications</a></li>
-            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$')}"><a href="#/databases">Databases</a></li>
+            <li data-ng-class="{active: getClass('/databases/.*/applications/.*|/applications|/applicationStart')}"><a href="#/applications">Applications</a></li>
+            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/databaseCreate')}"><a href="#/databases">Databases</a></li>
             <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
             <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
             <li data-ng-class="{active: getClass('/network') }"><a href="#/network">Network</a></li>

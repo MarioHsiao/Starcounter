@@ -75,13 +75,9 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
      */
     this.refreshHostModel = function (successCallback, errorCallback) {
 
-
-
         DatabaseService.refreshDatabases(function () {
+
             // Success
-
-
-
             ApplicationService.refreshApplications(function () {
 
                 // Success
@@ -105,7 +101,6 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
                 errorCallback(messageObject);
             }
         });
-
     }
 
 }]);

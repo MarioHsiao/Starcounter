@@ -32,6 +32,32 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
 
     /**
+     * Start Application
+     * @param {object} application Application
+     */
+    $scope.btnStart = function (application) {
+
+        ApplicationService.startApplication(application, function () {
+
+            // Success
+
+        }, function (messageObject) {
+
+            // Error
+
+            if (messageObject.isError) {
+                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            }
+            else {
+                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+            }
+
+        });
+
+    }
+
+
+    /**
      * Stop Application
      * @param {object} application Application
      */
@@ -100,6 +126,26 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
     }
 
+
+    /**
+     * Remove Application from Cache/History
+     * @param {object} application Application
+     */
+    $scope.btnRemove = function (application) {
+
+        var title = "Remove application";
+        var message = "Do you want to remove the application " + application.Name + " from the history";
+        var buttons = [{ result: 0, label: 'Yes', cssClass: 'btn-danger' }, { result: 1, label: 'No', cssClass: 'btn' }];
+
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
+
+            if (result == 0) {
+                // Remove application from cache/history
+                ApplicationService.removeFromHistory(application);
+            }
+
+        });
+    }
 
     // Init
     // Refresh host model
