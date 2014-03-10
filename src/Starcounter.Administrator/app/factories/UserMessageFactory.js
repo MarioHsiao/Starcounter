@@ -2,7 +2,7 @@
  * User Message Factory
  * Show messages to user (alert's, modal windows, etc..)
  */
-adminModule.factory('UserMessageFactory', ['$dialog', '$log', function ($dialog, $log) {
+adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', function ($modal, $log, NoticeFactory) {
     var factory = {};
 
     /**
@@ -14,17 +14,29 @@ adminModule.factory('UserMessageFactory', ['$dialog', '$log', function ($dialog,
      */
     factory.showErrorMessage = function (title, message, helpLink, stackTrace) {
 
-        var opts = {
-            backdrop: true,
-            keyboard: true,
-            backdropClick: true,
-            templateUrl: "app/partials/errorMessage.html",
-            controller: 'UserErrorMessageCtrl',
-            data: { header: title, message: message, stackTrace: stackTrace, helpLink: helpLink }
-        };
+        var buttons = [{ result: 0, label: 'Close', cssClass: 'btn-primary' }];
 
-        var d = $dialog.dialog(opts);
-        d.open();
+        var modalInstance = $modal.open({
+            templateUrl: 'app/partials/errorMessage.html',
+            controller: 'UserErrorMessageCtrl',
+            resolve: {
+                model: function () {
+                    return { "title": title, "message": message, "helpLink": helpLink, "stackTrace": stackTrace, "buttons": buttons };
+                }
+            }
+        });
+
+        modalInstance.result.then(function (result) {
+
+            if (typeof (responseCallback) == "function") {
+                responseCallback(result);
+            }
+
+        }, function (err) {
+            NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+            //            $log.info('Modal dismissed at: ' + new Date());
+        });
+
     };
 
 
@@ -37,15 +49,28 @@ adminModule.factory('UserMessageFactory', ['$dialog', '$log', function ($dialog,
      */
     factory.showMessageBox = function (title, message, buttons, responseCallback) {
 
-        $dialog.messageBox(title, message, buttons)
-          .open()
-          .then(function (result) {
 
-              if (typeof (responseCallback) == "function") {
-                  responseCallback(result);
-              }
+        var modalInstance = $modal.open({
+            templateUrl: 'app/partials/modal.html',
+            controller: 'UserErrorMessageCtrl',
+            resolve: {
+                model: function () {
+                    return { "title": title, "message": message, "buttons": buttons };
+                }
+            }
+        });
 
-          });
+        modalInstance.result.then(function (result) {
+
+            if (typeof (responseCallback) == "function") {
+                responseCallback(result);
+            }
+
+        }, function (err) {
+            NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+
+            //            $log.info('Modal dismissed at: ' + new Date());
+        });
 
     }
 

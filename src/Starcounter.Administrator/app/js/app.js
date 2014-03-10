@@ -112,19 +112,6 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
             return false;
         }
 
-        //var res = path.match($location.path());
-
-        //if (res != null) {
-
-        //    $log.debug(res);
-        //}
-
-        //return res;
-        //if ($location.path().substr(0, path.length) == path) {
-        //    return true
-        //} else {
-        //    return false;
-        //}
     }
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
