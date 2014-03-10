@@ -60,13 +60,13 @@ namespace Starcounter.Internal.Web {
                         return response;
 
                     // Checking if JSON object is attached.
-                    if (response.Hypermedia is Json) {
-                        Json r = (Json)response.Hypermedia;
+                    if (response.Resource is Json) {
+                        Json r = (Json)response.Resource;
 
                         while (r.Parent != null)
                             r = r.Parent;
 
-                        response.Hypermedia = (Json)r;
+                        response.Resource = (Json)r;
                     }
                 }
 

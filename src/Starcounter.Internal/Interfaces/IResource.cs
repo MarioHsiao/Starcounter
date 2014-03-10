@@ -11,7 +11,7 @@ namespace Starcounter {
     /// <remarks>
     /// Text types are represented using an UTF-8 encoding.
     /// </remarks>
-    public interface IHypermedia {
+    public interface IResource {
 
         /// <summary>
         /// Override this method to provide a custom conversion when a request
