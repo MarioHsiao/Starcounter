@@ -11,7 +11,8 @@ namespace Starcounter.SqlProcessor {
             Db.SystemTransaction(delegate {
                 ClrView[] createdViews = new ClrView[typeDefs.Length];
                 // Insert meta-data about types
-                foreach (TypeDef typeDef in typeDefs) {
+                for (int j = 0; j < typeDefs.Length; j++) {
+                    TypeDef typeDef = typeDefs[j];
                     string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
                     string assemblyName = "";
                     Application app = Application.CurrentAssigned;
@@ -35,6 +36,7 @@ namespace Starcounter.SqlProcessor {
                         AppdomainName = AppDomain.CurrentDomain.FriendlyName,
                         ParentTable = parentView
                     };
+                    createdViews[j] = obj;
                 }
                 // Insert meta-data about properties
                 for (int j = 0; j < typeDefs.Length; j++) {
