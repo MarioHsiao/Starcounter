@@ -104,7 +104,7 @@
     <Compile Include="Interfaces\IResponseConverter.cs" />
     <Compile Include="Intrinsics.cs" />
     <Compile Include="Interfaces\IREST.cs" />
-    <Compile Include="Interfaces\IHypermedia.cs" />
+    <Compile Include="Interfaces\IResource.cs" />
     <Compile Include="Interfaces\SQL\ISqlResult.cs" />
     <Compile Include="Interfaces\ITransaction.cs" />
     <Compile Include="KeyValueBinary.cs" />
