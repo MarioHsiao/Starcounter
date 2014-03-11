@@ -13,7 +13,7 @@ using System.Threading;
 namespace Starcounter.Internal {
 
     /// <summary>
-    /// Sets up the REST, Hypermedia and Apps modules
+    /// Sets up the REST, Resources and Apps modules
     /// </summary>
     /// <remarks>
     /// A common dependency injection pattern for all bootstrapping in Starcounter should be

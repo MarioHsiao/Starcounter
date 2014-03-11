@@ -119,7 +119,7 @@
     <Compile Include="Class Json\Json.Object.Dynamic.cs" />
     <Compile Include="Class Json\Json.Object.GetSetValue.cs" />
     <Compile Include="Class Json\Json.Object.Data.cs" />
-    <Compile Include="Class Json\Json.IHypermedia.cs" />
+    <Compile Include="Class Json\Json.IResource.cs" />
     <Compile Include="Class Json\Json.Serializing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializer\Json\JsonHelper.cs" />
