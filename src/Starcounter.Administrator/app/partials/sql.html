@@ -1,13 +1,31 @@
-﻿<form class="form-inline">
+﻿
+<form class="form-inline">
+
+
+    <!-- Query history -->
+    <button ng-show="queryHistory.length==0" type="submit" class="btn btn-success input-medium" ng-disabled="!canExecute()" ng-click="btnExecute(queryState.sqlQuery,queryState.selectedDatabaseName)" title="Execute query (CTRL+Enter)">{{executeButtonTitle(isBusy)}}</button>
+    <div class="btn-group" ng-hide="queryHistory.length==0">
+        <button type="submit" class="btn btn-success input-medium" ng-disabled="!canExecute()" ng-click="btnExecute(queryState.sqlQuery,queryState.selectedDatabaseName)" title="Execute query (CTRL+Enter)">{{executeButtonTitle(isBusy)}}</button>
+
+        <button class="btn btn-success dropdown-toggle" data-toggle="dropdown" title="Query history">
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+
+            <li ng-repeat="item in queryHistory | orderBy:reverse track by $index" title="{{item.statement}}">
+                <a ng-click="btnSelectQuery(item)">{{$index+1}}. {{item.statement|truncate:80}}</a>
+            </li>
+
+        </ul>
+
+    </div>
+
+    &nbsp;
 
     <select class="input-large" name="database" id="database" ui-select2 ng-model="queryState.selectedDatabaseName" ng-required="true" data-placeholder="Select a database">
         <option value=""></option>
         <option value="{{database.name}}" ng-repeat="database in databases | filter: {running:true} | orderBy: 'name'">{{database.name}}</option>
     </select>
-
-    &nbsp;
-
-    <button type="submit" class="btn btn-success input-medium" ng-disabled="queryState.selectedDatabaseName == ''||queryState.selectedDatabaseName == null||isBusy == true||!queryState.sqlQuery" ng-click="btnExecute(queryState.sqlQuery,queryState.selectedDatabaseName)">{{executeButtonTitle(isBusy)}}</button>
 
 </form>
 
@@ -21,8 +39,8 @@
 
 <div ng-hide='isBusy == true'>
 
-    <tabs>
-        <pane heading="Result">
+    <tabset>
+        <tab heading="Result">
           <div id="handsontableContainer" style="overflow-x: auto; overflow-y: visible">
             <ui-handsontable
                 id="handsontable"
@@ -43,11 +61,11 @@
                 fragmentselection="true">
             </ui-handsontable>
           </div>
-        </pane>
+        </tab>
 
-        <pane heading="Queryplan">
+        <tab heading="Queryplan">
             <div ng-bind-html="queryState.queryPlan"></div>
-       </pane>
-    </tabs>
+       </tab>
+    </tabset>
 
 </div>

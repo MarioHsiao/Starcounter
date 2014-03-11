@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
-using System.Text;
+using Starcounter.Metadata;
 using Starcounter.SqlProcessor;
 
 namespace Starcounter.Hosting {
@@ -227,9 +227,40 @@ namespace Starcounter.Hosting {
 
                 OnQueryModuleSchemaInfoUpdated();
 
+                // User-level classes are self registering and report in to
+                // the installed host manager on first use (via an emitted call
+                // in the static class constructor). For system classes, we
+                // have to do this by hand.
+                if (typeDefs[0].Name == "Starcounter.Metadata.materialized_table") {
+                    InitTypeSpecifications();
+                    OnTypeSpecificationsInitialized();
+                }
+
                 MetadataPopulation.PopulateClrViewsMetaData(typeDefs);
                 OnPopulateClrViewsMetaData();
             }
+        }
+
+        private void InitTypeSpecifications() {
+            HostManager.InitTypeSpecification(typeof(MaterializedTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedIndex.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedIndexColumn.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(BaseType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MappedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(BaseTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(HostMaterializedTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(ClrView.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(BaseMember.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
         }
 
         /// <summary>
@@ -298,6 +329,7 @@ namespace Starcounter.Hosting {
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
+        private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
         private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
         private void OnCleanClrViewsMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrViewsMetaData() { Trace("CLR view meta-data were populated for the given types."); }

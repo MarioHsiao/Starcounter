@@ -52,9 +52,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
         $scope.$apply();
     });
 
-
     $scope.calcHeight = function () {
-
         var border = 12;
         var ht = $("#console");
         var offset = ht.offset();
@@ -70,14 +68,9 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
         return height;
     };
 
-    $scope.calcWidth = function () {
-        var border = 12;
-        var leftOffset = $("#console").offset().left;
-        var width = $scope.winWidth - leftOffset - 2 * border;
-        if (width < 150) {
-            return 150;
-        }
-        return width;
-    };
+    $scope.sizeStyle = function () {
+        return { "height": $scope.calcHeight() + "px", "background-color": "#ff0000" };
+    }
+
 
 }]);

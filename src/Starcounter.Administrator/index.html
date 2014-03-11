@@ -50,7 +50,8 @@
     <script src="/app/vendor/angular-ui/angular-ui-0.4.0.min.js"></script>
 
     <!-- UI-Bootstrap, Used by: Modal window, toogle button -->
-    <script src="/app/vendor/angular-ui/ui-bootstrap-tpls-0.3.0.min.js"></script>
+    <script src="/app/vendor/angular-ui/ui-bootstrap-tpls-0.10.0.min.js"></script>
+
 
     <!-- Handsontable, Used in: Log and Sql window -->
     <script src="/app/vendor/handsontable/angular-ui-handsontable.full.js"></script>
@@ -100,6 +101,10 @@
     <script src="/app/directives/VersionCheck.js"></script>
     <script src="/app/directives/ConsoleWindow.js"></script>
 
+    <!-- Filters -->
+    <script src="/app/filters/Truncate.js"></script>
+
+
     <!-- Angular localisation -->
     <script type='text/javascript'>
 
@@ -136,8 +141,8 @@
     <div class="toplinks">
         <ul class="nav nav-pills" data-ng-controller="NavbarController">
 
-            <li data-ng-class="{active: getClass('/databases/.*/applications/.*|/applications')}"><a href="#/applications">Applications</a></li>
-            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$')}"><a href="#/databases">Databases</a></li>
+            <li data-ng-class="{active: getClass('/databases/.*/applications/.*|/applications|/applicationStart')}"><a href="#/applications">Applications</a></li>
+            <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/databaseCreate')}"><a href="#/databases">Databases</a></li>
             <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
             <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
             <li data-ng-class="{active: getClass('/network') }"><a href="#/network">Network</a></li>

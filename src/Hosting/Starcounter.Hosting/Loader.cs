@@ -180,30 +180,6 @@ namespace StarcounterInternal.Hosting
 
             OnPackageProcessed();
 
-            // User-level classes are self registring and report in to
-            // the installed host manager on first use (via an emitted call
-            // in the static class constructor). For system classes, we
-            // have to do this by hand.
-
-            HostManager.InitTypeSpecification(typeof(MaterializedTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedColumn.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedIndex.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(BaseType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MappedType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(BaseTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(HostMaterializedTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(ClrView.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(BaseMember.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
-
             stopwatch_ = null;
         }
 

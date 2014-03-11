@@ -399,9 +399,9 @@ namespace Starcounter
                         {
                             return Encoding.UTF8.GetString(bodyBytes_);
                         }
-                        else if (_Hypermedia != null)
+                        else if (_Resource != null)
                         {
-                            return _Hypermedia.AsMimeType(MimeType.Unspecified);
+                            return _Resource.AsMimeType(MimeType.Unspecified);
                         }
                     }
 
@@ -438,8 +438,8 @@ namespace Starcounter
         /// </summary>
         /// <returns></returns>
         public string GetContentString(MimeType mimeType) {
-            if (null != _Hypermedia)
-                return _Hypermedia.AsMimeType(mimeType);
+            if (null != _Resource)
+                return _Resource.AsMimeType(mimeType);
 
             if (null != bodyBytes_)
                 return Encoding.UTF8.GetString(bodyBytes_);
@@ -462,9 +462,9 @@ namespace Starcounter
             if (bodyString_ != null)
                 return Encoding.UTF8.GetBytes(bodyString_);
 
-            if (_Hypermedia != null) {
+            if (_Resource != null) {
                 MimeType discard;
-                return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
+                return _Resource.AsMimeType(MimeType.Unspecified, out discard);
             }
 
             if (responseBytes_ != null) {
@@ -492,8 +492,8 @@ namespace Starcounter
         {
             get
             {
-                if (null != _Hypermedia)
-                    return _Hypermedia;
+                if (null != _Resource)
+                    return _Resource;
 
                 if (null != bodyBytes_)
                     return bodyBytes_;
@@ -510,8 +510,8 @@ namespace Starcounter
                     bodyString_ = (String) value;
                 } else if (value is Byte[]) {
                     bodyBytes_ = (Byte[]) value;
-                } else if (value is IHypermedia) {
-                    _Hypermedia = (IHypermedia) value;
+                } else if (value is IResource) {
+                    _Resource = (IResource) value;
                 } else {
                     throw new ArgumentException("Wrong content type assigned!");
                 }
@@ -537,10 +537,10 @@ namespace Starcounter
                         {
                             return Encoding.UTF8.GetBytes(bodyString_);
                         }
-                        else if (_Hypermedia != null)
+                        else if (_Resource != null)
                         {
                             MimeType discard;
-                            return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
+                            return _Resource.AsMimeType(MimeType.Unspecified, out discard);
                         }
                     }
 
@@ -569,10 +569,10 @@ namespace Starcounter
             statusDescription_ = null;
             statusCode_ = 0;
             AppsSession = null;
-            _Hypermedia = null;
+            _Resource = null;
         }
 
-        private IHypermedia _Hypermedia;
+        private IResource _Resource;
 
         /// <summary>
         /// The response can be constructed in one of the following ways:
@@ -580,19 +580,19 @@ namespace Starcounter
         /// 1) using a complete binary HTTP response
         /// in the Uncompressed or Compressed property (this includes the header)
         /// 
-        /// 2) using a IHypermedia object in the Hypermedia property
+        /// 2) using a IResource object in the Resource property
         /// 
         /// 3) using the BodyString property (does not include the header)
         /// 
         /// 4) using the BodyBytes property (does not include the header)
         /// </summary>
-        public IHypermedia Hypermedia {
+        public IResource Resource {
             get {
-                return _Hypermedia;
+                return _Resource;
             }
             set {
                 customFields_ = true;
-                _Hypermedia = value;
+                _Resource = value;
             }
         }
 
@@ -664,10 +664,10 @@ namespace Starcounter
             Utf8Writer writer;
 
 			byte[] bytes = bodyBytes_;
-			if (_Hypermedia != null) {
+			if (_Resource != null) {
 				var mimetype = request_.PreferredMimeType;
 				try {
-					bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+					bytes = _Resource.AsMimeType(mimetype, out mimetype);
 					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
 				} catch (UnsupportedMimeTypeException exc) {
 					throw new Exception(
@@ -681,7 +681,7 @@ namespace Starcounter
 					secondaryChoices.MoveNext(); // The first one is already accounted for
 					while (bytes == null && secondaryChoices.MoveNext()) {
 						mimetype = secondaryChoices.Current;
-						bytes = _Hypermedia.AsMimeType(mimetype, out mimetype);
+						bytes = _Resource.AsMimeType(mimetype, out mimetype);
 					}
 					if (bytes == null) {
 						// None of the requested mime types were supported.
@@ -774,7 +774,7 @@ namespace Starcounter
 
 					if (null != bodyString_) {
 						if (null != bytes)
-							throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
+							throw new ArgumentException("Either body string, body bytes or resource can be set for Response.");
 
 						writer.Write(HttpHeadersUtf8.ContentLengthStart);
 						writer.Write(writer.GetByteCount(bodyString_));

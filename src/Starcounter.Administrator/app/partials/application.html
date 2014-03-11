@@ -1,17 +1,15 @@
-﻿<legend>Application - {{model.application.Name}} <span class="Running">(Running)</span>
+﻿<legend>Application - {{applicationCtrl1.application.Name}} <span class="Running">(Running)</span>
     <a class="btn btn-mini pull-right" href="#/applications"><i class="icon-resize-small"></i></a>
 </legend>
 
-
-
 <dl class="dl-horizontal">
     <dt>Started</dt>
-    <dd>{{model.application.RuntimeInfo.Started | date:'medium'}}</dd>
+    <dd>{{applicationCtrl1.application.RuntimeInfo.Started | date:'medium'}}</dd>
     <dt>FilePath</dt>
-    <dd>{{model.application.ApplicationFilePath}}</dd>
+    <dd>{{applicationCtrl1.application.Path}}</dd>
     <dt>Argument</dt>
     <dd>
-        <div class="muted" ng-repeat="argument in model.application.Arguments">
+        <div class="muted" ng-repeat="argument in applicationCtrl1.application.Arguments">
             {{argument.dummy}}&nbsp;
         </div>
     </dd>
@@ -20,12 +18,12 @@
 <div class="row-fluid">
 
     <legend>Console output
-            <button title="Refresh console" ng-show="model.application.consoleManualMode == true" class="btn pull-right" ng-click="btnGetConsoleOutput(model.application)"><i class="icon-refresh"></i></button>
+            <button title="Refresh console" ng-show="applicationCtrl1.application.consoleManualMode == true" class="btn pull-right" ng-click="btnGetConsoleOutput(applicationCtrl1.application)"><i class="icon-refresh"></i></button>
     </legend>
 
-    <consolewindow  id="console" width-attr="100%" height-attr='{{calcHeight()}}px' id="console"  ng-model="model.application.console"></consolewindow>
-
-
+    <div id="console" ng-style="sizeStyle()">
+        <consolewindow ng-model="applicationCtrl1.application.console"></consolewindow>
+    </div>
 </div>
 
 

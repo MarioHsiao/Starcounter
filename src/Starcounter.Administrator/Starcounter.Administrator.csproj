@@ -160,6 +160,9 @@
     <Content Include="app\factories\Utils.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="app\filters\Truncate.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\images\favicon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -176,6 +179,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\partials\application.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\partials\modal.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\partials\database.html">
@@ -250,7 +256,7 @@
     <Content Include="app\vendor\angular-ui\select2.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular-ui\ui-bootstrap-tpls-0.3.0.min.js">
+    <Content Include="app\vendor\angular-ui\ui-bootstrap-tpls-0.10.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\angular\angular-resource.min.js">

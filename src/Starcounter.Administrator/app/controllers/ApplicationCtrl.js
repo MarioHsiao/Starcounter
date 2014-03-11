@@ -5,42 +5,41 @@
  */
 adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routeParams', 'UserMessageFactory', 'NoticeFactory', 'HostModelService', 'ApplicationService', function ($scope, $log, $sce, $routeParams, UserMessageFactory, NoticeFactory, HostModelService, ApplicationService) {
 
-    $scope.model = {
-        application: null
-    }
+    var self = this;
 
+    this.application = null;
 
     /**
      * Get Console output
      * @param {object} application aplication
      */
-    $scope.btnGetConsoleOutput = function (application) {
+    this.btnGetConsoleOutput = function (application) {
 
         ApplicationService.refreshConsoleOuput(application, function () {
 
-            $("#console").scrollTop($("#console")[0].scrollHeight);
-
             // Success
+            //        $("#console").scrollTop($("#console")[0].scrollHeight);
+
         }, function (messageObject) {
+
             // Error
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-
         });
 
     }
-
 
     // Init
     // Refresh host model
     HostModelService.refreshHostModel(function () {
 
-        $scope.model.application = HostModelService.getApplication($routeParams.dbName, $routeParams.name);
+        // Success
+        self.application = HostModelService.getApplication($routeParams.dbName, $routeParams.name);
 
     }, function (messageObject) {
+
         // Error
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
-
 
 
     // Console fixe the height.
@@ -55,7 +54,6 @@ adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routePara
 
     $scope.calcHeight = function () {
         var border = 12;
-        //var topOffset = $("#console").offset().top;
         var ht = $("#console");
         var offset = ht.offset();
         if (!offset) {
@@ -70,14 +68,8 @@ adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routePara
         return height;
     };
 
-    $scope.calcWidth = function () {
-        var border = 12;
-        var leftOffset = $("#console").offset().left;
-        var width = $scope.winWidth - leftOffset - 2 * border;
-        if (width < 150) {
-            return 150;
-        }
-        return width;
-    };
+    $scope.sizeStyle = function () {
+        return { "height": $scope.calcHeight() + "px", "background-color": "#ff0000" };
+    }
 
 }]);
