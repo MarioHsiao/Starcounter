@@ -78,10 +78,10 @@ namespace Starcounter.Hosting {
             }
 
             this.FilePath = applicationFile;
-            this.Name = Path.GetFileNameWithoutExtension(name) ?? Path.GetFileNameWithoutExtension(applicationFile);
+            this.Name = Path.GetFileNameWithoutExtension(name ?? applicationFile);
 
-            // Checking if application name consists only of letters, numbers and underscore.
-            if (!Regex.IsMatch(this.Name, @"^[\w]+$"))
+            // Checking if application name for correctness.
+            if (!StarcounterEnvironment.IsApplicationNameLegal(this.Name))
                 throw ErrorCode.ToException(Error.SCERRBADAPPLICATIONNAME, "Application name that is not allowed: " + this.Name);
 
             this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
