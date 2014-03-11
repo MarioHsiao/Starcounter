@@ -22,7 +22,8 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
 
     $routeProvider.when('/databases/:dbName/applications/:name', {
         templateUrl: '/app/partials/application.html',
-        controller: 'ApplicationCtrl'
+        controller: 'ApplicationCtrl',
+        controllerAs: 'applicationCtrl1'
     });
 
     $routeProvider.when('/applications', {
@@ -70,9 +71,6 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
     });
 
     $routeProvider.otherwise({ redirectTo: '/applications' });
-
-
-
 
 }).value('ui.config', {
     codemirror: {
@@ -132,8 +130,6 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 }]);
 
 
-
-
 /**
  * Updates the position of the horizontal scrollbar on SQL and Log pages
  */
@@ -165,6 +161,7 @@ function scrollRefresh() {
         }
     }
 }
+
 
 /**
  * Creates a new instance of VeryNativeScrollbar which is used by SQL and Log pages to scroll horizontally

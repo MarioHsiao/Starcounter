@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
+using Starcounter.Metadata;
 
 namespace Starcounter.Hosting {
 
@@ -216,7 +217,22 @@ namespace Starcounter.Hosting {
                 QueryModule.UpdateSchemaInfo(typeDefs);
 
                 OnQueryModuleSchemaInfoUpdated();
+
+                // User-level classes are self registering and report in to
+                // the installed host manager on first use (via an emitted call
+                // in the static class constructor). For system classes, we
+                // have to do this by hand.
+                if (typeDefs[0].TableDef.Name == "materialized_table") {
+                    InitTypeSpecifications();
+                    OnTypeSpecificationsInitialized();
+                }
             }
+        }
+
+        private void InitTypeSpecifications() {
+            HostManager.InitTypeSpecification(typeof(materialized_table.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
         }
 
         /// <summary>
@@ -285,6 +301,7 @@ namespace Starcounter.Hosting {
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
+        private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)
