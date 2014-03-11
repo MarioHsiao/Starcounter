@@ -109,7 +109,7 @@ namespace Starcounter.Metadata {
 
         internal TableColumn()
             : this(null) {
-                DbState.Insert(__starcounterTypeSpecification.tableHandle, 
+                DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, 
                     ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
@@ -173,7 +173,7 @@ namespace Starcounter.Metadata {
 
         internal CodeProperty()
             : this(null) {
-                DbState.Insert(__starcounterTypeSpecification.tableHandle, 
+                DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, 
                     ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 

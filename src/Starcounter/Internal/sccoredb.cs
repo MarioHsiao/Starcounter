@@ -589,6 +589,7 @@ namespace Starcounter.Internal
             out ulong verify
             );
 
+        internal const uint MDB_TRANSCREATE_SYSTEM_PRIVILEGES = 0x0040;
         /// <summary>
         /// Sccoredb_create_transaction_and_set_currents the specified lock_tran_on_thread.
         /// </summary>
@@ -667,6 +668,15 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static uint sccoredb_insert(
+            ushort table_id,
+            ulong* pnew_oid,
+            ulong* pnew_addr
+            );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal unsafe extern static uint star_insert_system(
             ushort table_id,
             ulong* pnew_oid,
             ulong* pnew_addr

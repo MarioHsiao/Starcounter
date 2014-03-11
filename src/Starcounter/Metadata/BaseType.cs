@@ -115,7 +115,7 @@ namespace Starcounter.Metadata {
 
         internal MaterializedType()
             : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
         public UInt64 PrimitiveType {
@@ -179,10 +179,10 @@ namespace Starcounter.Metadata {
             : base(u) {
         }
 
-        internal MappedType()
-            : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        }
+        //internal MappedType()
+        //    : this(null) {
+        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //}
 
         public MaterializedType MaterializedType {
             get {
@@ -274,7 +274,7 @@ namespace Starcounter.Metadata {
 
         internal ClrPrimitiveType()
             : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
     }
 }

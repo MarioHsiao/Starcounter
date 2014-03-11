@@ -17,8 +17,6 @@ namespace Starcounter.SqlProcessor {
         private static extern uint scsql_create_runtime_metadata();
         [DllImport("scsqlprocessor.dll")]
         private static extern uint scsql_clean_clrview();
-        [DllImport("scsqlprocessor.dll")]
-        internal static unsafe extern uint scsql_populate_clrview(CLRVIEW* aView);
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -93,23 +91,5 @@ namespace Starcounter.SqlProcessor {
                 return Marshal.PtrToStringAuto(_token);
             }
         }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct CLRVIEW {
-        internal char* TypeName;
-        internal char* FullName;
-        internal char* FullClassName;
-        internal char* AssemblyName;
-        internal char* AppDomainName;
-        internal char* ParentTypeName;
-        internal UInt16 NrProperties;
-        internal char** PropertyNames;
-        internal char** ColumnNames;
-        internal UInt16* DbTypes;
-        internal char** TypeNames;
-        internal UInt16 NrCodeProperties;
-        internal char** CodePropertyNames;
-        internal char* TableName;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -7,61 +8,73 @@ using System.Runtime.InteropServices;
 namespace Starcounter.SqlProcessor {
     public static class MetadataPopulation {
         public static unsafe void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
-            foreach (TypeDef typeDef in typeDefs) {
-                string typeName = typeDef.Name.LastDotWord();
-                string assemblyName = "";
-                try {
-                    string assemblyPath = Application.Current.FilePath;
-                    assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
-                } catch (InvalidOperationException) { }
-                string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
-                string fullName = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
-                char*[] propertyNames = new char*[typeDef.PropertyDefs.Length];
-                ushort[] dbTypes = new ushort[typeDef.PropertyDefs.Length];
-                char*[] typeNames = new char*[typeDef.PropertyDefs.Length];
-                char*[] columnNames = new char*[typeDef.PropertyDefs.Length];
-                char*[] codePropertyNames = new char*[typeDef.PropertyDefs.Length];
-                ushort nrCols = 0;
-                ushort nrCodeprops = 0;
-                for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
-                    if (typeDef.PropertyDefs[i].ColumnName == null) {
-                        codePropertyNames[nrCodeprops] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].Name);
-                        nrCodeprops++;
-                    } else {
-                        propertyNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].Name);
-                        dbTypes[nrCols] = (ushort)typeDef.PropertyDefs[i].Type;
-                        if (typeDef.PropertyDefs[i].Type == DbTypeCode.Object)
-                            typeNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].TargetTypeName);
+            Db.SystemTransaction(delegate {
+                ClrView[] createdViews = new ClrView[typeDefs.Length];
+                // Insert meta-data about types
+                foreach (TypeDef typeDef in typeDefs) {
+                    string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
+                    string assemblyName = "";
+                    Application app = Application.CurrentAssigned;
+                    if (app != null) {
+                        //string assemblyPath = app.FilePath;
+                        //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
+                        assemblyName = '.' + app.Name;
+                    }
+                    string fullName = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
+                    MaterializedTable mattab = Db.SQL<MaterializedTable>("select m from materializedtable m where name = ?",
+                        typeDef.TableDef.Name).First;
+                    ClrView parentView = null;
+                    if (typeDef.BaseName != null)
+                        parentView = Db.SQL<ClrView>("select v from clrview v where fullclassname = ?", typeDef.BaseName).First;
+                    ClrView obj = new ClrView {
+                        Name = typeDef.Name.LastDotWord(),
+                        FullClassName = typeDef.Name,
+                        FullName = fullName,
+                        MaterializedTable = mattab,
+                        AssemblyName = (app != null ? app.Name : null),
+                        AppdomainName = AppDomain.CurrentDomain.FriendlyName,
+                        ParentTable = parentView
+                    };
+                }
+                // Insert meta-data about properties
+                for (int j = 0; j < typeDefs.Length; j++) {
+                    TypeDef typeDef = typeDefs[j];
+                    ClrView theView = createdViews[j];
+                    Debug.Assert(theView.FullClassName == typeDef.Name);
+                    for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
+                        PropertyDef propDef = typeDef.PropertyDefs[i];
+                        BaseType propType = null;
+                        if (propDef.Type == DbTypeCode.Object)
+                            propType = Db.SQL<ClrView>("select v from clrview v where fullclassname = ?", propDef.TargetTypeName).First;
                         else
-                            typeNames[nrCols] = null;
-                        columnNames[nrCols] = (char*)Marshal.StringToCoTaskMemUni(typeDef.PropertyDefs[i].ColumnName);
-                        nrCols++;
+                            propType = Db.SQL<MappedType>("select t from mappedtype t where dbtypecode = ?", propDef.Type).First;
+                        if (propType != null) {
+                            if (propDef.ColumnName == null) {
+                                CodeProperty codeProp = new CodeProperty {
+                                    BaseTable = theView,
+                                    Name = propDef.Name,
+                                    Type = propType
+                                };
+                            } else {
+                                MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
+                                    "select c from materializedcolumn c where table = ? and name = ?",
+                                    theView.MaterializedTable, propDef.ColumnName).First;
+                                TableColumn col = new TableColumn {
+                                    BaseTable = theView,
+                                    Name = propDef.Name,
+                                    MaterializedColumn = matCol,
+                                    Type = propType,
+                                    Unique = false
+                                };
+                            }
+                        } else {
+                            LogSources.Sql.LogWarning("Non database type " +
+                                (propDef.Type == DbTypeCode.Object ? propDef.TargetTypeName : propDef.Type.ToString()) +
+                                " of property " + propDef.Name + " in class " + theView.FullClassName);
+                        }
                     }
                 }
-                Debug.Assert(nrCodeprops + nrCols <= typeDef.PropertyDefs.Length);
-                CLRVIEW aView;
-                aView.TypeName = (char*)Marshal.StringToCoTaskMemUni(typeName);
-                aView.FullName = (char*)Marshal.StringToCoTaskMemUni(fullName);
-                aView.FullClassName = (char*)Marshal.StringToCoTaskMemUni(typeDef.Name);
-                aView.ParentTypeName = (char*)Marshal.StringToCoTaskMemUni(typeDef.BaseName);
-                aView.TableName = (char*)Marshal.StringToCoTaskMemUni(typeDef.TableDef.Name);
-                aView.AssemblyName = (char*)Marshal.StringToCoTaskMemUni(assemblyName);
-                aView.AppDomainName = (char*)Marshal.StringToCoTaskMemUni(AppDomain.CurrentDomain.FriendlyName);
-                aView.NrProperties = nrCols;
-                aView.NrCodeProperties = nrCodeprops;
-                fixed (UInt16* dbTypesPtr = dbTypes)
-                fixed (char** properyNamesPtr = propertyNames, columnNamesPtr = columnNames,
-                    codePropertyNamesPtr = codePropertyNames, typeNamesPtr = typeNames) {
-                    aView.PropertyNames = properyNamesPtr;
-                    aView.CodePropertyNames = codePropertyNamesPtr;
-                    aView.ColumnNames = columnNamesPtr;
-                    aView.TypeNames = typeNamesPtr;
-                    aView.DbTypes = dbTypesPtr;
-                    uint err = Starcounter.SqlProcessor.SqlProcessor.scsql_populate_clrview(&aView);
-                    if (err != 0)
-                        throw ErrorCode.ToException(err);
-                }
-            }
+            });
         }
     }
 }
