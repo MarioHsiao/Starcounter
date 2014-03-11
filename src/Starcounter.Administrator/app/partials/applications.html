@@ -2,12 +2,12 @@
 
     <div class="btn-toolbar">
         <div class="btn-group">
-            <a class="btn btn-primary btn-small" href="#/applicationStart" title="Start a new Application">Start Application</a>
+            <a class="btn btn-primary" href="#/applicationStart" title="Start a new Application">Start Application</a>
         </div>
 
         <div class="btn-group pull-right" data-toggle="buttons-radio" ng-hide="applications.length == 0">
-            <button type="button" class="btn btn-small" ng-model="view" btn-radio="'list'" title="List view"><i class="icon-th-list"></i></button>
-            <button type="button" class="btn btn-small" ng-model="view" btn-radio="'icon'" title="Icon view"><i class="icon-th"></i></button>
+            <button type="button" class="btn" ng-model="view" btn-radio="'list'" title="List view"><i class="icon-th-list"></i></button>
+            <button type="button" class="btn" ng-model="view" btn-radio="'icon'" title="Icon view"><i class="icon-th"></i></button>
         </div>
     </div>
 
@@ -83,7 +83,9 @@
                         </div>
                     </div>
 
-                    <consolewindow height-attr="200px" width-attr="100%" ng-model="application.console" title="Console output"></consolewindow>
+                    <div ng-style="{'height':'200px', 'width':'100%'}"  title="Console output">
+                        <consolewindow ng-model="application.console"></consolewindow>
+                    </div>
 
                 </li>
 
