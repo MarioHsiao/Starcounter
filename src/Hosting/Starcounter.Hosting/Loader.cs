@@ -248,6 +248,12 @@ namespace StarcounterInternal.Hosting
 
             OnUnregisteredTypeDefsDetermined();
 
+            // TODO:
+            // We should check first if the assembly is actually loaded.
+            // There are cases where it can be, when other apps are using
+            // this one as a library. In such case, it might be loaded
+            // from another directory.
+
             var assembly = Assembly.LoadFile(inputFile.FullName);
 
             OnTargetAssemblyLoaded();
