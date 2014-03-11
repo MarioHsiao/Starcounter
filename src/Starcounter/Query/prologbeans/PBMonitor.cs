@@ -140,7 +140,7 @@ class PBMonitor: SupportClass.ThreadClass
                 // not be done synchronized in case the cancellation takes time
                 // and we do not want new queries to be blocked.
                 for (int i = 0; i < cancelCount; i++) {
-                    Starcounter.LogSources.Sql.LogError("PBMonitor: need to interrupt read/write!");
+                    Starcounter.LogSources.Sql.LogNotice("PBMonitor: need to interrupt read/write!");
                     cancelList[i].cancelQuery();
                     cancelList[i] = null;
                 }

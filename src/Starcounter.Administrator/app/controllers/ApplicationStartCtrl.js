@@ -168,7 +168,7 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
                     $scope.recentApplications = JSON.parse(result);
                 }
                 catch (err) {
-                    $log.error(err, "Removing item");
+                    $log.error(err, "Removing invalid application history");
                     localStorage.removeItem("recentApplications");
                 }
             }

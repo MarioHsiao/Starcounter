@@ -6,12 +6,11 @@
 adminModule.directive("consolewindow", function () {
     return {
         scope: {
-            ngModel: '=',
-            height: '@heightAttr',
-            width: '@widthAttr'
+            ngModel: '='
         },
         restrict: "E",
-        template: "<div class='console' style='height:{{height}}; width:{{width}}; word-wrap: break-word;overflow-y: scroll; color: white;background-color: #000000' ng-bind-html=ngModel></div>",
+        //template: "<div class='console' style='height:{{height}}; width:{{width}}; word-wrap: break-word;overflow-y: scroll; color: white;background-color: #000000' ng-bind-html=ngModel></div>",
+        template: "<div class='console' style='height:100%; width:100%; word-wrap: break-word;overflow-y: scroll; color: white;background-color: #000000' ng-bind-html=ngModel></div>",
         link: function (scope, elem, attrs) {
             scope.$watch('ngModel', function (newValue, oldValue) {
 
