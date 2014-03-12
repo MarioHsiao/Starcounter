@@ -367,6 +367,13 @@ namespace Starcounter.Internal.JsonPatch {
             if (rootApp != null) {
                 AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
 
+                if (!aat.Template.Editable) {
+                    throw new JsonPatchException(
+                        String.Format("Property '" + aat.Template.PropertyName + "' is readonly."),
+                        null
+                    );
+                }
+
                 aat.App.ExecuteInScope(() => {
                     ((TValue)aat.Template).ProcessInput(aat.App, value);
                 });
@@ -454,15 +461,7 @@ namespace Starcounter.Internal.JsonPatch {
                 });
             }
 
-            var tvalue = current as TValue;
-            if (!tvalue.Editable) {
-                throw new JsonPatchException(
-                    String.Format("Property '" + tvalue.PropertyName + "' is readonly."), 
-                    null
-                );
-            }
-
-            return new AppAndTemplate(mainApp, tvalue);
+            return new AppAndTemplate(mainApp, current as TValue);
         }
     }
 }
