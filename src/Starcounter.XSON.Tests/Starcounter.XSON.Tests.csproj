@@ -64,8 +64,11 @@
     <Compile Include="DataObjects\Person.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
     <Compile Include="ExpandoTests.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="JsonPatchTests\ArrayPatchTests.cs" />
-    <Compile Include="JsonPatchTests\JsonPatchTests.cs" />
+    <Compile Include="JsonPatchTests\EvaluateJsonPatchTests.cs" />
+    <Compile Include="JsonPatchTests\GenerateJsonPatchTests.cs" />
+    <Compile Include="MiscJsonTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDynamicApps.cs" />
   </ItemGroup>
@@ -93,6 +96,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="SampleApp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="simple.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
-    class JsonPatchTests {
+    class GenerateJsonPatchTests {
         /// <summary>
         /// Sets up the test.
         /// </summary>
@@ -332,62 +332,6 @@ Assert.AreEqual(facit, result );
 
             Assert.AreEqual(
                 "[{\"op\":\"replace\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
-        }
-
-        [Test]
-        public static void TestIncomingPatches()
-        {
-            int patchCount;
-            string patchSkel;
-            string patchStr;
-            byte[] patchBytes;
-            TObject schema;
-            
-
-            patchSkel = "{{\"op\":\"replace\", \"path\":\"{0}\", \"value\":\"{1}\"}}";
-
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("simple.json"), "Simple");
-            dynamic json = schema.CreateInstance();
-
-            // Setting a value on a editable property
-            patchStr = string.Format(patchSkel, "/VirtualValue$", "Alpha");
-            patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
-            Assert.AreEqual(1, patchCount);
-            Assert.AreEqual("Alpha", json.VirtualValue);
-
-            // Setting a value on a readonly property
-            patchStr = string.Format(patchSkel, "/BaseValue", "Beta");
-            patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            var ex = Assert.Throws<JsonPatch.JsonPatchException>(() => {
-                JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
-            });
-            Console.WriteLine(ex.Message);
-
-            // Setting values on three properties in one patch
-            patchStr = "["
-                       + string.Format(patchSkel, "/VirtualValue$", "Apa")
-                       + ","
-                       + string.Format(patchSkel, "/OtherValue$", 1395276000)
-                       + ","
-                       + string.Format(patchSkel, "/AbstractValue$", "Peta")
-                       + "]";
-            patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
-            Assert.AreEqual(3, patchCount);
-            Assert.AreEqual("Apa", json.VirtualValue);
-            Assert.AreEqual("Peta", json.AbstractValue);
-            Assert.AreEqual(1395276000, json.OtherValue);
-
-             // Making sure all patches are correctly parsed.
-            patchStr = "["
-                       + string.Format(patchSkel, "/Content/ApplicationPage/GanttData/ItemDropped/Date$", 1395276000)
-                       + ","
-                       + string.Format(patchSkel, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", "lm7")
-                       + "]";
-            patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(null, patchBytes);
-            Assert.AreEqual(2, patchCount);
         }
     }
 }
