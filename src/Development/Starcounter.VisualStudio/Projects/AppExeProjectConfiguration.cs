@@ -277,7 +277,12 @@ namespace Starcounter.VisualStudio.Projects {
             var exe = new Executable();
             exe.Path = debugConfig.AssemblyPath;
             exe.ApplicationFilePath = exe.Path;
-            exe.Name = Path.GetFileName(exe.Path);
+            exe.Name = Path.GetFileNameWithoutExtension(exe.Path);
+
+            // Checking if application name for correctness.
+            if (!StarcounterEnvironment.IsApplicationNameLegal(exe.Name))
+                throw ErrorCode.ToException(Error.SCERRBADAPPLICATIONNAME, "Application name that is not allowed: " + exe.Name);
+
             if (args.ContainsProperty(Option.AppName)) {
                 exe.Name = args.GetProperty(Option.AppName);
             }
