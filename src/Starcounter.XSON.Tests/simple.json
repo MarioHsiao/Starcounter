@@ -1,6 +1,7 @@
 ﻿{
     "$": {"DataType":"Starcounter.XSON.Tests.SimpleBase"},
-    "VirtualValue": "huh?",
-    "AbstractValue": "yeah!",
-    "BaseValue": "apa"      
+    "VirtualValue$": "huh?",
+    "AbstractValue$": "yeah!",
+    "BaseValue": "apa",
+	"OtherValue$": 234324
 }
