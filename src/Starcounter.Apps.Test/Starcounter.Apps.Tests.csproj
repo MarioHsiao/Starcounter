@@ -86,7 +86,6 @@
   <ItemGroup>
     <Compile Include="AdvancedRequestResponseUsage.cs" />
     <Compile Include="IRequestHandler.cs" />
-    <Compile Include="JsonPatchTest.cs" />
     <Compile Include="MergedResponsesTests.cs" />
     <Compile Include="NewRestTests.cs" />
     <Compile Include="MainApp.cs" />
@@ -96,9 +95,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="SampleApp.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">
