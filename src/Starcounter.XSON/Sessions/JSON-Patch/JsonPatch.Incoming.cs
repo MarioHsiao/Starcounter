@@ -1,30 +1,17 @@
-﻿
-
-using Starcounter.Templates;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Text;
+using Starcounter.Templates;
+
 namespace Starcounter.Internal.JsonPatch {
-    public class JsonPatchException : Exception {
-        private string patch;
-        
-        internal JsonPatchException(string message, string patch) : base(message) {
-            this.patch = patch;
-        }
-
-        public string Patch { 
-            get { return patch; }
-            internal set { patch = value; }
-        }
-    }
-
     partial class JsonPatch {
-
         /// <summary>
         /// Evaluates the patches.
         /// </summary>
         /// <param name="rootApp">the root app for this request.</param>
         /// <param name="body">The body of the request.</param>
-        public static void EvaluatePatches(Json rootApp, byte[] body) {
+        /// <returns>The number of patches evaluated.</returns>
+        public static int EvaluatePatches(Json rootApp, byte[] body) {
             byte[] contentArr;
             byte current;
             int bracketCount;
@@ -35,6 +22,7 @@ namespace Starcounter.Internal.JsonPatch {
             byte[] value = null;
             bool valueFound = false;
             int patchStart = -1;
+            int patchCount = 0;
             
             bracketCount = 0;
             contentArr = body;
@@ -87,7 +75,8 @@ namespace Starcounter.Internal.JsonPatch {
 
                             if (!valueFound)
                                 ThrowPatchException(patchStart, body, "No value found in patch.");
-                            
+
+                            patchCount++;
                             HandleParsedPatch(rootApp, patchType, pointer, value);
                         }
                         bracketCount++;
@@ -101,6 +90,8 @@ namespace Starcounter.Internal.JsonPatch {
                     ex.Patch = Encoding.UTF8.GetString(body, patchStart, GetPatchLength(patchStart, body));
                 throw;
             }
+
+            return patchCount;
         }
 
         /// <summary>
@@ -371,11 +362,15 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value">The value.</param>
         /// <exception cref="System.Exception">TODO:</exception>
         private static void HandleParsedPatch(Json rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
-            AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
+            Debug.WriteLine("Handling patch for: " + pointer.ToString());
 
-            aat.App.ExecuteInScope(() => {
-                ((TValue)aat.Template).ProcessInput(aat.App, value);
-            });
+            if (rootApp != null) {
+                AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
+
+                aat.App.ExecuteInScope(() => {
+                    ((TValue)aat.Template).ProcessInput(aat.App, value);
+                });
+            }
         }
 
         /// <summary>
@@ -459,7 +454,15 @@ namespace Starcounter.Internal.JsonPatch {
                 });
             }
 
-            return new AppAndTemplate(mainApp, current as Template);
+            var tvalue = current as TValue;
+            if (!tvalue.Editable) {
+                throw new JsonPatchException(
+                    String.Format("Property '" + tvalue.PropertyName + "' is readonly."), 
+                    null
+                );
+            }
+
+            return new AppAndTemplate(mainApp, tvalue);
         }
     }
 }
