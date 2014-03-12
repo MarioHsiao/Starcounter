@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,12 +12,9 @@ namespace Starcounter.Hosting {
     /// aware of, based on loaded applications.
     /// </summary>
     internal sealed class PrivateAssemblyStore {
-        /// <summary>
-        /// The current store.
-        /// </summary>
-        public static readonly PrivateAssemblyStore Current = new PrivateAssemblyStore();
 
-        private PrivateAssemblyStore() {
+        public void RegisterApplicationDirectory(DirectoryInfo dir) {
+
         }
     }
 }

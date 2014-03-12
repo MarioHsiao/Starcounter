@@ -95,6 +95,8 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
 
+        static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
+
         [ThreadStatic]
         private static Stopwatch stopwatch_;
 
@@ -108,19 +110,25 @@ namespace StarcounterInternal.Hosting
         {
             Assembly assembly = null;
 
-            var assemblyName = args.Name;
-            var assemblyNameElems = assemblyName.Split(',');
-            var assemblyFileName = string.Concat(assemblyNameElems[0], ".dll");
-            var assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
-            if (assemblyFileInfo == null)
-            {
-                assemblyFileName = string.Concat(assemblyNameElems[0], ".exe");
-                assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
-            }
+            assembly = assemblyResolver.ResolveApplicationReference(args);
 
-            if (assemblyFileInfo != null)
-            {
-                assembly = Assembly.LoadFile(assemblyFileInfo.FullName);
+            // TODO:
+            // Remove this fallback, including the bin briefcase, when the
+            // new design is fully in place. Just forward this call to the
+            // resolver, as done above.
+            if (assembly == null) {
+                var assemblyName = args.Name;
+                var assemblyNameElems = assemblyName.Split(',');
+                var assemblyFileName = string.Concat(assemblyNameElems[0], ".dll");
+                var assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
+                if (assemblyFileInfo == null) {
+                    assemblyFileName = string.Concat(assemblyNameElems[0], ".exe");
+                    assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
+                }
+
+                if (assemblyFileInfo != null) {
+                    assembly = Assembly.LoadFile(assemblyFileInfo.FullName);
+                }
             }
 
             return assembly;
@@ -225,6 +233,8 @@ namespace StarcounterInternal.Hosting
 
             // TODO: Handle duplicates.
 
+            assemblyResolver.PrivateAssemblies.RegisterApplicationDirectory(inputFile.Directory);
+            
             privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
 
             OnInputVerifiedAndAssemblyResolverUpdated();
@@ -254,7 +264,7 @@ namespace StarcounterInternal.Hosting
             // this one as a library. In such case, it might be loaded
             // from another directory.
 
-            var assembly = Assembly.LoadFile(inputFile.FullName);
+            var assembly = assemblyResolver.ResolveApplication(inputFile.FullName);
 
             OnTargetAssemblyLoaded();
 
