@@ -17,7 +17,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll")]
-        public extern static uint init_filter_lib(ulong hmenv);
+        public extern static uint init_filter_lib(ulong hmenv, ulong hlogs);
     }
 
     /// <summary>

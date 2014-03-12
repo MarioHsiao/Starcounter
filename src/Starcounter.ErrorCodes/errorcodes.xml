@@ -1321,6 +1321,9 @@
     <code hex="0091" severity="Error" name="ScErrBadSessionsDefaultTimeout">
         <message>Sessions default timeout is missing in configuration file or has invalid value.</message>
     </code>
+    <code hex="0092" severity="Error" name="ScErrBadApplicationName">
+        <message>Application name can only contain letters, numbers and underscores.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->

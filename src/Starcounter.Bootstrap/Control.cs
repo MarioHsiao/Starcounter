@@ -522,7 +522,7 @@ namespace StarcounterInternal.Bootstrap {
             e = sccoredb.sccoredb_connect(flags, schedulerCount, hmenv, hlogs, sccorelib.fix_get_performance_counter_file_map());
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = filter.init_filter_lib(hmenv);
+            e = filter.init_filter_lib(hmenv, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
