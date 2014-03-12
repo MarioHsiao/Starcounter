@@ -179,10 +179,14 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
     $document.bind('keypress', onKeyPress);
 
 
-    // Enabled CTRL+Enter to execute an query
+
+    /**
+     * On keypress event
+     * @param {event} event Key event
+     */
     function onKeyPress(event) {
 
-        if ($scope.canExecute() && event.ctrlKey && event.charCode == 10) {
+        if ($scope.canExecute() && event.ctrlKey && (event.keyCode == 10 || event.keyCode == 13)) {
             $scope.execute($scope.queryState.sqlQuery, $scope.queryState.selectedDatabaseName);
             event.preventDefault();
         }
