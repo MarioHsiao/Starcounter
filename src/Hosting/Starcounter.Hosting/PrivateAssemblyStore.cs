@@ -13,6 +13,7 @@ namespace Starcounter.Hosting {
     /// aware of, based on loaded applications.
     /// </summary>
     internal sealed class PrivateAssemblyStore {
+        readonly List<string> applicationDirectories = new List<string>();
         readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>();
         class PrivateBinaryFile {
             public AssemblyName Name;
@@ -23,16 +24,12 @@ namespace Starcounter.Hosting {
             }
         }
         
-        // What directories have we got in store?
-        // What assembly name does each file include (and when
-        // did we resolve that)?
-        // full_file_path -> info (assembly name, datetime)
-        
         public void RegisterApplicationDirectory(DirectoryInfo dir) {
             var binaries = new List<FileInfo>();
             binaries.AddRange(dir.GetFiles("*.dll"));
             binaries.AddRange(dir.GetFiles("*.exe"));
 
+            applicationDirectories.Add(dir.FullName);
             foreach (var binary in binaries) {
                 var record = new PrivateBinaryFile() { Resolved = DateTime.Now };
                 try {
@@ -43,10 +40,20 @@ namespace Starcounter.Hosting {
             }
         }
 
-        public object Assemblies {
-            get {
-                return fileToIdentity.Values.Where((f) => { return f.IsAssembly; });
-            }
+        /// <summary>
+        /// Evaluates the given <paramref name="applicationDirectory"/> to see
+        /// if it is a directory previously registered with the current store.
+        /// </summary>
+        /// <param name="applicationDirectory">The directory to look for.</param>
+        /// <returns><c>true</c> if the given directory is a known application
+        /// directory; <c>false</c> otherwise.</returns>
+        public bool IsApplicationDirectory(string applicationDirectory) {
+            return applicationDirectories.FirstOrDefault((candidate) => {
+                return string.Compare(
+                Path.GetFullPath(candidate).TrimEnd('\\'),
+                Path.GetFullPath(applicationDirectory).TrimEnd('\\'),
+                StringComparison.CurrentCultureIgnoreCase) == 0;
+            }) != null;
         }
 
         public AssemblyName GetAssembly(string filePath) {
