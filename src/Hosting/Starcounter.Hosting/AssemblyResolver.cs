@@ -42,6 +42,8 @@ namespace Starcounter.Hosting {
             var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, null, matches);
             if (resolved != null) {
+                // Debug log / trace this.
+                // TODO:
                 return resolved;
             }
 
@@ -69,9 +71,24 @@ namespace Starcounter.Hosting {
             // we can't resolve. If we find one, load that - and log if we do it
             // from another directory than the requestee. If we find several, we
             // need to determine which to load.
-            // TODO:
 
-            throw new NotImplementedException();
+            var candidates = PrivateAssemblies.GetAssemblies(name.Name);
+            if (candidates.Length == 0) {
+                // Debug log / trace this.
+                // TODO:
+                return null;
+            }
+
+            var pick = MatchOne(candidates, requesting);
+            if (pick == null) {
+                // Debug log / trace this.
+                // TODO:
+                return null;
+            }
+
+            // Debug log / trace this.
+            // TODO:
+            return Load(pick.Name, pick.Path);
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
@@ -88,6 +105,15 @@ namespace Starcounter.Hosting {
             return assemblies.FirstOrDefault((candidate) => {
                 return MatchByIdentity(candidate.GetName(), name);
             });
+        }
+
+        PrivateBinaryFile MatchOne(PrivateBinaryFile[] alternatives, Assembly requesting) {
+            // The match would be something like:
+            //   One in the same directory as the one requested.
+            //   One exactly matching the version (from any directory).
+            //   The first other.
+            // TODO:
+            return alternatives.Single();
         }
 
         bool MatchByIdentity(AssemblyName first, AssemblyName second) {
