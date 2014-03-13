@@ -96,7 +96,7 @@ namespace Starcounter.Hosting {
 
         IEnumerable<Assembly> MatchesByName(Assembly[] assemblies, AssemblyName name) {
             return assemblies.Where((candidate) => {
-                return candidate.GetName().Name == name.Name;
+                return AssemblyName.ReferenceMatchesDefinition(candidate.GetName(), name);
             });
         }
 
