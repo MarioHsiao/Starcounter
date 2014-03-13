@@ -1,16 +1,14 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.TObject;
+using System.IO;
+using System.Text;
 
-
-namespace Starcounter.Internal.XSON.JsonPatch.Tests {
-
+namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
-    class JsonPatchTests {
+    class GenerateJsonPatchTests {
         /// <summary>
         /// Sets up the test.
         /// </summary>
@@ -73,7 +71,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
-            TJson.UseCodegeneratedSerializer = false;
+            TObject.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -123,7 +121,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
-            TJson.UseCodegeneratedSerializer = false;
+            TObject.UseCodegeneratedSerializer = false;
 
             Person nickeDb = new Person();
             Person jockeDb = new Person();
@@ -184,7 +182,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
-            TJson.UseCodegeneratedSerializer = false;
+            TObject.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -261,7 +259,7 @@ Assert.AreEqual(facit, result );
 
             Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
 
-            var t = new TJson();
+            var t = new TObject();
             var fname = t.Add<TString>("FirstName"); 
             var lname = t.Add<TString>("LastName");
             j.Template = t;
