@@ -18,24 +18,32 @@ namespace Starcounter.Hosting {
 
         public Assembly ResolveApplication(string applicationHostFile) {
             var name = PrivateAssemblies.GetAssembly(applicationHostFile);
-            
-            var matches = 
-                AppDomain.CurrentDomain.GetAssemblies().Where((candidate) => {
-                return candidate.GetName().Name == name.Name;
-            });
 
-            if (matches == null /*matches.count == 0?*/) {
-                return Load(name, applicationHostFile);
+            var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
+            var resolved = MatchOne(name, applicationHostFile, matches);
+            if (resolved != null) {
+                // This is kind of an awkward case. We should either log it,
+                // or figure out if we need to prevent it. We must do testing
+                // with this case before we know our options for sure.
+                // TODO:
+
+                return resolved;
             }
 
-            var pick = PickMatch(name, applicationHostFile, matches);
-            return pick ?? Load(name, applicationHostFile);
+            return Load(name, applicationHostFile);
         }
 
         public Assembly ResolveApplicationReference(ResolveEventArgs args) {
+            var name = new AssemblyName(args.Name);
+
             // Always check first if we can find one loaded that has a signature
-            // we consider match. If we do, return that one.
-            // TODO:
+            // we consider a match. If we do, return that one.
+
+            var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
+            var resolved = MatchOne(name, null, matches);
+            if (resolved != null) {
+                return resolved;
+            }
 
             // If we find none, or if we don't consider them a match, start
             // looking for them in our private bin store.
@@ -70,10 +78,16 @@ namespace Starcounter.Hosting {
             return Assembly.LoadFile(assemblyFilePath);
         }
 
-        Assembly PickMatch(AssemblyName name, string applicationHostFile, IEnumerable<Assembly> assemblies) {
-            // TODO:
-            // Implement our matching algorithm
-            return null;
+        IEnumerable<Assembly> MatchesByName(Assembly[] assemblies, AssemblyName name) {
+            return assemblies.Where((candidate) => {
+                return candidate.GetName().Name == name.Name;
+            });
+        }
+
+        Assembly MatchOne(AssemblyName name, string applicationHostFile, IEnumerable<Assembly> assemblies) {
+            // Until we have our algorith in place, just return the
+            // first one with a matching name (or null).
+            return assemblies.FirstOrDefault();
         }
     }
 }
