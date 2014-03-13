@@ -248,6 +248,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onNewDatabase = function (database) {
+        $log.debug("_onNewDatabase:" + database.name);
 
         // Add additional properties
         database.console = "";
@@ -286,7 +287,10 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onRemovedDatabase = function (database) {
-        ConsoleService.unregisterEventListener(database.consoleListener);
+        $log.debug("_onRemovedDatabase:" + database.name);
+        if (database.running) {
+            ConsoleService.unregisterEventListener(database.consoleListener);
+        }
     }
 
 
@@ -295,6 +299,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onDatabaseStarted = function (database) {
+        $log.debug("_onDatabaseStarted:" + database.name);
         ConsoleService.registerEventListener(database.consoleListener);
     }
 
@@ -303,6 +308,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onDatabaseStopped = function (database) {
+        $log.debug("_onDatabaseStopped:" + database.name);
         ConsoleService.unregisterEventListener(database.consoleListener);
     }
 
@@ -451,6 +457,75 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
     }
 
+
+
+    /**
+     * Delete database
+     * @param {object} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     */
+    this.deleteDatabase = function (database, successCallback, errorCallback) {
+
+        var errorHeader = "Failed to delete database";
+        var job = { message: "Deleting database " + database.name };
+
+
+        JobFactory.AddJob(job);
+        var databaseUri = UtilsFactory.toRelativePath(database.uri);
+
+        $http.delete(databaseUri).then(function (response) {
+
+            // Success
+            JobFactory.RemoveJob(job);
+            $log.info("Database " + database.name + " was successfully deleted");
+
+            // TODO: Refresh applications (HostModelService)
+
+            // Refresh databases
+            self.refreshDatabases(successCallback, errorCallback);
+
+        }, function (response) {
+
+            // Error
+            JobFactory.RemoveJob(job);
+            var errorHeader = "Failed to delete database";
+            var messageObject;
+
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 404) {
+                    // 404 A database with the specified name was not found.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 409) {
+                    // 409 The database is already running or the Engine is not started.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
+                errorCallback(messageObject);
+            }
+
+        });
+
+    }
 
     /**
      * Get Database settings
