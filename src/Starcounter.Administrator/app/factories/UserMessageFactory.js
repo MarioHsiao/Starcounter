@@ -7,6 +7,7 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
 
     /**
      * Show Error message modal popup
+     * TODO: Use showModal instead of this
      * @param {string} title Title
      * @param {string} message Message
      * @param {string} helpLink HelpLink Url
@@ -32,7 +33,7 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
                 responseCallback(result);
             }
 
-        }, function (err) {
+        }, function () {
             NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
             //            $log.info('Modal dismissed at: ' + new Date());
         });
@@ -42,13 +43,13 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
 
     /**
      * Show Message box
+     * TODO: Use showModal instead of this
      * @param {string} title Title
      * @param {string} message Message
      * @param {object} buttons Buttons, Example: [{ result: 0, label: 'Ok', cssClass: 'btn' }, { result: 1, label: 'Cancel', cssClass: 'btn-danger' }]
      * @param {function} responseCallback Response Callback function
      */
     factory.showMessageBox = function (title, message, buttons, responseCallback) {
-
 
         var modalInstance = $modal.open({
             templateUrl: 'app/partials/modal.html',
@@ -66,10 +67,49 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
                 responseCallback(result);
             }
 
-        }, function (err) {
+        }, function () {
             NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
 
             //            $log.info('Modal dismissed at: ' + new Date());
+        });
+
+    }
+
+
+    /**
+      * Show Modal Window
+      * @param {string} templateUrl Template url
+      * @param {string} controllerName the controller name
+      * @param {model} model Data model
+      * @param {function} responseCallback Response Callback function
+      */
+    factory.showModal = function (templateUrl, controllerName, model, responseCallback) {
+
+        var modalInstance = $modal.open({
+            templateUrl: templateUrl,
+            controller: controllerName,
+            resolve: {
+                model: function () {
+                    return model;
+                }
+            }
+        });
+
+
+        modalInstance.result.then(function (result) {
+
+            if (typeof (responseCallback) == "function") {
+                responseCallback(result);
+            }
+
+        }, function (response) {
+
+            if (response !== undefined) {
+                NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+            }
+
+            responseCallback();
+
         });
 
     }
