@@ -5,6 +5,8 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.XSON.Tests {
     internal static class Helper {
+        internal const string PATCH = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
+
         internal static AppAndTemplate CreateSampleApp() {
             dynamic template = TObject.CreateFromJson(File.ReadAllText("SampleApp.json"));
             dynamic app = new Json() { Template = template };
@@ -21,6 +23,18 @@ namespace Starcounter.Internal.XSON.Tests {
             itemApp.IsDone = true;
 
             return new AppAndTemplate(app, template);
+        }
+
+        internal static string Jsonify(string input) {
+            return '"' + input + '"';
+        }
+
+        internal static Input<Json, Property<T>, T> CreateInput<T>(Json pup, Property<T> prop, T value) {
+            return new Input<Json, Property<T>, T>() {
+                App = pup,
+                Template = prop,
+                Value = value
+            }; 
         }
     }
 }
