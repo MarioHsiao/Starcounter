@@ -34,7 +34,7 @@ namespace Starcounter {
         /// Registers a routine to merge several responses.
         /// </summary>
         /// <param name="mergerRoutine">Provided merging routine.</param>
-        public static void MergeResponses(Func<Request, List<Response>, List<String>, Response> mergerRoutine)
+        public static void MergeResponses(Func<Request, List<Response>, Response> mergerRoutine)
         {
             _REST.RegisterResponsesMerger(mergerRoutine);
         }
