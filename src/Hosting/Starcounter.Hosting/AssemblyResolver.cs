@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.Hosting {
 
@@ -17,6 +16,8 @@ namespace Starcounter.Hosting {
         }
 
         public Assembly ResolveApplication(string applicationHostFile) {
+            Trace("Resolving application: {0}", applicationHostFile);
+
             var name = PrivateAssemblies.GetAssembly(applicationHostFile);
 
             var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
@@ -26,7 +27,7 @@ namespace Starcounter.Hosting {
                 // or figure out if we need to prevent it. We must do testing
                 // with this case before we know our options for sure.
                 // TODO:
-
+                Trace("Application loaded: {0}, resolved to {1}{2}", applicationHostFile, resolved.FullName, resolved.Location);
                 return resolved;
             }
 
@@ -34,6 +35,8 @@ namespace Starcounter.Hosting {
         }
 
         public Assembly ResolveApplicationReference(ResolveEventArgs args) {
+            Trace("Asked to resolve reference to {0}, requested by {1}", args.Name, args.RequestingAssembly == null ? "<unknown>" : args.RequestingAssembly.FullName);
+            
             var name = new AssemblyName(args.Name);
 
             // Always check first if we can find one loaded that has a signature
@@ -42,10 +45,11 @@ namespace Starcounter.Hosting {
             var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, null, matches);
             if (resolved != null) {
-                // Debug log / trace this.
-                // TODO:
+                Trace("Reference to {0} resolved to loaded assembly {1}:{2}", name.FullName, resolved.FullName, resolved.Location); 
                 return resolved;
             }
+
+            Trace("Could not resolve {0} to loaded assembly.", name.FullName);
 
             // If we find none, or if we don't consider them a match, start
             // looking for them in our private bin store.
@@ -55,15 +59,13 @@ namespace Starcounter.Hosting {
                 // We don't resolve references if we don't have a requesting
                 // assembly. There is a likelyhood this resolver is not what
                 // fits the needs, and we must tribute possible other resolvers.
-                // Debug log / trace this.
-                // TODO:
+                Trace("Failed resolving {0}: no requesting assembly", name.FullName);
                 return null;
             }
             else if (!PrivateAssemblies.IsApplicationDirectory(Path.GetDirectoryName(requesting.Location))) {
                 // We only resolve references between assemblies stored in any
                 // of the application directories.
-                // Debug log / trace this.
-                // TODO:
+                Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, requesting.Location);
                 return null;
             }
 
@@ -74,24 +76,21 @@ namespace Starcounter.Hosting {
 
             var candidates = PrivateAssemblies.GetAssemblies(name.Name);
             if (candidates.Length == 0) {
-                // Debug log / trace this.
-                // TODO:
+                Trace("Failed resolving {0}: no such assemblies found among private assemblies", name.FullName);
                 return null;
             }
 
             var pick = MatchOne(candidates, requesting);
             if (pick == null) {
-                // Debug log / trace this.
-                // TODO:
+                Trace("Failed resolving {0}: none of the {1} found assembly files matched.", name.FullName, candidates.Length);
                 return null;
             }
 
-            // Debug log / trace this.
-            // TODO:
             return Load(pick.Name, pick.Path);
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
+            Trace("Loading assembly {0} from {1}", name.FullName, assemblyFilePath);
             return Assembly.LoadFile(assemblyFilePath);
         }
 
@@ -134,6 +133,11 @@ namespace Starcounter.Hosting {
             }
 
             return match;
+        }
+
+        [Conditional("TRACE")]
+        static void Trace(string message, params object[] args) {
+            System.Diagnostics.Trace.WriteLine(string.Format(message, args));
         }
     }
 }
