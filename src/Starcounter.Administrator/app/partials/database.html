@@ -1,10 +1,11 @@
 ﻿<legend>Database - {{model.database.name}} <span ng-show="model.database.running" class="Running">(Running)</span>
-    <a class="btn btn-mini pull-right" href="#/databases"><i class="icon-resize-small"></i></a>
+    <a class="btn btn-mini pull-right" href="#/databases" title="Show Databases"><i class="icon-resize-small"></i></a>
 </legend>
 
 <div class="btn-toolbar">
     <div class="btn-group">
-        <a class="btn btn-primary" href="#/databases/{{model.database.name}}/settings">Settings</a>
+        <a class="btn btn-primary" href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>
+        <button ng-disabled='database.running == true' class="btn btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
     </div>
 </div>
 
@@ -14,7 +15,7 @@
             <button title="Refresh console" ng-show="model.database.consoleManualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnGetConsoleOutput(model.database)"><i class="icon-refresh"></i></button>
     </legend>
 
-    <div id="console" ng-style="sizeStyle()">
+    <div id="console" ng-style="sizeStyle()" title="Console output">
         <consolewindow ng-model="model.database.console"></consolewindow>
     </div>
 
