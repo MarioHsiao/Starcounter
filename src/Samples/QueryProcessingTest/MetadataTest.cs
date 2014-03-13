@@ -207,7 +207,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type is MappedType);
             Trace.Assert((c.Type as MappedType).DbTypeCode == (ushort)DbTypeCode.Int32);
             Trace.Assert(c.Type.Name == "Int32");
-            Trace.Assert((c.BaseTable as ClrView).AssemblyName == "QueryProcessingTest.exe");
+            Trace.Assert((c.BaseTable as ClrView).AssemblyName == "QueryProcessingTest");
             c = Db.SQL<TableColumn>("select c from tablecolumn c where name = ? and c.basetable is clrview", "WriteLoss").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
@@ -247,7 +247,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.Name == "DecimalProperty");
                 Trace.Assert(tc.BaseTable != null);
                 Trace.Assert(tc.BaseTable is ClrView);
-                Trace.Assert((tc.BaseTable as ClrView).AssemblyName == "QueryProcessingTest.exe");
+                Trace.Assert((tc.BaseTable as ClrView).AssemblyName == "QueryProcessingTest");
                 Trace.Assert((tc.BaseTable as ClrView).AppdomainName == "sccode.exe");
                 Trace.Assert(tc.Type != null);
                 Trace.Assert(tc.Type is MappedType);
