@@ -116,23 +116,7 @@ namespace Starcounter.Hosting {
         }
 
         bool MatchByIdentity(AssemblyName first, AssemblyName second) {
-            var match = first.Version.Major == second.Version.Major;
-            if (match) {
-                var key1 = first.GetPublicKey();
-                var key2 = second.GetPublicKey();
-
-                match = key1.Length == key2.Length;
-                if (match) {
-                    for (int i = 0; i < key1.Length; i++) {
-                        if (key1[i] != key2[i]) {
-                            match = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return match;
+            return first.Version.Major == second.Version.Major;
         }
 
         [Conditional("TRACE")]
