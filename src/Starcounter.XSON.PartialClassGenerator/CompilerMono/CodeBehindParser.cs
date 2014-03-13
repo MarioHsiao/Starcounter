@@ -17,7 +17,7 @@ namespace Starcounter.XSON.Compiler.Mono {
     /// </summary>
     public static class CodeBehindParser {
         /// <summary>
-        /// Parses the specified c# file using Roslyn and builds a metadata
+        /// Parses the specified c# file using Mono.CSharp and builds a metadata
         /// structure used to generate code for json Apps.
         /// </summary>
         /// <param name="className">Name of the class.</param>
