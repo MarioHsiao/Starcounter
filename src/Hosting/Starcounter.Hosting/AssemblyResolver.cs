@@ -62,7 +62,9 @@ namespace Starcounter.Hosting {
                 Trace("Failed resolving {0}: no requesting assembly", name.FullName);
                 return null;
             }
-            else if (!PrivateAssemblies.IsApplicationDirectory(Path.GetDirectoryName(requesting.Location))) {
+
+            var applicationDirectory = Path.GetDirectoryName(requesting.Location);
+            if (!PrivateAssemblies.IsApplicationDirectory(applicationDirectory)) {
                 // We only resolve references between assemblies stored in any
                 // of the application directories.
                 Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, requesting.Location);
@@ -80,7 +82,7 @@ namespace Starcounter.Hosting {
                 return null;
             }
 
-            var pick = MatchOne(candidates, requesting);
+            var pick = MatchOne(name, candidates, applicationDirectory);
             if (pick == null) {
                 Trace("Failed resolving {0}: none of the {1} found assembly files matched.", name.FullName, candidates.Length);
                 return null;
@@ -106,13 +108,18 @@ namespace Starcounter.Hosting {
             });
         }
 
-        PrivateBinaryFile MatchOne(PrivateBinaryFile[] alternatives, Assembly requesting) {
+        PrivateBinaryFile MatchOne(AssemblyName name, PrivateBinaryFile[] alternatives, string requestingApplicationDirectory) {
             // The match would be something like:
             //   One in the same directory as the one requested.
             //   One exactly matching the version (from any directory).
-            //   The first other.
+            //   The first other that we consider compatible.
             // TODO:
-            return alternatives.Single();
+            var pick = alternatives.FirstOrDefault((candidate) => {
+                return MatchByIdentity(candidate.Name, name) && 
+                    candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
+            });
+
+            return pick ?? alternatives.Single();
         }
 
         bool MatchByIdentity(AssemblyName first, AssemblyName second) {
