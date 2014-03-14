@@ -104,16 +104,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    }
-                    else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);
@@ -353,7 +348,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this._onApplicationStarted = function (application) {
 
-        $log.debug("Application started : " + application.Name + "(" + application.databaseName + ")");
+        $log.info("Application started : " + application.Name + "(" + application.databaseName + ")");
 
         application.running = true;
 
@@ -387,7 +382,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this._onApplicationStopped = function (application) {
 
-        $log.debug("Application stopped : " + application.Name + "(" + application.databaseName + ")");
+        $log.info("Application stopped : " + application.Name + "(" + application.databaseName + ")");
 
         ConsoleService.unregisterEventListener(application.consoleListener);
     }
@@ -567,20 +562,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                     else if (response.status == 500) {
                         // 500 Server Error
                         errorHeader = "Internal Server Error";
-                        if (response.data.hasOwnProperty("Text") == true) {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                        } else {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                        }
-
+                        messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                     }
                     else {
                         // Unhandle Error
-                        if (response.data.hasOwnProperty("Text") == true) {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                        } else {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                        }
+                        messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                     }
 
                     errorCallback(messageObject);
@@ -645,19 +631,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);
@@ -756,19 +734,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
 
