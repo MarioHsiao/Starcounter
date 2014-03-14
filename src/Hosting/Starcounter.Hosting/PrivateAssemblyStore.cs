@@ -13,12 +13,12 @@ namespace Starcounter.Hosting {
     /// assembly, located in one of the application directories.
     /// </summary>
     internal sealed class PrivateBinaryFile {
-        public readonly string Path;
+        public readonly string FilePath;
         public readonly AssemblyName Name;
         public readonly DateTime Resolved;
 
         public PrivateBinaryFile(string path) {
-            Path = path;
+            FilePath = path;
             Resolved = DateTime.Now;
             try {
                 Name = AssemblyName.GetAssemblyName(path);
@@ -31,7 +31,7 @@ namespace Starcounter.Hosting {
 
         public bool IsFromApplicaionDirectory(string dir) {
             return PrivateAssemblyStore.EqualDirectories(
-                System.IO.Path.GetDirectoryName(Path),
+                Path.GetDirectoryName(FilePath),
                 dir);
         }
     }
