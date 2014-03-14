@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System;
 using System.IO;
 using TJson = Starcounter.Templates.TObject;
+using Starcounter.Templates;
 
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
@@ -13,11 +14,34 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void InitializeTest() {
         }
 
+        [Test]
+        public static void TestMinimalTemplate() {
+            var tj = ReadTemplate("PartialClassGeneration/minimal.json");
+
+            var child = tj.Properties[0]; // Text$
+            Assert.AreEqual("Text$", child.TemplateName);
+            Assert.AreEqual("Text", child.PropertyName);
+            Assert.IsTrue(child.Editable);
+            Assert.IsInstanceOf<TString>(child);
+
+            child = tj.Properties[1]; // ServerCode
+            Assert.AreEqual("ServerCode", child.TemplateName);
+            Assert.AreEqual("ServerCode", child.PropertyName);
+            Assert.IsFalse(child.Editable);
+            Assert.IsInstanceOf<TLong>(child);
+
+            child = tj.Properties[4]; // CustomAction$
+            Assert.AreEqual("CustomAction$", child.TemplateName);
+            Assert.AreEqual("CustomAction", child.PropertyName);
+            Assert.IsTrue(child.Editable);
+            Assert.IsInstanceOf<TTrigger>(child);
+        }
 
         [Test]
         public static void GenerateMinimalClassWithoutCodebehind() {
             var tj = ReadTemplate("PartialClassGeneration/minimal.json");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+
             Console.WriteLine(codegen.GenerateCode());
         }
 
