@@ -33,10 +33,17 @@
                         </td>
 
                         <td>
-                            <div class="btn-group pull-right">
-                                <button ng-disabled='isBusy == true || database.running == true' class="btn btn-small btn-success" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
-                                <button ng-disabled='isBusy == true || database.running == false' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
+
+                            <div style='margin-top: 0px; margin-bottom: 0px' class="btn-toolbar pull-right">
+                                <div class="btn-group">
+                                    <button ng-disabled='database.running == true' class="btn btn-small btn-success" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
+                                    <button ng-disabled='database.running == false' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
+                                </div>
+
                             </div>
+
+
+
                         </td>
                     </tr>
 
@@ -65,12 +72,12 @@
                             <button ng-disabled='database.running == false' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
                         </div>
 
-                        <div class="btn-group pull-right">
+                        <div class="pull-right">
                             <button title="Refresh console" ng-show="database.consoleManualMode == true" class="btn btn-small pull-right" ng-click="btnGetConsoleOutput(database)"><i class="icon-refresh"></i></button>
                         </div>
                     </div>
 
-                    <div ng-style="{'height':'200px', 'width':'100%'}"  title="Console output">
+                    <div ng-style="{'height':'200px', 'width':'100%'}" title="Console output">
                         <consolewindow ng-model="database.console"></consolewindow>
                     </div>
 

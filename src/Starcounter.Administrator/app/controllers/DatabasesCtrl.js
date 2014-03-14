@@ -9,6 +9,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     $scope.databases = HostModelService.databases;
 
 
+
     /**
      * Get Console output
      * @param {object} database Database
@@ -84,6 +85,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
 
 
     }
+
 
 
     // Init

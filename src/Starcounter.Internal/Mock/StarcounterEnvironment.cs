@@ -12,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Starcounter.Internal
@@ -40,6 +41,12 @@ namespace Starcounter.Internal
         /// </summary>
         [ThreadStatic]
         public static string AppName;
+
+        /// <summary>
+        /// Name of the application.
+        /// </summary>
+        [ThreadStatic]
+        internal static string OrigMapperCallerAppName;
 
         /// <summary>
         /// Obtains current scheduler id.
@@ -114,6 +121,20 @@ namespace Starcounter.Internal
 
                 return isCodeHosted.Value;
             }
+        }
+
+        /// <summary>
+        /// Checks if given application name is legal.
+        /// </summary>
+        /// <param name="appName">Application name to test.</param>
+        /// <returns>True is name is allowed.</returns>
+        public static Boolean IsApplicationNameLegal(String appName)
+        {
+            // Checking if application name consists only of letters, numbers and underscore.
+            if (Regex.IsMatch(appName, @"^[\w]+$"))
+                return true;
+
+            return false;
         }
 
         /// <summary>

@@ -222,7 +222,7 @@ namespace Starcounter.Hosting {
                 // the installed host manager on first use (via an emitted call
                 // in the static class constructor). For system classes, we
                 // have to do this by hand.
-                if (typeDefs[0].Name == "Starcounter.Metadata.materialized_table") {
+                if (typeDefs[0].TableDef.Name == "materialized_table") {
                     InitTypeSpecifications();
                     OnTypeSpecificationsInitialized();
                 }
