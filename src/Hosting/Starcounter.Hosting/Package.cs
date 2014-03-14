@@ -15,6 +15,7 @@ using System.Threading;
 using System.IO;
 using Starcounter.Metadata;
 using Starcounter.SqlProcessor;
+using System.Collections.Generic;
 
 namespace Starcounter.Hosting {
 
@@ -201,12 +202,14 @@ namespace Starcounter.Hosting {
                     OnCleanClrViewsMetadata();
                 }
 
+                List<TypeDef> updateColumns = new List<TypeDef>();
                 for (int i = 0; i < typeDefs.Length; i++)
                 {
                     var typeDef = typeDefs[i];
                     var tableDef = typeDef.TableDef;
 
-                    tableDef = CreateOrUpdateDatabaseTable(tableDef);
+                    if (CreateOrUpdateDatabaseTable(ref tableDef))
+                        updateColumns.Add(typeDef);
                     typeDef.TableDef = tableDef;
 
                     // Remap properties representing columns in case the column
@@ -268,10 +271,11 @@ namespace Starcounter.Hosting {
         /// </summary>
         /// <param name="tableDef">The table def.</param>
         /// <returns>TableDef.</returns>
-        private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef) {
+        private bool CreateOrUpdateDatabaseTable(ref TableDef tableDef) {
             string tableName = tableDef.Name;
             TableDef storedTableDef = null;
             TableDef pendingUpgradeTableDef = null;
+            bool updated = false;
 
             Db.Transaction(() => {
                 storedTableDef = Db.LookupTable(tableName);
@@ -286,12 +290,15 @@ namespace Starcounter.Hosting {
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
+                updated = true;
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
+                updated = true;
             }
+            tableDef = storedTableDef;
 
-            return storedTableDef;
+            return updated;
         }
 
         /// <summary>
