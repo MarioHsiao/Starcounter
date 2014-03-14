@@ -28,6 +28,12 @@ namespace Starcounter.Hosting {
         public bool IsAssembly {
             get { return Name != null; }
         }
+
+        public bool IsFromApplicaionDirectory(string dir) {
+            return PrivateAssemblyStore.EqualDirectories(
+                System.IO.Path.GetDirectoryName(Path),
+                dir);
+        }
     }
 
     /// <summary>
@@ -58,10 +64,7 @@ namespace Starcounter.Hosting {
         /// directory; <c>false</c> otherwise.</returns>
         public bool IsApplicationDirectory(string applicationDirectory) {
             return applicationDirectories.FirstOrDefault((candidate) => {
-                return string.Compare(
-                Path.GetFullPath(candidate).TrimEnd('\\'),
-                Path.GetFullPath(applicationDirectory).TrimEnd('\\'),
-                StringComparison.CurrentCultureIgnoreCase) == 0;
+                return EqualDirectories(candidate, applicationDirectory);
             }) != null;
         }
 
@@ -76,6 +79,13 @@ namespace Starcounter.Hosting {
                 return candidate.IsAssembly && candidate.Name.Name == assemblyName;
             });
             return assemblies.ToArray();
+        }
+
+        public static bool EqualDirectories(string dir1, string dir2) {
+            return string.Compare(
+                Path.GetFullPath(dir1).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                Path.GetFullPath(dir2).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                StringComparison.CurrentCultureIgnoreCase) == 0;
         }
     }
 }
