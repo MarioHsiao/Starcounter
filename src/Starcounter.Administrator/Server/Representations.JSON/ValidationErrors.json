@@ -1,0 +1,4 @@
+﻿{
+	"$": { Namespace: "Starcounter.Administrator.Server" },
+	"Items" : [{PropertyName:"TurboText_en-GB_2", Text:"English"}]
+}

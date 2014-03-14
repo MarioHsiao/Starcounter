@@ -20,10 +20,12 @@ using Starcounter.Administrator.Server.Utilities;
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
-        public static void Executable_GET() {
+        /// <summary>
+        /// Register Application GET
+        /// </summary>
+        public static void Application_GET() {
 
-
-            // Get a list of all running Executables
+            // Get a list of all running Applications
             // Example response
             //{
             // "Items": [
@@ -90,9 +92,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                 catch (Exception e) {
                     return RestUtils.CreateErrorResponse(e);
                 }
-
             });
-
         }
     }
 }
