@@ -80,7 +80,7 @@ namespace QueryProcessingTest {
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
                 Trace.Assert(v.MaterializedTable != null);
-                Trace.Assert(v.MaterializedTable.Name == v.Name);
+                Trace.Assert(v.MaterializedTable.Name.LastDotWord() == v.Name);
                 count++;
             }
             Trace.Assert(count == 38);
