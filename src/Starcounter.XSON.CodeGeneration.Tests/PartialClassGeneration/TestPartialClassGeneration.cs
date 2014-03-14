@@ -23,18 +23,30 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual("Text", child.PropertyName);
             Assert.IsTrue(child.Editable);
             Assert.IsInstanceOf<TString>(child);
+            Assert.IsNotNull(child.Parent);
 
             child = tj.Properties[1]; // ServerCode
             Assert.AreEqual("ServerCode", child.TemplateName);
             Assert.AreEqual("ServerCode", child.PropertyName);
             Assert.IsFalse(child.Editable);
             Assert.IsInstanceOf<TLong>(child);
+            Assert.IsNotNull(child.Parent);
 
             child = tj.Properties[4]; // CustomAction$
             Assert.AreEqual("CustomAction$", child.TemplateName);
             Assert.AreEqual("CustomAction", child.PropertyName);
             Assert.IsTrue(child.Editable);
             Assert.IsInstanceOf<TTrigger>(child);
+            Assert.IsNotNull(child.Parent);
+
+            child = tj.Properties[5]; // List1
+            Assert.AreEqual("List1", child.TemplateName);
+            Assert.AreEqual("List1", child.PropertyName);
+            Assert.IsInstanceOf<TArray<Json>>(child);
+            Assert.IsNotNull(child.Parent);
+
+            child = ((TArray<Json>)child).ElementType;
+            Assert.IsNotNull(child.Parent);
         }
 
         [Test]
