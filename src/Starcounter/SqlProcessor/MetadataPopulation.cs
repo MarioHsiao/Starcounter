@@ -80,22 +80,51 @@ namespace Starcounter.SqlProcessor {
             });
         }
 
+        internal static string GetFullName(string tableName) {
+            return tableName.ReverseOrderDotWords() + ".Raw.Starcounter";
+        }
+
         internal static void CreateRawTableInstance(TypeDef typeDef) {
             MaterializedTable matTab = Db.SQL<MaterializedTable>(
                 "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+            Debug.Assert(matTab != null);
+            Debug.Assert(Db.SQL<RawView>("select v from rawview v where materializedtable = ?",
+                matTab).First == null);
             RawView parentTab = Db.SQL<RawView>(
                 "select v from rawview v where name = ?", typeDef.TableDef.BaseName).First;
-            Debug.Assert(matTab != null);
             RawView rawView = new RawView {
                 Name = typeDef.TableDef.Name.LastDotWord(),
                 MaterializedTable = matTab,
                 ParentTable = parentTab,
                 Updatable = true
             };
-            rawView.FullName = rawView.Name.ReverseOrderDotWords() + ".Raw.Starcounter";
+            rawView.FullName = GetFullName(rawView.Name);
         }
 
-        internal static void UpgradeRawTableInstance(TypeDef typeDef) { }
+        internal static void UpgradeRawTableInstance(TypeDef typeDef) {
+            Debug.Assert(Db.SQL<RawView>("select v from rawview v where v.materializedtable.name = ?",
+                typeDef.TableDef.Name).First == null); // Always dropped and new created
+            RawView thisType = Db.SQL<RawView>("select v from rawview v where fullname = ?",
+                GetFullName(typeDef.TableDef.Name)).First;
+            Debug.Assert(thisType != null);
+            Debug.Assert(thisType.MaterializedTable == null);
+            MaterializedTable matTab = Db.SQL<MaterializedTable>(
+                "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+            Debug.Assert(matTab != null);
+            thisType.MaterializedTable = matTab;
+            Debug.Assert(thisType.ParentTable == null || thisType.ParentTable is RawView);
+            if ((thisType.ParentTable == null) || (thisType.ParentTable as RawView).MaterializedTable.Name != typeDef.TableDef.BaseName) {
+                // The parent was changed
+                RawView newParent = null;
+                if (typeDef.TableDef.BaseName != null) {
+                    newParent = Db.SQL<RawView>("select v from rawview v where materializedtable.name = ?",
+                        typeDef.TableDef.BaseName).First;
+                    Debug.Assert(newParent != null);
+                }
+                thisType.ParentTable = newParent;
+            }
+        }
+
         internal static void RemoveTableColumnInstances(TypeDef typeDef) { }
         internal static void CreateTableColumnInstances(TypeDef typeDef) { }
     }
