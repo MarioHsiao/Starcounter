@@ -35,6 +35,9 @@
    login: event,
 
    untypedList: [{}],
+   untypedList2: [{}],
+
+   someObject: { name: "apa" },
 
    $doubleToDecimal: {Type:"decimal", Bind: null},
 
