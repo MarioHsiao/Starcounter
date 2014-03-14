@@ -109,21 +109,32 @@ namespace Starcounter.Hosting {
         }
 
         PrivateBinaryFile MatchOne(AssemblyName name, PrivateBinaryFile[] alternatives, string requestingApplicationDirectory) {
-            // The match would be something like:
-            //   One in the same directory as the one requested.
-            //   One exactly matching the version (from any directory).
-            //   The first other that we consider compatible.
-            // TODO:
+            // The match is:
+            //   1. A compatible one in the same directory as the one requsting the file.
+            //   2. A semantically matching version (from any directory).
+            //   3. The first other that compatible.
+            //   4. None.
+
             var pick = alternatives.FirstOrDefault((candidate) => {
                 return MatchByIdentity(candidate.Name, name) && 
                     candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
             });
 
-            return pick ?? alternatives.Single();
+            pick = pick ?? alternatives.FirstOrDefault((candidate) => {
+                return MatchByIdentity(candidate.Name, name, true);
+            });
+
+            pick = pick ?? alternatives.FirstOrDefault((candidate) => {
+                return MatchByIdentity(candidate.Name, name);
+            });
+
+            return pick;
         }
 
-        bool MatchByIdentity(AssemblyName first, AssemblyName second) {
-            return first.Version.Major == second.Version.Major;
+        bool MatchByIdentity(AssemblyName first, AssemblyName second, bool includeMinor = false) {
+            var match = first.Version.Major == second.Version.Major;
+            if (includeMinor) match = first.Version.Minor == second.Version.Minor;
+            return match;
         }
 
         [Conditional("TRACE")]
