@@ -22,6 +22,12 @@ namespace Starcounter {
         string AsMimeType(MimeType mimeType);
 
         /// <summary>
+        /// The way to get a URL for HTML partial if any.
+        /// </summary>
+        /// <returns></returns>
+        string GetHtmlPartialUrl();
+
+        /// <summary>
         /// Override this method to provide a custom conversion when a request
         /// is made to some other mime type than "application/json".
         /// </summary>

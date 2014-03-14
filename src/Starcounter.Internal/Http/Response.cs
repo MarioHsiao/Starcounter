@@ -157,6 +157,11 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Application by which the response was produced.
+        /// </summary>
+        public String AppName;
+
+        /// <summary>
         /// The plain response bytes.
         /// </summary>
         private byte[] responseBytes_ = null;

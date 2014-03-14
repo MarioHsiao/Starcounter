@@ -17,7 +17,7 @@ namespace Starcounter.Internal.Test
         [Test]
         public void Test1()
         {
-            Handle.MergeResponses((Request req, List<Response> responses, List<String> appNames) => {
+            Handle.MergeResponses((Request req, List<Response> responses) => {
 
                 StringBuilder sb = new StringBuilder();
 
@@ -44,7 +44,7 @@ namespace Starcounter.Internal.Test
 
                         for (Int32 i = 0; i < responses.Count; i++)
                         {
-                            sb.Append("<template bind=\"{{" + appNames[i] + "}}\">\n");
+                            sb.Append("<template bind=\"{{" + responses[i].AppName + "}}\">\n");
                             sb.Append(responses[i].Body);
                             sb.Append("</template>\n");
                         }
@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Test
                         Int32 n = responses.Count;
                         for (Int32 i = 0; i < n; i++)
                         {
-                            sb.Append("\"" + appNames[i] + "\":");
+                            sb.Append("\"" + responses[i].AppName + "\":");
                             sb.Append(responses[i].Body);
                             if (i < n - 1)
                                 sb.Append(",");
