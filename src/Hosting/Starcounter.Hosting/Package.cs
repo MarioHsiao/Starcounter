@@ -208,9 +208,8 @@ namespace Starcounter.Hosting {
                     var typeDef = typeDefs[i];
                     var tableDef = typeDef.TableDef;
 
-                    if (CreateOrUpdateDatabaseTable(ref tableDef))
+                    if (CreateOrUpdateDatabaseTable(typeDef))
                         updateColumns.Add(typeDef);
-                    typeDef.TableDef = tableDef;
 
                     // Remap properties representing columns in case the column
                     // order has changed.
@@ -219,6 +218,10 @@ namespace Starcounter.Hosting {
                         tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
                         );
                 }
+                foreach (TypeDef typeDef in updateColumns)
+                    Db.SystemTransaction(delegate {
+                        MetadataPopulation.CreateTableColumnInstances(typeDef);
+                    });
 
                 OnDatabaseSchemaCheckedAndUpdated();
 
@@ -271,7 +274,8 @@ namespace Starcounter.Hosting {
         /// </summary>
         /// <param name="tableDef">The table def.</param>
         /// <returns>TableDef.</returns>
-        private bool CreateOrUpdateDatabaseTable(ref TableDef tableDef) {
+        private bool CreateOrUpdateDatabaseTable(TypeDef typeDef) {
+            TableDef tableDef = typeDef.TableDef;
             string tableName = tableDef.Name;
             TableDef storedTableDef = null;
             TableDef pendingUpgradeTableDef = null;
@@ -285,18 +289,28 @@ namespace Starcounter.Hosting {
             if (pendingUpgradeTableDef != null) {
                 var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
                 storedTableDef = continueTableUpgrade.ContinueEval();
+                Db.SystemTransaction(delegate {
+                    MetadataPopulation.UpgradeRawTableInstance(typeDef);
+                    updated = true;
+                });
             }
 
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
-                updated = true;
+                Db.SystemTransaction(delegate {
+                    MetadataPopulation.CreateRawTableInstance(typeDef);
+                    updated = true;
+                });
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
-                updated = true;
+                Db.SystemTransaction(delegate {
+                    MetadataPopulation.UpgradeRawTableInstance(typeDef);
+                    updated = true;
+                });
             }
-            tableDef = storedTableDef;
+            typeDef.TableDef = storedTableDef;
 
             return updated;
         }

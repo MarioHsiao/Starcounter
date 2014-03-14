@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public static class MetadataPopulation {
-        public static unsafe void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
+        internal static void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
             Db.SystemTransaction(delegate {
                 ClrView[] createdViews = new ClrView[typeDefs.Length];
                 // Insert meta-data about types
@@ -78,5 +78,10 @@ namespace Starcounter.SqlProcessor {
                 }
             });
         }
+
+        internal static void CreateRawTableInstance(TypeDef typeDef) { }
+        internal static void UpgradeRawTableInstance(TypeDef typeDef) { }
+        internal static void RemoveTableColumnInstances(TypeDef typeDef) { }
+        internal static void CreateTableColumnInstances(TypeDef typeDef) { }
     }
 }
