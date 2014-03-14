@@ -87,12 +87,12 @@ namespace Starcounter.SqlProcessor {
                 "select v from rawview v where name = ?", typeDef.TableDef.BaseName).First;
             Debug.Assert(matTab != null);
             RawView rawView = new RawView {
-                Name = typeDef.TableDef.Name,
+                Name = typeDef.TableDef.Name.LastDotWord(),
                 MaterializedTable = matTab,
                 ParentTable = parentTab,
                 Updatable = true
             };
-            rawView.FullName = rawView.Name.ReverseOrderDotWords() + "Raw.Starcounter";
+            rawView.FullName = rawView.Name.ReverseOrderDotWords() + ".Raw.Starcounter";
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) { }
