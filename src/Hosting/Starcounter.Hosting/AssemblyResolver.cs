@@ -88,7 +88,7 @@ namespace Starcounter.Hosting {
                 return null;
             }
 
-            return Load(pick.Name, pick.Path);
+            return Load(pick.Name, pick.FilePath);
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
