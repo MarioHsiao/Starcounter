@@ -20,7 +20,7 @@ namespace Starcounter.Hosting {
 
             var name = PrivateAssemblies.GetAssembly(applicationHostFile);
 
-            var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
+            var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, applicationHostFile, matches);
             if (resolved != null) {
                 // This is kind of an awkward case. We should either log it,
@@ -42,7 +42,7 @@ namespace Starcounter.Hosting {
             // Always check first if we can find one loaded that has a signature
             // we consider a match. If we do, return that one.
 
-            var matches = MatchesByName(AppDomain.CurrentDomain.GetAssemblies(), name);
+            var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, null, matches);
             if (resolved != null) {
                 Trace("Reference to {0} resolved to loaded assembly {1}:{2}", name.FullName, resolved.FullName, resolved.Location); 
@@ -96,7 +96,7 @@ namespace Starcounter.Hosting {
             return Assembly.LoadFile(assemblyFilePath);
         }
 
-        IEnumerable<Assembly> MatchesByName(Assembly[] assemblies, AssemblyName name) {
+        IEnumerable<Assembly> GetAllWithName(Assembly[] assemblies, AssemblyName name) {
             return assemblies.Where((candidate) => {
                 return AssemblyName.ReferenceMatchesDefinition(candidate.GetName(), name);
             });
@@ -104,7 +104,7 @@ namespace Starcounter.Hosting {
 
         Assembly MatchOne(AssemblyName name, string applicationHostFile, IEnumerable<Assembly> assemblies) {
             return assemblies.FirstOrDefault((candidate) => {
-                return MatchByIdentity(candidate.GetName(), name);
+                return IsCompatibleVersions(candidate.GetName(), name);
             });
         }
 
@@ -116,22 +116,22 @@ namespace Starcounter.Hosting {
             //   4. None.
 
             var pick = alternatives.FirstOrDefault((candidate) => {
-                return MatchByIdentity(candidate.Name, name) && 
+                return IsCompatibleVersions(candidate.Name, name) && 
                     candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
             });
 
             pick = pick ?? alternatives.FirstOrDefault((candidate) => {
-                return MatchByIdentity(candidate.Name, name, true);
+                return IsCompatibleVersions(candidate.Name, name, true);
             });
 
             pick = pick ?? alternatives.FirstOrDefault((candidate) => {
-                return MatchByIdentity(candidate.Name, name);
+                return IsCompatibleVersions(candidate.Name, name);
             });
 
             return pick;
         }
 
-        bool MatchByIdentity(AssemblyName first, AssemblyName second, bool includeMinor = false) {
+        bool IsCompatibleVersions(AssemblyName first, AssemblyName second, bool includeMinor = false) {
             var match = first.Version.Major == second.Version.Major;
             if (includeMinor) match = first.Version.Minor == second.Version.Minor;
             return match;
