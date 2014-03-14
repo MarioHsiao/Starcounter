@@ -100,13 +100,18 @@ namespace Starcounter.Rest
         /// <summary>
         /// List of user delegates.
         /// </summary>
-        List<Func<Request, IntPtr, IntPtr, Response>> user_delegates_ = null;
+        List<Func<Request, IntPtr, IntPtr, Response>> userDelegates_ = null;
 
         /// <summary>
         /// List of application names.
         /// </summary>
-        List<String> app_names_ = null;
+        List<String> appNames_ = null;
 
+        /// <summary>
+        /// Mapper handler index.
+        /// </summary>
+        Int32 mapperHandlerIndex_ = -1;
+        
         /// <summary>
         /// Runs all user delegates.
         /// </summary>
@@ -116,34 +121,59 @@ namespace Starcounter.Rest
         /// <returns>Response or merged response.</returns>
         public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo) {
 
-            Debug.Assert(user_delegates_ != null);
+            Debug.Assert(userDelegates_ != null);
 
             // Checking if there is only one delegate.
-            if (user_delegates_.Count == 1) {
-                StarcounterEnvironment.AppName = app_names_[0];
-                return user_delegates_[0](req, methodAndUri, rawParamsInfo);
+            if (userDelegates_.Count == 1) {
+                StarcounterEnvironment.AppName = appNames_[0];
+                return userDelegates_[0](req, methodAndUri, rawParamsInfo);
             }
             
             List<Response> responses = new List<Response>();
 
-            // Running every delegate from the list.
-            for (int i = 0; i < user_delegates_.Count; i++) {
-                var func = user_delegates_[i];
-                StarcounterEnvironment.AppName = app_names_[i];
-                responses.Add(func(req, methodAndUri, rawParamsInfo));   
+            // Checking if we have an external call and mapper handler defined.
+            if ((mapperHandlerIndex_ >= 0) && (!Handle.CallOnlyNonMapperHandlers)) {
+                
+                StarcounterEnvironment.AppName = appNames_[mapperHandlerIndex_];
+                StarcounterEnvironment.OrigMapperCallerAppName = appNames_[mapperHandlerIndex_];
+                Response resp = userDelegates_[mapperHandlerIndex_](req, methodAndUri, rawParamsInfo);
+
+                return resp;
             }
 
+            // Running every delegate from the list.
+            for (int i = 0; i < userDelegates_.Count; i++) {
+                var func = userDelegates_[i];
+
+                // If handler is a mapper and we in non-mapper mode - just skip this handler.
+                if (Handle.CallOnlyNonMapperHandlers && (mapperHandlerIndex_ == i))
+                    continue;
+
+                StarcounterEnvironment.AppName = appNames_[i];
+                Response resp = func(req, methodAndUri, rawParamsInfo);
+
+                // Setting to which application the response belongs.
+                resp.AppName = appNames_[i];
+
+                // The first response is the one we should merge on.
+                if (appNames_[i] == StarcounterEnvironment.OrigMapperCallerAppName)
+                    responses.Insert(0, resp);
+                else
+                    responses.Add(resp);
+            }
+
+            Handle.CallOnlyNonMapperHandlers = false;
+
             // Checking if we have a response merging function defined.
-            if (UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null)
+            if ((responses.Count > 1) &&
+                (UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null))
             {
                 // Creating merged response.
-                return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses, app_names_);
+                return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses);
+            } else {
+
+                return responses[0];
             }
-            
-            return new Response() {
-                StatusDescription = "Response merging function is not defined",
-                StatusCode = 404
-            };
         }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();
@@ -163,7 +193,7 @@ namespace Starcounter.Rest
         {
             get {
                 String combinedAppNames = "";
-                foreach (String a in app_names_)
+                foreach (String a in appNames_)
                     combinedAppNames += a + "-";
 
                 return combinedAppNames.TrimEnd(new Char[] { '-' });
@@ -193,13 +223,18 @@ namespace Starcounter.Rest
         public void Destroy()
         {
             uri_info_.Destroy();
-            user_delegates_ = null;
+            userDelegates_ = null;
         }
 
         public void AddDelegateToList(Func<Request, IntPtr, IntPtr, Response> user_delegate)
         {
-            user_delegates_.Add(user_delegate);
-            app_names_.Add(StarcounterEnvironment.AppName);
+            userDelegates_.Add(user_delegate);
+            appNames_.Add(StarcounterEnvironment.AppName);
+
+            if (Handle.IsMapperHandler) {
+                mapperHandlerIndex_ = appNames_.Count - 1;
+                Handle.IsMapperHandler = false;
+            }
         }
 
         public void Init(
@@ -223,13 +258,19 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
 
-            Debug.Assert(user_delegates_ == null);
+            Debug.Assert(userDelegates_ == null);
 
-            user_delegates_ = new List<Func<Request,IntPtr,IntPtr,Response>>();
-            user_delegates_.Add(user_delegate);
+            userDelegates_ = new List<Func<Request,IntPtr,IntPtr,Response>>();
+            userDelegates_.Add(user_delegate);
 
-            app_names_ = new List<String>();
-            app_names_.Add(StarcounterEnvironment.AppName);
+            appNames_ = new List<String>();
+            appNames_.Add(StarcounterEnvironment.AppName);
+
+            if (Handle.IsMapperHandler)
+            {
+                mapperHandlerIndex_ = appNames_.Count - 1;
+                Handle.IsMapperHandler = false;
+            }
 
             uri_info_.InitUriPointers();
         }
@@ -246,7 +287,7 @@ namespace Starcounter.Rest
 
         Int32 maxNumHandlersEntries_ = 0;
 
-        internal Func<Request, List<Response>, List<String>, Response> ResponsesMergerRoutine_;
+        internal Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
 
         public HandleInternalRequestDelegate HandleInternalRequest_;
 
@@ -357,11 +398,17 @@ namespace Starcounter.Rest
                 r.PortNumber = uhi.UriInfo.port_;
                 r.MethodEnum = uhi.UriInfo.http_method_;
 
+                // Saving original application name.
+                String origAppName = StarcounterEnvironment.AppName;
+
                 // Calling user delegate.
                 resp = uhi.RunUserDelegates(
                     r,
                     r.GetRawMethodAndUri(),
                     r.GetRawParametersInfo());
+
+                // Setting back the application name.
+                StarcounterEnvironment.AppName = origAppName;
             }
         }
 

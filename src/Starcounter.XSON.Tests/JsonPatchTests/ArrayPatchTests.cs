@@ -5,10 +5,10 @@ using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 
-namespace Starcounter.Internal.XSON.JsonPatch.Tests {
+namespace Starcounter.Internal.XSON.Tests {
 
     [TestFixture]
-    class ArrayPatchTests : JsonPatchTests {
+    class ArrayPatchTests : GenerateJsonPatchTests {
         [Test]
         public static void TestJsonPatchSimpleArray() {
 			dynamic j = new Json();
