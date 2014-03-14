@@ -83,6 +83,13 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.MaterializedTable.Name == v.Name);
                 count++;
             }
+            Trace.Assert(count == 38);
+            count = 0;
+            foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", false)) {
+                Trace.Assert(v.MaterializedTable != null);
+                Trace.Assert(v.MaterializedTable.Name == v.Name);
+                count++;
+            }
             Trace.Assert(count == 16);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "materialized_index").First;
             Trace.Assert(rv != null);

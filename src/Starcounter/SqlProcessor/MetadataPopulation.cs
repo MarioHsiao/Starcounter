@@ -34,7 +34,8 @@ namespace Starcounter.SqlProcessor {
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
                         AppdomainName = AppDomain.CurrentDomain.FriendlyName,
-                        ParentTable = parentView
+                        ParentTable = parentView,
+                        Updatable = app == null ? false : true
                     };
                     createdViews[j] = obj;
                 }
@@ -79,7 +80,21 @@ namespace Starcounter.SqlProcessor {
             });
         }
 
-        internal static void CreateRawTableInstance(TypeDef typeDef) { }
+        internal static void CreateRawTableInstance(TypeDef typeDef) {
+            MaterializedTable matTab = Db.SQL<MaterializedTable>(
+                "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+            RawView parentTab = Db.SQL<RawView>(
+                "select v from rawview v where name = ?", typeDef.TableDef.BaseName).First;
+            Debug.Assert(matTab != null);
+            RawView rawView = new RawView {
+                Name = typeDef.TableDef.Name,
+                MaterializedTable = matTab,
+                ParentTable = parentTab,
+                Updatable = true
+            };
+            rawView.FullName = rawView.Name.ReverseOrderDotWords() + "Raw.Starcounter";
+        }
+
         internal static void UpgradeRawTableInstance(TypeDef typeDef) { }
         internal static void RemoveTableColumnInstances(TypeDef typeDef) { }
         internal static void CreateTableColumnInstances(TypeDef typeDef) { }
