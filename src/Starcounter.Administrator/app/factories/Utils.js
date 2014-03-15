@@ -33,6 +33,33 @@ adminModule.factory('UtilsFactory', ['$log', function ($log) {
         return { isError: true, header: header, message: message, helpLink: (helpLink) ? helpLink : null, stackTrace: (stackTrace) ? stackTrace : null };
     }
 
+    /**
+     * Create a Error Message object
+     * @param {string} header Header
+     * @param {object} data Data
+     */
+    factory.createServerErrorMessage = function (header, data) {
+
+        //{
+        //    "Text": "ScErrUnexpectedCommandException (SCERR10016): Creating database...",
+        //    "StackTrace": "StackTrace...",
+        //    "LogEntry":"",
+        //    "ServerCode": 10016,
+        //    "Helplink":"https://github.com/Starcounter/Starcounter/wiki/SCERR10016"
+        //}
+
+        if (typeof data == 'string' || data instanceof String) {
+            // it's a string
+            return { isError: true, header: header, message: data, helpLink: null, stackTrace: null };
+        }
+        else {
+            // it's something else
+            return { isError: true, header: header, message: data.Text, helpLink: (data.Helplink) ? data.Helplink : null, stackTrace: (data.StackTrace) ? data.StackTrace : null };
+        }
+
+    }
+
+
 
     /**
      * Update Object
@@ -59,7 +86,7 @@ adminModule.factory('UtilsFactory', ['$log', function ($log) {
                 destination[propertyName] = source[propertyName];
 
                 if (typeof (properyChangedCallback) == "function") {
-                    properyChangedCallback({ propertyName: propertyName, source:destination, newValue: destination[propertyName], oldValue: oldValue });
+                    properyChangedCallback({ propertyName: propertyName, source: destination, newValue: destination[propertyName], oldValue: oldValue });
 
                 }
 
