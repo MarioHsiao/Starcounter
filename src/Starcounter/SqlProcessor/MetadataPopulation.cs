@@ -123,9 +123,65 @@ namespace Starcounter.SqlProcessor {
                 }
                 thisType.ParentTable = newParent;
             }
+            RemoveTableColumnInstances(thisType);
         }
 
-        internal static void RemoveTableColumnInstances(TypeDef typeDef) { }
-        internal static void CreateTableColumnInstances(TypeDef typeDef) { }
+        internal static void RemoveTableColumnInstances(RawView thisView) {
+            Debug.Assert(thisView != null);
+            foreach(TableColumn t in Db.SQL<TableColumn>(
+                "select t from tablecolumn t where t.basetable = ?", thisView)) {
+                    Debug.Assert(t.BaseTable.Equals(thisView));
+                    t.Delete();
+            }
+        }
+        internal static void CreateTableColumnInstances(TypeDef typeDef) {
+            RawView thisView = Db.SQL<RawView>("select v from rawview v where materializedtable.name =?",
+        typeDef.TableDef.Name).First;
+            Debug.Assert(thisView != null);
+            for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
+                ColumnDef col = typeDef.TableDef.ColumnDefs[i];
+                MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
+                    "select c from materializedcolumn c where name = ? and table = ?",
+                    col.Name, thisView.MaterializedTable).First;
+                Debug.Assert(matCol != null);
+                TableColumn newCol = new TableColumn {
+                    BaseTable = thisView,
+                    Name = matCol.Name,
+                    MaterializedColumn = matCol
+                };
+                if (col.Type == sccoredb.STAR_TYPE_REFERENCE) {
+                    PropertyDef prop = typeDef.PropertyDefs[0];
+                    for (int j = 1; prop.ColumnName != col.Name; j++) {
+                        Debug.Assert(j < typeDef.PropertyDefs.Length);
+                        prop = typeDef.PropertyDefs[j];
+                    }
+                    newCol.Type = Db.SQL<RawView>("select v from rawview v where materializedtable.name = ?",
+                        prop.TargetTypeName).First;
+                } else
+                    newCol.Type = Db.SQL<MaterializedType>(
+                        "select t from materializedtype t where primitivetype = ?",
+                        col.Type).First;
+                Debug.Assert(newCol.Type != null);
+            }
+            //var nrColumns = typeDef.TableDef.ColumnDefs.Length;
+            //for (int colIndex = 1, propIndex = 0; colIndex < nrColumns; ) {
+            //    ColumnDef col = typeDef.TableDef.ColumnDefs[colIndex];
+            //    PropertyDef prop = typeDef.PropertyDefs[propIndex];
+            //    if (col.Name == prop.ColumnName) {
+            //        MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
+            //            "select c from materializedcolumn c where name = ? and table = ?",
+            //            col.Name, thisView.MaterializedTable).First;
+            //        Debug.Assert(matCol != null);
+            //        TableColumn newCol = new TableColumn {
+            //            BaseTable = thisView,
+            //            Name = matCol.Name,
+            //            MaterializedColumn = matCol,
+            //            Type = null // TODO
+            //        };
+            //        colIndex++;
+            //    }
+            //    propIndex++;
+            //}
+        }
     }
 }

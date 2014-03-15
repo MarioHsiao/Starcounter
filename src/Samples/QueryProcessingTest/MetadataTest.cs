@@ -168,7 +168,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
             int nrColumns = 0;
-            foreach (TableColumn tc in Db.SQL<TableColumn>("select c from Tablecolumn c where c.BaseTable is RawView")) {
+            foreach (TableColumn tc in Db.SQL<TableColumn>(
+                "select c from Tablecolumn c, rawview v where c.BaseTable = v and v.updatable = ?", false)) {
                 Trace.Assert(tc.Type != null);
                 if (tc.Type is HostMaterializedTable)
                     Trace.Assert((tc.Type as HostMaterializedTable).MaterializedTable.Name == tc.Type.Name);
@@ -184,6 +185,19 @@ namespace QueryProcessingTest {
                 nrColumns++;
             }
             Trace.Assert(nrColumns == 20 + 19);
+            nrColumns = 0;
+            foreach (TableColumn tc in Db.SQL<TableColumn>("select c from Tablecolumn c where c.BaseTable is RawView")) {
+                Trace.Assert(tc.Type != null);
+                if (tc.Type is MaterializedType)
+                    Trace.Assert((tc.Type as MaterializedType).PrimitiveType != sccoredb.STAR_TYPE_REFERENCE);
+                Trace.Assert(tc.BaseTable != null);
+                Trace.Assert(tc.BaseTable is RawView);
+                Trace.Assert(tc.MaterializedColumn != null);
+                Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
+                Trace.Assert(!tc.Unique);
+                nrColumns++;
+            }
+            Trace.Assert(nrColumns == 100);
             MaterializedIndex i = Db.SQL<MaterializedIndex>("select i from materializedindex i where name = ?",
                 "TableColumnPrimaryKey").First;
             Trace.Assert(i != null);
@@ -249,7 +263,8 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as ClrView).Name == "User");
             Trace.Assert((c.Type as ClrView).FullClassName == "QueryProcessingTest.User");
             nrcc = 0;
-            foreach (TableColumn tc in Db.SQL<TableColumn>("select c from tablecolumn c where name = ?", "DecimalProperty")) {
+            foreach (TableColumn tc in Db.SQL<TableColumn>(
+                "select c from tablecolumn c where name = ? and basetable is clrview", "DecimalProperty")) {
                 nrcc++;
                 Trace.Assert(tc.Name == "DecimalProperty");
                 Trace.Assert(tc.BaseTable != null);
@@ -265,6 +280,29 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn.Table.Name == (tc.BaseTable as ClrView).FullClassName);
             }
             Trace.Assert(nrcc == 7);
+            nrcc = 0;
+            foreach (TableColumn tc in Db.SQL<TableColumn>("select c from tablecolumn c where name = ?", "DecimalProperty")) {
+                nrcc++;
+                Trace.Assert(tc.Name == "DecimalProperty");
+                Trace.Assert(tc.BaseTable != null);
+                if (tc.BaseTable is ClrView) {
+                    Trace.Assert((tc.BaseTable as ClrView).AssemblyName == "QueryProcessingTest");
+                    Trace.Assert((tc.BaseTable as ClrView).AppdomainName == "sccode.exe");
+                } else {
+                    Trace.Assert(tc.BaseTable is RawView);
+                }
+                Trace.Assert(tc.Type != null);
+                if (tc.Type is MappedType) 
+                Trace.Assert((tc.Type as MappedType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
+                else {
+                    Trace.Assert(tc.Type is MaterializedType);
+                    Trace.Assert((tc.Type as MaterializedType).PrimitiveType == sccoredb.STAR_TYPE_DECIMAL);
+                }
+                Trace.Assert(tc.MaterializedColumn != null);
+                Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
+                Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.BaseTable as HostMaterializedTable).MaterializedTable));
+            }
+            Trace.Assert(nrcc == 7*2);
         }
     }
 }
