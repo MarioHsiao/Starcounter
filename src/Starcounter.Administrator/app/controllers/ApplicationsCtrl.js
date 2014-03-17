@@ -17,17 +17,12 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
         ApplicationService.refreshConsoleOuput(application, function () {
 
-            // TODO
-            // $("#console").scrollTop($("#console")[0].scrollHeight);
-
-
             // Success
         }, function (messageObject) {
             // Error
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
 
         });
-
     }
 
     /**
@@ -48,7 +43,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
                 UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
             }
             else {
-                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
             }
 
         });
@@ -78,7 +73,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
                             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                         }
                         else {
-                            NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                         }
 
                     });
@@ -112,7 +107,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
                         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                     }
                     else {
-                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                        NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                     }
 
 
@@ -120,9 +115,6 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
             }
 
         });
-
-
-
     }
 
 

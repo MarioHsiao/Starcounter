@@ -17,9 +17,6 @@ adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routePara
 
         ApplicationService.refreshConsoleOuput(application, function () {
 
-            // Success
-            //        $("#console").scrollTop($("#console")[0].scrollHeight);
-
         }, function (messageObject) {
 
             // Error
