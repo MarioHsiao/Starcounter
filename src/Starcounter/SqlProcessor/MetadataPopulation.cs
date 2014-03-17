@@ -98,7 +98,7 @@ namespace Starcounter.SqlProcessor {
                 ParentTable = parentTab,
                 Updatable = true
             };
-            rawView.FullName = GetFullName(rawView.Name);
+            rawView.FullName = GetFullName(matTab.Name);
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
@@ -163,25 +163,6 @@ namespace Starcounter.SqlProcessor {
                         col.Type).First;
                 Debug.Assert(newCol.Type != null);
             }
-            //var nrColumns = typeDef.TableDef.ColumnDefs.Length;
-            //for (int colIndex = 1, propIndex = 0; colIndex < nrColumns; ) {
-            //    ColumnDef col = typeDef.TableDef.ColumnDefs[colIndex];
-            //    PropertyDef prop = typeDef.PropertyDefs[propIndex];
-            //    if (col.Name == prop.ColumnName) {
-            //        MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
-            //            "select c from materializedcolumn c where name = ? and table = ?",
-            //            col.Name, thisView.MaterializedTable).First;
-            //        Debug.Assert(matCol != null);
-            //        TableColumn newCol = new TableColumn {
-            //            BaseTable = thisView,
-            //            Name = matCol.Name,
-            //            MaterializedColumn = matCol,
-            //            Type = null // TODO
-            //        };
-            //        colIndex++;
-            //    }
-            //    propIndex++;
-            //}
         }
     }
 }
