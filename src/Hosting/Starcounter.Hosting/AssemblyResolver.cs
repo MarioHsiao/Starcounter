@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,11 +9,13 @@ using System.Reflection;
 namespace Starcounter.Hosting {
 
     internal sealed class AssemblyResolver {
+        readonly LogSource log;
 
         public readonly PrivateAssemblyStore PrivateAssemblies;
 
         public AssemblyResolver(PrivateAssemblyStore store) {
             PrivateAssemblies = store;
+            log = LogSources.Hosting;
         }
 
         public Assembly ResolveApplication(string applicationHostFile) {
@@ -92,7 +95,10 @@ namespace Starcounter.Hosting {
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
-            Trace("Loading assembly {0} from {1}", name.FullName, assemblyFilePath);
+            var msg = string.Format("Loading assembly {0} from {1}", name.FullName, assemblyFilePath);
+            Trace(msg);
+            log.Debug(msg);
+
             return Assembly.LoadFile(assemblyFilePath);
         }
 
