@@ -179,7 +179,6 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
     $document.bind('keypress', onKeyPress);
 
 
-
     /**
      * On keypress event
      * @param {event} event Key event
@@ -192,12 +191,23 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
         }
     }
 
+
     // Init
     DatabaseService.refreshDatabases(function () {
 
-        if ($scope.databases.length > 0 && !$scope.queryState.selectedDatabaseName) {
-            $scope.queryState.selectedDatabaseName = $scope.databases[0].name;
+        var database = DatabaseService.getDatabase($scope.queryState.selectedDatabaseName);
+        if (database != null) {
+            $scope.queryState.selectedDatabaseName = database.name;
         }
+        else {
+            if ($scope.databases.length > 0 && !$scope.queryState.selectedDatabaseName && $scope.databases[0].running) {
+                $scope.queryState.selectedDatabaseName = $scope.databases[0].name;
+            }
+            else {
+                $scope.queryState.selectedDatabaseName = null;
+            }
+        }
+
 
     }, function (messageObject) {
         // Error

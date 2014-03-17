@@ -37,7 +37,7 @@ namespace Starcounter.Advanced.XSON {
 
             offset = -1;
 			tObj = (TObject)obj.Template;
-			buf = new byte[512];
+			buf = new byte[4096];
 			templateNo = 0;
 			nameWritten = false;
 			childObjArr = null;

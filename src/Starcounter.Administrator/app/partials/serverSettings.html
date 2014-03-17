@@ -2,12 +2,12 @@
 
     <legend>Server Settings</legend>
 
-    <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
-        <label class="control-label" for="httpPort">Http Port</label>
+    <div class="control-group" ng-class="{error: myForm.SystemHttpPort.$invalid}">
+        <label class="control-label" for="SystemHttpPort">Http Port</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="httpPort" placeholder="Http port" ng-model="model.settings.httpPort" required>
-            <span ng-show="myForm.httpPort.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="SystemHttpPort" id="SystemHttpPort" placeholder="Http port" ng-model="model.settings.SystemHttpPort" required>
+            <span ng-show="myForm.SystemHttpPort.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.SystemHttpPort.$error.required" class="help-inline">Required</span>
         </div>
     </div>
 
@@ -19,5 +19,5 @@
 </form>
 
 <p class="muted pull-right">
-    v{{model.settings.version}}
+    {{model.settings.Edition}}-{{model.settings.Channel}}-{{model.settings.Version}} ({{model.settings.VersionDate | date:'medium'}})
 </p>

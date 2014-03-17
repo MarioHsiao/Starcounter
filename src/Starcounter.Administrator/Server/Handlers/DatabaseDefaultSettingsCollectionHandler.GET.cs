@@ -12,67 +12,48 @@ using Starcounter.Administrator.Server.Utilities;
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
+        /// <summary>
+        /// Register Database Default Settings GET
+        /// </summary>
         public static void DatabaseDefaultSettings_GET(ushort port, IServerRuntime server) {
 
-
+            // Get default settings for database
             Handle.GET("/api/admin/settings/database", (Request req) => {
 
-                lock (LOCK) {
+                try {
 
-                    try {
+                    DatabaseConfiguration d = new DatabaseConfiguration();
 
-                        DatabaseConfiguration d = new DatabaseConfiguration();
+                    DatabaseSettings databaseSettings = new DatabaseSettings();
 
-                        ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
+                    ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
 
-                        dynamic json = new DynamicJson();
+                    databaseSettings.Name = "myDatabase"; // TODO: Generate a unique default database name
+                    databaseSettings.DefaultUserHttpPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DefaultUserHttpPort;
+                    databaseSettings.SchedulerCount = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SchedulerCount ?? Environment.ProcessorCount;
+                    databaseSettings.ChunksNumber = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ChunksNumber;
 
-                        json.settings = new { };
-
-                        json.settings.name = "myDatabase"; // TODO: Generate a unique default database name
-                        json.settings.httpPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DefaultUserHttpPort;
-                        json.settings.schedulerCount = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SchedulerCount ?? Environment.ProcessorCount;
-
-                        json.settings.chunksNumber = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ChunksNumber;
-
-                        // TODO: this is a workaround to get the default dumpdirectory path (fix this in the public model api)
-                        if (string.IsNullOrEmpty(serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory)) {
-                            //  By default, dump files are stored in ImageDirectory
-                            json.settings.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
-                        }
-                        else {
-                            json.settings.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory;
-                        }
-
-                        json.settings.tempDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TempDirectory;
-                        json.settings.imageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
-                        json.settings.transactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
-
-                        json.settings.sqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
-                        //json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
-                        json.settings.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
-
-                        json.settings.collationFiles = new object[] { };
-
-                        // TODO: Extend the Public model api to be able to retrive a list of all available collation files
-                        json.settings.collationFiles[0] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_en-GB_3.dll", description = "English" };
-                        json.settings.collationFiles[1] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_sv-SE_3.dll", description = "Swedish" };
-                        json.settings.collationFiles[2] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_nb-NO_3.dll", description = "Norwegian" };
-
-                        return json.ToString();
-
+                    // TODO: this is a workaround to get the default dumpdirectory path (fix this in the public model api)
+                    if (string.IsNullOrEmpty(serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory)) {
+                        //  By default, dump files are stored in ImageDirectory
+                        databaseSettings.DumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
                     }
-                    catch (Exception e) {
-                        return RestUtils.CreateErrorResponse(e);
+                    else {
+                        databaseSettings.DumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory;
                     }
+
+                    databaseSettings.TempDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TempDirectory;
+                    databaseSettings.ImageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
+                    databaseSettings.TransactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
+                    databaseSettings.SqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
+                    databaseSettings.CollationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databaseSettings.ToJsonUtf8() };
                 }
-
+                catch (Exception e) {
+                    return RestUtils.CreateErrorResponse(e);
+                }
             });
-
-
-
-
-
         }
     }
 }

@@ -20,6 +20,9 @@ using Starcounter.Administrator.Server.Utilities;
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
+        /// <summary>
+        /// Register Version Check GET
+        /// </summary>
         public static void VersionCheck_GET(ushort port, IServerRuntime server) {
 
             // Get the Current and latest version
@@ -42,11 +45,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     // Retrive the latest available version for a specific edition and version
                     Response response;
 
-#if ANDWAH
-                    X.GET("http://192.168.8.183:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest", out response, null, 5000);
-#else
                     X.GET("http://downloads.starcounter.com:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest", out response, null, 5000);
-#endif
 
                     if (!response.IsSuccessStatusCode) {
                         // TODO: Add "Retry-After" header
@@ -74,9 +73,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                 catch (Exception e) {
                     return RestUtils.CreateErrorResponse(e);
                 }
-
             });
-
         }
     }
 }
