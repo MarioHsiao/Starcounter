@@ -112,7 +112,7 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
                             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                         }
                         else {
-                            NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                         }
                     });
                 }

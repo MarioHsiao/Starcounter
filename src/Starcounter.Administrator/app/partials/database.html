@@ -1,24 +1,61 @@
-﻿<legend>Database - {{model.database.name}} <span ng-show="model.database.running" class="Running">(Running)</span>
-    <a class="btn btn-mini pull-right" href="#/databases" title="Show Databases"><i class="icon-resize-small"></i></a>
-</legend>
+﻿<div class="panel panel panel-primary">
+    <div class="panel-heading">
+        Database - {{model.database.name}}
 
-<div class="btn-toolbar">
-    <div class="btn-group">
-        <a class="btn btn-primary" href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>
-        <button ng-disabled='database.running == true' class="btn btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
+       <strong>
+           <span ng-show="model.database.running" class="label label-success" title="Database is running">Running</span>
+           <span ng-hide="model.database.running" class="label label-danger" title="Database is not running">Stopped</span>
+       </strong>
+
+        <div class="btn-group pull-right">
+            <a class="btn btn-default btn-xs" href="#/databases" title="Show Databases"><i class="glyphicon glyphicon-resize-small"></i></a>
+        </div>
+
+
     </div>
-</div>
+    <div class="panel-body">
 
-<div class="row-fluid">
+        <div class="btn-toolbar">
+            <div class="btn-group">
+                <a class="btn btn-default btn-primary" href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>
+                <button ng-disabled='database.running == true' class="btn btn-default btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
+            </div>
+        </div>
 
-    <legend>Console output
-            <button title="Refresh console" ng-show="model.database.consoleManualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnGetConsoleOutput(model.database)"><i class="icon-refresh"></i></button>
-    </legend>
+        <div class="btn-toolbar">
+            <div class="btn-group pull-right">
+                <button title="Refresh console" ng-show="model.database.consoleManualMode == true" class="btn btn-default btn-xs" ng-click="btnGetConsoleOutput(model.database)"><i class="glyphicon glyphicon-refresh"></i></button>
+            </div>
+        </div>
 
-    <div id="console" ng-style="sizeStyle()" title="Console output">
-        <consolewindow ng-model="model.database.console"></consolewindow>
+        <div class="row">
+            <div title="Console output" style="margin-bottom: -15px" id="console" ng-style="sizeStyle()">
+                <consolewindow ng-model="model.database.console"></consolewindow>
+            </div>
+        </div>
+
+
+        <!--        <div class="btn-toolbar">
+            <div class="btn-group">
+                <a class="btn btn-default btn-primary" href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>
+                <button ng-disabled='database.running == true' class="btn btn-default btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <legend>Console output
+            <button title="Refresh console" ng-show="model.database.consoleManualMode == true" ng-disabled="model.database.running == false" class="btn btn-default pull-right" ng-click="btnGetConsoleOutput(model.database)"><i class="glyphicon glyphicon-refresh"></i></button>
+            </legend>
+
+            <div id="console" ng-style="sizeStyle()" title="Console output">
+                <consolewindow ng-model="model.database.console"></consolewindow>
+            </div>
+
+
+        </div>-->
+
     </div>
-
 
 </div>
 
