@@ -423,12 +423,6 @@
         Operation failed because limit reached on limited memory resource.
       </message>
     </code>
-    <code hex="0045" severity="Error" name="ScErrUnhandledException">
-      <message>An unhandled exception was detected.</message>
-    </code>
-    <code hex="0046" severity="Error" name="ScErrUnexpectedInternalError">
-      <message>An unexpected internal error was detected.</message>
-    </code>
   </facility>
 
   <!--
