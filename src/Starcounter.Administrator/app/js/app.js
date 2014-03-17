@@ -114,7 +114,7 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
         // Show Network down..
-        NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+        NoticeFactory.ShowNotice({ type: 'danger', msg: "The server is not responding or is not reachable.", helpLink: null });
     });
 
 

@@ -18,8 +18,6 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', '$loca
 
         DatabaseService.refreshConsoleOuput(database, function () {
 
-            $("#console").scrollTop($("#console")[0].scrollHeight);
-
             // Success
         }, function (messageObject) {
             // Error
@@ -63,7 +61,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', '$loca
                         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                     }
                     else {
-                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                        NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                     }
 
                 });
