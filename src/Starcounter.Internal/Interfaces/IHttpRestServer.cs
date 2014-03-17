@@ -18,7 +18,7 @@ namespace Starcounter.Advanced {
     /// that uses the HTTP protocol (the most commonly used REST protocol). The most commonly used REST Methods
     /// are GET and POST, often used by web browser to get REST resources in the HTML format.
     /// The term REST was introduced by Roy Fielding, one of the authors of the original HTTP protocol.</remarks>
-   public interface IRestServer {
+    public interface IRestServer {
 
         /// <summary>
         /// As an example, GetResource("images/hello.jpg") should return a byte array containing a jpeg image.
@@ -35,10 +35,18 @@ namespace Starcounter.Advanced {
         /// <param name="path">The path to add to the list of paths used by the web server to find content.</param>
         void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path);
 
+
+        /// <summary>
+        /// Get a list with all folders where static file resources such as .html files or images are kept.
+        /// </summary>
+        /// <returns></returns>
+        List<string> GetWorkingDirectories(UInt16 port);
+
+
         /// <summary>
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
         int Housekeep();
-   }
+    }
 }

@@ -54,7 +54,8 @@ namespace Starcounter.Internal.Web {
                 if (response.HandlingStatus == HandlerStatusInternal.NotHandled) {
                     response = ResolveAndPrepareFile(request.Uri, request);
                     response.HandlingStatus = HandlerStatusInternal.Done;
-                } else {
+                }
+                else {
                     // NOTE: Checking if its internal request then just returning response without modification.
                     if (request.IsInternal)
                         return response;
@@ -76,16 +77,16 @@ namespace Starcounter.Internal.Web {
                 return response;
             }
             catch (Exception ex) {
-				// Logging the exception to server log.
-				LogSources.Hosting.LogException(ex);
-				var errResp = Response.FromStatusCode(500);
-				errResp.Body = GetExceptionString(ex);
-				errResp.ContentType = "text/plain";
-				errResp.ConstructFromFields();
-				return errResp;
+                // Logging the exception to server log.
+                LogSources.Hosting.LogException(ex);
+                var errResp = Response.FromStatusCode(500);
+                errResp.Body = GetExceptionString(ex);
+                errResp.ContentType = "text/plain";
+                errResp.ConstructFromFields();
+                return errResp;
             }
         }
-        
+
         /// <summary>
         /// Handles request.
         /// </summary>
@@ -95,8 +96,7 @@ namespace Starcounter.Internal.Web {
             Response response = null;
             Boolean cameWithSession = request.CameWithCorrectSession;
 
-            try
-            {
+            try {
                 // Checking if we are in session already.
                 if (!request.IsInternal) {
 
@@ -104,7 +104,7 @@ namespace Starcounter.Internal.Web {
                     Session.InitialRequest = request;
 
                     // Obtaining session.
-                    Session s = (Session) request.GetAppsSessionInterface();
+                    Session s = (Session)request.GetAppsSessionInterface();
 
                     if (cameWithSession && (null != s)) {
 
@@ -130,7 +130,7 @@ namespace Starcounter.Internal.Web {
 
                 // In case of returned JSON object within current session we need to save it
                 // for later reuse.
-                        
+
                 Json rootJsonObj = null;
                 if (null != Session.Current)
                     rootJsonObj = Session.Current.Data;
@@ -152,11 +152,11 @@ namespace Starcounter.Internal.Web {
                     if ((null != curJsonObj) &&
                         (null != rootJsonObj) &&
                         (request.IsCachable()) &&
-                        (curJsonObj.HasThisRoot(rootJsonObj)))
-                    {
+                        (curJsonObj.HasThisRoot(rootJsonObj))) {
                         Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
                     }
-                } else {
+                }
+                else {
                     // Null equals 404.
                     response = Response.FromStatusCode(404);
                     response["Connection"] = "close";
@@ -169,8 +169,7 @@ namespace Starcounter.Internal.Web {
 
                 return response;
             }
-            catch (ResponseException exc)
-            {
+            catch (ResponseException exc) {
                 // NOTE: if internal request then throw the exception up.
                 if (request.IsInternal)
                     throw exc;
@@ -180,25 +179,22 @@ namespace Starcounter.Internal.Web {
                 response.ConstructFromFields();
                 return response;
             }
-            catch (HandlersManagement.IncorrectSessionException)
-            {
+            catch (HandlersManagement.IncorrectSessionException) {
                 response = Response.FromStatusCode(400);
                 response["Connection"] = "close";
                 response.ConstructFromFields();
                 return response;
             }
-            catch (Exception exc)
-            {
-				// Logging the exception to server log.
-				LogSources.Hosting.LogException(exc);
-				response = Response.FromStatusCode(500);
-				response.Body = GetExceptionString(exc);
-				response.ContentType = "text/plain";
-				response.ConstructFromFields();
-				return response;
+            catch (Exception exc) {
+                // Logging the exception to server log.
+                LogSources.Hosting.LogException(exc);
+                response = Response.FromStatusCode(500);
+                response.Body = GetExceptionString(exc);
+                response.ContentType = "text/plain";
+                response.ConstructFromFields();
+                return response;
             }
-            finally
-            {
+            finally {
                 // Checking if a new session was created during handler call.
                 if ((null != Session.Current) && (!request.IsInternal))
                     Session.End();
@@ -215,14 +211,13 @@ namespace Starcounter.Internal.Web {
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
-            if (StaticFileServers.TryGetValue(request.PortNumber, out staticWebServer))
-            {
+            if (StaticFileServers.TryGetValue(request.PortNumber, out staticWebServer)) {
                 return staticWebServer.GetStatic(relativeUri, request);
             }
 
-			var badReq = Response.FromStatusCode(400);
-			badReq["Connection"] = "close";
-		    return badReq;
+            var badReq = Response.FromStatusCode(400);
+            badReq["Connection"] = "close";
+            return badReq;
         }
 
         /// <summary>
@@ -243,16 +238,15 @@ namespace Starcounter.Internal.Web {
         /// <remarks>There is no need to add the directory to the static resolver as the static resolver
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
-        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
-        {
-            lock (StaticFileServers)
-            {
+        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path) {
+            lock (StaticFileServers) {
                 StaticWebServer staticWebServer;
 
                 // Try to fetch static web server.
                 if (StaticFileServers.TryGetValue(port, out staticWebServer)) {
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
-                } else {
+                }
+                else {
                     staticWebServer = new StaticWebServer();
                     StaticFileServers.Add(port, staticWebServer);
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
@@ -266,13 +260,48 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
+        /// Get a list with all folders where static file resources such as .html files or images are kept.
+        /// </summary>
+        /// <returns>List with folders</returns>
+        public Dictionary<UInt16, string> GetWorkingDirectories() {
+
+            Dictionary<UInt16, string> list = new Dictionary<ushort, string>();
+
+            foreach (KeyValuePair<UInt16, StaticWebServer> entry in StaticFileServers) {
+
+                List<string> portList = GetWorkingDirectories(entry.Key);
+                if (portList != null) {
+                    foreach (string folder in portList) {
+                        list.Add(entry.Key, folder);
+                    }
+                }
+            }
+            return list;
+        }
+
+
+        /// <summary>
+        /// Get a list with all folders where static file resources such as .html files or images are kept.
+        /// </summary>
+        /// <returns>List with folders or null</returns>
+        public List<string> GetWorkingDirectories(ushort port) {
+
+            StaticWebServer staticWebServer;
+
+            // Try to fetch static web server.
+            if (StaticFileServers.TryGetValue(port, out staticWebServer)) {
+                return staticWebServer.GetWorkingDirectories(port);
+            }
+            return null;
+        }
+
+
+        /// <summary>
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
-        public int Housekeep()
-        {
-            lock (StaticFileServers)
-            {
+        public int Housekeep() {
+            lock (StaticFileServers) {
                 // Doing house keeping for each port.
                 foreach (KeyValuePair<UInt16, StaticWebServer> s in StaticFileServers)
                     s.Value.Housekeep();
