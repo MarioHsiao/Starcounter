@@ -176,7 +176,6 @@
     <ClCompile Include="monitor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bounded_message_buffer.hpp" />
     <ClInclude Include="event.hpp" />
     <ClInclude Include="monitor.hpp" />
   </ItemGroup>
