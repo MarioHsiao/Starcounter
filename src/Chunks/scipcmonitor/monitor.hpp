@@ -309,9 +309,11 @@ public:
 		return active_databases_;
 	}
 
+#if 0
 	bounded_buffer<std::string>& active_segments_update() {
 		return active_segments_update_;
 	}
+#endif
 
 private:
 	// Controlling the console a bit makes it easier to read.
@@ -415,7 +417,9 @@ private:
 	std::wstring active_databases_file_path_;
 #endif
 	
+#if 0	
 	bounded_buffer<std::string> active_segments_update_;
+#endif
 	
 	starcounter::log log_;
 
