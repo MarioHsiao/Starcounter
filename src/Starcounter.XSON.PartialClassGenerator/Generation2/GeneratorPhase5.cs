@@ -64,6 +64,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             foreach (var kid in (((IReadOnlyTree)template).Children)) {
                 var t = kid as Template;
                 if (kid is TJson) {
+                    // We dont allow mapping anonymous objects to code-behind classes.
+                    if (kid.Children.Count == 0)
+                        continue;
+
                     string stem;
                     if (t.Parent is TObjArr) {
                         stem = t.Parent.PropertyName;
