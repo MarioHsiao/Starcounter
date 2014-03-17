@@ -60,7 +60,6 @@
 #include "../common/monitor_interface.hpp"
 #include "../common/shared_interface.hpp"
 #include "../common/bounded_buffer.hpp"
-#include "bounded_message_buffer.hpp"
 #include "process_info.hpp"
 #include "../common/log.hpp"
 #include "../common/spinlock.hpp"
