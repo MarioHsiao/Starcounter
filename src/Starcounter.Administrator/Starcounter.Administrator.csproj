@@ -444,6 +444,9 @@
     <None Include="app\vendor\jquery\jquery-2.0.3.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\WorkingFolders.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Representations.JSON\CollationsFiles.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
