@@ -81,16 +81,16 @@
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
     <Compile Include="Server\Handlers\ApplicationCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\CollationFilesCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\DatabaseSettingsHandler.GET.cs" />
     <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseCollectionHandler.POST.cs" />
     <Compile Include="Server\Handlers\DatabaseCollectionHandler.GET.cs" />
-    <Compile Include="Server\Handlers\VerifyServerPropertiesHandler.POST.cs" />
-    <Compile Include="Server\Handlers\ServerCollectionHandler.GET.cs" />
-    <Compile Include="Server\Handlers\ServerCollectionHandler.PUT.cs" />
+    <Compile Include="Server\Handlers\ServerSettingsHandler.GET.cs" />
+    <Compile Include="Server\Handlers\ServerSettingsHandler.PUT.cs" />
     <Compile Include="Server\Handlers\ServerLogHandler.GET.cs" />
-    <Compile Include="Server\Handlers\DatabaseCollectionHandler.PUT.cs" />
-    <Compile Include="Server\Handlers\VerifyDatabasePropertiesHandler.POST.cs" />
+    <Compile Include="Server\Handlers\DatabaseSettingsHandler.PUT.cs" />
     <Compile Include="Server\Handlers\StarcounterAdminAPI.cs" />
     <Compile Include="Server\Utilities\RestUtils.cs" />
     <Compile Include="Server\Representations.JSON\LogApp.json.cs">
@@ -432,6 +432,18 @@
     <None Include="app\vendor\jquery\jquery-2.0.3.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\CollationsFiles.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\ServerSettings.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\ValidationErrors.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\DatabaseSettings.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Representations.JSON\ErrorResponse.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>

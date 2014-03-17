@@ -20,16 +20,19 @@ using Starcounter.Administrator.Server.Utilities;
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
+        /// <summary>
+        /// Register Database GET
+        /// </summary>
         public static void Database_GET(ushort port, IServerRuntime server) {
 
             // Get a list of all databases with running status
             //{
             //  "Databases":[
             //      {
-            //          "Name":"tracker",
-            //          "Uri":"http://headsutv19:8181/api/databases/tracker",
+            //          "name":"tracker",
+            //          "uri":"http://headsutv19:8181/api/databases/tracker",
             //          "HostUri":"http://headsutv19:8181/api/engines/tracker/db",
-            //          "Running":true
+            //          "running":true
             //      }
             //  ]
             //}
@@ -68,58 +71,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                 catch (Exception e) {
                     return RestUtils.CreateErrorResponse(e);
                 }
-
-            });
-
-
-            Handle.GET("/api/admin/databases/{?}/settings", (string name, Request req) => {
-
-                lock (LOCK) {
-
-                    try {
-
-                        DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(name);
-
-                        if (database == null) {
-                            // Database not found
-
-                            dynamic errorJson = new DynamicJson();
-
-                            errorJson.message = string.Format("Could not find the {0} database", name);
-                            errorJson.code = (int)HttpStatusCode.NotFound;
-                            errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
-
-                            return RESTUtility.JSON.CreateResponse(errorJson.ToString(), (int)HttpStatusCode.NotFound);
-                        }
-                        else {
-                        }
-
-                        dynamic resultJson = new DynamicJson();
-
-                        // Return the database
-                        resultJson.settings = new {
-                            name = database.Name,
-                            hostProcessId = database.Engine == null ? 0 : database.Engine.HostProcessId,
-                            httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
-                            schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
-                            chunksNumber = database.Configuration.Runtime.ChunksNumber,
-                            sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport,
-
-                            //dumpDirectory = database.Configuration.Runtime.DumpDirectory,
-                            tempDirectory = database.Configuration.Runtime.TempDirectory,
-                            imageDirectory = database.Configuration.Runtime.ImageDirectory,
-                            transactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory,
-
-                        };
-
-                        // collationFile
-                        return RESTUtility.JSON.CreateResponse(resultJson.ToString());
-                    }
-                    catch (Exception e) {
-                        return RestUtils.CreateErrorResponse(e);
-                    }
-                }
-
             });
         }
     }
