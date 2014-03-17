@@ -30,7 +30,7 @@ namespace Starcounter.Rest
         /// Registers responses merging routine.
         /// </summary>
         /// <param name="mergerRoutine"></param>
-        public void RegisterResponsesMerger(Func<Request, List<Response>, List<String>, Response> mergerRoutine)
+        public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine)
         {
             UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ = mergerRoutine;
         }

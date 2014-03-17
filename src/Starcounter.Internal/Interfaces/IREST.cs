@@ -17,7 +17,7 @@ namespace Starcounter.Advanced {
         /// Registers responses merging routine.
         /// </summary>
         /// <param name="mergerRoutine"></param>
-        void RegisterResponsesMerger(Func<Request, List<Response>, List<String>, Response> mergerRoutine);
+        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine);
 
         /// <summary>
         /// Registers a handler for a WebSocket.

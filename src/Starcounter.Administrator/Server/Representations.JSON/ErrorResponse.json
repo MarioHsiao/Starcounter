@@ -1,6 +1,8 @@
 ﻿{
 	"$": { Namespace: "Starcounter.Administrator.Server" },
-    "message": "message",
-    "stackTrace": "stackTrace",
-	"helpLink":"helpLink"
+    "Text": "ScErrUnexpectedCommandException (SCERR10016): Creating database...",
+    "StackTrace": "StackTrace...",
+	"LogEntry":"",
+	"ServerCode": 10016,
+	"Helplink":"https://github.com/Starcounter/Starcounter/wiki/SCERR10016"
 }

@@ -13,7 +13,6 @@ using Starcounter.Templates.Interfaces;
 using System.IO;
 using Starcounter.XSON.Metadata;
 using Starcounter.Internal;
-using Starcounter.XSON.CodeGeneration;
 using Modules;
 using Starcounter.Internal.XSON;
 using TJson = Starcounter.Templates.TObject;
@@ -146,7 +145,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             actual.Namespace = metadata.RootClassInfo.Namespace;
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
-            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
+            Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
