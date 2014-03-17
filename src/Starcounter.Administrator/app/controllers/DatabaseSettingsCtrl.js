@@ -14,65 +14,12 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
 
     /**
-     * Verify database settings
-     * @param {object} settings Settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    $scope.verifySettings = function (settings, successCallback, errorCallback) {
-
-        DatabaseService.verifyDatabaseSettings(settings, function (validationErrors) {
-            // Success
-            if (typeof (successCallback) == "function") {
-                successCallback(validationErrors);
-            }
-
-        }, function (messageObject) {
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
-            }
-
-        });
-
-    }
-
-
-    /**
-     * Save settings
-     * @param {object} database Database
-     * @param {object} settings Settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    $scope.saveSettings = function (database, settings, successCallback, errorCallback) {
-
-        DatabaseService.saveDatabaseSettings(database, settings, function (messageObject) {
-            // Success
-
-            // TODO: Return the newly created database
-            if (typeof (successCallback) == "function") {
-                successCallback(messageObject);
-            }
-
-        }, function (messageObject) {
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
-            }
-        });
-
-    }
-
-
-    /**
      * Refresh database settings
      */
     $scope.refreshSettings = function () {
 
-        DatabaseService.getDatabaseSettings($scope.model.database, function (settings) {
+        DatabaseService.getSettings($scope.model.database, function (settings) {
             // Success
-
             $scope.model.settings = settings;
             $scope.myForm.$setPristine(); // This dosent work, the <select> breaks the pristine state :-(
 
@@ -98,70 +45,66 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
      */
     $scope.btnSaveSettings = function (database, settings) {
 
-        $scope.verifySettings(settings, function (validationErrors) {
+        DatabaseService.saveSettings(database, settings, function (settings) {
+
             // Success
 
-            if (validationErrors.length == 0) {
-                // No validation errors, goahead creating database
+            // TODO: Ask user if he wants to restart database?
 
-                $scope.saveSettings(database, settings, function (messageObject) {
-                    // Success
-                    //$location.hash("");
+            NoticeFactory.ShowNotice({ type: "success", msg: "Settings saved. The new settings will be used at the next start of the database" });
 
-                    // Navigate to database list if user has not navigated to another page
-                    //if ($location.path() == "/databaseCreate") {
-                    //    $location.path("/databases");
-                    //}
-                    if (messageObject != null) {
-                        NoticeFactory.ShowNotice({ type: messageObject.header, msg: messageObject.message, helpLink: messageObject.helpLink });
-                    }
+            $scope.myForm.$setPristine();
 
-                    $scope.myForm.$setPristine(); 
-
-                    // Navigate to database list if user has not navigated to another page
-                    if ($location.path() == "/databases/" + database.name + "/settings") {
-                        $location.path("/databases");
-                    }
-
-
-                }, function (messageObjectList) {
-                    // Error
-                    for (var i = 0; i < messageObjectList.length; i++) {
-                        var messageObject = messageObjectList[i];
-                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
-                    }
-
-                });
+            // Navigate to database list if user has not navigated to another page
+            if ($location.path() == "/databases/" + database.name + "/settings") {
+                $location.path("/databases");
             }
-            else {
+
+
+        }, function (messageObject, validationErrors) {
+
+            // Error
+
+            if (validationErrors != null && validationErrors.length > 0) {
+                // Validation errors
 
                 // Show errors on screen
                 for (var i = 0; i < validationErrors.length; i++) {
                     //$scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
-                    $scope.myForm[validationErrors[i].property].$setValidity("validationError", false);
-                    var id = validationErrors[i].property;
-                    var unregister = $scope.$watch("settings." + validationErrors[i].property, function (newValue, oldValue) {
-                        if (newValue == oldValue) return;
-                        $scope.myForm[id].$setValidity("validationError", true);
-                        unregister();
-                    }, false);
 
+                    if ($scope.myForm[validationErrors[i].PropertyName] == undefined) {
+                        NoticeFactory.ShowNotice({ type: 'error', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
+                    } else {
+
+                        $scope.myForm[validationErrors[i].PropertyName].$setValidity("validationError", false);
+                        var id = validationErrors[i].PropertyName;
+                        var unregister = $scope.$watch("settings." + validationErrors[i].PropertyName, function (newValue, oldValue) {
+                            if (newValue == oldValue) return;
+                            $scope.myForm[id].$setValidity("validationError", true);
+                            unregister();
+                        }, false);
+                    }
                 }
 
             }
-
-        }, function (messageObject) {
-            // Error
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-            }
             else {
-                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+
+                if (messageObject.isError) {
+
+                    //var message = messageObject.message.replace(/\r\n/g, "<br>");
+
+                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                }
+                else {
+                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                }
+            }
+
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
             }
 
         });
-
-
 
     }
 
@@ -173,18 +116,30 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
         $scope.refreshSettings();
     }
 
+
     // Init
     // Refresh databases list
     DatabaseService.refreshDatabases(
+
         function () {
             // Success
-            $scope.model.database = DatabaseService.getDatabase($routeParams.name);
-            $scope.refreshSettings();
+            var database = DatabaseService.getDatabase($routeParams.name);
+            if (database != null) {
+                $scope.model.database = database;
+                $scope.refreshSettings();
+            }
+            else {
+
+                var title = "Missing database";
+                var message = "Failed to the retrive database " + $routeParams.name;
+                var buttons = [{ result: 0, label: 'Ok', cssClass: 'btn btn-primary' }];
+
+                UserMessageFactory.showMessageBox(title, message, buttons);
+            }
+
         },
         function (messageObject) {
             // Error
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
         });
-
-
 }]);
