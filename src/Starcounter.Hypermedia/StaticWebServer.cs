@@ -45,6 +45,16 @@ namespace Starcounter.Internal.Web {
                 workingDirectories.Add(path);
         }
 
+
+        /// <summary>
+        /// Get a list with all folders where static file resources such as .html files or images are kept.
+        /// </summary>
+        /// <param name="port"></param>
+        /// <returns>List with folders</returns>
+        public List<string> GetWorkingDirectories(UInt16 port) {
+            return this.workingDirectories;
+        }
+
         /// <summary>
         /// Http response cache keyed on URI
         /// </summary>

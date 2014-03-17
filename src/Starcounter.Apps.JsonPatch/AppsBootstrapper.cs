@@ -113,6 +113,14 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Gets a list of directories used by the web server to
+        /// resolve GET requests for static content.
+        /// </summary>
+        internal static Dictionary<UInt16, string> GetFileServingDirectories() {
+            return AppServer_.GetWorkingDirectories();
+        }
+
+        /// <summary>
         /// Function that registers a default handler in the gateway and handles incoming requests
         /// and dispatch them to Apps. Also registers internal handlers for jsonpatch.
         /// </summary>

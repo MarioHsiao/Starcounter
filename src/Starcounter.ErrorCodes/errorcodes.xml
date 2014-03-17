@@ -418,7 +418,11 @@
     <code hex="0043" severity="Error" name="ScErrOutOfDedicatedAddressSpace">
       <message>Operation failed because needed memory couldn't be allocated within dedicated address space</message>
     </code>
-
+    <code hex="0044" severity="Error" name="ScErrMemoryLimitReached">
+      <message>
+        Operation failed because limit reached on limited memory resource.
+      </message>
+    </code>
   </facility>
 
   <!--
@@ -3772,7 +3776,12 @@
         transaction to update a system table.
       </message>
     </code>
-
+    <code hex="0024" severity="Error" name="ScErrMemoryLimitReachedAbort">
+      <message>
+        The transaction was aborted because limit reached on limited memory
+        resource.
+      </message>
+    </code>
   </facility>
 
 <!--
