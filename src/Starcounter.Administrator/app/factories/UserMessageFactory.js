@@ -27,15 +27,12 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
             }
         });
 
-        modalInstance.result.then(function (result) {
+        modalInstance.result.then(function (response) {
+        }, function (response) {
 
-            if (typeof (responseCallback) == "function") {
-                responseCallback(result);
+            if (response !== undefined) {
+                NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
             }
-
-        }, function () {
-            NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
-            //            $log.info('Modal dismissed at: ' + new Date());
         });
 
     };
@@ -61,16 +58,21 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
             }
         });
 
-        modalInstance.result.then(function (result) {
+        modalInstance.result.then(function (response) {
 
             if (typeof (responseCallback) == "function") {
-                responseCallback(result);
+                responseCallback(response);
             }
 
-        }, function () {
-            NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+        }, function (response) {
+            if (response !== undefined) {
+                NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+            }
 
-            //            $log.info('Modal dismissed at: ' + new Date());
+            if (typeof (responseCallback) == "function") {
+                responseCallback(response);
+            }
+
         });
 
     }
@@ -96,10 +98,10 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
         });
 
 
-        modalInstance.result.then(function (result) {
+        modalInstance.result.then(function (response) {
 
             if (typeof (responseCallback) == "function") {
-                responseCallback(result);
+                responseCallback(response);
             }
 
         }, function (response) {
@@ -108,12 +110,12 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
                 NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
             }
 
-            responseCallback();
+            if (typeof (responseCallback) == "function") {
+                responseCallback(response);
+            }
 
         });
-
     }
-
     return factory;
 
 }]);

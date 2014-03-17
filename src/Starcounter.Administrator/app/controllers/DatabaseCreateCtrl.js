@@ -3,34 +3,21 @@
  * Create Databases page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$anchorScroll', 'NoticeFactory', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $location, $anchorScroll, NoticeFactory, DatabaseService, UserMessageFactory) {
+adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$anchorScroll', 'NoticeFactory', 'ServerService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $location, $anchorScroll, NoticeFactory, ServerService, DatabaseService, UserMessageFactory) {
 
     // Database Default settings
     $scope.settings = null;
 
+    // List of available collations
+    $scope.collations = null;
 
-    /**
-     * Verify database settings
-     * @param {object} settings Settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    $scope.verifySettings = function (settings, successCallback, errorCallback) {
+    $scope.orginalSettings = null;
 
-        DatabaseService.verifyDatabaseSettings(settings, function (validationErrors) {
-            // Success
-            if (typeof (successCallback) == "function") {
-                successCallback(validationErrors);
-            }
-
-        }, function (messageObject) {
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
-            }
-
-        });
-
+    $scope.modified = {
+        ImageDirectory: false,
+        TempDirectory: false,
+        TransactionLogDirectory: false,
+        DumpDirectory: false
     }
 
 
@@ -70,59 +57,64 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
         $location.hash('top');
         $anchorScroll();
 
-        $scope.verifySettings(settings, function (validationErrors) {
+
+        DatabaseService.createDatabase(settings, function (database) {
+
+            // NOTE: The incoming database does only contain one propety 'name'
+
             // Success
+            NoticeFactory.ShowNotice({ type: 'success', msg: "Database was " + database.name + " successfully created" });
 
-            if (validationErrors.length == 0) {
-                // No validation errors, goahead creating database
-
-                $scope.createDatabase(settings, function () {
-                    // Success
-                    //$location.hash("");
-
-                    // Navigate to database list if user has not navigated to another page
-                    if ($location.path() == "/databaseCreate") {
-                        $location.path("/databases");
-                    }
-
-
-                }, function (messageObjectList) {
-                    // Error
-                    for (var i = 0; i < messageObjectList.length; i++) {
-                        var messageObject = messageObjectList[i];
-                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
-                    }
-
-                });
+            // Navigate to database list if user has not navigated to another page
+            if ($location.path() == "/databaseCreate") {
+                $location.path("/databases");
             }
-            else {
+
+
+        }, function (messageObject, validationErrors) {
+
+            // Error
+
+            if (validationErrors != null && validationErrors.length > 0) {
+                // Validation errors
 
                 // Show errors on screen
                 for (var i = 0; i < validationErrors.length; i++) {
                     //$scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
-                    $scope.myForm[validationErrors[i].property].$setValidity("validationError", false);
-                    var id = validationErrors[i].property;
-                    var unregister = $scope.$watch("settings." + validationErrors[i].property, function (newValue, oldValue) {
-                        if (newValue == oldValue) return;
-                        $scope.myForm[id].$setValidity("validationError", true);
-                        unregister();
-                    }, false);
+                    if ($scope.myForm[validationErrors[i].PropertyName] == undefined) {
+                        NoticeFactory.ShowNotice({ type: 'error', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
+                    } else {
+
+                        $scope.myForm[validationErrors[i].PropertyName].$setValidity("validationError", false);
+                        var id = validationErrors[i].PropertyName;
+                        var unregister = $scope.$watch("settings." + validationErrors[i].PropertyName, function (newValue, oldValue) {
+                            if (newValue == oldValue) return;
+                            $scope.myForm[id].$setValidity("validationError", true);
+                            unregister();
+                        }, false);
+                    }
 
                 }
 
             }
-
-        }, function (messageObject) {
-            // Error
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-            }
             else {
-                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+
+
+                if (messageObject.isError) {
+
+                    //var message = messageObject.message.replace(/\r\n/g, "<br>");
+
+                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                }
+                else {
+                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                }
             }
 
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
+            }
         });
-
 
     }
 
@@ -143,12 +135,22 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
         DatabaseService.getDatabaseDefaultSettings(function (settings) {
             // Success
 
-            settings.tempDirectory = settings.tempDirectory.replace("[DatabaseName]", settings.name);
-            settings.imageDirectory = settings.imageDirectory.replace("[DatabaseName]", settings.name);
-            settings.transactionLogDirectory = settings.transactionLogDirectory.replace("[DatabaseName]", settings.name);
-            settings.dumpDirectory = settings.dumpDirectory.replace("[DatabaseName]", settings.name);
-
+            $scope.orginalSettings = angular.copy(settings);
             $scope.settings = settings;
+
+            $scope.setFolderNames(settings.Name);
+
+            // Clear modified flag
+            $scope.clearFolderModifiedFlag();
+
+            ServerService.getCollations(function (collations) {
+                // Success
+                $scope.collations = collations;
+            }, function (messageObject) {
+                // Error
+                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+
+            });
 
             $scope.myForm.$setPristine(); // This dosent work, the <select> breaks the pristine state :-(
 
@@ -165,6 +167,60 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
 
             });
     }
+
+
+    /**
+     * Event when the user changed the folder
+     * @param {string} propertyName Property name of the folder
+     */
+    $scope.onUserChangedFolder = function (propertyName) {
+        $scope.modified[propertyName] = true;
+    }
+
+
+    /**
+     * Set folder names based on database name
+     * Ignore already changed foldernames
+     * @param {string} databaseName Database Name
+     */
+    $scope.setFolderNames = function (databaseName) {
+
+        if (!$scope.modified.ImageDirectory) {
+            $scope.settings.ImageDirectory = $scope.orginalSettings.ImageDirectory.replace("[DatabaseName]", databaseName);
+        }
+        if (!$scope.modified.TempDirectory) {
+            $scope.settings.TempDirectory = $scope.orginalSettings.TempDirectory.replace("[DatabaseName]", databaseName);
+        }
+        if (!$scope.modified.TransactionLogDirectory) {
+            $scope.settings.TransactionLogDirectory = $scope.orginalSettings.TransactionLogDirectory.replace("[DatabaseName]", databaseName);
+        }
+        if (!$scope.modified.DumpDirectory) {
+            $scope.settings.DumpDirectory = $scope.orginalSettings.DumpDirectory.replace("[DatabaseName]", databaseName);
+        }
+
+    }
+
+
+    /**
+     * Clear the folders modified flag
+     */
+    $scope.clearFolderModifiedFlag = function () {
+
+        $scope.modified.ImageDirectory = false;
+        $scope.modified.TempDirectory = false;
+        $scope.modified.TransactionLogDirectory = false;
+        $scope.modified.DumpDirectory = false;
+    }
+
+
+    /**
+     * Wache the database name and update unmodifed folder paths
+     */
+    $scope.$watch("settings.Name", function (newValue, oldValue) {
+        if (newValue !== oldValue) {
+            $scope.setFolderNames(newValue);
+        }
+    });
 
 
     // Init

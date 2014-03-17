@@ -28,7 +28,7 @@ namespace Starcounter.Administrator.API.Handlers {
             RootHandler.Register405OnAllUnsupported(uri, new string[] { "GET", "POST" });
         }
 
-        static Response ToErrorResponse(CommandInfo commandInfo) {
+        internal static Response ToErrorResponse(CommandInfo commandInfo) {
             ErrorInfo single;
             ErrorMessage msg;
             ErrorDetail detail;
