@@ -22,6 +22,7 @@ namespace Starcounter.Advanced.XSON {
 			Json childObj;
 			Template tProperty;
 			TObject tObj;
+            String htmlMerge = null;
 
 			// The following variables are offset for remembering last position when buffer needs to be increased:
 			// templateNo: The position in the PropertyList that was about to be written.
@@ -36,7 +37,7 @@ namespace Starcounter.Advanced.XSON {
 
             offset = -1;
 			tObj = (TObject)obj.Template;
-			buf = new byte[512];
+			buf = new byte[4096];
 			templateNo = 0;
 			nameWritten = false;
 			childObjArr = null;
@@ -58,6 +59,61 @@ restart:
                     // Starting from the last written position
                     fixed (byte* p = &buf[offset]) {
                         byte* pfrag = p;
+
+                        // Checking if we have Json siblings on this level.
+                        if (obj.JsonSiblings.Count != 0)
+                        {
+                            htmlMerge = "/polyjuice-merger?" + obj.AppName + "=" + obj.GetHtmlPartialUrl();
+
+                            // Serializing every sibling first.
+                            foreach (Json pp in obj.JsonSiblings)
+                            {
+                                htmlMerge += "&" + pp.AppName + "=" + pp.GetHtmlPartialUrl();
+
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, pp.AppName);
+                                if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
+                                    goto restart;
+
+                                offset += valueSize;
+                                pfrag += valueSize;
+
+                                if (buf.Length < (offset + 1)) goto restart;
+                                *pfrag++ = (byte)':';
+                                offset++;
+
+                                valueSize = pp.ToJsonUtf8(out childObjArr);
+                                if (childObjArr != null)
+                                {
+                                    if (buf.Length < (offset + valueSize + 1))
+                                        goto restart;
+                                    Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
+                                    childObjArr = null;
+                                }
+                                pfrag += valueSize;
+                                offset += valueSize;
+
+                                if (buf.Length < (offset + 1)) goto restart;
+                                *pfrag++ = (byte)',';
+                                offset++;
+                            }
+
+                            // Adding current sibling app name.
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.AppName);
+                            if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
+                                goto restart;
+
+                            offset += valueSize;
+                            pfrag += valueSize;
+
+                            if (buf.Length < (offset + 1)) goto restart;
+                            *pfrag++ = (byte)':';
+                            offset++;
+
+                            if (buf.Length < (offset + 1)) goto restart;
+                            *pfrag++ = (byte)'{';
+                            offset++;
+                        }
+
                         exposedProperties = tObj.Properties.ExposedProperties;
                         for (int i = templateNo; i < exposedProperties.Count; i++) {
                             tProperty = exposedProperties[i];
@@ -171,8 +227,39 @@ restart:
 
                         if (buf.Length < (offset + 1))
                             goto restart; // Bummer! we dont have any place left for the last char :(
-                        *pfrag = (byte)'}';
+                        *pfrag++ = (byte)'}';
                         offset++;
+
+                        // Checking if we have Json siblings on this level.
+                        if (obj.JsonSiblings.Count != 0) {
+
+                            if (buf.Length < (offset + 1)) goto restart;
+                            *pfrag++ = (byte)',';
+                            offset++;
+
+                            // Adding Html property to outer level.
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "Html");
+                            if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
+                                goto restart;
+
+                            offset += valueSize;
+                            pfrag += valueSize;
+
+                            if (buf.Length < (offset + 1)) goto restart;
+                            *pfrag++ = (byte)':';
+                            offset++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlMerge);
+                            if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
+                                goto restart;
+
+                            offset += valueSize;
+                            pfrag += valueSize;
+
+                            if (buf.Length < (offset + 1)) goto restart;
+                            *pfrag++ = (byte)'}';
+                            offset++;
+                        }
                     }
                 }
             });

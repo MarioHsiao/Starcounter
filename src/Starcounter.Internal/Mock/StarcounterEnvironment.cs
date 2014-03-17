@@ -43,6 +43,12 @@ namespace Starcounter.Internal
         public static string AppName;
 
         /// <summary>
+        /// Name of the application.
+        /// </summary>
+        [ThreadStatic]
+        internal static string OrigMapperCallerAppName;
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte CurrentSchedulerId

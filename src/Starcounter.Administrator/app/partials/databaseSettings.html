@@ -1,39 +1,45 @@
 ﻿<form name="myForm" class="form-horizontal  well well-small" ng-hide='model.settings == null'>
 
-    <legend>Edit Database - {{model.settings.name}}</legend>
+    <legend>Edit Database - {{model.database.name}}</legend>
 
-    <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
-        <label class="control-label" for="httpPort">Http Port</label>
+
+    <!-- DefaultUserHttpPort -->
+    <div class="control-group" ng-class="{error: myForm.DefaultUserHttpPort.$invalid}">
+        <label class="control-label" for="DefaultUserHttpPort">Http Port</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="httpPort" placeholder="Http port" ng-model="model.settings.httpPort" required>
-            <span ng-show="myForm.httpPort.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="DefaultUserHttpPort" id="DefaultUserHttpPort" placeholder="Http port" ng-model="model.settings.DefaultUserHttpPort" required>
+            <span ng-show="myForm.DefaultUserHttpPort.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.DefaultUserHttpPort.$error.required" class="help-inline">Required</span>
         </div>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.sqlAggregationSupport.$invalid}">
+
+    <!-- SqlAggregationSupport -->
+    <div class="control-group" ng-class="{error: myForm.SqlAggregationSupport.$invalid}">
         <div class="controls">
             <label class="checkbox">
-                <input ng-disabled="isBusy == true" type="checkbox" name="sqlAggregationSupport" id="sqlAggregationSupport" ng-model="model.settings.sqlAggregationSupport">SQL Aggregation Support</label>
+                <input ng-disabled="isBusy == true" type="checkbox" name="SqlAggregationSupport" id="SqlAggregationSupport" ng-model="model.settings.SqlAggregationSupport">SQL Aggregation Support</label>
         </div>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
-        <label class="control-label" for="schedulerCount">Scheduler Count</label>
+    <!-- SchedulerCount -->
+    <div class="control-group" ng-class="{error: myForm.SchedulerCount.$invalid}">
+        <label class="control-label" for="SchedulerCount">Scheduler Count</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="schedulerCount" id="Number1" placeholder="Scheduler Count" ng-model="model.settings.schedulerCount" required>
-            <span ng-show="myForm.schedulerCount.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.schedulerCount.$error.required" class="help-inline">Required</span>
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="SchedulerCount" id="Number1" placeholder="Scheduler Count" ng-model="model.settings.SchedulerCount" required>
+            <span ng-show="myForm.SchedulerCount.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.SchedulerCount.$error.required" class="help-inline">Required</span>
             <span class="help-block">Number of schedulers the database host should utilize.</span>
         </div>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.chunksNumber.$invalid}">
-        <label class="control-label" for="chunksNumber">Chunks</label>
+    <!-- ChunksNumber -->
+    <div class="control-group" ng-class="{error: myForm.ChunksNumber.$invalid}">
+        <label class="control-label" for="ChunksNumber">Chunks</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" name="chunksNumber" id="chunksNumber" placeholder="Chunks" ng-model="model.settings.chunksNumber" required>
-            <span ng-show="myForm.chunksNumber.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.chunksNumber.$error.required" class="help-inline">Required</span>
+            <input ng-disabled="isBusy == true" type="number" name="ChunksNumber" id="ChunksNumber" placeholder="Chunks" ng-model="model.settings.ChunksNumber" required>
+            <span ng-show="myForm.ChunksNumber.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.ChunksNumber.$error.required" class="help-inline">Required</span>
             <span class="help-block">Number of shared memory chunks, dividable by 256..</span>
         </div>
     </div>

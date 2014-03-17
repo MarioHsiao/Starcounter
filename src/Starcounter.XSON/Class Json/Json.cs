@@ -284,6 +284,9 @@ namespace Starcounter {
             }
         }
 
+        public List<Json> JsonSiblings = new List<Json>();
+        public String AppName;
+
         /// <summary>
         /// 
         /// </summary>
