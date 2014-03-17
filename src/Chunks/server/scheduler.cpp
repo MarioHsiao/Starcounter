@@ -14,8 +14,6 @@
 #include <xmmintrin.h>
 #include <boost/cstdint.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
