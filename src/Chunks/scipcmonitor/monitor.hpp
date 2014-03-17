@@ -37,6 +37,8 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp> // No I/O just types.
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
 #include <boost/thread/win32/thread_primitives.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/call_traits.hpp>
