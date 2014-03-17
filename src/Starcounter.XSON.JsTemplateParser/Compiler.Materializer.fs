@@ -156,7 +156,7 @@ module public Materializer =
                         | Ast.Tree.Object (_,debugInfo) ->
                             (factory.AddAppProperty(parent,name,legalName,debugInfo), debugInfo, true )
                         | Ast.Tree.Null (debugInfo) ->
-                            ( factory.AddEventProperty(parent,name,legalName,null,debugInfo), debugInfo, false )
+                            ( factory.AddEventProperty(parent,name,legalName,null,debugInfo), debugInfo, true )
    //                         (factory.AddObjectProperty(parent,legalName,debugInfo), debugInfo, false )
                         | Ast.Tree.Integer (i,debugInfo) ->
                             (factory.AddIntegerProperty(parent,name,legalName,i,debugInfo), debugInfo, true )
