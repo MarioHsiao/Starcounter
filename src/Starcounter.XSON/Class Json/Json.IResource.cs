@@ -24,7 +24,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public virtual string GetHtmlPartialUrl() {
-            return null;
+            throw new NotImplementedException("GetHtmlPartialUrl method should be implemented to be used!");
         }
 
         /// <summary>
