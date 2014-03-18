@@ -22,16 +22,6 @@ namespace Starcounter.Templates {
             get { return typeof(BoolMetadata<Json>); }
         }
 
-        public override void ProcessInput(Json obj, byte[] rawValue)
-        {
-            // TODO:
-            // Proper implementation.
-            if (rawValue != null && rawValue.Length == 4)
-                obj.ProcessInput<bool>(this, true);
-            else
-                obj.ProcessInput<bool>(this, false);
-        }
-
         /// <summary>
         /// The default value for a boolean property is false. For the
         /// property defined by this template, you can set an alternative

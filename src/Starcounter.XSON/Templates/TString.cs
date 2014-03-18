@@ -13,23 +13,11 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class TString : PrimitiveProperty<string> {
-        public override void ProcessInput(Json obj, byte[] rawValue) {
-			string value = null;
-			if (rawValue.Length > 0) {
-				unsafe {
-					fixed (byte* p = rawValue) {
-						value = JsonHelper.DecodeString(p, rawValue.Length, rawValue.Length);
-					}
-				}
-			}
-            obj.ProcessInput<string>(this, value);
-        }
+        private string _DefaultValue = "";
+
         public override Type MetadataType {
             get { return typeof(StringMetadata<Json>); }
         }
-
-
-        private string _DefaultValue = "";
 
         /// <summary>
         /// Gets or sets the default value.
