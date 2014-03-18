@@ -26,11 +26,14 @@ namespace Starcounter.Hosting {
             var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, applicationHostFile, matches);
             if (resolved != null) {
-                // This is kind of an awkward case. We should either log it,
-                // or figure out if we need to prevent it. We must do testing
-                // with this case before we know our options for sure.
-                // TODO:
+                // This is kind of an awkward case. We log a notice about
+                // it to help out investigating if something later behaves
+                // weird. We might consider not supporting this later (i.e
+                // have the application to fail starting instead).
                 Trace("Application loaded: {0}, resolved to {1}{2}", applicationHostFile, resolved.FullName, resolved.Location);
+                log.LogNotice(
+                    "Redirecting application assembly {0}, executable {1} to already loaded {2}",
+                    resolved.FullName, applicationHostFile, resolved.Location);
                 return resolved;
             }
 
