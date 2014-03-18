@@ -297,9 +297,10 @@ restart:
             Json childObj;
             TObject tObj = (TObject)obj.Template;
             Template tProperty;
+            JsonReader arrayReader;
 
             while (reader.GotoProperty()) {
-                propertyName = reader.CurrentPropertyName;
+                propertyName = reader.ReadString();
                 tProperty = tObj.Properties.GetExposedTemplateByName(propertyName);
                 if (tProperty == null) {
                     JsonHelper.ThrowPropertyNotFoundException(propertyName);
