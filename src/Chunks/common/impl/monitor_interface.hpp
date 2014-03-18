@@ -33,8 +33,14 @@ inline bool monitor_interface::out::is_data_available() const {
 
 inline monitor_interface::monitor_interface()
 : in_(),
+out_() {}
+
+#if 0
+inline monitor_interface::monitor_interface()
+: in_(),
 out_(),
 is_ready_flag_(false) {}
+#endif
 
 #if 0
 inline monitor_interface::monitor_interface()
@@ -44,6 +50,7 @@ is_ready_flag_(false),
 cleanup_task_() {}
 #endif
 
+#if 0
 inline void monitor_interface::wait_until_ready() {
 	boost::interprocess::scoped_lock<boost::interprocess
 	::interprocess_mutex> lock(ready_mutex_);
@@ -62,6 +69,7 @@ inline void monitor_interface::is_ready_notify_all() {
 inline bool monitor_interface::is_ready() const {
 	return is_ready_flag_;
 }
+#endif
 
 inline void monitor_interface::set_in_data_available_state(bool state) {
 	in_.data_available_ = state;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,11 +9,13 @@ using System.Reflection;
 namespace Starcounter.Hosting {
 
     internal sealed class AssemblyResolver {
+        readonly LogSource log;
 
         public readonly PrivateAssemblyStore PrivateAssemblies;
 
         public AssemblyResolver(PrivateAssemblyStore store) {
             PrivateAssemblies = store;
+            log = LogSources.Hosting;
         }
 
         public Assembly ResolveApplication(string applicationHostFile) {
@@ -23,11 +26,14 @@ namespace Starcounter.Hosting {
             var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, applicationHostFile, matches);
             if (resolved != null) {
-                // This is kind of an awkward case. We should either log it,
-                // or figure out if we need to prevent it. We must do testing
-                // with this case before we know our options for sure.
-                // TODO:
+                // This is kind of an awkward case. We log a notice about
+                // it to help out investigating if something later behaves
+                // weird. We might consider not supporting this later (i.e
+                // have the application to fail starting instead).
                 Trace("Application loaded: {0}, resolved to {1}{2}", applicationHostFile, resolved.FullName, resolved.Location);
+                log.LogNotice(
+                    "Redirecting application assembly {0}, executable {1} to already loaded {2}",
+                    resolved.FullName, applicationHostFile, resolved.Location);
                 return resolved;
             }
 
@@ -92,7 +98,10 @@ namespace Starcounter.Hosting {
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
-            Trace("Loading assembly {0} from {1}", name.FullName, assemblyFilePath);
+            var msg = string.Format("Loading assembly {0} from {1}", name.FullName, assemblyFilePath);
+            Trace(msg);
+            log.Debug(msg);
+
             return Assembly.LoadFile(assemblyFilePath);
         }
 
