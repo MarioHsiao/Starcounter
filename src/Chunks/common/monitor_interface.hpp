@@ -105,9 +105,11 @@ public:
 	void out_data_is_available_notify_one() {
 		out_.data_is_available_.notify_one();
 	}
-	
+
+#if 0	
 	void wait_until_ready();
 	void is_ready_notify_all();
+#endif
 	
 	void set_in_data_available_state(bool state);
 	void set_out_data_available_state(bool state);
@@ -213,11 +215,13 @@ public:
 	}
 
 private:
+#if 0
 	// Synchronization to check if the monitor_interface is ready or not.
 	boost::interprocess::interprocess_mutex ready_mutex_;
 	boost::interprocess::interprocess_condition is_ready_;
 	bool is_ready() const;
 	bool is_ready_flag_;
+#endif
 
 	// Synchronize access to the monitor_interface among all database- and
 	// client processes. The monitor threads never locks this mutex.
