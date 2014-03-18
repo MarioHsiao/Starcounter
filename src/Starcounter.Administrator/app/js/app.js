@@ -126,7 +126,6 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
 
-
 }]);
 
 

@@ -250,9 +250,6 @@
     <Content Include="app\services\ApplicationService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular-ui\angular-ui-0.3.0.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="app\vendor\angular-ui\angular-ui-0.4.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -265,19 +262,19 @@
     <Content Include="app\vendor\angular-ui\ui-bootstrap-tpls-0.10.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular\angular-resource.min.js">
+    <Content Include="app\vendor\angular\angular-resource-1.2.5.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular\angular-route.min.js">
+    <Content Include="app\vendor\angular\angular-route-1.2.5.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular\angular.min.js">
+    <Content Include="app\vendor\angular\angular-1.2.5.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\bootstrap\bootstrap.min.css">
+    <Content Include="app\vendor\bootstrap\bootstrap-3.1.1.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\bootstrap\bootstrap.min.js">
+    <Content Include="app\vendor\bootstrap\bootstrap-3.1.1.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\codemirror\codemirror.css">
@@ -295,31 +292,25 @@
     <Content Include="app\vendor\fonts\glyphicons-halflings-regular.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\handsontable\angular-ui-handsontable.full.css">
+    <Content Include="app\vendor\handsontable\angular-ui-handsontable-0.3.17.full.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\handsontable\angular-ui-handsontable.full.js">
+    <Content Include="app\vendor\handsontable\angular-ui-handsontable-0.3.17.full.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\handsontable\very-native-scrollbar.js">
+    <Content Include="app\vendor\handsontable\very-native-scrollbar-0.0.20131217.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\img\glyphicons-halflings-white.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\vendor\img\glyphicons-halflings.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\vendor\jquery\jquery-2.0.3.min.js">
+    <Content Include="app\vendor\jquery\jquery-2.1.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\select2\select2-spinner.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\select2\select2.css">
+    <Content Include="app\vendor\select2\select2-3.4.5.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\select2\select2.js">
+    <Content Include="app\vendor\select2\select2-3.4.5.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\select2\select2.png">
@@ -423,13 +414,13 @@
     </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app\vendor\angular\angular-resource.min.js.map">
+    <None Include="app\vendor\angular\angular-resource-1.2.5.min.js.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="app\vendor\angular\angular-route.min.js.map">
+    <None Include="app\vendor\angular\angular-route-1.2.5.min.js.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="app\vendor\angular\angular.min.js.map">
+    <None Include="app\vendor\angular\angular-1.2.5.min.js.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="app\vendor\fonts\glyphicons-halflings-regular.eot">
@@ -441,7 +432,7 @@
     <None Include="app\vendor\fonts\glyphicons-halflings-regular.woff">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="app\vendor\jquery\jquery-2.0.3.min.map">
+    <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <TypedJSON Include="Server\Representations.JSON\WorkingFolders.json">
