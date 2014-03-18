@@ -74,7 +74,7 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    $scope.notice = NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    $scope.notice = NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });
@@ -185,7 +185,15 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
     $scope.$watch('selectedApplication.Path', function (newValue, oldValue) {
         $scope.selectedApplication.Path = newValue;
         $scope.selectedApplication.ApplicationFilePath = newValue;
-        $scope.selectedApplication.Name = newValue.replace(/^.*[\\\/]/, '');
+
+        // TODO: Assure name is valid, no dots (.) etc..
+
+        if (newValue) {
+            $scope.selectedApplication.Name = newValue.replace(/^.*[\\\/]/, '');
+        }
+        else {
+            $scope.selectedApplication.Name = "";
+        }
         $scope.selectedApplication.Arguments["dummy"] = newValue;
     });
 

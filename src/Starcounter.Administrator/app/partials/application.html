@@ -1,29 +1,48 @@
-﻿<legend>Application - {{applicationCtrl1.application.Name}} <span class="Running">(Running)</span>
-    <a class="btn btn-mini pull-right" href="#/applications"><i class="icon-resize-small"></i></a>
-</legend>
+﻿<div class="panel panel panel-primary">
+    <div class="panel-heading">
+        Application - {{applicationCtrl1.application.Name}}
+            <div class="btn-group pull-right">
+                <a class="btn btn-default btn-xs" href="#/applications"><i class="glyphicon glyphicon-resize-small"></i></a>
+            </div>
 
-<dl class="dl-horizontal">
-    <dt>Started</dt>
-    <dd>{{applicationCtrl1.application.RuntimeInfo.Started | date:'medium'}}</dd>
-    <dt>FilePath</dt>
-    <dd>{{applicationCtrl1.application.Path}}</dd>
-    <dt>Argument</dt>
-    <dd>
-        <div class="muted" ng-repeat="argument in applicationCtrl1.application.Arguments">
-            {{argument.dummy}}&nbsp;
-        </div>
-    </dd>
-</dl>
-
-<div class="row-fluid">
-
-    <legend>Console output
-            <button title="Refresh console" ng-show="applicationCtrl1.application.consoleManualMode == true" class="btn pull-right" ng-click="btnGetConsoleOutput(applicationCtrl1.application)"><i class="icon-refresh"></i></button>
-    </legend>
-
-    <div id="console" ng-style="sizeStyle()">
-        <consolewindow ng-model="applicationCtrl1.application.console"></consolewindow>
     </div>
+
+    <div class="panel-body">
+
+        <dl class="dl-horizontal">
+            <dt>Status</dt>
+            <dd>
+                <span ng-show="applicationCtrl1.application.running" class="label label-success" title="Application is running">Running</span>
+                <span ng-hide="applicationCtrl1.application.running" class="label label-danger" title="Application is not running">Stopped</span>
+            </dd>
+
+
+            <dt>Started</dt>
+            <dd>{{applicationCtrl1.application.RuntimeInfo.Started | date:'medium'}}</dd>
+            <dt>FilePath</dt>
+            <dd>{{applicationCtrl1.application.Path}}</dd>
+            <dt>Argument</dt>
+            <dd>
+                <div class="muted" ng-repeat="argument in applicationCtrl1.application.Arguments">
+                    {{argument.dummy}}&nbsp;
+                </div>
+            </dd>
+        </dl>
+
+        <div class="btn-toolbar">
+            <div class="btn-group pull-right">
+                <button title="Refresh console" ng-show="applicationCtrl1.application.consoleManualMode == true" class="btn btn-default btn-xs" ng-click="applicationCtrl1.btnGetConsoleOutput(applicationCtrl1.application)"><i class="glyphicon glyphicon-refresh"></i></button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div title="Console output" style="margin-bottom: -15px" id="console" ng-style="sizeStyle()">
+                <consolewindow ng-model="applicationCtrl1.application.console"></consolewindow>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 
 

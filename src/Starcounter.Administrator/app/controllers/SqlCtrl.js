@@ -121,7 +121,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
         if (!query) {
             // if this occure then the binding the the textarea failed..
             var message = "Failed to retrive the query text due to some binding issues. Refresh the page and try again.";
-            NoticeFactory.ShowNotice({ type: 'error', msg: message, helpLink: null });
+            NoticeFactory.ShowNotice({ type: 'danger', msg: message, helpLink: null });
             return;
         }
         $scope.isBusy = true;
@@ -162,7 +162,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });

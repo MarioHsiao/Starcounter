@@ -443,19 +443,14 @@ namespace Weaver {
             // When we extend the weaver to support an alternative weaving,
             // weaving only the executables entrypoint to support bootstraping,
             // we consider nothing more than the executable itself.
-            string[] dlls;
+            var binaries = new List<string>();
             if (this.WeaveBootstrapperCode) {
-                dlls = new string[0];
+                binaries.Add(Path.Combine(this.InputDirectory, this.AssemblyFile));
             } else {
-                dlls = Directory.GetFiles(this.InputDirectory, "*.dll");
+                binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
+                binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
             }
-            filesToConsider = dlls;
-
-            if (Path.GetExtension(this.AssemblyFile).Equals(".exe")) {
-                filesToConsider = new string[dlls.Length + 1];
-                filesToConsider[0] = Path.Combine(this.InputDirectory, this.AssemblyFile);
-                Array.Copy(dlls, 0, filesToConsider, 1, dlls.Length);
-            }
+            filesToConsider = binaries.ToArray();
 
             // Now check every file we need to consider, evaluate if their in the
             // cache and usable and/or if they have been excluded by rule. For every

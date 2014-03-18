@@ -20,7 +20,9 @@ namespace starcounter {
 		 ipc_monitor_cleanup_event_(),
 #endif
          monitor_interface_(),
+#if 0
          active_segments_update_(active_segments_buffer_capacity),
+#endif
          active_databases_updated_flag_(false),
          registrar_(),
 #if 0
@@ -272,7 +274,9 @@ namespace starcounter {
             the_monitor_interface()->active_database_set()
                .set_active_databases_set_update_event(active_databases_updated_event);
             _mm_mfence();
+#if 0
             the_monitor_interface()->is_ready_notify_all();
+#endif
 
             //--------------------------------------------------------------------------
             // For each database and client event groups, create the vectors containing
