@@ -15,8 +15,6 @@ namespace Starcounter.Advanced.XSON {
             this.offset = 0;
             this.currentPropertyPtr = null;
             FindFirstItem();
-            if (isArray)
-                FindObject();
         }
 
         internal int Used {
@@ -40,6 +38,18 @@ namespace Starcounter.Advanced.XSON {
 
         internal IntPtr CurrentPtr {
             get { return (IntPtr)pBuffer; }
+        }
+
+        internal JsonReader CreateSubReader() {
+            return new JsonReader((IntPtr)pBuffer, bufferSize - offset);
+        }
+
+        internal void Skip(int value) {
+            if (value > (bufferSize - offset))
+                JsonHelper.ThrowUnexpectedEndOfContentException();
+
+            pBuffer += value;
+            offset += value;
         }
 
         internal int SkipValue() {
@@ -164,14 +174,10 @@ namespace Starcounter.Advanced.XSON {
                 current = *pBuffer;
 
                 if (current == '{') {
-                    pBuffer++;
-                    offset++;
                     return true;
                 }
 
                 if (current == '[') {
-                    pBuffer++;
-                    offset++;
                     isArray = true;
                     return true;
                 }
@@ -188,29 +194,27 @@ namespace Starcounter.Advanced.XSON {
             }
         }
 
-        private bool FindObject() {
-            byte current;
+        //private bool FindObject() {
+        //    byte current;
 
-            while (true) {
-                current = *pBuffer;
+        //    while (true) {
+        //        current = *pBuffer;
 
-                if (current == '{') {
-                    pBuffer++;
-                    offset++;
-                    return true;
-                }
+        //        if (current == '{') {
+        //            return true;
+        //        }
 
-                if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
-                    offset++;
-                    if (bufferSize <= offset)
-                        JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
-                    pBuffer++;
-                    continue;
-                } else {
-                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
-                }
-            }
-        }
+        //        if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
+        //            offset++;
+        //            if (bufferSize <= offset)
+        //                JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
+        //            pBuffer++;
+        //            continue;
+        //        } else {
+        //            JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
+        //        }
+        //    }
+        //}
 
         internal bool GotoProperty() {
             byte current;
@@ -261,18 +265,11 @@ namespace Starcounter.Advanced.XSON {
             }
         }
 
-        internal bool GotoNextObjectInArray() {
-            if (!isArray)
-                return false;
-
+        internal bool GotoNextObject() {
             while (true) {
-                if (*pBuffer == ']') {
-                    pBuffer++;
-                    offset++;
+                if (*pBuffer == ']' || (!isArray && *pBuffer == '}')) {
                     return false;
                 } else if (*pBuffer == '{') {
-                    pBuffer++;
-                    offset++;
                     return true;
                 }
                 offset++;
