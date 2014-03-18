@@ -25,8 +25,6 @@
 # error Compiler not supported.
 #endif // (_MSC_VER)
 
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 #include <boost/thread/thread.hpp>
 #include "macro_definitions.hpp"
 

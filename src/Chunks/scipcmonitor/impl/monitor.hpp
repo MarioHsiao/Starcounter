@@ -20,7 +20,9 @@ namespace starcounter {
 		 ipc_monitor_cleanup_event_(),
 #endif
          monitor_interface_(),
+#if 0
          active_segments_update_(active_segments_buffer_capacity),
+#endif
          active_databases_updated_flag_(false),
          registrar_(),
 #if 0
