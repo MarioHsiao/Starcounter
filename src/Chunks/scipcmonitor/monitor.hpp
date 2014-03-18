@@ -37,6 +37,8 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp> // No I/O just types.
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
 #include <boost/thread/win32/thread_primitives.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/call_traits.hpp>
@@ -58,7 +60,6 @@
 #include "../common/monitor_interface.hpp"
 #include "../common/shared_interface.hpp"
 #include "../common/bounded_buffer.hpp"
-#include "bounded_message_buffer.hpp"
 #include "process_info.hpp"
 #include "../common/log.hpp"
 #include "../common/spinlock.hpp"
@@ -309,9 +310,11 @@ public:
 		return active_databases_;
 	}
 
+#if 0
 	bounded_buffer<std::string>& active_segments_update() {
 		return active_segments_update_;
 	}
+#endif
 
 private:
 	// Controlling the console a bit makes it easier to read.
@@ -415,7 +418,9 @@ private:
 	std::wstring active_databases_file_path_;
 #endif
 	
+#if 0	
 	bounded_buffer<std::string> active_segments_update_;
+#endif
 	
 	starcounter::log log_;
 

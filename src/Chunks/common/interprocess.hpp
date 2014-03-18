@@ -303,6 +303,7 @@ public:
 		size /= align;
 		size_ = size;
 		next_ = sizeof(simple_shared_memory_manager) / align;
+        next_end_ = size;
 		named_block_count_ = 0;
 	}
 
@@ -313,10 +314,27 @@ public:
 		size_t pos = next_;
 		size_t new_pos = pos + size;
 
-		if (new_pos <= size_)
+		if (new_pos <= next_end_)
 		{
 			next_ = (uint32_t)new_pos;
 			return ((char *)this + (pos * align));
+		}
+
+		out_of_memory_exception e;
+		throw e;
+	}
+
+	void *allocate_end(size_t size)
+	{
+		size = (size + (align -1)) / align;
+
+		size_t pos = next_end_;
+		size_t new_pos = pos - size;
+
+		if (new_pos >= next_)
+		{
+			next_end_ = (uint32_t)new_pos;
+			return ((char *)this + (new_pos * align));
 		}
 
 		out_of_memory_exception e;
@@ -328,14 +346,20 @@ public:
 		if (named_block_count_ != 14)
 		{
 			void *p = allocate(size);
-			int32_t *pname = (int32_t *)named_block_data_ + (named_block_count_ * 2);
-			*pname = name;
-			uint32_t *poffset = ((uint32_t *)pname + 1);
-			*poffset = (uint32_t)((char *)p - (char *)this);
-			named_block_count_++;
+            store_named_block_name_and_pos(name, p);
 			return p;
 		}
+		return 0;
+	}
 
+	void *create_named_block_end(int32_t name, int32_t size)
+	{
+		if (named_block_count_ != 14)
+		{
+			void *p = allocate_end(size);
+            store_named_block_name_and_pos(name, p);
+			return p;
+		}
 		return 0;
 	}
 
@@ -360,13 +384,23 @@ public:
 private:
 	uint32_t size_;
 	uint32_t next_;
+	uint32_t next_end_;
 	uint32_t named_block_count_;
-	uint32_t fill_;
 	struct
 	{
 		int32_t name;
 		uint32_t offset;
 	} named_block_data_[14];
+
+	void store_named_block_name_and_pos(int32_t name, void *p)
+	{
+		int32_t *pname =
+			(int32_t *)named_block_data_ + (named_block_count_ * 2);
+		*pname = name;
+		uint32_t *poffset = ((uint32_t *)pname + 1);
+		*poffset = (uint32_t)((char *)p - (char *)this);
+		named_block_count_++;
+	}
 };
 
 template <typename T>

@@ -61,9 +61,6 @@ try {
 	
 	+sizeof(simple_shared_memory_manager)
 	
-	// chunk[s]
-	+sizeof(chunk_type) * chunks_total_number
-	
 	// shared_chunk_pool
 	+sizeof(shared_chunk_pool_type)
 	+CACHE_LINE_SIZE // Not aligned to CACHE_LINE_SIZE byte boundary
@@ -105,6 +102,14 @@ try {
 	// scheduler_signal_channel[s]
 	+sizeof(scheduler_channel_type) * max_number_of_schedulers
 	+CACHE_LINE_SIZE; // Not aligned to CACHE_LINE_SIZE byte boundary
+
+    // Align to system page size.
+	shared_memory_segment_size = (shared_memory_segment_size + 4095) & ~4095ULL;
+
+	// chunk[s]
+	std::size_t chunk_memory_size = (sizeof(chunk_type) * chunks_total_number);
+	chunk_memory_size = (chunk_memory_size + 4095) & ~4095ULL;
+    shared_memory_segment_size += chunk_memory_size;
 	
 	//--------------------------------------------------------------------------
 	// Create a new segment with given name and size.
@@ -124,12 +129,13 @@ try {
 	simple_shared_memory_manager* psegment_manager
 	= new (global_mapped_region.get_address()) simple_shared_memory_manager;
 	psegment_manager->reset(shared_memory_segment_size);
-	
+
 	//--------------------------------------------------------------------------
 	// Construct the chunk array in shared memory.
-	void* p = psegment_manager->create_named_block
-	(starcounter_core_shared_memory_chunks_name, sizeof(chunk_type)
-    * chunks_total_number);
+    //
+    // Allocate from end of segment to align first chunk offset to page size.
+	void* p = psegment_manager->create_named_block_end
+	(starcounter_core_shared_memory_chunks_name, chunk_memory_size);
 	
 	chunk_type* chunk = static_cast<chunk_type*>(p);
 	
