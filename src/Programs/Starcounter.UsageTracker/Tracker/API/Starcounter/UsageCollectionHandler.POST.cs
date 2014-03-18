@@ -17,7 +17,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
 
                     try {
                         String content = request.Body;
-                        IPAddress clientIP = request.GetClientIpAddress();
+                        IPAddress clientIP = request.ClientIpAddress;
 
                         int protocolVersion = Utils.GetRequestProtocolVersion(request);
 

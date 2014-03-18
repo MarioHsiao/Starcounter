@@ -829,10 +829,19 @@ namespace Starcounter {
         /// <summary>
         /// HostName string.
         /// </summary>
-        public String HostName
+        public String Host
         {
             get
             {
+                if (hostNameString_ != null)
+                    return hostNameString_;
+
+                unsafe
+                {
+                    if (http_request_struct_ != null)
+                        hostNameString_ = this[HttpHeadersUtf8.HostHeader];
+                }
+
                 return hostNameString_;
             }
 
@@ -1042,17 +1051,20 @@ namespace Starcounter {
         /// <summary>
         /// Gets the client IP address.
         /// </summary>
-        public IPAddress GetClientIpAddress()
+        public IPAddress ClientIpAddress
         {
-            unsafe
+            get
             {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
+                unsafe
+                {
+                    if (null == http_request_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
 
-                if (!isInternalRequest_)
-                    return new IPAddress(*(Int64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_CLIENT_IP));
+                    if (!isInternalRequest_)
+                        return new IPAddress(*(Int64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_CLIENT_IP));
 
-                return IPAddress.Loopback;
+                    return IPAddress.Loopback;
+                }
             }
         }
 
