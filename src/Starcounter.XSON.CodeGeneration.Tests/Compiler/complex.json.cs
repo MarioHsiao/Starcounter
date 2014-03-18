@@ -33,6 +33,24 @@ namespace MySampleNamespace {
             string Complex = "";
         }
 
+        public static Complex Create<T>(Json employer, Func<T, ModalResult> action) where T : ComplexData, new() {
+            return Create<T>(employer, action, (ModalResult result) => {
+                if (result.Value == ModalResultType.SUCCESS) {
+                    if (result.Msg.Length > 0) {
+                        Master.SendUserInfo(employer, result.Msg);
+                    } else {
+                        Master.SendUserInfo(employer, "Success");
+                    }
+                } else {
+                    Master.SendUserError(employer, result.Msg);
+                }
+            });
+        }
+
+        public static Complex Create<T>(Json employer, Func<T, ModalResult> action, Func<ModalResult> apa) where T : ComplexData, new() {
+            return new Complex();
+        }
+
         public void Handle(Input.userLink input) {
         }
 

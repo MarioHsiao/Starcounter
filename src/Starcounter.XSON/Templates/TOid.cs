@@ -23,10 +23,6 @@ namespace Starcounter.Templates {
             get { throw new NotImplementedException(); } // TODO!
         }
 
-        public override void ProcessInput(Json obj, byte[] rawValue) {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Contains the default value for the property represented by this
         /// Template for each new App object.
