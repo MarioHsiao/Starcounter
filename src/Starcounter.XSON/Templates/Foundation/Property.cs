@@ -207,6 +207,15 @@ namespace Starcounter.Templates {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="value"></param>
+        public void ProcessInput(Json parent, T value) {
+            parent.ProcessInput<T>(this, value);
+        }
 	}
 
 	/// <summary>

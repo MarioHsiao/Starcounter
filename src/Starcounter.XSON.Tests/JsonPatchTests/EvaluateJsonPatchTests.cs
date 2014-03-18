@@ -22,25 +22,22 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestIncomingPatches() {
             int patchCount;
-            string patchSkel;
             string patchStr;
             byte[] patchBytes;
             TObject schema;
-
-            patchSkel = "{{\"op\":\"replace\", \"path\":\"{0}\", \"value\":\"{1}\"}}";
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
 
             // Setting a value on a editable property
-            patchStr = string.Format(patchSkel, "/VirtualValue$", "Alpha");
+            patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
             Assert.AreEqual(1, patchCount);
             Assert.AreEqual("Alpha", json.VirtualValue);
 
             // Setting a value on a readonly property
-            patchStr = string.Format(patchSkel, "/BaseValue", "Beta");
+            patchStr = string.Format(Helper.PATCH, "/BaseValue", Helper.Jsonify("Beta"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             var ex = Assert.Throws<JsonPatch.JsonPatchException>(() => {
                 JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
@@ -49,11 +46,11 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Setting values on three properties in one patch
             patchStr = "["
-                       + string.Format(patchSkel, "/VirtualValue$", "Apa")
+                       + string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Apa"))
                        + ","
-                       + string.Format(patchSkel, "/OtherValue$", 1395276000)
+                       + string.Format(Helper.PATCH, "/OtherValue$", 1395276000)
                        + ","
-                       + string.Format(patchSkel, "/AbstractValue$", "Peta")
+                       + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
@@ -64,13 +61,79 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Making sure all patches are correctly parsed.
             patchStr = "["
-                       + string.Format(patchSkel, "/Content/ApplicationPage/GanttData/ItemDropped/Date$", 1395276000)
+                       + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/Date$", 1395276000)
                        + ","
-                       + string.Format(patchSkel, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", "lm7")
+                       + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = JsonPatch.JsonPatch.EvaluatePatches(null, patchBytes);
             Assert.AreEqual(2, patchCount);
+
+        }
+
+        [Test]
+        public static void TestIncomingPatchesWithHandlers() {
+            int patchCount;
+            int handledCount;
+            string patchStr;
+            byte[] patchBytes;
+            TObject schema;
+
+            handledCount = 0;
+
+            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("simple.json"), "Simple");
+            dynamic json = schema.CreateInstance();
+
+            // Index (same order as declared in simple.json):
+            // 0 - VirtualValue (string)
+            // 1 - AbstractValue (string)
+            // 2 - BaseValue (string)
+            // 3 - OtherValue (long)
+            ((TString)schema.Properties[0]).AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    Console.WriteLine("Handler for VirtualValue called.");
+                    handledCount++;
+                }   
+            );
+            ((TString)schema.Properties[1]).AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    Console.WriteLine("Handler for AbstractValue called.");
+                    handledCount++;
+                }
+            );
+            ((TLong)schema.Properties[3]).AddHandler(
+                Helper.CreateInput<long>,
+                (Json pup, Starcounter.Input<long> input) => {
+                    Console.WriteLine("Handler for OtherValue called.");
+                    handledCount++;
+                }
+            );
+
+            handledCount = 0;
+
+            // Setting a value on a editable property
+            patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
+            patchBytes = Encoding.UTF8.GetBytes(patchStr);
+            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            Assert.AreEqual(1, handledCount);
+            Assert.AreEqual(1, patchCount);
+           
+            handledCount = 0;
+
+            // Setting values on three properties in one patch
+            patchStr = "["
+                       + string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Apa"))
+                       + ","
+                       + string.Format(Helper.PATCH, "/OtherValue$", 1395276000)
+                       + ","
+                       + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
+                       + "]";
+            patchBytes = Encoding.UTF8.GetBytes(patchStr);
+            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            Assert.AreEqual(3, handledCount);
+            Assert.AreEqual(3, patchCount);
         }
 
         /// <summary>

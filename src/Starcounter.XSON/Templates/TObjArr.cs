@@ -218,10 +218,6 @@ namespace Starcounter.Templates {
             get { return typeof(ArrMetadata<Json, Json>); }
         }
 
-        public override void ProcessInput(Json obj, byte[] rawValue) {
-            throw new System.NotImplementedException();
-        }
-
 		public override bool IsArray {
 			get {
 				return true;
