@@ -15,47 +15,32 @@ namespace Starcounter.Internal
     /// <summary>
     /// Class JsonPointer
     /// </summary>
-    internal class JsonPointer : IEnumerator<String>
+    internal class JsonPointer : IEnumerator<string>
     {
-        /// <summary>
-        /// The _buffer
-        /// </summary>
-        private Byte[] _buffer;
-        /// <summary>
-        /// The _pointer
-        /// </summary>
-        private Byte[] _pointer;
-        /// <summary>
-        /// The _current token
-        /// </summary>
-        private String _currentToken;
-        /// <summary>
-        /// The _offset
-        /// </summary>
-        private Int32 _offset;
-        /// <summary>
-        /// The _buffer pos
-        /// </summary>
-        private Int32 _bufferPos;
+        private byte[] buffer;
+        private byte[] pointer;
+        private int offset;
+        private int bufferPos;
+        private string currentToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonPointer" /> class.
         /// </summary>
         /// <param name="pointer">The pointer.</param>
-        internal JsonPointer(Byte[] pointer)
+        internal JsonPointer(byte[] pointer)
         {
-            _pointer = pointer;
-            _currentToken = null;
-            _offset = 0;
-            _bufferPos = -1;
-            _buffer = new Byte[pointer.Length];
+            this.pointer = pointer;
+            this.currentToken = null;
+            this.offset = 0;
+            this.bufferPos = -1;
+            this.buffer = new byte[pointer.Length];
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonPointer" /> class.
         /// </summary>
         /// <param name="pointer">The pointer.</param>
-        internal JsonPointer(String pointer) 
+        internal JsonPointer(string pointer) 
             : this(Encoding.UTF8.GetBytes(pointer))
         {
         }
@@ -69,25 +54,25 @@ namespace Starcounter.Internal
             Boolean afterFirst;
             Byte current;
 
-            _currentToken = null;
-            if (_offset == _pointer.Length)
+            currentToken = null;
+            if (offset == pointer.Length)
             {
-                _bufferPos = -1;
+                bufferPos = -1;
                 return false;
             }
 
             afterFirst = false;
-            _bufferPos = 0;
+            bufferPos = 0;
 
-            while (_offset < _pointer.Length)
+            while (offset < pointer.Length)
             {
-                current = _pointer[_offset];
+                current = pointer[offset];
                 if (current == '/') // Start or end of token.
                 {
                     if (afterFirst)
                         break;
 
-                    _offset++;
+                    offset++;
                     afterFirst = true;
                 }
                 else if (current == '~')
@@ -100,8 +85,8 @@ namespace Starcounter.Internal
                 }
                 else
                 {
-                    _buffer[_bufferPos++] = current;
-                    _offset++;
+                    buffer[bufferPos++] = current;
+                    offset++;
                 }
             }
 
@@ -116,15 +101,15 @@ namespace Starcounter.Internal
         private void DecodeTildeEscapeCharacter()
         {
             Byte current;
-            _offset++;
-            if (_offset >= _pointer.Length)
+            offset++;
+            if (offset >= pointer.Length)
                 throw new Exception("Unexpected ecsape sequence. End of pointer reached.");
 
-            current = _pointer[_offset++];
+            current = pointer[offset++];
             if (current == '0')
-                _buffer[_bufferPos++] = (Byte)'~';
+                buffer[bufferPos++] = (Byte)'~';
             else if (current == '1')
-                _buffer[_bufferPos++] = (Byte)'/';
+                buffer[bufferPos++] = (Byte)'/';
             else
                 throw new Exception("Unexpected token. Illegal escape character.");
         }
@@ -138,26 +123,26 @@ namespace Starcounter.Internal
             Byte current;
             Int32 unicodeValue;
 
-            _offset++;
-            if (_offset >= _pointer.Length)
+            offset++;
+            if (offset >= pointer.Length)
                 throw new Exception("Unexpected token. End of pointer reached.");
 
-            current = _pointer[_offset++];
+            current = pointer[offset++];
             if (current == 'u') // Four digit unicode escape sequence.
             {
-                if ((_offset + 4) >= _pointer.Length)
+                if ((offset + 4) >= pointer.Length)
                     throw new Exception("Unexpected token. End of pointer reached.");
 
                 unicodeValue = 0;
                 for (Int32 i = 0; i < 4; i++)
                 {
-                    unicodeValue = (unicodeValue * 10) + (_pointer[_offset] - '0');
-                    _offset++;
+                    unicodeValue = (unicodeValue * 10) + (pointer[offset] - '0');
+                    offset++;
                 }
 
                 // TODO: 
                 // This might not be correct. Check that we can cast it directly.
-                _buffer[_bufferPos++] = (Byte)unicodeValue;
+                buffer[bufferPos++] = (Byte)unicodeValue;
             }
             else
                 throw new Exception("Unexpected escape sequence.");
@@ -175,12 +160,12 @@ namespace Starcounter.Internal
                 Int32 value;
                 Byte current;
 
-                if (_bufferPos == -1) return -1;
+                if (bufferPos == -1) return -1;
 
                 value = 0;
-                for (Int32 i = 0; i < _bufferPos; i++)
+                for (Int32 i = 0; i < bufferPos; i++)
                 {
-                    current = _buffer[i];
+                    current = buffer[i];
                     if ((current >= '0') && (current <= '9'))
                         value = (value * 10) + (current - '0');
                     else
@@ -199,9 +184,9 @@ namespace Starcounter.Internal
         {
             get 
             {
-                if ((_bufferPos != -1) && (_currentToken == null))
-                    _currentToken = Encoding.UTF8.GetString(_buffer, 0, _bufferPos);
-                return _currentToken;
+                if ((bufferPos != -1) && (currentToken == null))
+                    currentToken = Encoding.UTF8.GetString(buffer, 0, bufferPos);
+                return currentToken;
             }
         }
 
@@ -236,9 +221,9 @@ namespace Starcounter.Internal
         /// </summary>
         public void Reset()
         {
-            _currentToken = null;
-            _offset = 0;
-            _bufferPos = -1;
+            currentToken = null;
+            offset = 0;
+            bufferPos = -1;
         }
 
         /// <summary>
@@ -247,7 +232,7 @@ namespace Starcounter.Internal
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString()
         {
-            return Encoding.UTF8.GetString(_pointer);
+            return Encoding.UTF8.GetString(pointer, 0, pointer.Length);
         }
     }
 }
