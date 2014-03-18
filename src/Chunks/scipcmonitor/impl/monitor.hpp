@@ -274,7 +274,9 @@ namespace starcounter {
             the_monitor_interface()->active_database_set()
                .set_active_databases_set_update_event(active_databases_updated_event);
             _mm_mfence();
+#if 0
             the_monitor_interface()->is_ready_notify_all();
+#endif
 
             //--------------------------------------------------------------------------
             // For each database and client event groups, create the vectors containing
