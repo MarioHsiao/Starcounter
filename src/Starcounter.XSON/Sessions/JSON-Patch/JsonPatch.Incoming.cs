@@ -48,7 +48,7 @@ namespace Starcounter.Internal.JsonPatch {
                 unsafe {
                     reader = new JsonReader(body, bodySize);
 
-                    do {
+                    while (reader.GotoNextObject()) {
                         member = JsonPatchMember.Invalid;
                         pointer = null;
                         valuePtr = IntPtr.Zero;
@@ -93,7 +93,7 @@ namespace Starcounter.Internal.JsonPatch {
                         used += reader.Used;
                         patchCount++;
                         HandleParsedPatch(root, pointer, valuePtr, valueSize);
-                    } while (reader.GotoNextObjectInArray());
+                    }
                 }
             } catch (JsonPatchException jpex) {
                 if (patchStart != -1 && string.IsNullOrEmpty(jpex.Patch))
