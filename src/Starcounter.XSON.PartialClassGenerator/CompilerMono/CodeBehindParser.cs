@@ -107,7 +107,9 @@ namespace Starcounter.XSON.Compiler.Mono {
         private static void AnalyzeConstructor(MonoCSharpEnumerator mce) {
             string identifier = mce.Value;
 
-            if (mce.PreviousToken != CSharpToken.STATIC && identifier.Equals(mce.CurrentClass)) {
+            if (mce.PreviousToken != CSharpToken.STATIC 
+                && mce.PreviousToken != CSharpToken.NEW
+                && identifier.Equals(mce.CurrentClass)) {
                 if (mce.Peek() == CSharpToken.OPEN_PARENS) {
                     // This is an constructor. Since we don't support constructors that take parameters and
                     // a default constructor is already defined in the generated code we always throw an 
