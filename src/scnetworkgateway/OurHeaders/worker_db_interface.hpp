@@ -46,7 +46,14 @@ class WorkerDbInterface
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireIPCChunksFromSharedPool(int32_t num_ipc_chunks)
     {
-        // Acquire chunks from the shared chunk pool to this worker private chunk pool.
+        // Acquire chunks from the shared chunk pool to this worker private
+        // chunk pool.
+        //
+        // Note that in case the server (database host process) failed while
+        // holding a lock on the shared chunk pool the operation this is handled
+        // by the operation timing out, no chunks will then be allocated (if no
+        // time-out the thread, and gateway, might get stuck on the spin-lock
+        // serializing access to the shared chunk pool).
         int32_t num_acquired_chunks = static_cast<int32_t> (shared_int_.acquire_from_shared_to_private(
             private_chunk_pool_, num_ipc_chunks, &shared_int_.client_interface(), 1000));
 
