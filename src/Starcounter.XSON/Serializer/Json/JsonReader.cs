@@ -1,17 +1,22 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Starcounter.Advanced.XSON {
     internal unsafe class JsonReader {
         private byte* pBuffer;
         private int offset;
         private int bufferSize;
-        private string currentPropertyName;
+        private byte* currentPropertyPtr;
+        private bool isArray;
 
         internal JsonReader(IntPtr buffer, int bufferSize) {
             this.pBuffer = (byte*)buffer;
             this.bufferSize = bufferSize;
             this.offset = 0;
-            FindObject();
+            this.currentPropertyPtr = null;
+            FindFirstItem();
+            if (isArray)
+                FindObject();
         }
 
         internal int Used {
@@ -21,12 +26,54 @@ namespace Starcounter.Advanced.XSON {
             }
         }
 
+        private string CurrentPropertyName {
+            get {
+                if (currentPropertyPtr == null)
+                    return null;
+
+                string name;
+                int valueSize;
+                JsonHelper.ParseString((IntPtr)currentPropertyPtr, 256, out name, out valueSize);
+                return name;
+            }
+        }
+
+        internal IntPtr CurrentPtr {
+            get { return (IntPtr)pBuffer; }
+        }
+
+        internal int SkipValue() {
+            bool needsDecoding = false;
+            int size;
+            
+            if (*pBuffer == '"') {
+                size = JsonHelper.SizeToDelimiterOrEndString(pBuffer + 1, bufferSize - offset - 1, out needsDecoding) + 2;
+            } else {
+               size = JsonHelper.SizeToDelimiterOrEnd(pBuffer, bufferSize - offset);
+            }
+
+            pBuffer += size;
+            offset += size;
+            return size;
+        }
+
+        internal void ReadRaw(byte[] target, out int valueSize) {
+            byte* pstart = pBuffer;
+            int size = SkipValue();
+
+            if (size == -1 || target.Length < size)
+                JsonHelper.ThrowUnexpectedEndOfContentException();
+
+            valueSize = size;
+            Marshal.Copy((IntPtr)pstart, target, 0, size);
+        }
+
         internal string ReadString() {
             int valueSize;
             string value;
 
             if (!JsonHelper.ParseString((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "String", ReadString());
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "String", ReadString());
 
             offset += valueSize;
             if (bufferSize < offset)
@@ -41,7 +88,7 @@ namespace Starcounter.Advanced.XSON {
             bool value;
 
             if (!JsonHelper.ParseBoolean((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Boolean", ReadString());
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Boolean", ReadString());
 
             offset += valueSize;
             if (bufferSize <= offset)
@@ -56,7 +103,7 @@ namespace Starcounter.Advanced.XSON {
             decimal value;
 
             if (!JsonHelper.ParseDecimal((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Decimal", ReadString());
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Decimal", ReadString());
 
             offset += valueSize;
             if (bufferSize <= offset)
@@ -71,7 +118,7 @@ namespace Starcounter.Advanced.XSON {
             double value;
 
             if (!JsonHelper.ParseDouble((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Double", ReadString());
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Double", ReadString());
 
             offset += valueSize;
             if (bufferSize <= offset)
@@ -86,7 +133,7 @@ namespace Starcounter.Advanced.XSON {
             long value;
 
             if (!JsonHelper.ParseInt((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Int64", ReadString());
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Int64", ReadString());
 
             offset += valueSize;
             if (bufferSize <= offset)
@@ -109,14 +156,49 @@ namespace Starcounter.Advanced.XSON {
             pBuffer += valueSize;
         }
 
+        private bool FindFirstItem() {
+            byte current;
+
+            isArray = false;
+            while (true) {
+                current = *pBuffer;
+
+                if (current == '{') {
+                    pBuffer++;
+                    offset++;
+                    return true;
+                }
+
+                if (current == '[') {
+                    pBuffer++;
+                    offset++;
+                    isArray = true;
+                    return true;
+                }
+
+                if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
+                    offset++;
+                    if (bufferSize <= offset)
+                        JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
+                    pBuffer++;
+                    continue;
+                } else {
+                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
+                }
+            }
+        }
+
         private bool FindObject() {
             byte current;
 
             while (true) {
                 current = *pBuffer;
 
-                if (current == '{')
+                if (current == '{') {
+                    pBuffer++;
+                    offset++;
                     return true;
+                }
 
                 if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
                     offset++;
@@ -155,14 +237,8 @@ namespace Starcounter.Advanced.XSON {
                 break;
             }
 
-            currentPropertyName = ReadString();
+            currentPropertyPtr = pBuffer;
             return true;
-        }
-
-        internal string CurrentPropertyName {
-            get {
-                return currentPropertyName;
-            }
         }
 
         internal void GotoValue() {
@@ -186,12 +262,17 @@ namespace Starcounter.Advanced.XSON {
         }
 
         internal bool GotoNextObjectInArray() {
+            if (!isArray)
+                return false;
+
             while (true) {
                 if (*pBuffer == ']') {
                     pBuffer++;
                     offset++;
                     return false;
                 } else if (*pBuffer == '{') {
+                    pBuffer++;
+                    offset++;
                     return true;
                 }
                 offset++;
