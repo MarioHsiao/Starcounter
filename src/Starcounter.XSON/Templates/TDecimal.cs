@@ -21,16 +21,6 @@ namespace Starcounter.Templates {
             get { return typeof(DecimalMetadata<Json>); }
         }
 
-
-        public override void ProcessInput(Json obj, byte[] rawValue)
-        {
-            // TODO:
-            // Superslow way of parsing the decimal value. Needs to be rewritten.
-            decimal value;
-            decimal.TryParse(Encoding.UTF8.GetString(rawValue), out value);
-            obj.ProcessInput<decimal>(this, value);
-        }
-
         /// <summary>
         /// 
         /// </summary>
