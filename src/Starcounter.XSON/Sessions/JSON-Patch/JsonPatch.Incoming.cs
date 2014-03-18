@@ -432,13 +432,30 @@ namespace Starcounter.Internal.JsonPatch {
                         Template t = ((TObject)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
 
                         if (t == null) {
-                            throw new JsonPatchException(
-                                String.Format("Unknown property '{0}' in path.", ptr.Current),
-                                null
-                            );
+                            Boolean found = false;
+                            if (mainApp.JsonSiblings.Count > 0) {
+                                foreach (Json j in mainApp.JsonSiblings) {
+                                    if (j.AppName == ptr.Current) {
+                                        current = j;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!found) {
+                                if (mainApp.AppName == ptr.Current) {
+                                    current = mainApp;
+                                } else {
+                                    throw new JsonPatchException(
+                                        String.Format("Unknown property '{0}' in path.", ptr.Current),
+                                        null
+                                    );
+                                }
+                            }
+                        } else {
+                            current = t;
                         }
-
-                        current = t;
                     }
 
                     if (current is Json && !(current as Json).IsArray) {

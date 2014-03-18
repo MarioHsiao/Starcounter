@@ -9,6 +9,8 @@ using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest;
+using Starcounter.Internal.Web;
+using System.Collections.Generic;
 
 namespace Starcounter.Administrator.Server {
 
@@ -98,6 +100,22 @@ namespace Starcounter.Administrator.Server {
                 return "Success!";
             });
 
+            // Handler to get all registered static resource folders
+            Handle.GET("/staticcontentdir", (Request req) => {
+
+                Dictionary<UInt16, string> folders = AppsBootstrapper.GetFileServingDirectories();
+
+                WorkingFolders workingFolders = new WorkingFolders();
+
+                foreach (KeyValuePair<UInt16, string> entry in folders) {
+                    var folder = workingFolders.Items.Add();
+                    folder.Port = entry.Key;
+                    folder.Folder = entry.Value; ;
+                }
+
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };
+            });
+
             #region Debug/Test
 
             Handle.GET("/return/{?}", (int code) => {
@@ -123,10 +141,8 @@ namespace Starcounter.Administrator.Server {
                 return new Response() { BodyBytes = req.BodyBytes };
             });
 
-            Handle.GET("/echotestws", (Request req) =>
-            {
-                if (req.WebSocketUpgrade)
-                {
+            Handle.GET("/echotestws", (Request req) => {
+                if (req.WebSocketUpgrade) {
                     req.SendUpgrade("echotestws");
 
                     return HandlerStatus.Handled;
@@ -135,18 +151,15 @@ namespace Starcounter.Administrator.Server {
                 return 513;
             });
 
-            Handle.Socket("echotestws", (String s, WebSocket ws) =>
-            {
+            Handle.Socket("echotestws", (String s, WebSocket ws) => {
                 ws.Send(s);
             });
 
-            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) =>
-            {
+            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) => {
                 ws.Send(bs);
             });
 
-            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) =>
-            {
+            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
                 // Do nothing!
             });
 

@@ -14,7 +14,6 @@
 #include <boost/cstdint.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/exceptions.hpp>

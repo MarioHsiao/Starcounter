@@ -32,8 +32,5 @@
     <ClInclude Include="event.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bounded_message_buffer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

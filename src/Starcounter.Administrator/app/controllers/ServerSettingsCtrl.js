@@ -35,7 +35,7 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });
@@ -65,10 +65,10 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
                 // Show errors on screen
                 for (var i = 0; i < validationErrors.length; i++) {
-                    //$scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
+                    //$scope.alerts.push({ type: 'danger', msg: validationErrors[i].message });
 
                     if ($scope.myForm[validationErrors[i].PropertyName] == undefined) {
-                        NoticeFactory.ShowNotice({ type: 'error', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
+                        NoticeFactory.ShowNotice({ type: 'danger', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
                     } else {
 
                         $scope.myForm[validationErrors[i].PropertyName].$setValidity("validationError", false);
@@ -91,7 +91,7 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
             }
 

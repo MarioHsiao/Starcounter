@@ -30,8 +30,8 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
         modalInstance.result.then(function (response) {
         }, function (response) {
 
-            if (response !== undefined) {
-                NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+            if (response !== undefined && response != 'backdrop click') {
+                NoticeFactory.ShowNotice({ type: 'danger', msg: "The server is not responding or is not reachable.", helpLink: null });
             }
         });
 
@@ -65,8 +65,9 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
             }
 
         }, function (response) {
-            if (response !== undefined) {
-                NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+
+            if (response !== undefined && response != 'backdrop click') {
+                NoticeFactory.ShowNotice({ type: 'danger', msg: "The server is not responding or is not reachable.", helpLink: null });
             }
 
             if (typeof (responseCallback) == "function") {
@@ -106,8 +107,8 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
 
         }, function (response) {
 
-            if (response !== undefined) {
-                NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+            if (response !== undefined && response != 'backdrop click') {
+                NoticeFactory.ShowNotice({ type: 'danger', msg: "The server is not responding or is not reachable.", helpLink: null });
             }
 
             if (typeof (responseCallback) == "function") {

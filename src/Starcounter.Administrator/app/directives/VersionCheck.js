@@ -112,7 +112,7 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
                             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                         }
                         else {
-                            NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                         }
                     });
                 }
@@ -125,18 +125,10 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
         },
         restrict: "E",
         scope: {},
-        //        template: "<alert ng-repeat='notice in notices' type='notice.type' close='closeNotice(notice)'>{{notice.msg}}<div data-ng-hide='notice.helpLink == null'><p>Help page: <a href='{{notice.helpLink}}' target='_blank'>{{notice.helpLink}}</a></p></div></alert>",
-        template: "<div class='alert alert-info' data-ng-show='newVersion!=null'><button type='button' class='close' data-ng-click='closeVersionNotice()' data-dismiss='alert'>&times;</button><strong>New Version!</strong><p>A newer version of Starcounter is available.</p><a href='{{newVersion.downloadUri}}' target='_blank'>Download ({{newVersion.version}})</a></div>",
+        template: "<div style='margin-left:15px;margin-right:15px' class='alert alert-info' data-ng-show='newVersion!=null'><button type='button' class='close' data-ng-click='closeVersionNotice()' data-dismiss='alert'>&times;</button><strong>New Version!</strong><p>A newer version of Starcounter is available.</p><a href='{{newVersion.downloadUri}}' target='_blank'>Download ({{newVersion.version}})</a></div>",
         link: function (scope) {
-            //scope.notices = NoticeFactory.notises;
-            //scope.closeNotice = function (notice) {
-            //    NoticeFactory.CloseNotice(notice);
-            //}
 
         }
-
     }
 
 }]);
-
-
