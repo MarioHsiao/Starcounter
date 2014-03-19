@@ -78,7 +78,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        public override void ProcessInput(Json obj, byte[] rawValue) {
+        public void ProcessInput(Json obj) {
             Input input = null;
 
             if (CustomInputEventCreator != null)

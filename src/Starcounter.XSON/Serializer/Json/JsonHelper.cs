@@ -18,7 +18,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="pfrag"></param>
         /// <param name="fragmentSize"></param>
         /// <returns></returns>
-        private static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
+        internal static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
             byte current;
             int index = 0;
 
@@ -41,10 +41,9 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="fragmentSize"></param>
         /// <param name="needsJsonDecoding"></param>
         /// <returns></returns>
-        private static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
+        internal static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
             byte current;
             int index = 0;
-
 
             needsJsonDecoding = false;
             while (index < fragmentSize) {

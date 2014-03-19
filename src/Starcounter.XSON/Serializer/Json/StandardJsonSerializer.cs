@@ -297,9 +297,10 @@ restart:
             Json childObj;
             TObject tObj = (TObject)obj.Template;
             Template tProperty;
+            JsonReader arrayReader;
 
             while (reader.GotoProperty()) {
-                propertyName = reader.CurrentPropertyName;
+                propertyName = reader.ReadString();
                 tProperty = tObj.Properties.GetExposedTemplateByName(propertyName);
                 if (tProperty == null) {
                     JsonHelper.ThrowPropertyNotFoundException(propertyName);
@@ -323,10 +324,12 @@ restart:
                         reader.PopulateObject(childObj);
                     } else if (tProperty is TObjArr) {
                         arr = ((TObjArr)tProperty).Getter(obj);
-                        while (reader.GotoNextObjectInArray()) {
+                        arrayReader = reader.CreateSubReader();
+                        while (arrayReader.GotoNextObject()) {
                             childObj = arr.Add();
-                            reader.PopulateObject(childObj);
+                            arrayReader.PopulateObject(childObj);
                         }
+                        reader.Skip(arrayReader.Used);
                     }
                 } catch (InvalidCastException ex) {
                     JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
