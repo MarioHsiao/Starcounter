@@ -1543,7 +1543,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 #endif
     }
 
-    return SCERRGWWORKERROUTINEFAILED;
+    GW_ASSERT(false);
 }
 
 // Creating accepting sockets on all ports.

@@ -159,7 +159,7 @@ public:
     {
         // Reached maximum amount of handlers.
         if (handlers_.get_num_entries() >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
-            return SCERRGWMAXPORTHANDLERS;
+            return SCERRMAXHANDLERSREACHED;
 
         // Checking if handler already exists.
         if (HandlerAlreadyExists(handler_callback))
@@ -270,7 +270,7 @@ public:
 
             default:
             {
-                return SCERRGWWRONGHANDLERTYPE;
+                GW_ASSERT(false);
             }
         }
 
@@ -306,7 +306,7 @@ public:
                 return Unregister();
         }
 
-        return SCERRGWHANDLERNOTFOUND;
+        return SCERRHANDLERNOTFOUND;
     }
 
     // Runs port handlers.

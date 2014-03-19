@@ -106,7 +106,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             try {
 
-                string ipAddress = request.GetClientIpAddress().ToString();
+                string ipAddress = request.ClientIpAddress.ToString();
                 if (Utils.IsBlacklisted(ipAddress)) {
                     LogWriter.WriteLine(string.Format("WARNING: IP Address {0} is blacklisted", ipAddress));
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden };
@@ -134,7 +134,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 VersionHandlerApp.BuildkWorker.Trigger();
 
-                LogWriter.WriteLine(string.Format("NOTICE: Sending {0}-{1}-{2} to ip {3}", versionBuild.Edition, versionBuild.Version, versionBuild.Channel, request.GetClientIpAddress().ToString()));
+                LogWriter.WriteLine(string.Format("NOTICE: Sending {0}-{1}-{2} to ip {3}", versionBuild.Edition, versionBuild.Version, versionBuild.Channel, request.ClientIpAddress.ToString()));
 
                 string fileName = Path.GetFileName(versionBuild.File);
 

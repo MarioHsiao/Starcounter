@@ -468,16 +468,6 @@ namespace Starcounter.Templates {
 				tv.GenerateUnboundGetterAndSetter();
         }
 
-        /// <summary>
-        /// Callback from internal functions responsible for handle external inputs.
-        /// </summary>
-        /// <param name="obj">The parent obj.</param>
-        /// <param name="value">The input value.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(Json obj, byte[] value) {
-            throw new NotImplementedException();
-        }
-
         protected override IReadOnlyList<IReadOnlyTree> _Children {
             get {
                 return this.Properties;
