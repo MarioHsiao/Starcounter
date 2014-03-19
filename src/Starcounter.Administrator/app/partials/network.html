@@ -39,7 +39,6 @@
                                     <td>{{uri.application}}</td>
                                 </tr>
                             </tbody>                
-
                         </table>
 
                        <h5>Registered Socket Channels</h5>
@@ -61,17 +60,11 @@
                                     <td>{{uri.application}}</td>
                                 </tr>
                             </tbody>                
-
                         </table>
-
-            <!--            <div ng-repeat="uri in port.registeredUris">
-                            <div>{{uri.uri}} in {{uri.location}} <span ng-show="uri.application"> and in application {{uri.application}}</span></div>
-                        </div>-->
                     </div>
             </tab>
 
             <tab heading="Working Folders">
-            
                 <table class="table table-striped table-bordered table-condensed">
 
                     <thead>                
@@ -87,13 +80,10 @@
                             <td>{{folder.Port}}</td>
                         </tr>
                     </tbody>                
-
                 </table>
-            
             </tab>
 
             <tab heading="Databases">
-
                 <table class="table table-striped table-bordered table-condensed">
 
                     <thead>                
@@ -111,54 +101,46 @@
                             <td>{{database.overflowChunks}}</td>
                         </tr>
                     </tbody>                
-
                 </table>
-
             </tab>
 
             <tab heading="Workers">
+                <table class="table table-striped table-bordered table-condensed">
 
-            <table class="table table-striped table-bordered table-condensed">
+                        <thead>                
+                            <tr>
+                                <th>#</th>
+                                <th>Bytes received</th>
+                                <th>Packets received</th>
+                                <th>Bytes sent</th>
+                                <th>Packets sent</th>
+                                <th>Bound sockets</th>
+                                <th>Allocated chunks</th>
+                            </tr>
+                        </thead>
 
-                    <thead>                
-                        <tr>
-                            <th>#</th>
-                            <th>Bytes received</th>
-                            <th>Packets received</th>
-                            <th>Bytes sent</th>
-                            <th>Packets sent</th>
-                            <th>Bound sockets</th>
-                            <th>Allocated chunks</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr ng-repeat="worker in model.statistics.workers | orderBy: 'id'">
-                            <td>{{worker.id}}</td>
-                            <td>{{worker.bytesReceived}}</td>
-                            <td>{{worker.packetsReceived}}</td>
-                            <td>{{worker.bytesSent}}</td>
-                            <td>{{worker.packetsSent}}</td>
-                            <td>{{worker.boundSockets}}</td>
-                            <td>{{worker.allocatedChunks}}</td>
-                        </tr>
-                    </tbody>                
-
-                </table>
-
+                        <tbody>
+                            <tr ng-repeat="worker in model.statistics.workers | orderBy: 'id'">
+                                <td>{{worker.id}}</td>
+                                <td>{{worker.bytesReceived}}</td>
+                                <td>{{worker.packetsReceived}}</td>
+                                <td>{{worker.bytesSent}}</td>
+                                <td>{{worker.packetsSent}}</td>
+                                <td>{{worker.boundSockets}}</td>
+                                <td>{{worker.allocatedChunks}}</td>
+                            </tr>
+                        </tbody>                
+                    </table>
             </tab>
-            <tab heading="Global">
 
+            <tab heading="Global">
                 <h4>All workers last second</h4>
                 <div>HTTP requests: {{model.statistics.global.allWorkersLastSecond.httpRequests}}</div>
                 <div>Received times: {{model.statistics.global.allWorkersLastSecond.receivedTimes}}</div>
                 <div>Receive bandwidth: {{model.statistics.global.allWorkersLastSecond.receiveBandwidth}} mbit/sec</div>
                 <div>Sent times: {{model.statistics.global.allWorkersLastSecond.sentTimes}}</div>
                 <div>Send bandwidth: {{model.statistics.global.allWorkersLastSecond.sendBandwidth}} mbit/sec</div>
-
             </tab>
-
         </tabset>
-
     </div>
 </div>
