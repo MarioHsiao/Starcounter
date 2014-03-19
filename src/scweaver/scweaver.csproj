@@ -123,7 +123,6 @@
     <Compile Include="Starcounter.Internal.Weaver\ScTransactionScopeTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScTransformTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScTransformTrace.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScWeaveBootstrapTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverCache.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverNamingConventions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverSchemaExtensions.cs" />
@@ -140,7 +139,6 @@
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj">
       <SubType>Designer</SubType>
     </RuntimeFile>
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScWeaveBootstrap.psproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Server\Starcounter.CLI\Starcounter.CLI.csproj">
