@@ -53,7 +53,7 @@
             <div class="form-group" ng-class="{'has-error': myForm.ChunksNumber.$invalid, 'has-feedback': myForm.ChunksNumber.$invalid}">
                 <label class="col-sm-2 control-label" for="ChunksNumber">Chunks</label>
                 <div class="col-sm-10">
-                    <input class="form-control" type="number" name="ChunksNumber" id="Number3" placeholder="Chunks" ng-model="model.settings.ChunksNumber" required>
+                    <input class="form-control" type="number" min="0" name="ChunksNumber" id="ChunksNumber" placeholder="Chunks" ng-model="model.settings.ChunksNumber" required>
                     <span class="help-block error" ng-show="myForm.ChunksNumber.$error.validationError">Invalid format</span>
                     <span class="help-block error" ng-show="myForm.ChunksNumber.$error.required">Required</span>
                     <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.ChunksNumber.$error.validationError||myForm.ChunksNumber.$error.required"></span>
