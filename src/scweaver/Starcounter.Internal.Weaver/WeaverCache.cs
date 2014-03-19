@@ -304,17 +304,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Gets a value indicating if an assembly named <paramref name="assemblyName" />
-        /// is part of the cached schema.
-        /// </summary>
-        /// <param name="assemblyName">The name of the assembly to be checked.</param>
-        /// <returns>True if an assembly with the given name was successfully
-        /// extraced; false if not.</returns>
-        public bool IsExtracted(string assemblyName) {
-            return this.schema.Assemblies.FirstOrDefault(assembly => assembly.Name == assemblyName) != null;
-        }
-
-        /// <summary>
         /// Initializes this instance.
         /// </summary>
         private void Initialize() {
