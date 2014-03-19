@@ -113,7 +113,7 @@ uint32_t HandlersTable::RegisterPortHandler(
             if (port_num == registered_handlers_[i].get_port())
             {
                 wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-                wsprintf(temp, L"Attempt to register handler duplicate: port \"%d\"." , port_num);
+                wsprintf(temp, L"Attempt to register port handler duplicate on port \"%d\". Please check that port is not occupied already." , port_num);
                 g_gateway.LogWriteError(temp);
 
                 // Disallowing handler duplicates.
@@ -261,7 +261,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
                 if (subport == registered_handlers_[i].get_subport())
                 {
                     wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-                    wsprintf(temp, L"Attempt to register handler duplicate: port \"%d\", sub-port \"%d\".",
+                    wsprintf(temp, L"Attempt to register sub-port handler duplicate on port \"%d\", sub-port \"%d\".",
                         port_num, subport);
                     g_gateway.LogWriteError(temp);
 
@@ -420,7 +420,7 @@ uint32_t HandlersTable::RegisterUriHandler(
                 if (!strcmp(processed_uri_string, registered_handlers_[i].get_processed_uri_info()))
                 {
                     wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-                    wsprintf(temp, L"Attempt to register handler duplicate: port \"%d\" and URI \"%s\".",
+                    wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%s\".",
                         port_num, processed_uri_string);
                     g_gateway.LogWriteError(temp);
 
