@@ -20,7 +20,6 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
         DumpDirectory: false
     }
 
-
     /**
      * Create database
      * @param {object} settings Settings
@@ -77,7 +76,7 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
 
             if (validationErrors != null && validationErrors.length > 0) {
                 // Validation errors
-
+                var scrollToFirstError = false;
                 // Show errors on screen
                 for (var i = 0; i < validationErrors.length; i++) {
                     //$scope.alerts.push({ type: 'danger', msg: validationErrors[i].message });
@@ -92,9 +91,20 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
                             $scope.myForm[id].$setValidity("validationError", true);
                             unregister();
                         }, false);
+
+                        if (scrollToFirstError == false) {
+                            scrollToFirstError = true;
+
+                            // Scroll to invalid value
+                            $('html, body').animate({
+                                scrollTop: $("#" + id).offset().top
+                            }, 1000);
+                        }
                     }
 
                 }
+
+                $scope.step1open = true;
 
             }
             else {
