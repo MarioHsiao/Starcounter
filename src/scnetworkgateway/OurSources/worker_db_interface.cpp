@@ -854,7 +854,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
 
             default:
             {
-                return SCERRGWWRONGBMXCHUNKTYPE;
+                GW_ASSERT(false);
             }
         }
 

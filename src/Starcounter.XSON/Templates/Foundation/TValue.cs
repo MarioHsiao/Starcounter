@@ -88,15 +88,6 @@ namespace Starcounter.Templates {
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="obj"></param>
-		/// <param name="rawValue"></param>
-		/// TODO!
-		/// Should be changed to accept IntPtr to rawValue using an int size parameter. This way is not fast enough.
-		public abstract void ProcessInput(Json obj, Byte[] rawValue);
-
-		/// <summary>
-		/// 
-		/// </summary>
 		internal abstract bool GenerateBoundGetterAndSetter(Json parent);
 
 		/// <summary>
