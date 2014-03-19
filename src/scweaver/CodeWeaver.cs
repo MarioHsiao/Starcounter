@@ -26,7 +26,6 @@ namespace Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
-        const string BootstrapWeaverProjectFileName = "ScWeaveBootstrap.psproj";
 
         private readonly List<Regex> weaverExcludes = new List<Regex>();
 
@@ -89,13 +88,6 @@ namespace Weaver {
         public bool WeaveToCacheOnly { get; set; }
 
         /// <summary>
-        /// Gets or sets a value that instructs the weaver to invoke the
-        /// functionality involved when doing weaving to support bootstrapping
-        /// of executables.
-        /// </summary>
-        public bool WeaveBootstrapperCode { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating if the weaver cache should be
         /// disabled. If the cache is disabled, cached assemblies will not
         /// be considered and all input will always be analyzed and/or
@@ -156,16 +148,6 @@ namespace Weaver {
         private string WeaverProjectFile;
 
         /// <summary>
-        /// Gets the path to the bootstrap weaver project file, once resolved.
-        /// This file is used to weave executables and make them "bootable" from
-        /// the OS shell.
-        /// </summary>
-        /// <remarks>
-        /// The value is the full path to the file.
-        /// </remarks>
-        private string BootstrapWeaverProjectFile;
-
-        /// <summary>
         /// Holds a reference to the weaver cache we'll use when the weaver
         /// executes.
         /// </summary>
@@ -176,7 +158,6 @@ namespace Weaver {
             this.OutputDirectory = outputDirectory;
             this.CacheDirectory = cacheDirectory;
             this.RunWeaver = true;
-            this.WeaveBootstrapperCode = false;
             this.DisableWeaverCache = false;
             this.AssemblyFile = file;
 
@@ -375,17 +356,6 @@ namespace Weaver {
             }
             this.WeaverProjectFile = weaverProjectFile;
 
-            var bootstrapWeaverProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.BootstrapWeaverProjectFileName));
-            if (!File.Exists(bootstrapWeaverProjectFile)) {
-                errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
-                Program.ReportProgramError(
-                    errorCode,
-                    ErrorCode.ToMessage(errorCode, string.Format("Path: {0}", bootstrapWeaverProjectFile))
-                    );
-                return false;
-            }
-            this.BootstrapWeaverProjectFile = bootstrapWeaverProjectFile;
-
             // Decide all finalized directory paths to use and make sure all
             // directories we might need is actually in place.
 
@@ -439,17 +409,9 @@ namespace Weaver {
             //   We give the user the option to override this by specifying
             // in configuration files he/she want's to explicitly exclude.
 
-            // 20121126
-            // When we extend the weaver to support an alternative weaving,
-            // weaving only the executables entrypoint to support bootstraping,
-            // we consider nothing more than the executable itself.
             var binaries = new List<string>();
-            if (this.WeaveBootstrapperCode) {
-                binaries.Add(Path.Combine(this.InputDirectory, this.AssemblyFile));
-            } else {
-                binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
-                binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
-            }
+            binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
+            binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
             filesToConsider = binaries.ToArray();
 
             // Now check every file we need to consider, evaluate if their in the
@@ -649,7 +611,7 @@ namespace Weaver {
             // Yes, we'll have it processed.
 
             if (RunWeaver) {
-                weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
+                weaverProjectFile = this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
@@ -670,7 +632,7 @@ namespace Weaver {
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
                 XmlDateTimeSerializationMode.RoundtripKind);
-            parameters.ProcessDependenciesFirst = !this.WeaveBootstrapperCode;
+            parameters.ProcessDependenciesFirst = true;
             parameters.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(file);
             parameters.Properties["AssemblyExtension"] = Path.GetExtension(file);
             parameters.Properties["ResolvedReferences"] = "";
