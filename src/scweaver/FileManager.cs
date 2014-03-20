@@ -14,7 +14,7 @@ namespace Weaver {
     /// target directory after a successfull weaving session.
     /// </summary>
     internal class FileManager {
-        List<string> inputFiles;
+        List<string> sourceFiles;
         Dictionary<string, ModuleLoadStrategy> outdatedAssemblies;
 
         public readonly string SourceDirectory;
@@ -55,11 +55,11 @@ namespace Weaver {
         }
 
         FileManager Open() {
-            inputFiles = new List<string>();
+            sourceFiles = new List<string>();
             outdatedAssemblies = new Dictionary<string, ModuleLoadStrategy>();
 
-            inputFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
-            inputFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
+            sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
+            sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
 
 
 
