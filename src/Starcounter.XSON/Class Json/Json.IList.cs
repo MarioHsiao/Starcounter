@@ -6,15 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-
 using Starcounter;
 using System.Collections;
 using Starcounter.Templates;
 
 namespace Starcounter {
-
     partial class Json : IList {
-
         /// <summary>
         /// 
         /// </summary>
@@ -150,7 +147,6 @@ namespace Starcounter {
             _SetFlag[index] = false;
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -158,7 +154,6 @@ namespace Starcounter {
         internal void MarkAsReplaced(Templates.Template template) {
             this.MarkAsReplaced(template.TemplateIndex);
         }
-
 
         /// <summary>
         /// 
@@ -370,13 +365,9 @@ namespace Starcounter {
             return list.GetEnumerator();
         }
 
-
         public List<Json> GetJsonArray() {
             return (List<Json>)list;
         }
-
-
-
 
         /// <summary>
         /// 
@@ -414,5 +405,4 @@ namespace Starcounter {
             }
         }
     }
-
 }
