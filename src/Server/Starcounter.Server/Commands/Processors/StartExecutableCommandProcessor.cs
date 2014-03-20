@@ -161,7 +161,7 @@ namespace Starcounter.Server.Commands {
                     codeHostExited = CreateExceptionIfCodeHostTerminated(codeHostProcess, database, ex);
                     if (codeHostExited != null)
                         throw codeHostExited;
-                    throw ex;
+                    throw;
                 }
             });
 
