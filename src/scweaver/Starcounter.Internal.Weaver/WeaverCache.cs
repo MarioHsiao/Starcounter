@@ -35,12 +35,19 @@ namespace Starcounter.Internal.Weaver {
             public readonly string Name;
 
             /// <summary>
-            /// Gets the assembly if the extraction was considered a success.
+            /// Gets the assembly if the retreival was considered a success.
             /// If it was not, this field is null and other properties will
-            /// reveal the reason why the assembly was not extracted.
+            /// reveal the reason why the assembly was not retreived.
             /// </summary>
             /// <value>The assembly.</value>
             public DatabaseAssembly Assembly { get; internal set; }
+
+            /// <summary>
+            /// Gets the set of files comprising a cached assembly. It's
+            /// up to the client to operate on these (for example, extracting
+            /// them to some "live" directory).
+            /// </summary>
+            public List<string> Files { get; internal set; }
 
             /// <summary>
             /// Gets a value indicating if the assembly was looked for but was
@@ -251,6 +258,7 @@ namespace Starcounter.Internal.Weaver {
             // Check if the cached file indicates it was transformed. If it was,
             // we need to find and evaluate the transformed result too.
 
+            assemblyFile = debugSymbolsPath = null;
             if (candidate.IsTransformed) {
                 // Check if we can find the cached assembly file.
                 // If not, we can not use the cached result.
@@ -279,6 +287,11 @@ namespace Starcounter.Internal.Weaver {
                 // Just check first if we need to copy it (along with a
                 // possibly program debug file) to a target directory first.
 
+                // Move extracting out of the weaver cache; have it part of
+                // the file manager.
+                //
+                // TODO:
+
                 if (!string.IsNullOrEmpty(targetDirectory)) {
                     targetFilePath = Path.Combine(targetDirectory, Path.GetFileName(assemblyFile));
                     File.Copy(assemblyFile, targetFilePath, true);
@@ -290,6 +303,18 @@ namespace Starcounter.Internal.Weaver {
                         targetFilePath = Path.Combine(targetDirectory, debugSymbolsFile);
                         File.Copy(debugSymbolsPath, targetFilePath, true);
                     }
+                }
+            }
+
+            // Let the result contain the list of files considered cached
+            // for the given assembly.
+
+            result.Files = new List<string>();
+            result.Files.Add(schemaFile);
+            if (candidate.IsTransformed) {
+                result.Files.Add(assemblyFile);
+                if (File.Exists(debugSymbolsPath)) {
+                    result.Files.Add(debugSymbolsPath);
                 }
             }
 
