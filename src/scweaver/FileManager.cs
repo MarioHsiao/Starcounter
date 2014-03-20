@@ -2,6 +2,7 @@
 using Starcounter.Internal.Weaver;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,12 +14,15 @@ namespace Weaver {
     /// target directory after a successfull weaving session.
     /// </summary>
     internal class FileManager {
+        List<string> inputFiles;
+        Dictionary<string, ModuleLoadStrategy> outdatedAssemblies;
+
         public readonly string SourceDirectory;
         public readonly string TargetDirectory;
         public readonly WeaverCache Cache;
 
         public Dictionary<string, ModuleLoadStrategy> OutdatedAssemblies {
-            get { return null; }
+            get { return outdatedAssemblies; }
         }
 
         private FileManager(string sourceDir, string targetDir, WeaverCache cache) {
@@ -38,7 +42,7 @@ namespace Weaver {
         /// <param name="cache">The cache</param>
         /// <returns>An open file manager instance.</returns>
         public static FileManager Open(string sourceDir, string targetDir, WeaverCache cache) {
-            throw new NotImplementedException();
+            return new FileManager(sourceDir, targetDir, cache).Open();
         }
 
         /// <summary>
@@ -48,6 +52,18 @@ namespace Weaver {
         /// </summary>
         public void Synchronize() {
             throw new NotImplementedException();
+        }
+
+        FileManager Open() {
+            inputFiles = new List<string>();
+            outdatedAssemblies = new Dictionary<string, ModuleLoadStrategy>();
+
+            inputFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
+            inputFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
+
+
+
+            return this;
         }
     }
 }
