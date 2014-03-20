@@ -1,5 +1,6 @@
 ﻿
 using System.Collections;
+using System.Collections.Generic;
 using Starcounter.Templates;
 
 namespace Starcounter {
@@ -7,7 +8,16 @@ namespace Starcounter {
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Arr<T> : Json where T : Json, new() {
+    public class Arr<T> : Json, IEnumerable<T> where T : Json, new() {
+        internal class ArrEnumeratorWrapper<WT> : IEnumerator<WT> {
+            private IEnumerator real;
+            internal ArrEnumeratorWrapper(IEnumerator real) { this.real = real; }
+            public WT Current { get { return (WT)real.Current; } }
+            public void Dispose() { }
+            object IEnumerator.Current { get { return real.Current; } }
+            public bool MoveNext() { return real.MoveNext(); }
+            public void Reset() { real.Reset(); }
+        }
 
         /// <summary>
         /// 
@@ -64,11 +74,10 @@ namespace Starcounter {
             Template typed = template.ElementType;
             if (typed != null) {
                 app.Template = (TObject)typed;
-            }
-            else {
+            } else {
                 app.CreateDynamicTemplate();
-//                app.Template = new Schema();
-//                CreateGe
+                //                app.Template = new Schema();
+                //                CreateGe
             }
             Add(app);
             return app;
@@ -89,15 +98,15 @@ namespace Starcounter {
         /// <param name="data"></param>
         /// <returns></returns>
         public new T Add(object data) {
-			T app;
+            T app;
             TObjArr template = (TObjArr)Template;
 
-			if (template.ElementType == null) {
-				app = new T();
-				app.CreateDynamicTemplate();
-			} else {
-				app = (T)template.ElementType.CreateInstance(this);
-			}
+            if (template.ElementType == null) {
+                app = new T();
+                app.CreateDynamicTemplate();
+            } else {
+                app = (T)template.ElementType.CreateInstance(this);
+            }
             app.Data = data;
             Add(app);
             return app;
@@ -108,13 +117,18 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-		public new T this[int index] {
-			get {
-				return (T)base[index];
-			}
-			set {
-				base[index] = value;
-			}
-		}
+        public new T this[int index] {
+            get {
+                return (T)base[index];
+            }
+            set {
+                base[index] = value;
+            }
+        }
+
+        public new IEnumerator<T> GetEnumerator() {
+            return new ArrEnumeratorWrapper<T>(list.GetEnumerator());
+        }
+
     }
 }
