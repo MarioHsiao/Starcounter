@@ -87,7 +87,7 @@
     <Compile Include="Class Json\IBound.cs" />
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
     <Compile Include="Class Json\Json.Array.cs" />
-    <Compile Include="Class Json\Json.Array.Generic.cs" />
+    <Compile Include="Class Json\Arr.cs" />
     <Compile Include="Class Json\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
