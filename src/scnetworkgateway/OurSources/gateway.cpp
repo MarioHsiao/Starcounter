@@ -637,7 +637,8 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         config_file_stream.open(GW_DEFAULT_CONFIG_NAME);
         if (!config_file_stream.is_open())
         {
-            GW_ASSERT(false);
+            g_gateway.LogWriteCritical(L"Gateway XML: Settings file stream can't be opened.");
+            return SCERRBADGATEWAYCONFIG;
         }
     }
 
@@ -658,7 +659,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (!root_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read NetworkGateway property.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         // Getting local interfaces.
@@ -674,14 +675,14 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read WorkersNumber property.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         setting_num_workers_ = atoi(node_elem->value());
         if (setting_num_workers_ <= 0 || setting_num_workers_ > 16)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported WorkersNumber value.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
 #ifdef GW_TESTING_MODE
@@ -694,14 +695,14 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read MaxConnections property.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         setting_max_connections_ = atoi(node_elem->value());
         if (setting_max_connections_ < 10 || setting_max_connections_ > 10000000)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaxConnections value.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         // Getting maximum connection number.
@@ -709,14 +710,14 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read MaximumReceiveContentLength property.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         setting_maximum_receive_content_length_ = atoi(node_elem->value());
         if (setting_maximum_receive_content_length_ < 4096 || setting_maximum_receive_content_length_ > 67108864)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaximumReceiveContentLength value.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         // Getting inactive socket timeout.
@@ -724,14 +725,14 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read InactiveConnectionTimeout property.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         setting_inactive_socket_timeout_seconds_ = atoi(node_elem->value());
         if (setting_inactive_socket_timeout_seconds_ <= 0 || setting_inactive_socket_timeout_seconds_ > 100000)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported InactiveConnectionTimeout value.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         // Getting gateway statistics port number.
@@ -739,14 +740,14 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read GatewayStatisticsPort property.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         setting_gw_stats_port_ = (uint16_t)atoi(node_elem->value());
         if (setting_gw_stats_port_ <= 0 || setting_gw_stats_port_ >= 65536)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported GatewayStatisticsPort value.");
-            GW_ASSERT(false);
+            return SCERRBADGATEWAYCONFIG;
         }
 
         // Getting aggregation port number.
@@ -757,13 +758,16 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             if (setting_aggregation_port_ <= 0 || setting_aggregation_port_ >= 65536)
             {
                 g_gateway.LogWriteCritical(L"Gateway XML: Unsupported AggregationPort value.");
-                GW_ASSERT(false);
+                return SCERRBADGATEWAYCONFIG;
             }
         }
 
         // Just enforcing minimum socket timeout multiplier.
         if ((setting_inactive_socket_timeout_seconds_ % SOCKET_LIFETIME_MULTIPLIER) != 0)
-            GW_ASSERT(false);
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Inactive socket timeout is not dividable by 3.");
+            return SCERRBADGATEWAYCONFIG;
+        }
 
         // Setting minimum socket life time.
         min_inactive_socket_life_seconds_ = setting_inactive_socket_timeout_seconds_ / SOCKET_LIFETIME_MULTIPLIER;
@@ -848,7 +852,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             if (!node_elem)
             {
                 g_gateway.LogWriteCritical(L"Gateway XML: Can't read ReverseProxy property.");
-                GW_ASSERT(false);
+                return SCERRBADGATEWAYCONFIG;
             }
 
             int32_t n = 0;
@@ -862,7 +866,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
                     if (!node_elem)
                     {
                         g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationIP property. Either DestinationDNS or DestinationIP property should be specified.");
-                        GW_ASSERT(false);
+                        return SCERRBADGATEWAYCONFIG;
                     }
                     reverse_proxies_[n].destination_ip_ = node_elem->value();
                 }
@@ -881,7 +885,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
                         temp += ws_temp;
 
                         g_gateway.LogWriteCritical(temp.c_str());
-                        GW_ASSERT(false);
+                        return SCERRBADGATEWAYCONFIG;
                     }
 
                     // Checking if its IPv4 address.
@@ -894,7 +898,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
                         temp += ws_temp;
 
                         g_gateway.LogWriteCritical(temp.c_str());
-                        GW_ASSERT(false);
+                        return SCERRBADGATEWAYCONFIG;
                     }
 
                     // Getting the first IP address.
@@ -905,28 +909,28 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
                 if (!node_elem)
                 {
                     g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationPort property.");
-                    GW_ASSERT(false);
+                    return SCERRBADGATEWAYCONFIG;
                 }
 
                 reverse_proxies_[n].destination_port_ = atoi(node_elem->value());
                 if (reverse_proxies_[n].destination_port_ <= 0 || reverse_proxies_[n].destination_port_  >= 65536)
                 {
                     g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect DestinationPort number.");
-                    GW_ASSERT(false);
+                    return SCERRBADGATEWAYCONFIG;
                 }
 
                 node_elem = proxy_node->first_node("StarcounterProxyPort");
                 if (!node_elem)
                 {
                     g_gateway.LogWriteCritical(L"Gateway XML: Can't read StarcounterProxyPort property.");
-                    GW_ASSERT(false);
+                    return SCERRBADGATEWAYCONFIG;
                 }
 
                 reverse_proxies_[n].sc_proxy_port_ = atoi(node_elem->value());
                 if (reverse_proxies_[n].sc_proxy_port_ <= 0 || reverse_proxies_[n].sc_proxy_port_  >= 65536)
                 {
                     g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect StarcounterProxyPort number.");
-                    GW_ASSERT(false);
+                    return SCERRBADGATEWAYCONFIG;
                 }
 
                 node_elem = proxy_node->first_node("MatchingMethodAndUri");
@@ -956,8 +960,9 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
     catch (...)
     {
+        g_gateway.LogWriteCritical(L"Gateway XML: Internal error occurred when loading settings.");
         GW_COUT << "Error loading gateway XML settings!" << GW_ENDL;
-        GW_ASSERT(false);
+        return SCERRBADGATEWAYCONFIG;
     }
 
     delete [] config_contents;
@@ -1383,7 +1388,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         // Leaving global lock.
                         LeaveGlobalLock();
 
-                        GW_ASSERT(false);
+                        ShutdownGateway(NULL, err_code);
                     }
 
                     break;
@@ -1411,7 +1416,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         // Leaving global lock.
                         LeaveGlobalLock();
 
-                        GW_ASSERT(false);
+                        ShutdownGateway(NULL, err_code);
                     }
 
                     break;
@@ -1449,7 +1454,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         // Leaving global lock.
                         LeaveGlobalLock();
 
-                        GW_ASSERT(false);
+                        ShutdownGateway(NULL, err_code);
                     }
                 }
 
@@ -1475,7 +1480,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     // Leaving global lock.
                     LeaveGlobalLock();
 
-                    GW_ASSERT(false);
+                    ShutdownGateway(NULL, err_code);
                 }
 
                 // Registering URI handler for socket resource creation.
@@ -1498,7 +1503,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     // Leaving global lock.
                     LeaveGlobalLock();
 
-                    GW_ASSERT(false);
+                    ShutdownGateway(NULL, err_code);
                 }
 
                 // Registering URI handler for socket resource deletion.
@@ -1521,7 +1526,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     // Leaving global lock.
                     LeaveGlobalLock();
 
-                    GW_ASSERT(false);
+                    ShutdownGateway(NULL, err_code);
                 }
 
                 if (0 != setting_aggregation_port_)
@@ -1541,7 +1546,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         // Leaving global lock.
                         LeaveGlobalLock();
 
-                        GW_ASSERT(false);
+                        ShutdownGateway(NULL, err_code);
                     }
                 }
             }
@@ -3245,7 +3250,7 @@ uint32_t Gateway::AddUriHandler(
     else
     {
         wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-        wsprintf(temp, L"Attempt to register handler duplicate: port \"%d\" and URI \"%s\"." , port, processed_uri_info);
+        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%s\"." , port, processed_uri_info);
         g_gateway.LogWriteError(temp);
 
         // Disallowing handler duplicates.
