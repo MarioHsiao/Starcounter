@@ -1,13 +1,12 @@
-﻿using PostSharp.Sdk.Extensibility;
+﻿
+using PostSharp.Sdk.Extensibility;
 using Starcounter.Internal.Weaver;
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Weaver {
+    
     /// <summary>
     /// Governs the management of files to be processed by the weaver
     /// and that the source directory is always synchronized with the
@@ -16,6 +15,8 @@ namespace Weaver {
     internal class FileManager {
         List<string> sourceFiles;
         Dictionary<string, ModuleLoadStrategy> outdatedAssemblies;
+        List<string> filesToCopy;
+        List<string> presentTargetFiles;
 
         public readonly string SourceDirectory;
         public readonly string TargetDirectory;
@@ -30,7 +31,11 @@ namespace Weaver {
             SourceDirectory = sourceDir;
             TargetDirectory = targetDir;
             Cache = cache;
+            sourceFiles = new List<string>();
+            outdatedAssemblies = new Dictionary<string, ModuleLoadStrategy>();
+            filesToCopy = new List<string>();
             exclusionPolicy = new FileExclusionPolicy(sourceDir);
+            presentTargetFiles = new List<string>();
         }
 
         /// <summary>
@@ -65,13 +70,11 @@ namespace Weaver {
         /// all files missing from the source.
         /// </summary>
         public void Synchronize() {
-            throw new NotImplementedException();
+            MirrorFilesToCopy();
+            RemoveFilesAbandoned();
         }
 
         FileManager Open() {
-            sourceFiles = new List<string>();
-            outdatedAssemblies = new Dictionary<string, ModuleLoadStrategy>();
-
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
 
@@ -97,38 +100,63 @@ namespace Weaver {
                 Include(file);
             }
 
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
+
             return this;
         }
 
         void Exclude(string file) {
             WriteInfo("Assembly {0} not processed, it's excluded by policy.", Path.GetFileName(file));
 
-            // All excluded files in the input directory will need
-            // to be mirrored in the target directory. Do that at
-            // the end.
-            // TODO:
+            filesToCopy.Add(file);
+            var pdb = Path.ChangeExtension(file, ".pdb");
+            if (File.Exists(pdb)) {
+                filesToCopy.Add(pdb);
+            }
         }
 
         void Reuse(string file, WeaverCache.CachedAssembly cachedAssembly) {
             WriteDebug("Assembly {0} not processed, it's reused from the cache.", Path.GetFileName(file));
-
-            // It should be copied to the output directory if we are not
-            // just weaving to the cache.
-            // cachedAssembly.Files is what is to be copied.
-            // TODO:
+            filesToCopy.AddRange(cachedAssembly.Files);
         }
 
         void Include(string file) {
-            // Included files are those that need to be processed by
-            // the weaver.
             var fullPath = Path.IsPathRooted(file) ? file : Path.GetFullPath(Path.Combine(SourceDirectory, Path.GetFileName(file)));
             outdatedAssemblies.Add(fullPath, new CodeWeaverModuleLoadStrategy(fullPath));
+        }
+
+        void MirrorFilesToCopy() {
+            foreach (var item in filesToCopy) {
+                var target = Path.GetFullPath(Path.Combine(TargetDirectory, Path.GetFileName(item)));
+                File.Copy(item, target, true);
+            }
+        }
+
+        void RemoveFilesAbandoned() {
+            var expectedFiles = new List<string>();
+            filesToCopy.ForEach((f) => { expectedFiles.Add(Path.GetFileName(f)); });
+            foreach (var item in outdatedAssemblies.Keys) {
+                var fileName = Path.GetFileName(item);
+                expectedFiles.Add(fileName);
+                expectedFiles.Add(Path.ChangeExtension(fileName, ".pdb"));
+                expectedFiles.Add(Path.ChangeExtension(fileName, ".schema"));
+            }
+
+            presentTargetFiles.ForEach((targetFile) => {
+                if (!expectedFiles.Contains(Path.GetFileName(targetFile))) {
+                    WriteDebug("Removing abandoned file {0}", targetFile);
+                    File.Delete(targetFile);
+                }
+            });
         }
 
         void WriteInfo(string message, params object[] parameters) {
             Program.WriteInformation(message, parameters);
         }
 
+        [Conditional("DEBUG")]
         void WriteDebug(string message, params object[] parameters) {
             Program.WriteDebug(message, parameters);
         }
