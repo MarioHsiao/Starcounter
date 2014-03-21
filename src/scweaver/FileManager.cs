@@ -102,6 +102,7 @@ namespace Weaver {
 
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.pdb"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
 
             return this;
