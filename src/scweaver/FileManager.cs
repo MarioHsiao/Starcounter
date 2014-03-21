@@ -131,7 +131,9 @@ namespace Weaver {
         void MirrorFilesToCopy() {
             foreach (var item in filesToCopy) {
                 var target = Path.GetFullPath(Path.Combine(TargetDirectory, Path.GetFileName(item)));
-                File.Copy(item, target, true);
+                if (!File.Exists(target) || File.GetLastWriteTime(target) < File.GetLastWriteTime(item)) {
+                    File.Copy(item, target, true);
+                }
             }
         }
 
