@@ -190,32 +190,10 @@ namespace Starcounter.Internal.Weaver {
         /// metadata as part of its assembly set.
         /// </para></returns>
         public CachedAssembly Get(string assemblyName) {
-            return Extract(assemblyName, null);
-        }
-
-        /// <summary>
-        /// Tries to extract an assembly by name.
-        /// </summary>
-        /// <param name="assemblyName">Name of the assembly to extract.
-        /// The name expected is the simple name of the assembly, not
-        /// including the extension.</param>
-        /// <param name="targetDirectory">Target directory where the assembly is to be extracted to.
-        /// If null, and the extraction is considered a success, the
-        /// assembly is read into the cached schema but not copied.</param>
-        /// <returns>An object describing the way the assembly was
-        /// known to the cache, i.e. if it was not found, if it was
-        /// out of date, etc. If it was up to date, the Assembly
-        /// property of the returned object is not null and includes
-        /// the deserialized schema of the cached assembly.</returns>
-        /// <exception cref="System.ArgumentNullException">assemblyName</exception>
-        public CachedAssembly Extract(string assemblyName, string targetDirectory) {
             CachedAssembly result;
             DatabaseAssembly candidate;
             string schemaFile;
             string assemblyFile;
-            string debugSymbolsFile;
-            string debugSymbolsPath;
-            string targetFilePath;
             string dependencyHash;
 
             if (string.IsNullOrEmpty(assemblyName))
@@ -263,7 +241,7 @@ namespace Starcounter.Internal.Weaver {
             // Check if the cached file indicates it was transformed. If it was,
             // we need to find and evaluate the transformed result too.
 
-            assemblyFile = debugSymbolsPath = null;
+            assemblyFile = null;
             if (candidate.IsTransformed) {
                 // Check if we can find the cached assembly file.
                 // If not, we can not use the cached result.
@@ -285,30 +263,6 @@ namespace Starcounter.Internal.Weaver {
                     result.TransformationOutdated = true;
                     return result;
                 }
-
-                // The transformed result is there and it's up to date.
-                // The cached file is considered usable and we should return
-                // it with the result.
-                // Just check first if we need to copy it (along with a
-                // possibly program debug file) to a target directory first.
-
-                // Move extracting out of the weaver cache; have it part of
-                // the file manager.
-                //
-                // TODO:
-
-                if (!string.IsNullOrEmpty(targetDirectory)) {
-                    targetFilePath = Path.Combine(targetDirectory, Path.GetFileName(assemblyFile));
-                    File.Copy(assemblyFile, targetFilePath, true);
-
-                    debugSymbolsFile = string.Concat(Path.GetFileNameWithoutExtension(assemblyFile), ".pdb");
-                    debugSymbolsPath = Path.Combine(this.CacheDirectory, debugSymbolsFile);
-
-                    if (File.Exists(debugSymbolsPath)) {
-                        targetFilePath = Path.Combine(targetDirectory, debugSymbolsFile);
-                        File.Copy(debugSymbolsPath, targetFilePath, true);
-                    }
-                }
             }
 
             // Let the result contain the list of files considered cached
@@ -318,8 +272,9 @@ namespace Starcounter.Internal.Weaver {
             result.Files.Add(schemaFile);
             if (candidate.IsTransformed) {
                 result.Files.Add(assemblyFile);
-                if (File.Exists(debugSymbolsPath)) {
-                    result.Files.Add(debugSymbolsPath);
+                var pdb = Path.ChangeExtension(assemblyFile, ".pdb");
+                if (File.Exists(pdb)) {
+                    result.Files.Add(pdb);
                 }
             }
 
