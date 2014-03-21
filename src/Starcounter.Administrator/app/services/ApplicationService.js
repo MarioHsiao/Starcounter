@@ -351,6 +351,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         $log.info("Application started : " + application.Name + "(" + application.databaseName + ")");
 
         application.running = true;
+        application.console = "";
 
         // Socket event listener
         application.consoleListener = {
@@ -383,6 +384,8 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     this._onApplicationStopped = function (application) {
 
         $log.info("Application stopped : " + application.Name + "(" + application.databaseName + ")");
+
+        application.console = "";
 
         ConsoleService.unregisterEventListener(application.consoleListener);
     }

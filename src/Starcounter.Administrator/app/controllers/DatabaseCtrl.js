@@ -29,6 +29,61 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', '$loca
 
 
     /**
+     * Start database
+     * @param {object} database Database
+     */
+    $scope.btnStartDatabase = function (database) {
+
+        DatabaseService.startDatabase(database, function () { },
+            function (messageObject) {
+                // Error
+                if (messageObject.isError) {
+                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                }
+                else {
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+                }
+
+            });
+    }
+
+
+    /**
+     * Stop Database
+     * @param {object} database Database
+     */
+    $scope.btnStopDatabase = function (database) {
+
+        var title = "Stop database";
+        var message = "Do you want to stop the database " + database.name;
+        var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
+
+            if (result == 0) {
+
+                DatabaseService.stopDatabase(database, function () { },
+                      function (messageObject) {
+                          // Error
+                          if (messageObject.isError) {
+                              UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                          }
+                          else {
+                              NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+                          }
+
+                      });
+            }
+
+        });
+
+
+
+
+    }
+
+
+    /**
      * Delete Database
      * @param {object} database Database
      */
@@ -36,7 +91,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', '$loca
 
         var title = "Delete database";
 
-        var message = $sce.trustAsHtml("This will delete the database <strong>" + database.name + "</strong> permantely.</br>All data will be completly deleted, with no ways to recover it.</br>This action is not possible to reverse.");
+        var message = $sce.trustAsHtml("This will delete the database <strong>'" + database.name + "'</strong> <strong>permantely!</strong>.</br>All data will be completly deleted, with no ways to recover it.</br>This action is not possible to reverse.");
         var buttons = [{ result: 0, label: 'Delete Database', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
         var model = { "title": title, "message": message, "buttons": buttons, enteredDatabaseName:"" };
         model.pattern = "/^" + database.name + "$/";

@@ -295,6 +295,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this._onDatabaseStarted = function (database) {
 
+        database.console = "";
+
         ConsoleService.registerEventListener(database.consoleListener);
     }
 
@@ -304,6 +306,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onDatabaseStopped = function (database) {
+
+        database.console = "";
 
         ConsoleService.unregisterEventListener(database.consoleListener);
     }
