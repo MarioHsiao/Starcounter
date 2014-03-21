@@ -183,7 +183,12 @@ namespace Starcounter.Internal.Weaver {
         /// known to the cache, i.e. if it was not found, if it was
         /// out of date, etc. If it was up to date, the Assembly
         /// property of the returned object is not null and includes
-        /// the deserialized schema of the cached assembly.</returns>
+        /// the deserialized schema of the cached assembly.
+        /// <para>
+        /// If there was a match, the contained <see cref="Schema"/>
+        /// will also reflect the retreived (deserialized) assembly
+        /// metadata as part of its assembly set.
+        /// </para></returns>
         public CachedAssembly Get(string assemblyName) {
             return Extract(assemblyName, null);
         }
