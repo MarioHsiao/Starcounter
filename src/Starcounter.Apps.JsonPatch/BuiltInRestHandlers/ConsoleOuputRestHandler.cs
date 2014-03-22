@@ -121,7 +121,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                 for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
                     Byte k = i;
 
-                    dbSession.RunAsync(() => {
+                    dbSession.RunSync(() => {
 
                         // Collect and create console events
                         foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
@@ -143,7 +143,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                                 ws.Value.Send(s);
                             }
                         }
-                    }, i);
+                    });
                 }
 
                 // Limith the console event list size

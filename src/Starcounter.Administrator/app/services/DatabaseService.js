@@ -150,20 +150,21 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this._onConsoleOutputEvent = function (database, text, bAppend) {
 
-        var htmlText = text.replace(/\r\n/g, "<br>");
+        var result;
 
         if (bAppend) {
-            database.console = $sce.trustAsHtml(database.console + htmlText);
+            result = database.console + text;
         }
         else {
-            database.console = $sce.trustAsHtml(htmlText);
+            result = text;
         }
 
         // Limit the buffer
-        if (database.console.length > self.bufferSize) {
-            database.console = $sce.trustAsHtml(database.console.substr(database.console.length - self.bufferSize));
+        if (result.length > self.bufferSize) {
+            result = result.substr(result.length - self.bufferSize);
         }
-
+        
+        database.console = result;
     }
 
 
@@ -295,6 +296,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this._onDatabaseStarted = function (database) {
 
+        database.console = "";
+
         ConsoleService.registerEventListener(database.consoleListener);
     }
 
@@ -304,6 +307,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onDatabaseStopped = function (database) {
+
+        database.console = "";
 
         ConsoleService.unregisterEventListener(database.consoleListener);
     }
