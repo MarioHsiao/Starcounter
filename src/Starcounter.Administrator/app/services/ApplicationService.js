@@ -198,20 +198,21 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this._onConsoleOutputEvent = function (application, text, bAppend) {
 
-        var htmlText = text.replace(/\r\n/g, "<br>");
+        var result;
 
         if (bAppend) {
-            application.console = $sce.trustAsHtml(application.console + htmlText);
+            result = application.console + text;
         }
         else {
-            application.console = $sce.trustAsHtml(htmlText);
+            result = text;
         }
 
         // Limit the buffer
-        if (application.console.length > self.bufferSize) {
-            application.console = $sce.trustAsHtml(application.console.substr(application.console.length - self.bufferSize));
+        if (result.length > self.bufferSize) {
+            result = result.substr(result.length - self.bufferSize);
         }
 
+        application.console = result;
     }
 
 
@@ -351,6 +352,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         $log.info("Application started : " + application.Name + "(" + application.databaseName + ")");
 
         application.running = true;
+        application.console = "";
 
         // Socket event listener
         application.consoleListener = {
@@ -383,6 +385,8 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     this._onApplicationStopped = function (application) {
 
         $log.info("Application stopped : " + application.Name + "(" + application.databaseName + ")");
+
+        application.console = "";
 
         ConsoleService.unregisterEventListener(application.consoleListener);
     }

@@ -69,8 +69,6 @@ namespace Starcounter.Tools {
             else {
                 // An instance of scTrayIcon is already running.
             }
-
-
         }
 
 
@@ -81,10 +79,12 @@ namespace Starcounter.Tools {
 
             Application.ThreadException += Application_ThreadException;
             Application.ApplicationExit += Application_ApplicationExit;
-
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //Instantiate the component Module to hold everything    
             this.applicationContainer = new System.ComponentModel.Container();
         }
+
+
 
 
         /// <summary>
@@ -340,6 +340,7 @@ namespace Starcounter.Tools {
                 MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
                 mi.Invoke(mNotifyIcon, null);
             }
+
         }
 
 
@@ -422,8 +423,17 @@ namespace Starcounter.Tools {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e) {
+            this.ShowError("Unhandled Exception", e.Exception.Message);
+        }
 
-            CleanUpResources();
+
+        /// <summary>
+        /// Caceh unhandle exceptions
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) {
+            this.ShowError("Unhandled Exception", (e.ExceptionObject as Exception).Message);
         }
 
 

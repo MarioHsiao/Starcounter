@@ -72,7 +72,7 @@ adminModule.factory('UtilsFactory', ['$log', function ($log) {
         for (var propertyName in source) {
 
             if (Object.prototype.toString.call(source[propertyName]) === '[object Array]') {
-                $log.warn("TODO: Handle Array (" + propertyName + ")");
+                //$log.warn("TODO: Handle Array (" + propertyName + ")");
                 // TODO: Compare Arrays
                 continue;
             }

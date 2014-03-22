@@ -8,6 +8,16 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     // List of applications
     $scope.applications = HostModelService.applications;
 
+    /**
+     * Filter Applications
+     * @param {object} application Application
+     */
+    $scope.filterApplications = function (application) {
+        if ($scope.filterview == 'running') {
+            return application.running;
+        }
+        return true;
+    }
 
     /**
      * Get Console output
@@ -147,7 +157,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     });
 
 
-    // Get user state
+    // Get user state 'view'  (Icon/List)
     if (localStorage.getItem('applicationsViewMode') != null) {
         $scope.view = localStorage.getItem('applicationsViewMode');
     }
@@ -159,5 +169,20 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         // Save user state
         localStorage.setItem('applicationsViewMode', newValue);
     });
+
+
+    // Get user state 'filterview' (Running/History)
+    if (localStorage.getItem('applicationsFilterView') != null) {
+        $scope.filterview = localStorage.getItem('applicationsFilterView');
+    }
+    else {
+        $scope.filterview = "running";
+    }
+    $scope.$watch('filterview', function (newValue, oldValue) {
+        // Save user state
+        localStorage.setItem('applicationsFilterView', newValue);
+    });
+
+    
 
 }]);
