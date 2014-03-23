@@ -429,7 +429,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
                 jsonArr = new byte[tObj.JsonSerializer.EstimateSizeBytes(jsonInst)];
 
                 // Call serialize once to make sure that the codegenerated serializer is created.
-                size = tObj.ToFasterThanJson(jsonInst, jsonArr, 0);
+                size = tObj.ToJsonUtf8(jsonInst, jsonArr, 0);
 			}
 			stop = DateTime.Now;
 			PrintResult(stop, start, numberOfTimes, 12);
