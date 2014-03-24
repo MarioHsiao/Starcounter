@@ -262,17 +262,24 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Get a list with all folders where static file resources such as .html files or images are kept.
         /// </summary>
-        /// <returns>List with folders</returns>
-        public Dictionary<UInt16, string> GetWorkingDirectories() {
+        /// <returns>List with ports and folders</returns>
+        public Dictionary<UInt16, IList<string>> GetWorkingDirectories() {
 
-            Dictionary<UInt16, string> list = new Dictionary<ushort, string>();
+            Dictionary<UInt16, IList<string>> list = new Dictionary<ushort, IList<string>>();
 
             foreach (KeyValuePair<UInt16, StaticWebServer> entry in StaticFileServers) {
 
                 List<string> portList = GetWorkingDirectories(entry.Key);
                 if (portList != null) {
                     foreach (string folder in portList) {
-                        list.Add(entry.Key, folder);
+
+                        if (list.ContainsKey(entry.Key)) {
+                            list[entry.Key].Add(folder);
+                        }
+                        else {
+                            IList<string> folders = new List<string> { folder };
+                            list.Add(entry.Key, folders);
+                        }
                     }
                 }
             }
