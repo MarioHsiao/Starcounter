@@ -194,7 +194,7 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(parseOK, "select $1a");
             ProcessQuery(parseOK, "select?a");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select$1a");
-            ProcessQuery(parseOK, "INSERT INTO Visit(Id, Company, Start, End, " +
+            ProcessQuery(1004, "INSERT INTO Visit(Id, Company, Start, End, " +
                 "Spent, PageViewCount, Ip, Referer, UserAgent, TrackingCookie, " +
                 "Protocol, DomainName) VALUES (" +
                 "100, 'Starcounter Svenska AB', TIMESTAMP '2014-01-21 00:12:24', " +
