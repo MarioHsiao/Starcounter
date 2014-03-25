@@ -8,11 +8,7 @@ using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
 namespace Starcounter.Templates {
-#endif
     /// <summary>
     /// A template describes an App or a property of an App. A tree of
     /// templates defines the schema of an App.
