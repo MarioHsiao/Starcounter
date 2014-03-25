@@ -33,6 +33,12 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// If this template is based on a template in a baseclass, i.e. inherited, this property
+        /// is set to the baseclass template.
+        /// </summary>
+        internal Template BasedOn { get; set; }
+
+        /// <summary>
         /// Returns true if this object support expando like (Javascript like) behaviour that
         /// lets you create properties without a preexisting schema.
         /// </summary>
