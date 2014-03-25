@@ -8,6 +8,36 @@ using System;
 using Starcounter.Templates;
 
 namespace Starcounter {
+    /// <summary>
+    /// Base class for Input events. Input events are events triggered by the client
+    /// and catched on the server when Objs receive input from the end user.
+    /// </summary>
+    public class Input {
+        /// <summary>
+        /// </summary>
+        private bool _cancelled = false;
+
+        /// <summary>
+        /// Cancels this instance.
+        /// </summary>
+        public void Cancel() {
+            Cancelled = true;
+        }
+
+        /// <summary>
+        /// Calls the other handlers.
+        /// </summary>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public void CallOtherHandlers() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="Input" /> is cancelled.
+        /// </summary>
+        /// <value><c>true</c> if cancelled; otherwise, <c>false</c>.</value>
+        public bool Cancelled { get { return _cancelled; } set { _cancelled = value; } }
+    }
 
     /// <summary>
     /// An event that encapsulates a single incomming update for a specific value in
@@ -44,23 +74,10 @@ namespace Starcounter {
         where TApp : Json
         where TTemplate : Template {
 
-            /// <summary>
-            /// The _app
-            /// </summary>
         private TApp _app = null;
-        /// <summary>
-        /// The _template
-        /// </summary>
         private TTemplate _template = null;
-        /// <summary>
-        /// Gets or sets the app.
-        /// </summary>
-        /// <value>The app.</value>
+
         public TApp App { get { return _app; } set { _app = value; } }
-        /// <summary>
-        /// Gets or sets the template.
-        /// </summary>
-        /// <value>The template.</value>
         public TTemplate Template { get { return _template; } set { _template = value; }  }
     }
 
@@ -71,99 +88,28 @@ namespace Starcounter {
     /// <typeparam name="TApp">The type of the Obj.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
-    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : Json where TTemplate : Template {
-
-        /// <summary>
-        /// The _app
-        /// </summary>
+    public class Input<TApp, TTemplate, TValue> : Input<TValue> 
+        where TApp : Json 
+        where TTemplate : Template {
+        
         private TApp _app = null;
-        /// <summary>
-        /// The _template
-        /// </summary>
         private TTemplate _template = null;
-        /// <summary>
-        /// Gets or sets the app.
-        /// </summary>
-        /// <value>The app.</value>
+        
         public TApp App { get { return _app; } set { _app = value; } }
-        /// <summary>
-        /// Gets or sets the template.
-        /// </summary>
-        /// <value>The template.</value>
         public TTemplate Template { get { return _template; } set { _template = value; } }
 
-        /// <summary>
-        /// Gets the parent.
-        /// </summary>
-        /// <value>The parent.</value>
         public TApp Parent {
             get {
                 return null;
             }
         }
 
-        /// <summary>
-        /// Finds the parent.
-        /// </summary>
-        /// <param name="parentProperty">The parent property.</param>
-        /// <returns>App.</returns>
         public Json FindParent(TContainer parentProperty) {
             return null;
         }
 
-        /// <summary>
-        /// Finds the parent.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns>``0.</returns>
         public T FindParent<T>() where T : Json {
             return null;
         }
-
-    }
-
-    /// <summary>
-    /// Base class for Input events. Input events are events triggered by the client
-    /// and catched on the server when Objs receive input from the end user.
-    /// </summary>
-    public class Input {
-
-        /// <summary>
-        /// </summary>
-        private bool _cancelled = false;
-
-        /// <summary>
-        /// Cancels this instance.
-        /// </summary>
-        public void Cancel() {
-            Cancelled = true;
-        }
-
-        /// <summary>
-        /// Calls the other handlers.
-        /// </summary>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public void CallOtherHandlers() {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="Input" /> is cancelled.
-        /// </summary>
-        /// <value><c>true</c> if cancelled; otherwise, <c>false</c>.</value>
-        public bool Cancelled {
-            get {
-                return _cancelled;
-            }
-            set {
-                _cancelled = value;
-            }
-        }
-
-    }
-
-    /// <summary>
-    /// </summary>
-    public class SchemaAttribute : System.Attribute {
     }
 }
