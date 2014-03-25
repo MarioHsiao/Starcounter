@@ -14,6 +14,7 @@ namespace QueryProcessingTest {
                 TestErrorMessages.RunTestErrorMessages();
                 NamespacesTest.TestClassesNamespaces();
                 WebVisitTests.TestVisits();
+                InsertIntoTests.TestValuesInsertIntoWebVisits();
                 PopulateData();
                 SqlBugsTest.QueryTests();
                 FetchTest.RunFetchTest();
