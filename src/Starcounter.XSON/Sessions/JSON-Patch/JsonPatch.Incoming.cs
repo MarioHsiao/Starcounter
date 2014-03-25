@@ -329,7 +329,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<bool>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TDecimal property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -338,7 +338,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseDecimal(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<decimal>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TDouble property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -347,7 +347,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseDouble(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<double>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -355,7 +355,7 @@ namespace Starcounter.Internal.JsonPatch {
             
             if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<long>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TString property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -364,7 +364,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseString(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<string>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TTrigger property, Json parent) {

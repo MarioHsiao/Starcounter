@@ -18,21 +18,22 @@ namespace Starcounter.Templates {
     /// the schema template for that property becomes an TTrigger.
     /// </remarks>
     public class TTrigger : TValue {
+        private Func<Json, TValue, Input> _inputEventCreator;
+        private Action<Json, Input> _inputHandler;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public override bool IsPrimitive {
             get { return true; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Type MetadataType {
             get { return typeof(ActionMetadata<Json>); }
         }
-
-        /// <summary>
-        /// </summary>
-        private Func<Json, TValue, Input> CustomInputEventCreator = null;
-     
-        /// <summary>
-        /// </summary>
-        public List<Action<Json, Input>> CustomInputHandlers = new List<Action<Json, Input>>();
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -67,11 +68,10 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
-        public void AddHandler(
-            Func<Json, TValue, Input> createInputEvent = null,
-            Action<Json, Input> handler = null) {
-            this.CustomInputEventCreator = createInputEvent;
-            this.CustomInputHandlers.Add(handler);
+        public void AddHandler(Func<Json, TValue, Input> createInputEvent,
+                               Action<Json, Input> handler) {
+            _inputEventCreator = createInputEvent;
+            _inputHandler = handler;
         }
 
         /// <summary>
@@ -81,14 +81,24 @@ namespace Starcounter.Templates {
         public void ProcessInput(Json obj) {
             Input input = null;
 
-            if (CustomInputEventCreator != null)
-                input = CustomInputEventCreator.Invoke(obj, this);
+            if (_inputEventCreator != null)
+                input = _inputEventCreator.Invoke(obj, this);
 
-            if (input != null) {
-                foreach (var h in CustomInputHandlers) {
-                    h.Invoke(obj, input);
-                }
-            } 
+            if (input != null && _inputHandler != null)
+                _inputHandler.Invoke(obj, input);
+        }
+
+        internal void ProcessInput(Json obj, Input existingInput) {
+            Input input = null;
+
+            if (_inputEventCreator != null)
+                input = _inputEventCreator.Invoke(obj, this);
+
+            if (input != null && _inputHandler != null) {
+                _inputHandler.Invoke(obj, input);
+                if (input.Cancelled)
+                    existingInput.Cancel();
+            }
         }
 
 		internal override void SetDefaultValue(Json parent) {
