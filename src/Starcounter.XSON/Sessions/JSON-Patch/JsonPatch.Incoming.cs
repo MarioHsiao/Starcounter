@@ -416,8 +416,8 @@ namespace Starcounter.Internal.JsonPatch {
                         if (mainApp.IsArray) {
                             throw new NotImplementedException();
                         }
-                        Template t = ((TObject)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
 
+                        Template t = ((TObject)mainApp.Template).Properties.GetExposedTemplateByName(ptr.Current);
                         if (t == null) {
                             Boolean found = false;
                             if (mainApp.JsonSiblings.Count > 0) {
