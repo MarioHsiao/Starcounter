@@ -54,7 +54,7 @@ namespace Starcounter.Internal.JsonPatch {
                         valuePtr = IntPtr.Zero;
                         valueSize = -1;
 
-                        patchStart = reader.Used;
+                        patchStart = reader.Used - 1;
                         while (reader.GotoProperty()) {
                             reader.ReadRaw(tmpBuf, out usedTmpBufSize);
                             GetPatchMember(tmpBuf, 1, out member);
@@ -127,7 +127,12 @@ namespace Starcounter.Internal.JsonPatch {
                 return "";
 
             byte[] patchArr = new byte[GetPatchLength(patchStart, data, dataSize)];
-            Marshal.Copy(data, patchArr, 0, patchArr.Length);
+
+            unsafe {    
+                byte* pdata = (byte*)data;
+                pdata += patchStart;
+                Marshal.Copy((IntPtr)pdata, patchArr, 0, patchArr.Length);
+            }
             return Encoding.UTF8.GetString(patchArr);
         }
 
@@ -157,7 +162,7 @@ namespace Starcounter.Internal.JsonPatch {
                     patchEnd++;
                 }
             }
-            return (patchEnd - patchStart) + 1;
+            return (patchEnd - patchStart);
         }
 
         /// <summary>
