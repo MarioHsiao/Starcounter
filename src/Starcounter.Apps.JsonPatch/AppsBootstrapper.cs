@@ -116,7 +116,7 @@ namespace Starcounter.Internal {
         /// Gets a list of directories used by the web server to
         /// resolve GET requests for static content.
         /// </summary>
-        internal static Dictionary<UInt16, string> GetFileServingDirectories() {
+        internal static Dictionary<UInt16, IList<string>> GetFileServingDirectories() {
             return AppServer_.GetWorkingDirectories();
         }
 

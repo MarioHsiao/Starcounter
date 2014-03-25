@@ -5,186 +5,255 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Templates;
+using System.Diagnostics;
 
 namespace Starcounter.Advanced.XSON {
 
 	public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
-		public override int Serialize(Json obj, out byte[] buffer) {
-			bool nameWritten;
-			bool recreateBuffer;
-			byte[] buf;
-			byte[] childObjArr;
-			int templateNo;
-			int posInArray;
-			int valueSize;
-			int offset;
-			List<Template> exposedProperties;
-			Json childObj;
-			Template tProperty;
-			TObject tObj;
-            String htmlMerge = null;
 
-			// The following variables are offset for remembering last position when buffer needs to be increased:
-			// templateNo: The position in the PropertyList that was about to be written.
-			// offset: The last verified position in the buf that was succesfully written.
-			// nameWritten: If set to true, the name of the template is succesfully written (but not the value).
-			// childObjArr: If last value was an object or an object in an array, the array contains the serialized object.
-			// posInArray: Set to the last succesful copied value for an objectarray.
+        /// <summary>
+        /// Estimates the size of serialization in bytes.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override int EstimateSizeBytes(Json obj) {
+            int sizeBytes = 0;
 
-			if (obj.IsArray) {
-				throw new NotImplementedException("Serializer does not support arrays as root elements");
-			}
+            obj.ExecuteInScope(() => {
 
-            offset = -1;
-			tObj = (TObject)obj.Template;
-			buf = new byte[4096];
-			templateNo = 0;
-			nameWritten = false;
-			childObjArr = null;
-			posInArray = -1;
-			recreateBuffer = false;
-			valueSize = -1;
+            if (obj.IsArray) {
+
+                sizeBytes = 2; // 2 for "[]".
+
+                for (int arrPos = 0; arrPos < obj.Count; arrPos++) {
+                    sizeBytes += EstimateSizeBytes(obj._GetAt(arrPos) as Json) + 1; // 1 for ",".
+                }
+
+                return;
+            }
+
+            sizeBytes += 1; // 1 for "{".
+
+            if (obj.Template == null) {
+                sizeBytes += 1; // 1 for "}".
+                return;
+            }
+
+            if (obj.JsonSiblings.Count != 0)
+            {
+                sizeBytes += "/polyjuice-merger?".Length + obj.AppName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
+
+                // Serializing every sibling first.
+                foreach (Json pp in obj.JsonSiblings)
+                {
+                    sizeBytes += 4 + pp.AppName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
+                    sizeBytes += pp.AppName.Length + 1; // 1 for ":".
+                    sizeBytes += EstimateSizeBytes(pp) + 1; // 1 for ",".
+                }
+
+                sizeBytes += obj.AppName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
+            }
+
+            List<Template> exposedProperties;
+            Json childObj;
+            Template tProperty;
+
+            exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
+            for (int i = 0; i < exposedProperties.Count; i++) {
+
+                tProperty = exposedProperties[i];
+
+                sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
+
+                // Property value.
+                if (tProperty is TObject) {
+
+                    childObj = ((TObject)tProperty).Getter(obj);
+                    if (childObj != null) {
+                        sizeBytes += EstimateSizeBytes(childObj);
+                    } else {
+                        sizeBytes += 2; // 2 for "{}".
+                    }
+                } else if (tProperty is TObjArr) {
+
+                    Json arr = ((TObjArr)tProperty).Getter(obj);
+
+                    sizeBytes += 1; // 1 for "[".
+
+                    for (int arrPos = 0; arrPos < arr.Count; arrPos++) {
+                        sizeBytes += EstimateSizeBytes(arr._GetAt(arrPos) as Json) + 1; // 1 for ",".
+                    }
+
+                    sizeBytes += 1; // 1 for "]".
+                } else {
+                    if (tProperty is TBool) {
+                        sizeBytes += 5;
+                    } else if (tProperty is TDecimal) {
+                        sizeBytes += 32;
+                    } else if (tProperty is TDouble) {
+                        sizeBytes += 32;
+                    } else if (tProperty is TLong) {
+                        sizeBytes += 32;
+                    } else if (tProperty is TString) {
+                        String s = ((TString)tProperty).Getter(obj);
+
+                        if (s == null)
+                            sizeBytes += 2; // 2 for quotation marks around string.
+                        else
+                            sizeBytes += s.Length * 2 + 2; // 2 for quotation marks around string.
+                        
+                    } else if (tProperty is TTrigger) {
+                        sizeBytes += 4;
+                    }
+                }
+
+                sizeBytes += 1; // 1 for comma.
+            }
+
+            sizeBytes += 1; // 1 for "}".
+
+            // Checking if we have Json siblings on this level.
+            if (obj.JsonSiblings.Count != 0) {
+
+                sizeBytes += 1; // 1 for comma.
+
+                sizeBytes += 4; // 4 for "Html".
+
+                sizeBytes += 1; // 1 for ":".
+
+                sizeBytes += 1; // 1 for "}".
+            }
+            });
+
+            return sizeBytes;
+        }
+
+        /// <summary>
+        /// Serializes given JSON object.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="buf"></param>
+        /// <param name="origOffset"></param>
+        /// <returns></returns>
+        public override int Serialize(Json obj, byte[] buf, int origOffset) {
+            int valueSize;
+            List<Template> exposedProperties;
+            TObject tObj;
+            int offset = origOffset;
+            String htmlUriMerged = null;
 
             obj.ExecuteInScope(() => {
 
                 unsafe {
-                    buf[0] = (byte)'{';
-                    offset = 1;
-
-restart:
-                    if (recreateBuffer)
-                        buf = IncreaseCapacity(buf, offset, valueSize);
-                    recreateBuffer = true;
-
                     // Starting from the last written position
                     fixed (byte* p = &buf[offset]) {
                         byte* pfrag = p;
 
+                        // Processing array first.
+                        if (obj.IsArray) {
+
+                            *pfrag++ = (byte)'[';
+                            offset++;
+
+                            for (int arrPos = 0; arrPos < obj.Count; arrPos++) {
+                                valueSize = (obj._GetAt(arrPos) as Json).ToJsonUtf8(buf, offset);
+
+                                pfrag += valueSize;
+                                offset += valueSize;
+
+                                if ((arrPos + 1) < obj.Count) {
+                                    *pfrag++ = (byte)',';
+                                    offset++;
+                                }
+                            }
+                            *pfrag++ = (byte)']';
+                            offset++;
+
+                            return;
+                        }
+
+                        // If its not an array, its an object.
+                        *pfrag++ = (byte)'{';
+                        offset++;
+
+                        tObj = (TObject)obj.Template;
+
                         // Checking if we have Json siblings on this level.
-                        if (obj.JsonSiblings.Count != 0)
-                        {
-                            htmlMerge = "/polyjuice-merger?" + obj.AppName + "=" + obj.GetHtmlPartialUrl();
+                        if (obj.JsonSiblings.Count != 0) {
+                            htmlUriMerged = "/polyjuice-merger?" + obj.AppName + "=" + obj.GetHtmlPartialUrl();
 
                             // Serializing every sibling first.
-                            foreach (Json pp in obj.JsonSiblings)
-                            {
-                                htmlMerge += "&" + pp.AppName + "=" + pp.GetHtmlPartialUrl();
+                            foreach (Json pp in obj.JsonSiblings) {
+                                htmlUriMerged += "&" + pp.AppName + "=" + pp.GetHtmlPartialUrl();
 
                                 valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, pp.AppName);
-                                if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
-                                    goto restart;
 
                                 offset += valueSize;
                                 pfrag += valueSize;
 
-                                if (buf.Length < (offset + 1)) goto restart;
                                 *pfrag++ = (byte)':';
                                 offset++;
 
-                                valueSize = pp.ToJsonUtf8(out childObjArr);
-                                if (childObjArr != null)
-                                {
-                                    if (buf.Length < (offset + valueSize + 1))
-                                        goto restart;
-                                    Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
-                                    childObjArr = null;
-                                }
+                                valueSize = pp.ToJsonUtf8(buf, offset);
+
                                 pfrag += valueSize;
                                 offset += valueSize;
 
-                                if (buf.Length < (offset + 1)) goto restart;
                                 *pfrag++ = (byte)',';
                                 offset++;
                             }
 
                             // Adding current sibling app name.
                             valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.AppName);
-                            if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
-                                goto restart;
 
                             offset += valueSize;
                             pfrag += valueSize;
 
-                            if (buf.Length < (offset + 1)) goto restart;
                             *pfrag++ = (byte)':';
                             offset++;
 
-                            if (buf.Length < (offset + 1)) goto restart;
                             *pfrag++ = (byte)'{';
                             offset++;
                         }
 
                         exposedProperties = tObj.Properties.ExposedProperties;
-                        for (int i = templateNo; i < exposedProperties.Count; i++) {
-                            tProperty = exposedProperties[i];
+                        for (int i = 0; i < exposedProperties.Count; i++) {
+                            Template tProperty = exposedProperties[i];
 
                             // Property name.
-                            if (!nameWritten) {
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
-                                if (valueSize == -1 || (buf.Length < (offset + valueSize + 1))) {
-                                    nameWritten = false;
-                                    goto restart;
-                                }
-                                nameWritten = true;
-                                offset += valueSize;
-                                pfrag += valueSize;
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
 
-                                *pfrag++ = (byte)':';
-                                offset++;
-                            }
+                            offset += valueSize;
+                            pfrag += valueSize;
+
+                            *pfrag++ = (byte)':';
+                            offset++;
 
                             // Property value.
                             if (tProperty is TObject) {
-                                if (childObjArr == null) {
-                                    childObj = ((TObject)tProperty).Getter(obj);
-                                    if (childObj != null) {
-                                        valueSize = childObj.ToJsonUtf8(out childObjArr);
-                                    } else {
-                                        valueSize = 2;
-                                        if (buf.Length < (offset + valueSize + 1))
-                                            goto restart;
+                                Json childObj = ((TObject)tProperty).Getter(obj);
+                                if (childObj != null) {
+                                    valueSize = childObj.ToJsonUtf8(buf, offset);
+                                } else {
+                                    valueSize = 2;
 
-                                        pfrag[0] = (byte)'{';
-                                        pfrag[1] = (byte)'}';
-                                    }
+                                    pfrag[0] = (byte)'{';
+                                    pfrag[1] = (byte)'}';
                                 }
 
-                                if (valueSize != -1) {
-                                    if (childObjArr != null) {
-                                        if (buf.Length < (offset + valueSize + 1))
-                                            goto restart;
-                                        Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
-                                        childObjArr = null;
-                                    }
-                                    pfrag += valueSize;
-                                    offset += valueSize;
-                                } else
-                                    goto restart;
+                                pfrag += valueSize;
+                                offset += valueSize;
                             } else if (tProperty is TObjArr) {
                                 Json arr = ((TObjArr)tProperty).Getter(obj);
-                                if (buf.Length < (offset + arr.Count * 2 + 3))
-                                    goto restart;
 
-                                // We know that we at least have room for all start-end characters in the buf.
-                                if (posInArray == -1) {
-                                    *pfrag++ = (byte)'[';
-                                    offset++;
-                                    posInArray = 0;
-                                }
-                                for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
-                                    if (childObjArr == null) {
-                                        valueSize = (arr._GetAt(arrPos) as Json).ToJsonUtf8(out childObjArr);
-                                        if (valueSize == -1)
-                                            goto restart;
-                                        if (buf.Length < (offset + valueSize + 2))
-                                            goto restart;
-                                    }
+                                *pfrag++ = (byte)'[';
+                                offset++;
 
-                                    Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
-                                    childObjArr = null;
+                                for (int arrPos = 0; arrPos < arr.Count; arrPos++) {
+                                    valueSize = (arr._GetAt(arrPos) as Json).ToJsonUtf8(buf, offset);
+
                                     pfrag += valueSize;
                                     offset += valueSize;
-                                    posInArray++;
 
                                     if ((arrPos + 1) < arr.Count) {
                                         *pfrag++ = (byte)',';
@@ -193,7 +262,6 @@ restart:
                                 }
                                 *pfrag++ = (byte)']';
                                 offset++;
-                                posInArray = -1;
                             } else {
                                 if (tProperty is TBool) {
                                     valueSize = JsonHelper.WriteBool((IntPtr)pfrag, buf.Length - offset, ((TBool)tProperty).Getter(obj));
@@ -209,8 +277,6 @@ restart:
                                     valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
                                 }
 
-                                if ((valueSize == -1) || (buf.Length < (offset + valueSize + 1)))
-                                    goto restart;
                                 pfrag += valueSize;
                                 offset += valueSize;
                             }
@@ -219,44 +285,31 @@ restart:
                                 *pfrag++ = (byte)',';
                                 offset++;
                             }
-                            templateNo++;
-                            nameWritten = false;
                         }
 
-                        //					var jsonObj = obj as Json;
-
-                        if (buf.Length < (offset + 1))
-                            goto restart; // Bummer! we dont have any place left for the last char :(
                         *pfrag++ = (byte)'}';
                         offset++;
 
                         // Checking if we have Json siblings on this level.
                         if (obj.JsonSiblings.Count != 0) {
 
-                            if (buf.Length < (offset + 1)) goto restart;
                             *pfrag++ = (byte)',';
                             offset++;
 
                             // Adding Html property to outer level.
                             valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "Html");
-                            if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
-                                goto restart;
 
                             offset += valueSize;
                             pfrag += valueSize;
 
-                            if (buf.Length < (offset + 1)) goto restart;
                             *pfrag++ = (byte)':';
                             offset++;
 
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlMerge);
-                            if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
-                                goto restart;
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlUriMerged);
 
                             offset += valueSize;
                             pfrag += valueSize;
 
-                            if (buf.Length < (offset + 1)) goto restart;
                             *pfrag++ = (byte)'}';
                             offset++;
                         }
@@ -264,27 +317,12 @@ restart:
                 }
             });
 
-			buffer = buf;
-			return offset;
-		}
-
-		protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {
-			byte[] tmpBuffer;
-			long bufferSize = current.Length;
-
-			bufferSize *= 2;
-			if (needed != -1) {
-				while (bufferSize < (offset + needed))
-					bufferSize *= 2;
-			}
-			//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
-			tmpBuffer = new byte[bufferSize];
-			Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
-			return tmpBuffer;
-		}
+            return offset - origOffset;
+        }
 	}
 
     public class StandardJsonSerializer : StandardJsonSerializerBase {
+
         public override int Populate(Json obj, IntPtr source, int sourceSize) {
             string propertyName;
 

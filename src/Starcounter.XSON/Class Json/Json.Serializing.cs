@@ -8,14 +8,16 @@ using System;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
     public partial class Json {
+
 		/// <summary>
-		/// 
+		/// Serializes JSON object to a string.
 		/// </summary>
 		/// <returns></returns>
 		public string ToJson() {
@@ -23,21 +25,14 @@ namespace Starcounter {
 				return "{}";
 			}
 
-            if (IsArray) {
-                byte[] buf;
-                int size = ToJsonUtf8(out buf);
-                return Encoding.UTF8.GetString(buf, 0, size);
-            }
-            else {
-                var template = Template as TContainer;
-                if (template == null)
-                    throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
-                return template.ToJson(this);
-            }
+            var template = Template as TContainer;
+            if (template == null)
+                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
+            return template.ToJson(this);
 		}
 
         /// <summary>
-        /// 
+        /// Serializes JSON object to a byte array.
         /// </summary>
         /// <returns></returns>
         public byte[] ToJsonUtf8() {
@@ -47,21 +42,11 @@ namespace Starcounter {
 				buffer[1] = (byte)'}';
                 return buffer;
 			}
-            if (IsArray) {
-                byte[] buf;
-                int size = ToJsonUtf8(out buf);
 
-                byte[] ret = new byte[size];
-                Buffer.BlockCopy(buf, 0, ret, 0, size);
-                return ret;
-            }
-            else {
-
-                var template = Template as TContainer;
-                if (template == null)
-                    throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
-                return template.ToJsonUtf8(this);
-            }
+            var template = Template as TContainer;
+            if (template == null)
+                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
+            return template.ToJsonUtf8(this);
         }
 
         /// <summary>
@@ -73,59 +58,19 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="buf"></param>
         /// <returns></returns>
-        public int ToJsonUtf8(out byte[] buffer) {
+        public int ToJsonUtf8(byte[] buf, int offset) {
+
             if (Template == null) {
-                buffer = new byte[2];
-				buffer[0] = (byte)'{';
-				buffer[1] = (byte)'}';
+                buf[offset] = (byte)'{';
+                buf[offset + 1] = (byte)'}';
                 return 2;
             }
-            if (IsArray) {
-                bool expandBuffer = false;
-                byte[] itemJson = null;
-                int size = 512;
-                byte[] buf = new byte[size];
-                int itemSize = 0;
-                int offset = 0;
-                int lastArrayPos = 0;
 
-                buf[offset++] = (byte)'[';
-
-            restart:
-                if (expandBuffer) {
-                    while (size < (offset + itemSize))
-                        size *= 2;
-                    byte[] buf2 = new byte[size];
-                    Buffer.BlockCopy(buf, 0, buf2, 0, offset);
-                    buf = buf2;
-                }
-                expandBuffer = true;
-
-                for (int i = lastArrayPos; i < Count; i++) {
-                    if (itemJson == null) {
-                        itemSize = (this._GetAt(i) as Json).ToJsonUtf8(out itemJson);
-                        if ((buf.Length - offset - 2) < itemSize)
-                            goto restart;
-                    }
-                    Buffer.BlockCopy(itemJson, 0, buf, offset, itemSize);
-                    itemJson = null;
-                    offset += itemSize;
-                    lastArrayPos++;
-                    if ((i + 1) < Count)
-                        buf[offset++] = (byte)',';
-                }
-                buf[offset++] = (byte)']';
-
-                buffer = buf;
-                return offset;
+            if (!(Template is TContainer)) {
+                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
             }
-            else {
-                if (!(Template is TContainer)) {
-                    throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
-                }
-                var template = Template as TContainer;
-                return template.ToJsonUtf8(this, out buffer);
-            }
+            var template = Template as TContainer;
+            return template.ToJsonUtf8(this, buf, offset);
         }
 
 		/// <summary>

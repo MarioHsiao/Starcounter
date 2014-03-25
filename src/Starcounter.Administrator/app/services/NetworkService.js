@@ -132,21 +132,21 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
                     successCallback();
                 }
 
-            }, function () {
+            }, function (messageObject) {
                 // Error
 
                 if (typeof (errorCallback) == "function") {
-                    errorCallback(response);
+                    errorCallback(messageObject);
                 }
 
             });
 
 
-        }, function (response) {
+        }, function (messageObject) {
             // Error
 
             if (typeof (errorCallback) == "function") {
-                errorCallback(response);
+                errorCallback(messageObject);
             }
 
         });
