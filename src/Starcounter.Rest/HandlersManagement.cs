@@ -111,6 +111,76 @@ namespace Starcounter.Rest
         /// Mapper handler index.
         /// </summary>
         Int32 mapperHandlerIndex_ = -1;
+
+        /// <summary>
+        /// Checks if response is in local cache.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Response TryGetResponseFromCache(Request req) {
+            // Checking if we are in session already.
+            if (!req.IsInternal) {
+
+                // Setting the original request.
+                Session.InitialRequest = req;
+
+                // Obtaining session.
+                Session s = (Session)req.GetAppsSessionInterface();
+
+                // Checking if correct session was obtained.
+                if ((req.CameWithCorrectSession) && (null != s)) {
+
+                    // Starting session.
+                    Session.Start(s);
+
+                    // Checking if we can reuse the cache.
+                    Response resp;
+                    if ((req.IsInternal) && (X.CheckLocalCache(req.Uri, null, null, out resp))) {
+
+                        // Setting the session again.
+                        resp.AppsSession = Session.Current.InternalSession;
+
+                        return resp;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checking if response should be added to cache.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="resp"></param>
+        void TryAddResponseToCache(Request req, Response resp) {
+            // In case of returned JSON object within current session we need to save it
+            // for later reuse.
+
+            Json rootJsonObj = null;
+            if (null != Session.Current)
+                rootJsonObj = Session.Current.Data;
+
+            Json curJsonObj = null;
+
+            // Checking if response is processed later.
+            if (resp.HandlingStatus == HandlerStatusInternal.Handled)
+                return;
+
+            // Setting session on result only if its original request.
+            if ((null != Session.Current) && (!req.IsInternal) && (!req.CameWithCorrectSession))
+                resp.AppsSession = Session.Current.InternalSession;
+
+            // Converting response to JSON.
+            curJsonObj = resp;
+
+            if ((null != curJsonObj) &&
+                (null != rootJsonObj) &&
+                (req.IsCachable()) &&
+                (curJsonObj.HasThisRoot(rootJsonObj))) {
+                Session.Current.AddJsonNodeToCache(req.Uri, curJsonObj);
+            }
+        }
         
         /// <summary>
         /// Runs all user delegates.
@@ -126,7 +196,19 @@ namespace Starcounter.Rest
             // Checking if there is only one delegate.
             if (userDelegates_.Count == 1) {
                 StarcounterEnvironment.AppName = appNames_[0];
-                return userDelegates_[0](req, methodAndUri, rawParamsInfo);
+
+                // Checking local cache.
+                Response resp = TryGetResponseFromCache(req);
+
+                if (null == resp) {
+                    // Calling intermediate user delegate.
+                    resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
+
+                    // Check if response should be added to cache.
+                    TryAddResponseToCache(req, resp);
+                }
+
+                return resp;
             }
             
             List<Response> responses = new List<Response>();
@@ -149,8 +231,19 @@ namespace Starcounter.Rest
                 if (Handle.CallOnlyNonMapperHandlers && (mapperHandlerIndex_ == i))
                     continue;
 
+                // Setting application name.
                 StarcounterEnvironment.AppName = appNames_[i];
-                Response resp = func(req, methodAndUri, rawParamsInfo);
+
+                // Checking local cache.
+                Response resp = TryGetResponseFromCache(req);
+
+                if (null == resp) {
+                    // Calling intermediate user delegate.
+                    resp = func(req, methodAndUri, rawParamsInfo);
+
+                    // Check if response should be added to cache.
+                    TryAddResponseToCache(req, resp);
+                }
 
                 // Setting to which application the response belongs.
                 resp.AppName = appNames_[i];

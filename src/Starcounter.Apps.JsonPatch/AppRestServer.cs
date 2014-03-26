@@ -48,33 +48,33 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
-        public Response OnResponseHttp(Request request, Response response) {
+        public Response OnResponseHttp(Request req, Response resp) {
             try {
                 // Checking if we need to resolve static resource.
-                if (response.HandlingStatus == HandlerStatusInternal.NotHandled) {
-                    response = ResolveAndPrepareFile(request.Uri, request);
-                    response.HandlingStatus = HandlerStatusInternal.Done;
+                if (resp.HandlingStatus == HandlerStatusInternal.NotHandled) {
+                    resp = ResolveAndPrepareFile(req.Uri, req);
+                    resp.HandlingStatus = HandlerStatusInternal.Done;
                 }
                 else {
                     // NOTE: Checking if its internal request then just returning response without modification.
-                    if (request.IsInternal)
-                        return response;
+                    if (req.IsInternal)
+                        return resp;
 
                     // Checking if JSON object is attached.
-                    if (response.Resource is Json) {
-                        Json r = (Json)response.Resource;
+                    if (resp.Resource is Json) {
+                        Json r = (Json)resp.Resource;
 
                         while (r.Parent != null)
                             r = r.Parent;
 
-                        response.Resource = (Json)r;
+                        resp.Resource = (Json)r;
                     }
                 }
 
-                response.Request = request;
-                response.ConstructFromFields();
+                resp.Request = req;
+                resp.ConstructFromFields();
 
-                return response;
+                return resp;
             }
             catch (Exception ex) {
                 // Logging the exception to server log.
@@ -93,106 +93,41 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public Response HandleRequest(Request request) {
-            Response response = null;
-            Boolean cameWithSession = request.CameWithCorrectSession;
+            Response resp = null;
 
             try {
-                // Checking if we are in session already.
-                if (!request.IsInternal) {
-
-                    // Setting the original request.
-                    Session.InitialRequest = request;
-
-                    // Obtaining session.
-                    Session s = (Session)request.GetAppsSessionInterface();
-
-                    if (cameWithSession && (null != s)) {
-
-                        // Starting session.
-                        Session.Start(s);
-
-                        // Checking if we can reuse the cache.
-                        if (request.IsInternal && X.CheckLocalCache(request.Uri, null, null, out response)) {
-
-                            // Setting the session again.
-                            response.AppsSession = Session.Current.InternalSession;
-
-                            // Handling and returning the HTTP response.
-                            response = OnResponseHttp(request, response);
-
-                            return response;
-                        }
-                    }
-                }
-
                 // Invoking original user delegate with parameters here.
-                UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
-
-                // In case of returned JSON object within current session we need to save it
-                // for later reuse.
-
-                Json rootJsonObj = null;
-                if (null != Session.Current)
-                    rootJsonObj = Session.Current.Data;
-
-                Json curJsonObj = null;
-                if (null != response) {
-
-                    // Checking if response is processed later.
-                    if (response.HandlingStatus == HandlerStatusInternal.Handled)
-                        return response;
-
-                    // Setting session on result only if its original request.
-                    if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
-                        response.AppsSession = Session.Current.InternalSession;
-
-                    // Converting response to JSON.
-                    curJsonObj = response;
-
-                    if ((null != curJsonObj) &&
-                        (null != rootJsonObj) &&
-                        (request.IsCachable()) &&
-                        (curJsonObj.HasThisRoot(rootJsonObj))) {
-                        Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
-                    }
-                }
-                else {
-                    // Null equals 404.
-                    response = Response.FromStatusCode(404);
-                    response["Connection"] = "close";
-                    response.ConstructFromFields();
-                    return response;
-                }
+                UserHandlerCodegen.HandlersManager.RunDelegate(request, out resp);
 
                 // Handling and returning the HTTP response.
-                response = OnResponseHttp(request, response);
+                resp = OnResponseHttp(request, resp);
 
-                return response;
+                return resp;
             }
             catch (ResponseException exc) {
                 // NOTE: if internal request then throw the exception up.
                 if (request.IsInternal)
                     throw exc;
 
-                response = exc.ResponseObject;
-                response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                response.ConstructFromFields();
-                return response;
+                resp = exc.ResponseObject;
+                resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
+                resp.ConstructFromFields();
+                return resp;
             }
             catch (HandlersManagement.IncorrectSessionException) {
-                response = Response.FromStatusCode(400);
-                response["Connection"] = "close";
-                response.ConstructFromFields();
-                return response;
+                resp = Response.FromStatusCode(400);
+                resp["Connection"] = "close";
+                resp.ConstructFromFields();
+                return resp;
             }
             catch (Exception exc) {
                 // Logging the exception to server log.
                 LogSources.Hosting.LogException(exc);
-                response = Response.FromStatusCode(500);
-                response.Body = GetExceptionString(exc);
-                response.ContentType = "text/plain";
-                response.ConstructFromFields();
-                return response;
+                resp = Response.FromStatusCode(500);
+                resp.Body = GetExceptionString(exc);
+                resp.ContentType = "text/plain";
+                resp.ConstructFromFields();
+                return resp;
             }
             finally {
                 // Checking if a new session was created during handler call.
