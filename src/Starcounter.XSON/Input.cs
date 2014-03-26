@@ -28,7 +28,7 @@ namespace Starcounter {
         /// Gets or sets a value indicating whether this <see cref="Input" /> is cancelled.
         /// </summary>
         /// <value><c>true</c> if cancelled; otherwise, <c>false</c>.</value>
-        public bool Cancelled { get { return _cancelled; } }
+        public bool Cancelled { get { return _cancelled; } set { _cancelled = value; } }
 
         /// <summary>
         /// Calls the base handler (if any).

@@ -84,8 +84,13 @@ namespace Starcounter.Templates {
             if (_inputEventCreator != null)
                 input = _inputEventCreator.Invoke(obj, this);
 
-            if (input != null && _inputHandler != null)
+            if (input != null && _inputHandler != null) {
                 _inputHandler.Invoke(obj, input);
+            } else if (BasedOn != null) {
+                // This is an inherited template with no inputhandler, lets 
+                // see if the base-template has a registered handler.
+                ((TTrigger)BasedOn).ProcessInput(obj);
+            }
         }
 
         internal void ProcessInput(Json obj, Input existingInput) {
