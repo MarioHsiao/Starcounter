@@ -3585,6 +3585,15 @@
 	<code hex="0024" severity="Error" name="ScErrSqlInternalBufferSmall">
 	  <message>Internal error in native SQL processor that allocated buffer is too small.</message>
 	</code>
+	<code hex="0025" severity="Error" name="ScErrSqlUnknownType">
+	  <message>The type is unknown. The name of the table or database class specified in the query is unknown and cannot be matched to a database type.</message>
+	</code>
+	<code hex="0026" severity="Error" name="ScErrSqlUnknownColumn">
+	  <message>The column is unknown. The name of the column or property specified in the query is unknown and cannot be matched to a database column.</message>
+	</code>
+	<code hex="0027" severity="Error" name="ScErrSqlAmbiguousType">
+	  <message>The type is ambiguous. The name of the table or database class specified in the query matches several database types.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
