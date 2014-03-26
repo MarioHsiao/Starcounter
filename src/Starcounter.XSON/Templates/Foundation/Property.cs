@@ -229,8 +229,14 @@ namespace Starcounter.Templates {
                     Debug.WriteLine("Handler cancelled: " + value);
                 }
             } else {
-                Debug.WriteLine("Setting value after no handler: " + value);
-                Setter(parent, value);
+                if (BasedOn == null) {
+                    Debug.WriteLine("Setting value after no handler: " + value);
+                    Setter(parent, value);
+                } else {
+                    // This is an inherited template with no inputhandler, lets 
+                    // see if the base-template has a registered handler.
+                    ((Property<T>)BasedOn).ProcessInput(parent, value);
+                }
             }
         }
 
