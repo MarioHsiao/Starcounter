@@ -68,7 +68,6 @@
     <Compile Include="JsonPatchTests\ArrayPatchTests.cs" />
     <Compile Include="JsonPatchTests\EvaluateJsonPatchTests.cs" />
     <Compile Include="JsonPatchTests\GenerateJsonPatchTests.cs" />
-    <Compile Include="MiscJsonTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="TestDynamicApps.cs" />
