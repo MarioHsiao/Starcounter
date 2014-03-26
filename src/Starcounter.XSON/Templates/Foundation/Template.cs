@@ -8,59 +8,59 @@ using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
 namespace Starcounter.Templates {
-#endif
-
     /// <summary>
     /// A template describes an App or a property of an App. A tree of
     /// templates defines the schema of an App.
     /// </summary>
-    public abstract partial class Template : IReadOnlyTree
-    {
+    public abstract partial class Template : IReadOnlyTree {
+        private bool _dynamic;
+        private string _className;
+        private string _name;
+        private string _propertyName;
+        internal TContainer _parent;
+        public CompilerOrigin CompilerOrigin = new CompilerOrigin();
+
+        private static readonly IReadOnlyList<IReadOnlyTree> _emptyList = new List<IReadOnlyTree>();
 
         /// <summary>
-        /// The _ class name
+        /// Initializes a new instance of the <see cref="Template" /> class.
         /// </summary>
-        internal string _ClassName;
+        public Template() {
+            Editable = false;
+            TemplateIndex = -1;
+            _dynamic = false;
+        }
 
+        /// <summary>
+        /// If this template is based on a template in a baseclass, i.e. inherited, this property
+        /// is set to the baseclass template.
+        /// </summary>
+        internal Template BasedOn { get; set; }
 
         /// <summary>
         /// Returns true if this object support expando like (Javascript like) behaviour that
         /// lets you create properties without a preexisting schema.
         /// </summary>
         public bool IsDynamic {
-            get {
-                return _Dynamic;
-            }
-            set {
-                _Dynamic = value;
-            }
+            get { return _dynamic; }
+            set { _dynamic = value; }
         }
 
-		public virtual bool IsArray {
-			get { 
-				return false;
-			}
-		}
-
-
-        private bool _Dynamic = false;
-
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual bool IsArray {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets or sets the name of the class.
         /// </summary>
         /// <value>The name of the class.</value>
         public string ClassName {
-            get {
-                return _ClassName;
-            }
-            set {
-                _ClassName = value;
-            }
+            get { return _className; }
+            set { _className = value; }
         }
         /// <summary>
         /// Gets or sets the namespace.
@@ -68,7 +68,9 @@ namespace Starcounter.Templates {
         /// <value></value>
         public string Namespace { get; set; }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         public abstract bool IsPrimitive { get; }
 
         /// <summary>
@@ -100,11 +102,7 @@ namespace Starcounter.Templates {
         /// Gets a value indicating whether this instance is visible on client.
         /// </summary>
         /// <value><c>true</c> if this instance is visible on client; otherwise, <c>false</c>.</value>
-        public virtual bool IsVisibleOnClient {
-            get {
-                return true;
-            }
-        }
+        public virtual bool IsVisibleOnClient { get { return true; } }
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -116,11 +114,7 @@ namespace Starcounter.Templates {
         /// Gets a value indicating whether this instance has default properties on client.
         /// </summary>
         /// <value><c>true</c> if this instance has default properties on client; otherwise, <c>false</c>.</value>
-        public virtual bool HasDefaultPropertiesOnClient {
-            get {
-                return Editable;
-            }
-        }
+        public virtual bool HasDefaultPropertiesOnClient { get { return Editable; } }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="TValue" /> is editable.
@@ -135,31 +129,14 @@ namespace Starcounter.Templates {
         public string OnUpdate { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Template" /> class.
-        /// </summary>
-		public Template()
-		{
-			Editable = false;
-            TemplateIndex = -1;
-		}
-
-//        public abstract object CreateInstance( IParent parent );
-        /// <summary>
         /// The .NET type of the instance represented by this template.TApp
         /// </summary>
         /// <value>The type of the instance.</value>
         /// <exception cref="System.Exception">You are not allowed to set the InstanceType of a </exception>
         public virtual Type InstanceType {
             get { return null; }
-            set {
-                throw new Exception("You are not allowed to set the InstanceType of a " + this.GetType().Name + "." );
-            }
+            set { throw new Exception("You are not allowed to set the InstanceType of a " + this.GetType().Name + "."); }
         }
-
-        /// <summary>
-        /// The _ parent
-        /// </summary>
-        internal TContainer _Parent;
 
         /// <summary>
         /// All templates other than the Root template has a parent template. For
@@ -169,14 +146,14 @@ namespace Starcounter.Templates {
         /// <value>The parent.</value>
         public TContainer Parent {
             get {
-                return _Parent;
+                return _parent;
             }
             set {
                 if (value is TObject) {
                     var at = (TObject)value;
                     at.Properties.Add(this);
                 }
-                _Parent = (TContainer)value;
+                _parent = (TContainer)value;
             }
         }
 
@@ -185,21 +162,6 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The index.</value>
         public int TemplateIndex { get; internal set; }
-
-        /// <summary>
-        /// The _ name
-        /// </summary>
-        private string _Name;
-
-        /// <summary>
-        /// The _ property name
-        /// </summary>
-        private string _PropertyName;
-
-        /// <summary>
-        /// The compiler origin
-        /// </summary>
-        public CompilerOrigin CompilerOrigin = new CompilerOrigin();
 
         /// <summary>
         /// Tells if the property or child should be sent to the client.
@@ -239,22 +201,22 @@ namespace Starcounter.Templates {
         /// <exception cref="System.Exception">Once the Name is set, it cannot be changed</exception>
         public string TemplateName {
             get {
-                return _Name;
+                return _name;
             }
             set {
-                if (_Name != null && TemplateName != value)
+                if (_name != null && TemplateName != value)
                     throw new Exception("Once the TemplateName is set, it cannot be changed");
-                _Name = value;
+                _name = value;
                 if (PropertyName == null) {
                     string name = value.Replace("$", "");
-                    _PropertyName = name;
+                    _propertyName = name;
                     if (Parent != null) {
                         var parent = (TObject)Parent;
                         var props = (PropertyList)(parent.Properties);
                         props.ChildPropertyNameIsSet(this);
                         props.ChildNameIsSet(this);
                     }
-                }   
+                }
             }
         }
 
@@ -266,17 +228,17 @@ namespace Starcounter.Templates {
         /// <value>The name of the property.</value>
         public string PropertyName {
             get {
-                if (_PropertyName == null ) {
+                if (_propertyName == null) {
                     var p = Parent;
-                    if ( p != null && p is TObjArr ) {
-                       return Parent.PropertyName + "Element";
+                    if (p != null && p is TObjArr) {
+                        return Parent.PropertyName + "Element";
                     }
                 }
-                return _PropertyName;
+                return _propertyName;
             }
         }
 
-                /// <summary>
+        /// <summary>
         /// The property name including parent path
         /// </summary>
         public string DebugString {
@@ -296,15 +258,12 @@ namespace Starcounter.Templates {
                 }
                 if (Parent is TObjArr) {
                     str += "ElementType.";
-                }
-                else {
+                } else {
                     if (PropertyName != null) {
                         str += PropertyName;
-                    }
-                    else if (ClassName != null) {
+                    } else if (ClassName != null) {
                         str += this.ClassName;
-                    }
-                    else {
+                    } else {
                         str += "(anonymous)";
                     }
                 }
@@ -323,7 +282,7 @@ namespace Starcounter.Templates {
                 return null;
             }
             set {
-                throw new NotImplementedException("This template " + GetType().FullName + " does not implement DefaultValueAsObject" );
+                throw new NotImplementedException("This template " + GetType().FullName + " does not implement DefaultValueAsObject");
             }
         }
 
@@ -354,27 +313,24 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Copies to.
+        /// 
         /// </summary>
-        /// <param name="toTemplate">To template.</param>
-        public virtual void CopyTo(Template toTemplate)
-        {
-            toTemplate._Name = _Name;
-            toTemplate._PropertyName = _PropertyName;
+        /// <param name="toTemplate"></param>
+        public virtual void CopyTo(Template toTemplate) {
+            toTemplate._name = _name;
+            toTemplate._propertyName = _propertyName;
             toTemplate.Editable = Editable;
             toTemplate.Enabled = Enabled;
             toTemplate.Visible = Visible;
         }
 
-        
 #if DEBUG
         internal void VerifyProperty(Template prop) {
             if (this != prop.Parent) {
                 string parentString;
                 if (prop.Parent == null) {
                     parentString = "as a parentless " + prop.GetType();
-                }
-                else {
+                } else {
                     parentString = "in " + prop.Parent.DebugString;
                 }
                 throw new Exception(String.Format(
@@ -387,47 +343,22 @@ namespace Starcounter.Templates {
         }
 #endif
 
-        IReadOnlyTree IReadOnlyTree.Parent {
-            get { return _Parent; }
-        }
-
-        static readonly IReadOnlyList<IReadOnlyTree> EmptyList = new List<IReadOnlyTree>();
-
-        IReadOnlyList<IReadOnlyTree> IReadOnlyTree.Children {
-            get {
-                return _Children;
-            }
-        }
-
-        protected virtual IReadOnlyList<IReadOnlyTree> _Children {
-            get {
-                return EmptyList;
-            }
-        }
-
-
+        IReadOnlyTree IReadOnlyTree.Parent { get { return _parent; } }
+        IReadOnlyList<IReadOnlyTree> IReadOnlyTree.Children { get { return _Children; } }
+        protected virtual IReadOnlyList<IReadOnlyTree> _Children { get { return _emptyList; } }
 
         protected static bool IsSupportedType(Type pt) {
             Func<TObject, string, TValue> dummy;
-            return (TObject.@switch.TryGetValue(pt,out dummy));
+            return (TObject.@switch.TryGetValue(pt, out dummy));
         }
     }
 
     /// <summary>
-    /// Struct CompilerOrigin
+    /// 
     /// </summary>
     public struct CompilerOrigin {
-        /// <summary>
-        /// The file name
-        /// </summary>
         public string FileName;
-        /// <summary>
-        /// The line no
-        /// </summary>
         public int LineNo;
-        /// <summary>
-        /// The col no
-        /// </summary>
         public int ColNo;
     }
 }
