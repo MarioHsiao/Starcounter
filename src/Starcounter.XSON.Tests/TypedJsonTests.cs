@@ -4,65 +4,22 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Starcounter.Templates;
-using System;
-//using Starcounter.XSON.CodeGeneration;
 using Starcounter.Advanced;
-using Starcounter.Internal;
-using Starcounter.Advanced.XSON;
-using System.IO;
-using Starcounter.Internal.XSON;
-using Starcounter.XSON.Tests;
-using TJson = Starcounter.Templates.TObject;
-using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 using Starcounter.Internal.JsonPatch;
+using Starcounter.Templates;
+using Starcounter.XSON.Tests;
 
 namespace Starcounter.Internal.XSON.Tests {
-
-    /// <summary>
-    /// Class AppTests
-    /// </summary>
     [TestFixture]
-    public static class AppTests {
-        /// <summary>
-        /// Sets up the test.
-        /// </summary>
+    public static class TypedJsonTests {
         [TestFixtureSetUp]
         public static void Setup() {
             StarcounterBase._DB = new FakeDbImpl();
         }
 
-//        /// <summary>
-//        /// 
-//        /// </summary>
-//        [Test]
-//        public static void UseJsonWithNoTemplate() {
-//            var json = new Json();
-//            AssertCorrectErrorCodeIsThrown(() => { json.Data = new SubClass1(); }, Error.SCERRTEMPLATENOTSPECIFIED);
-//            AssertCorrectErrorCodeIsThrown(() => { var str = json.ToJson(); }, Error.SCERRTEMPLATENOTSPECIFIED);
-//        }
-
-        private static void AssertCorrectErrorCodeIsThrown(Action action, uint expectedErrorCode) {
-            uint ec;
-
-            try {
-                action();
-                Assert.Fail("An exception with error " + ErrorCode.ToFacilityCode(expectedErrorCode) + " should have been thrown");
-            } catch (Exception ex) {
-                if (ErrorCode.TryGetCode(ex, out ec)) {
-                    if (ec != expectedErrorCode)
-                        Assert.Fail("An exception with error " + ErrorCode.ToFacilityCode(expectedErrorCode) + " should have been thrown");
-                } else {
-                    Assert.Fail("An exception with error " + ErrorCode.ToFacilityCode(expectedErrorCode) + " should have been thrown");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Tests the app index path.
-        /// </summary>
         [Test]
         public static void TestAppIndexPath() {
             AppAndTemplate aat = Helper.CreateSampleApp();
@@ -70,14 +27,14 @@ namespace Starcounter.Internal.XSON.Tests {
 
             var firstName = (Property<string>)appt.Properties[0];
             Int32[] indexPath = aat.App.IndexPathFor(firstName);
-            VerifyIndexPath(new Int32[] { 0 }, indexPath);
+            Helper.VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
             TObject anotherAppt = (TObject)appt.Properties[3];
             Json nearestApp = anotherAppt.Getter(aat.App);
 
             var desc = (Property<string>)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
-            VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
+            Helper.VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
             TObjArr itemProperty = (TObjArr)appt.Properties[2];
             Json items = itemProperty.Getter(aat.App);
@@ -87,19 +44,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             TBool delete = (TBool)anotherAppt.Properties[2];
             indexPath = nearestApp.IndexPathFor(delete);
-            VerifyIndexPath(new Int32[] { 2, 1, 2 }, indexPath);
-        }
-
-        /// <summary>
-        /// Verifies the index path.
-        /// </summary>
-        /// <param name="expected">The expected.</param>
-        /// <param name="received">The received.</param>
-        private static void VerifyIndexPath(Int32[] expected, Int32[] received) {
-            Assert.AreEqual(expected.Length, received.Length);
-            for (Int32 i = 0; i < expected.Length; i++) {
-                Assert.AreEqual(expected[i], received[i]);
-            }
+            Helper.VerifyIndexPath(new Int32[] { 2, 1, 2 }, indexPath);
         }
 
         /// <summary>
@@ -111,23 +56,14 @@ namespace Starcounter.Internal.XSON.Tests {
         /// </remarks>
         [Test]
         public static void CreateTemplatesAndAppsByCode() {
-            _CreateTemplatesAndAppsByCode();
-        }
-
-        /// <summary>
-        /// Creates some.
-        /// </summary>
-        /// <returns>List{App}.</returns>
-        private static List<Json> _CreateTemplatesAndAppsByCode() {
-
             // First, let's create the schema (template)
-            var personSchema = new TJson();
+            var personSchema = new TObject();
             var firstName = personSchema.Add<TString>("FirstName$");
             var lastName = personSchema.Add<TString>("LastName");
             var age = personSchema.Add<TLong>("Age");
 
-            var phoneNumber = new TJson();
-            var phoneNumbers = personSchema.Add<TArr>("Phonenumbers", phoneNumber);
+            var phoneNumber = new TObject();
+            var phoneNumbers = personSchema.Add<TArray<Json>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.TemplateName);
@@ -155,26 +91,21 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Wester", lastName.Getter(jocke));
             Assert.AreEqual("Timothy", firstName.Getter(tim));
             Assert.AreEqual("Wester", lastName.Getter(tim));
-
-            var ret = new List<Json>();
-            ret.Add(jocke);
-            ret.Add(tim);
-            return ret;
         }
-        
+
         /// <summary>
         /// Tests dynamic.
         /// </summary>
         [Test]
         public static void TestRuntimeCreatedTemplate() {
             // First, let's create the schema (template)
-            var personSchema = new TJson();
+            var personSchema = new TObject();
             var firstName = personSchema.Add<TString>("FirstName$");
             var lastName = personSchema.Add<TString>("LastName");
             var age = personSchema.Add<TLong>("Age");
 
-            var phoneNumber = new TJson();
-            var phoneNumbers = personSchema.Add<TArr>("Phonenumbers", phoneNumber);
+            var phoneNumber = new TObject();
+            var phoneNumbers = personSchema.Add<TArray<Json>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.TemplateName);
@@ -271,62 +202,6 @@ namespace Starcounter.Internal.XSON.Tests {
             }
 		}
 
-        /// <summary>
-        /// Test using dynamic codegen
-        /// </summary>
-        [Test]
-        public static void ReadDynamic() {
-            return;
-
-            //List<App> apps = CreateSome();
-            //dynamic jocke = apps[0];
-            //dynamic tim = apps[1];
-
-            //Assert.AreEqual("Joachim", jocke.FirstName);
-            //Assert.AreEqual("Wester", jocke.LastName);
-            //Assert.AreEqual(30, jocke.Age);
-
-            //Assert.AreEqual("Timothy", tim.FirstName);
-            //Assert.AreEqual("Wester", tim.LastName);
-            //Assert.AreEqual(16, tim.Age);
-        }
-
-        /// <summary>
-        /// Writes the dynamic.
-        /// </summary>
-        [Test]
-        public static void WriteDynamic() {
-            return;
-            //List<App> apps = CreateSome();
-            //dynamic a = apps[0];
-            //dynamic b = apps[1];
-            //dynamic c = new App() { Template = b.Template };
-
-            //a.FirstName = "Adrienne";
-            //a.LastName = "Wester";
-            //a.Age = 24;
-
-            //b.FirstName = "Douglas";
-            //b.LastName = "Wester";
-            //b.Age = 7;
-
-            //c.FirstName = "Charlie";
-            //c.LastName = "Wester";
-            //c.Age = 4;
-
-            //Assert.AreEqual("Adrienne", a.FirstName);
-            //Assert.AreEqual("Wester", a.LastName);
-            //Assert.AreEqual(24, a.Age);
-
-            //Assert.AreEqual("Douglas", b.FirstName);
-            //Assert.AreEqual("Wester", b.LastName);
-            //Assert.AreEqual(7, b.Age);
-
-            //Assert.AreEqual("Charlie", c.FirstName);
-            //Assert.AreEqual("Wester", c.LastName);
-            //Assert.AreEqual(4, c.Age);
-        }
-
 		[Test]
 		public static void TestParentAssignment() {
 			dynamic json = new Json();
@@ -346,7 +221,7 @@ namespace Starcounter.Internal.XSON.Tests {
         /// </summary>
         [Test]
         public static void TestCorrectJsonInstances() {
-            TJson personSchema = CreateComplexPersonTemplate();
+            TObject personSchema = Helper.CreateComplexPersonTemplate();
 
             dynamic p1 = personSchema.CreateInstance();
             dynamic n1 = p1.Fields.Add();
@@ -361,7 +236,7 @@ namespace Starcounter.Internal.XSON.Tests {
 		[Test]
 		public static void TestChangeBoundObject() {
 			var template = new TObject();
-			var pageTemplate = template.Add<TJson>("Number");
+            var pageTemplate = template.Add<TObject>("Number");
 			pageTemplate.Add<TString>("Number");
 
 			dynamic msg = new Json { Template = template };
@@ -401,7 +276,7 @@ namespace Starcounter.Internal.XSON.Tests {
         /// </summary>
         [Test]
         public static void TestDataBinding() {
-            dynamic msg = new Json { Template = CreateSimplePersonTemplateWithDataBinding() };
+            dynamic msg = new Json { Template = Helper.CreateSimplePersonTemplateWithDataBinding() };
 
             var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
             myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
@@ -432,27 +307,13 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Lorem Ipsum", myDataObj.Misc); // Not bound so updating the message should not alter the dataobject.
         }
 
-
-        /// <summary>
-        /// Creates a template from a JSON-by-example file
-        /// </summary>
-        /// <param name="filePath">The file to load</param>
-        /// <returns>The newly created template</returns>
-        private static TJson CreateJsonTemplateFromFile(string filePath) {
-            string json = File.ReadAllText(filePath);
-            string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
-            tobj.ClassName = className;
-            return tobj;
-        }
-
         /// <summary>
         /// Tests TestDataBinding.
         /// </summary>
         [Test]
         public static void TestDataBindingWithDifferentClasses() {
             // Bound to SimpleBase datatype.
-            TJson tSimple = CreateJsonTemplateFromFile("simple.json");
+            TObject tSimple = Helper.CreateJsonTemplateFromFile("simple.json");
             dynamic json = tSimple.CreateInstance();
             
             var o = new SubClass1(); 
@@ -488,7 +349,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
 		[Test]
 		public static void TestUntypedObjectArray() {
-			var schema = new TJson();
+            var schema = new TObject();
 			schema.Add<TArray<Json>>("Items");
 			schema.Add<TArray<Json>>("Items2");
 
@@ -524,7 +385,7 @@ namespace Starcounter.Internal.XSON.Tests {
 		[Test]
 		public static void TestTemplateGettersAndSetters() {
 			bool bound;
-			TJson tJson = CreateSimplePersonTemplateWithDataBinding();
+            TObject tJson = Helper.CreateSimplePersonTemplateWithDataBinding();
 			Json json = (Json)tJson.CreateInstance();
 
 			var person = new PersonObject();
@@ -545,7 +406,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			if (bound)
 				property.GenerateBoundGetterAndSetter(json);
 #if DEBUG
-			PrintTemplateDebugInfo<String>(property);
+            Helper.PrintTemplateDebugInfo<String>(property);
 #endif
 
 			property.UnboundSetter(json, "Test!");
@@ -570,7 +431,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			if (bound)
 				property.GenerateBoundGetterAndSetter(json);
 #if DEBUG
-			PrintTemplateDebugInfo<String>(property);
+            Helper.PrintTemplateDebugInfo<String>(property);
 #endif
 
 			property.UnboundSetter(json, "Test!");
@@ -596,7 +457,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			if (bound)
 				ageProperty.GenerateBoundGetterAndSetter(json);
 #if DEBUG
-			PrintTemplateDebugInfo<long>(ageProperty);
+			Helper.PrintTemplateDebugInfo<long>(ageProperty);
 #endif
 
 			ageProperty.UnboundSetter(json, 199);
@@ -622,7 +483,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			if (bound)
 				pnProperty.GenerateBoundGetterAndSetter(json);
 #if DEBUG
-			PrintTemplateDebugInfo(pnProperty);
+			Helper.PrintTemplateDebugInfo(pnProperty);
 #endif
 
 			var pn = new PhoneNumberObject();
@@ -638,129 +499,36 @@ namespace Starcounter.Internal.XSON.Tests {
 			}
 		}
 
-#if DEBUG
-		private static void PrintTemplateDebugInfo<T>(Property<T> property){
-			string str = property.TemplateName + " (index: " + property.TemplateIndex;
-			bool bound = (property.Bind != null);
+        [Test]
+        public static void TestAddAndRemoveOnArray() {
+            dynamic item1 = new Json();
+            dynamic item2 = new Json();
+            dynamic item3 = new Json();
 
-			if (bound) {
-				str += ", bind: " + property.Bind;
-			}
+            dynamic root = new Json();
 
-			str += ", Type: " + property.GetType().Name;
-			str += ")";
+            var items = new List<Json>();
+            items.Add(item1);
+            root.Items = items;
 
-			Console.WriteLine("------------------------------------------");
-			Console.WriteLine("Property:");
-			Console.WriteLine(str);
-			Console.WriteLine();
-			Console.WriteLine("UnboundGetter:");
-			Console.WriteLine(property.DebugUnboundGetter);
-			Console.WriteLine();
-			Console.WriteLine("UnboundSetter:");
-			Console.WriteLine(property.DebugUnboundSetter);
-			Console.WriteLine();
-
-			if (bound) {
-				Console.WriteLine("BoundGetter:");
-				Console.WriteLine(property.DebugBoundGetter);
-				Console.WriteLine();
-				Console.WriteLine("BoundSetter:");
-				Console.WriteLine(property.DebugBoundSetter);
-				Console.WriteLine();
-			}
-		}
-
-		private static void PrintTemplateDebugInfo(TObject property) {
-			string str = property.TemplateName + " (index: " + property.TemplateIndex;
-			bool bound = (property.Bind != null);
-
-			if (bound) {
-				str += ", bind: " + property.Bind;
-			}
-
-			str += ", Type: " + property.GetType().Name;
-			str += ")";
-
-			Console.WriteLine("------------------------------------------");
-			Console.WriteLine("Property:");
-			Console.WriteLine(str);
-			Console.WriteLine();
-			Console.WriteLine("UnboundGetter:");
-			Console.WriteLine(property.DebugUnboundGetter);
-			Console.WriteLine();
-			Console.WriteLine("UnboundSetter:");
-			Console.WriteLine(property.DebugUnboundSetter);
-			Console.WriteLine();
-
-			if (bound) {
-				Console.WriteLine("BoundGetter:");
-				Console.WriteLine(property.DebugBoundGetter);
-				Console.WriteLine();
-				Console.WriteLine("BoundSetter:");
-				Console.WriteLine(property.DebugBoundSetter);
-				Console.WriteLine();
-			}
-		}
-#endif
-
-        private static TJson CreateSimplePersonTemplateWithDataBinding() {
-            var personSchema = new TJson() { BindChildren = BindingStrategy.Bound };
-            personSchema.Add<TString>("FirstName$"); // Bound to FirstName
-            personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
+            root.Items.Add(item2);
+            root.Items.Add(item3);
             
-			var t = personSchema.Add<TLong>("Age"); // Will not be bound
-			t.BindingStrategy = BindingStrategy.Unbound;
-            
-			personSchema.Add<TString>("Created");
-            personSchema.Add<TString>("Updated");
-            personSchema.Add<TString>("AbstractValue");
-            personSchema.Add<TString>("VirtualValue");
-            
-            var misc = personSchema.Add<TString>("Misc");
-            misc.Bind = null; // Removing the binding for this specific template.
+            Assert.AreEqual(3, root.Items.Count);
+            Assert.NotNull(item1.Parent);
+            Assert.NotNull(item2.Parent);
+            Assert.NotNull(item3.Parent);
 
-            var phoneNumber = personSchema.Add<TJson>("PhoneNumber", "Number");
-            phoneNumber.BindChildren = BindingStrategy.Bound;
-            phoneNumber.Add<TString>("Number"); // Bound to Number
-            
-            return personSchema;
+            bool b = root.Items.Remove(item2);
+            Assert.IsTrue(b);
+            Assert.AreEqual(2, root.Items.Count);
+            Assert.IsNull(item2.Parent);
+
+            root.Items.Clear();
+
+            Assert.AreEqual(0, root.Items.Count);
+            Assert.IsNull(item1.Parent);
+            Assert.IsNull(item3.Parent);
         }
-
-        private static TJson CreateSimplePersonTemplate() {
-            var personSchema = new TJson();
-            personSchema.Add<TString>("FirstName$");
-            personSchema.Add<TString>("LastName");
-            personSchema.Add<TLong>("Age");
-            
-            var phoneNumber = new TJson();
-            phoneNumber.Add<TString>("Number");
-            personSchema.Add<TArr>("PhoneNumbers", phoneNumber);
-
-            return personSchema;
-        }
-
-        private static TJson CreateComplexPersonTemplate() {
-            var personSchema = new TJson();
-            personSchema.Add<TString>("FirstName$");
-            personSchema.Add<TString>("LastName");
-            personSchema.Add<TLong>("Age");
-            personSchema.Add<TDecimal>("Stats");
-
-            var field = new TJson();
-            field.Add<TString>("Type");
-            var info = field.Add<TJson>("Info");
-            info.Add<TString>("Text");
-            field.InstanceType = typeof(MyFieldMessage);
-            personSchema.Add<TArray<MyFieldMessage>>("Fields", field);
-
-            var extraInfo = personSchema.Add<TJson>("ExtraInfo");
-            extraInfo.Add<TString>("Text");
-
-            return personSchema;
-        }
-    }
-
-    internal class MyFieldMessage : Json {
     }
 }
