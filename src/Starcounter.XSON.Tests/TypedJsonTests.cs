@@ -498,5 +498,37 @@ namespace Starcounter.Internal.XSON.Tests {
 				Assert.AreEqual(pn, person.Number);
 			}
 		}
+
+        [Test]
+        public static void TestArrays() {
+            dynamic item1 = new Json();
+            dynamic item2 = new Json();
+            dynamic item3 = new Json();
+
+            dynamic root = new Json();
+
+            var items = new List<Json>();
+            items.Add(item1);
+            root.Items = items;
+
+            root.Items.Add(item2);
+            root.Items.Add(item3);
+            
+            Assert.AreEqual(3, root.Items.Count);
+            Assert.NotNull(item1.Parent);
+            Assert.NotNull(item2.Parent);
+            Assert.NotNull(item3.Parent);
+
+            bool b = root.Items.Remove(item2);
+            Assert.IsTrue(b);
+            Assert.AreEqual(2, root.Items.Count);
+            Assert.IsNull(item2.Parent);
+
+            root.Items.Clear();
+
+            Assert.AreEqual(0, root.Items.Count);
+            Assert.IsNull(item1.Parent);
+            Assert.IsNull(item3.Parent);
+        }
     }
 }
