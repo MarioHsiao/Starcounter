@@ -500,7 +500,7 @@ namespace Starcounter.Internal.XSON.Tests {
 		}
 
         [Test]
-        public static void TestArrays() {
+        public static void TestAddAndRemoveOnArray() {
             dynamic item1 = new Json();
             dynamic item2 = new Json();
             dynamic item3 = new Json();
