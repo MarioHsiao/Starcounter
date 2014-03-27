@@ -50,31 +50,56 @@ namespace Starcounter {
         internal Action<Session> _SessionDestroyUserDelegate;
 
         /// <summary>
-        /// Database session interface.
-        /// </summary>
-        static IDbSession _dbSession;
-
-        /// <summary>
-        /// Setting actual database session implementation.
-        /// </summary>
-        internal static unsafe void SetDbSessionImplementation(IDbSession dbSessionImpl) {
-            _dbSession = dbSessionImpl;
-        }
-
-        /// <summary>
         /// Runs a task asynchronously on a given scheduler.
         /// </summary>
         public void RunAsync(Action action, Byte schedId = Byte.MaxValue)
         {
-            ScSessionClass.DbSession.RunAsync(action, schedId);
+            InternalSession.RunAsync(action, schedId);
         }
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
-        public void RunSync(Action action)
+        public void RunSync(Action action, Byte schedId = Byte.MaxValue)
         {
-            ScSessionClass.DbSession.RunSync(action);
+            InternalSession.RunSync(action, schedId);
+        }
+
+        /// <summary>
+        /// Running the given action on each active session.
+        /// </summary>
+        /// <param name="action">The user procedure to be performed on each session.</param>
+        /// <param name="cargoId">Cargo ID filter.</param>
+        public static void RunOnSessions(Action<Session> action, UInt64 cargoId = UInt64.MaxValue) {
+            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+                Byte schedId = i;
+
+                ScSessionClass.DbSession.RunAsync(() => 
+                {
+                    SchedulerSessions ss = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(schedId);
+
+                    LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
+                    while (used_session_index_node != null) {
+                        LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+
+                        // Getting session instance.
+                        ScSessionClass s = ss.GetAppsSessionIfAlive(used_session_index_node.Value);
+                        
+                        // Checking if session is created at all.
+                        if (s != null) {
+
+                            // Checking if cargo ID is correct.
+                            if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
+                                action((Session)s.apps_session_int_);
+                            }
+                        }
+
+                        // Getting next used session.
+                        used_session_index_node = next_used_session_index_node;
+                    }
+
+                }, schedId);
+            }
         }
 
         /// <summary>
