@@ -47,6 +47,7 @@ namespace Starcounter.Internal.XSON.Tests {
             }; 
         }
 
+#if DEBUG
         internal static void PrintTemplateDebugInfo<T>(Property<T> property) {
             string str = property.TemplateName + " (index: " + property.TemplateIndex;
             bool bound = (property.Bind != null);
@@ -110,6 +111,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Console.WriteLine();
             }
         }
+#endif
 
         internal static TObject CreateSimplePersonTemplateWithDataBinding() {
             var personSchema = new TObject() { BindChildren = BindingStrategy.Bound };
