@@ -87,7 +87,7 @@ namespace Starcounter {
 
     /// <summary>
     /// </summary>
-    public class DbSession {
+    public class DbSession : IDbSession {
 
         /// <summary>
         /// Runs the task represented by the action delegate asynchronously.
@@ -122,7 +122,7 @@ namespace Starcounter {
         /// exception, as an inner exception, is thrown by RunSync.
         /// </para>
         /// </remarks>
-        public void RunSync(Action action) {
+        public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
             unsafe {
                 uint r;
 
@@ -135,7 +135,7 @@ namespace Starcounter {
                         try {
                             var task = new Task(action, hEvent);
 
-                            TaskScheduler.Run(task);
+                            TaskScheduler.Run(task, schedId);
 
                             r = sccorelib.cm3_mevt_wait(hEvent, UInt32.MaxValue, 0);
                             if (r != 0) throw ErrorCode.ToException(r);

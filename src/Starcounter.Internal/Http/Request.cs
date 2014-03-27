@@ -490,7 +490,8 @@ namespace Starcounter {
                 *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
                 *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
                 dataStream_.GatewayWorkerId,
-                cargoId);
+                cargoId,
+                channelId);
         }
 
         /// <summary>
