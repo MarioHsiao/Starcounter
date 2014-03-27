@@ -71,8 +71,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 str += NApp.GlobalClassSpecifier;
                 str += ", ";
                 str += NTemplate.GlobalClassSpecifier;
-                str += ", ";
-                str += NMember.Type.GlobalClassSpecifier;
+
+                // Triggers have no valuetype, and uses another generic input class.
+                if (!(NMember.Template is TTrigger)) {
+                    str += ", ";
+                    str += NMember.Type.GlobalClassSpecifier;
+                }
+                
                 str += ">";
                 return str;
             }

@@ -53,7 +53,7 @@ namespace Starcounter {
         /// have a single parent. Our implementation provides the service of finding the declaring
         /// (parent) object of this object.
         /// </summary>
-        internal Json _parent;
+        private Json _parent;
 
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.

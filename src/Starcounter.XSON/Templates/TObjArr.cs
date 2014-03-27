@@ -153,7 +153,7 @@ namespace Starcounter.Templates {
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
 
-			parent._CallHasChanged(this);
+			parent.CallHasChanged(this);
 		}
 
 		/// <summary>
@@ -212,7 +212,7 @@ namespace Starcounter.Templates {
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
 
-			parent._CallHasChanged(this);
+			parent.CallHasChanged(this);
 		}
 
         public override Type MetadataType {
