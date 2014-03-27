@@ -248,31 +248,48 @@ namespace Starcounter
                 // Running asynchronous task.
                 ScSessionClass.DbSession.RunAsync(() => {
 
-                    // Number of processed WebSockets per scheduler.
-                    SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
+                    // Saving current WebSocket since we are going to set other.
+                    WebSocket origCurrentWebSocket = WebSocket.Current;
 
-                    // Going through each active WebSocket.
-                    foreach (UInt32 wsIndex in sws.ActiveWebSocketIndexes) {
+                    try
+                    {
+                        // Number of processed WebSockets per scheduler.
+                        SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
 
-                        // Getting internal WebSocket structure.
-                        WebSocketInternal wsInternal = sws.GetWebSocketInternal(wsIndex);
+                        // Going through each active WebSocket.
+                        foreach (UInt32 wsIndex in sws.ActiveWebSocketIndexes) {
 
-                        // Checking if WebSocket is alive.
-                        if (!wsInternal.IsDead()) {
+                            // Getting internal WebSocket structure.
+                            WebSocketInternal wsInternal = sws.GetWebSocketInternal(wsIndex);
 
-                            // Comparing given channel name if any.
-                            if ((channelName == null) || (wsInternal.ChannelId == channelId)) {
+                            // Checking if WebSocket is alive.
+                            if (!wsInternal.IsDead()) {
 
-                                // Comparing given cargo ID if any.
-                                if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
+                                // Comparing given channel name if any.
+                                if ((channelName == null) || (wsInternal.ChannelId == channelId)) {
 
-                                    // Creating WebSocket object used for pushes.
-                                    WebSocket ws = new WebSocket(wsInternal, null, null, null, WebSocket.WsHandlerType.Empty);
-                                    action(ws);
+                                    // Comparing given cargo ID if any.
+                                    if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
+
+                                        // Creating WebSocket object used for pushes.
+                                        WebSocket ws = new WebSocket(wsInternal, null, null, null, WebSocket.WsHandlerType.Empty);
+
+                                        // Setting current WebSocket.
+                                        WebSocket.Current = ws;
+
+                                        // Running user delegate with WebSocket as parameter.
+                                        action(ws);
+                                    }
                                 }
                             }
                         }
                     }
+                    finally
+                    {
+                        // Restoring original current WebSocket.
+                        WebSocket.Current = origCurrentWebSocket;
+                    }
+
                 }, schedId);
             }
         }

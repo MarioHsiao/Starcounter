@@ -71,31 +71,49 @@ namespace Starcounter {
         /// <param name="action">The user procedure to be performed on each session.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
         public static void RunOnSessions(Action<Session> action, UInt64 cargoId = UInt64.MaxValue) {
+
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
                 Byte schedId = i;
 
                 ScSessionClass.DbSession.RunAsync(() => 
                 {
-                    SchedulerSessions ss = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(schedId);
+                    // Saving current session since we are going to set other.
+                    Session origCurrentSession = Session.Current;
 
-                    LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
-                    while (used_session_index_node != null) {
-                        LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+                    try
+                    {
+                        SchedulerSessions ss = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(schedId);
 
-                        // Getting session instance.
-                        ScSessionClass s = ss.GetAppsSessionIfAlive(used_session_index_node.Value);
-                        
-                        // Checking if session is created at all.
-                        if (s != null) {
+                        LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
+                        while (used_session_index_node != null) {
+                            LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
 
-                            // Checking if cargo ID is correct.
-                            if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
-                                action((Session)s.apps_session_int_);
+                            // Getting session instance.
+                            ScSessionClass s = ss.GetAppsSessionIfAlive(used_session_index_node.Value);
+
+                            // Checking if session is created at all.
+                            if (s != null) {
+
+                                // Checking if cargo ID is correct.
+                                if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
+
+                                    Session session = (Session)s.apps_session_int_;
+
+                                    // Setting new current session.
+                                    Session.Current = session;
+
+                                    // Running user delegate with session as parameter.
+                                    action(session);
+                                }
                             }
-                        }
 
-                        // Getting next used session.
-                        used_session_index_node = next_used_session_index_node;
+                            // Getting next used session.
+                            used_session_index_node = next_used_session_index_node;
+                        }
+                    }
+                    finally {
+                        // Restoring original current session.
+                        Session.Current = origCurrentSession;
                     }
 
                 }, schedId);
