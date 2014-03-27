@@ -73,18 +73,7 @@ namespace Starcounter {
                 }
                 _PendingEnumeration = false;
             }
-            parent._CallHasChanged(template);
-        }
-
-        internal void InternalClear() {
-            int indexesToRemove;
-            var app = this.Parent;
-            TObjArr property = (TObjArr)this.Template;
-            indexesToRemove = list.Count;
-            for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                app.ChildArrayHasRemovedAnElement(property, i);
-            }
-            list.Clear();
+            parent.CallHasChanged(template);
         }
 
         public Json Add() {
