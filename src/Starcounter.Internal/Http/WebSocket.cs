@@ -348,11 +348,12 @@ namespace Starcounter
                 UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
                 UInt64 uniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
-                // Comparing with WebSocket internal belonging to that index.
                 Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                 SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
 
                 WebSocketInternal ws = sws.GetWebSocketInternal(socketIndex);
+
+                // Checking that WebSocket is correct (comparing unique indexes).
                 if ((ws == null) || (ws.SocketUniqueId != uniqueId))
                     return null;
 
@@ -530,12 +531,14 @@ namespace Starcounter
                 if (freeLinkedListNodes_.First != null) {
                     lln = freeLinkedListNodes_.First;
                     freeLinkedListNodes_.RemoveFirst();
+                    lln.Value = socketIndexNum;
                 } else {
                     lln = new LinkedListNode<UInt32>(socketIndexNum);
                 }
 
                 activeWebSocketIndexes_.AddLast(lln);
 
+                // Adding reference from WebSocket to the active linked list node.
                 webSockets_[socketIndexNum].ActiveWebSocketNode = lln;
 
                 return webSockets_[socketIndexNum];
