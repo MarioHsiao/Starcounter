@@ -13,8 +13,7 @@ namespace Starcounter.Templates {
     /// The collection of properties (Templates) in an Obj template. I.e. for the template PersonTemplate, the
     /// list might contain two elements such as TString "FirstName" and TString "LastName".
     /// </summary>
-    public class PropertyList : IEnumerable<Template>, IList<Template>, IReadOnlyList<Template>
-    {
+    public class PropertyList : IEnumerable<Template>, IList<Template>, IReadOnlyList<Template> {
         /// <summary>
         /// The owner of this list.
         /// </summary>
@@ -267,8 +266,9 @@ namespace Starcounter.Templates {
 					props.exposedProperties[index] = newTemplate;
 				}
             }
-            newTemplate._Parent = parent;
+            newTemplate._parent = parent;
             newTemplate.TemplateIndex = existing.TemplateIndex;
+            newTemplate.BasedOn = existing;
 
             if (existing is TValue) {
                 ((TValue)existing).CopyValueDelegates(newTemplate);
@@ -297,7 +297,7 @@ namespace Starcounter.Templates {
                 var props = (PropertyList)(parent.Properties);
                 props.ChildPropertyNameIsSet(t);
             }
-            t._Parent = this.parent;
+            t._parent = this.parent;
             t.TemplateIndex = this.Count; // Last one in list (added below)
             list.Add(t);
             Expose(t);

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Starcounter.XSON;
 
 namespace Starcounter.Templates {
@@ -19,10 +20,9 @@ namespace Starcounter.Templates {
 		internal Action<Json, T> BoundSetter;
 		internal Func<Json, T> BoundGetter;
 		internal Action<Json, T> UnboundSetter;
-		internal Func<Json, T>  UnboundGetter;
-
-        internal Func<Json, Property<T>, T, Input<T>> CustomInputEventCreator = null;
-        internal List<Action<Json, Input<T>>> CustomInputHandlers = new List<Action<Json, Input<T>>>();
+		internal Func<Json, T>  UnboundGetter;  
+        private Func<Json, Property<T>, T, Input<T>> _inputEventCreator;
+        private Action<Json, Input<T>> _inputHandler;
 
 		public Property() {
 			Getter = BoundOrUnboundGet;
@@ -45,7 +45,7 @@ namespace Starcounter.Templates {
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
 
-			parent._CallHasChanged(this);
+			parent.CallHasChanged(this);
 		}
 
 		/// <summary>
@@ -201,11 +201,10 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
-        public void AddHandler(
-            Func<Json, Property<T>, T, Input<T>> createInputEvent = null,
-            Action<Json, Input<T>> handler = null) {
-            this.CustomInputEventCreator = createInputEvent;
-            this.CustomInputHandlers.Add(handler);
+        public void AddHandler(Func<Json, Property<T>, T, Input<T>> createInputEvent,
+                               Action<Json, Input<T>> handler) {
+            _inputEventCreator = createInputEvent;
+            _inputHandler = handler;
         }
 
         /// <summary>
@@ -214,7 +213,49 @@ namespace Starcounter.Templates {
         /// <param name="parent"></param>
         /// <param name="value"></param>
         public void ProcessInput(Json parent, T value) {
-            parent.ProcessInput<T>(this, value);
+            Input<T> input = null;
+
+            if (_inputEventCreator != null)
+                input = _inputEventCreator.Invoke(parent, this, value);
+
+            if (input != null && _inputHandler != null) {
+                input.OldValue = Getter(parent);
+                _inputHandler.Invoke(parent, input);
+
+                if (!input.Cancelled) {
+                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
+                    Setter(parent, input.Value);
+                } else {
+                    Debug.WriteLine("Handler cancelled: " + value);
+                }
+            } else {
+                if (BasedOn == null) {
+                    Debug.WriteLine("Setting value after no handler: " + value);
+                    Setter(parent, value);
+                } else {
+                    // This is an inherited template with no inputhandler, lets 
+                    // see if the base-template has a registered handler.
+                    ((Property<T>)BasedOn).ProcessInput(parent, value);
+                }
+            }
+        }
+
+        internal void ProcessInput(Json parent, Input<T> existingInput) {
+            Input<T> input = null;
+
+            if (_inputEventCreator != null)
+                input = _inputEventCreator.Invoke(parent, this, existingInput.Value);
+
+            if (input != null && _inputHandler != null) {
+                input.OldValue = existingInput.OldValue;
+                _inputHandler.Invoke(parent, input);
+
+                if (!input.Cancelled) {
+                    existingInput.Value = input.Value;
+                } else {
+                    existingInput.Cancel();
+                }
+            } 
         }
 	}
 

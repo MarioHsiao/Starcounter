@@ -58,6 +58,8 @@ namespace Starcounter.Internal {
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
+            DbSession dbs = new DbSession();
+            ScSessionClass.SetDbSessionImplementation(dbs);
 
             // Dependency injection for converting puppets to html
             Modules.Starcounter_XSON.Injections._JsonMimeConverter = new JsonMimeConverter();

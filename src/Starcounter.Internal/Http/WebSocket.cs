@@ -1,6 +1,8 @@
 ﻿using Starcounter;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 
@@ -11,22 +13,65 @@ namespace Starcounter
         /// <summary>
         /// Unique socket id on gateway.
         /// </summary>
-        internal UInt64 socketUniqueId_;
+        UInt64 socketUniqueId_;
+
+        /// <summary>
+        /// Unique socket id on gateway.
+        /// </summary>
+        internal UInt64 SocketUniqueId { get { return socketUniqueId_; } }
 
         /// <summary>
         /// User cargo id.
         /// </summary>
-        internal UInt64 cargoId_;
+        UInt64 cargoId_;
+
+        /// <summary>
+        /// Cargo ID getter.
+        /// </summary>
+        internal UInt64 CargoId { get { return cargoId_; } } 
 
         /// <summary>
         /// Socket index on gateway.
         /// </summary>
-        internal UInt32 socketIndexNum_;
+        UInt32 socketIndexNum_;
+
+        /// <summary>
+        /// Socket index on gateway.
+        /// </summary>
+        internal UInt32 SocketIndexNum { get { return socketIndexNum_; } }
 
         /// <summary>
         /// Gateway worker id.
         /// </summary>
-        internal Byte gatewayWorkerId_;
+        Byte gatewayWorkerId_;
+
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        internal Byte GatewayWorkerId { get { return gatewayWorkerId_; } }
+
+        /// <summary>
+        /// Corresponding channel ID.
+        /// </summary>
+        UInt32 channelId_;
+
+        /// <summary>
+        /// Channel ID getter.
+        /// </summary>
+        internal UInt32 ChannelId { get { return channelId_; } }
+
+        /// <summary>
+        /// Active WebSocket node.
+        /// </summary>
+        LinkedListNode<UInt32> activeWebSocketNode_;
+
+        /// <summary>
+        /// Active WebSocket node.
+        /// </summary>
+        internal LinkedListNode<UInt32> ActiveWebSocketNode {
+            get { return activeWebSocketNode_; }
+            set { activeWebSocketNode_ = value; }
+        }
 
         internal WebSocketInternal()
         {
@@ -37,20 +82,23 @@ namespace Starcounter
             UInt32 socketIndexNum,
             UInt64 socketUniqueId,
             Byte gatewayWorkerId,
-            UInt64 cargoId)
+            UInt64 cargoId,
+            UInt32 channelId)
         {
             socketIndexNum_ = socketIndexNum;
             socketUniqueId_ = socketUniqueId;
             gatewayWorkerId_ = gatewayWorkerId;
             cargoId_ = cargoId;
+            channelId_ = channelId;
         }
 
-        void Reset()
+        internal void Reset()
         {
             gatewayWorkerId_ = 255;
+            activeWebSocketNode_ = null;
         }
 
-        Boolean IsDead()
+        public Boolean IsDead()
         {
             return (gatewayWorkerId_ == 255);
         }
@@ -99,7 +147,7 @@ namespace Starcounter
         {
             get
             {
-                return wsInternal_.cargoId_;
+                return wsInternal_.CargoId;
             }
         }
 
@@ -154,12 +202,8 @@ namespace Starcounter
             }
 
             PushServerMessage(this, buf, bytesWritten, true, Response.ConnectionFlags.GracefullyCloseConnection);
-        }
 
-        // Executes given user delegate on all active sockets.
-        internal static void RunOnAllActiveWebSockets(Action<WebSocket> userDelegate, String channel)
-        {
-
+            Destroy();
         }
 
         /// <summary>
@@ -182,6 +226,79 @@ namespace Starcounter
         public void Send(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
             Send(Encoding.UTF8.GetBytes(data), isText, connFlags);
+        }
+
+        /// <summary>
+        /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
+        /// </summary>
+        /// <param name="action">Given action that should be performed with each WebSocket.</param>
+        /// <param name="channelName">Channel name filter for WebSockets.</param>
+        /// <param name="cargoId">Cargo ID filter.</param>
+        public static void RunOnWebSockets(Action<WebSocket> action, String channelName = null, UInt64 cargoId = UInt64.MaxValue) {
+
+            UInt32 channelId = 0;
+            if (channelName != null)
+                channelId = WsChannelInfo.CalculateChannelIdFromChannelName(channelName);
+
+            // For each scheduler.
+            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+
+                Byte schedId = i;
+
+                // Running asynchronous task.
+                ScSessionClass.DbSession.RunAsync(() => {
+
+                    // Saving current WebSocket since we are going to set other.
+                    WebSocket origCurrentWebSocket = WebSocket.Current;
+
+                    try
+                    {
+                        // Number of processed WebSockets per scheduler.
+                        SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
+
+                        // Going through each active WebSocket.
+                        foreach (UInt32 wsIndex in sws.ActiveWebSocketIndexes) {
+
+                            // Getting internal WebSocket structure.
+                            WebSocketInternal wsInternal = sws.GetWebSocketInternal(wsIndex);
+
+                            // Checking if WebSocket is alive.
+                            if (!wsInternal.IsDead()) {
+
+                                // Comparing given channel name if any.
+                                if ((channelName == null) || (wsInternal.ChannelId == channelId)) {
+
+                                    // Comparing given cargo ID if any.
+                                    if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
+
+                                        // Creating WebSocket object used for pushes.
+                                        WebSocket ws = new WebSocket(wsInternal, null, null, null, WebSocket.WsHandlerType.Empty);
+
+                                        // Setting current WebSocket.
+                                        WebSocket.Current = ws;
+
+                                        // Running user delegate with WebSocket as parameter.
+                                        action(ws);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        // Restoring original current WebSocket.
+                        WebSocket.Current = origCurrentWebSocket;
+                    }
+
+                }, schedId);
+            }
+        }
+
+        /// <summary>
+        /// Disconnecting WebSockets that meet given criteria.
+        /// </summary>
+        public static void DisconnectWebSockets(String channelName = null, UInt64 cargoId = UInt64.MaxValue) {
+            RunOnWebSockets((WebSocket ws) => { ws.Disconnect(); }, channelName, cargoId);
         }
 
         String message_;
@@ -232,8 +349,11 @@ namespace Starcounter
                 UInt64 uniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
                 // Comparing with WebSocket internal belonging to that index.
-                WebSocketInternal ws = allWebSockets[StarcounterEnvironment.CurrentSchedulerId, socketIndex];
-                if ((ws == null) || (ws.socketUniqueId_ != uniqueId))
+                Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
+                SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
+
+                WebSocketInternal ws = sws.GetWebSocketInternal(socketIndex);
+                if ((ws == null) || (ws.SocketUniqueId != uniqueId))
                     return null;
 
                 return ws;
@@ -253,19 +373,31 @@ namespace Starcounter
             UInt32 socketIndexNum,
             UInt64 socketUniqueId,
             Byte gatewayWorkerId,
-            UInt64 cargoId)
+            UInt64 cargoId,
+            UInt32 channelId)
         {
             Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-            if (allWebSockets[schedId, socketIndexNum] == null)
-                allWebSockets[schedId, socketIndexNum] = new WebSocketInternal();
+            SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
 
-            allWebSockets[schedId, socketIndexNum].Init(
+            WebSocketInternal wsi = sws.AddNewWebSocket(socketIndexNum);
+
+            wsi.Init(
                 socketIndexNum,
                 socketUniqueId,
                 gatewayWorkerId,
-                cargoId);
+                cargoId,
+                channelId);
 
-            wsInternal_ = allWebSockets[schedId, socketIndexNum];
+            wsInternal_ = wsi;
+        }
+
+        internal void Destroy() {
+            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
+
+            SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
+            sws.RemoveActiveWebSocket(wsInternal_);
+
+            wsInternal_.Reset();
         }
 
         internal void ManualDestroy()
@@ -308,7 +440,7 @@ namespace Starcounter
 
                 // Creating network data stream object.
                 System.Diagnostics.Debug.Assert(ws.wsInternal_ != null);
-                data_stream = new NetworkDataStream(chunk_mem, chunk_index, ws.wsInternal_.gatewayWorkerId_);
+                data_stream = new NetworkDataStream(chunk_mem, chunk_index, ws.wsInternal_.GatewayWorkerId);
             }
             else
             {
@@ -335,9 +467,9 @@ namespace Starcounter
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte)MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
 
-            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = ws.wsInternal_.socketIndexNum_;
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.wsInternal_.socketUniqueId_;
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = ws.wsInternal_.gatewayWorkerId_;
+            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = ws.wsInternal_.SocketIndexNum;
+            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.wsInternal_.SocketUniqueId;
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = ws.wsInternal_.GatewayWorkerId;
 
             (*(UInt16*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
@@ -351,11 +483,74 @@ namespace Starcounter
             data_stream.SendResponse(data, 0, dataLen, connFlags);
         }
 
-        static WebSocketInternal[,] allWebSockets = null;
+        internal class GlobalWebSockets
+        {
+            static SchedulerWebSockets[] WebSocketsPerScheduler = null;
+
+            internal SchedulerWebSockets GetSchedulerWebSockets(Byte schedId) {
+                return WebSocketsPerScheduler[schedId];
+            }
+
+            public GlobalWebSockets() {
+                WebSocketsPerScheduler = new SchedulerWebSockets[StarcounterEnvironment.SchedulerCount];
+
+                for (Int32 i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+                    WebSocketsPerScheduler[i] = new SchedulerWebSockets();
+                }
+            }
+        }
+
+        internal static GlobalWebSockets AllWebSockets;
+
+        internal class SchedulerWebSockets
+        {
+            public const Int32 MaxWebSocketsPerScheduler = 30000;
+
+            WebSocketInternal[] webSockets_ = new WebSocketInternal[MaxWebSocketsPerScheduler];
+            internal WebSocketInternal[] WebSockets { get { return webSockets_; } }
+
+            LinkedList<UInt32> activeWebSocketIndexes_ = new LinkedList<UInt32>();
+            internal LinkedList<UInt32> ActiveWebSocketIndexes { get { return activeWebSocketIndexes_; } }
+
+            LinkedList<UInt32> freeLinkedListNodes_ = new LinkedList<UInt32>();
+
+            internal WebSocketInternal GetWebSocketInternal(UInt32 socketIndexNum) {
+                return webSockets_[socketIndexNum];
+            }
+
+            internal WebSocketInternal AddNewWebSocket(UInt32 socketIndexNum) {
+
+                if (webSockets_[socketIndexNum] == null) {
+                    webSockets_[socketIndexNum] = new WebSocketInternal();
+                }
+
+                Debug.Assert(webSockets_[socketIndexNum].IsDead());
+
+                LinkedListNode<UInt32> lln = null;
+                if (freeLinkedListNodes_.First != null) {
+                    lln = freeLinkedListNodes_.First;
+                    freeLinkedListNodes_.RemoveFirst();
+                } else {
+                    lln = new LinkedListNode<UInt32>(socketIndexNum);
+                }
+
+                activeWebSocketIndexes_.AddLast(lln);
+
+                webSockets_[socketIndexNum].ActiveWebSocketNode = lln;
+
+                return webSockets_[socketIndexNum];
+            }
+
+            internal void RemoveActiveWebSocket(WebSocketInternal wsi) {
+                activeWebSocketIndexes_.Remove(wsi.ActiveWebSocketNode);
+                freeLinkedListNodes_.AddLast(wsi.ActiveWebSocketNode);
+                wsi.ActiveWebSocketNode = null;
+            }
+        }
 
         internal static void InitWebSocketsInternal()
         {
-            allWebSockets = new WebSocketInternal[StarcounterEnvironment.SchedulerCount, 30000];
+            AllWebSockets = new GlobalWebSockets();
         }
     }
 }
