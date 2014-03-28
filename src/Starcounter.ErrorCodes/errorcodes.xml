@@ -3597,6 +3597,9 @@
 	<code hex="0028" severity="Error" name="ScErrSqlColumnTypeMismatch">
 	  <message>Type of column value does not match actual column type.</message>
 	</code>
+	<code hex="0029" severity="Error" name="ScErrX6DecRange">
+	  <message>Value cannot be converted to X6 Decimal without lost. Range error.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
