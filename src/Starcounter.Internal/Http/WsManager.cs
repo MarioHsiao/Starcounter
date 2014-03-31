@@ -22,7 +22,7 @@ namespace Starcounter.Internal
 
         Action<UInt64, IAppsSession> disconnectHandler_;
 
-        public String ChannelName { get; set; }
+        public String InternalChannelName { get; set; }
 
         UInt16 port_;
 
@@ -51,13 +51,21 @@ namespace Starcounter.Internal
 
         public String AppName { get { return appName_; } }
 
-        public WsChannelInfo(String appName, UInt16 handlerId, UInt16 port, String channel)
+        public WsChannelInfo(String appName, UInt16 handlerId, UInt16 port, String internalChannelName)
         {
-            ChannelName = channel;
-            channelId_ = (UInt32)channel.GetHashCode();
+            InternalChannelName = internalChannelName;
+            channelId_ = CalculateChannelIdFromInternalName(internalChannelName);
             handlerId_ = handlerId;
             port_ = port;
             appName_ = appName;
+        }
+
+        static UInt32 CalculateChannelIdFromInternalName(String internalChannelName) {
+            return (UInt32)internalChannelName.GetHashCode();
+        }
+
+        public static UInt32 CalculateChannelIdFromChannelName(String channelName) {
+            return CalculateChannelIdFromInternalName(StarcounterEnvironment.DatabaseNameLower + channelName);
         }
 
         public void Destroy()
@@ -124,6 +132,8 @@ namespace Starcounter.Internal
                     if (disconnectHandler_ != null)
                         disconnectHandler_(ws.CargoId, ws.Session);
 
+                    ws.Destroy();
+
                     break;
                 }
 
@@ -151,7 +161,7 @@ namespace Starcounter.Internal
             {
                 if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
                 {
-                    if ((allWsChannels_[i].Port == port) && (0 == String.Compare(allWsChannels_[i].ChannelName, channelName)))
+                    if ((allWsChannels_[i].Port == port) && (0 == String.Compare(allWsChannels_[i].InternalChannelName, channelName)))
                         return allWsChannels_[i];
                 }
             }
@@ -198,13 +208,13 @@ namespace Starcounter.Internal
             WebSocket.InitWebSocketsInternal();
         }
 
-        WsChannelInfo CreateWsChannel(UInt16 port, String channelName)
+        WsChannelInfo CreateWsChannel(UInt16 port, String internalChannelName)
         {
             if (maxWsChannels_ >= MAX_WS_HANDLERS)
                 throw ErrorCode.ToException(Error.SCERRMAXHANDLERSREACHED);
 
             // Not found, creating new.
-            WsChannelInfo w = new WsChannelInfo(StarcounterEnvironment.AppName, maxWsChannels_, port, channelName);
+            WsChannelInfo w = new WsChannelInfo(StarcounterEnvironment.AppName, maxWsChannels_, port, internalChannelName);
             allWsChannels_[maxWsChannels_] = w;
 
             maxWsChannels_++;
@@ -220,14 +230,14 @@ namespace Starcounter.Internal
             WsChannelInfo w = FindChannel(port, channelName);
 
             // Pre-pending database name for automatic uniqueness.
-            channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
+            String internalChannelName = StarcounterEnvironment.DatabaseNameLower + channelName;
 
             if (w == null)
             {
-                w = CreateWsChannel(port, channelName);
+                w = CreateWsChannel(port, internalChannelName);
 
                 UInt64 handlerInfo;
-                RegisterWsHandlerBmx(port, w.AppName, channelName, w.ChannelId, w.HandlerId, out handlerInfo);
+                RegisterWsHandlerBmx(port, w.AppName, internalChannelName, w.ChannelId, w.HandlerId, out handlerInfo);
                 w.HandlerInfo = handlerInfo;
             }
 

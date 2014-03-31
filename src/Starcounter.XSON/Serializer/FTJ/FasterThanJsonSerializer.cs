@@ -9,10 +9,16 @@ namespace Starcounter.Advanced.XSON {
 	public class FasterThanJsonSerializer : TypedJsonSerializer {
 		private const int MAX_INT_SIZE = 11;
 
-		// Only used to get rid of used before initialization warning
-		private static TupleWriterBase64 nullWriter = new TupleWriterBase64();
+        public override int EstimateSizeBytes(Json obj) {
+            throw new NotImplementedException();
+        }
 
-		public override int Serialize(Json obj, out byte[] buffer) {
+		// Only used to get rid of used before initialization warning
+		//private static TupleWriterBase64 nullWriter = new TupleWriterBase64();
+
+		public override int Serialize(Json obj, byte[] buffer, int offset) {
+            throw new NotImplementedException();
+            /*
 			bool recreateBuffer;
 			byte[] buf;
 			byte[] childObjArr;
@@ -48,7 +54,6 @@ namespace Starcounter.Advanced.XSON {
 
 			exposedProperties = tObj.Properties.ExposedProperties;
 			int valueCount = exposedProperties.Count;
-			int offset = 0;
 
             obj.ExecuteInScope(() => {
 
@@ -75,7 +80,7 @@ restart:
                             if (tProperty is TObject) {
                                 if (childObjArr == null) {
                                     childObj = ((TObject)tProperty).Getter(obj);
-                                    valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, out childObjArr);
+                                    valueSize = ((TContainer)childObj.Template).ToFasterThanJson(childObj, childObjArr, offset);
                                 }
                                 if (valueSize != -1) {
                                     if (childObjArr != null) {
@@ -105,7 +110,7 @@ restart:
                                 for (int arrPos = posInArray; arrPos < arr.Count; arrPos++) {
                                     if (childObjArr == null) {
                                         var arrItem = (Json)arr._GetAt(arrPos);
-                                        valueSize = ((TContainer)arrItem.Template).ToFasterThanJson(arrItem, out childObjArr);
+                                        valueSize = ((TContainer)arrItem.Template).ToFasterThanJson(arrItem, childObjArr, offset);
                                         if (valueSize == -1)
                                             goto restart;
 
@@ -170,7 +175,7 @@ restart:
             });
 
 			buffer = buf;
-			return offset;
+			return offset;*/
 		}
 
 		public override int Populate(Json obj, IntPtr src, int srcSize) {

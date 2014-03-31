@@ -58,6 +58,8 @@ namespace Starcounter.Internal {
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
+            DbSession dbs = new DbSession();
+            ScSessionClass.SetDbSessionImplementation(dbs);
 
             // Dependency injection for converting puppets to html
             Modules.Starcounter_XSON.Injections._JsonMimeConverter = new JsonMimeConverter();
@@ -116,7 +118,7 @@ namespace Starcounter.Internal {
         /// Gets a list of directories used by the web server to
         /// resolve GET requests for static content.
         /// </summary>
-        internal static Dictionary<UInt16, string> GetFileServingDirectories() {
+        internal static Dictionary<UInt16, IList<string>> GetFileServingDirectories() {
             return AppServer_.GetWorkingDirectories();
         }
 

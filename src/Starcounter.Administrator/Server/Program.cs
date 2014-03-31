@@ -103,14 +103,19 @@ namespace Starcounter.Administrator.Server {
             // Handler to get all registered static resource folders
             Handle.GET("/staticcontentdir", (Request req) => {
 
-                Dictionary<UInt16, string> folders = AppsBootstrapper.GetFileServingDirectories();
+                Dictionary<UInt16, IList<string>> folders = AppsBootstrapper.GetFileServingDirectories();
 
                 WorkingFolders workingFolders = new WorkingFolders();
 
-                foreach (KeyValuePair<UInt16, string> entry in folders) {
-                    var folder = workingFolders.Items.Add();
-                    folder.Port = entry.Key;
-                    folder.Folder = entry.Value; ;
+                foreach (KeyValuePair<UInt16, IList<string>> entry in folders) {
+
+                    if (entry.Value != null && entry.Value.Count > 0) {
+                        foreach (string folder in entry.Value) {
+                            var folderJson = workingFolders.Items.Add();
+                            folderJson.Port = entry.Key;
+                            folderJson.Folder = folder;
+                        }
+                    }
                 }
 
                 return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };

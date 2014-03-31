@@ -82,13 +82,14 @@ namespace Starcounter.Templates {
 
 		public abstract string ToJson(Json json);
 		public abstract byte[] ToJsonUtf8(Json json);
-		public abstract int ToJsonUtf8(Json json, out byte[] buffer);
+
+        public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
 
 		public abstract void PopulateFromJson(Json json, string jsonStr);
 		public abstract int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize);
 		public abstract int PopulateFromJson(Json json, byte[] src, int srcSize);
 
-		public abstract int ToFasterThanJson(Json json, out byte[] buffer);
+		public abstract int ToFasterThanJson(Json json, byte[] buffer, int offset);
 		public abstract int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize);
 
 		/// <summary>

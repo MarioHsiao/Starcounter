@@ -7,7 +7,7 @@ namespace Starcounter.XSON.Tests {
             // Do nothing.
         }
 
-        void IDb.RunSync(Action action) {
+        void IDb.RunSync(Action action, Byte schedId) {
             // Do nothing.
         }
 

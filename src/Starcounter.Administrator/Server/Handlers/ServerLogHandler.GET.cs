@@ -17,14 +17,9 @@ namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
         /// <summary>
-        /// List of WebSocket sessions
+        /// Server log WebSockets channel name.
         /// </summary>
-        static Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
-
-        /// <summary>
-        /// Unique identifier for WebSocket aka cargo ID.
-        /// </summary>
-        static UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
+        const String ServerLogWebSocketChannelName = "logs";
 
         /// <summary>
         /// The Timer is used to eliminate multiple events from the FileSystemWatcher
@@ -101,10 +96,8 @@ namespace Starcounter.Administrator.Server.Handlers {
                 if (req.WebSocketUpgrade)
                 {
                     Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                    UniqueWebSocketIdentifier[schedId]++;
 
-                    WebSocket ws = req.SendUpgrade("logs", UniqueWebSocketIdentifier[schedId]);
-                    WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
+                    WebSocket ws = req.SendUpgrade(ServerLogWebSocketChannelName);
 
                     return HandlerStatus.Handled;
                 }
@@ -115,14 +108,12 @@ namespace Starcounter.Administrator.Server.Handlers {
                 };
             });
 
-            Handle.SocketDisconnect("logs", (UInt64 cargoId, IAppsSession session) =>
+            Handle.SocketDisconnect(ServerLogWebSocketChannelName, (UInt64 cargoId, IAppsSession session) =>
             {
-                Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                if (WebSocketSessions[schedId].ContainsKey(cargoId))
-                    WebSocketSessions[schedId].Remove(cargoId);
+
             });
 
-            Handle.Socket("logs", (String s, WebSocket ws) =>
+            Handle.Socket(ServerLogWebSocketChannelName, (String s, WebSocket ws) =>
             {
                 // We don't use client messages.
             });
@@ -135,10 +126,6 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// </summary>
         /// <param name="WebSocketSessions"></param>
         private static void SetupLogListener() {
-
-            for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
-            }
 
             ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
 
@@ -186,23 +173,11 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             lock (LOCK) {
 
-                DbSession dbSession = new DbSession();
+                WebSocket.RunOnWebSockets((WebSocket ws) => {
+                    ws.Send("1"); // Log has changed.
+                }, ServerLogWebSocketChannelName);
 
-                for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                    Byte k = i;
-
-                    dbSession.RunAsync(() => {
-
-                        Byte sched = k;
-
-                        foreach(KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched]) {
-                            ws.Value.Send("1"); // Log has changed
-                        }
-                    }, i);
-                }
             }
         }
-
-
     }
 }

@@ -54,7 +54,7 @@ namespace Starcounter.Internal.JsonPatch {
                         valuePtr = IntPtr.Zero;
                         valueSize = -1;
 
-                        patchStart = reader.Used;
+                        patchStart = reader.Used - 1;
                         while (reader.GotoProperty()) {
                             reader.ReadRaw(tmpBuf, out usedTmpBufSize);
                             GetPatchMember(tmpBuf, 1, out member);
@@ -127,7 +127,12 @@ namespace Starcounter.Internal.JsonPatch {
                 return "";
 
             byte[] patchArr = new byte[GetPatchLength(patchStart, data, dataSize)];
-            Marshal.Copy(data, patchArr, 0, patchArr.Length);
+
+            unsafe {    
+                byte* pdata = (byte*)data;
+                pdata += patchStart;
+                Marshal.Copy((IntPtr)pdata, patchArr, 0, patchArr.Length);
+            }
             return Encoding.UTF8.GetString(patchArr);
         }
 
@@ -157,7 +162,7 @@ namespace Starcounter.Internal.JsonPatch {
                     patchEnd++;
                 }
             }
-            return (patchEnd - patchStart) + 1;
+            return (patchEnd - patchStart);
         }
 
         /// <summary>
@@ -324,7 +329,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<bool>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TDecimal property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -333,7 +338,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseDecimal(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<decimal>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TDouble property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -342,7 +347,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseDouble(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<double>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -350,7 +355,7 @@ namespace Starcounter.Internal.JsonPatch {
             
             if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<long>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TString property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -359,7 +364,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (!JsonHelper.ParseString(valuePtr, valueSize, out value, out size))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            parent.ProcessInput<string>(property, value);
+            property.ProcessInput(parent, value);
         }
 
         private static void ParseAndProcess(TTrigger property, Json parent) {
@@ -416,8 +421,8 @@ namespace Starcounter.Internal.JsonPatch {
                         if (mainApp.IsArray) {
                             throw new NotImplementedException();
                         }
-                        Template t = ((TObject)mainApp.Template).Properties.GetTemplateByName(ptr.Current);
 
+                        Template t = ((TObject)mainApp.Template).Properties.GetExposedTemplateByName(ptr.Current);
                         if (t == null) {
                             Boolean found = false;
                             if (mainApp.JsonSiblings.Count > 0) {
