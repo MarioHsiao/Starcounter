@@ -14,19 +14,12 @@ using System.Threading.Tasks;
 namespace Starcounter.JsonPatch.BuiltInRestHandlers {
     public static class ConsoleOuputRestHandler {
 
+        /// <summary>
+        /// Console WebSocket channel name.
+        /// </summary>
+        const String ConsoleWebSocketChannelName = "console";
+
         private static StreamWriter consoleWriter;
-
-        /// <summary>
-        /// List of WebSocket sessions
-        /// </summary>
-        static Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
-
-
-        /// <summary>
-        /// Unique identifier for WebSocket aka cargo ID.
-        /// </summary>
-        static UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
-
 
         /// <summary>
         /// List of Console Write Event's
@@ -44,13 +37,9 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
             // Handle Console connections (Socket and non socket)
             Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console", (Request req) => {
 
-                // Check if the request was a websocket request
+                // Check if the request was a WebSocket request.
                 if (req.WebSocketUpgrade) {
-                    Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                    UniqueWebSocketIdentifier[schedId]++;
-
-                    WebSocket ws = req.SendUpgrade("console", UniqueWebSocketIdentifier[schedId]);
-                    WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
+                    WebSocket ws = req.SendUpgrade(ConsoleWebSocketChannelName);
 
                     ConsoleEvents consoleEvents = GetConsoleEvents();
 
@@ -65,14 +54,12 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
             });
 
             // Socket channel disconnected event
-            Handle.SocketDisconnect(defaultSystemHttpPort, "console", (UInt64 cargoId, IAppsSession session) => {
-                Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                if (WebSocketSessions[schedId].ContainsKey(cargoId))
-                    WebSocketSessions[schedId].Remove(cargoId);
+            Handle.SocketDisconnect(defaultSystemHttpPort, ConsoleWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
+
             });
 
             // Socket incoming message event
-            Handle.Socket(defaultSystemHttpPort, "console", (String s, WebSocket ws) => {
+            Handle.Socket(defaultSystemHttpPort, ConsoleWebSocketChannelName, (String s, WebSocket ws) => {
                 // We don't use incoming client messages.
             });
 
@@ -87,10 +74,6 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
         /// </summary>
         /// <param name="WebSocketSessions"></param>
         private static void SetupConsoleHandling() {
-            for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
-            }
-
             CircularStream circularStream = new CircularStream(2048);
             circularStream.OnWrite += ConsoleOuputRestHandler.OnConsoleWrite;
 
@@ -114,39 +97,25 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add) {
 
-                // New console event
-                // Send to listeners
-                DbSession dbSession = new DbSession();
+                // Collect and create console events
+                foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
 
-                for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
-                    Byte k = i;
+                    ConsoleEvent consoleEvent = new ConsoleEvent();
+                    consoleEvent.databaseName = consoleEventArg.DatabaseName;
+                    consoleEvent.applicationName = consoleEventArg.ApplicationName;
+                    consoleEvent.text = consoleEventArg.Text;
 
-                    dbSession.RunAsync(() => {
+                    ConsoleEvents consoleEvents = new ConsoleEvents();
+                    consoleEvents.Items.Add(consoleEvent);
 
-                        // Collect and create console events
-                        foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
+                    string s = consoleEvents.ToJson();
 
-                            ConsoleEvent consoleEvent = new ConsoleEvent();
-                            consoleEvent.databaseName = consoleEventArg.DatabaseName;
-                            consoleEvent.applicationName = consoleEventArg.ApplicationName;
-                            consoleEvent.text = consoleEventArg.Text;
-
-                            ConsoleEvents consoleEvents = new ConsoleEvents();
-                            consoleEvents.Items.Add(consoleEvent);
-
-                            string s = consoleEvents.ToJson();
-
-                            Byte sched = k;
-
-                            // Send content to websocket listeners
-                            foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched]) {
-                                ws.Value.Send(s);
-                            }
-                        }
-                    }, i);
+                    WebSocket.RunOnWebSockets((WebSocket ws) => {
+                        ws.Send(s);
+                    }, ConsoleWebSocketChannelName);
                 }
 
-                // Limith the console event list size
+                // Limit the console event list size.
                 ObservableCollection<ConsoleEventArgs> list = sender as ObservableCollection<ConsoleEventArgs>;
                 while (list.Count > 2000) {
                     list.RemoveAt(0);

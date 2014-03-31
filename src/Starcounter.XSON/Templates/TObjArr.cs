@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using Starcounter.XSON;
+using System.Text;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -152,7 +153,7 @@ namespace Starcounter.Templates {
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
 
-			parent._CallHasChanged(this);
+			parent.CallHasChanged(this);
 		}
 
 		/// <summary>
@@ -211,7 +212,7 @@ namespace Starcounter.Templates {
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
 
-			parent._CallHasChanged(this);
+			parent.CallHasChanged(this);
 		}
 
         public override Type MetadataType {
@@ -292,37 +293,102 @@ namespace Starcounter.Templates {
             return new Json((Json)parent, this);
 		}
 
-		public override string ToJson(Json json) {
-			throw new NotImplementedException();
-		}
 
-		public override byte[] ToJsonUtf8(Json json) {
-			throw new NotImplementedException();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public override string ToJson(Json json) {
+            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
+            int count = ToJsonUtf8(json, buffer, 0);
+            return Encoding.UTF8.GetString(buffer, 0, count);
+        }
 
-		public override int ToJsonUtf8(Json json, out byte[] buffer) {
-			throw new NotImplementedException();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public override byte[] ToJsonUtf8(Json json) {
+            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
+            int count = ToJsonUtf8(json, buffer, 0);
 
-		public override void PopulateFromJson(Json json, string jsonStr) {
-			throw new NotImplementedException();
-		}
+            // Checking if we have to shrink the buffer.
+            if (count != buffer.Length) {
+                byte[] sizedBuffer = new byte[count];
+                Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
+                return sizedBuffer;
+            }
+            return buffer;
+        }
 
-		public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
-			throw new NotImplementedException();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+            return JsonSerializer.Serialize(json, buffer, offset);
+        }
 
-		public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
-			throw new NotImplementedException();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
+            return FTJSerializer.Serialize(json, buffer, offset);
+        }
 
-		public override int ToFasterThanJson(Json json, out byte[] buffer) {
-			throw new NotImplementedException();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="jsonStr"></param>
+        public override void PopulateFromJson(Json json, string jsonStr) {
+            byte[] buffer = Encoding.UTF8.GetBytes(jsonStr);
+            PopulateFromJson(json, buffer, buffer.Length);
+        }
 
-		public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
-			throw new NotImplementedException();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="srcPtr"></param>
+        /// <param name="srcSize"></param>
+        /// <returns></returns>
+        public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
+            return JsonSerializer.Populate(json, srcPtr, srcSize);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="src"></param>
+        /// <param name="srcSize"></param>
+        /// <returns></returns>
+        public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
+            unsafe {
+                fixed (byte* p = src) {
+                    return PopulateFromJson(json, (IntPtr)p, srcSize);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="srcPtr"></param>
+        /// <param name="srcSize"></param>
+        /// <returns></returns>
+        public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
+            return FTJSerializer.Populate(json, srcPtr, srcSize);
+        }
 
         /// <summary>
         /// Autogenerates a template for a given data object given its (one dimensional) primitive fields and properties.
