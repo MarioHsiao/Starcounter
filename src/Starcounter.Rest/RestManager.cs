@@ -454,14 +454,16 @@ namespace Starcounter.Rest
         /// <summary>
         /// Generates code using LINQ expressions for calling user delegate.
         /// </summary>
-        /// <param name="methodAndUri"></param>
+        /// <param name="originalUriInfo"></param>
         /// <param name="userDelegateInfo"></param>
+        /// <param name="delegExpr"></param>
         /// <param name="nativeParamTypes"></param>
-        /// <param name="processedUri"></param>
+        /// <param name="processedUriInfo"></param>
         /// <param name="argMessageType"></param>
+        /// <param name="argSessionType"></param>
         /// <returns></returns>
         Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegateAndGetParameters(
-            String methodAndUri,
+            String originalUriInfo,
             MethodInfo userDelegateInfo,
             Expression delegExpr,
             out Byte[] nativeParamTypes,
@@ -470,12 +472,13 @@ namespace Starcounter.Rest
             out Type argSessionType)
         {
             // Checking that URI is correctly formed.
-            Int32 spaceAfterMethodIndex = methodAndUri.IndexOf(' ');
-            String relativeUri = methodAndUri.Substring(spaceAfterMethodIndex + 1);
+            Int32 spaceAfterMethodIndex = originalUriInfo.IndexOf(' ');
+            String relativeUri = originalUriInfo.Substring(spaceAfterMethodIndex + 1);
             if (!System.Uri.IsWellFormedUriString(relativeUri.Replace(Handle.UriParameterIndicator, "XXX"), UriKind.Relative))
                 throw new ArgumentException("Handler relative URI: \"" + relativeUri + "\" is ill formed. Please consult RFC 3986 for more information.");
 
-            List<RestDelegateArgumentTypes> delegateArgTypes = new List<RestDelegateArgumentTypes>();
+            List<RestDelegateArgumentTypes> delegateArgTypes = new List<RestDelegateArgumentTypes>(),
+                userParameterTypes = new List<RestDelegateArgumentTypes>();
 
             ParameterInfo[] allParams = userDelegateInfo.GetParameters();
 
@@ -487,7 +490,7 @@ namespace Starcounter.Rest
             argMessageType = null;
             argSessionType = null;
 
-            Int32 numPureNativeParams = methodAndUri.Split(new String[] { Handle.UriParameterIndicator }, StringSplitOptions.None).Length - 1;
+            Int32 numPureNativeParams = originalUriInfo.Split(new String[] { Handle.UriParameterIndicator }, StringSplitOptions.None).Length - 1;
             Int32 numPureManagedParams = 0;
             Boolean hasSessionParam = false;
             foreach (ParameterInfo p in allParams)
@@ -532,43 +535,43 @@ namespace Starcounter.Rest
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT32);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_INT32);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT32);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT32);
                 }
                 else if (p.ParameterType == typeof(String))
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_STRING);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_STRING);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_STRING);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_STRING);
                 }
                 else if (p.ParameterType == typeof(Decimal))
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_DECIMAL);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_DECIMAL);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_DECIMAL);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_DECIMAL);
                 }
                 else if (p.ParameterType == typeof(Int64))
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT64);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_INT64);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT64);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT64);
                 }
                 else if (p.ParameterType == typeof(Double))
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_DOUBLE);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_DOUBLE);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_DOUBLE);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_DOUBLE);
                 }
                 else if (p.ParameterType == typeof(Boolean))
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_BOOLEAN);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_BOOLEAN);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_BOOLEAN);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_BOOLEAN);
                 }
                 else if (p.ParameterType == typeof(DateTime))
                 {
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_DATETIME);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_DATETIME);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_DATETIME);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_DATETIME);
                 }
                 else if (typeof(IAppsSession).IsAssignableFrom(p.ParameterType))
                 {
@@ -576,7 +579,7 @@ namespace Starcounter.Rest
                     argSessionType = p.ParameterType;
 
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_SESSION);
-                    rp.ParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_SESSION);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_SESSION);
 
                     // Checking if session is purely managed.
                     if (!isSessionPureManaged)
@@ -608,10 +611,9 @@ namespace Starcounter.Rest
                 }
             }
 
-            rp.UnpreparedVerbAndUri = methodAndUri;
             nativeParamTypes = nativeParamsTypesList.ToArray();
 
-            processedUriInfo = UriTemplatePreprocessor.PreprocessUriTemplate(rp);
+            processedUriInfo = UriTemplatePreprocessor.GetProcessedUriInfoFromOriginal(originalUriInfo, userParameterTypes);
 
             ParameterExpression httpRequest = Expression.Parameter(typeof(Request));
             ParameterExpression paramsDataPtr = Expression.Parameter(typeof(IntPtr));
