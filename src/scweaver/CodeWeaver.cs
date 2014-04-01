@@ -26,9 +26,6 @@ namespace Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
-        const string BootstrapWeaverProjectFileName = "ScWeaveBootstrap.psproj";
-
-        private readonly List<Regex> weaverExcludes = new List<Regex>();
 
         /// <summary>
         /// The name of the default output directory, utilized by the weaver
@@ -89,13 +86,6 @@ namespace Weaver {
         public bool WeaveToCacheOnly { get; set; }
 
         /// <summary>
-        /// Gets or sets a value that instructs the weaver to invoke the
-        /// functionality involved when doing weaving to support bootstrapping
-        /// of executables.
-        /// </summary>
-        public bool WeaveBootstrapperCode { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating if the weaver cache should be
         /// disabled. If the cache is disabled, cached assemblies will not
         /// be considered and all input will always be analyzed and/or
@@ -122,22 +112,6 @@ namespace Weaver {
         private string TempDirectoryPath;
 
         /// <summary>
-        /// Gets or sets the set of assemblies that we need to load to consider
-        /// if they need to be analyzed/weaved or not.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// In general, this means all binaries in the input directory except
-        /// those that have been excluded by rule (configuration) or those we
-        /// have found to be up to date in the cache.
-        /// </para>
-        /// </remarks>
-        internal Dictionary<string, ModuleLoadStrategy> Assemblies {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets the path to the analyser project file, once resolved. This
         /// file is used when we are running analysis only (.i.e no transformation).
         /// </summary>
@@ -156,14 +130,9 @@ namespace Weaver {
         private string WeaverProjectFile;
 
         /// <summary>
-        /// Gets the path to the bootstrap weaver project file, once resolved.
-        /// This file is used to weave executables and make them "bootable" from
-        /// the OS shell.
+        /// The file manager used by the current weaver.
         /// </summary>
-        /// <remarks>
-        /// The value is the full path to the file.
-        /// </remarks>
-        private string BootstrapWeaverProjectFile;
+        FileManager fileManager;
 
         /// <summary>
         /// Holds a reference to the weaver cache we'll use when the weaver
@@ -176,7 +145,6 @@ namespace Weaver {
             this.OutputDirectory = outputDirectory;
             this.CacheDirectory = cacheDirectory;
             this.RunWeaver = true;
-            this.WeaveBootstrapperCode = false;
             this.DisableWeaverCache = false;
             this.AssemblyFile = file;
 
@@ -185,147 +153,87 @@ namespace Weaver {
             } catch {
                 this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
             }
-
-            AddStandardWeaverExcludes();
-            AddWeaverExcludesFromFile();
         }
 
         public bool Execute() {
             PostSharpObjectSettings postSharpSettings;
 
-            // Execute setup
-
-            if (Setup() == false)
+            if (SetupEngine() == false)
                 return false;
 
-            // If we found that no assemblies needed to be weaved, we write
-            // out some information about it and consider this method a success.
+            var specifiedAssemblyFullPath = Path.Combine(this.InputDirectory, this.AssemblyFile);
+            if (!File.Exists(specifiedAssemblyFullPath)) {
+                Program.ReportProgramError(Error.SCERRWEAVERFILENOTFOUND, "Path: {0}", specifiedAssemblyFullPath);
+                return false;
+            }
 
-            if (this.Assemblies.Count == 0) {
+            var fm = fileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
+
+            if (fm.OutdatedAssemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
-                return CompleteMirroringAfterWeaver();
-            }
+            } else {
 
-            // Prepare the underlying weaver and the execution of PostSharp.
+                // Prepare the underlying weaver and the execution of PostSharp.
 
-            Messenger.Current.Message += this.OnWeaverMessage;
+                Messenger.Current.Message += this.OnWeaverMessage;
 
-            postSharpSettings = new PostSharpObjectSettings(Messenger.Current);
-            postSharpSettings.CreatePrivateAppDomain = false;
-            postSharpSettings.ProjectExecutionOrder = ProjectExecutionOrder.Phased;
-            postSharpSettings.OverwriteAssemblyNames = false;
-            postSharpSettings.DisableReflection = true;
-            postSharpSettings.SearchDirectories.Add(this.InputDirectory);
-            postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
+                postSharpSettings = new PostSharpObjectSettings(Messenger.Current);
+                postSharpSettings.CreatePrivateAppDomain = false;
+                postSharpSettings.ProjectExecutionOrder = ProjectExecutionOrder.Phased;
+                postSharpSettings.OverwriteAssemblyNames = false;
+                postSharpSettings.DisableReflection = true;
+                postSharpSettings.SearchDirectories.Add(this.InputDirectory);
+                postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
 
-            // Move all assemblies in the cached weaver schema to that of the
-            // weaver engine.
+                // Move all assemblies in the cached weaver schema to that of the
+                // weaver engine.
 
-            foreach (var cachedAssembly in this.Cache.Schema.Assemblies) {
-                ScAnalysisTask.DatabaseSchema.Assemblies.Add(cachedAssembly);
-            }
-
-            using (IPostSharpObject postSharpObject = PostSharpObject.CreateInstance(postSharpSettings, this)) {
-                ((PostSharpObject)postSharpObject).Domain.AssemblyLocator.DefaultOptions |= PostSharp.Sdk.CodeModel.AssemblyLocatorOptions.ForClrLoading;
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                try {
-                    // Have PostSharp run the weaver engine for us, analysing and/or
-                    // transforming each assembly.
-
-                    var strategies = new ModuleLoadStrategy[this.Assemblies.Count];
-                    this.Assemblies.Values.CopyTo(strategies, 0);
-                    postSharpObject.ProcessAssemblies(strategies);
-                } catch (MessageException) {
-                    // The message handler will have reported the error already.
-                    // Just return 1 indicating something went wrong.
-
-                    return false;
-
-                } catch (Exception e) {
-                    ErrorMessage error;
-                    if (!ErrorCode.TryGetCodedMessage(e, out error)) {
-                        // We have no clue what the exception may be. Don't
-                        // try anything fancy. Just let it explode.
-                        throw;
-                    }
-
-                    // Any exception we catch that orignates from us (i.e.
-                    // is based on a Starcounter error code and error message),
-                    // we report as a program error.
-                    Program.ReportProgramError(error.Code, error.ToString());
-                    return false;
+                foreach (var cachedAssembly in this.Cache.Schema.Assemblies) {
+                    ScAnalysisTask.DatabaseSchema.Assemblies.Add(cachedAssembly);
                 }
 
-                stopwatch.Stop();
-                Program.WriteDebug("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
-            }
+                using (IPostSharpObject postSharpObject = PostSharpObject.CreateInstance(postSharpSettings, this)) {
+                    ((PostSharpObject)postSharpObject).Domain.AssemblyLocator.DefaultOptions |= PostSharp.Sdk.CodeModel.AssemblyLocatorOptions.ForClrLoading;
 
-            return CompleteMirroringAfterWeaver();
-        }
-
-        private bool CompleteMirroringAfterWeaver() {
-            string currentBinary;
-            string path1;
-            bool fileNeedsMirroring;
-
-            if (this.WeaveToCacheOnly)
-                return true;
-
-            var files = new List<string>();
-            files.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
-            files.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
-
-            Program.WriteDebug("Assuring mirroring of {0} files.", files.Count);
-
-            foreach (var file in files) {
-                currentBinary = Path.GetFileName(file);
-                path1 = Path.Combine(this.OutputDirectory, currentBinary);
-
-                if (!File.Exists(path1)) {
-                    Program.WriteInformation("Mirrored file {0} not found  - copying it.", currentBinary);
-                    fileNeedsMirroring = true;
-                } else if (File.GetLastWriteTime(path1) < File.GetLastWriteTime(file)) {
-                    Program.WriteInformation("Mirrored file {0} outdated - copying it.", currentBinary);
-                    fileNeedsMirroring = true;
-                } else {
-                    Program.WriteDebug("Mirrored file {0} up-to-date.", currentBinary);
-                    fileNeedsMirroring = false;
-                }
-
-                if (fileNeedsMirroring) {
-                    // If there is no corresponding file in the output
-                    // directory, or if the file in the output directory is
-                    // older, we perform a copy of the binary and an eventual
-                    // debug database file.
+                    Stopwatch stopwatch = Stopwatch.StartNew();
                     try {
-                        MirrorBinary(currentBinary);
+                        // Have PostSharp run the weaver engine for us, analysing and/or
+                        // transforming each assembly.
+
+                        var strategies = new ModuleLoadStrategy[fm.OutdatedAssemblies.Count];
+                        fm.OutdatedAssemblies.Values.CopyTo(strategies, 0);
+                        postSharpObject.ProcessAssemblies(strategies);
+                    } catch (MessageException) {
+                        // The message handler will have reported the error already.
+                        // Just return 1 indicating something went wrong.
+
+                        return false;
+
                     } catch (Exception e) {
-                        Program.ReportProgramError(Error.SCERRUNSPECIFIED, "Failed mirroring file {0}; exception: {1}", currentBinary, e.Message);
+                        ErrorMessage error;
+                        if (!ErrorCode.TryGetCodedMessage(e, out error)) {
+                            // We have no clue what the exception may be. Don't
+                            // try anything fancy. Just let it explode.
+                            throw;
+                        }
+
+                        // Any exception we catch that orignates from us (i.e.
+                        // is based on a Starcounter error code and error message),
+                        // we report as a program error.
+                        Program.ReportProgramError(error.Code, error.ToString());
                         return false;
                     }
+
+                    stopwatch.Stop();
+                    Program.WriteDebug("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
                 }
             }
-            
-            return true;
-        }
 
-        private void MirrorBinary(string filename) {
-            string filenameWithoutExtension;
-            string sourcePath;
-            string targetPath;
-
-            sourcePath = Path.Combine(this.InputDirectory, filename);
-            targetPath = Path.Combine(this.OutputDirectory, filename);
-            File.Copy(sourcePath, targetPath, true);
-
-            filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
-            filename = string.Concat(filenameWithoutExtension, ".pdb");
-            sourcePath = Path.Combine(this.InputDirectory, filename);
-            if (File.Exists(sourcePath)) {
-                targetPath = Path.Combine(this.OutputDirectory, filename);
-                File.Copy(sourcePath, targetPath, true);
+            if (!WeaveToCacheOnly) {
+                fm.Synchronize();
             }
+
+            return true;
         }
 
         bool SetupEngine() {
@@ -375,17 +283,6 @@ namespace Weaver {
             }
             this.WeaverProjectFile = weaverProjectFile;
 
-            var bootstrapWeaverProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.BootstrapWeaverProjectFileName));
-            if (!File.Exists(bootstrapWeaverProjectFile)) {
-                errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
-                Program.ReportProgramError(
-                    errorCode,
-                    ErrorCode.ToMessage(errorCode, string.Format("Path: {0}", bootstrapWeaverProjectFile))
-                    );
-                return false;
-            }
-            this.BootstrapWeaverProjectFile = bootstrapWeaverProjectFile;
-
             // Decide all finalized directory paths to use and make sure all
             // directories we might need is actually in place.
 
@@ -400,125 +297,6 @@ namespace Weaver {
             this.Cache.AssemblySearchDirectories.Add(this.WeaverRuntimeDirectory);
 
             return true;
-        }
-
-        bool Setup() {
-            string fileToLoad;
-            string[] filesToConsider;
-            WeaverCache.CachedAssembly cachedAssembly;
-
-            // First setup engine specific stuff.
-
-            if (!SetupEngine())
-                return false;
-
-            // Iterate all assemblies in the library (input) directory that was specified
-            // and prepare them to be invoked by the weaver.
-
-            this.Assemblies = new Dictionary<string, ModuleLoadStrategy>(StringComparer.InvariantCultureIgnoreCase);
-
-            var specifiedAssemblyFullPath = Path.Combine(this.InputDirectory, this.AssemblyFile);
-            if (!File.Exists(specifiedAssemblyFullPath)) {
-                Program.ReportProgramError(Error.SCERRWEAVERFILENOTFOUND, "Path: {0}", specifiedAssemblyFullPath);
-                return false;
-            }
-
-            // When given a single assembly file as the argument, the
-            // preferable strategy would be only to consider this file and
-            // then have it's possible dependencies that also contain code
-            // that target Starcounter resolved on the fly, in the callback
-            // from PostSharp, asking for project invocation parameters
-            // (i.e. GetProjectInvocationParameters).
-            //   However, as of today, the above approach doesn't seem to
-            // work due to an error (NullReferenceException) happening inside
-            // one of the default PostSharp tasks when we set it up like
-            // this.
-            //   Based on that, we currently give all companioning binaries
-            // to the PostSharp engine too, which is not very good at all since
-            // it will load unneccesary code and have it somewhat examined.
-            //   We give the user the option to override this by specifying
-            // in configuration files he/she want's to explicitly exclude.
-
-            // 20121126
-            // When we extend the weaver to support an alternative weaving,
-            // weaving only the executables entrypoint to support bootstraping,
-            // we consider nothing more than the executable itself.
-            var binaries = new List<string>();
-            if (this.WeaveBootstrapperCode) {
-                binaries.Add(Path.Combine(this.InputDirectory, this.AssemblyFile));
-            } else {
-                binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.dll"));
-                binaries.AddRange(Directory.GetFiles(this.InputDirectory, "*.exe"));
-            }
-            filesToConsider = binaries.ToArray();
-
-            // Now check every file we need to consider, evaluate if their in the
-            // cache and usable and/or if they have been excluded by rule. For every
-            // other file, we create a module load strategy for PostSharp to use and
-            // will investigate them further using the weaver engine.
-
-            foreach (string file in filesToConsider) {
-                // If it's to be completly excluded, just ignore it. Let it be in
-                // the input directory.
-
-                if (FileIsToBeExcluded(file)) {
-                    Program.WriteInformation("Assembly \"{0}\" not processed, since it was excluded by rule.",
-                        Path.GetFileName(file));
-                    continue;
-                }
-
-                // Check if its in the cache and is considered up-to-date.
-                // Extract it or only "get" it if we are only compiling to
-                // the cache.
-
-                string cachedName = Path.GetFileNameWithoutExtension(file);
-
-                if (this.WeaveToCacheOnly) {
-                    cachedAssembly = this.Cache.Get(cachedName);
-                } else {
-                    cachedAssembly = this.Cache.Extract(cachedName, this.OutputDirectory);
-                }
-
-                if (cachedAssembly.Assembly != null) {
-                    // We could use the assembly from the cache. No need to run it
-                    // through the weaver.
-
-                    Program.WriteDebug("Assembly \"{0}\" not processed, since it was cached and up-to-date.",
-                        Path.GetFileName(file));
-                    continue;
-                }
-
-                // It's not in the cache, or outdated, and it's not to be excluded.
-                // We need to investigate it further (loading it's code model in using
-                // PostSharp). Decide the file to load (depending on what we are told
-                // to do) and decide the module load strategy.
-
-                Program.WriteDebug(
-                    "Unable to extract assembly \"{0}\" from the cache: {1}",
-                    Path.GetFileName(file),
-                    WeaverUtilities.GetExtractionFailureReason(cachedAssembly)
-                    );
-
-                fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
-                fileToLoad = Path.GetFullPath(fileToLoad);
-                this.Assemblies.Add(fileToLoad, new CodeWeaverModuleLoadStrategy(fileToLoad));
-            }
-
-            return true;
-        }
-
-        bool FileIsToBeExcluded(string file) {
-            // Since we currently have defined no way to configure excludes in PeeDee/2.2,
-            // no exclusion occurs, except for the standard excludes (PostSharp, Starcounter).
-            // When we need it, add configuration possibility and populate the same set.
-
-            string fileName = Path.GetFileName(file);
-            foreach (Regex regex in weaverExcludes) {
-                if (regex.IsMatch(fileName))
-                    return true;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -631,7 +409,6 @@ namespace Weaver {
         internal ProjectInvocationParameters GetProjectInvocationParametersForAssemblies(ModuleDeclaration module) {
             ProjectInvocationParameters parameters = null;
             string file = module.FileName;
-            ModuleLoadStrategy loadStrategy;
             string weaverProjectFile;
 
             // Check if the module is part of the set of assemblies we have
@@ -643,13 +420,15 @@ namespace Weaver {
             // but to keep follow it's dependencies, return a project with
             // no tasks instead (like "ScIgnore.psproj").
 
-            if (!this.Assemblies.TryGetValue(file, out loadStrategy))
+            if (!fileManager.Contains(file)) {
                 return null;
+            }
 
+            
             // Yes, we'll have it processed.
 
             if (RunWeaver) {
-                weaverProjectFile = this.WeaveBootstrapperCode ? this.BootstrapWeaverProjectFile : this.WeaverProjectFile;
+                weaverProjectFile = this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
@@ -670,65 +449,13 @@ namespace Weaver {
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
                 XmlDateTimeSerializationMode.RoundtripKind);
-            parameters.ProcessDependenciesFirst = !this.WeaveBootstrapperCode;
+            parameters.ProcessDependenciesFirst = true;
             parameters.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(file);
             parameters.Properties["AssemblyExtension"] = Path.GetExtension(file);
             parameters.Properties["ResolvedReferences"] = "";
             parameters.Properties["DontCopyToOutput"] = this.WeaveToCacheOnly ? bool.TrueString : bool.FalseString;
 
             return parameters;
-        }
-
-        void AddStandardWeaverExcludes() {
-            foreach (var exclude in new string[] {
-                "scerrres.dll",
-                "schttpparser.dll",
-                "PostSharp*.dll",
-                "Roslyn*.dll",
-                "FasterThanJson.dll",
-                "Newtonsoft.Json.dll",
-                "BizArk.Core.dll",
-                "HtmlAgilityPack.dll",
-                "Starcounter.dll",
-                "RGiesecke.DllExport.Metadata.dll",
-                "Starcounter.UriMatcher.dll",
-                "Starcounter.REST.dll",
-                "Starcounter.Node.dll",
-                "Starcounter.XSON.dll",
-                "Starcounter.Logging.dll",
-                "Starcounter.Hosting.dll",
-                "Starcounter.Hypermedia.dll",
-                "Starcounter.Bootstrap.dll",
-                "Starcounter.Apps.JsonPatch.dll",
-                "Starcounter.Internal.dll",
-                "Starcounter.BitsAndBytes.Unsafe.dll",
-                "Starcounter.XSON.JsTemplateParser.dll",
-                "Mono.CSharp.dll",
-                "NetworkIoTest.exe",
-                "Starcounter.XSON.JsonByExample"
-            }
-                ) {
-                AddExcludeExpression(exclude, weaverExcludes);
-            }
-        }
-
-        void AddWeaverExcludesFromFile() {
-            string[] excludes;
-            string filepath = Path.Combine(this.InputDirectory, "weaver.ignore");
-
-            if (File.Exists(filepath)) {
-                excludes = File.ReadAllLines(filepath);
-                foreach (var exclude in excludes) {
-                    AddExcludeExpression(exclude, weaverExcludes);
-                }
-            }
-        }
-
-        void AddExcludeExpression(string specification, List<Regex> target) {
-            target.Add(
-                new Regex("^" + specification.Replace(".", "\\.").Replace("?", ".").Replace("*", ".*"),
-                    RegexOptions.IgnoreCase
-                    ));
         }
 
         #region IPostSharpHost Members (methods called back by PostSharp)
