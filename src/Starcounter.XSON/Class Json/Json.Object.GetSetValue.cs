@@ -4,53 +4,13 @@
 //// </copyright>
 //// ***********************************************************************
 
-using Starcounter.Templates;
-using System;
-using System.ComponentModel;
-using Starcounter.Advanced;
-using Starcounter.Advanced.XSON;
-using System.Collections.Generic;
 using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 using Starcounter.Internal.XSON;
+using Starcounter.Templates;
 
 namespace Starcounter {
 	public partial class Json {
-		//public object this[string key] {
-		//	get {
-		//		var template = (TObject)this.Template;
-		//		var prop = template.Properties[key];
-		//		if (prop == null) {
-		//			return null;
-		//		}
-		//		return this[prop.TemplateIndex];
-		//	}
-		//	set {
-		//		var template = (TObject)this.Template;
-		//		var prop = template.Properties[key];
-		//		if (prop == null) {
-		//			Type type;
-		//			if (value == null) {
-		//				type = typeof(Json);
-		//			} else {
-		//				type = value.GetType();
-		//			}
-		//			template.OnSetUndefinedProperty(key, type);
-		//			this[key] = value;
-		//			return;
-		//		}
-		//		this[prop.TemplateIndex] = value;
-		//	}
-		//}
-
-//		public object Get(TValue property) {
-//			return this[property.TemplateIndex];
-//		}
-
-//		//internal object Wrap(object ret, TValue property) {
-//		//	return ret;
-//		//}
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -69,20 +29,6 @@ namespace Starcounter {
 		/// <param name="value"></param>
 		public void Set<TVal>(Property<TVal> property, TVal value) {
 			property.Setter(this, value);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="property"></param>
-		internal void _CallHasChanged(TValue property) {
-			if (Session != null) {
-				if (HasBeenSent) {
-					// _Values.SetReplacedFlagAt(property.TemplateIndex,true);
-					this.Dirtyfy();
-				}
-			}
-			this.HasChanged(property);
 		}
 
 		/// <summary>
@@ -164,46 +110,6 @@ namespace Starcounter {
 		/// <param name="property">The template to retrieve the value for.</param>
 		/// <returns>The value.</returns>
 		public ulong Get(TOid property) { return Get<ulong>(property); }
-
-////        /// <summary>
-////        /// Gets the value for a given property in this Obj. This method returns all values boxed
-////        /// as a CLR object. Whenever possible, use the function specific to a type instead
-////        /// (i.e. non abstract value templates such as for example this.Get(BoolTemplate property).
-////        /// </summary>
-////        /// <param name="property">The template representing the property to read</param>
-////        /// <returns>The value of the property</returns>
-////        public object Get(TValue property) {
-////            if (property.Bound)
-////                return GetBound(property);
-
-////#if QUICKTUPLE
-////                return _Values[property.TemplateIndex];
-////#else
-////                throw new NotImplementedException();
-////#endif
-////        }
-
-////        /// <summary>
-////        /// Sets the value for a given property in this Obj. Whenever possible, use the 
-////        /// function specific to a type instead (i.e. non abstract value templates such 
-////        /// as for example this.Set(BoolTemplate property, bool value).
-////        /// </summary>
-////        /// <param name="property">The template representing the property to write</param>
-////        /// <param name="value">The value of the property</param>
-////        public void Set(TValue property, object value) {
-////            if (property.Bound) {
-////                SetBound(property, value);
-////                this.HasChanged(property);
-////                return;
-////            }
-
-////#if QUICKTUPLE
-////            _Values[property.TemplateIndex] = value;
-////#else
-////                    throw new NotImplementedException();
-////#endif
-////            this.HasChanged(property);
-////        }
 
 		/// <summary>
 		/// 
@@ -310,37 +216,12 @@ namespace Starcounter {
 			property.Setter(this, data);
 		}
 
-//		/// <summary>
-//		/// Gets the value.
-//		/// </summary>
-//		/// <param name="property">The property.</param>
-//		/// <returns>Action.</returns>
-//		[EditorBrowsable(EditorBrowsableState.Never)]
-//		public Action Get(TTrigger property) {
-//#if QUICKTUPLE
-//			return (Action)this[property.TemplateIndex];
-//#else
-//			throw new NotImplementedException();
-//#endif
-//		}
-
-//		/// <summary>
-//		/// Sets the value.
-//		/// </summary>
-//		/// <param name="property">The property.</param>
-//		/// <param name="value">The value.</param>
-//		[EditorBrowsable(EditorBrowsableState.Never)]
-//		public void Set(TTrigger property, Action value) {
-//			this[property.TemplateIndex] = value;
-//		}
-
-
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="item"></param>
-		internal void _CallHasAddedElement(int index, Json item) {
+		internal void CallHasAddedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
 			if (Session != null) {
 				if (ArrayAddsAndDeletes == null) {
@@ -358,7 +239,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="item"></param>
-		internal void _CallHasRemovedElement(int index) {
+		internal void CallHasRemovedElement(int index) {
 			var tarr = (TObjArr)this.Template;
 			if (Session != null) {
 				if (ArrayAddsAndDeletes == null) {
@@ -374,11 +255,26 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		/// <param name="property"></param>
-		internal void _CallHasChanged(TObjArr property, int index) {
+		internal void CallHasChanged(TObjArr property, int index) {
 			if (HasBeenSent) {
-					this.Dirtyfy();
+                this.Dirtyfy();
 			}
 			this.Parent.ChildArrayHasReplacedAnElement(property, index);
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        internal void CallHasChanged(TValue property) {
+            if (Session != null) {
+                if (HasBeenSent) {
+                    // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
+                    this.Dirtyfy();
+                }
+            }
+            this.HasChanged(property);
+        }
+
 	}
 }

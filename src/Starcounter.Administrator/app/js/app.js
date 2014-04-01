@@ -22,7 +22,8 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
 
     $routeProvider.when('/databases/:dbName/applications/:name', {
         templateUrl: '/app/partials/application.html',
-        controller: 'ApplicationCtrl'
+        controller: 'ApplicationCtrl',
+        controllerAs: 'applicationCtrl1'
     });
 
     $routeProvider.when('/applications', {
@@ -71,9 +72,6 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
 
     $routeProvider.otherwise({ redirectTo: '/applications' });
 
-
-
-
 }).value('ui.config', {
     codemirror: {
         mode: 'text/x-mysql',
@@ -112,24 +110,11 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
             return false;
         }
 
-        //var res = path.match($location.path());
-
-        //if (res != null) {
-
-        //    $log.debug(res);
-        //}
-
-        //return res;
-        //if ($location.path().substr(0, path.length) == path) {
-        //    return true
-        //} else {
-        //    return false;
-        //}
     }
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
         // Show Network down..
-        NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+        NoticeFactory.ShowNotice({ type: 'danger', msg: "The server is not responding or is not reachable.", helpLink: null });
     });
 
 
@@ -141,10 +126,7 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
 
-
 }]);
-
-
 
 
 /**
@@ -178,6 +160,7 @@ function scrollRefresh() {
         }
     }
 }
+
 
 /**
  * Creates a new instance of VeryNativeScrollbar which is used by SQL and Log pages to scroll horizontally

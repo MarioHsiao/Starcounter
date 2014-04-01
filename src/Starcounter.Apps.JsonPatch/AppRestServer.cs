@@ -48,157 +48,88 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
-        public Response OnResponseHttp(Request request, Response response) {
+        public Response OnResponseHttp(Request req, Response resp) {
             try {
                 // Checking if we need to resolve static resource.
-                if (response.HandlingStatus == HandlerStatusInternal.NotHandled) {
-                    response = ResolveAndPrepareFile(request.Uri, request);
-                    response.HandlingStatus = HandlerStatusInternal.Done;
-                } else {
+                if (resp.HandlingStatus == HandlerStatusInternal.NotHandled) {
+                    resp = ResolveAndPrepareFile(req.Uri, req);
+                    resp.HandlingStatus = HandlerStatusInternal.Done;
+                }
+                else {
                     // NOTE: Checking if its internal request then just returning response without modification.
-                    if (request.IsInternal)
-                        return response;
+                    if (req.IsInternal)
+                        return resp;
 
                     // Checking if JSON object is attached.
-                    if (response.Hypermedia is Json) {
-                        Json r = (Json)response.Hypermedia;
+                    if (resp.Resource is Json) {
+                        Json r = (Json)resp.Resource;
 
                         while (r.Parent != null)
                             r = r.Parent;
 
-                        response.Hypermedia = (Json)r;
+                        resp.Resource = (Json)r;
                     }
                 }
 
-                response.Request = request;
-                response.ConstructFromFields();
+                resp.Request = req;
+                resp.ConstructFromFields();
 
-                return response;
+                return resp;
             }
             catch (Exception ex) {
-				// Logging the exception to server log.
-				LogSources.Hosting.LogException(ex);
-				var errResp = Response.FromStatusCode(500);
-				errResp.Body = GetExceptionString(ex);
-				errResp.ContentType = "text/plain";
-				errResp.ConstructFromFields();
-				return errResp;
+                // Logging the exception to server log.
+                LogSources.Hosting.LogException(ex);
+                var errResp = Response.FromStatusCode(500);
+                errResp.Body = GetExceptionString(ex);
+                errResp.ContentType = "text/plain";
+                errResp.ConstructFromFields();
+                return errResp;
             }
         }
-        
+
         /// <summary>
         /// Handles request.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public Response HandleRequest(Request request) {
-            Response response = null;
-            Boolean cameWithSession = request.CameWithCorrectSession;
+            Response resp = null;
 
-            try
-            {
-                // Checking if we are in session already.
-                if (!request.IsInternal) {
-
-                    // Setting the original request.
-                    Session.InitialRequest = request;
-
-                    // Obtaining session.
-                    Session s = (Session) request.GetAppsSessionInterface();
-
-                    if (cameWithSession && (null != s)) {
-
-                        // Starting session.
-                        Session.Start(s);
-
-                        // Checking if we can reuse the cache.
-                        if (request.IsInternal && X.CheckLocalCache(request.Uri, null, null, out response)) {
-
-                            // Setting the session again.
-                            response.AppsSession = Session.Current.InternalSession;
-
-                            // Handling and returning the HTTP response.
-                            response = OnResponseHttp(request, response);
-
-                            return response;
-                        }
-                    }
-                }
-
+            try {
                 // Invoking original user delegate with parameters here.
-                UserHandlerCodegen.HandlersManager.RunDelegate(request, out response);
-
-                // In case of returned JSON object within current session we need to save it
-                // for later reuse.
-                        
-                Json rootJsonObj = null;
-                if (null != Session.Current)
-                    rootJsonObj = Session.Current.Data;
-
-                Json curJsonObj = null;
-                if (null != response) {
-
-                    // Checking if response is processed later.
-                    if (response.HandlingStatus == HandlerStatusInternal.Handled)
-                        return response;
-
-                    // Setting session on result only if its original request.
-                    if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
-                        response.AppsSession = Session.Current.InternalSession;
-
-                    // Converting response to JSON.
-                    curJsonObj = response;
-
-                    if ((null != curJsonObj) &&
-                        (null != rootJsonObj) &&
-                        (request.IsCachable()) &&
-                        (curJsonObj.HasThisRoot(rootJsonObj)))
-                    {
-                        Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
-                    }
-                } else {
-                    // Null equals 404.
-                    response = Response.FromStatusCode(404);
-                    response["Connection"] = "close";
-                    response.ConstructFromFields();
-                    return response;
-                }
+                UserHandlerCodegen.HandlersManager.RunDelegate(request, out resp);
 
                 // Handling and returning the HTTP response.
-                response = OnResponseHttp(request, response);
+                resp = OnResponseHttp(request, resp);
 
-                return response;
+                return resp;
             }
-            catch (ResponseException exc)
-            {
+            catch (ResponseException exc) {
                 // NOTE: if internal request then throw the exception up.
                 if (request.IsInternal)
                     throw exc;
 
-                response = exc.ResponseObject;
-                response.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                response.ConstructFromFields();
-                return response;
+                resp = exc.ResponseObject;
+                resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
+                resp.ConstructFromFields();
+                return resp;
             }
-            catch (HandlersManagement.IncorrectSessionException)
-            {
-                response = Response.FromStatusCode(400);
-                response["Connection"] = "close";
-                response.ConstructFromFields();
-                return response;
+            catch (HandlersManagement.IncorrectSessionException) {
+                resp = Response.FromStatusCode(400);
+                resp["Connection"] = "close";
+                resp.ConstructFromFields();
+                return resp;
             }
-            catch (Exception exc)
-            {
-				// Logging the exception to server log.
-				LogSources.Hosting.LogException(exc);
-				response = Response.FromStatusCode(500);
-				response.Body = GetExceptionString(exc);
-				response.ContentType = "text/plain";
-				response.ConstructFromFields();
-				return response;
+            catch (Exception exc) {
+                // Logging the exception to server log.
+                LogSources.Hosting.LogException(exc);
+                resp = Response.FromStatusCode(500);
+                resp.Body = GetExceptionString(exc);
+                resp.ContentType = "text/plain";
+                resp.ConstructFromFields();
+                return resp;
             }
-            finally
-            {
+            finally {
                 // Checking if a new session was created during handler call.
                 if ((null != Session.Current) && (!request.IsInternal))
                     Session.End();
@@ -215,14 +146,13 @@ namespace Starcounter.Internal.Web {
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
-            if (StaticFileServers.TryGetValue(request.PortNumber, out staticWebServer))
-            {
+            if (StaticFileServers.TryGetValue(request.PortNumber, out staticWebServer)) {
                 return staticWebServer.GetStatic(relativeUri, request);
             }
 
-			var badReq = Response.FromStatusCode(400);
-			badReq["Connection"] = "close";
-		    return badReq;
+            var badReq = Response.FromStatusCode(400);
+            badReq["Connection"] = "close";
+            return badReq;
         }
 
         /// <summary>
@@ -243,34 +173,77 @@ namespace Starcounter.Internal.Web {
         /// <remarks>There is no need to add the directory to the static resolver as the static resolver
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
-        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
-        {
-            lock (StaticFileServers)
-            {
+        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path) {
+            lock (StaticFileServers) {
                 StaticWebServer staticWebServer;
 
                 // Try to fetch static web server.
-                if (StaticFileServers.TryGetValue(port, out staticWebServer))
-                {
+                if (StaticFileServers.TryGetValue(port, out staticWebServer)) {
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
                 }
-                else
-                {
+                else {
                     staticWebServer = new StaticWebServer();
                     StaticFileServers.Add(port, staticWebServer);
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+
+                    // Registering static handler on given port.
+                    Handle.GET(port, "/{?}", (string res) => {
+                        return HandlerStatus.NotHandled;
+                    });
                 }
             }
         }
 
         /// <summary>
+        /// Get a list with all folders where static file resources such as .html files or images are kept.
+        /// </summary>
+        /// <returns>List with ports and folders</returns>
+        public Dictionary<UInt16, IList<string>> GetWorkingDirectories() {
+
+            Dictionary<UInt16, IList<string>> list = new Dictionary<ushort, IList<string>>();
+
+            foreach (KeyValuePair<UInt16, StaticWebServer> entry in StaticFileServers) {
+
+                List<string> portList = GetWorkingDirectories(entry.Key);
+                if (portList != null) {
+                    foreach (string folder in portList) {
+
+                        if (list.ContainsKey(entry.Key)) {
+                            list[entry.Key].Add(folder);
+                        }
+                        else {
+                            IList<string> folders = new List<string> { folder };
+                            list.Add(entry.Key, folders);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+
+        /// <summary>
+        /// Get a list with all folders where static file resources such as .html files or images are kept.
+        /// </summary>
+        /// <returns>List with folders or null</returns>
+        public List<string> GetWorkingDirectories(ushort port) {
+
+            StaticWebServer staticWebServer;
+
+            // Try to fetch static web server.
+            if (StaticFileServers.TryGetValue(port, out staticWebServer)) {
+                return staticWebServer.GetWorkingDirectories(port);
+            }
+            return null;
+        }
+
+
+        /// <summary>
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
-        public int Housekeep()
-        {
-            lock (StaticFileServers)
-            {
+        public int Housekeep() {
+            lock (StaticFileServers) {
                 // Doing house keeping for each port.
                 foreach (KeyValuePair<UInt16, StaticWebServer> s in StaticFileServers)
                     s.Value.Housekeep();

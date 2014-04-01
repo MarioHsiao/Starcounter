@@ -34,8 +34,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
         var uri = "/api/admin/databases";
 
         $http.get(uri).then(function (response) {
-            // Success
 
+            // Success
             $log.info("Databases (" + response.data.Databases.length + ") successfully retrived");
             if (typeof (successCallback) == "function") {
                 successCallback(response.data.Databases);
@@ -43,6 +43,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
 
 
         }, function (response) {
+
             // Error
             var messageObject;
 
@@ -52,15 +53,11 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             else if (response.status == 500) {
                 // 500 Server Error
                 errorHeader = "Internal Server Error";
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
             }
             else {
                 // Unhandle Error
-                if (response.data.hasOwnProperty("Text") == true) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                } else {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                }
+                messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
             }
 
             $log.error(errorHeader, response);
@@ -68,7 +65,6 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             if (typeof (errorCallback) == "function") {
                 errorCallback(messageObject);
             }
-
 
         });
 
@@ -88,6 +84,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 return self.databases[i];
             }
         }
+        return null;
     }
 
 
@@ -99,6 +96,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
     this.refreshDatabases = function (successCallback, errorCallback) {
 
         this.getDatabases(function (databases) {
+
             // Success
             self._updateDatabaseList(databases);
 
@@ -106,11 +104,11 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 successCallback();
             }
 
-        }, function (response) {
-            // Error
+        }, function (messageObject) {
 
+            // Error
             if (typeof (errorCallback) == "function") {
-                errorCallback(response);
+                errorCallback(messageObject);
             }
 
         });
@@ -152,20 +150,21 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this._onConsoleOutputEvent = function (database, text, bAppend) {
 
-        var htmlText = text.replace(/\r\n/g, "<br>");
+        var result;
 
         if (bAppend) {
-            database.console = $sce.trustAsHtml(database.console + htmlText);
+            result = database.console + text;
         }
         else {
-            database.console = $sce.trustAsHtml(htmlText);
+            result = text;
         }
 
         // Limit the buffer
-        if (database.console.length > self.bufferSize) {
-            database.console = $sce.trustAsHtml(database.console.substr(database.console.length - self.bufferSize));
+        if (result.length > self.bufferSize) {
+            result = result.substr(result.length - self.bufferSize);
         }
-
+        
+        database.console = result;
     }
 
 
@@ -186,8 +185,6 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 newList.push(newDatabase);
             } else {
                 UtilsFactory.updateObject(newDatabase, database, function (arg) {
-
-                    $log.debug("Propertychanged", arg);
 
                     if (arg.propertyName == "running") {
 
@@ -286,7 +283,10 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onRemovedDatabase = function (database) {
-        ConsoleService.unregisterEventListener(database.consoleListener);
+
+        if (database.running) {
+            ConsoleService.unregisterEventListener(database.consoleListener);
+        }
     }
 
 
@@ -295,14 +295,21 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {object} database Database
      */
     this._onDatabaseStarted = function (database) {
+
+        database.console = "";
+
         ConsoleService.registerEventListener(database.consoleListener);
     }
+
 
     /**
      * On database stopped event
      * @param {object} database Database
      */
     this._onDatabaseStopped = function (database) {
+
+        database.console = "";
+
         ConsoleService.unregisterEventListener(database.consoleListener);
     }
 
@@ -326,6 +333,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             JobFactory.RemoveJob(job);
 
             $log.info("Database " + database.name + " was successfully started");
+
+            // TODO: Refresh applications (HostModelService)
 
             // Refresh databases
             self.refreshDatabases(successCallback, errorCallback);
@@ -354,19 +363,11 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 errorCallback(messageObject);
             }
@@ -385,26 +386,26 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this.stopDatabase = function (database, successCallback, errorCallback) {
 
-        var errorHeader = "Failed to stop database";
         var job = { message: "Stopping database " + database.name };
 
         JobFactory.AddJob(job);
         var databaseUri = UtilsFactory.toRelativePath(database.engineUri);
 
         $http.delete(databaseUri, { Name: name }).then(function (response) {
-            // Success
-            // 202
-            // 204
-            JobFactory.RemoveJob(job);
 
+            // Success (202, 204)
+            JobFactory.RemoveJob(job);
             $log.info("Database " + database.name + " was successfully stopped");
+
+            // TODO: Refresh applications (HostModelService)
 
             // Refresh databases
             self.refreshDatabases(successCallback, errorCallback);
 
         }, function (response) {
-            JobFactory.RemoveJob(job);
+
             // Error
+            JobFactory.RemoveJob(job);
             var errorHeader = "Failed to stop database";
             var messageObject;
 
@@ -426,19 +427,76 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                errorCallback(messageObject);
+            }
+
+        });
+
+    }
+
+
+    /**
+     * Delete database
+     * @param {object} database Database
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     */
+    this.deleteDatabase = function (database, successCallback, errorCallback) {
+
+        var errorHeader = "Failed to delete database";
+        var job = { message: "Deleting database " + database.name };
+
+
+        JobFactory.AddJob(job);
+        var databaseUri = UtilsFactory.toRelativePath(database.uri);
+
+        $http.delete(databaseUri).then(function (response) {
+
+            // Success
+            JobFactory.RemoveJob(job);
+            $log.info("Database " + database.name + " was successfully deleted");
+
+            // TODO: Refresh applications (HostModelService)
+
+            // Refresh databases
+            self.refreshDatabases(successCallback, errorCallback);
+
+        }, function (response) {
+
+            // Error
+            JobFactory.RemoveJob(job);
+            var errorHeader = "Failed to delete database";
+            var messageObject;
+
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 404) {
+                    // 404 A database with the specified name was not found.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 409) {
+                    // 409 The database is already running or the Engine is not started.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 errorCallback(messageObject);
             }
@@ -454,37 +512,81 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.getDatabaseSettings = function (database, successCallback, errorCallback) {
+    this.getSettings = function (database, successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive database settings";
 
-        var job = { message: "Retriving database settings" };
-        JobFactory.AddJob(job);
+//        var job = { message: "Retriving database settings" };
+//        JobFactory.AddJob(job);
         var uri = "/api/admin/databases/" + database.name + "/settings";
 
         $http.get(uri).then(function (response) {
             // success handler
-            JobFactory.RemoveJob(job);
+            //JobFactory.RemoveJob(job);
 
-            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("settings") == true) {
-                $log.info("Databases settings successfully retrived");
-                if (typeof (successCallback) == "function") {
-                    successCallback(response.data.settings);
-                }
+            $log.info("Databases settings successfully retrived");
+            if (typeof (successCallback) == "function") {
+                successCallback(response.data);
             }
-            else {
-                // Error
-                $log.error(errorHeader, response);
 
-                if (typeof (errorCallback) == "function") {
-                    var messageObject = UtilsFactory.createErrorMessage(errorHeader, "Invalid response content", null, null);
-                    errorCallback(messageObject);
+
+        }, function (response) {
+
+//            JobFactory.RemoveJob(job);
+            // Error
+            var messageObject;
+
+            var errorHeader = "Failed to retrive database settings";
+
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
                 }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+
+
+                errorCallback(messageObject);
+            }
+
+
+        });
+    }
+
+
+    /**
+     * Get Database default settings
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     */
+    this.getDatabaseDefaultSettings = function (successCallback, errorCallback) {
+
+        var errorHeader = "Failed to retrive database default settings";
+
+        //        var job = { message: "Retriving database defult settings" };
+        //        JobFactory.AddJob(job);
+
+        $http.get('/api/admin/settings/database').then(function (response) {
+            // success handler
+            //            JobFactory.RemoveJob(job);
+
+            $log.info("Default Databases settings successfully retrived");
+            if (typeof (successCallback) == "function") {
+                successCallback(response.data);
             }
 
         }, function (response) {
 
-            JobFactory.RemoveJob(job);
+            //            JobFactory.RemoveJob(job);
             // Error
             var messageObject;
 
@@ -498,17 +600,12 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
-
 
                 errorCallback(messageObject);
             }
@@ -525,7 +622,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.saveDatabaseSettings = function (database, settings, successCallback, errorCallback) {
+    this.saveSettings = function (database, settings, successCallback, errorCallback) {
 
         var errorHeader = "Failed to save database settings";
 
@@ -534,34 +631,12 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
         var uri = "/api/admin/databases/" + database.name + "/settings";
 
         $http.put(uri, settings).then(function (response) {
-            // success handler
+
+            // success
             JobFactory.RemoveJob(job);
 
-            if (response.data.hasOwnProperty("errors") == true) {
-                var messageObjectList = [];
-
-                for (var i = 0; i < response.data.errors.length; i++) {
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.errors[i].message, response.data.errors[i].helplink);
-                    messageObjectList.push(messageObject);
-                }
-
-                if (errorCallback != null) {
-                    errorCallback(messageObjectList);
-                }
-
-            }
-            else {
-
-                var messageObject = null;
-                if (response.data.hasOwnProperty("message") == true) {
-                    messageObject = UtilsFactory.createMessage("success", response.data.message, null);
-                }
-
-                if (successCallback != null) {
-                    // TODO: Return the new settings
-                    successCallback(messageObject);
-                }
-
+            if (successCallback != null) {
+                successCallback(response.data);
             }
 
         }, function (response) {
@@ -578,165 +653,41 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                     messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
                 }
                 else if (response.status == 403) {
-                    // 403 forbidden
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    // 403 forbidden (Validation errors)
+
+                    // Validation errors
+                    if (response.data.hasOwnProperty("Items") == true) {
+                        errorCallback(null, response.data.Items);
+                        return;
+                    }
+
+                    // TODO:
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data, response.data.Helplink);
+
+
                 }
+                else if (response.status == 404) {
+                    // 404 Not found
+                    // The database was not created
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                    //else if (response.status == 422) {
+                    //    // 422 Unprocessable Entity (WebDAV; RFC 4918)
+                    //    // The request was well-formed but was unable to be followed due to semantic errors
+                    //    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    //}
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
-                }
-
-
-                errorCallback(messageObject);
-            }
-
-        });
-
-    }
-
-
-    /**
-     * Get Database default settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    this.getDatabaseDefaultSettings = function (successCallback, errorCallback) {
-
-        var errorHeader = "Failed to retrive database default settings";
-
-        var job = { message: "Retriving database defult settings" };
-        JobFactory.AddJob(job);
-
-        $http.get('/api/admin/settings/database').then(function (response) {
-            // success handler
-            JobFactory.RemoveJob(job);
-
-            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("settings") == true) {
-                $log.info("Default Databases settings successfully retrived");
-                if (typeof (successCallback) == "function") {
-                    successCallback(response.data.settings);
-                }
-            }
-            else {
-                // Error
-                $log.error(errorHeader, response);
-
-                if (typeof (errorCallback) == "function") {
-                    var messageObject = UtilsFactory.createErrorMessage(errorHeader, "Invalid response content", null, null);
-                    errorCallback(messageObject);
-                }
-            }
-
-        }, function (response) {
-
-            JobFactory.RemoveJob(job);
-            // Error
-            var messageObject;
-
-            $log.error(errorHeader, response);
-
-            if (typeof (errorCallback) == "function") {
-
-                if (response instanceof SyntaxError) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-                }
-                else if (response.status == 500) {
-                    // 500 Server Error
-                    errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
-                }
-                else {
-                    // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);
             }
-
-
-        });
-    }
-
-
-    /**
-     * Verify database settings
-     * @param {object} settings Settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    this.verifyDatabaseSettings = function (settings, successCallback, errorCallback) {
-
-        var errorHeader = "Failed to verify database settings";
-        var job = { message: "Verifying database settings" };
-        JobFactory.AddJob(job);
-
-        $http.post('/api/admin/verify/databaseproperties', settings).then(function (response) {
-            // success handler
-            JobFactory.RemoveJob(job);
-
-            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("validationErrors") == true) {
-
-                $log.info("Default Databases settings successfully verified");
-                if (typeof (successCallback) == "function") {
-                    successCallback(response.data.validationErrors);
-                }
-
-            }
-            else {
-
-                if (typeof (errorCallback) == "function") {
-                    var messageObject = UtilsFactory.createErrorMessage(errorHeader, "Invalid response content", null, null);
-                    errorCallback(messageObject);
-                }
-
-            }
-
-        }, function (response) {
-            // Error
-            JobFactory.RemoveJob(job);
-            var messageObject;
-
-            $log.error(errorHeader, response);
-
-            if (typeof (errorCallback) == "function") {
-
-                if (response instanceof SyntaxError) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-                }
-                else if (response.status == 403) {
-                    // 403 forbidden
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                }
-                else if (response.status == 500) {
-                    // 500 Server Error
-                    errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
-                }
-                else {
-                    // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
-                }
-
-                errorCallback(messageObject);
-            }
-
 
         });
 
@@ -751,42 +702,42 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this.createDatabase = function (settings, successCallback, errorCallback) {
 
-        var errorHeader = "Failed to create database";
 
-        var job = { message: "Creating database " + settings.name };
+        var job = { message: "Creating database " + settings.Name };
         JobFactory.AddJob(job);
 
-        $http.post('/api/admin/databases/' + settings.name + '/createdatabase', settings).then(function (response) {
+        $http.post('/api/admin/databases', settings).then(function (response) {
+
             // success handler
             JobFactory.RemoveJob(job);
 
-            if (response.data.hasOwnProperty("errors") == true) {
-                var messageObjectList = [];
+            // Refresh databases
+            self.refreshDatabases(function () {
 
-                for (var i = 0; i < response.data.errors.length; i++) {
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.errors[i].message, response.data.errors[i].helplink);
-                    messageObjectList.push(messageObject);
-                }
-
-                if (errorCallback != null) {
-                    errorCallback(messageObjectList);
-                }
-
-            }
-            else {
+                // Success
+                var database = self.getDatabase(response.data.name);
 
                 if (successCallback != null) {
                     // TODO: Return the newly create database
-                    successCallback();
+                    successCallback(database);
                 }
 
-            }
+            }, function (messageObject) {
+
+                if (errorCallback != null) {
+                    // TODO: Return the newly create database
+                    errorCallback(messageObject);
+                }
+            });
+
 
         }, function (response) {
 
             // Error
             JobFactory.RemoveJob(job);
             var messageObject;
+
+            var errorHeader = "Failed to create database";
 
             $log.error(errorHeader, response);
 
@@ -796,26 +747,35 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
                     messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
                 }
                 else if (response.status == 403) {
-                    // 403 forbidden
+                    // 403 forbidden (Validation errors)
+                    if (response.data.hasOwnProperty("Items") == true) {
+                        // Validation errors
+                        errorCallback(null, response.data.Items);
+                        return;
+                    }
+                    // TODO:
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data, response.data.Helplink);
+
+                }
+                else if (response.status == 404) {
+                    // 404 Not found
+                    // The database was not created
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else if (response.status == 422) {
+                    // 422 Unprocessable Entity (WebDAV; RFC 4918)
+                    // The request was well-formed but was unable to be followed due to semantic errors
                     messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
-                    //else if (response.status == 422) {
-                    //    // 422 Unprocessable Entity (WebDAV; RFC 4918)
-                    //    // The request was well-formed but was unable to be followed due to semantic errors
-                    //    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                    //}
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);

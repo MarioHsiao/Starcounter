@@ -13,7 +13,7 @@ using System.Threading;
 namespace Starcounter.Internal {
 
     /// <summary>
-    /// Sets up the REST, Hypermedia and Apps modules
+    /// Sets up the REST, Resources and Apps modules
     /// </summary>
     /// <remarks>
     /// A common dependency injection pattern for all bootstrapping in Starcounter should be
@@ -58,6 +58,8 @@ namespace Starcounter.Internal {
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
+            DbSession dbs = new DbSession();
+            ScSessionClass.SetDbSessionImplementation(dbs);
 
             // Dependency injection for converting puppets to html
             Modules.Starcounter_XSON.Injections._JsonMimeConverter = new JsonMimeConverter();
@@ -110,6 +112,14 @@ namespace Starcounter.Internal {
         /// <param name="path">The directory to include</param>
         internal static void AddFileServingDirectory(UInt16 port, String path) {
             AppServer_.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+        }
+
+        /// <summary>
+        /// Gets a list of directories used by the web server to
+        /// resolve GET requests for static content.
+        /// </summary>
+        internal static Dictionary<UInt16, IList<string>> GetFileServingDirectories() {
+            return AppServer_.GetWorkingDirectories();
         }
 
         /// <summary>

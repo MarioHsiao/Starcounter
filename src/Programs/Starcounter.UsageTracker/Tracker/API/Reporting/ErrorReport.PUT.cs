@@ -13,7 +13,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API {
 
 					var sr = new ErrorReport();
 					sr.Installation = Db.SQL<Installation>("SELECT i FROM Installation i WHERE i.InstallationNo=?", report.InstallationNo).First;
-                    sr.IP = request.GetClientIpAddress().ToString();
+                    sr.IP = request.ClientIpAddress.ToString();
                     sr.Date = DateTime.UtcNow;
 
 					foreach (Report.LoggedItemsElementJson item in report.LoggedItems) {

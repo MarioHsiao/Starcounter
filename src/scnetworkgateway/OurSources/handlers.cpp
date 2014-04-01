@@ -73,7 +73,7 @@ uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
 
         default:
         {
-            return SCERRGWWRONGHANDLERTYPE;
+            GW_ASSERT(false);
         }
     }
 
@@ -91,7 +91,7 @@ uint32_t HandlersTable::RegisterPortHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRGWMAXHANDLERSREACHED;
+        return SCERRMAXHANDLERSREACHED;
 
     uint32_t err_code = 0;
 
@@ -112,7 +112,9 @@ uint32_t HandlersTable::RegisterPortHandler(
             // Checking if port is the same.
             if (port_num == registered_handlers_[i].get_port())
             {
-                GW_COUT << "Attempt to register handler duplicate: port " << port_num << GW_ENDL;
+                wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+                wsprintf(temp, L"Attempt to register port handler duplicate on port \"%d\". Please check that port is not occupied already." , port_num);
+                g_gateway.LogWriteError(temp);
 
                 // Disallowing handler duplicates.
                 return SCERRHANDLERALREADYREGISTERED;
@@ -235,7 +237,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRGWMAXHANDLERSREACHED;
+        return SCERRMAXHANDLERSREACHED;
 
     uint32_t err_code = 0;
 
@@ -258,7 +260,10 @@ uint32_t HandlersTable::RegisterSubPortHandler(
             {
                 if (subport == registered_handlers_[i].get_subport())
                 {
-                    GW_COUT << "Attempt to register handler duplicate: port " << port_num << ", sub-port " << subport << GW_ENDL;
+                    wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+                    wsprintf(temp, L"Attempt to register sub-port handler duplicate on port \"%d\", sub-port \"%d\".",
+                        port_num, subport);
+                    g_gateway.LogWriteError(temp);
 
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
@@ -390,7 +395,7 @@ uint32_t HandlersTable::RegisterUriHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRGWMAXHANDLERSREACHED;
+        return SCERRMAXHANDLERSREACHED;
 
     uint32_t err_code = 0;
 
@@ -414,7 +419,10 @@ uint32_t HandlersTable::RegisterUriHandler(
                 // Checking the same URI.
                 if (!strcmp(processed_uri_string, registered_handlers_[i].get_processed_uri_info()))
                 {
-                    GW_COUT << "Attempt to register handler duplicate: port " << port_num << ", URI " << processed_uri_string << GW_ENDL;
+                    wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+                    wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%s\".",
+                        port_num, processed_uri_string);
+                    g_gateway.LogWriteError(temp);
 
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
@@ -564,7 +572,7 @@ uint32_t HandlersTable::UnregisterHandler(BMX_HANDLER_TYPE handler_info, GENERIC
     }
 
     // If not removed.
-    return SCERRGWHANDLERNOTFOUND;
+    return SCERRHANDLERNOTFOUND;
 }
 
 // Unregisters certain handler.
@@ -653,7 +661,7 @@ uint32_t AppsPortProcessData(
         return 0;
     }
 
-    return SCERRGWPORTPROCESSFAILED;
+    GW_ASSERT(false);
 }
 
 #ifdef GW_TESTING_MODE

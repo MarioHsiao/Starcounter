@@ -21,10 +21,6 @@ namespace Starcounter.Templates {
             get { return typeof(DoubleMetadata<Json>); }
         }
 
-        public override void ProcessInput(Json obj, byte[] rawValue) {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Gets or sets the default value.
         /// </summary>

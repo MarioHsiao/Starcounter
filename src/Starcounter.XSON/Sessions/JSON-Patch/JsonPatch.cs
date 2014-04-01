@@ -24,14 +24,14 @@ namespace Starcounter.Internal.JsonPatch {
         /// <summary>
         /// The template
         /// </summary>
-        public readonly Template Template;
+        public readonly TValue Template;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppAndTemplate" /> struct.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public AppAndTemplate(Json app, Template template) {
+        public AppAndTemplate(Json app, TValue template) {
             App = app;
             Template = template;
         }
@@ -179,6 +179,11 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(path[i]);
                 } else {
+                    if (app.JsonSiblings.Count > 0) {
+                        sb.Append('/');
+                        sb.Append(app.AppName);
+                    }
+
                     if (app.IsArray) {
                         throw new NotImplementedException();
                     }

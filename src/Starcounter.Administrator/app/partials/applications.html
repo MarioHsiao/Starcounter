@@ -1,91 +1,120 @@
-﻿<div>
+﻿<div class="btn-group" style='margin-bottom: 15px'>
+    <button ng-model="filterview" type="button" btn-radio="'running'" ng-class="{'btn-primary': filterview=='running'}" class="btn btn-default btn-sm">
+        Running&nbsp;&nbsp;
+                    <span class="badge">{{(applications | filter:{running:true}).length}}</span>
+    </button>
 
+    <button ng-model="filterview" type="button" btn-radio="'recent'" ng-class="{'btn-primary': filterview=='recent'}" class="btn btn-default btn-sm">
+        Recent
+    </button>
+</div>
 
-    <div class="btn-toolbar">
-        <div class="btn-group">
-            <a class="btn btn-primary btn-small" href="#/applicationStart">Start Application</a>
-        </div>
+<div class="panel panel panel-primary">
 
-        <div class="btn-group pull-right" data-toggle="buttons-radio" ng-hide="applications.length == 0">
-            <button type="button" class="btn btn-small" ng-model="view" btn-radio="'list'"><i class="icon-th-list"></i></button>
-            <button type="button" class="btn btn-small" ng-model="view" btn-radio="'icon'"><i class="icon-th"></i></button>
+    <div class="panel-heading">
+        Applications&nbsp;&nbsp;&nbsp;&nbsp;
+
+        <div class="btn-group pull-right" data-toggle="buttons-radio" ng-hide="filterview=='recent'">
+            <button type="button" class="btn btn-default btn-xs" ng-model="view" btn-radio="'list'" title="List view"><span class="glyphicon glyphicon-list"></span></button>
+            <button type="button" class="btn btn-default btn-xs" ng-model="view" btn-radio="'icon'" title="Icon view"><span class="glyphicon glyphicon-th"></span></button>
         </div>
     </div>
 
-    <div ng-hide="applications.length == 0">
+    <div class="panel-body" ng-show="view=='icon' && filterview=='running' || applications.length == 0">
 
-        <!-- Show list view -->
-        <div ng-show="view=='list'">
+        <!-- Show Icon view -->
+        <ul id="applicationIconList" class="list-group">
 
-            <table class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Database</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
+            <li ng-repeat="application in applications | filter:filterApplications | orderBy: 'Name' track by $index">
 
-                <tbody>
-                    <tr ng-repeat="application in applications  | orderBy: 'Name'">
-                        <td><a href="#/databases/{{application.databaseName}}/applications/{{application.Name}}">{{application.Name}}</a></td>
+                <h4><a href="#/databases/{{application.databaseName}}/applications/{{application.Name}}">{{application.Name}}</a>
+                    <span class="pull-right">
 
-                        <td><a href="#/databases/{{application.databaseName}}">{{application.databaseName}}</a></td>
-                        <td><span class="Running">Running</span></td>
+                        <a class="btn btn-default btn-xs" href="#/databases/{{application.databaseName}}/applications/{{application.Name}}" title="Maximize Application window"><i class="glyphicon glyphicon-resize-full"></i></a>
+                    </span>
+                </h4>
 
-                        <td>
-                            <div class="btn-group pull-right">
-                                <button class="btn btn-small btn-primary" ng-click="btnRestart(application)">Restart</button>
-                                <button class="btn btn-small btn-danger" ng-click="btnStop(application)">Stop</button>
-                            </div>
-                        </td>
-
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Show list view -->
-        <div ng-show="view=='icon'">
-
-            <ul id="applicationIconList">
-
-                <li ng-repeat="application in applications  | orderBy: 'Name'">
-
-                    <h4><a href="#/databases/{{application.databaseName}}/applications/{{application.Name}}">{{application.Name}}</a>
-                        <span class="pull-right">
-                            <!--<span class="label label-success">Running</span>-->
-                            <a class="btn btn-mini" href="#/databases/{{application.databaseName}}/applications/{{application.Name}}"><i class="icon-resize-full"></i></a>
-                        </span>
-                    </h4>
-
-                    Database:<a href="#/databases/{{application.databaseName}}">{{application.databaseName}}</a>
-
-                    <div class="btn-toolbar">
-                        <div class="btn-group">
-                            <button class="btn btn-small btn-primary" ng-click="btnRestart(application)">Restart</button>
-                            <button class="btn btn-small btn-danger" ng-click="btnStop(application)">Stop</button>
-                        </div>
-
-                        <div class="btn-group pull-right" data-toggle="buttons-radio">
-                            <button title="Refresh console" ng-show="application.consoleManualMode == true" class="btn btn-small pull-right" ng-click="btnGetConsoleOutput(application)"><i class="icon-refresh"></i></button>
-                        </div>
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <button class="btn btn-default btn-xs btn-success" ng-disabled="application.running" ng-click="btnStart(application)" title="Start Application">Start</button>
+                        <button class="btn btn-default btn-xs btn-primary" ng-disabled="!application.running" ng-click="btnRestart(application)" title="Restart Application">Restart</button>
+                        <button class="btn btn-default btn-xs btn-danger" ng-disabled="!application.running" ng-click="btnStop(application)" title="Stop Application">Stop</button>
                     </div>
 
-                    <consolewindow height-attr="200px" width-attr="100%" ng-model="application.console"></consolewindow>
+                    <div class="btn-group pull-right" data-toggle="buttons-radio">
+                        <button title="Refresh console" ng-show="application.consoleManualMode == true" class="btn btn-default btn-sm pull-right" ng-click="btnGetConsoleOutput(application)"><i class="glyphicon glyphicon-refresh"></i></button>
+                    </div>
+                </div>
 
-                </li>
+                <div ng-style="{'height':'200px', 'width':'100%'}" title="Console output">
+                    <consolewindow ng-model="application.console"></consolewindow>
+                </div>
+            </li>
+        </ul>
 
-            </ul>
-
+        <div ng-show="applications.length == 0 || (applications | filter:{running:true}).length ==0">
+            <label>There are no applications running.</label>
         </div>
 
     </div>
 
-    <div ng-show="applications.length == 0">
-        <p>There are no applications running.</p>
+    <!-- Show list view -->
+    <table class="table table-condensed" ng-show="(view=='list' || filterview=='recent') && applications.length > 0">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Started</th>
+                <th>Database</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="application in applications | filter:filterApplications | orderBy: 'RuntimeInfo.Started':true track by $index">
+                <td><a href="#/databases/{{application.databaseName}}/applications/{{application.Name}}">{{application.Name}}</a>
+                    <span ng-show="application.running" class="label label-success" title="Application is running">Running</span>
+                    <!--<span ng-hide="application.running" class="label label-important pull-right">Stopped</span>-->
+
+
+
+                </td>
+
+                <td>{{application.RuntimeInfo.Started |  date:'medium'}}
+                </td>
+
+                <td><a href="#/databases/{{application.databaseName}}">{{application.databaseName}}</a>
+                </td>
+
+                <td>
+                    <div class="pull-right">
+                        <div class="btn-group">
+                            <button class="btn btn-default btn-sm btn-success" ng-disabled="application.running" ng-click="btnStart(application)" title="Start Application">Start</button>
+                            <button class="btn btn-default btn-sm btn-primary" ng-disabled="!application.running" ng-click="btnRestart(application)" title="Restart Application">Restart</button>
+                            <button class="btn btn-default btn-sm btn-danger" ng-disabled="!application.running" ng-click="btnStop(application)" title="Stop Application">Stop</button>
+                        </div>
+                        <div class="btn-group">
+                            <button class="close" ng-hide="application.running" ng-click="btnRemove(application)" title="Remove Application from History">&nbsp&times;</button>
+                            <button style='visibility: hidden' class="close" ng-show="application.running" ng-click="btnRemove(application)">&nbsp&times;</button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <span class="row" ng-show="((view=='list' && filterview=='recent') && applications.length == 0) || ((view=='list' && filterview=='running') && (applications | filter:{running:true}).length == 0)">
+        <div style='margin-left:15px;margin-right:15px' >
+            <label>There are no applications running.</label>
+        </div>
+    </span>
+
+    <div class="panel-footer">
+        <div class="btn-toolbar">
+            <div class="btn-group">
+                <a class="btn btn-default btn-primary" href="#/applicationStart" title="Start a new Application">Start a New Application</a>
+            </div>
+        </div>
     </div>
 
 </div>
+

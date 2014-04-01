@@ -30,9 +30,10 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     //      },
     //
     //      databaseName : "default",
-    //      key : "foo.exe-123456789",
+    //      key : "D1730AE8464E90FE192C8B22AEE3F1C1E41A61BD",
     //      console : "console output",
-    //      consoleManualMode : false
+    //      consoleManualMode : false,
+    //      running : true
     //  }
     this.applications = [];
 
@@ -77,6 +78,15 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
             $log.info("Applications (" + response.data.Items.length + ") successfully retrived");
             if (typeof (successCallback) == "function") {
+
+                // Add some extra properties
+                for (var i = 0; i < response.data.Items.length ; i++) {
+                    response.data.Items[i].databaseName = response.data.Items[i].Engine.Uri.replace(/^.*[\\\/]/, '');
+                    response.data.Items[i].running = true;
+                    response.data.Items[i].key = response.data.Items[i].Uri.replace(/^.*[\\\/]/, '')
+                    //response.data.Items[i].consoleManualMode = false;
+                }
+
                 successCallback(response.data.Items);
             }
 
@@ -94,16 +104,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    }
-                    else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);
@@ -115,13 +120,14 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
     /**
      * Get Application
+     * @param {string} databaseName Database name
      * @param {string} applicationName Application name
      * @return {object} Application or null
      */
-    this.getApplication = function (applicationName) {
+    this.getApplication = function (databaseName, applicationName) {
 
         for (var i = 0 ; i < self.applications.length ; i++) {
-            if (self.applications[i].Name == applicationName) {
+            if (self.applications[i].databaseName == databaseName && self.applications[i].Name == applicationName) {
                 return self.applications[i];
             }
         }
@@ -139,6 +145,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         this.getApplications(function (applications) {
             // Success
 
+            // Update the current applications list with the new applications list
             self._updateApplicationsList(applications);
 
             if (typeof (successCallback) == "function") {
@@ -191,20 +198,57 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this._onConsoleOutputEvent = function (application, text, bAppend) {
 
-        var htmlText = text.replace(/\r\n/g, "<br>");
+        var result;
 
         if (bAppend) {
-            application.console = $sce.trustAsHtml(application.console + htmlText);
+            result = application.console + text;
         }
         else {
-            application.console = $sce.trustAsHtml(htmlText);
+            result = text;
         }
 
         // Limit the buffer
-        if (application.console.length > self.bufferSize) {
-            application.console = $sce.trustAsHtml(application.console.substr(application.console.length - self.bufferSize));
+        if (result.length > self.bufferSize) {
+            result = result.substr(result.length - self.bufferSize);
         }
 
+        application.console = result;
+    }
+
+
+    /**
+     * Merge New Applications with history applications
+     * @return {array} Application list
+     */
+    this._mergeNewListWithHistoryList = function (freshApplications, historyApplications) {
+
+
+        // Added history applications if they dosent exist is newApplicationlist
+        for (var i = 0; i < historyApplications.length ; i++) {
+
+            var historyApplication = historyApplications[i];
+
+            var bExists = false;
+
+            for (var x = 0; x < freshApplications.length; x++) {
+                var newApplication = freshApplications[x];
+
+                if (historyApplication.databaseName == newApplication.databaseName && historyApplication.Name == newApplication.Name) {
+                    bExists = true;
+                    break;
+                }
+            }
+
+            if (bExists == false) {
+                // The history applicaion is not running, update it's running property
+                historyApplications[i].console = null;
+                historyApplications[i].running = false;
+                freshApplications.push(historyApplications[i]);
+            }
+
+        }
+
+        return freshApplications;
     }
 
 
@@ -212,21 +256,54 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      * Update current application list with new list
      * @param {array} newDatabases New application list
      */
-    this._updateApplicationsList = function (newApplications) {
+    this._updateApplicationsList = function (freshApplications) {
 
-        var newList = [];
+        //var newList = [];
         var removeList = [];
 
-        // Check for new executabels and update current applications
-        for (var i = 0; i < newApplications.length; i++) {
-            var newApplication = newApplications[i];
-            var application = this.getApplication(newApplication.Name);
+        var historyApplications = this._getHistoryApplications();
+
+        // Combination of running and history applications
+        var freshApplications = this._mergeNewListWithHistoryList(freshApplications, historyApplications);
+
+
+        // Check for new application and update current applications
+        for (var i = 0; i < freshApplications.length; i++) {
+            var freshApplication = freshApplications[i];
+
+            var application = this.getApplication(freshApplication.databaseName, freshApplication.Name);
+
             if (application == null) {
-                newList.push(newApplication);
+                // freshApplication can be a new started applications or a history application
+
+                self.applications.push(freshApplication);
+
+                if (freshApplication.running == true) {
+                    // TODO: Check this
+                    freshApplication.console = "";
+                    freshApplication.consoleManualMode = false;
+
+                    self._onApplicationStarted(freshApplication);
+                }
+
             } else {
-                UtilsFactory.updateObject(newApplication, application);
+
+                UtilsFactory.updateObject(freshApplication, application, function (arg) {
+
+                    if (arg.propertyName == "running") {
+
+                        if (arg.newValue) {
+                            self._onApplicationStarted(arg.source);
+                        }
+                        else {
+                            self._onApplicationStopped(arg.source);
+                        }
+                    }
+
+                });
             }
         }
+
 
         // Remove removed applications from application list
         for (var i = 0; i < self.applications.length; i++) {
@@ -234,10 +311,10 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             var application = self.applications[i];
             var bExists = false;
             // Check if it exist in newList
-            for (var i = 0; i < newApplications.length; i++) {
-                var newApplication = newApplications[i];
+            for (var x = 0; x < freshApplications.length; x++) {
+                var freshApplication = freshApplications[x];
 
-                if (application.Name == newApplication.Name) {
+                if (application.databaseName == freshApplication.databaseName && application.Name == freshApplication.Name) {
                     bExists = true;
                     break;
                 }
@@ -255,29 +332,27 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             if (index > -1) {
                 self.applications.splice(index, 1);
             }
-            this._onRemovedApplication(application);
+            removeList[i].running = false;
+            this._onApplicationStopped(removeList[i]);
+
         }
 
-        // Add new applications
-        for (var i = 0; i < newList.length; i++) {
-            self.applications.push(newList[i]);
-            this._onNewApplication(newList[i]);
-        }
+        // save applications history
+        this._SaveHistory(self.applications);
 
     }
 
 
     /**
-     * On New Application Event
-     * @param {object} application Application
+     * On application started event
+     * @param {object} application Database
      */
-    this._onNewApplication = function (application) {
+    this._onApplicationStarted = function (application) {
 
-        // Add additional properties
-        application.databaseName = application.Engine.Uri.replace(/^.*[\\\/]/, '')
-        application.key = application.Uri.replace(/^.*[\\\/]/, '')
+        $log.info("Application started : " + application.Name + "(" + application.databaseName + ")");
+
+        application.running = true;
         application.console = "";
-        application.consoleManualMode = false;
 
         // Socket event listener
         application.consoleListener = {
@@ -299,15 +374,74 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         }
 
         ConsoleService.registerEventListener(application.consoleListener);
+
     }
 
 
     /**
-     * On Application Removed event
+     * On application stopped event
      * @param {object} application Application
      */
-    this._onRemovedApplication = function (application) {
+    this._onApplicationStopped = function (application) {
+
+        $log.info("Application stopped : " + application.Name + "(" + application.databaseName + ")");
+
+        application.console = "";
+
         ConsoleService.unregisterEventListener(application.consoleListener);
+    }
+
+
+    /**
+     * Get history applications
+     * @return {array} Applications
+     */
+    this._getHistoryApplications = function () {
+
+        // Check for  web storage support..
+        if (typeof (Storage) !== "undefined") {
+
+            var result = localStorage.getItem("historyApplications");
+            if (result) {
+                // TODO: Make is safe $sce.trustAsHtml(application.console);
+                return JSON.parse(result);
+            }
+        }
+
+        return [];
+    }
+
+
+    /**
+     * Save applications history
+     * @return {array} Applications to be saved in history (this will replace current history)
+     */
+    this._SaveHistory = function (applications) {
+
+        // Check for  web storage support..
+        if (typeof (Storage) === "undefined") {
+            return;
+        }
+
+        // Save to storage
+        localStorage.setItem("historyApplications", JSON.stringify(applications));
+    }
+
+
+    /**
+     * Remove application from history
+     * @param {object} application Application
+     */
+    this.removeFromHistory = function (application) {
+
+        var index = self.applications.indexOf(application);
+        if (index > -1) {
+            self.applications.splice(index, 1);
+        }
+
+        // Update history
+        this._SaveHistory(self.applications);
+
     }
 
 
@@ -321,7 +455,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
         this.stopApplication(application, function () {
             // Success
-            self.startApplication(application.Path, application.databaseName, successCallback, errorCallback)
+            self.startApplication(application, successCallback, errorCallback)
 
         }, function (messageObject) {
             // Error
@@ -338,25 +472,25 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.startApplication = function (file, databaseName, successCallback, errorCallback) {
+    this.startApplication = function (application, successCallback, errorCallback) {
 
-        this.startEngine(databaseName, function () {
+        this.startEngine(application.databaseName, function () {
             // Success
 
             var bodyData = {
                 "Uri": "",
-                "Path": file,
-                "ApplicationFilePath": file,
-                "Name": file.replace(/^.*[\\\/]/, ''),
+                "Path": application.Path,
+                "ApplicationFilePath": application.ApplicationFilePath,
+                "Name": application.Path.replace(/^.*[\\\/]/, ''),
                 "Description": "",
                 "Arguments": [{
-                    "dummy": file
+                    "dummy": application.Path
                 }],
                 "DefaultUserPort": 0,
                 "ResourceDirectories": [],
                 "WorkingDirectory": null,
                 "IsTool": true,
-                "StartedBy": "Starcounter Administrator",
+                "StartedBy": application.StartedBy,
                 "Engine": { "Uri": "" },
                 "RuntimeInfo": {
                     "LoadPath": "",
@@ -365,8 +499,9 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 }
             };
 
+
             // Add job
-            var job = { message: "Starting application " + file + " in " + databaseName };
+            var job = { message: "Starting application " + application.Name + " in " + application.databaseName };
             JobFactory.AddJob(job);
 
             // Example JSON response 
@@ -392,7 +527,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             //         "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
             //     }
             // }
-            $http.post('/api/engines/' + databaseName + '/executables', bodyData).then(function (response) {
+            $http.post('/api/engines/' + application.databaseName + '/executables', bodyData).then(function (response) {
                 // Success
                 JobFactory.RemoveJob(job);
 
@@ -431,20 +566,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                     else if (response.status == 500) {
                         // 500 Server Error
                         errorHeader = "Internal Server Error";
-                        if (response.data.hasOwnProperty("Text") == true) {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                        } else {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                        }
-
+                        messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                     }
                     else {
                         // Unhandle Error
-                        if (response.data.hasOwnProperty("Text") == true) {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                        } else {
-                            messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                        }
+                        messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                     }
 
                     errorCallback(messageObject);
@@ -509,19 +635,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);
@@ -620,19 +738,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
 

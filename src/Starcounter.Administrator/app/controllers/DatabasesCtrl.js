@@ -9,6 +9,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     $scope.databases = HostModelService.databases;
 
 
+
     /**
      * Get Console output
      * @param {object} database Database
@@ -16,10 +17,6 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     $scope.btnGetConsoleOutput = function (database) {
 
         DatabaseService.refreshConsoleOuput(database, function () {
-
-            // TODO
-            // $("#console").scrollTop($("#console")[0].scrollHeight);
-
 
             // Success
         }, function (messageObject) {
@@ -44,7 +41,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });
@@ -72,7 +69,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
                               UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                           }
                           else {
-                              NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                              NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                           }
 
                       });
@@ -84,6 +81,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
 
 
     }
+
 
 
     // Init

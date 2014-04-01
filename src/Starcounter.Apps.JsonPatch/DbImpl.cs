@@ -8,9 +8,9 @@ namespace Starcounter.Internal {
             dbs.RunAsync(action, schedId);
         }
 
-        void IDb.RunSync(Action action) {
+        void IDb.RunSync(Action action, Byte schedId) {
             DbSession dbs = new DbSession();
-            dbs.RunSync(action);
+            dbs.RunSync(action, schedId);
         }
 
         Rows<dynamic> IDb.SQL(string query, params object[] args) {

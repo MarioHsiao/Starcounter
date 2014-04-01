@@ -1,16 +1,21 @@
 ﻿/**
  * User ErrorMessage controller
+ * https://github.com/angular-ui/bootstrap/issues/1798
  */
-adminModule.controller('UserErrorMessageCtrl', function ($scope, dialog) {
+adminModule.controller('UserErrorMessageCtrl', function ($scope, $timeout, $modalInstance, model) {
 
-    $scope.model = dialog.options.data;
+    $scope.model = model;
 
-    /**
-     * Close dialog
-     * @param {object} result Result
-     */
     $scope.close = function (result) {
-        dialog.close(result);
+
+        $modalInstance.close(result);
+          
     };
+
+    $scope.btnClick = function (button) {
+
+        $modalInstance.close(button.result);
+
+    }
 
 });

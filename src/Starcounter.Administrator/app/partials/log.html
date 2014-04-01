@@ -1,39 +1,42 @@
-﻿<div class="btn-toolbar">
+﻿<div class="panel panel panel-primary">
+    <div class="panel-heading">Log</div>
+    <div class="panel-body">
 
-    <div class="btn-group" data-toggle="buttons-checkbox">
-        <button type="button" ng-disabled="isBusy == true" class="btn" ng-model="model.filter.debug" btn-checkbox>Debug</button>
-        <button type="button" ng-disabled="isBusy == true" class="btn" ng-model="model.filter.notice" btn-checkbox>Notice</button>
-        <button type="button" ng-disabled="isBusy == true" class="btn btn-warning" ng-model="model.filter.warning" btn-checkbox>Warning</button>
-        <button type="button" ng-disabled="isBusy == true" class="btn btn-danger" ng-model="model.filter.error" btn-checkbox>Error</button>
-    </div>
-    <button ng-hide="model.isWebsocketSupport == true" class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
+        <div class="btn-toolbar">
 
-</div>
+            <div class="btn-group" data-toggle="buttons-checkbox">
+                <button type="button" ng-disabled="isBusy == true" class="btn btn-default" ng-model="model.filter.debug" btn-checkbox>Debug</button>
+                <button type="button" ng-disabled="isBusy == true" class="btn btn-default" ng-model="model.filter.notice" btn-checkbox>Notice</button>
+                <button type="button" ng-disabled="isBusy == true" class="btn btn-default btn-warning" ng-model="model.filter.warning" btn-checkbox>Warning</button>
+                <button type="button" ng-disabled="isBusy == true" class="btn btn-default btn-danger" ng-model="model.filter.error" btn-checkbox>Error</button>
+            </div>
+            <button ng-hide="model.isWebsocketSupport == true" class="btn btn-default pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="glyphicon glyphicon-repeat"></i></button>
 
-<div class="row-fluid">
-    <input type="text" class="span12" ui-select2="select2Options" ng-model="list_of_string" class="input-large" placeholder="Source filter">
-</div>
+        </div>
 
+        <div class="row" style="margin-top: 15px; margin-bottom: 15px">
+            <input type="text" class="col-xs-12" ui-select2="select2Options" ng-model="list_of_string" class="input-lg" placeholder="Source filter">
+        </div>
 
-<div ng-hide='isBusy == true'>
+        <div class="row">
 
-  <div id="handsontableContainer" style="overflow-x: auto; overflow-y: visible">
-    <ui-handsontable
-      id="handsontable"
-      stretchh="'last'"
-      selectedindex="SelectedIndex"
-      outsideclickdeselects="false"
-      selectedindex="currentSelection"
-      minsparerows="0"
-      startrows="0"
-      datarows="row in model.LogEntries"
-      currentrowclassname="'currentRow'"
-      manualcolumnmove="false"
-      manualcolumnresize="false"
-      columnsorting="false"
-      nativescrollbars="true"
-      afterrender="afterRender"
-      fragmentselection="true">
+            <div id="handsontableContainer" style="overflow-x: auto; margin-bottom: -15px; overflow-y: visible">
+                <ui-handsontable
+                    id="handsontable"
+                    stretchh="'last'"
+                    selectedindex="SelectedIndex"
+                    outsideclickdeselects="false"
+                    selectedindex="currentSelection"
+                    minsparerows="0"
+                    startrows="0"
+                    datarows="row in model.LogEntries"
+                    currentrowclassname="'currentRow'"
+                    manualcolumnmove="false"
+                    manualcolumnresize="false"
+                    columnsorting="false"
+                    nativescrollbars="true"
+                    afterrender="afterRender"
+                    fragmentselection="true">
 
       <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
       <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
@@ -42,8 +45,11 @@
       <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
 
     </ui-handsontable>
-  </div>
- 
+            </div>
+        </div>
 
+    </div>
 </div>
+
+
 

@@ -146,7 +146,7 @@ namespace Starcounter.Templates {
 			if (parent.HasBeenSent)
 				parent.MarkAsReplaced(TemplateIndex);
 
-			parent._CallHasChanged(this);
+			parent.CallHasChanged(this);
 		}
 
 		internal override void CopyValueDelegates(Template toTemplate) {
@@ -468,16 +468,6 @@ namespace Starcounter.Templates {
 				tv.GenerateUnboundGetterAndSetter();
         }
 
-        /// <summary>
-        /// Callback from internal functions responsible for handle external inputs.
-        /// </summary>
-        /// <param name="obj">The parent obj.</param>
-        /// <param name="value">The input value.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(Json obj, byte[] value) {
-            throw new NotImplementedException();
-        }
-
         protected override IReadOnlyList<IReadOnlyTree> _Children {
             get {
                 return this.Properties;
@@ -490,24 +480,38 @@ namespace Starcounter.Templates {
 		/// <param name="json"></param>
 		/// <returns></returns>
 		public override string ToJson(Json json) {
-			byte[] buffer;
-			int count = ToJsonUtf8(json, out buffer);
+            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
+            int count = ToJsonUtf8(json, buffer, 0);
 			return Encoding.UTF8.GetString(buffer, 0, count);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <returns></returns>
-		public override byte[] ToJsonUtf8(Json json) {
-			byte[] buffer;
-			byte[] sizedBuffer;
-			int count = ToJsonUtf8(json, out buffer);
-			sizedBuffer = new byte[count];
-			Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
-			return sizedBuffer;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public override byte[] ToJsonUtf8(Json json) {
+            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
+            int count = ToJsonUtf8(json, buffer, 0);
+
+            // Checking if we have to shrink the buffer.
+            if (count != buffer.Length) {
+                byte[] sizedBuffer = new byte[count];
+                Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
+                return sizedBuffer;
+            }
+            return buffer;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+            return JsonSerializer.Serialize(json, buffer, offset);
+        }
 
 		/// <summary>
 		/// 
@@ -515,18 +519,8 @@ namespace Starcounter.Templates {
 		/// <param name="json"></param>
 		/// <param name="buffer"></param>
 		/// <returns></returns>
-		public override int ToJsonUtf8(Json json, out byte[] buffer) {
-			return JsonSerializer.Serialize(json, out buffer);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="buffer"></param>
-		/// <returns></returns>
-		public override int ToFasterThanJson(Json json, out byte[] buffer) {
-			return FTJSerializer.Serialize(json, out buffer);
+		public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
+			return FTJSerializer.Serialize(json, buffer, offset);
 		}
 
 		/// <summary>

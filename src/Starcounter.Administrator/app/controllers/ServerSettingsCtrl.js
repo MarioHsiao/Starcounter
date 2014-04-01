@@ -10,57 +10,6 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
 
     /**
-     * Verify server settings
-     * @param {object} settings Settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    $scope.verifySettings = function (settings, successCallback, errorCallback) {
-
-        ServerService.verifyServerSettings(settings, function (validationErrors) {
-            // Success
-            if (typeof (successCallback) == "function") {
-                successCallback(validationErrors);
-            }
-
-        }, function (messageObject) {
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
-            }
-
-        });
-
-    }
-
-
-    /**
-     * Save settings
-     * @param {object} settings Settings
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    $scope.saveSettings = function (settings, successCallback, errorCallback) {
-
-        ServerService.saveSettings(settings, function (messageObject) {
-            // Success
-
-            // TODO: Return the newly created database
-            if (typeof (successCallback) == "function") {
-                successCallback(messageObject);
-            }
-
-        }, function (messageObject) {
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
-            }
-        });
-
-    }
-
-
-    /**
      * Reset server settings
      */
     $scope.btnResetSettings = function () {
@@ -86,7 +35,7 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });
@@ -99,72 +48,58 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
      */
     $scope.btnSaveSettings = function (settings) {
 
-        $scope.verifySettings(settings, function (validationErrors) {
+        ServerService.saveSettings(settings, function (settings) {
+
             // Success
 
-            if (validationErrors.length == 0) {
-                // No validation errors, goahead creating database
+            NoticeFactory.ShowNotice({ type: "success", msg: "Settings saved. The new settings will be used at the next start of the server" });
 
-                $scope.saveSettings(settings, function (messageObject) {
-                    // Success
-                    //$location.hash("");
+            $scope.myForm.$setPristine();
 
-                    // Navigate to database list if user has not navigated to another page
-                    //if ($location.path() == "/databaseCreate") {
-                    //    $location.path("/databases");
-                    //}
-                    if (messageObject != null) {
-                        NoticeFactory.ShowNotice({ type: messageObject.header, msg: messageObject.message, helpLink: messageObject.helpLink });
-                    }
+        }, function (messageObject, validationErrors) {
 
-                    $scope.myForm.$setPristine();
+            // Error
 
-                    // Navigate to database list if user has not navigated to another page
-                    if ($location.path() == "/serverSettings") {
-                        $location.path("/");
-                    }
-
-
-
-                }, function (messageObjectList) {
-                    // Error
-                    for (var i = 0; i < messageObjectList.length; i++) {
-                        var messageObject = messageObjectList[i];
-                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
-                    }
-
-                });
-            }
-            else {
+            if (validationErrors != null && validationErrors.length > 0) {
+                // Validation errors
 
                 // Show errors on screen
                 for (var i = 0; i < validationErrors.length; i++) {
-                    //$scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
-                    $scope.myForm[validationErrors[i].property].$setValidity("validationError", false);
-                    var id = validationErrors[i].property;
-                    var unregister = $scope.$watch("settings." + validationErrors[i].property, function (newValue, oldValue) {
-                        if (newValue == oldValue) return;
-                        $scope.myForm[id].$setValidity("validationError", true);
-                        unregister();
-                    }, false);
+                    //$scope.alerts.push({ type: 'danger', msg: validationErrors[i].message });
 
+                    if ($scope.myForm[validationErrors[i].PropertyName] == undefined) {
+                        NoticeFactory.ShowNotice({ type: 'danger', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
+                    } else {
+
+                        $scope.myForm[validationErrors[i].PropertyName].$setValidity("validationError", false);
+                        var id = validationErrors[i].PropertyName;
+                        var unregister = $scope.$watch("settings." + validationErrors[i].PropertyName, function (newValue, oldValue) {
+                            if (newValue == oldValue) return;
+                            $scope.myForm[id].$setValidity("validationError", true);
+                            unregister();
+                        }, false);
+                    }
                 }
 
             }
-
-        }, function (messageObject) {
-            // Error
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-            }
             else {
-                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+
+                if (messageObject.isError) {
+
+                    //var message = messageObject.message.replace(/\r\n/g, "<br>");
+
+                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                }
+                else {
+                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+                }
+            }
+
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
             }
 
         });
-
-
-
     }
 
 

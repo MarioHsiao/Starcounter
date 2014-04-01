@@ -49,11 +49,12 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
 
     /**
      * Get Application
+     * @param {string} databaseName Database name
      * @param {string} applicationName Application name
      * @return {object} Application or null
      */
-    this.getApplication = function (applicationName) {
-        return ApplicationService.getApplication(applicationName);
+    this.getApplication = function (databaseName, applicationName) {
+        return ApplicationService.getApplication(databaseName, applicationName);
     }
 
 
@@ -75,8 +76,8 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
     this.refreshHostModel = function (successCallback, errorCallback) {
 
         DatabaseService.refreshDatabases(function () {
-            // Success
 
+            // Success
             ApplicationService.refreshApplications(function () {
 
                 // Success
@@ -100,7 +101,6 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
                 errorCallback(messageObject);
             }
         });
-
     }
 
 }]);

@@ -418,7 +418,17 @@
     <code hex="0043" severity="Error" name="ScErrOutOfDedicatedAddressSpace">
       <message>Operation failed because needed memory couldn't be allocated within dedicated address space</message>
     </code>
-
+    <code hex="0044" severity="Error" name="ScErrMemoryLimitReached">
+      <message>
+        Operation failed because limit reached on limited memory resource.
+      </message>
+    </code>
+    <code hex="0045" severity="Error" name="ScErrUnhandledException">
+      <message>An unhandled exception was detected.</message>
+    </code>
+    <code hex="0046" severity="Error" name="ScErrUnexpectedInternalError">
+      <message>An unexpected internal error was detected.</message>
+    </code>
   </facility>
 
   <!--
@@ -1320,6 +1330,9 @@
     </code>
     <code hex="0091" severity="Error" name="ScErrBadSessionsDefaultTimeout">
         <message>Sessions default timeout is missing in configuration file or has invalid value.</message>
+    </code>
+    <code hex="0092" severity="Error" name="ScErrBadApplicationName">
+        <message>Application name can only contain letters, numbers and underscores.</message>
     </code>
   </facility>
 
@@ -3569,6 +3582,24 @@
 	<code hex="0023" severity="Error" name="ScErrUnexpMetadata">
 	  <message>Internal error in unmanaged runtime meta-data population.</message>
 	</code>
+	<code hex="0024" severity="Error" name="ScErrSqlInternalBufferSmall">
+	  <message>Internal error in native SQL processor that allocated buffer is too small.</message>
+	</code>
+	<code hex="0025" severity="Error" name="ScErrSqlUnknownType">
+	  <message>The type is unknown. The name of the table or database class specified in the query is unknown and cannot be matched to a database type.</message>
+	</code>
+	<code hex="0026" severity="Error" name="ScErrSqlUnknownColumn">
+	  <message>The column is unknown. The name of the column or property specified in the query is unknown and cannot be matched to a database column.</message>
+	</code>
+	<code hex="0027" severity="Error" name="ScErrSqlAmbiguousType">
+	  <message>The type is ambiguous. The name of the table or database class specified in the query matches several database types.</message>
+	</code>
+	<code hex="0028" severity="Error" name="ScErrSqlColumnTypeMismatch">
+	  <message>Type of column value does not match actual column type.</message>
+	</code>
+	<code hex="0029" severity="Error" name="ScErrRange">
+	  <message>Range error: value cannot be converted without loss.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
@@ -3766,7 +3797,12 @@
         transaction to update a system table.
       </message>
     </code>
-
+    <code hex="0024" severity="Error" name="ScErrMemoryLimitReachedAbort">
+      <message>
+        The transaction was aborted because limit reached on limited memory
+        resource.
+      </message>
+    </code>
   </facility>
 
 <!--

@@ -44,7 +44,7 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
 
             if (response.data.hasOwnProperty("hasSqlException") && response.data.hasSqlException) {
                 // Show message
-                //$scope.alerts.push({ type: 'error', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
+                //$scope.alerts.push({ type: 'danger', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
                 if (typeof (errorCallback) == "function") {
                     var messageObject = UtilsFactory.createMessage(errorHeader, response.data.sqlException.message, response.data.sqlException.helpLink);
                     errorCallback(messageObject);
@@ -93,21 +93,17 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
                 else if (response.status == 404) {
                     // 404	Not Found
                     var message = "Failed to execute the query on " + databaseName + " database, Caused by a not started database or application.";
-                    messageObject = UtilsFactory.createMessage('error', message, null);
+                    messageObject = UtilsFactory.createMessage(errorHeader, message, null);
 
                 }
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.message, response.data.helplink, response.data.stackTrace);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
                 else {
                     // Unhandle Error
-                    if (response.data.hasOwnProperty("Text") == true) {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
-                    } else {
-                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
-                    }
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
                 }
 
                 errorCallback(messageObject);

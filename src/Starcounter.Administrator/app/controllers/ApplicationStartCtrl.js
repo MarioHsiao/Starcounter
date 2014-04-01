@@ -10,26 +10,56 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
     $scope.databases = DatabaseService.databases;
 
     // Entered or Selected file
-    $scope.file = "";
+    //$scope.file = "";
+
+    $scope.selectedApplication = null;
 
     // Selected databasename
-    $scope.selectedDatabaseName = null;
+    //$scope.selectedDatabaseName = null;
 
     // List of recent successfully started applications
     $scope.recentApplications = [];
 
+    $scope.notice = null;
 
     /**
      * Start Application
      */
-    $scope.btnStart = function () {
+    $scope.btnStart = function (application) {
 
-        ApplicationService.startApplication($scope.file, $scope.selectedDatabaseName,
+
+        if ($scope.notice) {
+            NoticeFactory.CloseNotice($scope.notice);
+        }
+
+        //var application = {
+        //    "Uri": "",
+        //    "Path": $scope.file,
+        //    "ApplicationFilePath": $scope.file,
+        //    "Name": $scope.file.replace(/^.*[\\\/]/, ''),
+        //    "Description": "",
+        //    "Arguments": [{
+        //        "dummy": $scope.file
+        //    }],
+        //    "DefaultUserPort": 0,
+        //    "ResourceDirectories": [],
+        //    "WorkingDirectory": null,
+        //    "IsTool": true,
+        //    "StartedBy": "Starcounter Administrator",
+        //    "Engine": { "Uri": "" },
+        //    "RuntimeInfo": {
+        //        "LoadPath": "",
+        //        "Started": "",
+        //        "LastRestart": ""
+        //    },
+        //    "databaseName": $scope.selectedDatabaseName
+        //};
+        ApplicationService.startApplication(application,
             function () {
                 // Success
 
                 // Remember successfully started applications
-                $scope.rememberRecentFile($scope.file);
+                $scope.rememberRecentApplication(application);
 
                 // Navigate to Application list if user has not navigated to another page
                 if ($location.path() == "/applicationStart") {
@@ -44,7 +74,7 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    $scope.notice = NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });
@@ -53,31 +83,67 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
 
 
     /**
-     * Select file
-     * @param {string} file Path to file
+     * Create empty Application
+     * @return {object} Application
      */
-    $scope.btnSetCurrent = function (file) {
-        $scope.file = file.name;
+    $scope.createEmptyApplication = function () {
+
+        var application = {
+            "Uri": "",
+            "Path": "",
+            "ApplicationFilePath": "",
+            "Name": "",
+            "Description": "",
+            "Arguments": [{
+                "dummy": ""
+            }],
+            "DefaultUserPort": 0,
+            "ResourceDirectories": [],
+            "WorkingDirectory": null,
+            "IsTool": true,
+            "StartedBy": "Starcounter Administrator",
+            "Engine": { "Uri": "" },
+            "RuntimeInfo": {
+                "LoadPath": "",
+                "Started": "",
+                "LastRestart": ""
+            },
+            "databaseName": ""
+        };
+
+        return application;
     }
 
 
     /**
-     * Remember file
-     * @param {string} file Path to file
+     * Select Application
+     * @param {object} application Application
      */
-    $scope.rememberRecentFile = function (file) {
+    $scope.btnSelect = function (application) {
+        $scope.selectedApplication = angular.copy(application);
+    }
+
+
+    /**
+     * Remember Application
+     * @param {object} application Application
+     */
+    $scope.rememberRecentApplication = function (application) {
 
         var maxItems = 5;
         // Check if file is already 'rememberd'
         for (var i = 0; i < $scope.recentApplications.length ; i++) {
 
-            // File already rememberd
-            if (file == $scope.recentApplications[i].name) {
+            // Applicaion already rememberd
+            if (application.Name == $scope.recentApplications[i].Name &&
+                application.databaseName == $scope.recentApplications[i].databaseName) {
                 return;
             }
 
         }
-        $scope.recentApplications.unshift({ name: file });
+
+        // Add new items to the beginning of an array:
+        $scope.recentApplications.unshift(application);
 
         var toMany = $scope.recentApplications.length - maxItems;
 
@@ -85,7 +151,8 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
             $scope.recentApplications.splice(maxItems, toMany);
         }
 
-        localStorage.recentApplications = JSON.stringify($scope.recentApplications);
+        var str = JSON.stringify($scope.recentApplications);
+        localStorage.setItem("recentApplications", str);
     }
 
 
@@ -93,9 +160,17 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
      * Refresh recent remembered applications list
      */
     $scope.refreshRecentApplications = function () {
+
         if (typeof (Storage) !== "undefined") {
-            if (localStorage.recentApplications !== "undefined") {
-                $scope.recentApplications = JSON.parse(localStorage.recentApplications);
+            var result = localStorage.getItem("recentApplications");
+            if (result) {
+                try {
+                    $scope.recentApplications = JSON.parse(result);
+                }
+                catch (err) {
+                    $log.error(err, "Removing invalid application history");
+                    localStorage.removeItem("recentApplications");
+                }
             }
         }
         else {
@@ -105,17 +180,40 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
 
 
     // Init
+    $scope.selectedApplication = $scope.createEmptyApplication();
+
+    $scope.$watch('selectedApplication.Path', function (newValue, oldValue) {
+        $scope.selectedApplication.Path = newValue;
+        $scope.selectedApplication.ApplicationFilePath = newValue;
+
+        // TODO: Assure name is valid, no dots (.) etc..
+
+        if (newValue) {
+            $scope.selectedApplication.Name = newValue.replace(/^.*[\\\/]/, '');
+        }
+        else {
+            $scope.selectedApplication.Name = "";
+        }
+        $scope.selectedApplication.Arguments["dummy"] = newValue;
+    });
+
+
+    //$scope.$watch('selectedDatabaseName', function (newValue, oldValue) {
+    //    $scope.selectedApplication.databaseName = newValue;
+    //});
+
+
+
     DatabaseService.refreshDatabases(function () {
 
         if ($scope.databases.length > 0) {
-            $scope.selectedDatabaseName = $scope.databases[0].name;
+            $scope.selectedApplication.databaseName = $scope.databases[0].name;
         }
 
-    },
-        function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
+    }, function (messageObject) {
+        // Error
+        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    });
 
 
     $scope.refreshRecentApplications();

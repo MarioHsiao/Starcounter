@@ -6,15 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-
 using Starcounter;
 using System.Collections;
 using Starcounter.Templates;
 
 namespace Starcounter {
-
     partial class Json : IList {
-
         /// <summary>
         /// 
         /// </summary>
@@ -150,7 +147,6 @@ namespace Starcounter {
             _SetFlag[index] = false;
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -158,7 +154,6 @@ namespace Starcounter {
         internal void MarkAsReplaced(Templates.Template template) {
             this.MarkAsReplaced(template.TemplateIndex);
         }
-
 
         /// <summary>
         /// 
@@ -228,7 +223,7 @@ namespace Starcounter {
             list.Insert(index, j);
             _SetFlag.Insert(index, false);
             MarkAsReplaced(index);
-            (this as Json)._CallHasAddedElement(index,j);
+            CallHasAddedElement(index,j);
         }
 
         /// <summary>
@@ -241,7 +236,7 @@ namespace Starcounter {
                 throw new Exception("You are not allowed to insert/add elements to an Object. Use an array instead");
             }
             if (item == null) {
-                throw new Exception("Type object arrays cannot contain null elements");
+                throw new Exception("Typed object arrays cannot contain null elements");
             }
             if (!(item is Json) ) {
                 throw new Exception("You are only allowed to insert/add elements of type Json to a type Json array");
@@ -253,24 +248,23 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Removed the item at the specified index.
+        /// 
         /// </summary>
-        /// <param name="index">The index.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public void RemoveAt(int index) {
-            list.RemoveAt(index);
-            _SetFlag.RemoveAt(index);
+        /// <param name="item"></param>
+        private Json VerifyJsonForRemoving(object item) {
+            Json ret;
 
-            if (IsArray) {
-                Json otherItem;
-                var tarr = (TObjArr)this.Template;
-                (this as Json)._CallHasRemovedElement(index);
-                for (Int32 i = index; i < list.Count; i++) {
-                    otherItem = (Json)_list[i];
-                    otherItem._cacheIndexInArr = i;
-                }
+            if (!IsArray) {
+                throw new Exception("You are not allowed to remove elements from an Object. Use an array instead");
             }
-
+            if (item == null) {
+                throw new Exception("Type object arrays cannot contain null elements");
+            }
+            ret = item as Json;
+            if (ret == null) {
+                throw new Exception("You are only allowed to remove elements of type Json from a type Json array");
+            }
+            return ret;
         }
 
         /// <summary>
@@ -309,8 +303,64 @@ namespace Starcounter {
             j.Parent = this;
 
             
-            (this as Json)._CallHasAddedElement(list.Count - 1, j);
+            CallHasAddedElement(list.Count - 1, j);
             return index;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public void Remove(object item) {
+            Remove(item as Json);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public bool Remove(Json item) {
+            bool b;
+            int index;
+
+            item = VerifyJsonForRemoving(item);
+            index = list.IndexOf(item);
+            b = (index != -1);
+            if (b) InternalRemove(item, index);
+            return b;
+        }
+
+        /// <summary>
+        /// Removed the item at the specified index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public void RemoveAt(int index) {
+            Json item = VerifyJsonForRemoving(list[index]);
+            InternalRemove(item, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="index"></param>
+        private void InternalRemove(Json item, int index) {
+            list.RemoveAt(index);
+            _SetFlag.RemoveAt(index);
+            item.SetParent(null);
+
+            if (IsArray) {
+                Json otherItem;
+                var tarr = (TObjArr)this.Template;
+                CallHasRemovedElement(index);
+                for (Int32 i = index; i < list.Count; i++) {
+                    otherItem = (Json)_list[i];
+                    otherItem._cacheIndexInArr = i;
+                }
+            }
         }
 
         /// <summary>
@@ -318,17 +368,29 @@ namespace Starcounter {
         /// </summary>
         /// <exception cref="System.NotImplementedException"></exception>
         public void Clear() {
-            list.Clear();
-            (Parent as Json).MarkAsReplaced(Template);
-            //this._BrandNew = true;
+            if (!IsArray)
+                throw new NotSupportedException("Clear on non-arrays are not supported");
+
+            Parent.MarkAsReplaced(Template);
             _SetFlag.Clear();
 
+            InternalClear();
+            Parent.CallHasChanged((TContainer)this.Template);
+        }
 
-            if (IsArray) {
-                (this as Json).InternalClear();
-                Json parent = (Json)this.Parent;
-                parent._CallHasChanged((TContainer)this.Template);
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void InternalClear() {
+            int indexesToRemove;
+            var app = this.Parent;
+            TObjArr property = (TObjArr)this.Template;
+            indexesToRemove = list.Count;
+            for (int i = (indexesToRemove - 1); i >= 0; i--) {
+                ((Json)list[i]).SetParent(null);
+                app.ChildArrayHasRemovedAnElement(property, i);
             }
+            list.Clear();
         }
 
         /// <summary>
@@ -337,7 +399,7 @@ namespace Starcounter {
         /// <param name="item">The item.</param>
         /// <returns><c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
         public bool Contains(object item) {
-            return list.Contains((object)item);
+            return list.Contains(item);
         }
 
         /// <summary>
@@ -350,52 +412,21 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public void Remove(object item) {
-            var i = IndexOf(item);
-            if (i == -1)
-                return;
-            this.RemoveAt(i);
-            return;
-        }
-
-        /// <summary>
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
         /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
         public IEnumerator GetEnumerator() {
-            return list.GetEnumerator();
+            if (list != null)
+                return list.GetEnumerator();
+            return System.Linq.Enumerable.Empty<Json>().GetEnumerator();
         }
-
-
-        public List<Json> GetJsonArray() {
-            return (List<Json>)list;
-        }
-
-
-
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(Json item) {
-            Boolean b;
-            Int32 index;
-
-#if QUICKTUPLE
-            index = list.IndexOf(item);
-            b = (index != -1);
-            if (b)
-                RemoveAt(index);
-            return b;
-#else
-         throw new NotImplementedException();
-#endif
+        public List<Json> GetJsonArray() {
+            return (List<Json>)list;
         }
 
         /// <summary>
@@ -414,5 +445,4 @@ namespace Starcounter {
             }
         }
     }
-
 }

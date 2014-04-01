@@ -1,44 +1,123 @@
-﻿<form name="myForm" class="form-horizontal  well well-small">
+﻿<div>
 
-    <legend>Start Application</legend>
+    <div class="panel panel panel-primary">
+        <div class="panel-heading">Start Application</div>
+        <div class="panel-body">
 
-    <div class="control-group" ng-class="{error: myForm.file.$invalid}">
-        <label class="control-label" for="file">File</label>
-        <div class="controls">
 
-            <div class="input-append">
-                <input name="file" id="file" class="span8" placeholder="path to the application" id="appendedInputButton" type="text" ng-model="file" required>
-                <div class="btn-group" ng-hide="recentApplications == 0">
-                    <button class="btn dropdown-toggle" data-toggle="dropdown">
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu pull-right">
-                        <li ng-repeat="file in recentApplications | orderBy:reverse">
-                            <a ng-click="btnSetCurrent(file)">{{$index+1}}. {{file.name}}</a>
-                        </li>
-                    </ul>
+            <form name="myForm" class="form-horizontal" role="form">
+
+
+
+                <!-- File path -->
+      <!--          <div class="control-group" ng-class="{error: myForm.file.$invalid}">
+                    <label class="control-label" for="file">File</label>
+                    <div class="controls">
+
+                        <div class="input-append">
+                            <input name="file" id="file" class="col-xs-8" placeholder="path to the application" id="appendedInputButton" type="text" ng-model="selectedApplication.Path" required>
+                            <div class="btn-group" ng-hide="recentApplications == 0">
+                                <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu pull-right">
+                                    <li ng-repeat="application in recentApplications | orderBy:reverse">
+                                        <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <span class="help-block">Full path to the application (relative to the server).</span>
+                    </div>
+
+                </div>-->
+
+
+                <!-- Application file -->
+                <div class="form-group " ng-class="{'has-error': myForm.file.$invalid, 'has-feedback': myForm.file.$invalid}">
+                    <label class="col-sm-2 control-label" for="file">File</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <input class="form-control" type="text" name="file" id="file" placeholder="Application file" ng-model="selectedApplication.Path" required>
+                            <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.file.$error.validationError||myForm.file.$error.required"></span>
+
+                            <div class="input-group-btn">
+
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu pull-right">
+
+                                    <li ng-repeat="application in recentApplications | orderBy:reverse">
+                                        <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}}</a>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                        <span class="help-block error" ng-show="myForm.file.$error.validationError">Invalid format</span>
+                        <span class="help-block error" ng-show="myForm.file.$error.required">Required</span>
+                        <span class="help-block">Full path to the application (relative to the server).</span>
+                    </div>
                 </div>
-            </div>
-            <span class="help-block">Full path to the application (relative to the server).</span>
-        </div>
-
-    </div>
 
 
-    <div class="control-group">
-        <label class="control-label" for="database">Database</label>
+
+                <!-- Database -->
+                <div class="form-group" ng-class="{'has-error': myForm.Database.$invalid, 'has-feedback': myForm.Database.$invalid}">
+                    <label class="col-sm-2 control-label" for="Database">Database</label>
+                    <div class="col-sm-10">
+
+                        <select class="form-control" ng-model="selectedApplication.databaseName" name="Database" id="Database" required>
+                            <option value="{{database.name}}" ng-repeat="database in databases | orderBy: 'name'">{{database.name}}</option>
+                        </select>
+
+                        <span class="help-block error" ng-show="myForm.Database.$error.validationError">Invalid format</span>
+                        <span class="help-block error" ng-show="myForm.Database.$error.required">Required</span>
+                        <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.Database.$error.validationError||myForm.Database.$error.required"></span>
+                    </div>
+                </div>
+
+
+
+                <!-- WorkingDirectory -->
+                <!--    <div class="control-group" ng-class="{error: myForm.WorkingDirectory.$invalid}">
+        <label class="control-label" for="WorkingDirectory">Working Directory</label>
         <div class="controls">
+            <input type="text" name="WorkingDirectory" id="WorkingDirectory" class="col-xs-8"  placeholder="Working Directory" ng-model="selectedApplication.WorkingDirectory" >
+            <span ng-show="myForm.WorkingDirectory.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.WorkingDirectory.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>-->
 
-            <select class="input-large" name="database" id="database" ui-select2 ng-model="selectedDatabaseName" required data-placeholder="Select a database">
-                <option value=""></option>
-                <option value="{{database.name}}" ng-repeat="database in databases | orderBy: 'name'">{{database.name}}</option>
-            </select>
+
+                <!-- Database -->
+                <!--                <div class="control-group">
+                    <label class="control-label" for="database">Database</label>
+                    <div class="controls">
+
+                        <select class="input-lg" name="database" id="database" ui-select2 ng-model="selectedApplication.databaseName" required data-placeholder="Select a database">
+                            <option value=""></option>
+                            <option value="{{database.name}}" ng-repeat="database in databases | orderBy: 'name'">{{database.name}}</option>
+                        </select>
+
+                    </div>
+                </div>-->
+
+                <!--           <div>
+                    <button type="submit" ng-disabled="myForm.$invalid || selectedApplication.databaseName == ''" class="btn btn-default btn-success" ng-click="btnStart(selectedApplication)" type="button">Start Application</button>
+                </div>-->
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" ng-disabled="myForm.$invalid || selectedApplication.databaseName == ''" class="btn btn-default btn-success" ng-click="btnStart(selectedApplication)" type="button">Start Application</button>
+                    </div>
+                </div>
+
+            </form>
+
 
         </div>
     </div>
-
-    <div class="form-actions">
-        <button type="submit" ng-disabled="myForm.$invalid || selectedDatabaseName == ''" class="btn btn-success" ng-click="btnStart()" type="button">Start Application</button>
-    </div>
-
-</form>
+</div>

@@ -105,26 +105,26 @@ namespace Starcounter.Internal.Tests {
 
 			Request request = new Request();
 			request.Uri = "/test";
-			request.HostName = "127.0.0.1:8080";
+			request.Host = "127.0.0.1:8080";
 			Assert.IsTrue(request.Uri == "/test");
-            Assert.IsTrue(request.HostName == "127.0.0.1:8080");
+            Assert.IsTrue(request.Host == "127.0.0.1:8080");
 
 			request = new Request();
 			request.Method = "PUT";
 			request.Uri = "/MyJson";
-			request.HostName = "192.168.8.1";
+			request.Host = "192.168.8.1";
 			request.ContentType = "application/json";
 			request.Body = json;
             Assert.IsTrue(request.Method == "PUT");
             Assert.IsTrue(request.Uri == "/MyJson");
-            Assert.IsTrue(request.HostName == "192.168.8.1");
+            Assert.IsTrue(request.Host == "192.168.8.1");
             Assert.IsTrue(request.ContentType == "application/json");
             Assert.IsTrue(request.Body == json);
 
 			request = new Request();
 			request.Method = "PUT";
 			request.Uri = "/MyJson";
-			request.HostName = "192.168.8.1";
+			request.Host = "192.168.8.1";
 			request.ContentType = "application/json";
 			request.ContentEncoding = "utf8";
 			request.Cookies.Add("dfsafeHYWERGSfswefw");
@@ -132,7 +132,7 @@ namespace Starcounter.Internal.Tests {
 
             Assert.IsTrue(request.Method == "PUT");
             Assert.IsTrue(request.Uri == "/MyJson");
-            Assert.IsTrue(request.HostName == "192.168.8.1");
+            Assert.IsTrue(request.Host == "192.168.8.1");
             Assert.IsTrue(request.ContentType == "application/json");
             Assert.IsTrue(request.ContentEncoding == "utf8");
             Assert.IsTrue(request.Cookies[0] == "dfsafeHYWERGSfswefw");

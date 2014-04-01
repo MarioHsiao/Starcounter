@@ -62,7 +62,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
-        void RunSync(Action action);
+        void RunSync(Action action, Byte schedId = Byte.MaxValue);
     }
 
     /// <summary>
@@ -336,6 +336,20 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Runs a task asynchronously on a given scheduler.
+        /// </summary>
+        public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
+            _dbSession.RunAsync(action, schedId);
+        }
+
+        /// <summary>
+        /// Runs a task asynchronously on current scheduler.
+        /// </summary>
+        public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
+            _dbSession.RunSync(action, schedId);
+        }
+
+        /// <summary>
         /// Updating last active session time tick.
         /// </summary>
         public void UpdateLastActive()
@@ -432,11 +446,53 @@ namespace Starcounter.Internal
         // All Apps sessions belonging to the scheduler.
         ScSessionClass[] apps_sessions_ = new ScSessionClass[MaxSessionsPerScheduler];
 
+        public ScSessionClass[] AppsSessions { get { return apps_sessions_; }}
+
         // List of free sessions.
         LinkedList<UInt32> free_session_indexes_ = new LinkedList<UInt32>();
 
         // List of used sessions.
         LinkedList<UInt32> used_session_indexes_ = new LinkedList<UInt32>();
+
+        /// <summary>
+        /// List of used session indexes.
+        /// </summary>
+        public LinkedList<UInt32> UsedSessionIndexes {
+            get {
+                return used_session_indexes_;
+            }
+        }
+
+        /// <summary>
+        /// Gets application session by index if its alive.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public ScSessionClass GetAppsSessionIfAlive(UInt32 index) {
+
+            // Getting session instance.
+            ScSessionClass s = apps_sessions_[index];
+
+            // Checking if session is created at all.
+            if (s != null)
+            {
+                // Checking that session is active at all.
+                if (s.session_struct_.IsAlive()) 
+                {
+                    // Checking that there is an Apps session at all.
+                    if (s.apps_session_int_ != null)
+                    {
+                        // Checking that Apps session is not currently in use.
+                        if (!s.apps_session_int_.IsBeingUsed()) 
+                        {
+                            return s;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
 
         // Random generator for sessions.
         RNGCryptoServiceProvider rand_gen_ = new RNGCryptoServiceProvider();
@@ -644,31 +700,19 @@ namespace Starcounter.Internal
                     LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
 
                     // Getting session instance.
-                    ScSessionClass s = apps_sessions_[used_session_index_node.Value];
+                    ScSessionClass s = GetAppsSessionIfAlive(used_session_index_node.Value);
 
                     // Checking if session is created at all.
                     if (s != null)
                     {
-                        // Checking that session is active at all.
-                        if (s.session_struct_.IsAlive()) 
+                        // Checking if session is outdated.
+                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) 
                         {
-                            // Checking that there is an Apps session at all.
-                            if (s.apps_session_int_ != null)
-                            {
-                                // Checking that Apps session is not currently in use.
-                                if (!s.apps_session_int_.IsBeingUsed()) 
-                                {
-                                    // Checking if session is outdated.
-                                    if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) 
-                                    {
-                                        // Destroying old session.
-                                        DestroySession(s.session_struct_);
-                                    }
-                                }
-                            }
-
-                            num_checked_sessions++;
+                            // Destroying old session.
+                            DestroySession(s.session_struct_);
                         }
+
+                        num_checked_sessions++;
                     } 
                     else 
                     {

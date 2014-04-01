@@ -8,6 +8,16 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     // List of applications
     $scope.applications = HostModelService.applications;
 
+    /**
+     * Filter Applications
+     * @param {object} application Application
+     */
+    $scope.filterApplications = function (application) {
+        if ($scope.filterview == 'running') {
+            return application.running;
+        }
+        return true;
+    }
 
     /**
      * Get Console output
@@ -17,14 +27,34 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
         ApplicationService.refreshConsoleOuput(application, function () {
 
-            // TODO
-            // $("#console").scrollTop($("#console")[0].scrollHeight);
-
-
             // Success
         }, function (messageObject) {
             // Error
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+
+        });
+    }
+
+    /**
+     * Start Application
+     * @param {object} application Application
+     */
+    $scope.btnStart = function (application) {
+
+        ApplicationService.startApplication(application, function () {
+
+            // Success
+
+        }, function (messageObject) {
+
+            // Error
+
+            if (messageObject.isError) {
+                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            }
+            else {
+                NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+            }
 
         });
 
@@ -53,7 +83,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
                             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                         }
                         else {
-                            NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                         }
 
                     });
@@ -87,7 +117,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
                         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                     }
                     else {
-                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                        NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                     }
 
 
@@ -95,11 +125,28 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
             }
 
         });
-
-
-
     }
 
+
+    /**
+     * Remove Application from Cache/History
+     * @param {object} application Application
+     */
+    $scope.btnRemove = function (application) {
+
+        var title = "Remove application";
+        var message = "Do you want to remove the application " + application.Name + " from the history";
+        var buttons = [{ result: 0, label: 'Yes', cssClass: 'btn-danger' }, { result: 1, label: 'No', cssClass: 'btn' }];
+
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
+
+            if (result == 0) {
+                // Remove application from cache/history
+                ApplicationService.removeFromHistory(application);
+            }
+
+        });
+    }
 
     // Init
     // Refresh host model
@@ -110,7 +157,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     });
 
 
-    // Get user state
+    // Get user state 'view'  (Icon/List)
     if (localStorage.getItem('applicationsViewMode') != null) {
         $scope.view = localStorage.getItem('applicationsViewMode');
     }
@@ -122,5 +169,20 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         // Save user state
         localStorage.setItem('applicationsViewMode', newValue);
     });
+
+
+    // Get user state 'filterview' (Running/History)
+    if (localStorage.getItem('applicationsFilterView') != null) {
+        $scope.filterview = localStorage.getItem('applicationsFilterView');
+    }
+    else {
+        $scope.filterview = "running";
+    }
+    $scope.$watch('filterview', function (newValue, oldValue) {
+        // Save user state
+        localStorage.setItem('applicationsFilterView', newValue);
+    });
+
+    
 
 }]);

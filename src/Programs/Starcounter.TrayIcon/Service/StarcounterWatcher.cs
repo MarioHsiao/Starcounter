@@ -57,7 +57,12 @@ namespace Starcounter.Tools.Service {
         /// </summary>
         public bool IsStarcounterServiceOnline {
             get {
-                return ServerServiceProcess.IsOnline();
+                try {
+                    return ServerServiceProcess.IsOnline();
+                }
+                catch (Exception) {
+                    return false;
+                }
             }
         }
 
@@ -155,7 +160,7 @@ namespace Starcounter.Tools.Service {
 
             // Send current status
             StatusEventArgs statusArgs = new StatusEventArgs();
-            statusArgs.Running = ServerServiceProcess.IsOnline();
+            statusArgs.Running = this.IsStarcounterServiceOnline;
             OnStatusChanged(statusArgs);
 
         }

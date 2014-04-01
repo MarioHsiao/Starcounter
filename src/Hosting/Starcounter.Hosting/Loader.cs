@@ -21,56 +21,6 @@ using System.Threading;
 
 namespace StarcounterInternal.Hosting
 {
-
-    /// <summary>
-    /// Class BinBriefcase
-    /// </summary>
-    internal class BinBriefcase
-    {
-
-        /// <summary>
-        /// The assembly file infos by name_
-        /// </summary>
-        private Dictionary<string, FileInfo> assemblyFileInfosByName_ = new Dictionary<string, FileInfo>(StringComparer.InvariantCultureIgnoreCase);
-
-        /// <summary>
-        /// Adds from directory.
-        /// </summary>
-        /// <param name="inputDir">The input dir.</param>
-        internal void AddFromDirectory(DirectoryInfo inputDir)
-        {
-            List<FileInfo> fileInfos = new List<FileInfo>();
-            fileInfos.AddRange(inputDir.GetFiles("*.exe"));
-            fileInfos.AddRange(inputDir.GetFiles("*.dll"));
-            for (int i = 0; i < fileInfos.Count; i++)
-            {
-                var fileInfo = fileInfos[i];
-                var fileName = fileInfo.Name;
-                FileInfo previouslyAddedFileInfo;
-                if (!assemblyFileInfosByName_.TryGetValue(fileName, out previouslyAddedFileInfo))
-                {
-                    assemblyFileInfosByName_.Add(fileName, fileInfo);
-                }
-                else
-                {
-                    // TODO: Make sure that the files are the same. Checksum?
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the assembly file.
-        /// </summary>
-        /// <param name="assemblyFileName">Name of the assembly file.</param>
-        /// <returns>FileInfo.</returns>
-        internal FileInfo GetAssemblyFile(string assemblyFileName)
-        {
-            FileInfo ret;
-            assemblyFileInfosByName_.TryGetValue(assemblyFileName, out ret);
-            return ret;
-        }
-    }
-
     /// <summary>
     /// Class LoaderException
     /// </summary>
@@ -89,11 +39,7 @@ namespace StarcounterInternal.Hosting
     /// </summary>
     public static class Loader
     {
-
-        /// <summary>
-        /// The private bin briefcase_
-        /// </summary>
-        private static readonly BinBriefcase privateBinBriefcase_ = new BinBriefcase();
+        static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
 
         [ThreadStatic]
         private static Stopwatch stopwatch_;
@@ -106,24 +52,7 @@ namespace StarcounterInternal.Hosting
         /// <returns>Assembly.</returns>
         public static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
-            Assembly assembly = null;
-
-            var assemblyName = args.Name;
-            var assemblyNameElems = assemblyName.Split(',');
-            var assemblyFileName = string.Concat(assemblyNameElems[0], ".dll");
-            var assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
-            if (assemblyFileInfo == null)
-            {
-                assemblyFileName = string.Concat(assemblyNameElems[0], ".exe");
-                assemblyFileInfo = privateBinBriefcase_.GetAssemblyFile(assemblyFileName);
-            }
-
-            if (assemblyFileInfo != null)
-            {
-                assembly = Assembly.LoadFile(assemblyFileInfo.FullName);
-            }
-
-            return assembly;
+            return assemblyResolver.ResolveApplicationReference(args);
         }
 
         /// <summary>
@@ -171,15 +100,6 @@ namespace StarcounterInternal.Hosting
             package.Dispose();
 
             OnPackageProcessed();
-
-            // User-level classes are self registring and report in to
-            // the installed host manager on first use (via an emitted call
-            // in the static class constructor). For system classes, we
-            // have to do this by hand.
-
-            HostManager.InitTypeSpecification(typeof(materialized_table.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }
@@ -232,9 +152,7 @@ namespace StarcounterInternal.Hosting
 
             var inputFile = new FileInfo(filePath);
 
-            // TODO: Handle duplicates.
-
-            privateBinBriefcase_.AddFromDirectory(inputFile.Directory);
+            assemblyResolver.PrivateAssemblies.RegisterApplicationDirectory(inputFile.Directory);
 
             OnInputVerifiedAndAssemblyResolverUpdated();
 
@@ -257,7 +175,7 @@ namespace StarcounterInternal.Hosting
 
             OnUnregisteredTypeDefsDetermined();
 
-            var assembly = Assembly.LoadFile(inputFile.FullName);
+            var assembly = assemblyResolver.ResolveApplication(inputFile.FullName);
 
             OnTargetAssemblyLoaded();
 

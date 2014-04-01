@@ -87,10 +87,11 @@
     <Compile Include="Class Json\IBound.cs" />
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
     <Compile Include="Class Json\Json.Array.cs" />
-    <Compile Include="Class Json\Json.Array.Generic.cs" />
+    <Compile Include="Class Json\Arr.cs" />
     <Compile Include="Class Json\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
+    <Compile Include="Sessions\JSON-Patch\JsonPatchException.cs" />
     <Compile Include="TemplateDelegateGenerator.cs" />
     <Compile Include="Templates\Foundation\TValue.cs" />
     <Compile Include="Templates\TArray.cs" />
@@ -119,7 +120,7 @@
     <Compile Include="Class Json\Json.Object.Dynamic.cs" />
     <Compile Include="Class Json\Json.Object.GetSetValue.cs" />
     <Compile Include="Class Json\Json.Object.Data.cs" />
-    <Compile Include="Class Json\Json.IHypermedia.cs" />
+    <Compile Include="Class Json\Json.IResource.cs" />
     <Compile Include="Class Json\Json.Serializing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializer\Json\JsonHelper.cs" />

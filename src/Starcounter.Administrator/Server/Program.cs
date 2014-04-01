@@ -9,6 +9,8 @@ using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest;
+using Starcounter.Internal.Web;
+using System.Collections.Generic;
 
 namespace Starcounter.Administrator.Server {
 
@@ -74,11 +76,6 @@ namespace Starcounter.Administrator.Server {
         /// </summary>
         static void RegisterHandlers() {
 
-            // Registering default handler for ALL static resources on the server.
-            Handle.GET("/{?}", (string res) => {
-                return HandlerStatus.NotHandled;
-            });
-
             // Redirecting root to index.html.
             Handle.GET("/", () => {
                 // Returns this response to original request.
@@ -100,24 +97,28 @@ namespace Starcounter.Administrator.Server {
                 // Adding static files serving directory.
                 AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
 
-                try {
-                    // Registering static handler on given port.
-                    Handle.GET(port, "/{?}", (string res) => {
-                        return HandlerStatus.NotHandled;
-                    });
-                }
-                catch (Exception exc) {
-                    UInt32 errCode;
-
-                    // Checking if this handler is already registered.
-                    if (ErrorCode.TryGetCode(exc, out errCode)) {
-                        if (Starcounter.Error.SCERRHANDLERALREADYREGISTERED == errCode)
-                            return "Success!";
-                    }
-                    throw exc;
-                }
-
                 return "Success!";
+            });
+
+            // Handler to get all registered static resource folders
+            Handle.GET("/staticcontentdir", (Request req) => {
+
+                Dictionary<UInt16, IList<string>> folders = AppsBootstrapper.GetFileServingDirectories();
+
+                WorkingFolders workingFolders = new WorkingFolders();
+
+                foreach (KeyValuePair<UInt16, IList<string>> entry in folders) {
+
+                    if (entry.Value != null && entry.Value.Count > 0) {
+                        foreach (string folder in entry.Value) {
+                            var folderJson = workingFolders.Items.Add();
+                            folderJson.Port = entry.Key;
+                            folderJson.Folder = folder;
+                        }
+                    }
+                }
+
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };
             });
 
             #region Debug/Test
@@ -145,10 +146,8 @@ namespace Starcounter.Administrator.Server {
                 return new Response() { BodyBytes = req.BodyBytes };
             });
 
-            Handle.GET("/echotestws", (Request req) =>
-            {
-                if (req.WebSocketUpgrade)
-                {
+            Handle.GET("/echotestws", (Request req) => {
+                if (req.WebSocketUpgrade) {
                     req.SendUpgrade("echotestws");
 
                     return HandlerStatus.Handled;
@@ -157,18 +156,15 @@ namespace Starcounter.Administrator.Server {
                 return 513;
             });
 
-            Handle.Socket("echotestws", (String s, WebSocket ws) =>
-            {
+            Handle.Socket("echotestws", (String s, WebSocket ws) => {
                 ws.Send(s);
             });
 
-            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) =>
-            {
+            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) => {
                 ws.Send(bs);
             });
 
-            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) =>
-            {
+            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
                 // Do nothing!
             });
 
