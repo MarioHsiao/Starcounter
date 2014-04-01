@@ -1,14 +1,9 @@
-﻿using NUnit.Framework;
-using Starcounter;
-using Starcounter.Internal.Application.CodeGeneration;
-using Starcounter.Templates;
-using System;
+﻿using System;
 using System.IO;
+using NUnit.Framework;
 using TJson = Starcounter.Templates.TObject;
 
-
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
-
     [TestFixture]
     static class DetectVersionToUse {
 
@@ -45,8 +40,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         }
 
         private static void _GenerateCsDOM(string version,string root) {
-            var tj = ReadTemplate("Nesting\\ParentChild.json");
-            var cb = File.ReadAllText("Nesting\\ParentChild.json.cs."+version);
+            var tj = ReadTemplate("Input\\ParentChild.json");
+            var cb = File.ReadAllText("Input\\ParentChild.json.cs."+version);
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
@@ -56,6 +51,5 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             Assert.AreEqual(root, dom.GetType().Name);
         }
-
     }
 }
