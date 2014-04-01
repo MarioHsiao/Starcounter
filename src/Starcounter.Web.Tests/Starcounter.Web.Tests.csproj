@@ -81,7 +81,9 @@
   <ItemGroup>
     <Compile Include="PersonMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="simple.json" />
+    <None Include="simple.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Temp.cs" />
     <Compile Include="TestHtmlMerge.cs" />
     <Compile Include="TestNewRequestHandlers.cs" />
