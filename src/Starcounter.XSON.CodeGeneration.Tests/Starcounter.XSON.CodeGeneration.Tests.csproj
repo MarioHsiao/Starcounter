@@ -81,131 +81,140 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="JsonWithFiller.json">
+    <None Include="Input\incorrect.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\ChildMsg.json">
+    <None Include="Input\JsonWithFiller.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\Namespaces.json">
+    <None Include="Input\ChildMsg.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\Generic.json">
+    <None Include="Input\Namespaces.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\MailApp.json">
+    <None Include="Input\Generic.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\minimal.json">
+    <None Include="Input\MailApp.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v5">
+    <None Include="Input\minimal.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v2">
+    <None Include="Input\ParentChild.json.cs.v5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json">
+    <None Include="Input\ParentChild.json.cs.v2">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v3">
+    <None Include="Input\ParentChild.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v4">
+    <None Include="Input\ParentChild.json.cs.v3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\Company.json">
+    <None Include="Input\ParentChild.json.cs.v4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\Company.json.cs">
+    <None Include="Input\Company.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\ThreadPage.json">
+    <None Include="Input\Company.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Company.json</DependentUpon>
+    </None>
+    <None Include="Input\ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="databound.json">
+    <None Include="Input\databound.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="jsstyle.json">
+    <None Include="Input\jsstyle.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="person.json">
+    <None Include="Input\person.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="supersimple.json">
+    <None Include="Input\supersimple.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="simple.json">
+    <None Include="Input\simple.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="MySampleApp.json.cs">
+    <None Include="Input\MySampleApp.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>MySampleApp.json</DependentUpon>
     </None>
-    <None Include="Compiler\complex.json.cs">
+    <None Include="Input\complex.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Compiler\simple.json.cs">
+    <None Include="Input\simple.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>simple.json</DependentUpon>
     </None>
-    <None Include="databound.json.cs">
+    <None Include="Input\databound.json.cs">
       <DependentUpon>databound.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Compiler\incorrect.json.cs">
+    <None Include="Input\incorrect.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>incorrect.json</DependentUpon>
     </None>
-    <None Include="PartialClassGeneration\ThreadPage.json.cs">
+    <None Include="Input\ThreadPage.json.cs">
       <DependentUpon>ThreadPage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\MailApp.json.cs">
+    <None Include="Input\MailApp.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>MailApp.json</DependentUpon>
     </None>
-    <None Include="PartialClassGeneration\Generic.json.cs">
+    <None Include="Input\Generic.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Generic.json</DependentUpon>
     </None>
-    <None Include="PartialClassGeneration\ChildMsg.json.cs">
+    <None Include="Input\ChildMsg.json.cs">
       <DependentUpon>ChildMsg.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Compiler\incorrect2.json.cs">
+    <None Include="Input\incorrect2.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>incorrect.json</DependentUpon>
+    </None>
+    <None Include="Output\TestMessage.g.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Inheritance\TestInheritance.cs" />
-    <Compile Include="JsonSerializeTest.cs" />
-    <None Include="PartialClassGeneration\minimal.json.cs">
+    <Compile Include="JsonSerializeTests.cs" />
+    <None Include="Input\minimal.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>minimal.json</DependentUpon>
+    </None>
+    <Compile Include="TestSimpleNesting.cs" />
+    <None Include="Input\ParentChild.json.cs.v1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Nesting\TestSimpleNesting.cs" />
-    <Compile Include="NewtonsoftSerializer.cs" />
-    <None Include="Nesting\ParentChild.json.cs.v1">
+    <Compile Include="DetectVersionToUseTests.cs" />
+    <Compile Include="TestInputMapping.cs" />
+    <Compile Include="TestPartialClassGeneration.cs" />
+    <None Include="PregeneratedSerializationCode.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Nesting\DetectVersionToUse.cs" />
-    <Compile Include="InputGeneration\TestInputMapping.cs" />
-    <Compile Include="PartialClassGeneration\TestPartialClassGeneration.cs" />
-    <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Compiler\CodeBehindParserTests.cs" />
-    <None Include="TestMessage.g.cs">
-      <DependentUpon>TestMessage.json</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="TestMessage.json.cs">
+    <Compile Include="CodeBehindParserTests.cs" />
+    <None Include="Input\TestMessage.json.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="GeneratePartialClassTests.cs" />
-    <None Include="TestMessage.json">
+    <None Include="Input\TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MySampleApp2.json">
+    <None Include="Input\MySampleApp2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="MySampleApp.json">
+    <None Include="Input\MySampleApp.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
