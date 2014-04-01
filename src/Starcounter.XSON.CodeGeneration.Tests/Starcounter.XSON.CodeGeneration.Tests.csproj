@@ -194,7 +194,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="DetectVersionToUseTests.cs" />
-    <Compile Include="TestInputMapping.cs" />
+    <Compile Include="InputMappingTests.cs" />
     <Compile Include="TestPartialClassGeneration.cs" />
     <None Include="PregeneratedSerializationCode.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
