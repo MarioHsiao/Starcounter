@@ -35,12 +35,19 @@ namespace Starcounter.Internal.Weaver {
             public readonly string Name;
 
             /// <summary>
-            /// Gets the assembly if the extraction was considered a success.
+            /// Gets the assembly if the retreival was considered a success.
             /// If it was not, this field is null and other properties will
-            /// reveal the reason why the assembly was not extracted.
+            /// reveal the reason why the assembly was not retreived.
             /// </summary>
             /// <value>The assembly.</value>
             public DatabaseAssembly Assembly { get; internal set; }
+
+            /// <summary>
+            /// Gets the set of files comprising a cached assembly. It's
+            /// up to the client to operate on these (for example, extracting
+            /// them to some "live" directory).
+            /// </summary>
+            public List<string> Files { get; internal set; }
 
             /// <summary>
             /// Gets a value indicating if the assembly was looked for but was
@@ -176,34 +183,17 @@ namespace Starcounter.Internal.Weaver {
         /// known to the cache, i.e. if it was not found, if it was
         /// out of date, etc. If it was up to date, the Assembly
         /// property of the returned object is not null and includes
-        /// the deserialized schema of the cached assembly.</returns>
+        /// the deserialized schema of the cached assembly.
+        /// <para>
+        /// If there was a match, the contained <see cref="Schema"/>
+        /// will also reflect the retreived (deserialized) assembly
+        /// metadata as part of its assembly set.
+        /// </para></returns>
         public CachedAssembly Get(string assemblyName) {
-            return Extract(assemblyName, null);
-        }
-
-        /// <summary>
-        /// Tries to extract an assembly by name.
-        /// </summary>
-        /// <param name="assemblyName">Name of the assembly to extract.
-        /// The name expected is the simple name of the assembly, not
-        /// including the extension.</param>
-        /// <param name="targetDirectory">Target directory where the assembly is to be extracted to.
-        /// If null, and the extraction is considered a success, the
-        /// assembly is read into the cached schema but not copied.</param>
-        /// <returns>An object describing the way the assembly was
-        /// known to the cache, i.e. if it was not found, if it was
-        /// out of date, etc. If it was up to date, the Assembly
-        /// property of the returned object is not null and includes
-        /// the deserialized schema of the cached assembly.</returns>
-        /// <exception cref="System.ArgumentNullException">assemblyName</exception>
-        public CachedAssembly Extract(string assemblyName, string targetDirectory) {
             CachedAssembly result;
             DatabaseAssembly candidate;
             string schemaFile;
             string assemblyFile;
-            string debugSymbolsFile;
-            string debugSymbolsPath;
-            string targetFilePath;
             string dependencyHash;
 
             if (string.IsNullOrEmpty(assemblyName))
@@ -251,6 +241,7 @@ namespace Starcounter.Internal.Weaver {
             // Check if the cached file indicates it was transformed. If it was,
             // we need to find and evaluate the transformed result too.
 
+            assemblyFile = null;
             if (candidate.IsTransformed) {
                 // Check if we can find the cached assembly file.
                 // If not, we can not use the cached result.
@@ -272,24 +263,18 @@ namespace Starcounter.Internal.Weaver {
                     result.TransformationOutdated = true;
                     return result;
                 }
+            }
 
-                // The transformed result is there and it's up to date.
-                // The cached file is considered usable and we should return
-                // it with the result.
-                // Just check first if we need to copy it (along with a
-                // possibly program debug file) to a target directory first.
+            // Let the result contain the list of files considered cached
+            // for the given assembly.
 
-                if (!string.IsNullOrEmpty(targetDirectory)) {
-                    targetFilePath = Path.Combine(targetDirectory, Path.GetFileName(assemblyFile));
-                    File.Copy(assemblyFile, targetFilePath, true);
-
-                    debugSymbolsFile = string.Concat(Path.GetFileNameWithoutExtension(assemblyFile), ".pdb");
-                    debugSymbolsPath = Path.Combine(this.CacheDirectory, debugSymbolsFile);
-
-                    if (File.Exists(debugSymbolsPath)) {
-                        targetFilePath = Path.Combine(targetDirectory, debugSymbolsFile);
-                        File.Copy(debugSymbolsPath, targetFilePath, true);
-                    }
+            result.Files = new List<string>();
+            result.Files.Add(schemaFile);
+            if (candidate.IsTransformed) {
+                result.Files.Add(assemblyFile);
+                var pdb = Path.ChangeExtension(assemblyFile, ".pdb");
+                if (File.Exists(pdb)) {
+                    result.Files.Add(pdb);
                 }
             }
 
@@ -301,17 +286,6 @@ namespace Starcounter.Internal.Weaver {
             schema.Assemblies.Add(candidate);
 
             return result;
-        }
-
-        /// <summary>
-        /// Gets a value indicating if an assembly named <paramref name="assemblyName" />
-        /// is part of the cached schema.
-        /// </summary>
-        /// <param name="assemblyName">The name of the assembly to be checked.</param>
-        /// <returns>True if an assembly with the given name was successfully
-        /// extraced; false if not.</returns>
-        public bool IsExtracted(string assemblyName) {
-            return this.schema.Assemblies.FirstOrDefault(assembly => assembly.Name == assemblyName) != null;
         }
 
         /// <summary>
