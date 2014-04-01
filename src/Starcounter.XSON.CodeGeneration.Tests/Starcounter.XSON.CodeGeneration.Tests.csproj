@@ -74,11 +74,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Input\incorrect.json">
@@ -189,7 +186,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>minimal.json</DependentUpon>
     </None>
-    <Compile Include="TestSimpleNesting.cs" />
+    <Compile Include="SimpleNestingTests.cs" />
     <None Include="Input\ParentChild.json.cs.v1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -231,14 +228,6 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.DeserializerCompiler\Starcounter.XSON.DeserializerCompiler.csproj">
-      <Project>{d8eff98a-2225-4991-860f-70d753190a33}</Project>
-      <Name>Starcounter.XSON.DeserializerCompiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
       <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>
