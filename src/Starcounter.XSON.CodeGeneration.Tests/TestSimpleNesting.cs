@@ -6,12 +6,9 @@ using System;
 using System.IO;
 using TJson = Starcounter.Templates.TObject;
 
-
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
-
     [TestFixture]
     static class TestSimpleNesting {
-
         internal static TJson ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = TJson.CreateFromJson(str);
@@ -27,8 +24,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// </summary>
         [Test]
         public static void UntouchedNesting() {
-            var tj = ReadTemplate("Nesting\\ParentChild.json");
-            var cb = File.ReadAllText("Nesting\\ParentChild.json.cs.v5" );
+            var tj = ReadTemplate("Input\\ParentChild.json");
+            var cb = File.ReadAllText("Input\\ParentChild.json.cs.v5");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
@@ -53,8 +50,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void FlattenedClassForNestedJson() {
-            var tj = ReadTemplate("Nesting\\ParentChild.json");
-            var cb = File.ReadAllText("Nesting\\ParentChild.json.cs.v3");
+            var tj = ReadTemplate("Input\\ParentChild.json");
+            var cb = File.ReadAllText("Input\\ParentChild.json.cs.v3");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
