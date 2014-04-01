@@ -155,6 +155,15 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			//Console.WriteLine(astTree);
 			Console.WriteLine(code);
 		}
+
+        [Test]
+        public static void EmptyArrayCodeGenerationTest(){
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                "Input/emptyarray.json",
+                null);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
     }
 }
 
