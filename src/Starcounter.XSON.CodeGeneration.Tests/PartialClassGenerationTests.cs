@@ -6,7 +6,7 @@ using Starcounter.Templates;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
-    public class TestPartialClassGeneration {
+    public class PartialClassGenerationTests {
         [TestFixtureSetUp]
         public static void InitializeTest() {
         }
