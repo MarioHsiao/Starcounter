@@ -210,12 +210,15 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
                 var w = attached.Writer;
                 var mainSequence = w.CurrentInstructionSequence;
                 var compareNullBranch = w.MethodBody.CreateInstructionSequence();
+                var returnFalseBranch = w.MethodBody.CreateInstructionSequence();
                 var callEqualsBranch = w.MethodBody.CreateInstructionSequence();
 
                 eqOperator.MethodBody.RootInstructionBlock.AddInstructionSequence(
                     compareNullBranch, NodePosition.After, mainSequence);
                 eqOperator.MethodBody.RootInstructionBlock.AddInstructionSequence(
-                    callEqualsBranch, NodePosition.After, compareNullBranch);
+                    returnFalseBranch, NodePosition.After, compareNullBranch);
+                eqOperator.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                    callEqualsBranch, NodePosition.After, returnFalseBranch);
 
                 w.EmitInstructionParameter(OpCodeNumber.Ldarg, oneParameter);
                 w.EmitInstructionParameter(OpCodeNumber.Ldarg, twoParameter);
@@ -226,15 +229,22 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
                 w.DetachInstructionSequence();
 
                 w.AttachInstructionSequence(compareNullBranch);
-                //w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                //w.EmitInstructionParameter(OpCodeNumber.Ldarg, objParameter);
-                //w.EmitInstructionMethod(OpCodeNumber.Call, objectReferenceEqualsMethod);
-                //w.EmitBranchingInstruction(OpCodeNumber.Brfalse_S, compareIdentityBranch);
-                //w.EmitInstruction(OpCodeNumber.Ldc_I4_1);
-                //w.EmitInstruction(OpCodeNumber.Ret);
-                //w.DetachInstructionSequence();
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, oneParameter);
+                w.EmitBranchingInstruction(OpCodeNumber.Brfalse_S, returnFalseBranch);
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, twoParameter);
+                w.EmitBranchingInstruction(OpCodeNumber.Brtrue_S, callEqualsBranch);
+                w.DetachInstructionSequence();
 
+                w.AttachInstructionSequence(returnFalseBranch);
+                w.EmitInstruction(OpCodeNumber.Ldc_I4_0);
+                w.EmitInstruction(OpCodeNumber.Ret);
+                w.DetachInstructionSequence();
 
+                w.AttachInstructionSequence(callEqualsBranch);
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, oneParameter);
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, twoParameter);
+                w.EmitInstructionMethod(OpCodeNumber.Callvirt, objectEqualsMethod);
+                w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
