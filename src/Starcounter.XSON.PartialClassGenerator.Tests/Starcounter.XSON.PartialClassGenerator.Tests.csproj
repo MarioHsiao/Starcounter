@@ -170,11 +170,15 @@
       <DependentUpon>ChildMsg.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Output\TestMessage.g.cs">
+    <None Include="Input\TestMessage.g.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Input\incorrect.json.cs" />
-    <Compile Include="Input\incorrect2.json.cs" />
+    <None Include="Input\incorrect.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Input\incorrect2.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="JsonSerializeTests.cs" />
     <None Include="Input\minimal.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
