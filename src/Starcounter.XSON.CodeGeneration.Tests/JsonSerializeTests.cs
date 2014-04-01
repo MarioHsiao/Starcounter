@@ -9,7 +9,7 @@ using Starcounter.XSON.Serializer;
 using Starcounter.XSON.Serializer.Parsetree;
 using TJson = Starcounter.Templates.TObject;
 
-namespace Starcounter.Internal.XSON.Serializer.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
     /// 
     /// </summary>

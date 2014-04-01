@@ -1,14 +1,12 @@
-﻿using NUnit.Framework;
-using Starcounter;
-using Starcounter.Internal.MsBuild.Codegen;
-using Starcounter.Templates;
-using System;
+﻿using System;
 using System.IO;
+using NUnit.Framework;
+using Starcounter.Internal.MsBuild.Codegen;
 using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
-    static class TestSimpleNesting {
+    static class SimpleNestingTests {
         internal static TJson ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = TJson.CreateFromJson(str);
