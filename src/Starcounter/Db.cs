@@ -326,6 +326,13 @@ namespace Starcounter
             throw ErrorCode.ToException(r);
         }
 
+        /// <summary>
+        /// Raise the event that signals the database is stopping.
+        /// </summary>
+        internal static void RaiseDatabaseStoppingEvent() {
+            DatabaseStopping(null, EventArgs.Empty);
+        }
+
         static void InvokeOnDelete(IObjectProxy proxy) {
             // These flags really don't do their work right now, since we
             // are in fact doing a cast just to retreive them. The whole
