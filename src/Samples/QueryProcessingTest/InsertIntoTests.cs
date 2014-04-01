@@ -20,6 +20,26 @@ namespace QueryProcessingTest {
             Trace.Assert(w.TrackingCode == "");
             Trace.Assert(w.Located == false);
             Trace.Assert(w.Deleted == false);
+            Db.Transaction(delegate { Db.SQL("insert into country(name) values ('Sweden'), ('Germany'), ('France')"); });
+            
+            var counEnum = Db.SQL<Country>("select c from country c").GetEnumerator();
+            Trace.Assert(counEnum.MoveNext());
+            Country c = counEnum.Current;
+            Trace.Assert(c.Name == "Sweden");
+            Trace.Assert(counEnum.MoveNext());
+            c = counEnum.Current;
+            Trace.Assert(c.Name == "Germany");
+            Trace.Assert(counEnum.MoveNext());
+            c = counEnum.Current;
+            Trace.Assert(c.Name == "France");
+            Trace.Assert(!counEnum.MoveNext());
+            Db.Transaction(delegate { Db.SQL("insert into company (name,country) values ('Canal+',object " + c.GetObjectNo()+")"); });
+            var compEnum = Db.SQL<Company>("select c from company c").GetEnumerator();
+            Trace.Assert(compEnum.MoveNext());
+            Company co = compEnum.Current;
+            Trace.Assert(co.Name == "Canal+");
+            Trace.Assert(co.Country.Equals(c));
+            Trace.Assert(!compEnum.MoveNext());
             HelpMethods.LogEvent("Finished testing insert into statements with values on web visit data model");
         }
     }
