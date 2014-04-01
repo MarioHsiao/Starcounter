@@ -313,9 +313,12 @@ namespace StarcounterInternal.Bootstrap {
         private unsafe void Stop() {
             try {
                 uint e = sccorelib.cm2_stop(hsched_, 1);
-                if (e == 0) return;
-                throw ErrorCode.ToException(e);
+                if (e == 0) {
+                    Db.RaiseDatabaseStoppingEvent();
+                    return;
+                }
 
+                throw ErrorCode.ToException(e);
             }
             finally { OnEndStop(); }
         }
