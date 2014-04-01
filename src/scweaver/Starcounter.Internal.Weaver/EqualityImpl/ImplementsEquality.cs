@@ -59,8 +59,9 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             
             ImplementEquals(typeDef, identityField);
             ImplementGetHashCode(typeDef, identityField);
-            ImplementEqualityOperator(typeDef);
-            ImplementInequalityOperator(typeDef);
+            
+            var eqOperator= ImplementEqualityOperator(typeDef);
+            ImplementInequalityOperator(typeDef, eqOperator);
         }
 
         void ImplementEquals(TypeDefDeclaration typeDef, FieldDefDeclaration identityField) {
@@ -179,7 +180,7 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             }
         }
 
-        void ImplementEqualityOperator(TypeDefDeclaration typeDef) {
+        IMethod ImplementEqualityOperator(TypeDefDeclaration typeDef) {
             var eqOperator = new MethodDefDeclaration() {
                 Name = "op_Equality",
                 Attributes = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.Static
@@ -246,11 +247,41 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
                 w.EmitInstructionMethod(OpCodeNumber.Callvirt, objectEqualsMethod);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
+
+            return eqOperator;
         }
 
-        void ImplementInequalityOperator(TypeDefDeclaration typeDef) {
+        void ImplementInequalityOperator(TypeDefDeclaration typeDef, IMethod eqOperatorMethod) {
+            var inEqOperator = new MethodDefDeclaration() {
+                Name = "op_Inequality",
+                Attributes = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.Static
+            };
+            typeDef.Methods.Add(inEqOperator);
+            inEqOperator.MethodBody.MaxStack = 8;
+            inEqOperator.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.Boolean)
+            };
+            var oneParameter = new ParameterDeclaration(0, "one", typeDef.Translate(module));
+            var twoParameter = new ParameterDeclaration(1, "two", typeDef.Translate(module));
+            inEqOperator.Parameters.Add(oneParameter);
+            inEqOperator.Parameters.Add(twoParameter);
+
             // Implement this (C#)
             // return !(f == f2);
+
+            using (var attached = new AttachedInstructionWriter(writer, inEqOperator)) {
+                var w = attached.Writer;
+                var mainSequence = w.CurrentInstructionSequence;
+                w.AttachInstructionSequence(mainSequence);
+
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, oneParameter);
+                w.EmitInstructionParameter(OpCodeNumber.Ldarg, twoParameter);
+                w.EmitInstructionMethod(OpCodeNumber.Call, eqOperatorMethod); 
+                w.EmitInstruction(OpCodeNumber.Ldc_I4_0);
+                w.EmitInstruction(OpCodeNumber.Ceq);
+                w.EmitInstruction(OpCodeNumber.Ret);
+            }
         }
     }
 }
