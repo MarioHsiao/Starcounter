@@ -241,25 +241,7 @@ namespace Weaver {
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-            
             BootstrapWeaver.WeaveExecutable(Path.Combine(inputDirectory, fileName));
-
-#if false
-            // Implementation using the PostSharp-based weaver
-            CodeWeaver weaver;
-            weaver = new CodeWeaver(inputDirectory, fileName, cacheDirectory);
-            weaver.RunWeaver = true;
-            weaver.WeaveBootstrapperCode = true;
-            weaver.WeaveForIPC = true;//!arguments.ContainsFlag("noipc");
-            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
-            weaver.WeaveToCacheOnly = false;
-
-            // Invoke the weaver subsystem. If it fails, it will report the
-            // error itself.
-
-            weaver.Execute();
-
-#endif
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
