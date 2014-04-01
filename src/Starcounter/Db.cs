@@ -31,6 +31,11 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Occurs when the database is being stopped.
+        /// </summary>
+        public static event EventHandler DatabaseStopping;
+
+        /// <summary>
         /// Lookups the table.
         /// </summary>
         /// <param name="name">The name.</param>
