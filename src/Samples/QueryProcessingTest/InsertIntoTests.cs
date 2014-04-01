@@ -7,6 +7,16 @@ namespace QueryProcessingTest {
         public static void TestValuesInsertIntoWebVisits() {
             HelpMethods.LogEvent("Test insert into statements with values on web visit data model");
             Db.Transaction(delegate {
+                if (Db.SQL("select c from company c").First != null) {
+                    WebPage w1 = Db.SQL<WebPage>("select w from webpage w where title = ?", "MyCompany, AboutUs").First;
+                    w1.Delete();
+                    foreach (Company c1 in Db.SQL<Company>("select c from company c"))
+                        c1.Delete();
+                    foreach (Country c1 in Db.SQL<Country>("select c from country c"))
+                        c1.Delete();
+                }
+            });
+            Db.Transaction(delegate {
                 String query = "INSERT INTO WebPage (Title, uRL, PageValue, PersonalPageValue, TrackingCode, Located, deleted)" +
                     "Values ('MyCompany, AboutUs', '168.12.147.2/AboutUs', 100, 90, '', false, false)";
                 Db.SQL(query);
