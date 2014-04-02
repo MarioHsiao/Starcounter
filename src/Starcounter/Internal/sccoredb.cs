@@ -1042,6 +1042,7 @@ namespace Starcounter.Internal
             Byte* output,
             UInt32 outlen);
 
+#if false
         /// <summary>
         /// SCs the convert native string to UT F16.
         /// </summary>
@@ -1068,6 +1069,7 @@ namespace Starcounter.Internal
             /* const */ Byte* str1,
             /* const */ Byte* str2
             );
+#endif
 
         /// <summary>
         /// SCs the compare UT F16 strings.
