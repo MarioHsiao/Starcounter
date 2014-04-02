@@ -218,20 +218,6 @@ namespace Starcounter.Internal
 #endif
 
         /// <summary>
-        /// SCs the configure VP.
-        /// </summary>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCConfigureVP();
-
-        /// <summary>
-        /// SCs the background task.
-        /// </summary>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCBackgroundTask();
-
-        /// <summary>
         /// Sccoredb_advance_clocks the specified scheduler_index.
         /// </summary>
         /// <param name="scheduler_index">The scheduler_index.</param>
