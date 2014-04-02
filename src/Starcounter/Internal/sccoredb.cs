@@ -964,6 +964,7 @@ namespace Starcounter.Internal
             UInt64* pv
             );
 
+#if false
         /// <summary>
         /// Sccoredb_iterator_get_local_times the specified iter_handle.
         /// </summary>
@@ -986,6 +987,7 @@ namespace Starcounter.Internal
             UInt64 iter_verify,
             UInt32* plocal_time
             );
+#endif
 
         /// <summary>
         /// SCs the iterator free.
