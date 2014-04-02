@@ -31,6 +31,11 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Occurs when the database is being stopped.
+        /// </summary>
+        public static event EventHandler DatabaseStopping;
+
+        /// <summary>
         /// Lookups the table.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -319,6 +324,13 @@ namespace Starcounter
             r = sccoredb.sccoredb_complete_delete(oid, address);
             if (r == 0) return;
             throw ErrorCode.ToException(r);
+        }
+
+        /// <summary>
+        /// Raise the event that signals the database is stopping.
+        /// </summary>
+        internal static void RaiseDatabaseStoppingEvent() {
+            DatabaseStopping(null, EventArgs.Empty);
         }
 
         static void InvokeOnDelete(IObjectProxy proxy) {
