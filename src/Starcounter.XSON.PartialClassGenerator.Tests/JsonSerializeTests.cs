@@ -229,11 +229,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Console.WriteLine(AddSpaces("File", 20) + AddSpaces("Type", 16) + AddSpaces("Serialize", 12) + "Deseralize");
 			Console.WriteLine("----------------------------------------------------------");
 
-			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, false);
-			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, false);
-			RunFTJBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, false);
-			RunFTJBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, false);
-			RunFTJBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, false);
+			RunFTJBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, false);
+			RunFTJBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, false);
+			RunFTJBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, false);
+			RunFTJBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, false);
+			RunFTJBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, false);
 		}
 
 		[Test]
@@ -246,11 +246,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Console.WriteLine(AddSpaces("File", 20) + AddSpaces("Type", 16) + AddSpaces("Serialize", 12) + "Deseralize");
 			Console.WriteLine("----------------------------------------------------------");
 
-			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, true);
-			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, true);
-			RunFTJBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, true);
-			RunFTJBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, true);
-			RunFTJBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, true);
+			RunFTJBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, true);
+			RunFTJBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, true);
+			RunFTJBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, true);
+			RunFTJBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, true);
+			RunFTJBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, true);
 		}
 
 		[Test]
@@ -262,11 +262,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Console.WriteLine(AddSpaces("File", 20) + AddSpaces("Type", 16) + AddSpaces("Serialize", 12) + "Deseralize");
 			Console.WriteLine("----------------------------------------------------------");
 
-			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, false);
 		}
 
 		[Test]
@@ -278,11 +278,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Console.WriteLine(AddSpaces("File", 20) + AddSpaces("Type", 16) + AddSpaces("Serialize", 12) + "Deseralize");
 			Console.WriteLine("----------------------------------------------------------");
 
-			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, true);
 		}
 
 		[Test]
@@ -294,38 +294,38 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Console.WriteLine(AddSpaces("File", 20) + AddSpaces("Type", 16) + AddSpaces("Serialize", 12) + "Deseralize");
 			Console.WriteLine("----------------------------------------------------------");
 
-			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, false);
-			RunFTJBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("jsstyle.json"), numberOfTimes, true);
+			RunFTJBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, false);
+			RunFTJBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), numberOfTimes, true);
 
 			Console.WriteLine();
 
-			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, false);
-			RunFTJBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("person.json", File.ReadAllText("person.json"), numberOfTimes, true);
+			RunFTJBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, false);
+			RunFTJBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("person.json", File.ReadAllText("Input\\person.json"), numberOfTimes, true);
 
 			Console.WriteLine();
 
-			RunFTJBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, false);
-			RunFTJBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("supersimple.json"), numberOfTimes, true);
+			RunFTJBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, false);
+			RunFTJBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("supersimple.json", File.ReadAllText("Input\\supersimple.json"), numberOfTimes, true);
 
 			Console.WriteLine();
 
-			RunFTJBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, false);
-			RunFTJBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("simple.json", File.ReadAllText("simple.json"), numberOfTimes, true);
+			RunFTJBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, false);
+			RunFTJBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("simple.json", File.ReadAllText("Input\\simple.json"), numberOfTimes, true);
 
 			Console.WriteLine();
 
-			RunFTJBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, false);
-			RunFTJBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, true);
-			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, false);
-			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("TestMessage.json"), numberOfTimes, true);
+			RunFTJBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, false);
+			RunFTJBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, true);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, false);
+			RunStandardJsonBenchmark("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), numberOfTimes, true);
 		}
 
 		private static void RunFTJBenchmark(string name, string json, int numberOfTimes, bool useCodegen) {
