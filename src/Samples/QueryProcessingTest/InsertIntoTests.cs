@@ -71,7 +71,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(!visits.MoveNext());
             // Test insert __id value
-            var vId = v.GetObjectNo();
+            var vId = v.GetObjectNo() + 10;
             Db.Transaction(delegate { v.Delete(); });
             Db.SystemTransaction(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (__id, id, company, UserAgent) values (object " +
