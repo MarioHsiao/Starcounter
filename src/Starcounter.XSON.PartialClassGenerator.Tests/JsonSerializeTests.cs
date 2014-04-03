@@ -1,23 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Starcounter.Internal.Application.CodeGeneration;
-using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
-using Modules;
-using TJson = Starcounter.Templates.TObject;
-using Starcounter.XSON.Serializer.Parsetree;
+using Starcounter.Templates;
 using Starcounter.XSON.Serializer;
+using Starcounter.XSON.Serializer.Parsetree;
+using TJson = Starcounter.Templates.TObject;
 
-
-namespace Starcounter.Internal.XSON.Serializer.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
     /// 
     /// </summary>
-    public static class JsonSerializeTest {
+    public static class JsonSerializeTests {
   //      private static NewtonsoftSerializer newtonSerializer;
         private static StandardJsonSerializer defaultSerializer;
 		private static FasterThanJsonSerializer ftjSerializer;
@@ -64,41 +60,41 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		[Test]
 		[Ignore("Requires fixing FTJ serializer")]
         public static void TestFTJSerializer() {
-			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
-			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), false);
-			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
-			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
-			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
+            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), false);
+            RunFTJSerializerTest("person.json", File.ReadAllText("Input\\person.json"), false);
+            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), false);
+            RunFTJSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), false);
+            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), false);
 		}
 
 		[Test]
         [Ignore("Requires fixing FTJ serializer")]
 		public static void TestFTJCodegenSerializer() {
-			RunFTJSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
-			RunFTJSerializerTest("person.json", File.ReadAllText("person.json"), true);
-			RunFTJSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
-			RunFTJSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
-			RunFTJSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), true);
+            RunFTJSerializerTest("person.json", File.ReadAllText("Input\\person.json"), true);
+            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), true);
+            RunFTJSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), true);
+            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), true);
 		}
 
 		[Test]
 		public static void TestStandardSerializer() {
-            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), false);
-            RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), false);
-            RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), false);
-            RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), false);
-			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), false);
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("JsonWithFiller.json"), false);
+            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), false);
+            RunStandardSerializerTest("person.json", File.ReadAllText("Input\\person.json"), false);
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), false);
+            RunStandardSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), false);
+            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), false);
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Input\\JsonWithFiller.json"), false);
 		}
 
 		[Test]
 		public static void TestStandardCodegenSerializer() {
-			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
-			RunStandardSerializerTest("person.json", File.ReadAllText("person.json"), true);
-			RunStandardSerializerTest("supersimple.json", File.ReadAllText("supersimple.json"), true);
-			RunStandardSerializerTest("simple.json", File.ReadAllText("simple.json"), true);
-			RunStandardSerializerTest("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("JsonWithFiller.json"), true);
+			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), true);
+            RunStandardSerializerTest("person.json", File.ReadAllText("Input\\person.json"), true);
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), true);
+            RunStandardSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), true);
+            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), true);
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Input\\JsonWithFiller.json"), true);
 		}
 
 		private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
@@ -560,8 +556,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         /// </summary>
         /// <param name="filePath">The file to load</param>
         /// <returns>The newly created template</returns>
-        private static TJson CreateJsonTemplateFromFile( string filePath ) {
-            string json = File.ReadAllText(filePath);
+        private static TJson CreateJsonTemplateFromFile(string filePath) {
+            string json = File.ReadAllText("Input\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
             var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
