@@ -71,6 +71,14 @@ namespace Starcounter.Internal.Weaver
             return WeaverUtilities.InheritsObject(typeDef);
         }
 
+        [Conditional("DEBUG")]
+        internal static void EmitDebugConsoleWriteLine(ModuleDeclaration module, InstructionWriter writer, string value) {
+            writer.EmitInstructionString(OpCodeNumber.Ldstr, new LiteralString(value));
+            writer.EmitInstructionMethod(
+                OpCodeNumber.Call, 
+                module.FindMethod(typeof(Console).GetMethod("WriteLine", new Type[] { typeof(string) }), BindingOptions.Default));
+        }
+
         /// <summary>
         /// Converts a weaver message to it's error code.
         /// </summary>
