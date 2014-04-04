@@ -270,9 +270,48 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("----------");
             Console.WriteLine(patch);
 
-            string correctPatch = @"[{""op"":""replace"",""path"":""/Items/1"",""value"":{""Number"":99}}"
-                                 +@",{""op"":""replace"",""path"":""/Items/2"",""value"":{""Number"":2}}"
-                                 +@",{""op"":""replace"",""path"":""/Items/3"",""value"":{""Number"":3}}]";
+            string correctPatch = @"[{""op"":""add"",""path"":""/Items/1"",""value"":{""Number"":99}}]";
+            Assert.AreEqual(correctPatch, patch);
+        }
+
+        [Test]
+        public static void TestRemoveItem() {
+            dynamic root = new Json();
+            dynamic item;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            item = new Json();
+            item.Number = 1;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 2;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 3;
+            root.Items.Add(item);
+
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("BEFORE:");
+            Console.WriteLine("-----------");
+            Console.WriteLine(patch);
+
+            root.Items.RemoveAt(1);
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("AFTER");
+            Console.WriteLine("----------");
+            Console.WriteLine(patch);
+
+            string correctPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
             Assert.AreEqual(correctPatch, patch);
         }
     }
