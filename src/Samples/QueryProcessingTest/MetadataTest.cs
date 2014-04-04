@@ -197,7 +197,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!tc.Unique);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 100);
+            Trace.Assert(nrColumns == 101);
             MaterializedIndex i = Db.SQL<MaterializedIndex>("select i from materializedindex i where name = ?",
                 "TableColumnPrimaryKey").First;
             Trace.Assert(i != null);

@@ -94,6 +94,39 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.GetObjectNo() == vId);
             Trace.Assert(!visits.MoveNext());
+            Db.Transaction(delegate {
+                Db.SQL("insert into QueryProcessingTest.user(userid,useridnr,birthday,firstname,lastname,nickname)" +
+                    "values('SpecUser',1000000," + startV.Ticks + ",'Carl','Olofsson','')");
+                var users = Db.SQL<User>("select u from user u where userid = ?", "SpecUser").GetEnumerator();
+                Trace.Assert(users.MoveNext());
+                User u = users.Current;
+                Trace.Assert(u != null);
+                Trace.Assert(u.UserId == "SpecUser");
+                Trace.Assert(u.UserIdNr == 1000000);
+                Trace.Assert(u.BirthDay == startV);
+                Trace.Assert(u.FirstName == "Carl");
+                Trace.Assert(u.LastName == "Olofsson");
+                Trace.Assert(u.AnotherNickName == "");
+                Trace.Assert(u.PatronymicName == null);
+                Trace.Assert(!users.MoveNext());
+                Db.SQL("insert into account(accountid,client,amount,accounttype,notactive,amountdouble)"+
+                    "values(1000000,object "+u.GetObjectNo()+",10.2,'savings',false,10.2)");
+                var accounts = Db.SQL<Account>("select a from account a where client = ?", u).GetEnumerator();
+                Trace.Assert(accounts.MoveNext());
+                Account a = accounts.Current;
+                Trace.Assert(a != null);
+                Trace.Assert(a.AccountId == 1000000);
+                Trace.Assert(a.Client.Equals(u));
+                Trace.Assert(a.Amount == 10.2m);
+                Trace.Assert(a.AccountType == "savings");
+                Trace.Assert(a.NotActive == false);
+                Trace.Assert(a.AmountDouble == 10.2);
+                Trace.Assert(!accounts.MoveNext());
+                a.Delete();
+                u.Delete();
+            });
+            Trace.Assert(Db.SQL<User>("select u from user u where userid = ?", "SpecUser").First == null);
+            Trace.Assert(Db.SQL<Account>("select a from account a where accountid = ?", 1000000).First == null);
             HelpMethods.LogEvent("Finished testing insert into statements with values on web visit data model");
         }
     }
