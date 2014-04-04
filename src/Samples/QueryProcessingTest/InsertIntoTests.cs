@@ -53,20 +53,27 @@ namespace QueryProcessingTest {
             Trace.Assert(co.Name == "Canal+");
             Trace.Assert(co.Country.Equals(c));
             Trace.Assert(!compEnum.MoveNext());
-#if false // Access violation
+            DateTime startV = Convert.ToDateTime("2006-11-01 00:08:40");
+            DateTime endV = Convert.ToDateTime("2006-11-01 00:08:59");
             Db.Transaction(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, start, end, UserAgent) values (1, object "+
-                    co.GetObjectNo() + ",timestapm '2006-11-01 00:08:40',timestapm '2006-11-01 00:08:59','Opera')");
+                    co.GetObjectNo() + ","+startV.Ticks+","+endV.Ticks+",'Opera')");
             });
-#endif
             Db.Transaction(delegate {
-                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent) values (1, object " +
+                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent) values (2, object " +
                     co.GetObjectNo() + ",'Opera')");
             });
             var visits = Db.SQL<Visit>("select v from visit v where company = ?", co).GetEnumerator();
             Trace.Assert(visits.MoveNext());
             Visit v = visits.Current;
             Trace.Assert(v.Id == 1);
+            Trace.Assert(v.Company.Equals(co));
+            Trace.Assert(v.UserAgent == "Opera");
+            Trace.Assert(v.Start == startV);
+            Trace.Assert(v.End == endV);
+            Trace.Assert(visits.MoveNext());
+            v = visits.Current;
+            Trace.Assert(v.Id == 2);
             Trace.Assert(v.Company.Equals(co));
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(!visits.MoveNext());
@@ -79,6 +86,7 @@ namespace QueryProcessingTest {
                     co.GetObjectNo() + ",'Opera')");
             });
             visits = Db.SQL<Visit>("select v from visit v where company = ?", co).GetEnumerator();
+            Trace.Assert(visits.MoveNext());
             Trace.Assert(visits.MoveNext());
             v = visits.Current;
             Trace.Assert(v.Id == 1);
