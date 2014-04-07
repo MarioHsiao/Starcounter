@@ -2,5 +2,6 @@
 	"$": { Namespace: "Starcounter.JsonPatch.BuiltInRestHandlers" },
     "applicationName": "myApp1",
     "databaseName": "mydatabase1",
-    "text": "some text"
+    "text": "some text",
+	"time": "ISO-8601, e.g. 2013-04-25T06.24:32"
 }
