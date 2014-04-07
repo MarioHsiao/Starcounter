@@ -124,6 +124,24 @@ namespace Starcounter
             QueryResultRows<T> enumerableResult = new QueryResultRows<T>(0, query, slowSQL, values);
             return enumerableResult;
         }
+
+        /// <summary>
+        /// Unloads entire database into given file as set of INSERT INTO statements
+        /// </summary>
+        /// <param name="fileName">Path of the file were the statements are written.</param>
+        /// <returns>Number of unloaded objects.</returns>
+        public static int Unload(string fileName) {
+            return Starcounter.Reload.Unload(fileName);
+        }
+
+        /// <summary>
+        /// Reloads entire database by executing INSERT INTO statements from the given file.
+        /// </summary>
+        /// <param name="fileName">Name of the file with INSERT INTO statements.</param>
+        /// <returns>Number of inserted objects.</returns>
+        public static int Reload(string fileName) {
+            return Starcounter.Reload.Load(fileName);
+        }
     }
 
     /// <summary>
