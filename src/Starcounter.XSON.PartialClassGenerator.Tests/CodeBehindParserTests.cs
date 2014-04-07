@@ -1,9 +1,8 @@
 ﻿using System;
-using Starcounter.XSON.Metadata;
-using NUnit.Framework;
-using Starcounter.Internal.XSON;
 using System.IO;
+using NUnit.Framework;
 using Starcounter.XSON.Compiler.Mono;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     public class CodeBehindParserTests {
@@ -16,7 +15,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void CodeBehindSimpleAnalyzeTest() {
             CodeBehindMetadata monoMetadata;
             
-			monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
+			monoMetadata = MonoAnalyze("Simple", @"Input\simple.json.cs");
 			Assert.AreEqual(null, monoMetadata.RootClassInfo.BoundDataClass);
 			Assert.AreEqual(null, monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
 			Assert.AreEqual("Json", monoMetadata.RootClassInfo.BaseClassName);
@@ -37,7 +36,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		public static void CodeBehindComplexAnalyzeTest() {
 			CodeBehindMetadata monoMetadata;
 
-			monoMetadata = MonoAnalyze("Complex", @"Compiler\complex.json.cs");
+			monoMetadata = MonoAnalyze("Complex", @"Input\complex.json.cs");
 			Assert.AreEqual("Order", monoMetadata.RootClassInfo.BoundDataClass);
 			Assert.AreEqual("Complex_json", monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
 			Assert.AreEqual("MyBaseJsonClass", monoMetadata.RootClassInfo.BaseClassName);
@@ -58,10 +57,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		public static void CodeBehindIncorrectAnalyzeTest() {
             Exception ex;
             
-            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect", @"Compiler\incorrect.json.cs"));
+            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect", @"Input\incorrect.json.cs"));
             Assert.IsTrue(ex.Message.Contains("Generic declaration"));
 
-            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect2", @"Compiler\incorrect2.json.cs"));
+            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect2", @"Input\incorrect2.json.cs"));
             Assert.IsTrue(ex.Message.Contains("constructors are not"));
 		}
     }

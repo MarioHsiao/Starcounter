@@ -67,9 +67,6 @@ extern "C" void __stdcall sccoredbh_thread_reset(void* hsched, uint8_t cpun, voi
 
 extern "C" void __stdcall sccoredbh_vproc_bgtask(void* hsched, uint8_t cpun, void* p)
 {
-    uint32_t r = SCBackgroundTask();
-    if (r == 0) return;
-	_fatal_error(r);
 }
 
 extern "C" void __stdcall sccoredbh_vproc_ctick(void* hsched, uint8_t cpun, uint32_t psec)
