@@ -15,6 +15,7 @@ namespace Starcounter.CLI {
     using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
+    using System.Threading;
 
     internal class StartApplicationCommand : ApplicationCLICommand {
 
@@ -195,7 +196,13 @@ namespace Starcounter.CLI {
                 }
             }
 
-            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null);
+            var responded = new ManualResetEvent(false);
+            node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null, (resp, ignored) => {
+                response = resp;
+                responded.Set();
+            });
+            responded.WaitOne();
+            
             response.FailIfNotSuccess();
             exe.PopulateFromJson(response.Body);
         }
