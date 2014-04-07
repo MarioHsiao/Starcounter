@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -104,6 +105,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                     consoleEvent.databaseName = consoleEventArg.DatabaseName;
                     consoleEvent.applicationName = consoleEventArg.ApplicationName;
                     consoleEvent.text = consoleEventArg.Text;
+                    consoleEvent.time = consoleEventArg.Time.ToString("s", CultureInfo.InvariantCulture);
 
                     ConsoleEvents consoleEvents = new ConsoleEvents();
                     consoleEvents.Items.Add(consoleEvent);
@@ -169,6 +171,7 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
                 consoleEvent.databaseName = item.DatabaseName;
                 consoleEvent.applicationName = item.ApplicationName;
                 consoleEvent.text = item.Text;
+                consoleEvent.time = item.Time.ToString("s", CultureInfo.InvariantCulture);
                 list.Items.Add(consoleEvent);
             }
 
