@@ -201,7 +201,7 @@ namespace Starcounter.CLI {
                 response = resp;
                 responded.Set();
             });
-            responded.WaitOne();
+            AwaitExecutableStartup(databaseName, responded);
             
             response.FailIfNotSuccess();
             exe.PopulateFromJson(response.Body);
@@ -226,6 +226,17 @@ namespace Starcounter.CLI {
                 string.Format("Running in process {0}, started by \"{1}\"", engine.CodeHostProcess.PID, exe.StartedBy),
                 color);
             Environment.ExitCode = 0;
+        }
+
+        void AwaitExecutableStartup(string databaseName, ManualResetEvent started) {
+            var c = new CodeHostConsole(databaseName);
+            c.MessageWritten = (a, b) => {
+                Console.Write(b);
+            };
+            
+            c.Open();
+            started.WaitOne();
+            c.Close();
         }
 
         void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
