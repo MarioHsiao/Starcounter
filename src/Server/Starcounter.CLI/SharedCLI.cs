@@ -40,6 +40,18 @@ namespace Starcounter.CLI {
         public const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
 
         /// <summary>
+        /// Assures a given CLI context is properly initialized when it
+        /// has been established it is to be used (i.e. when the calling
+        /// code needs to use the CLI services of this assembly from a
+        /// CLI client process).
+        /// </summary>
+        public static void InitCLIContext() {
+            // Install custom assembly resolver to be able to resolve
+            // third-party web socket library
+            // TODO:
+        }
+
+        /// <summary>
         /// Defines well-known options, offered by most CLI tools.
         /// </summary>
         public static class Option {
