@@ -7,8 +7,8 @@
     <ProjectGuid>{84E160E1-E32F-45F9-BE7B-8E093D68975F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.XSON.CodeGeneration.Tests</RootNamespace>
-    <AssemblyName>Starcounter.XSON.CodeGeneration.Tests</AssemblyName>
+    <RootNamespace>Starcounter.XSON.PartialClassGenerator.Tests</RootNamespace>
+    <AssemblyName>Starcounter.XSON.PartialClassGenerator.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -74,138 +74,142 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="JsonWithFiller.json">
+    <None Include="Input\emptyarray.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\ChildMsg.json">
+    <None Include="Input\JsonWithFiller.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\Namespaces.json">
+    <None Include="Input\ChildMsg.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\Generic.json">
+    <None Include="Input\Namespaces.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\MailApp.json">
+    <None Include="Input\Generic.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\minimal.json">
+    <None Include="Input\MailApp.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v5">
+    <None Include="Input\minimal.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v2">
+    <None Include="Input\ParentChild.json.cs.v5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json">
+    <None Include="Input\ParentChild.json.cs.v2">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v3">
+    <None Include="Input\ParentChild.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Nesting\ParentChild.json.cs.v4">
+    <None Include="Input\ParentChild.json.cs.v3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\Company.json">
+    <None Include="Input\ParentChild.json.cs.v4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\Company.json.cs">
+    <None Include="Input\Company.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PartialClassGeneration\ThreadPage.json">
+    <None Include="Input\Company.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Company.json</DependentUpon>
+    </None>
+    <None Include="Input\ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="databound.json">
+    <None Include="Input\databound.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="jsstyle.json">
+    <None Include="Input\jsstyle.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="person.json">
+    <None Include="Input\person.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="supersimple.json">
+    <None Include="Input\supersimple.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="simple.json">
+    <None Include="Input\simple.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="MySampleApp.json.cs">
+    <None Include="Input\MySampleApp.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>MySampleApp.json</DependentUpon>
     </None>
-    <None Include="Compiler\complex.json.cs">
+    <None Include="Input\complex.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Compiler\simple.json.cs">
+    <None Include="Input\simple.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>simple.json</DependentUpon>
     </None>
-    <None Include="databound.json.cs">
+    <None Include="Input\databound.json.cs">
       <DependentUpon>databound.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Compiler\incorrect.json.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PartialClassGeneration\ThreadPage.json.cs">
+    <None Include="Input\ThreadPage.json.cs">
       <DependentUpon>ThreadPage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="InputGeneration\MailApp.json.cs">
+    <None Include="Input\MailApp.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>MailApp.json</DependentUpon>
     </None>
-    <None Include="PartialClassGeneration\Generic.json.cs">
+    <None Include="Input\Generic.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Generic.json</DependentUpon>
     </None>
-    <None Include="PartialClassGeneration\ChildMsg.json.cs">
+    <None Include="Input\ChildMsg.json.cs">
       <DependentUpon>ChildMsg.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Compiler\incorrect2.json.cs">
+    <None Include="Input\TestMessage.g.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Inheritance\TestInheritance.cs" />
-    <Compile Include="JsonSerializeTest.cs" />
-    <None Include="PartialClassGeneration\minimal.json.cs">
+    <None Include="Input\incorrect.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Nesting\TestSimpleNesting.cs" />
-    <Compile Include="NewtonsoftSerializer.cs" />
-    <None Include="Nesting\ParentChild.json.cs.v1">
+    <None Include="Input\incorrect2.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Nesting\DetectVersionToUse.cs" />
-    <Compile Include="InputGeneration\TestInputMapping.cs" />
-    <Compile Include="PartialClassGeneration\TestPartialClassGeneration.cs" />
-    <Compile Include="PregeneratedSerializationCode.cs" />
+    <Compile Include="JsonSerializeTests.cs" />
+    <None Include="Input\minimal.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>minimal.json</DependentUpon>
+    </None>
+    <Compile Include="SimpleNestingTests.cs" />
+    <None Include="Input\ParentChild.json.cs.v1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Include="DetectVersionToUseTests.cs" />
+    <Compile Include="InputMappingTests.cs" />
+    <Compile Include="PartialClassGenerationTests.cs" />
+    <None Include="PregeneratedSerializationCode.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Compiler\CodeBehindParserTests.cs" />
-    <None Include="TestMessage.g.cs">
-      <DependentUpon>TestMessage.json</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="TestMessage.json.cs">
+    <Compile Include="CodeBehindParserTests.cs" />
+    <None Include="Input\TestMessage.json.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="GeneratePartialClassTests.cs" />
-    <None Include="TestMessage.json">
+    <None Include="Input\TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MySampleApp2.json">
+    <None Include="Input\MySampleApp2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="MySampleApp.json">
+    <None Include="Input\MySampleApp.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
@@ -222,14 +226,6 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.DeserializerCompiler\Starcounter.XSON.DeserializerCompiler.csproj">
-      <Project>{d8eff98a-2225-4991-860f-70d753190a33}</Project>
-      <Name>Starcounter.XSON.DeserializerCompiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
       <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>

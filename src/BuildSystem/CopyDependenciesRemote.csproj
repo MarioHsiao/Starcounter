@@ -32,9 +32,9 @@
   <Target Name="CopyRemoteFiles">
 
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
-    <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)"
+   <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)"
            Condition="'$(SC_BUILD_SKIP_LOCAL_FTP)' != 'True' AND '$(BinariesFTPAccessible)' != 'True'" />
-    
+		   
     <!-- Creating copied files lists. -->
     <ItemGroup>
       <RemoteLevel0BinFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)\*" />
