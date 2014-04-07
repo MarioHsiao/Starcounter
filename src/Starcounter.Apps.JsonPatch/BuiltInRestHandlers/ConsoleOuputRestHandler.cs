@@ -185,12 +185,14 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
         public string DatabaseName { get; private set; }
         public string ApplicationName { get; private set; }
         public string Text { get; private set; }
+        public readonly DateTime Time;
 
         public ConsoleEventArgs(string databaseName, string applicationName, string text)
             : base() {
             this.DatabaseName = databaseName;
             this.ApplicationName = applicationName;
             this.Text = text;
+            Time = DateTime.Now;
         }
 
     }
