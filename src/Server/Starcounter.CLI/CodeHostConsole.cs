@@ -13,7 +13,7 @@ namespace staradmin {
     /// <summary>
     /// Implements a console bound to a given code host.
     /// </summary>
-    internal sealed class CodeHostConsole {
+    public sealed class CodeHostConsole {
         Task opening;
         Action<CodeHostConsole> openedCallback;
         Action<CodeHostConsole> closedCallback;
@@ -28,6 +28,10 @@ namespace staradmin {
         /// </summary>
         public readonly string DatabaseName;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="databaseName"></param>
         public CodeHostConsole(string databaseName) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
@@ -35,26 +39,50 @@ namespace staradmin {
             DatabaseName = databaseName;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Action<CodeHostConsole> Opened {
             set {
                 openedCallback = value;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Action<CodeHostConsole> Closed {
             set {
                 closedCallback = value;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Action<CodeHostConsole, string> MessageWritten {
             set {
                 messageCallback = value;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Open() {
             DoOpen();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Close() {
+            closeIssued = true;
+            opening.Wait();
+
+            if (socket.State == WebSocketState.Open) {
+                socket.Close();
+            }
         }
 
         void DoOpen() {
@@ -97,15 +125,6 @@ namespace staradmin {
                     }
                 }
             });
-        }
-
-        public void Close() {
-            closeIssued = true;
-            opening.Wait();
-
-            if (socket.State == WebSocketState.Open) {
-                socket.Close();
-            }
         }
 
         void OnError(object sender, ErrorEventArgs error) {
