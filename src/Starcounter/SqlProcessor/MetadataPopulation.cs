@@ -21,7 +21,8 @@ namespace Starcounter.SqlProcessor {
                         //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
                         assemblyName = '.' + app.Name;
                     }
-                    string fullName = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
+                    string fullNameRev = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
+                    string fullName = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
                     MaterializedTable mattab = Db.SQL<MaterializedTable>("select m from materializedtable m where name = ?",
                         typeDef.TableDef.Name).First;
                     ClrView parentView = null;
@@ -30,7 +31,8 @@ namespace Starcounter.SqlProcessor {
                     ClrView obj = new ClrView {
                         Name = typeDef.Name.LastDotWord(),
                         FullClassName = typeDef.Name,
-                        FullNameReversed = fullName,
+                        FullNameReversed = fullNameRev,
+                        FullName = fullName,
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
                         AppdomainName = AppDomain.CurrentDomain.FriendlyName,
