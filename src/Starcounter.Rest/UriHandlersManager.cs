@@ -259,10 +259,10 @@ namespace Starcounter.Rest
 
             // Checking if we have a response merging function defined.
             if ((responses.Count > 1) &&
-                (UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null))
+                (UriHandlersManager.CurrentUriHandlersManager.ResponsesMergerRoutine_ != null))
             {
                 // Creating merged response.
-                return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses);
+                return UriHandlersManager.CurrentUriHandlersManager.ResponsesMergerRoutine_(req, responses);
             } else {
 
                 return responses[0];
@@ -369,10 +369,42 @@ namespace Starcounter.Rest
         }
     }
 
+    public class UriInjectMethods {
+
+        public static Func<Request, Response> HandleInternalRequest_;
+        public static Func<Request, Boolean> OnHttpMessageRoot_;
+        public static Action<string, ushort> OnHandlerRegistered_;
+        public static bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
+
+        public static void SetHandlerRegisteredCallback(Action<string, ushort> callback) {
+            OnHandlerRegistered_ = callback;
+        }
+
+        // Checking if this Node supports local resting.
+        internal static Boolean IsSupportingLocalNodeResting() {
+            return HandleInternalRequest_ != null;
+        }
+
+        public static void SetRegisterUriHandlerNew(
+            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
+            Func<Request, Boolean> onHttpMessageRoot,
+            Func<Request, Response> handleInternalRequest) {
+
+            HttpOuterHandler_ = httpOuterHandler;
+            OnHttpMessageRoot_ = onHttpMessageRoot;
+            HandleInternalRequest_ = handleInternalRequest;
+        }
+
+        /// <summary>
+        /// Incorrect session exception.
+        /// </summary>
+        public class IncorrectSessionException : Exception { }
+    }
+
     /// <summary>
     /// All registered handlers manager.
     /// </summary>
-    internal class HandlersManagement
+    internal class UriHandlersManager
     {
         UserHandlerInfo[] allUriHandlers_ = null;
 
@@ -380,38 +412,16 @@ namespace Starcounter.Rest
 
         Int32 maxNumHandlersEntries_ = 0;
 
+        Boolean registerWithGateway_ = true;
+
+        /// <summary>
+        /// Indicates if this Uri handlers manager should register with gateway.
+        /// </summary>
+        public Boolean RegisterWithGateway {
+            set { registerWithGateway_ = value; }
+        }
+
         internal Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
-
-        public HandleInternalRequestDelegate HandleInternalRequest_;
-
-        public delegate Boolean UriCallbackDelegate(Request req);
-
-        public delegate Response HandleInternalRequestDelegate(Request request);
-
-        // Checking if this Node supports local resting.
-        internal Boolean IsSupportingLocalNodeResting()
-        {
-            return HandleInternalRequest_ != null;
-        }
-
-        public static UriCallbackDelegate OnHttpMessageRoot_;
-        static Action<string, ushort> OnHandlerRegistered_;
-        bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
-
-        public static void SetHandlerRegisteredCallback(Action<string, ushort> callback)
-        {
-            OnHandlerRegistered_ = callback;
-        }
-
-        public void SetRegisterUriHandlerNew(
-            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
-            UriCallbackDelegate onHttpMessageRoot,
-            HandleInternalRequestDelegate handleInternalRequest)
-        {
-            HttpOuterHandler_ = httpOuterHandler;
-            OnHttpMessageRoot_ = onHttpMessageRoot;
-            HandleInternalRequest_ = handleInternalRequest;
-        }
 
         public List<PortUris> PortUrisList
         {
@@ -430,7 +440,7 @@ namespace Starcounter.Rest
 
         public PortUris AddPort(UInt16 port)
         {
-            lock (HandleInternalRequest_)
+            lock (UriInjectMethods.HandleInternalRequest_)
             {
                 // Searching for existing port if any.
                 PortUris portUris = SearchPort(port);
@@ -442,6 +452,25 @@ namespace Starcounter.Rest
                 portUris_.Add(portUris);
                 return portUris;
             }
+        }
+
+        static List<UriHandlersManager> uriHandlersManagers_ = new List<UriHandlersManager>();
+
+        public static UriHandlersManager CurrentUriHandlersManager {
+            get { return uriHandlersManagers_[Handle.HandlersLevel]; }
+        }
+
+        internal static void AddNewUriHandlersLevel() {
+            uriHandlersManagers_.Add(new UriHandlersManager());
+        }
+
+        internal static void ResetUriHandlersManagers() {
+            foreach (UriHandlersManager uhm in uriHandlersManagers_)
+                uhm.Reset();
+
+            uriHandlersManagers_ = new List<UriHandlersManager>();
+
+            AddNewUriHandlersLevel();
         }
 
         public UserHandlerInfo[] AllUserHandlerInfos
@@ -467,7 +496,7 @@ namespace Starcounter.Rest
                 allUriHandlers_[i] = new UserHandlerInfo();
         }
 
-        public HandlersManagement()
+        public UriHandlersManager()
         {
             // Initializing port uris.
             PortUris.GlobalInit();
@@ -540,7 +569,7 @@ namespace Starcounter.Rest
                         processedUriInfo,
                         pp,
                         numParams,
-                        HttpOuterHandler_,
+                        UriInjectMethods.HttpOuterHandler_,
                         managedHandlerIndex,
                         out handlerInfo);
 
@@ -598,26 +627,27 @@ namespace Starcounter.Rest
                     protoType);
 
                 // Registering the outer native handler (if any).
-                if (HttpOuterHandler_ != null)
-                {
-                    RegisterUriHandlerNative(
-                        port,
-                        allUriHandlers_[handlerId].AppNames,
-                        originalUriInfo,
-                        processedUriInfo,
-                        nativeParamTypes,
-                        handlerId,
-                        out handlerInfo);
+                if (UriInjectMethods.HttpOuterHandler_ != null) {
+                    if (registerWithGateway_) {
+                        RegisterUriHandlerNative(
+                            port,
+                            allUriHandlers_[handlerId].AppNames,
+                            originalUriInfo,
+                            processedUriInfo,
+                            nativeParamTypes,
+                            handlerId,
+                            out handlerInfo);
+                    }
                 }
 
                 // Updating handler info from received value.
                 allUriHandlers_[handlerId].UriInfo.handler_info_ = handlerInfo;
 
-                if (OnHandlerRegistered_ != null)
-                    OnHandlerRegistered_(originalUriInfo, port);
+                if (UriInjectMethods.OnHandlerRegistered_ != null)
+                    UriInjectMethods.OnHandlerRegistered_(originalUriInfo, port);
 
                 // Resetting port URIs matcher.
-                PortUris portUris = UserHandlerCodegen.HandlersManager.SearchPort(port);
+                PortUris portUris = SearchPort(port);
                 if (portUris != null)
                     portUris.MatchUriAndGetHandlerId = null;
             }
@@ -645,10 +675,5 @@ namespace Starcounter.Rest
                 }
             }
         }
-
-        /// <summary>
-        /// Incorrect session exception.
-        /// </summary>
-        public class IncorrectSessionException : Exception { }
     }
 }

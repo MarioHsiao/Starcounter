@@ -32,7 +32,7 @@ namespace Starcounter.Rest
         /// <param name="mergerRoutine"></param>
         public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine)
         {
-            UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ = mergerRoutine;
+            UriHandlersManager.CurrentUriHandlersManager.ResponsesMergerRoutine_ = mergerRoutine;
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler(ushort port, string verbAndUri, Func<Response> handler)
         {
-            UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T>(ushort port, string verbAndUri, Func<T, Response> handler)
         {
-            UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T1, T2>(ushort port, string verbAndUri, Func<T1, T2, Response> handler)
         {
-            UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T1, T2, T3>(ushort port, string verbAndUri, Func<T1, T2, T3, Response> handler)
         {
-            UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T1, T2, T3, T4>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, Response> handler)
         {
-            UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Starcounter.Rest
         /// <param name="handler">The code to call when receiving the request</param>
         public void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, T5, Response> handler)
         {
-            UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
         }
     }
 

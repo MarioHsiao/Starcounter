@@ -303,7 +303,7 @@ namespace Starcounter
                 }
 
                 // Calling user callback.
-                *is_handled = HandlersManagement.OnHttpMessageRoot_(http_request);
+                *is_handled = UriInjectMethods.OnHttpMessageRoot_(http_request);
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();

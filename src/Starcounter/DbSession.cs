@@ -128,7 +128,7 @@ namespace Starcounter {
 
                 byte schedulerNumber;
                 r = sccorelib.cm3_get_cpun(null, &schedulerNumber);
-                if (r != 0) {
+                if ((r != 0) || (schedId != Byte.MaxValue && schedulerNumber != schedId)) {
                     void* hEvent;
                     r = sccorelib.cm3_mevt_new(null, 0, &hEvent);
                     if (r == 0) {

@@ -30,6 +30,12 @@ namespace Starcounter {
         /// </summary>
         public static volatile IREST _REST;
 
+        internal static Int32 HandlersLevel = 0;
+
+        public static void SetCurrentLevel(Int32 handlersLevel) {
+            HandlersLevel = handlersLevel;
+        }
+
         /// <summary>
         /// Registers a routine to merge several responses.
         /// </summary>
