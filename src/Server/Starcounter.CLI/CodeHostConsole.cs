@@ -8,7 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebSocket4Net;
 
-namespace staradmin {
+namespace Starcounter.CLI {
+    using Task = System.Threading.Tasks.Task;
+    using WebSocket = WebSocket4Net.WebSocket;
 
     /// <summary>
     /// Implements a console bound to a given code host.
