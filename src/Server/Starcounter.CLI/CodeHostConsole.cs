@@ -31,14 +31,21 @@ namespace Starcounter.CLI {
         public readonly string DatabaseName;
 
         /// <summary>
+        /// Filters output based on a given time.
+        /// </summary>
+        public readonly DateTime TimeFilter;
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="databaseName"></param>
-        public CodeHostConsole(string databaseName) {
+        /// <param name="timeFilter"></param>
+        public CodeHostConsole(string databaseName, DateTime? timeFilter = null) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
             }
             DatabaseName = databaseName;
+            TimeFilter = timeFilter.HasValue ? timeFilter.Value : DateTime.MinValue;
         }
 
         /// <summary>
@@ -163,8 +170,16 @@ namespace Starcounter.CLI {
             events.PopulateFromJson(content);
 
             foreach (ConsoleEvents.ItemsElementJson item in events.Items) {
-                callback(this, item.text);
+                if (QualifiesThroughFilter(item)) {
+                    callback(this, item.text);
+                }
             }
+        }
+
+        bool QualifiesThroughFilter(ConsoleEvents.ItemsElementJson consoleEvent) {
+            // Expand protocol so we can filter on time.
+            // TODO:
+            return true;
         }
     }
 }
