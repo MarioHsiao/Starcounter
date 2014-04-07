@@ -30,7 +30,7 @@ namespace Starcounter.SqlProcessor {
                     ClrView obj = new ClrView {
                         Name = typeDef.Name.LastDotWord(),
                         FullClassName = typeDef.Name,
-                        FullName = fullName,
+                        FullNameReversed = fullName,
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
                         AppdomainName = AppDomain.CurrentDomain.FriendlyName,
@@ -98,7 +98,7 @@ namespace Starcounter.SqlProcessor {
                 ParentTable = parentTab,
                 Updatable = true
             };
-            rawView.FullName = GetFullName(matTab.Name);
+            rawView.FullNameReversed = GetFullName(matTab.Name);
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {

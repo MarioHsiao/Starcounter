@@ -58,14 +58,14 @@ namespace QueryProcessingTest {
             Trace.Assert(count == 5);
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "BaseType").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullName == "BaseType.Raw.Starcounter");
+            Trace.Assert(rv.FullNameReversed == "BaseType.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.ParentTable == null);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "ClrView").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullName == "ClrView.Raw.Starcounter");
+            Trace.Assert(rv.FullNameReversed == "ClrView.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -93,7 +93,7 @@ namespace QueryProcessingTest {
             Trace.Assert(count == 16);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "materialized_index").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullName == "materialized_index.Raw.Starcounter");
+            Trace.Assert(rv.FullNameReversed == "materialized_index.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -153,9 +153,9 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
-            c = Db.SQL<TableColumn>("select c from TableColumn c where name = ? and c.BaseTable is RawView", "fullName").First;
+            c = Db.SQL<TableColumn>("select c from TableColumn c where name = ? and c.BaseTable is RawView", "fullNameReversed").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Name == "FullName");
+            Trace.Assert(c.Name == "FullNameReversed");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is MaterializedType);
             Trace.Assert(c.Type.Name == "string");

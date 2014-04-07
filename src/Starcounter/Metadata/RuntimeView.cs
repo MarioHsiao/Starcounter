@@ -10,7 +10,7 @@ namespace Starcounter.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_FullNameReversed;
             internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
         }
@@ -35,13 +35,13 @@ namespace Starcounter.Metadata {
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("FullNameReversed", DbTypeCode.String),
                     new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean)
                 });
@@ -56,10 +56,10 @@ namespace Starcounter.Metadata {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
-        public string FullName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName); }
+        public string FullNameReversed {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullNameReversed); }
             internal set {
-                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName,
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullNameReversed,
                     value);
             }
         }
@@ -91,7 +91,7 @@ namespace Starcounter.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_FullNameReversed;
             internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
@@ -106,14 +106,14 @@ namespace Starcounter.Metadata {
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("FullNameReversed", DbTypeCode.String),
                     new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
@@ -145,7 +145,7 @@ namespace Starcounter.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_FullNameReversed;
             internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
@@ -160,14 +160,14 @@ namespace Starcounter.Metadata {
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("FullNameReversed", DbTypeCode.String),
                     new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
@@ -187,7 +187,7 @@ namespace Starcounter.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_FullNameReversed;
             internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
@@ -202,14 +202,14 @@ namespace Starcounter.Metadata {
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("FullNameReversed", DbTypeCode.String),
                     new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
@@ -226,7 +226,7 @@ namespace Starcounter.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_FullNameReversed;
             internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
@@ -244,7 +244,7 @@ namespace Starcounter.Metadata {
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
@@ -254,7 +254,7 @@ namespace Starcounter.Metadata {
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("FullNameReversed", DbTypeCode.String),
                     new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
