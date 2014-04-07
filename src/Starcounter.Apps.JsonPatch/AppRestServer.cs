@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Web {
 
             try {
                 // Invoking original user delegate with parameters here.
-                UserHandlerCodegen.HandlersManager.RunDelegate(request, out resp);
+                UriHandlersManager.CurrentUriHandlersManager.RunDelegate(request, out resp);
 
                 // Handling and returning the HTTP response.
                 resp = OnResponseHttp(request, resp);
@@ -114,7 +114,7 @@ namespace Starcounter.Internal.Web {
                 resp.ConstructFromFields();
                 return resp;
             }
-            catch (HandlersManagement.IncorrectSessionException) {
+            catch (UriInjectMethods.IncorrectSessionException) {
                 resp = Response.FromStatusCode(400);
                 resp["Connection"] = "close";
                 resp.ConstructFromFields();

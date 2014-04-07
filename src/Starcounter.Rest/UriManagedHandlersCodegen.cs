@@ -17,11 +17,11 @@ using Starcounter.Logging;
 
 namespace Starcounter.Rest
 {
-    internal class UserHandlerCodegen
+    internal class UriManagedHandlersCodegen
     {
         unsafe static Int32 USER_PARAM_INFO_SIZE = sizeof(MixedCodeConstants.UserDelegateParamInfo);
 
-        public UserHandlerCodegen()
+        public UriManagedHandlersCodegen()
         {
             if (USER_PARAM_INFO_SIZE != 4)
                 throw new Exception("User param info size != 4");
@@ -190,7 +190,7 @@ namespace Starcounter.Rest
 
                 // Checking if session is active.
                 if (null == session)
-                    throw new HandlersManagement.IncorrectSessionException();
+                    throw new UriInjectMethods.IncorrectSessionException();
 
                 return session;
             }
@@ -224,7 +224,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_STRING:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadStringParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadStringParam"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -243,7 +243,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_INT32:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadInt32Param"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadInt32Param"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -262,7 +262,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_INT64:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadInt64Param"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadInt64Param"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -281,7 +281,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_DECIMAL:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadDecimalParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadDecimalParam"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -300,7 +300,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_DOUBLE:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadDoubleParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadDoubleParam"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -319,7 +319,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_BOOLEAN:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadBooleanParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadBooleanParam"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -338,7 +338,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_DATETIME:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadDateTimeParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadDateTimeParam"),
                             req,
                             dataBeginPtr,
                             paramsInfoPtr);
@@ -363,7 +363,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_MESSAGE:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadMessageParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadMessageParam"),
                             req);
 
                         ParameterExpression parsedVar = Expression.Parameter(argMessageType);
@@ -377,7 +377,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_DYNAMIC_JSON:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadDynamicJsonParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadDynamicJsonParam"),
                             req);
 
                         ParameterExpression parsedVar = Expression.Parameter(typeof(Object));
@@ -391,7 +391,7 @@ namespace Starcounter.Rest
                     case RestDelegateArgumentTypes.REST_ARG_SESSION:
                     {
                         MethodCallExpression methodCall = Expression.Call(
-                            typeof(UserHandlerCodegen).GetMethod("ReadSessionParam"),
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadSessionParam"),
                             req);
 
                         ParameterExpression parsedVar = Expression.Parameter(argSessionType);
@@ -420,7 +420,8 @@ namespace Starcounter.Rest
             String originalUriInfo,
             MethodInfo userDelegateInfo,
             Expression delegExpr,
-            MixedCodeConstants.NetworkProtocolType protoType)
+            MixedCodeConstants.NetworkProtocolType protoType,
+            Int32 handlersId = 0)
         {
             // Mutually excluding handler registrations.
             Byte[] nativeParamTypes;
@@ -439,7 +440,7 @@ namespace Starcounter.Rest
                 out argSessionType);
 
             // Registering handler with gateway and getting the id.
-            handlers_manager_.RegisterUriHandler(
+            UriHandlersManager.CurrentUriHandlersManager.RegisterUriHandler(
                 port,
                 originalUriInfo,
                 processedUriInfo,
@@ -632,11 +633,6 @@ namespace Starcounter.Rest
                 ref bodyExpressions,
                 ref parsedParams);
 
-            //List<Expression> bodyExpressions = new List<Expression>();
-            //List<Expression> parsedParams = new List<Expression>();
-            //parsedParams.Add(Expression.Constant(5));
-            //parsedParams.Add(Expression.Constant(7));
-
             Expression callUserDelegate = null;
             if (userDelegateInfo.IsStatic)
                 callUserDelegate = Expression.Call(userDelegateInfo, parsedParams);
@@ -658,8 +654,6 @@ namespace Starcounter.Rest
 
             return (Func<Request, IntPtr, IntPtr, Response>)lambdaExpr.Compile();
         }
-
-
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate(
             UInt16 port,
@@ -841,31 +835,19 @@ namespace Starcounter.Rest
             }
         }
 
-        static UserHandlerCodegen user_codegen_handler_ = new UserHandlerCodegen();
+        static UriManagedHandlersCodegen user_codegen_handler_ = new UriManagedHandlersCodegen();
 
-        public static UserHandlerCodegen NewNativeUriCodegen
+        public static UriManagedHandlersCodegen UMHC
         {
             get { return user_codegen_handler_; }
         }
 
-        static HandlersManagement handlers_manager_ = new HandlersManagement();
-
-        public static HandlersManagement HandlersManager
-        {
-            get { return handlers_manager_; }
-        }
-
-        internal static void ResetHandlersManager()
-        {
-            handlers_manager_.Reset();
-        }
-
         public static void Setup(
             bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
-            HandlersManagement.UriCallbackDelegate onHttpMessageRoot,
-            HandlersManagement.HandleInternalRequestDelegate handleInternalRequest)
+            Func<Request, Boolean> onHttpMessageRoot,
+            Func<Request, Response> handleInternalRequest)
         {
-            handlers_manager_.SetRegisterUriHandlerNew(
+            UriInjectMethods.SetRegisterUriHandlerNew(
                 httpOuterHandler,
                 onHttpMessageRoot,
                 handleInternalRequest);
@@ -891,21 +873,21 @@ namespace Starcounter.Rest
             resp = null;
 
             // Checking if local RESTing is initialized.
-            if (!UserHandlerCodegen.HandlersManager.IsSupportingLocalNodeResting())
+            if (!UriInjectMethods.IsSupportingLocalNodeResting())
                 return false;
 
             // Checking if port is initialized.
-            PortUris portUris = UserHandlerCodegen.HandlersManager.SearchPort(portNumber);
+            PortUris portUris = UriHandlersManager.CurrentUriHandlersManager.SearchPort(portNumber);
             if (portUris == null)
-                portUris = UserHandlerCodegen.HandlersManager.AddPort(portNumber);
+                portUris = UriHandlersManager.CurrentUriHandlersManager.AddPort(portNumber);
 
             // Calling the code generation for URIs if needed.
             if (null == portUris.MatchUriAndGetHandlerId)
             {
                 if (!portUris.GenerateUriMatcher(
                     portNumber,
-                    UserHandlerCodegen.HandlersManager.AllUserHandlerInfos,
-                    UserHandlerCodegen.HandlersManager.NumRegisteredHandlers))
+                    UriHandlersManager.CurrentUriHandlersManager.AllUserHandlerInfos,
+                    UriHandlersManager.CurrentUriHandlersManager.NumRegisteredHandlers))
                 {
                     return false;
                 }
@@ -932,10 +914,10 @@ namespace Starcounter.Rest
                     // Creating HTTP request.
                     Request req = new Request(requestBytes, requestBytesLength, native_params_bytes);
                     req.ManagedHandlerId = (UInt16)handler_id;
-                    req.MethodEnum = UserHandlerCodegen.HandlersManager.AllUserHandlerInfos[handler_id].UriInfo.http_method_;
+                    req.MethodEnum = UriHandlersManager.CurrentUriHandlersManager.AllUserHandlerInfos[handler_id].UriInfo.http_method_;
 
                     // Invoking original user delegate with parameters here.
-                    resp = UserHandlerCodegen.HandlersManager.HandleInternalRequest_(req);
+                    resp = UriInjectMethods.HandleInternalRequest_(req);
 
                     // Parsing the response.
                     resp.ParseResponseFromPlainBuffer();

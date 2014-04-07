@@ -66,7 +66,7 @@ namespace Starcounter.Internal {
 
             // Giving REST needed delegates.
             unsafe {
-                UserHandlerCodegen.Setup(
+                UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.HandleIncomingHttpRequest,
                     OnHttpMessageRoot,
                     AppServer_.HandleRequest);
@@ -76,7 +76,7 @@ namespace Starcounter.Internal {
 
             // Injecting required hosted Node functionality.
             Node.InjectHostedImpl(
-                UserHandlerCodegen.DoLocalNodeRest,
+                UriManagedHandlersCodegen.DoLocalNodeRest,
                 NodeErrorLogSource.LogException);
 
             // Initializing global sessions.

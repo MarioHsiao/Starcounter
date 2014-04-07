@@ -62,11 +62,11 @@ namespace Starcounter
         /// <param name="rest"></param>
         /// <param name="logSource"></param>
         internal static void InjectHostedImpl(
-            DoLocalNodeRest doLocalNodeRest_,
-            NodeLogException nodeLogException_)
+            DoLocalNodeRest doLocalNodeRest,
+            NodeLogException nodeLogException)
         {
-            DoLocalNodeRest_ = doLocalNodeRest_;
-            NodeLogException_ = nodeLogException_;
+            DoLocalNodeRest_ = doLocalNodeRest;
+            NodeLogException_ = nodeLogException;
         }
 
         /// <summary>

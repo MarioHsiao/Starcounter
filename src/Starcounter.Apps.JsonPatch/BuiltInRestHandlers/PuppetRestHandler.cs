@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
         internal static void Register(UInt16 defaultUserHttpPort) {
-            HandlersManagement.SetHandlerRegisteredCallback(HandlerRegistered);
+            Starcounter.Rest.UriInjectMethods.SetHandlerRegisteredCallback(HandlerRegistered);
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
