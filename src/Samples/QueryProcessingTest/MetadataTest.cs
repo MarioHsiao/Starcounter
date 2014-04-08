@@ -88,6 +88,7 @@ namespace QueryProcessingTest {
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", false)) {
                 Trace.Assert(v.MaterializedTable != null);
                 Trace.Assert(v.MaterializedTable.Name == v.Name);
+                Trace.Assert(v.FullName == v.FullNameReversed.ReverseOrderDotWords());
                 count++;
             }
             Trace.Assert(count == 16);
@@ -196,6 +197,8 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn != null);
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(!tc.Unique);
+                RawView rw = tc.BaseTable as RawView;
+                Trace.Assert(rw.FullNameReversed.ReverseOrderDotWords() == rw.FullName);
                 nrColumns++;
             }
             Trace.Assert(nrColumns == 102);

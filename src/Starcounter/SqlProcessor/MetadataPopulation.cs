@@ -83,6 +83,10 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static string GetFullName(string tableName) {
+            return "Starcounter.Raw." + tableName;
+        }
+
+        internal static string GetFullNameReversed(string tableName) {
             return tableName.ReverseOrderDotWords() + ".Raw.Starcounter";
         }
 
@@ -100,7 +104,8 @@ namespace Starcounter.SqlProcessor {
                 ParentTable = parentTab,
                 Updatable = true
             };
-            rawView.FullNameReversed = GetFullName(matTab.Name);
+            rawView.FullName = GetFullName(matTab.Name);
+            rawView.FullNameReversed = GetFullNameReversed(matTab.Name);
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
