@@ -201,7 +201,7 @@ namespace Starcounter.CLI {
                 response = resp;
                 responded.Set();
             });
-            AwaitExecutableStartup(databaseName, responded);
+            AwaitExecutableStartup(databaseName, exe.Name, responded);
             
             response.FailIfNotSuccess();
             exe.PopulateFromJson(response.Body);
@@ -228,8 +228,8 @@ namespace Starcounter.CLI {
             Environment.ExitCode = 0;
         }
 
-        void AwaitExecutableStartup(string databaseName, ManualResetEvent started) {
-            var c = new CodeHostConsole(databaseName);
+        void AwaitExecutableStartup(string databaseName, string appName, ManualResetEvent started) {
+            var c = new CodeHostConsole(databaseName, DateTime.Now, appName);
             c.MessageWritten = (a, b) => {
                 Console.Write(b);
             };
