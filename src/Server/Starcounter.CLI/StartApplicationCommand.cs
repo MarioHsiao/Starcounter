@@ -182,7 +182,7 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
-            ShowStatus("starting executable", true);
+            ShowStatus("starting application");
             exe = new Executable();
             exe.Path = app.BinaryFilePath;
             exe.ApplicationFilePath = app.FilePath;
