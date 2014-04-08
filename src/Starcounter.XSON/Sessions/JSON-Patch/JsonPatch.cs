@@ -174,7 +174,7 @@ namespace Starcounter.Internal.JsonPatch {
             for (Int32 i = 0; i < path.Length; i++) {
                 if (nextIndexIsPositionInList) {
                     nextIndexIsPositionInList = false;
-					list = (Json)listProp.GetUnboundValueAsObject(app);
+                    list = listProp.UnboundGetter(app);
                     app = (Json)list._GetAt(path[i]);
                     sb.Append('/');
                     sb.Append(path[i]);
