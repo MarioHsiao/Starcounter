@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WebSocket4Net;
 
 namespace Starcounter.CLI {
+    using System.Globalization;
     using Task = System.Threading.Tasks.Task;
     using WebSocket = WebSocket4Net.WebSocket;
 
@@ -177,8 +178,11 @@ namespace Starcounter.CLI {
         }
 
         bool QualifiesThroughFilter(ConsoleEvents.ItemsElementJson consoleEvent) {
-            // Expand protocol so we can filter on time.
-            // TODO:
+            // Keep the time-filter somewhat relaxed. If we get some input we can't
+            // properly interpret, we return a positive rather than not.
+            DateTime time;
+            var parsed = DateTime.TryParse(consoleEvent.time, null, DateTimeStyles.RoundtripKind, out time);
+            if (parsed) return time > TimeFilter;
             return true;
         }
     }
