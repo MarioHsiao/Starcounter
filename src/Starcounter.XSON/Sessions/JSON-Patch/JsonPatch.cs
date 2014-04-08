@@ -197,7 +197,7 @@ namespace Starcounter.Internal.JsonPatch {
                         nextIndexIsPositionInList = true;
                     }
                     else if (template is TObject) {
-                        app = ((TObject)template).Getter(app);
+                        app = ((TObject)template).UnboundGetter(app);
                     }
                 }
             }
