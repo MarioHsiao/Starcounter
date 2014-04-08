@@ -162,7 +162,7 @@ namespace Starcounter.Templates {
 		/// <param name="parent"></param>
 		/// <returns></returns>
 		internal override object GetUnboundValueAsObject(Json parent) {
-			return Getter(parent);
+			return UnboundGetter(parent);
 		}
 
 		/// <summary>
