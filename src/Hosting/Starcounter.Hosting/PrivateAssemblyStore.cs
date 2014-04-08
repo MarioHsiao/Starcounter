@@ -42,7 +42,7 @@ namespace Starcounter.Hosting {
     /// </summary>
     internal sealed class PrivateAssemblyStore {
         readonly List<string> applicationDirectories = new List<string>();
-        readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>();
+        readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>(StringComparer.InvariantCultureIgnoreCase);
         
         public void RegisterApplicationDirectory(DirectoryInfo dir) {
             var binaries = new List<FileInfo>();
