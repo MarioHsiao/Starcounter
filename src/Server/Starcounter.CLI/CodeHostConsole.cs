@@ -37,16 +37,23 @@ namespace Starcounter.CLI {
         public readonly DateTime TimeFilter;
 
         /// <summary>
+        /// Filters only output from a specified application.
+        /// </summary>
+        public readonly string ApplicationName;
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="databaseName"></param>
         /// <param name="timeFilter"></param>
-        public CodeHostConsole(string databaseName, DateTime? timeFilter = null) {
+        /// <param name="applicationName"></param>
+        public CodeHostConsole(string databaseName, DateTime? timeFilter = null, string applicationName = null) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
             }
             DatabaseName = databaseName;
             TimeFilter = timeFilter.HasValue ? timeFilter.Value : DateTime.MinValue;
+            ApplicationName = applicationName;
         }
 
         /// <summary>
@@ -178,6 +185,17 @@ namespace Starcounter.CLI {
         }
 
         bool QualifiesThroughFilter(ConsoleEvents.ItemsElementJson consoleEvent) {
+            var appFilter = ApplicationName;
+
+            // Apply application filter if given
+            if (!string.IsNullOrEmpty(appFilter)) {
+                if (!string.IsNullOrEmpty(consoleEvent.applicationName)) {
+                    if (!appFilter.Equals(consoleEvent.applicationName, StringComparison.InvariantCultureIgnoreCase)) {
+                        return false;
+                    }
+                }
+            }
+
             // Keep the time-filter somewhat relaxed. If we get some input we can't
             // properly interpret, we return a positive rather than not.
             DateTime time;
