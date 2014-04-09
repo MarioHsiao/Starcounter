@@ -94,7 +94,9 @@ namespace Starcounter.CLI {
         /// 
         /// </summary>
         public void Close() {
+            closed.Set();
             closeIssued = true;
+
             opening.Wait();
 
             if (socket.State == WebSocketState.Open) {
@@ -104,17 +106,17 @@ namespace Starcounter.CLI {
 
         void DoOpen() {
             opening = Task.Run(() => {
-                var x = new AutoResetEvent(false);
+                var openOrErrored = new AutoResetEvent(false);
                 
-                while (!closeIssued) {
+                while (true) {
                     socket = new WebSocket(string.Format("ws://localhost:8181/__{0}/console", DatabaseName.ToLowerInvariant()));
                     
                     EventHandler opened = (s, e) => {
-                        x.Set();
+                        openOrErrored.Set();
                     };
                     EventHandler<ErrorEventArgs> errored = (s, e) => {
                         Trace.WriteLine(string.Format("Error when opening web socket: {0}", e.Exception.Message));
-                        x.Set();
+                        openOrErrored.Set();
                     };
 
                     socket.Opened += opened;
@@ -128,17 +130,23 @@ namespace Starcounter.CLI {
                     socket.Closed += OnClosed;
 
                     socket.Open();
-                    x.WaitOne();
-
+                    int signaled = WaitHandle.WaitAny(new WaitHandle[] { openOrErrored, closed });
                     socket.Opened -= opened;
                     socket.Error -= errored;
 
-                    if (socket.State == WebSocketState.Open) {
-                        socket.Error += OnError;
-                        if (openedCallback != null) {
-                            openedCallback(this);
-                        }
+                    if (signaled == 1) {
+                        // We are told to close down.
+                        // This task is done.
                         break;
+                    }
+                    else {
+                        if (socket.State == WebSocketState.Open) {
+                            socket.Error += OnError;
+                            if (openedCallback != null) {
+                                openedCallback(this);
+                            }
+                            break;
+                        }
                     }
                 }
             });
