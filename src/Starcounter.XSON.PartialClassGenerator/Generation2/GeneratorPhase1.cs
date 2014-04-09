@@ -129,7 +129,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         }
                         else if (kid is TObjArr) {
 							var tarr = kid as TObjArr;
-							var isUntyped = (tarr.ElementType.Properties.Count == 0);
+							var isUntyped = ((tarr.ElementType == null) || (tarr.ElementType.Properties.Count == 0));
 
 							if (isUntyped)
 								GenerateClassesForDefaultArray(tarr);

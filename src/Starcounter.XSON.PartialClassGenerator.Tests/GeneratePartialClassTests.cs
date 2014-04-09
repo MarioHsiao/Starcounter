@@ -4,19 +4,14 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter;
 using System;
-using NUnit.Framework;
-using Starcounter.Templates;
-using Starcounter.Internal.Application.CodeGeneration;
-using Starcounter.Templates.Interfaces;
 using System.IO;
-using Starcounter.XSON.Metadata;
-using Starcounter.Internal;
-using Modules;
-using Starcounter.Internal.XSON;
-using TJson = Starcounter.Templates.TObject;
+using NUnit.Framework;
+using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.MsBuild.Codegen;
+using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Metadata;
+using TJson = Starcounter.Templates.TObject;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
@@ -28,14 +23,13 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void InitializeTest() {
         }
 
-
         /// <summary>
         /// Creates a template from a JSON-by-example file
         /// </summary>
         /// <param name="filePath">The file to load</param>
         /// <returns>The newly created template</returns>
         private static TJson CreateJsonTemplateFromFile(string filePath) {
-            string json = File.ReadAllText(filePath);
+            string json = File.ReadAllText("Input\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
             var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
             tobj.ClassName = className;
@@ -112,7 +106,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateCsFromTestMessage() {
             String className = "TestMessage";
-            string codeBehindFilePath = className + ".json.cs";
+            string codeBehindFilePath = "Input\\" + className + ".json.cs";
             string codeBehind = File.ReadAllText(codeBehindFilePath);
             CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath );
 
@@ -134,7 +128,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            string codeBehindFilePath = className + ".json.cs";
+            string codeBehindFilePath = "Input\\" + className + ".json.cs";
             string codeBehind = File.ReadAllText(codeBehindFilePath);
 
             CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
@@ -153,8 +147,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		[Test]
 		public static void GenerateInheritedPartialClass() {
 			var codegen = PartialClassGenerator.GenerateTypedJsonCode(
-				"PartialClassGeneration/ChildMsg.json",
-				"PartialClassGeneration/ChildMsg.json.cs");
+				"Input/ChildMsg.json",
+				"Input/ChildMsg.json.cs");
 			var astTree = codegen.DumpAstTree();
 			var code = codegen.GenerateCode();
 
@@ -162,6 +156,14 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Console.WriteLine(code);
 		}
 
+        [Test]
+        public static void EmptyArrayCodeGenerationTest(){
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                "Input/emptyarray.json",
+                null);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
     }
 }
 

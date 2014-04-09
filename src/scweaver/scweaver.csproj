@@ -93,6 +93,8 @@
     <Compile Include="CodeWeaver.cs" />
     <Compile Include="CodeWeaverInsidePostSharpDomain.cs" />
     <Compile Include="CodeWeaverModuleLoadStrategy.cs" />
+    <Compile Include="FileExclusionPolicy.cs" />
+    <Compile Include="FileManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />
@@ -122,7 +124,6 @@
     <Compile Include="Starcounter.Internal.Weaver\ScTransactionScopeTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScTransformTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScTransformTrace.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScWeaveBootstrapTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverCache.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverNamingConventions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverSchemaExtensions.cs" />
@@ -139,7 +140,6 @@
     <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj">
       <SubType>Designer</SubType>
     </RuntimeFile>
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScWeaveBootstrap.psproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Server\Starcounter.CLI\Starcounter.CLI.csproj">

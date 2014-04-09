@@ -9,13 +9,6 @@
     <Dependency TaskType="Remove" Position="After"/>
   </TaskType>
 
-  <TaskType	Name="ScWeaveBootstrapper"
-				    Phase="Transform"
-				    Implementation="Starcounter.Internal.Weaver.ScWeaveBootstrapTask, scweaver"
-				    >
-    <Dependency TaskType="CodeWeaver" Position="After"/>
-  </TaskType>
-
   <TaskType Name="ScCopy"
             Phase="Generate"
             Implementation="Starcounter.Internal.Weaver.ScCopyTask, scweaver">

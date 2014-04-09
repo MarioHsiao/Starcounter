@@ -180,13 +180,9 @@ namespace StarcounterInternal.Hosting
         /// Called when [thread start].
         /// </summary>
         /// <param name="sf">The sf.</param>
-        private static void OnThreadStart(uint sf)
-        {
-            if ((sf & sccorelib.CM5_START_FLAG_FIRST_THREAD) != 0)
-            {
-                uint r = sccoredb.SCConfigureVP();
-                if (r == 0) return;
-                orange_fatal_error(r);
+        private static void OnThreadStart(uint sf) {
+            if ((sf & sccorelib.CM5_START_FLAG_FIRST_THREAD) != 0) {
+                // First thread started by scheduler.
             }
         }
 
@@ -236,11 +232,7 @@ namespace StarcounterInternal.Hosting
         }
 
 #if false
-        private static unsafe void orange_vproc_bgtask(void* hsched, byte cpun, void* p)
-        {
-            uint e = sccoredb.SCBackgroundTask();
-            if (e == 0) return;
-            orange_fatal_error(e);
+        private static unsafe void orange_vproc_bgtask(void* hsched, byte cpun, void* p) {
         }
 
         private static unsafe void orange_vproc_ctick(void* hsched, byte cpun, uint psec)

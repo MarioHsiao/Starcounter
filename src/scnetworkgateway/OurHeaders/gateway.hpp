@@ -25,7 +25,7 @@
 #include "common/name_definitions.hpp"
 
 // Level0 includes.
-#include <sccoredbg2.h>
+#include <sccoredbg.h>
 #include <sccorelog.h>
 
 // HTTP related stuff.

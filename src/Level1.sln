@@ -298,7 +298,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.HtmlReader
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.JsonByExample.Tests", "Starcounter.XSON.JsonReader.Tests\Starcounter.XSON.JsonByExample.Tests.csproj", "{FDC1CC89-8EE8-439D-8F50-16789D742274}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.CodeGeneration.Tests", "Starcounter.XSON.CodeGeneration.Tests\Starcounter.XSON.CodeGeneration.Tests.csproj", "{84E160E1-E32F-45F9-BE7B-8E093D68975F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.PartialClassGenerator.Tests", "Starcounter.XSON.PartialClassGenerator.Tests\Starcounter.XSON.PartialClassGenerator.Tests.csproj", "{84E160E1-E32F-45F9-BE7B-8E093D68975F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Tests", "Starcounter.Tests\Starcounter.Tests.csproj", "{766077BF-D6C8-437A-B1D2-6D81E0B62B1B}"
 EndProject
