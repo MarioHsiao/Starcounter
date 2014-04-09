@@ -1,22 +1,19 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.IO;
 using TJson = Starcounter.Templates.TObject;
 using Starcounter.Templates;
 
-
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
-
     [TestFixture]
-    public class TestPartialClassGeneration {
+    public class PartialClassGenerationTests {
         [TestFixtureSetUp]
         public static void InitializeTest() {
         }
 
         [Test]
         public static void TestMinimalTemplate() {
-            var tj = ReadTemplate("PartialClassGeneration/minimal.json");
+            var tj = ReadTemplate("Input/minimal.json");
 
             var child = tj.Properties[0]; // Text$
             Assert.AreEqual("Text$", child.TemplateName);
@@ -51,7 +48,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GenerateMinimalClassWithoutCodebehind() {
-            var tj = ReadTemplate("PartialClassGeneration/minimal.json");
+            var tj = ReadTemplate("Input/minimal.json");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
             Console.WriteLine(codegen.GenerateCode());
@@ -59,8 +56,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GenerateMinimalClassWithCodebehind() {
-            var tj = ReadTemplate("PartialClassGeneration/minimal.json");
-            var cb = File.ReadAllText("PartialClassGeneration/minimal.json.cs");
+            var tj = ReadTemplate("Input/minimal.json");
+            var cb = File.ReadAllText("Input/minimal.json.cs");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             //            var dom = codegen.GenerateAST();
             Console.WriteLine(codegen.GenerateCode());
@@ -77,8 +74,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void TestClassNames() {
             var code = PartialClassGenerator.GenerateTypedJsonCode(
-                "PartialClassGeneration/ThreadPage.json",
-                "PartialClassGeneration/ThreadPage.json.cs").GenerateCode();
+                "Input/ThreadPage.json",
+                "Input/ThreadPage.json.cs").GenerateCode();
             Console.WriteLine(code);
         }
 
@@ -86,7 +83,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void TestNamespaceWithoutCodeBehind() {
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(
-                "PartialClassGeneration/Namespaces.json", null);
+                "Input/Namespaces.json", null);
 //            var dump = codegen.DumpAstTree();
             var code = codegen.GenerateCode();
 //            Console.WriteLine(dump);

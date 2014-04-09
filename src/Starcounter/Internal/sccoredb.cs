@@ -218,20 +218,6 @@ namespace Starcounter.Internal
 #endif
 
         /// <summary>
-        /// SCs the configure VP.
-        /// </summary>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCConfigureVP();
-
-        /// <summary>
-        /// SCs the background task.
-        /// </summary>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint SCBackgroundTask();
-
-        /// <summary>
         /// Sccoredb_advance_clocks the specified scheduler_index.
         /// </summary>
         /// <param name="scheduler_index">The scheduler_index.</param>
@@ -978,6 +964,7 @@ namespace Starcounter.Internal
             UInt64* pv
             );
 
+#if false
         /// <summary>
         /// Sccoredb_iterator_get_local_times the specified iter_handle.
         /// </summary>
@@ -1000,6 +987,7 @@ namespace Starcounter.Internal
             UInt64 iter_verify,
             UInt32* plocal_time
             );
+#endif
 
         /// <summary>
         /// SCs the iterator free.
@@ -1056,6 +1044,7 @@ namespace Starcounter.Internal
             Byte* output,
             UInt32 outlen);
 
+#if false
         /// <summary>
         /// SCs the convert native string to UT F16.
         /// </summary>
@@ -1082,6 +1071,7 @@ namespace Starcounter.Internal
             /* const */ Byte* str1,
             /* const */ Byte* str2
             );
+#endif
 
         /// <summary>
         /// SCs the compare UT F16 strings.

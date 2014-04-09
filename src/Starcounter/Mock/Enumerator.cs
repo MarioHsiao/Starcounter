@@ -158,6 +158,7 @@ namespace Starcounter
             throw ErrorCode.ToException(err);
         }
 
+#if false
         /// <summary>
         /// Fetches iterator local time.
         /// </summary>
@@ -170,6 +171,7 @@ namespace Starcounter
 
             return local_time;
         }
+#endif
 
 #if false
         /// <summary>
@@ -441,6 +443,7 @@ namespace Starcounter
             throw ErrorCode.ToException(err);
         }
 
+#if false
         /// <summary>
         /// Fetches iterator local time.
         /// </summary>
@@ -452,6 +455,7 @@ namespace Starcounter
 
             return local_time;
         }
+#endif
 
         /// <summary>
         /// Advances the enumerator to the next element of the collection.

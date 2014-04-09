@@ -44,7 +44,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			Console.WriteLine(result);
 			Console.WriteLine("");
 
-			string facit = @"[{""op"":""replace"",""path"":""/Friends/1"",""value"":{""FirstName"":""Henrik"",""LastName"":""Boman""}}]";
+			string facit = @"[{""op"":""add"",""path"":""/Friends/1"",""value"":{""FirstName"":""Henrik"",""LastName"":""Boman""}}]";
 			Assert.AreEqual(facit, result);
         }
 
@@ -208,7 +208,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-        public static void AddAnElements() {
+        public static void TestAddItems() {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
@@ -228,6 +228,135 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("Changes:");
             Console.WriteLine("========");
             Console.WriteLine(Session.Current.CreateJsonPatch(true));
+        }
+
+        [Test]
+        public static void TestReplaceItem() {
+            dynamic root = new Json();
+            dynamic item;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            item = new Json();
+            item.Number = 1;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 2;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 3;
+            root.Items.Add(item);
+
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("BEFORE:");
+            Console.WriteLine("-----------");
+            Console.WriteLine(patch);
+
+            item = new Json();
+            item.Number = 99;
+            root.Items[1] = item;
+
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("AFTER");
+            Console.WriteLine("----------");
+            Console.WriteLine(patch);
+
+            string correctPatch = @"[{""op"":""replace"",""path"":""/Items/1"",""value"":{""Number"":99}}]";
+            Assert.AreEqual(correctPatch, patch);
+        }
+
+        [Test]
+        public static void TestInsertItem() {
+            dynamic root = new Json();
+            dynamic item;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            item = new Json();
+            item.Number = 1;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 2;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 3;
+            root.Items.Add(item);
+
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("BEFORE:");
+            Console.WriteLine("-----------");
+            Console.WriteLine(patch);
+
+            item = new Json();
+            item.Number = 99;
+            root.Items.Insert(1, item);
+
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("AFTER");
+            Console.WriteLine("----------");
+            Console.WriteLine(patch);
+
+            string correctPatch = @"[{""op"":""add"",""path"":""/Items/1"",""value"":{""Number"":99}}]";
+            Assert.AreEqual(correctPatch, patch);
+        }
+
+        [Test]
+        public static void TestRemoveItem() {
+            dynamic root = new Json();
+            dynamic item;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            item = new Json();
+            item.Number = 1;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 2;
+            root.Items.Add(item);
+
+            item = new Json();
+            item.Number = 3;
+            root.Items.Add(item);
+
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("BEFORE:");
+            Console.WriteLine("-----------");
+            Console.WriteLine(patch);
+
+            root.Items.RemoveAt(1);
+            patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("AFTER");
+            Console.WriteLine("----------");
+            Console.WriteLine(patch);
+
+            string correctPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
+            Assert.AreEqual(correctPatch, patch);
         }
     }
 }

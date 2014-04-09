@@ -8,12 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebSocket4Net;
 
-namespace staradmin {
+namespace Starcounter.CLI {
+    using System.Globalization;
+    using Task = System.Threading.Tasks.Task;
+    using WebSocket = WebSocket4Net.WebSocket;
 
     /// <summary>
     /// Implements a console bound to a given code host.
     /// </summary>
-    internal sealed class CodeHostConsole {
+    public sealed class CodeHostConsole {
         Task opening;
         Action<CodeHostConsole> openedCallback;
         Action<CodeHostConsole> closedCallback;
@@ -28,33 +31,75 @@ namespace staradmin {
         /// </summary>
         public readonly string DatabaseName;
 
-        public CodeHostConsole(string databaseName) {
+        /// <summary>
+        /// Filters output based on a given time.
+        /// </summary>
+        public readonly DateTime TimeFilter;
+
+        /// <summary>
+        /// Filters only output from a specified application.
+        /// </summary>
+        public readonly string ApplicationName;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="timeFilter"></param>
+        /// <param name="applicationName"></param>
+        public CodeHostConsole(string databaseName, DateTime? timeFilter = null, string applicationName = null) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
             }
             DatabaseName = databaseName;
+            TimeFilter = timeFilter.HasValue ? timeFilter.Value : DateTime.MinValue;
+            ApplicationName = applicationName;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Action<CodeHostConsole> Opened {
             set {
                 openedCallback = value;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Action<CodeHostConsole> Closed {
             set {
                 closedCallback = value;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Action<CodeHostConsole, string> MessageWritten {
             set {
                 messageCallback = value;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Open() {
             DoOpen();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Close() {
+            closeIssued = true;
+            opening.Wait();
+
+            if (socket.State == WebSocketState.Open) {
+                socket.Close();
+            }
         }
 
         void DoOpen() {
@@ -99,15 +144,6 @@ namespace staradmin {
             });
         }
 
-        public void Close() {
-            closeIssued = true;
-            opening.Wait();
-
-            if (socket.State == WebSocketState.Open) {
-                socket.Close();
-            }
-        }
-
         void OnError(object sender, ErrorEventArgs error) {
             Trace.WriteLine(string.Format("Error on web socket connection: {0}", error.Exception.Message));
             if (!closeIssued) {
@@ -142,8 +178,30 @@ namespace staradmin {
             events.PopulateFromJson(content);
 
             foreach (ConsoleEvents.ItemsElementJson item in events.Items) {
-                callback(this, item.text);
+                if (QualifiesThroughFilter(item)) {
+                    callback(this, item.text);
+                }
             }
+        }
+
+        bool QualifiesThroughFilter(ConsoleEvents.ItemsElementJson consoleEvent) {
+            var appFilter = ApplicationName;
+
+            // Apply application filter if given
+            if (!string.IsNullOrEmpty(appFilter)) {
+                if (!string.IsNullOrEmpty(consoleEvent.applicationName)) {
+                    if (!appFilter.Equals(consoleEvent.applicationName, StringComparison.InvariantCultureIgnoreCase)) {
+                        return false;
+                    }
+                }
+            }
+
+            // Keep the time-filter somewhat relaxed. If we get some input we can't
+            // properly interpret, we return a positive rather than not.
+            DateTime time;
+            var parsed = DateTime.TryParse(consoleEvent.time, null, DateTimeStyles.RoundtripKind, out time);
+            if (parsed) return time > TimeFilter;
+            return true;
         }
     }
 }
