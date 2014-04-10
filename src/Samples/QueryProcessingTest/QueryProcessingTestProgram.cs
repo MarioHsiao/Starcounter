@@ -16,6 +16,9 @@ namespace QueryProcessingTest {
                 WebVisitTests.TestVisits();
                 InsertIntoTests.TestValuesInsertIntoWebVisits();
                 PopulateData();
+                HelpMethods.LogEvent("Start unloading query processing database.");
+                Starcounter.Db.Unload("dumpQueryProcessingDB.txt");
+                HelpMethods.LogEvent("Finish unloading query processing database.");
                 SqlBugsTest.QueryTests();
                 FetchTest.RunFetchTest();
                 AggregationTest.RunAggregationTest();
