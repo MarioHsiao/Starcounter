@@ -150,9 +150,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             TObject template = new TObject();
             template.Add<TLong>("Value");
-            
+
             start = DateTime.Now;
-            for (int i = 0; i < repeats; i++){
+            for (int i = 0; i < repeats; i++) {
                 json = new Json() { Template = template };
                 json.Value = value;
                 value = json.Value;
@@ -163,22 +163,22 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-		public static void TestDynamicJson() {
-			dynamic json = new Json();
-			json["foo"] = "bar";
-			Assert.AreEqual(@"{""foo"":""bar""}", json.ToJson());
+        public static void TestDynamicJson() {
+            dynamic json = new Json();
+            json["foo"] = "bar";
+            Assert.AreEqual(@"{""foo"":""bar""}", json.ToJson());
 
-			dynamic json2 = new Json();
-			json2.foo = "bar";
-			Assert.AreEqual(@"{""foo"":""bar""}", json2.ToJson());
+            dynamic json2 = new Json();
+            json2.foo = "bar";
+            Assert.AreEqual(@"{""foo"":""bar""}", json2.ToJson());
 
-			Json json3 = new Json();
-			json3["foo"] = "bar";
-			Assert.AreEqual(@"{""foo"":""bar""}", json2.ToJson());
-		}
+            Json json3 = new Json();
+            json3["foo"] = "bar";
+            Assert.AreEqual(@"{""foo"":""bar""}", json2.ToJson());
+        }
 
-		[Test]
-		public static void TestDynamicJsonInLoop() {
+        [Test]
+        public static void TestDynamicJsonInLoop() {
             for (int i = 0; i < 2; i++) {
                 Json jsonItem = new Json();
                 jsonItem["dummy"] = "dummy";
@@ -200,21 +200,21 @@ namespace Starcounter.Internal.XSON.Tests {
                 dynamic json = new Json() { Template = template };
                 json.dummy = "dummy";
             }
-		}
+        }
 
-		[Test]
-		public static void TestParentAssignment() {
-			dynamic json = new Json();
-			dynamic newchildJson = new Json();
-			dynamic oldChildJson = new Json();
+        [Test]
+        public static void TestParentAssignment() {
+            dynamic json = new Json();
+            dynamic newchildJson = new Json();
+            dynamic oldChildJson = new Json();
 
-			json.Page = oldChildJson;
-			Assert.IsNotNull(oldChildJson.Parent);
+            json.Page = oldChildJson;
+            Assert.IsNotNull(oldChildJson.Parent);
 
-			json.Page = newchildJson;
-			Assert.IsNotNull(newchildJson.Parent);
-			Assert.IsNull(oldChildJson.Parent);
-		}
+            json.Page = newchildJson;
+            Assert.IsNotNull(newchildJson.Parent);
+            Assert.IsNull(oldChildJson.Parent);
+        }
 
         /// <summary>
         /// Tests TestCorrectJsonInstances.
@@ -233,43 +233,43 @@ namespace Starcounter.Internal.XSON.Tests {
 
         }
 
-		[Test]
-		public static void TestChangeBoundObject() {
-			var template = new TObject();
+        [Test]
+        public static void TestChangeBoundObject() {
+            var template = new TObject();
             var pageTemplate = template.Add<TObject>("Number");
-			pageTemplate.Add<TString>("Number");
+            pageTemplate.Add<TString>("Number");
 
-			dynamic msg = new Json { Template = template };
+            dynamic msg = new Json { Template = template };
 
-			var myDataObj = new PersonObject();
-			var numberObj = new PhoneNumberObject() { Number = "123-555-7890" };
-			myDataObj.Number = numberObj;
-			msg.Data = myDataObj;
+            var myDataObj = new PersonObject();
+            var numberObj = new PhoneNumberObject() { Number = "123-555-7890" };
+            myDataObj.Number = numberObj;
+            msg.Data = myDataObj;
 
-			string json = msg.ToJson();
-			Assert.AreEqual(@"{""Number"":{""Number"":""123-555-7890""}}", json);
+            string json = msg.ToJson();
+            Assert.AreEqual(@"{""Number"":{""Number"":""123-555-7890""}}", json);
 
-			var oldNumberJson = msg.Number;
+            var oldNumberJson = msg.Number;
 
-			msg.Number = new Json();
-			json = msg.ToJson();
-			Assert.AreEqual(@"{""Number"":{}}", json);
+            msg.Number = new Json();
+            json = msg.ToJson();
+            Assert.AreEqual(@"{""Number"":{}}", json);
 
-			myDataObj.Number = numberObj;
+            myDataObj.Number = numberObj;
 
-			msg.Number = null;
-			json = msg.ToJson();
-			Assert.AreEqual(@"{""Number"":{}}", json);
+            msg.Number = null;
+            json = msg.ToJson();
+            Assert.AreEqual(@"{""Number"":{}}", json);
 
-			msg.Number = oldNumberJson;
-			msg.Number.Data = numberObj;
-			json = msg.ToJson();
-			Assert.AreEqual(@"{""Number"":{""Number"":""123-555-7890""}}", json);
+            msg.Number = oldNumberJson;
+            msg.Number.Data = numberObj;
+            json = msg.ToJson();
+            Assert.AreEqual(@"{""Number"":{""Number"":""123-555-7890""}}", json);
 
-			msg.Number.Data = null;
-			json = msg.ToJson();
-			Assert.AreEqual(@"{""Number"":{""Number"":""""}}", json);
-		}
+            msg.Number.Data = null;
+            json = msg.ToJson();
+            Assert.AreEqual(@"{""Number"":{""Number"":""""}}", json);
+        }
 
         /// <summary>
         /// Tests TestDataBinding.
@@ -290,7 +290,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(0, msg.Age); // Since Age shouldn't be bound we should get a zero back and not 21.
             Assert.IsNotNullOrEmpty(msg.Created);
             Assert.IsNullOrEmpty(msg.Misc); // Same as above. Not bound so no value should be retrieved.
-            Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number); 
+            Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number);
 
             // Setting bound values.
             msg.FirstName = "Allan";
@@ -298,7 +298,7 @@ namespace Starcounter.Internal.XSON.Tests {
             msg.Age = 109L;
             msg.PhoneNumber.Number = "666";
             msg.Misc = "Changed!";
-             
+
             // Check dataobject is changed.
             Assert.AreEqual("Allan", myDataObj.FirstName);
             Assert.AreEqual("Ballan", myDataObj.Surname);
@@ -315,8 +315,8 @@ namespace Starcounter.Internal.XSON.Tests {
             // Bound to SimpleBase datatype.
             TObject tSimple = Helper.CreateJsonTemplateFromFile("simple.json");
             dynamic json = tSimple.CreateInstance();
-            
-            var o = new SubClass1(); 
+
+            var o = new SubClass1();
             json.Data = o;
             json.BaseValue = "SubClass1";
             json.AbstractValue = "SubClass1";
@@ -347,157 +347,157 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("SubClass3", virtualValue);
         }
 
-		[Test]
-		public static void TestUntypedObjectArray() {
+        [Test]
+        public static void TestUntypedObjectArray() {
             var schema = new TObject();
-			schema.Add<TArray<Json>>("Items");
-			schema.Add<TArray<Json>>("Items2");
+            schema.Add<TArray<Json>>("Items");
+            schema.Add<TArray<Json>>("Items2");
 
-			dynamic json = (Json)schema.CreateInstance();
-			dynamic item = new Json();
-			item.Header = "Apa papa";
-			json.Items.Add(item);
+            dynamic json = (Json)schema.CreateInstance();
+            dynamic item = new Json();
+            item.Header = "Apa papa";
+            json.Items.Add(item);
 
-			item = new Json();
-			item.Name = "La la la";
-			json.Items.Add(item);
+            item = new Json();
+            item.Name = "La la la";
+            json.Items.Add(item);
 
-			item = json.Items.Add();
-			item.AProp = 19;
+            item = json.Items.Add();
+            item.AProp = 19;
 
-			Person p = new Person();
-			item = json.Items.Add(p);
+            Person p = new Person();
+            item = json.Items.Add(p);
 
-			var persons = new List<Person>();
-			persons.Add(new Person() { FirstName = "Apa" });
-			persons.Add(new Person() { FirstName = "Papa" });
-			persons.Add(new Person() { FirstName = "Qwerty" });
-			json.Items2 = persons;
+            var persons = new List<Person>();
+            persons.Add(new Person() { FirstName = "Apa" });
+            persons.Add(new Person() { FirstName = "Papa" });
+            persons.Add(new Person() { FirstName = "Qwerty" });
+            json.Items2 = persons;
 
-			item = new Json();
-			item.Value = 27;
-			Assert.Throws<Exception>(() => json.Items2.Add(item));
+            item = new Json();
+            item.Value = 27;
+            Assert.Throws<Exception>(() => json.Items2.Add(item));
 
-			string str = json.ToJson();
-			Console.WriteLine(str);
-		}
+            string str = json.ToJson();
+            Console.WriteLine(str);
+        }
 
-		[Test]
-		public static void TestTemplateGettersAndSetters() {
-			bool bound;
+        [Test]
+        public static void TestTemplateGettersAndSetters() {
+            bool bound;
             TObject tJson = Helper.CreateSimplePersonTemplateWithDataBinding();
-			Json json = (Json)tJson.CreateInstance();
+            Json json = (Json)tJson.CreateInstance();
 
-			var person = new PersonObject();
-			person.FirstName = "Ture";
-			person.Surname = "ApaPapa";
-			person.Age = 19;
+            var person = new PersonObject();
+            person.FirstName = "Ture";
+            person.Surname = "ApaPapa";
+            person.Age = 19;
 
-			person.Number = new PhoneNumberObject();
-			person.Number.Number = "12345678";
+            person.Number = new PhoneNumberObject();
+            person.Number.Number = "12345678";
 
-			json.Data = person;
+            json.Data = person;
 
-			// FirstName$
-			TString property = tJson.Properties[0] as TString;
-			Assert.IsNotNull(property);
-			
-			bound = (property.Bind != null);
-			if (bound)
-				property.GenerateBoundGetterAndSetter(json);
+            // FirstName$
+            TString property = tJson.Properties[0] as TString;
+            Assert.IsNotNull(property);
+
+            bound = (property.Bind != null);
+            if (bound)
+                property.GenerateBoundGetterAndSetter(json);
 #if DEBUG
             Helper.PrintTemplateDebugInfo<String>(property);
 #endif
 
-			property.UnboundSetter(json, "Test!");
-			Assert.AreEqual("Test!", property.UnboundGetter(json));
+            property.UnboundSetter(json, "Test!");
+            Assert.AreEqual("Test!", property.UnboundGetter(json));
 
-			if (bound) {
-				Assert.AreEqual(person.FirstName, property.BoundGetter(json));
-				property.BoundSetter(json, "NotTure");
-				Assert.AreEqual("NotTure", person.FirstName);
-			}
+            if (bound) {
+                Assert.AreEqual(person.FirstName, property.BoundGetter(json));
+                property.BoundSetter(json, "NotTure");
+                Assert.AreEqual("NotTure", person.FirstName);
+            }
 
-			// The property is bound so getter should return the bound value.
-			Assert.AreEqual("NotTure", property.Getter(json));
-			property.Setter(json, "SomeOther");
-			Assert.AreEqual("SomeOther", person.FirstName);
-		
-			// LastName
-			property = tJson.Properties[1] as TString;
-			Assert.IsNotNull(property);
-			
-			bound = (property.Bind != null);
-			if (bound)
-				property.GenerateBoundGetterAndSetter(json);
+            // The property is bound so getter should return the bound value.
+            Assert.AreEqual("NotTure", property.Getter(json));
+            property.Setter(json, "SomeOther");
+            Assert.AreEqual("SomeOther", person.FirstName);
+
+            // LastName
+            property = tJson.Properties[1] as TString;
+            Assert.IsNotNull(property);
+
+            bound = (property.Bind != null);
+            if (bound)
+                property.GenerateBoundGetterAndSetter(json);
 #if DEBUG
             Helper.PrintTemplateDebugInfo<String>(property);
 #endif
 
-			property.UnboundSetter(json, "Test!");
-			Assert.AreEqual("Test!", property.UnboundGetter(json));
+            property.UnboundSetter(json, "Test!");
+            Assert.AreEqual("Test!", property.UnboundGetter(json));
 
-			if (bound) {
-				Assert.AreEqual(person.Surname, property.BoundGetter(json));
-				property.BoundSetter(json, "NotApapapa");
-				Assert.AreEqual("NotApapapa", person.Surname);
-			}
+            if (bound) {
+                Assert.AreEqual(person.Surname, property.BoundGetter(json));
+                property.BoundSetter(json, "NotApapapa");
+                Assert.AreEqual("NotApapapa", person.Surname);
+            }
 
-			// The property is bound so getter should return the bound value.
-			Assert.AreEqual("NotApapapa", property.Getter(json));
-			property.Setter(json, "SomeOther");
-			Assert.AreEqual("SomeOther", person.Surname);
-			
+            // The property is bound so getter should return the bound value.
+            Assert.AreEqual("NotApapapa", property.Getter(json));
+            property.Setter(json, "SomeOther");
+            Assert.AreEqual("SomeOther", person.Surname);
 
-			// Age
-			TLong ageProperty = tJson.Properties[2] as TLong;
-			Assert.IsNotNull(ageProperty);
-			
-			bound = (ageProperty.Bind != null);
-			if (bound)
-				ageProperty.GenerateBoundGetterAndSetter(json);
+
+            // Age
+            TLong ageProperty = tJson.Properties[2] as TLong;
+            Assert.IsNotNull(ageProperty);
+
+            bound = (ageProperty.Bind != null);
+            if (bound)
+                ageProperty.GenerateBoundGetterAndSetter(json);
 #if DEBUG
-			Helper.PrintTemplateDebugInfo<long>(ageProperty);
+            Helper.PrintTemplateDebugInfo<long>(ageProperty);
 #endif
 
-			ageProperty.UnboundSetter(json, 199);
-			Assert.AreEqual(199, ageProperty.UnboundGetter(json));
+            ageProperty.UnboundSetter(json, 199);
+            Assert.AreEqual(199, ageProperty.UnboundGetter(json));
 
-			if (bound) {
-				Assert.AreEqual(person.Age, ageProperty.BoundGetter(json));
-				ageProperty.BoundSetter(json, 213);
-				Assert.AreEqual(213, person.Age);
-			}
+            if (bound) {
+                Assert.AreEqual(person.Age, ageProperty.BoundGetter(json));
+                ageProperty.BoundSetter(json, 213);
+                Assert.AreEqual(213, person.Age);
+            }
 
-			// The property is not bound so getter should return the unbound value.
-			Assert.AreEqual(199, ageProperty.Getter(json));
-			ageProperty.Setter(json, 226);
-			Assert.AreNotEqual(226, person.Age); // not bound, data value should not be changed.
-			
+            // The property is not bound so getter should return the unbound value.
+            Assert.AreEqual(199, ageProperty.Getter(json));
+            ageProperty.Setter(json, 226);
+            Assert.AreNotEqual(226, person.Age); // not bound, data value should not be changed.
 
-			// PhoneNumber
-			TObject pnProperty = tJson.Properties[8] as TObject;
-			Assert.IsNotNull(pnProperty);
 
-			bound = (pnProperty.Bind != null);
-			if (bound)
-				pnProperty.GenerateBoundGetterAndSetter(json);
+            // PhoneNumber
+            TObject pnProperty = tJson.Properties[8] as TObject;
+            Assert.IsNotNull(pnProperty);
+
+            bound = (pnProperty.Bind != null);
+            if (bound)
+                pnProperty.GenerateBoundGetterAndSetter(json);
 #if DEBUG
-			Helper.PrintTemplateDebugInfo(pnProperty);
+            Helper.PrintTemplateDebugInfo(pnProperty);
 #endif
 
-			var pn = new PhoneNumberObject();
-			Json pnJson = (Json)pnProperty.CreateInstance();
-			pnJson.Data = pn;
-			pnProperty.UnboundSetter(json, pnJson);
-			Assert.AreEqual(pn, pnProperty.UnboundGetter(json).Data);
+            var pn = new PhoneNumberObject();
+            Json pnJson = (Json)pnProperty.CreateInstance();
+            pnJson.Data = pn;
+            pnProperty.UnboundSetter(json, pnJson);
+            Assert.AreEqual(pn, pnProperty.UnboundGetter(json).Data);
 
-			if (bound) {
-				Assert.AreEqual(person.Number, pnProperty.BoundGetter(json));
-				pnProperty.BoundSetter(json, pn);
-				Assert.AreEqual(pn, person.Number);
-			}
-		}
+            if (bound) {
+                Assert.AreEqual(person.Number, pnProperty.BoundGetter(json));
+                pnProperty.BoundSetter(json, pn);
+                Assert.AreEqual(pn, person.Number);
+            }
+        }
 
         [Test]
         public static void TestAddAndRemoveOnArray() {
@@ -513,7 +513,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             root.Items.Add(item2);
             root.Items.Add(item3);
-            
+
             Assert.AreEqual(3, root.Items.Count);
             Assert.NotNull(item1.Parent);
             Assert.NotNull(item2.Parent);
@@ -529,6 +529,43 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(0, root.Items.Count);
             Assert.IsNull(item1.Parent);
             Assert.IsNull(item3.Parent);
+        }
+
+        [Test]
+        public static void TestInsertAndRemoveAtOnArray() {
+            dynamic root = new Json();
+            dynamic item;
+
+            root.Items = new List<Json>();
+
+            item = new Json();
+            item.Number = 1;
+            root.Items.Add(item);
+            Assert.IsNotNull(item.Parent);
+            Assert.AreEqual(1, root.Items.Count);
+
+            item = new Json();
+            item.Number = 2;
+            root.Items.Add(item);
+            Assert.IsNotNull(item.Parent);
+            Assert.AreEqual(2, root.Items.Count);
+
+            item = new Json();
+            item.Number = 3;
+            root.Items.Add(item);
+            Assert.IsNotNull(item.Parent);
+            Assert.AreEqual(3, root.Items.Count);
+
+            item = new Json();
+            item.Number = 99;
+            root.Items.Insert(1, item);
+            Assert.IsNotNull(item.Parent);
+            Assert.AreEqual(4, root.Items.Count);
+
+            item = root.Items[2];
+            root.Items.RemoveAt(2);
+            Assert.IsNull(item.Parent);
+            Assert.AreEqual(3, root.Items.Count);
         }
     }
 }
