@@ -37,7 +37,7 @@ namespace Starcounter.Internal.Test
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, appServer.HandleRequest);
+            UriManagedHandlersCodegen.Setup(null, null, appServer.HandleRequest, UriHandlersManager.AddExtraHandlerLevel);
             Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
 
             X.LocalNode = true;
