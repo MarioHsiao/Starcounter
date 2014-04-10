@@ -421,8 +421,12 @@ namespace Starcounter.Rest
             MethodInfo userDelegateInfo,
             Expression delegExpr,
             MixedCodeConstants.NetworkProtocolType protoType,
-            Int32 handlersId = 0)
+            HandlerOptions ho)
         {
+            // Checking if handler options is defined.
+            if (ho == null)
+                ho = HandlerOptions.DefaultHandlerOptions;
+
             // Mutually excluding handler registrations.
             Byte[] nativeParamTypes;
             String processedUriInfo;
@@ -440,7 +444,7 @@ namespace Starcounter.Rest
                 out argSessionType);
 
             // Registering handler with gateway and getting the id.
-            UriHandlersManager.CurrentUriHandlersManager.RegisterUriHandler(
+            UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).RegisterUriHandler(
                 port,
                 originalUriInfo,
                 processedUriInfo,
@@ -659,6 +663,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -667,11 +672,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<Response>> delegExpr = () => userDelegate();
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -679,6 +684,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -687,11 +693,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, Response>> delegExpr = (p1) => userDelegate(p1);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -699,6 +705,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -707,11 +714,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, Response>> delegExpr = (p1, p2) => userDelegate(p1, p2);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -719,6 +726,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, T3, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -727,11 +735,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, Response>> delegExpr = (p1, p2, p3) => userDelegate(p1, p2, p3);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -739,6 +747,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, T3, T4, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -747,11 +756,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, Response>> delegExpr = (p1, p2, p3, p4) => userDelegate(p1, p2, p3, p4);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -759,6 +768,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, T3, T4, T5, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -767,11 +777,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, Response>> delegExpr = (p1, p2, p3, p4, p5) => userDelegate(p1, p2, p3, p4, p5);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -779,6 +789,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, T3, T4, T5, T6, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -787,11 +798,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, Response>> delegExpr = (p1, p2, p3, p4, p5, p6) => userDelegate(p1, p2, p3, p4, p5, p6);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -799,6 +810,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, T3, T4, T5, T6, T7, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -807,11 +819,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7) => userDelegate(p1, p2, p3, p4, p5, p6, p7);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -819,6 +831,7 @@ namespace Starcounter.Rest
             UInt16 port,
             String methodAndUri,
             Func<T1, T2, T3, T4, T5, T6, T7, T8, Response> userDelegate,
+            HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
@@ -827,11 +840,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7, p8) => userDelegate(p1, p2, p3, p4, p5, p6, p7, p8);
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType);
+                return RegisterDelegate(port, methodAndUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
@@ -845,7 +858,7 @@ namespace Starcounter.Rest
         public static void Setup(
             bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, Response> handleInternalRequest)
+            Func<Request, Int32, Response> handleInternalRequest)
         {
             UriInjectMethods.SetRegisterUriHandlerNew(
                 httpOuterHandler,
@@ -853,6 +866,8 @@ namespace Starcounter.Rest
                 handleInternalRequest);
 
             RequestHandler.InitREST();
+
+            UriHandlersManager.AddExtraHandlerLevel(true);
         }
 
         /// <summary>
@@ -868,6 +883,7 @@ namespace Starcounter.Rest
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
+            Int32 handlerLevel,
             out Response resp)
         {
             resp = null;
@@ -876,18 +892,21 @@ namespace Starcounter.Rest
             if (!UriInjectMethods.IsSupportingLocalNodeResting())
                 return false;
 
+            // Getting appropriate handler level manager.
+            UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerLevel);
+
             // Checking if port is initialized.
-            PortUris portUris = UriHandlersManager.CurrentUriHandlersManager.SearchPort(portNumber);
+            PortUris portUris = uhm.SearchPort(portNumber);
             if (portUris == null)
-                portUris = UriHandlersManager.CurrentUriHandlersManager.AddPort(portNumber);
+                portUris = uhm.AddPort(portNumber);
 
             // Calling the code generation for URIs if needed.
             if (null == portUris.MatchUriAndGetHandlerId)
             {
                 if (!portUris.GenerateUriMatcher(
                     portNumber,
-                    UriHandlersManager.CurrentUriHandlersManager.AllUserHandlerInfos,
-                    UriHandlersManager.CurrentUriHandlersManager.NumRegisteredHandlers))
+                    uhm.AllUserHandlerInfos,
+                    uhm.NumRegisteredHandlers))
                 {
                     return false;
                 }
@@ -914,10 +933,14 @@ namespace Starcounter.Rest
                     // Creating HTTP request.
                     Request req = new Request(requestBytes, requestBytesLength, native_params_bytes);
                     req.ManagedHandlerId = (UInt16)handler_id;
-                    req.MethodEnum = UriHandlersManager.CurrentUriHandlersManager.AllUserHandlerInfos[handler_id].UriInfo.http_method_;
+                    req.MethodEnum = uhm.AllUserHandlerInfos[handler_id].UriInfo.http_method_;
 
                     // Invoking original user delegate with parameters here.
-                    resp = UriInjectMethods.HandleInternalRequest_(req);
+                    resp = UriInjectMethods.HandleInternalRequest_(req, handlerLevel);
+
+                    // Checking if handled the response.
+                    if (resp == null)
+                        return false;
 
                     // Parsing the response.
                     resp.ParseResponseFromPlainBuffer();

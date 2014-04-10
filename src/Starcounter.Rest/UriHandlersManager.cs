@@ -11,6 +11,16 @@ using System.Text;
 namespace Starcounter.Rest
 {
     /// <summary>
+    /// Handlers API.
+    /// </summary>
+    public class Handlers {
+        internal static void AddExtraHandlerLevel() {
+            HandlerOptions.NumHandlerLevels++;
+            UriHandlersManager.AddExtraHandlerLevel(false);
+        }
+    }
+
+    /// <summary>
     /// Information about registered URI.
     /// </summary>
     internal class RegisteredUriInfo
@@ -189,12 +199,15 @@ namespace Starcounter.Rest
         /// <param name="methodAndUri">Method and URI pointer.</param>
         /// <param name="rawParamsInfo">Raw parameters info.</param>
         /// <returns>Response or merged response.</returns>
-        public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo) {
+        public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo, UriHandlersManager uhm) {
 
             Debug.Assert(userDelegates_ != null);
 
-            // Checking if there is only one delegate.
-            if (userDelegates_.Count == 1) {
+            // Checking if there is only one delegate or merge function is not defined.
+            if ((uhm.ResponsesMergerRoutine_ == null) ||
+                (userDelegates_.Count == 1)) {
+
+                // Setting current application name.
                 StarcounterEnvironment.AppName = appNames_[0];
 
                 // Checking local cache.
@@ -258,11 +271,12 @@ namespace Starcounter.Rest
             Handle.CallOnlyNonMapperHandlers = false;
 
             // Checking if we have a response merging function defined.
-            if ((responses.Count > 1) &&
-                (UriHandlersManager.CurrentUriHandlersManager.ResponsesMergerRoutine_ != null))
-            {
+            if (responses.Count > 1) {
+                Debug.Assert(uhm.ResponsesMergerRoutine_ != null);
+
                 // Creating merged response.
-                return UriHandlersManager.CurrentUriHandlersManager.ResponsesMergerRoutine_(req, responses);
+                return uhm.ResponsesMergerRoutine_(req, responses);
+
             } else {
 
                 return responses[0];
@@ -371,7 +385,7 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        public static Func<Request, Response> HandleInternalRequest_;
+        public static Func<Request, Int32, Response> HandleInternalRequest_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public static bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
@@ -388,7 +402,7 @@ namespace Starcounter.Rest
         public static void SetRegisterUriHandlerNew(
             bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, Response> handleInternalRequest) {
+            Func<Request, Int32, Response> handleInternalRequest) {
 
             HttpOuterHandler_ = httpOuterHandler;
             OnHttpMessageRoot_ = onHttpMessageRoot;
@@ -412,7 +426,7 @@ namespace Starcounter.Rest
 
         Int32 maxNumHandlersEntries_ = 0;
 
-        Boolean registerWithGateway_ = true;
+        Boolean registerWithGateway_ = false;
 
         /// <summary>
         /// Indicates if this Uri handlers manager should register with gateway.
@@ -456,12 +470,12 @@ namespace Starcounter.Rest
 
         static List<UriHandlersManager> uriHandlersManagers_ = new List<UriHandlersManager>();
 
-        public static UriHandlersManager CurrentUriHandlersManager {
-            get { return uriHandlersManagers_[Handle.HandlersLevel]; }
+        public static UriHandlersManager GetUriHandlersManager(Int32 handlersIndex) {
+            return uriHandlersManagers_[handlersIndex];
         }
 
-        internal static void AddNewUriHandlersLevel() {
-            uriHandlersManagers_.Add(new UriHandlersManager());
+        internal static void AddExtraHandlerLevel(Boolean registerWithGateway) {
+            uriHandlersManagers_.Add(new UriHandlersManager(registerWithGateway));
         }
 
         internal static void ResetUriHandlersManagers() {
@@ -470,7 +484,7 @@ namespace Starcounter.Rest
 
             uriHandlersManagers_ = new List<UriHandlersManager>();
 
-            AddNewUriHandlersLevel();
+            AddExtraHandlerLevel(false);
         }
 
         public UserHandlerInfo[] AllUserHandlerInfos
@@ -496,7 +510,7 @@ namespace Starcounter.Rest
                 allUriHandlers_[i] = new UserHandlerInfo();
         }
 
-        public UriHandlersManager()
+        public UriHandlersManager(Boolean registerWithGateway)
         {
             // Initializing port uris.
             PortUris.GlobalInit();
@@ -504,6 +518,8 @@ namespace Starcounter.Rest
             allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
             for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 allUriHandlers_[i] = new UserHandlerInfo();
+
+            registerWithGateway_ = registerWithGateway;
         }
 
         public void RunDelegate(Request r, out Response resp)
@@ -527,7 +543,8 @@ namespace Starcounter.Rest
                 resp = uhi.RunUserDelegates(
                     r,
                     r.GetRawMethodAndUri(),
-                    r.GetRawParametersInfo());
+                    r.GetRawParametersInfo(),
+                    this);
 
                 // Setting back the application name.
                 StarcounterEnvironment.AppName = origAppName;

@@ -54,7 +54,7 @@ namespace Starcounter
         /// <summary>
         /// The Node log source for logging exceptions.
         /// </summary>
-        internal static NodeLogException NodeLogException_;
+        internal static Action<Exception> NodeLogException_;
 
         /// <summary>
         /// Initializes Node implementation.
@@ -63,7 +63,7 @@ namespace Starcounter
         /// <param name="logSource"></param>
         internal static void InjectHostedImpl(
             DoLocalNodeRest doLocalNodeRest,
-            NodeLogException nodeLogException)
+            Action<Exception> nodeLogException)
         {
             DoLocalNodeRest_ = doLocalNodeRest;
             NodeLogException_ = nodeLogException;
@@ -195,13 +195,8 @@ namespace Starcounter
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
+            Int32 handlerLevel,
             out Response resp);
-
-        /// <summary>
-        /// Delegate to log Node exceptions.
-        /// </summary>
-        /// <param name="exc"></param>
-        internal delegate void NodeLogException(Exception exc);
 
         /// <summary>
         /// Returns this node port number.
@@ -299,9 +294,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void GET(String relativeUri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void GET(String relativeUri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -310,9 +305,9 @@ namespace Starcounter
         /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response GET(String relativeUri, Int32 receiveTimeoutMs = 0)
+        public Response GET(String relativeUri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -322,9 +317,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response GET(String relativeUri, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response GET(String relativeUri, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -336,13 +331,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void POST(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void POST(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -354,9 +349,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -367,13 +362,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response POST(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response POST(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -384,9 +379,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -398,13 +393,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PUT(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PUT(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -416,9 +411,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -429,13 +424,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <returns>HTTP response.</returns>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public Response PUT(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PUT(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -446,9 +441,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -460,13 +455,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PATCH(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PATCH(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -478,9 +473,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -491,13 +486,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response PATCH(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PATCH(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -508,9 +503,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -522,13 +517,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void DELETE(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void DELETE(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -540,9 +535,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -553,13 +548,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response DELETE(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response DELETE(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -570,9 +565,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -585,13 +580,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -604,9 +599,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -618,13 +613,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -636,9 +631,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -652,9 +647,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, true);
+            if (ho == null)
+                ho = new HandlerOptions();
+
+            ho.DontModifyHeaders = true;
+
+            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -667,9 +667,14 @@ namespace Starcounter
         /// <param name="req">Original HTTP request.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0)
+        public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, true);
+            if (ho == null)
+                ho = new HandlerOptions();
+
+            ho.DontModifyHeaders = true;
+
+            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -778,8 +783,12 @@ namespace Starcounter
             Action<Response, Object> userDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
-            Boolean dontModifyHeaders = false)
+            HandlerOptions ho)
         {
+            // Checking if handler options is defined.
+            if (ho == null)
+                ho = HandlerOptions.DefaultHandlerOptions;
+
             if (relativeUri == null || relativeUri.Length < 1)
                 throw new ArgumentOutOfRangeException("URI should contain at least one character.");
 
@@ -802,7 +811,7 @@ namespace Starcounter
                     writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
                     // Checking if headers should be sent as-is.
-                    if (!dontModifyHeaders)
+                    if (!ho.DontModifyHeaders)
                     {
                         writer.Write(HttpHeadersUtf8.HostStart);
                         writer.Write(hostName_);
@@ -840,28 +849,45 @@ namespace Starcounter
             Response resp = null;
 
             // Checking if we are on local node.
-            if (localNode_)
-            {
-                // Trying to do local node REST.
-                if (DoLocalNodeRest_(methodAndUriPlusSpace, requestBytes, requestBytesLength, portNumber_, out resp))
-                {
-                    // Checking if user has supplied a delegate to be called.
-                    if (null != userDelegate)
-                    {
-                        // Invoking user delegate.
-                        userDelegate.Invoke(resp, userObject);
+            if ((localNode_) && (!ho.ExternalOnly)) {
 
-                        // Checking if response should be sent.
-                        if (resp.Request != null)
-                        {
-                            resp.Request.SendResponse(resp);
-                            resp.Request = null;
+                Int32 handlerLevel = 0;
+                if (ho.IsSpecificHandler)
+                    handlerLevel = ho.HandlerLevel;
+
+                // Going through all handlers in the list.
+                for (Int32 i = 0; i < HandlerOptions.NumHandlerLevels; i++) {
+
+                    // Trying to do local node REST.
+                    if (DoLocalNodeRest_(methodAndUriPlusSpace, requestBytes, requestBytesLength, portNumber_, handlerLevel, out resp)) {
+
+                        // Checking if handled.
+                        if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {
+
+                            // Checking if user has supplied a delegate to be called.
+                            if (null != userDelegate) {
+
+                                // Invoking user delegate.
+                                userDelegate.Invoke(resp, userObject);
+
+                                // Checking if response should be sent.
+                                if (resp.Request != null) {
+                                    resp.Request.SendResponse(resp);
+                                    resp.Request = null;
+                                }
+
+                                return null;
+                            }
+
+                            return resp;
                         }
-
-                        return null;
                     }
-
-                    return resp;
+            
+                    // Checking if we have a special handler.
+                    if (ho.IsSpecificHandler)
+                        return resp;
+                    else
+                        handlerLevel = i;
                 }
             }
 

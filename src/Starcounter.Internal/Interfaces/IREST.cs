@@ -12,13 +12,6 @@ namespace Starcounter.Advanced {
     /// in the StarcounterBase class rather.
     /// </summary>
     public interface IREST {
-
-        /// <summary>
-        /// Registers responses merging routine.
-        /// </summary>
-        /// <param name="mergerRoutine"></param>
-        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine);
-
         /// <summary>
         /// Registers a handler for a WebSocket.
         /// </summary>
@@ -41,11 +34,17 @@ namespace Starcounter.Advanced {
         void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler);
 
         /// <summary>
+        /// Registers responses merging routine.
+        /// </summary>
+        /// <param name="mergerRoutine"></param>
+        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine, HandlerOptions ho = null);
+
+        /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /test</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterHandler(ushort port, string verbAndUri, Func<Response> handler);
+        void RegisterHandler(ushort port, string verbAndUri, Func<Response> handler, HandlerOptions ho = null);
 
         /// <summary>
         /// Registers a handler with one parameter
@@ -53,7 +52,7 @@ namespace Starcounter.Advanced {
         /// <typeparam name="T">The type of the parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri template of the request. For example GET /products/{?}</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterHandler<T>(ushort port, string verbAndUri, Func<T, Response> handler);
+        void RegisterHandler<T>(ushort port, string verbAndUri, Func<T, Response> handler, HandlerOptions ho = null);
 
         /// <summary>
         /// Registers a handler with two parameters
@@ -62,7 +61,7 @@ namespace Starcounter.Advanced {
         /// <typeparam name="T2">The type of the second parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri template of the request. For example GET /things/{?}/{?}</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterHandler<T1, T2>(ushort port, string verbAndUri, Func<T1, T2, Response> handler);
+        void RegisterHandler<T1, T2>(ushort port, string verbAndUri, Func<T1, T2, Response> handler, HandlerOptions ho = null);
 
         /// <summary>
         /// Registers a handler with three parameters
@@ -72,7 +71,7 @@ namespace Starcounter.Advanced {
         /// <typeparam name="T3">The type of the third parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri template of the request.</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterHandler<T1, T2, T3>(ushort port, string verbAndUri, Func<T1, T2, T3, Response> handler);
+        void RegisterHandler<T1, T2, T3>(ushort port, string verbAndUri, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null);
 
         /// <summary>
         /// Registers a handler with four parameters
@@ -83,7 +82,7 @@ namespace Starcounter.Advanced {
         /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri template of the request.</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterHandler<T1, T2, T3, T4>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, Response> handler);
+        void RegisterHandler<T1, T2, T3, T4>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null);
 
         /// <summary>
         /// Registers a handler with five parameters
@@ -95,6 +94,6 @@ namespace Starcounter.Advanced {
         /// <typeparam name="T5">The type of the fifth parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri template of the request.</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, T5, Response> handler);
+        void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null);
     }
 }

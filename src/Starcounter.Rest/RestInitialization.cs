@@ -30,9 +30,13 @@ namespace Starcounter.Rest
         /// Registers responses merging routine.
         /// </summary>
         /// <param name="mergerRoutine"></param>
-        public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine)
+        public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine, HandlerOptions ho = null)
         {
-            UriHandlersManager.CurrentUriHandlersManager.ResponsesMergerRoutine_ = mergerRoutine;
+            // Checking if handler options is defined.
+            if (ho == null)
+                ho = HandlerOptions.DefaultHandlerOptions;
+
+            UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).ResponsesMergerRoutine_ = mergerRoutine;
         }
 
         /// <summary>
@@ -70,9 +74,9 @@ namespace Starcounter.Rest
         /// </summary>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler(ushort port, string verbAndUri, Func<Response> handler)
+        public void RegisterHandler(ushort port, string verbAndUri, Func<Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler, ho);
         }
 
         /// <summary>
@@ -81,9 +85,9 @@ namespace Starcounter.Rest
         /// <typeparam name="T">The type of the parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler<T>(ushort port, string verbAndUri, Func<T, Response> handler)
+        public void RegisterHandler<T>(ushort port, string verbAndUri, Func<T, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler, ho);
         }
 
         /// <summary>
@@ -93,9 +97,9 @@ namespace Starcounter.Rest
         /// <typeparam name="T2">The type of the second parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler<T1, T2>(ushort port, string verbAndUri, Func<T1, T2, Response> handler)
+        public void RegisterHandler<T1, T2>(ushort port, string verbAndUri, Func<T1, T2, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler, ho);
         }
 
         /// <summary>
@@ -106,9 +110,9 @@ namespace Starcounter.Rest
         /// <typeparam name="T3">The type of the third parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler<T1, T2, T3>(ushort port, string verbAndUri, Func<T1, T2, T3, Response> handler)
+        public void RegisterHandler<T1, T2, T3>(ushort port, string verbAndUri, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler, ho);
         }
 
         /// <summary>
@@ -120,9 +124,9 @@ namespace Starcounter.Rest
         /// <typeparam name="T4">The type of the fourth parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler<T1, T2, T3, T4>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, Response> handler)
+        public void RegisterHandler<T1, T2, T3, T4>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler, ho);
         }
 
         /// <summary>
@@ -135,9 +139,9 @@ namespace Starcounter.Rest
         /// <typeparam name="T5">The type of the fifth parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, T5, Response> handler)
+        public void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, verbAndUri, handler, ho);
         }
     }
 
