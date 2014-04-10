@@ -30,7 +30,9 @@ namespace Starcounter.CLI {
         public static void BootInHost() {
             if (StarcounterEnvironment.IsCodeHosted)
                 return;
-            
+
+            SharedCLI.InitCLIContext();
+
             var args = Environment.GetCommandLineArgs();
             var workingDirectory = Environment.CurrentDirectory;
 
