@@ -7,6 +7,26 @@ using System.Collections.Generic;
 namespace Starcounter {
 
     /// <summary>
+    /// Handler levels helper class.
+    /// </summary>
+    public class Handlers {
+
+        static Action<Boolean> internalAddExtraHandlerLevel_;
+
+        internal static void SetInternalAddExtraHandlerLevel(Action<Boolean> a) {
+            internalAddExtraHandlerLevel_ = a;
+        }
+
+        /// <summary>
+        /// Adds an extra handler level.
+        /// </summary>
+        public static void AddExtraHandlerLevel() {
+            HandlerOptions.NumHandlerLevels++;
+            internalAddExtraHandlerLevel_(false);
+        }
+    }
+
+    /// <summary>
     /// Special handler options.
     /// </summary>
     public class HandlerOptions {

@@ -69,7 +69,8 @@ namespace Starcounter.Internal {
                 UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.HandleIncomingHttpRequest,
                     OnHttpMessageRoot,
-                    AppServer_.HandleRequest);
+                    AppServer_.HandleRequest,
+                    UriHandlersManager.AddExtraHandlerLevel);
 
                 AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.HandleWebSocket);
             }

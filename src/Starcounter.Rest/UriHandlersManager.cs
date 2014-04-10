@@ -11,16 +11,6 @@ using System.Text;
 namespace Starcounter.Rest
 {
     /// <summary>
-    /// Handlers API.
-    /// </summary>
-    public class Handlers {
-        internal static void AddExtraHandlerLevel() {
-            HandlerOptions.NumHandlerLevels++;
-            UriHandlersManager.AddExtraHandlerLevel(false);
-        }
-    }
-
-    /// <summary>
     /// Information about registered URI.
     /// </summary>
     internal class RegisteredUriInfo
