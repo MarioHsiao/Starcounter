@@ -87,7 +87,10 @@ namespace Starcounter.Server {
             var arguments = string.Empty;
             if (Debugger.IsAttached) {
                 Debugger.Break();
-                arguments += "--sc-debug";
+                var debugService = false;
+                if (debugService) {
+                    arguments += "--sc-debug";
+                }
             }
 
             var startInfo = new ProcessStartInfo(exePath, arguments);

@@ -223,6 +223,8 @@ namespace Starcounter {
             list.Insert(index, j);
             _SetFlag.Insert(index, false);
             MarkAsReplaced(index);
+            j._cacheIndexInArr = index;
+            j.Parent = this;
             CallHasAddedElement(index,j);
         }
 

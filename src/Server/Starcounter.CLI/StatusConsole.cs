@@ -93,15 +93,6 @@ namespace Starcounter.CLI {
             set;
         }
 
-        /// <summary>
-        /// Gets or sets the console color used to display output
-        /// routed from a starting/stopping application.
-        /// </summary>
-        public ConsoleColor ApplicationOutputColor {
-            get;
-            set;
-        }
-
         internal StatusConsole() {
         }
 
@@ -111,7 +102,6 @@ namespace Starcounter.CLI {
             cursorTop = top;
             ProgressColor = ConsoleColor.DarkGray;
             CompletionColor = ConsoleColor.DarkGreen;
-            ApplicationOutputColor = Console.ForegroundColor;
             writeLock = new object();
         }
 
@@ -183,16 +173,6 @@ namespace Starcounter.CLI {
         public virtual StatusConsole WriteTask(string task) {
             currentTask = task;
             return Write(currentJob, task, ProgressColor);
-        }
-
-        /// <summary>
-        /// Writes the given application output to the current console.
-        /// </summary>
-        /// <param name="content">The application output content.</param>
-        /// <returns>Reference to self.</returns>
-        public StatusConsole WriteApplicationOutput(string content) {
-            ConsoleUtil.ToConsoleWithColor(content, ApplicationOutputColor);
-            return this;
         }
 
         StatusConsole Write(string job, string taskOrResult, ConsoleColor color) {
