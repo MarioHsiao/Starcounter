@@ -31,7 +31,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             //        return node.GET(documentationPath, null);
             //    }
                
-            //    return HandlerStatus.NotHandled;
+            //    return HandlerStatus.ResolveStaticContent;
 
             //});
 

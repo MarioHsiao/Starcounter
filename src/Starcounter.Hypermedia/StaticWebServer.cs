@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>The http response</returns>
-        public Response HandleRequest(Request request) {
+        public Response HandleRequest(Request request, Int32 handlerLevel) {
             return GetStatic(request.Uri, request);
         }
 
