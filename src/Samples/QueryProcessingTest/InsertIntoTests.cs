@@ -6,13 +6,19 @@ namespace QueryProcessingTest {
     public static class InsertIntoTests {
         public static void TestValuesInsertIntoWebVisits() {
             HelpMethods.LogEvent("Test insert into statements with values on web visit data model");
+            UInt64 vId = (UInt64)Int64.MaxValue + 1;
             Db.Transaction(delegate {
                 if (Db.SQL("select c from company c").First != null) {
                     WebPage w1 = Db.SQL<WebPage>("select w from webpage w where title = ?", "MyCompany, AboutUs").First;
                     w1.Delete();
                     foreach (Company c1 in Db.SQL<Company>("select c from company c")) {
-                        foreach (Visit v1 in Db.SQL<Visit>("select v from visit v where company = ?", c1))
+                        foreach (Visit v1 in Db.SQL<Visit>("select v from visit v where company = ?", c1)) {
+                            if (v1.GetObjectNo() == vId)
+                                vId++;
+                            foreach (Impression imp in Db.SQL<Impression>("select i from impression i where visit = ?", v1))
+                                imp.Delete();
                             v1.Delete();
+                        }
                         c1.Delete();
                     }
                     foreach (Country c1 in Db.SQL<Country>("select c from country c"))
@@ -21,7 +27,7 @@ namespace QueryProcessingTest {
             });
             Db.Transaction(delegate {
                 String query = "INSERT INTO WebPage (Title, uRL, PageValue, PersonalPageValue, TrackingCode, Located, deleted)" +
-                    "Values ('MyCompany, AboutUs', '168.12.147.2/AboutUs', 100, 90, '', false, false)";
+                    "Values ('MyCompany, AboutUs', '168.12.147.2/AboutUs', 100, -90, '', false, false)";
                 Db.SQL(query);
             });
             WebPage w = Db.SQL<WebPage>("select w from Webpage w where title = ?", "MyCompany, AboutUs").First;
@@ -29,7 +35,7 @@ namespace QueryProcessingTest {
             Trace.Assert(w.Title == "MyCompany, AboutUs");
             Trace.Assert(w.URL == "168.12.147.2/AboutUs");
             Trace.Assert(w.PageValue == 100);
-            Trace.Assert(w.PersonalPageValue == 90);
+            Trace.Assert(w.PersonalPageValue == -90);
             Trace.Assert(w.TrackingCode == "");
             Trace.Assert(w.Located == false);
             Trace.Assert(w.Deleted == false);
@@ -56,8 +62,8 @@ namespace QueryProcessingTest {
             DateTime startV = Convert.ToDateTime("2006-11-01 00:08:40");
             DateTime endV = Convert.ToDateTime("2006-11-01 00:08:59");
             Db.Transaction(delegate {
-                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, start, end, UserAgent) values (1, object "+
-                    co.GetObjectNo() + ","+startV.Ticks+","+endV.Ticks+",'Opera')");
+                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, start, end, UserAgent) values (" +
+                    UInt64.MaxValue + ", object " + co.GetObjectNo() + "," + startV.Ticks + "," + endV.Ticks + ",'Opera')");
             });
             Db.Transaction(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent) values (2, object " +
@@ -66,7 +72,7 @@ namespace QueryProcessingTest {
             var visits = Db.SQL<Visit>("select v from visit v where company = ?", co).GetEnumerator();
             Trace.Assert(visits.MoveNext());
             Visit v = visits.Current;
-            Trace.Assert(v.Id == 1);
+            Trace.Assert(v.Id == UInt64.MaxValue);
             Trace.Assert(v.Company.Equals(co));
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.Start == startV);
@@ -78,7 +84,6 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(!visits.MoveNext());
             // Test insert __id value
-            var vId = v.GetObjectNo() + 10;
             Db.Transaction(delegate { v.Delete(); });
             Db.SystemTransaction(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (__id, id, company, UserAgent) values (object " +
@@ -94,6 +99,13 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.GetObjectNo() == vId);
             Trace.Assert(!visits.MoveNext());
+            Db.Transaction(delegate { Db.SQL("insert into impression(visit) values (object " + vId + ")"); });
+            var impressions = Db.SQL<Impression>("select i from impression i where visit = ?", v).GetEnumerator();
+            Trace.Assert(impressions.MoveNext());
+            Impression impr = impressions.Current;
+            Trace.Assert(impr != null);
+            Trace.Assert(impr.Visit.Equals(v));
+            Trace.Assert(!impressions.MoveNext());
             Db.Transaction(delegate {
                 Db.SQL("insert into QueryProcessingTest.user(userid,useridnr,birthday,firstname,lastname,nickname)" +
                     "values('SpecUser',1000000," + startV.Ticks + ",'Carl','Olofsson','')");

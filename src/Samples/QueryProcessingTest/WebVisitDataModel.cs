@@ -24,7 +24,7 @@ namespace QueryProcessingTest {
     // A Visit consists of Webpage Impressions
     [Database]
     public class Visit {
-        public int Id;
+        public ulong Id;
         public Company Company;
         public DateTime Start;
         public DateTime End;
