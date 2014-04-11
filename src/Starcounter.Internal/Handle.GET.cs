@@ -72,16 +72,6 @@ namespace Starcounter {
             _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
 
-        [ThreadStatic]
-        static Boolean IsMapperHandler_;
-
-        public static Boolean IsMapperHandler { get { return IsMapperHandler_; } set { IsMapperHandler_ = value; } }
-
-        [ThreadStatic]
-        static Boolean CallOnlyNonMapperHandlers_;
-
-        public static Boolean CallOnlyNonMapperHandlers { get { return CallOnlyNonMapperHandlers_; } set { CallOnlyNonMapperHandlers_ = value; } }
-
         /// <summary>
         /// Register a uri template (e.g. <c>/mypath</c>) to catch an
         /// incoming GET request on the default port.

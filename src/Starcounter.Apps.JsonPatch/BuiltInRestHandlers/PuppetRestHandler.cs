@@ -42,7 +42,7 @@ namespace Starcounter.Internal {
                 } catch (jp::JsonPatchException nex) {
                     return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
                 }
-            });
+            }, new HandlerOptions() { HandlerLevel = 0 });
 
             Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session) => {
                 Json root = null;
