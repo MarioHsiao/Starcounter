@@ -37,7 +37,7 @@ namespace Starcounter.Advanced {
         /// Registers responses merging routine.
         /// </summary>
         /// <param name="mergerRoutine"></param>
-        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine, HandlerOptions ho = null);
+        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine);
 
         /// <summary>
         /// Registers a handler with no parameters
