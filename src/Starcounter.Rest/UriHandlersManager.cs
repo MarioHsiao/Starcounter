@@ -194,7 +194,7 @@ namespace Starcounter.Rest
             Debug.Assert(userDelegates_ != null);
 
             // Checking if there is only one delegate or merge function is not defined.
-            if ((uhm.ResponsesMergerRoutine_ == null) ||
+            if ((UriInjectMethods.ResponsesMergerRoutine_ == null) ||
                 (userDelegates_.Count == 1)) {
 
                 // Setting current application name.
@@ -262,10 +262,10 @@ namespace Starcounter.Rest
 
             // Checking if we have a response merging function defined.
             if (responses.Count > 1) {
-                Debug.Assert(uhm.ResponsesMergerRoutine_ != null);
+                Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
 
                 // Creating merged response.
-                return uhm.ResponsesMergerRoutine_(req, responses);
+                return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
 
             } else {
 
@@ -379,6 +379,7 @@ namespace Starcounter.Rest
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public static bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
+        public static Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
 
         public static void SetHandlerRegisteredCallback(Action<string, ushort> callback) {
             OnHandlerRegistered_ = callback;
@@ -424,8 +425,6 @@ namespace Starcounter.Rest
         public Boolean RegisterWithGateway {
             set { registerWithGateway_ = value; }
         }
-
-        internal Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
 
         public List<PortUris> PortUrisList
         {

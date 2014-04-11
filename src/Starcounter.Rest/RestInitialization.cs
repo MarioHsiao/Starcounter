@@ -30,13 +30,9 @@ namespace Starcounter.Rest
         /// Registers responses merging routine.
         /// </summary>
         /// <param name="mergerRoutine"></param>
-        public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine, HandlerOptions ho = null)
+        public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine)
         {
-            // Checking if handler options is defined.
-            if (ho == null)
-                ho = HandlerOptions.DefaultHandlerOptions;
-
-            UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).ResponsesMergerRoutine_ = mergerRoutine;
+            UriInjectMethods.ResponsesMergerRoutine_ = mergerRoutine;
         }
 
         /// <summary>
