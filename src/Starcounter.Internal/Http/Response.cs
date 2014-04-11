@@ -44,7 +44,12 @@ namespace Starcounter
         /// The handler didn't handle the request.
         /// Request is going to be handled by outer handler, for example, a static files resolver.
         /// </summary>
-        NotHandled = 2
+        NotHandled = 2,
+
+        /// <summary>
+        /// If static files resolver should take care of response.
+        /// </summary>
+        ResolveStaticContent = 3
     }
 
     /// <summary>
@@ -66,7 +71,12 @@ namespace Starcounter
         /// The handler didn't handle the request.
         /// Request is going to be handled by outer handler, for example, a static files resolver.
         /// </summary>
-        NotHandled
+        NotHandled,
+
+        /// <summary>
+        /// If static files resolver should take care of response.
+        /// </summary>
+        ResolveStaticContent
     }
 
     /// <summary>

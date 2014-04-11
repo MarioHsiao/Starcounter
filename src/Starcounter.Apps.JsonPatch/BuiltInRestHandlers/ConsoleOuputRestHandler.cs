@@ -112,9 +112,9 @@ namespace Starcounter.JsonPatch.BuiltInRestHandlers {
 
                     string s = consoleEvents.ToJson();
 
-                    WebSocket.RunOnWebSockets((WebSocket ws) => {
+                    WebSocket.ForEach(ConsoleWebSocketChannelName, (WebSocket ws) => {
                         ws.Send(s);
-                    }, ConsoleWebSocketChannelName);
+                    });
                 }
 
                 // Limit the console event list size.

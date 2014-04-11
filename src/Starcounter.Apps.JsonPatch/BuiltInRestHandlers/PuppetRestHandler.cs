@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
         internal static void Register(UInt16 defaultUserHttpPort) {
-            HandlersManagement.SetHandlerRegisteredCallback(HandlerRegistered);
+            Starcounter.Rest.UriInjectMethods.SetHandlerRegisteredCallback(HandlerRegistered);
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
@@ -42,7 +42,7 @@ namespace Starcounter.Internal {
                 } catch (jp::JsonPatchException nex) {
                     return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
                 }
-            });
+            }, new HandlerOptions() { HandlerLevel = 0 });
 
             Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session) => {
                 Json root = null;

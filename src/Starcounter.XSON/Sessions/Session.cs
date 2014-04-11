@@ -69,8 +69,16 @@ namespace Starcounter {
         /// Running the given action on each active session.
         /// </summary>
         /// <param name="action">The user procedure to be performed on each session.</param>
+        public static void ForEach(Action<Session> action) {
+            ForEach(UInt64.MaxValue, action);
+        }
+
+        /// <summary>
+        /// Running the given action on each active session.
+        /// </summary>
+        /// <param name="action">The user procedure to be performed on each session.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void RunOnSessions(Action<Session> action, UInt64 cargoId = UInt64.MaxValue) {
+        public static void ForEach(UInt64 cargoId, Action<Session> action) {
 
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
                 Byte schedId = i;

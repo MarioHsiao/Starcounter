@@ -14,6 +14,7 @@ using Starcounter.Internal.JsonPatch;
 using System.Collections.Generic;
 using Starcounter.Rest;
 using Starcounter.Logging;
+using System.Diagnostics;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -49,9 +50,11 @@ namespace Starcounter.Internal.Web {
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponseHttp(Request req, Response resp) {
+            Debug.Assert(resp != null);
+
             try {
                 // Checking if we need to resolve static resource.
-                if (resp.HandlingStatus == HandlerStatusInternal.NotHandled) {
+                if (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent) {
                     resp = ResolveAndPrepareFile(req.Uri, req);
                     resp.HandlingStatus = HandlerStatusInternal.Done;
                 }
@@ -92,12 +95,17 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
-        public Response HandleRequest(Request request) {
+        public Response HandleRequest(Request request, Int32 handlerLevel) {
             Response resp = null;
 
             try {
-                // Invoking original user delegate with parameters here.
-                UserHandlerCodegen.HandlersManager.RunDelegate(request, out resp);
+
+                // Running all available HTTP handlers.
+                UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+
+                // Checking if we still have no response.
+                if (resp == null || resp.HandlingStatus == HandlerStatusInternal.NotHandled)
+                    return null;
 
                 // Handling and returning the HTTP response.
                 resp = OnResponseHttp(request, resp);
@@ -114,7 +122,7 @@ namespace Starcounter.Internal.Web {
                 resp.ConstructFromFields();
                 return resp;
             }
-            catch (HandlersManagement.IncorrectSessionException) {
+            catch (UriInjectMethods.IncorrectSessionException) {
                 resp = Response.FromStatusCode(400);
                 resp["Connection"] = "close";
                 resp.ConstructFromFields();
@@ -188,7 +196,7 @@ namespace Starcounter.Internal.Web {
 
                     // Registering static handler on given port.
                     Handle.GET(port, "/{?}", (string res) => {
-                        return HandlerStatus.NotHandled;
+                        return HandlerStatus.ResolveStaticContent;
                     });
                 }
             }

@@ -37,8 +37,8 @@ namespace Starcounter.Internal.Test
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
-            Node.InjectHostedImpl(UserHandlerCodegen.DoLocalNodeRest, null);
+            UriManagedHandlersCodegen.Setup(null, null, appServer.HandleRequest, UriHandlersManager.AddExtraHandlerLevel);
+            Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
 
             X.LocalNode = true;
         }
@@ -283,7 +283,7 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestLocalNode()
         {
-            UserHandlerCodegen.ResetHandlersManager();
+            UriHandlersManager.ResetUriHandlersManagers();
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
@@ -383,7 +383,7 @@ namespace Starcounter.Internal.Test
         [Test]
         public void CustomMethodTest()
         {
-            UserHandlerCodegen.ResetHandlersManager();
+            UriHandlersManager.ResetUriHandlersManagers();
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
@@ -524,7 +524,7 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestLocalNode()
         {
-            UserHandlerCodegen.ResetHandlersManager();
+            UriHandlersManager.ResetUriHandlersManagers();
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
@@ -1321,7 +1321,7 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestWrongUrisAndParameters()
         {
-            UserHandlerCodegen.ResetHandlersManager();
+            UriHandlersManager.ResetUriHandlersManagers();
 
             Handle.GET("/{?}", (String p1, Session s) =>
             {
@@ -1344,7 +1344,7 @@ namespace Starcounter.Internal.Test
                 return null;
             });
 
-            UserHandlerCodegen.ResetHandlersManager();
+            UriHandlersManager.ResetUriHandlersManagers();
 
             Assert.Throws<ArgumentException>(() => 
                 Handle.GET("/{?}", (String p1, Int32 p2) =>
