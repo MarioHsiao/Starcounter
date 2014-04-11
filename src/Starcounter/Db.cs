@@ -330,7 +330,9 @@ namespace Starcounter
         /// Raise the event that signals the database is stopping.
         /// </summary>
         internal static void RaiseDatabaseStoppingEvent() {
-            DatabaseStopping(null, EventArgs.Empty);
+            if (DatabaseStopping != null) {
+                DatabaseStopping(null, EventArgs.Empty);
+            }
         }
 
         static void InvokeOnDelete(IObjectProxy proxy) {
