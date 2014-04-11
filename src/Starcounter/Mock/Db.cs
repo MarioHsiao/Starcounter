@@ -139,8 +139,8 @@ namespace Starcounter
         /// </summary>
         /// <param name="fileName">Name of the file with INSERT INTO statements.</param>
         /// <returns>Number of inserted objects.</returns>
-        public static int Reload(string fileName) {
-            return Starcounter.Reload.Load(fileName);
+        public static void Reload(string fileName) {
+            Starcounter.Reload.Load(fileName);
         }
     }
 

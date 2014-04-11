@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Starcounter.TestFramework;
+using System.IO;
 
 namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
@@ -8,17 +9,17 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
+                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt"))
+                    Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
+                HelpMethods.LogEvent("Finished test query preparation performance.");
                 TestErrorMessages.RunTestErrorMessages();
                 NamespacesTest.TestClassesNamespaces();
                 WebVisitTests.TestVisits();
                 InsertIntoTests.TestValuesInsertIntoWebVisits();
                 PopulateData();
-                HelpMethods.LogEvent("Start unloading query processing database.");
-                Starcounter.Db.Unload("dumpQueryProcessingDB.txt");
-                HelpMethods.LogEvent("Finish unloading query processing database.");
                 SqlBugsTest.QueryTests();
                 FetchTest.RunFetchTest();
                 AggregationTest.RunAggregationTest();
@@ -31,6 +32,12 @@ namespace QueryProcessingTest {
                     BenchmarkQueryCache.BenchQueryCache();
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
+                HelpMethods.LogEvent("Start unloading query processing database.");
+                Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
+                HelpMethods.LogEvent("Finish unloading query processing database.");
+                HelpMethods.LogEvent("Start delete the database data.");
+                Starcounter.Reload.DeleteAll();
+                HelpMethods.LogEvent("Finish delete the database data.");
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());

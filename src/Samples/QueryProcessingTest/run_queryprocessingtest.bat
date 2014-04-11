@@ -17,6 +17,8 @@ RMDIR .db /S /Q
 RMDIR .db.output /S /Q
 )
 
+IF EXIST s\QueryProcessingTest\dumpQueryProcessingDB.txt DEL s\QueryProcessingTest\dumpQueryProcessingDB.txt
+
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
