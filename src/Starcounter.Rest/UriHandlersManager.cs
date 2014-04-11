@@ -108,11 +108,6 @@ namespace Starcounter.Rest
         List<String> appNames_ = null;
 
         /// <summary>
-        /// Mapper handler index.
-        /// </summary>
-        Int32 mapperHandlerIndex_ = -1;
-
-        /// <summary>
         /// Checks if response is in local cache.
         /// </summary>
         /// <param name="req"></param>
@@ -216,23 +211,9 @@ namespace Starcounter.Rest
             
             List<Response> responses = new List<Response>();
 
-            // Checking if we have an external call and mapper handler defined.
-            if ((mapperHandlerIndex_ >= 0) && (!Handle.CallOnlyNonMapperHandlers)) {
-                
-                StarcounterEnvironment.AppName = appNames_[mapperHandlerIndex_];
-                StarcounterEnvironment.OrigMapperCallerAppName = appNames_[mapperHandlerIndex_];
-                Response resp = userDelegates_[mapperHandlerIndex_](req, methodAndUri, rawParamsInfo);
-
-                return resp;
-            }
-
             // Running every delegate from the list.
             for (int i = 0; i < userDelegates_.Count; i++) {
                 var func = userDelegates_[i];
-
-                // If handler is a mapper and we in non-mapper mode - just skip this handler.
-                if (Handle.CallOnlyNonMapperHandlers && (mapperHandlerIndex_ == i))
-                    continue;
 
                 // Setting application name.
                 StarcounterEnvironment.AppName = appNames_[i];
@@ -257,8 +238,6 @@ namespace Starcounter.Rest
                 else
                     responses.Add(resp);
             }
-
-            Handle.CallOnlyNonMapperHandlers = false;
 
             // Checking if we have a response merging function defined.
             if (responses.Count > 1) {
@@ -327,11 +306,6 @@ namespace Starcounter.Rest
         {
             userDelegates_.Add(user_delegate);
             appNames_.Add(StarcounterEnvironment.AppName);
-
-            if (Handle.IsMapperHandler) {
-                mapperHandlerIndex_ = appNames_.Count - 1;
-                Handle.IsMapperHandler = false;
-            }
         }
 
         public void Init(
@@ -362,12 +336,6 @@ namespace Starcounter.Rest
 
             appNames_ = new List<String>();
             appNames_.Add(StarcounterEnvironment.AppName);
-
-            if (Handle.IsMapperHandler)
-            {
-                mapperHandlerIndex_ = appNames_.Count - 1;
-                Handle.IsMapperHandler = false;
-            }
 
             uri_info_.InitUriPointers();
         }
