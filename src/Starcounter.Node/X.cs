@@ -300,6 +300,17 @@ namespace Starcounter
         /// Performs asynchronous HTTP GET.
         /// </summary>
         /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
+        /// <param name="response">Generated response.</param>
+        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
+        public static T GET<T>(String uri, out Response response, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+            GET(uri, out response, null, receiveTimeoutMs, ho);
+            return response.GetContent<T>();
+        }
+
+        /// <summary>
+        /// Performs asynchronous HTTP GET.
+        /// </summary>
+        /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="response">Generated response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
