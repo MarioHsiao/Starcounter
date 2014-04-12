@@ -36,7 +36,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
 
             // Add public static resource
-            String body = publicPort.ToString() + "\r\n" + System.IO.Path.Combine(folder, "public");
+            String body = publicPort.ToString() + "\r\n" +  Path.GetFullPath(System.IO.Path.Combine(folder, "public"));
 
             Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
                 String respString = resp.Body;
@@ -52,7 +52,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
                 Directory.CreateDirectory(publicDocumentationFolder);
             }
 
-            String publicDocfolder = publicPort.ToString() + "\r\n" + publicDocumentationFolder;
+            String publicDocfolder = publicPort.ToString() + "\r\n" +  Path.GetFullPath(publicDocumentationFolder);
 
             Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", publicDocfolder, null, null, (Response resp, Object userObject) => {
                 String respString = resp.Body;

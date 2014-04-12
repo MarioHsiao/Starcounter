@@ -173,7 +173,7 @@ namespace Starcounter.Internal {
                 else
                 {
                     // Administrator registers itself.
-                    AddFileServingDirectory(port, resourceResolvePath);
+                    AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
                 }
             }
         }
