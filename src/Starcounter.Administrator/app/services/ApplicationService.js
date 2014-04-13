@@ -488,7 +488,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 }],
                 "DefaultUserPort": 0,
                 "ResourceDirectories": [],
-                "WorkingDirectory": null,
+                "WorkingDirectory": application.WorkingDirectory,
                 "IsTool": true,
                 "StartedBy": application.StartedBy,
                 "Engine": { "Uri": "" },

@@ -57,6 +57,8 @@ namespace Starcounter.Administrator.API.Handlers {
                     exeState.LastRestart.Value.ToString("s", CultureInfo.InvariantCulture) :
                     string.Empty;
 
+                exe.WorkingDirectory = exeState.WorkingDirectory;
+
                 if (headers != null) {
                     headers.Add("ETag", engineState.Fingerprint);
                 }

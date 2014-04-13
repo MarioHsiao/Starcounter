@@ -134,6 +134,9 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
      */
     $scope.btnRemove = function (application) {
 
+        // Remove application from cache/history
+        ApplicationService.removeFromHistory(application);
+/*
         var title = "Remove application";
         var message = "Do you want to remove the application " + application.Name + " from the history";
         var buttons = [{ result: 0, label: 'Yes', cssClass: 'btn-danger' }, { result: 1, label: 'No', cssClass: 'btn' }];
@@ -141,11 +144,11 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
             if (result == 0) {
-                // Remove application from cache/history
                 ApplicationService.removeFromHistory(application);
             }
 
         });
+*/
     }
 
     // Init
