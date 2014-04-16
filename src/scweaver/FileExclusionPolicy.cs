@@ -54,6 +54,8 @@ namespace Weaver {
                 AddExcludeExpression(exclude, excludes);
             }
 
+            AddExcludeExpression("*.vshost.exe", excludes);
+
             var ignoreFile = Path.Combine(directory, "weaver.ignore");
 
             if (File.Exists(ignoreFile)) {
