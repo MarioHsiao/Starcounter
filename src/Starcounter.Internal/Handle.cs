@@ -50,6 +50,13 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Specific application name.
+        /// </summary>
+        public String AppName {
+            get; set;
+        }
+
+        /// <summary>
         /// Flag that allows only external calls.
         /// </summary>
         public Boolean ExternalOnly { get; set; }

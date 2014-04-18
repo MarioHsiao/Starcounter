@@ -139,5 +139,56 @@ namespace Starcounter.Internal.Tests {
             X.GET("/handler_normal", out resp);
             Assert.AreEqual(resp.Body, "/handler_normal0");
         }
+
+        [Test]
+        public static void TestAppNameHandlers() {
+            UriHandlersManager.ResetUriHandlersManagers();
+            HandlerOptions.Reset();
+
+            Handle.GET("/handler_normal", () => {
+                Assert.AreEqual("nunit.core", StarcounterEnvironment.AppName);
+                return "/handler_normal0";
+            });
+
+            // Adding new handlers level and setting it to default.
+            Handlers.AddExtraHandlerLevel();
+            Handlers.AddExtraHandlerLevel();
+            Handlers.AddExtraHandlerLevel();
+            HandlerOptions.DefaultHandlerLevel = 1;
+
+            HandlerOptions ho1 = new HandlerOptions() { HandlerLevel = 1, AppName = "NewApp1" };
+
+            Handle.GET("/handler_normal", () => {
+                Assert.AreEqual("NewApp1", StarcounterEnvironment.AppName);
+                return "/handler_normal1";
+            }, ho1);
+
+            HandlerOptions ho2 = new HandlerOptions() { HandlerLevel = 2, AppName = "NewApp2" };
+
+            Handle.GET("/handler_normal", () => {
+                Assert.AreEqual("NewApp2", StarcounterEnvironment.AppName);
+                return "/handler_normal2";
+            }, ho2);
+
+            HandlerOptions ho3 = new HandlerOptions() { HandlerLevel = 3 };
+
+            Handle.GET("/handler_normal", () => {
+                Assert.AreEqual("nunit.core", StarcounterEnvironment.AppName);
+                return "/handler_normal3";
+            }, ho3);
+
+            Response resp;
+            X.GET("/handler_normal", out resp);
+            Assert.AreEqual(resp.Body, "/handler_normal0");
+
+            X.GET("/handler_normal", out resp, null, 0, ho1);
+            Assert.AreEqual(resp.Body, "/handler_normal1");
+
+            X.GET("/handler_normal", out resp, null, 0, ho2);
+            Assert.AreEqual(resp.Body, "/handler_normal2");
+
+            X.GET("/handler_normal", out resp, null, 0, ho3);
+            Assert.AreEqual(resp.Body, "/handler_normal3");
+        }
     }
 }
