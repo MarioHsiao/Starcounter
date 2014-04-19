@@ -106,10 +106,17 @@ namespace Starcounter
             out UInt64 keyOid,
             out UInt64 keyEti)
         {
+#if false // TODO: Enable when merging level0 next branch!
+            // Fetching OID and ETI.
+            UInt32 keyLen = (*(UInt32*)recreationKey);
+            keyOid = *(UInt64*)(recreationKey + keyLen - 8);
+            keyEti = *(UInt64*)(recreationKey + keyLen - 16);
+#else
             // Fetching OID and ETI.
             UInt32 keyLen = (*(UInt32*)recreationKey);
             keyOid = *(UInt64*)(recreationKey + keyLen - 12);
             keyEti = *(UInt64*)(recreationKey + keyLen - 20);
+#endif
         }
 
         // No code generation is used here.
