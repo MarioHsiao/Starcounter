@@ -421,6 +421,11 @@ namespace Starcounter.Internal.Weaver {
 
             _scAppAssemblyRef = FindStarcounterAssemblyReference(_module);
 
+            // Always add dependenies to "self" and referenced assemblies,
+            // making sure we can properly detect when any dependency change
+            // even for assemblies not implicitly referencing Starcounter
+            AddModuleDependencyRecursive(_module);
+
             if (_scAppAssemblyRef == null) {
                 // If there is no reference to Starcounter, we will not need to do any
                 // processing of this assembly. We should omit a NOTICE about this, that
@@ -436,13 +441,12 @@ namespace Starcounter.Internal.Weaver {
 
                 InitializeModuleThatReferenceStarcounter();
 
-                // Set up dependencies for this assembly.
+                // Set up futher dependencies for this assembly.
                 // First assure we add dependencies recursively, starting from the
                 // module currently being analyzed. Then add references to the
                 // Starcounter- and PostSharp assemblies currently loaded, to assure
                 // we invalidate the to-be-cached target assembly if neither change.
 
-                AddModuleDependencyRecursive(_module);
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                     name = assembly.GetName().Name;
                     if (name == "Starcounter" || name.StartsWith("PostSharp")) {

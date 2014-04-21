@@ -648,7 +648,7 @@ namespace Starcounter {
                 unsafe
                 {
                     if (null == http_request_struct_)
-                        throw new ArgumentException("HTTP request not initialized.");
+                        return null;
 
                     return http_request_struct_->GetBodyStringUtf8_Slow();
                 }
@@ -719,7 +719,7 @@ namespace Starcounter {
                     }
 
                     if (null == http_request_struct_)
-                        throw new ArgumentException("HTTP request not initialized.");
+                        return null;
 
                     headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
 
@@ -1026,7 +1026,7 @@ namespace Starcounter {
             unsafe
             {
                 if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
+                    return null;
 
                 return http_request_struct_->GetBodyByteArray_Slow();
             }
@@ -1101,7 +1101,7 @@ namespace Starcounter {
             unsafe
             {
                 if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
+                    return null;
 
                 return http_request_struct_->GetBodyByteArray_Slow();
             }

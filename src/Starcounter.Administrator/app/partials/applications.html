@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <div class="panel-body" ng-show="view=='icon' && filterview=='running' || applications.length == 0">
+    <div class="panel-body" ng-show="view=='icon' && filterview=='running'">
 
         <!-- Show Icon view -->
         <ul id="applicationIconList" class="list-group">
@@ -52,14 +52,14 @@
             </li>
         </ul>
 
-        <div ng-show="applications.length == 0 || (applications | filter:{running:true}).length ==0">
+        <div ng-show="applications.length == 0 || (applications | filter:{running:true}).length==0">
             <label>There are no applications running.</label>
         </div>
 
     </div>
 
     <!-- Show list view -->
-    <table class="table table-condensed" ng-show="(view=='list' || filterview=='recent') && applications.length > 0">
+    <table class="table table-condensed" ng-show="view=='list' && (filterview=='running' && (applications | filter:{running:true}).length>0) || (filterview=='recent' && applications.length > 0)">
         <thead>
             <tr>
                 <th>Name</th>
@@ -73,13 +73,10 @@
             <tr ng-repeat="application in applications | filter:filterApplications | orderBy: 'RuntimeInfo.Started':true track by $index">
                 <td><a href="#/databases/{{application.databaseName}}/applications/{{application.Name}}">{{application.Name}}</a>
                     <span ng-show="application.running" class="label label-success" title="Application is running">Running</span>
-                    <!--<span ng-hide="application.running" class="label label-important pull-right">Stopped</span>-->
-
-
-
                 </td>
 
-                <td>{{application.RuntimeInfo.Started |  date:'medium'}}
+                <td>
+                    {{application.RuntimeInfo.Started |  date:'medium'}}
                 </td>
 
                 <td><a href="#/databases/{{application.databaseName}}">{{application.databaseName}}</a>
@@ -93,18 +90,25 @@
                             <button class="btn btn-default btn-sm btn-danger" ng-disabled="!application.running" ng-click="btnStop(application)" title="Stop Application">Stop</button>
                         </div>
                         <div class="btn-group">
-                            <button class="close" ng-hide="application.running" ng-click="btnRemove(application)" title="Remove Application from History">&nbsp&times;</button>
+                            <button class="close" ng-hide="application.running" ng-click="btnRemove(application)" title="Remove Application from the Recent History list">&nbsp&times;</button>
                             <button style='visibility: hidden' class="close" ng-show="application.running" ng-click="btnRemove(application)">&nbsp&times;</button>
                         </div>
                     </div>
                 </td>
             </tr>
         </tbody>
+
     </table>
 
-    <span class="row" ng-show="((view=='list' && filterview=='recent') && applications.length == 0) || ((view=='list' && filterview=='running') && (applications | filter:{running:true}).length == 0)">
-        <div style='margin-left:15px;margin-right:15px' >
+    <span class="row" ng-show="view=='list' && filterview=='running' && (applications | filter:{running:true}).length==0">
+        <div style='margin-top:15px;margin-left:15px;margin-right:15px;margin-bottom:-5px' >
             <label>There are no applications running.</label>
+        </div>
+    </span>
+
+    <span class="row" ng-show="filterview=='recent' && applications.length == 0">
+        <div style='margin-top:15px;margin-left:15px;margin-right:15px;margin-bottom:-5px' >
+            <label>The Recent history list is empty.</label>
         </div>
     </span>
 
@@ -117,4 +121,3 @@
     </div>
 
 </div>
-

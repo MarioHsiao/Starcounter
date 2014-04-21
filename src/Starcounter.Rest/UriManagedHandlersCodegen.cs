@@ -451,7 +451,8 @@ namespace Starcounter.Rest
                 nativeParamTypes,
                 argMessageType,
                 wrappedDelegate,
-                protoType);
+                protoType,
+                ho);
 
             return wrappedDelegate;
         }

@@ -328,7 +328,7 @@ namespace Starcounter
                     unsafe
                     {
                         if (null == http_response_struct_)
-                            throw new ArgumentException("HTTP response not initialized.");
+                            return null;
 
                         return http_response_struct_->GetStatusDescription();
                     }
@@ -895,7 +895,7 @@ namespace Starcounter
                 unsafe
                 {
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return 0;
 
                     return http_response_struct_->content_len_bytes_;
                 }
@@ -948,7 +948,7 @@ namespace Starcounter
                 unsafe
                 {
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return 0;
 
                     return (Int32)http_response_struct_->response_len_bytes_;
                 }
@@ -1244,7 +1244,7 @@ namespace Starcounter
                     }
 
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return null;
                     
                     headersString_ = http_response_struct_->GetHeadersStringUtf8_Slow();
                     return headersString_;
@@ -1295,7 +1295,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                    return null;
 
                 return http_response_struct_->GetBodyByteArray_Slow();
             }
@@ -1320,7 +1320,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                    return null;
 
                 return http_response_struct_->GetBodyStringUtf8_Slow();
             }
@@ -1334,7 +1334,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
+                    return null;
 
                 return http_response_struct_->GetBodyByteArray_Slow();
             }
@@ -1349,7 +1349,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                    return null;
 
                 return http_response_struct_->GetHeadersStringUtf8_Slow();
             }

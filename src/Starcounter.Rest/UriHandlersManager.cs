@@ -302,10 +302,16 @@ namespace Starcounter.Rest
             userDelegates_ = null;
         }
 
-        public void AddDelegateToList(Func<Request, IntPtr, IntPtr, Response> user_delegate)
+        public void AddDelegateToList(
+            Func<Request, IntPtr, IntPtr, Response> user_delegate,
+            HandlerOptions ho)
         {
             userDelegates_.Add(user_delegate);
-            appNames_.Add(StarcounterEnvironment.AppName);
+
+            if (ho.AppName != null)
+                appNames_.Add(ho.AppName);
+            else
+                appNames_.Add(StarcounterEnvironment.AppName);
         }
 
         public void Init(
@@ -317,7 +323,8 @@ namespace Starcounter.Rest
             Type param_message_type,
             UInt16 handler_id,
             UInt64 handler_info,
-            MixedCodeConstants.NetworkProtocolType protoType)
+            MixedCodeConstants.NetworkProtocolType protoType,
+            HandlerOptions ho)
         {
             uri_info_.original_uri_info_ = original_uri_info;
             uri_info_.processed_uri_info_ = processed_uri_info;
@@ -335,7 +342,11 @@ namespace Starcounter.Rest
             userDelegates_.Add(user_delegate);
 
             appNames_ = new List<String>();
-            appNames_.Add(StarcounterEnvironment.AppName);
+
+            if (ho.AppName != null)
+                appNames_.Add(ho.AppName);
+            else
+                appNames_.Add(StarcounterEnvironment.AppName);
 
             uri_info_.InitUriPointers();
         }
@@ -563,7 +574,8 @@ namespace Starcounter.Rest
             Byte[] nativeParamTypes,
             Type messageType,
             Func<Request, IntPtr, IntPtr, Response> wrappedDelegate,
-            MixedCodeConstants.NetworkProtocolType protoType)
+            MixedCodeConstants.NetworkProtocolType protoType,
+            HandlerOptions ho)
         {
             lock (allUriHandlers_)
             {
@@ -575,7 +587,7 @@ namespace Starcounter.Rest
                     if ((0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
                         (port == allUriHandlers_[i].Port))
                     {
-                        allUriHandlers_[i].AddDelegateToList(wrappedDelegate);
+                        allUriHandlers_[i].AddDelegateToList(wrappedDelegate, ho);
                         return;
                     }
                 }
@@ -598,7 +610,8 @@ namespace Starcounter.Rest
                     messageType,
                     handlerId,
                     handlerInfo,
-                    protoType);
+                    protoType,
+                    ho);
 
                 // Registering the outer native handler (if any).
                 if (UriInjectMethods.HttpOuterHandler_ != null) {

@@ -18,6 +18,39 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Test
 {
     /// <summary>
+    /// Testing return types for X.
+    /// </summary>
+    [TestFixture]
+    public class ReturnTypesForX
+    {
+        [Test]
+        public void TestReturnTypesForX1() {
+            Handle.GET("/return_400", () => {
+                return 400;
+            });
+
+            Handle.GET("/return_200", () => {
+                return 200;
+            });
+
+            Response resp;
+            Object obj;
+            
+            obj = X.GET("/return_400");
+            Assert.AreEqual(obj, null);
+
+            obj = X.GET("/return_200");
+            Assert.AreEqual(obj, null);
+
+            X.GET("/return_400", out resp);
+            Assert.AreEqual(resp.StatusCode, 400);
+
+            X.GET("/return_200", out resp);
+            Assert.AreEqual(resp.StatusCode, 200);
+        }
+    }
+
+    /// <summary>
     /// Tests user HTTP delegates registration and usage with custom responses.
     /// </summary>
     [TestFixture]
