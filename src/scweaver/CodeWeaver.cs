@@ -209,6 +209,15 @@ namespace Weaver {
 
                         return false;
 
+                    } catch (AssemblyLoadException assemblyLoadEx) {
+                        Program.WriteError(ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, assemblyLoadEx.ToString()));
+
+                        Program.ReportProgramError(
+                            Error.SCERRWEAVERFAILEDRESOLVEREFERENCE,
+                            ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, 
+                            string.Format("Referenced assembly: {0}", assemblyLoadEx.Assembly.GetFullName()))
+                            );
+                        return false;
                     } catch (Exception e) {
                         ErrorMessage error;
                         if (!ErrorCode.TryGetCodedMessage(e, out error)) {
