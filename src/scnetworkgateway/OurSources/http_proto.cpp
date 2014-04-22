@@ -1326,56 +1326,5 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
     return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
 }
 
-// POST sockets for Gateway.
-uint32_t PostSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
-{
-    GW_ASSERT(false == sd->GetSocketAggregatedFlag());
-
-    // Cloning for receiving immediately.
-    sd->CloneToReceive(gw);
-
-    // Getting the aggregation info.
-    AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
-
-    // Getting port handler.
-    int32_t port_index = g_gateway.FindServerPortIndex(ags.port_number_);
-    GW_ASSERT(INVALID_PORT_INDEX != port_index);
-
-    // Getting new socket index.
-    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, INVALID_SOCKET, port_index, false);
-    ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
-
-    // Setting some socket options.
-    g_gateway.SetSocketAggregatedFlag(ags.socket_info_index_);
-
-    char temp_buf[AggregationStructSizeBytes];
-    *(AggregationStruct*) temp_buf = ags;
-
-    *is_handled = true;
-
-    return gw->SendHttpBody(sd, temp_buf, AggregationStructSizeBytes);
-}
-
-// DELETE sockets for Gateway.
-uint32_t DeleteSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
-{
-    // Getting the aggregation info.
-    AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
-
-    // Checking if socket is legitimate.
-    if (g_gateway.CompareUniqueSocketId(ags.socket_info_index_, ags.unique_socket_id_))
-    {
-        // Closing socket which will results in stop of all pending operations on that socket.
-        gw->AddSocketToDisconnectListUnsafe(ags.socket_info_index_);
-    }
-
-    char temp_buf[AggregationStructSizeBytes];
-    *(AggregationStruct*) temp_buf = ags;
-
-    *is_handled = true;
-
-    return gw->SendHttpBody(sd, temp_buf, AggregationStructSizeBytes);
-}
-
 } // namespace network
 } // namespace starcounter

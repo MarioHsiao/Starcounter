@@ -88,6 +88,11 @@ namespace Starcounter {
         public Action<Response, Object> UserDelegate = null;
 
         /// <summary>
+        /// Aggregation message delegate.
+        /// </summary>
+        public Action<Node.AggregationStruct> AggrMsgDelegate = null;
+
+        /// <summary>
         /// Bound scheduler id.
         /// </summary>
         public Byte BoundSchedulerId = 0;
@@ -113,15 +118,22 @@ namespace Starcounter {
         public Int32 ReceiveTimeoutMs { get; set; }
 
         /// <summary>
+        /// Type of aggregation message for the task.
+        /// </summary>
+        public MixedCodeConstants.AggregationMessageTypes AggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
+
+        /// <summary>
         /// Resets the connection details.
         /// </summary>
         public void Reset(
             Byte[] requestBytes,
             Int32 requestBytesLength,
             Action<Response, Object> userDelegate,
+            Action<Node.AggregationStruct> aggrMsgDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
-            Byte boundSchedulerId)
+            Byte boundSchedulerId,
+            MixedCodeConstants.AggregationMessageTypes aggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA)
         {
             Resp = null;
             TotallyReceivedBytes = 0;
@@ -139,6 +151,8 @@ namespace Starcounter {
 
             MemStream = new MemoryStream();
             BoundSchedulerId = boundSchedulerId;
+            AggrMsgType = aggrMsgType;
+            AggrMsgDelegate = aggrMsgDelegate;
         }
 
         /// <summary>

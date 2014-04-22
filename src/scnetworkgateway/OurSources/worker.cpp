@@ -1637,15 +1637,16 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 
 // Creates the socket data structure.
 uint32_t GatewayWorker::CreateSocketData(
-    session_index_type socket_info_index,
-    SocketDataChunkRef out_sd)
+    const session_index_type socket_info_index,
+    SocketDataChunkRef out_sd,
+    const int32_t data_len)
 {
     // Obtaining chunk from gateway private memory.
     // Checking if its an aggregation socket.
     if (g_gateway.IsAggregatingPort(socket_info_index))
         out_sd = worker_chunks_.ObtainChunk(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]);
     else
-        out_sd = worker_chunks_.ObtainChunk();
+        out_sd = worker_chunks_.ObtainChunk(data_len);
 
     // Initializing socket data.
     out_sd->Init(socket_info_index, worker_id_);
