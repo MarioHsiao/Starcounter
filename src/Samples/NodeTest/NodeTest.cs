@@ -359,7 +359,7 @@ namespace NodeTest
                         }
                         else
                         {
-                            Response resp = node.POST(Settings.CompleteHttpUri, body_bytes_, null);
+                            Response resp = node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null);
                             return CheckResponse(resp);
                         }
                     }
@@ -386,19 +386,22 @@ namespace NodeTest
             }
             else
             {
-                if (useNodeX_)
+                try
                 {
-                    X.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) =>
-                    {
-                        CheckResponse(resp);
-                    });
+                    if (useNodeX_) {
+                        X.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) => {
+                            CheckResponse(resp);
+                        });
+                    } else {
+                        node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null, (Response resp, Object userObject) => {
+                            CheckResponse(resp);
+                        });
+                    }
                 }
-                else
+                catch (Exception exc)
                 {
-                    node.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) =>
-                    {
-                        CheckResponse(resp);
-                    });
+                    Console.WriteLine(exc.ToString());
+                    throw exc;
                 }
 
                 return true;

@@ -268,21 +268,22 @@ namespace Starcounter
                     free_task_indexes_.Enqueue(i);
 
                 this_node_aggr_struct_.port_number_ = portNumber_;
-                this_node_aggr_struct_.flags_ = 0;
-
-                // Creating socket resource.
-
-                Byte[] aggr_struct_bytes = new Byte[AggregationStructSizeBytes];
-                unsafe { fixed (Byte* p = aggr_struct_bytes) { *(AggregationStruct*) p = this_node_aggr_struct_; } }
-
-                Response resp = X.POST(hostName_ + ":" + StarcounterEnvironment.Default.SystemHttpPort + "/socket", aggr_struct_bytes, null);
-
-                Byte[] resp_bytes = resp.BodyBytes;
-                unsafe { fixed (Byte* p = resp_bytes) { this_node_aggr_struct_ = *(AggregationStruct*)p; } }
 
                 // Starting send and receive threads.
                 (new Thread(new ThreadStart(AggregateSendThread))).Start();
                 (new Thread(new ThreadStart(AggregateReceiveThread))).Start();
+
+                Boolean nodeAggrInitialized = false;
+
+                // Requesting socket creation.
+                DoAsyncTransfer(null, 0, null, (AggregationStruct aggr_struct) => {
+                    unsafe { this_node_aggr_struct_ = aggr_struct; }
+                    nodeAggrInitialized = true;
+                }, null, 0, MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET);
+
+                // Waiting for socket creation result.
+                while (!nodeAggrInitialized)
+                    Thread.Sleep(1);
             }
         }
 
@@ -767,6 +768,114 @@ namespace Starcounter
             return len_bytes;
         }
 
+        public Byte[] ConstructRequestBytes(
+            String method,
+            String relativeUri,
+            String customHeaders,
+            Byte[] bodyBytes,
+            Boolean dontModifyHeaders,
+            out Int32 requestBytesLength) {
+
+            Utf8Writer writer;
+
+            Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
+
+            unsafe {
+                fixed (byte* p = requestBytes) {
+                    writer = new Utf8Writer(p);
+
+                    writer.Write(method);
+                    writer.Write(" ");
+                    writer.Write(relativeUri);
+                    writer.Write(" ");
+                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
+                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                    // Checking if headers should be sent as-is.
+                    if (!dontModifyHeaders) {
+                        writer.Write(HttpHeadersUtf8.HostStart);
+                        writer.Write(hostName_);
+                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        if (bodyBytes != null)
+                            writer.Write(bodyBytes.Length);
+                        else
+                            writer.Write(0);
+
+                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+                    }
+
+                    // Checking if headers already supplied.
+                    if (customHeaders != null) {
+                        // Checking for correct custom headers format.
+                        if (!customHeaders.EndsWith(StarcounterConstants.NetworkConstants.CRLF))
+                            throw new ArgumentException("Each custom header should be in following form: \"<HeaderName>:<space><value>\\r\\n\" For example: \"MyNewHeader: value123\\r\\n\"");
+
+                        writer.Write(customHeaders);
+                    }
+
+                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                    if (bodyBytes != null)
+                        writer.Write(bodyBytes);
+                }
+
+                requestBytesLength = writer.Written;
+            }
+
+            return requestBytes;
+        }
+
+        void DoAsyncTransfer(
+            Byte[] dataBytes,
+            Int32 dataBytesLength,
+            Action<Response, Object> userDelegate,
+            Action<AggregationStruct> aggrMsgDelegate = null,
+            Object userObject = null,
+            Int32 receiveTimeoutMs = 0,
+            MixedCodeConstants.AggregationMessageTypes aggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA)
+        {
+            // Setting the receive timeout.
+            if (0 == receiveTimeoutMs)
+                receiveTimeoutMs = DefaultReceiveTimeoutMs;
+
+            NodeTask nt = null;
+
+            // Checking if any tasks are finished.
+            if (!finished_async_tasks_.Dequeue(out nt)) {
+                // Checking if we exceeded the maximum number of created tasks.
+                if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks) {
+                    // Looping until task is dequeued.
+                    while (!finished_async_tasks_.Dequeue(out nt))
+                        Thread.Sleep(1);
+                }
+            }
+
+            // Checking if any empty tasks was dequeued.
+            if (null == nt) {
+                Interlocked.Increment(ref num_tasks_created_);
+                nt = new NodeTask(this);
+            }
+
+            // Getting current scheduler number if in Starcounter.
+            Byte currentSchedulerId = 0;
+            if (StarcounterEnvironment.IsCodeHosted)
+                currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
+
+            // Initializing connection.
+            nt.Reset(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId, aggrMsgType);
+
+            // Checking if we don't use aggregation.
+            if (!UsesAggregation()) {
+                // Starting async request on that node task.
+                nt.PerformAsyncRequest();
+            } else {
+                // Putting to aggregation queue.
+                aggr_pending_async_tasks_.Enqueue(nt);
+            }
+        }
+
         /// <summary>
         /// Core function to send REST requests and get the responses.
         /// </summary>
@@ -792,58 +901,10 @@ namespace Starcounter
             if (relativeUri == null || relativeUri.Length < 1)
                 throw new ArgumentOutOfRangeException("URI should contain at least one character.");
 
-            Utf8Writer writer;
-
-            Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
-
-            Int32 requestBytesLength;
-
             String methodAndUriPlusSpace = method + " " + relativeUri + " ";
 
-            unsafe
-            {
-			    fixed (byte* p = requestBytes)
-                {
-                    writer = new Utf8Writer(p);
-
-                    writer.Write(methodAndUriPlusSpace);
-                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    // Checking if headers should be sent as-is.
-                    if (!ho.DontModifyHeaders)
-                    {
-                        writer.Write(HttpHeadersUtf8.HostStart);
-                        writer.Write(hostName_);
-                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-                        if (bodyBytes != null)
-                            writer.Write(bodyBytes.Length);
-                        else
-                            writer.Write(0);
-
-                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-                    }
-
-                    // Checking if headers already supplied.
-                    if (customHeaders != null)
-                    {
-                        // Checking for correct custom headers format.
-                        if (!customHeaders.EndsWith(StarcounterConstants.NetworkConstants.CRLF))
-                            throw new ArgumentException("Each custom header should be in following form: \"<HeaderName>:<space><value>\\r\\n\" For example: \"MyNewHeader: value123\\r\\n\"");
-
-                        writer.Write(customHeaders);
-                    }
-
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    if (bodyBytes != null)
-                        writer.Write(bodyBytes);
-                }
-
-                requestBytesLength = writer.Written;
-            }
+            Int32 requestBytesLength;
+            Byte[] requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
             
             // No response initially.
             Response resp = null;
@@ -896,48 +957,10 @@ namespace Starcounter
                 receiveTimeoutMs = DefaultReceiveTimeoutMs;
 
             // Checking if user has supplied a delegate to be called.
-            if (null != userDelegate)
-            {
-                NodeTask nt = null;
+            if (null != userDelegate) {
 
-                // Checking if any tasks are finished.
-                if (!finished_async_tasks_.Dequeue(out nt))
-                {
-                    // Checking if we exceeded the maximum number of created tasks.
-                    if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks)
-                    {
-                        // Looping until task is dequeued.
-                        while (!finished_async_tasks_.Dequeue(out nt))
-                            Thread.Sleep(1);
-                    }
-                }
-
-                // Checking if any empty tasks was dequeued.
-                if (null == nt)
-                {
-                    Interlocked.Increment(ref num_tasks_created_);
-                    nt = new NodeTask(this);
-                }
-
-                // Getting current scheduler number if in Starcounter.
-                Byte currentSchedulerId = 0;
-                if (StarcounterEnvironment.IsCodeHosted)
-                    currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
-
-                // Initializing connection.
-                nt.Reset(requestBytes, requestBytesLength, userDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
-
-                // Checking if we don't use aggregation.
-                if (!UsesAggregation())
-                {
-                    // Starting async request on that node task.
-                    nt.PerformAsyncRequest();
-                }
-                else
-                {
-                    // Putting to aggregation queue.
-                    aggr_pending_async_tasks_.Enqueue(nt);
-                }
+                // Trying to perform an async request.
+                DoAsyncTransfer(requestBytes, requestBytesLength, userDelegate, null, userObject, receiveTimeoutMs);
 
                 return null;
             }
@@ -945,7 +968,7 @@ namespace Starcounter
             lock (finished_async_tasks_)
             {
                 // Initializing connection.
-                sync_task_info_.Reset(requestBytes, requestBytesLength, null, userObject, receiveTimeoutMs, 0);
+                sync_task_info_.Reset(requestBytes, requestBytesLength, null, null, userObject, receiveTimeoutMs, 0);
 
                 // Doing synchronous request and returning response.
                 return sync_task_info_.PerformSyncRequest();
@@ -968,14 +991,13 @@ namespace Starcounter
         Byte[] aggregate_receive_blob_;
 
         [StructLayout(LayoutKind.Sequential)]
-        struct AggregationStruct
+        public struct AggregationStruct
         {
             public UInt64 unique_socket_id_;
             public Int32 size_bytes_;
             public UInt32 socket_info_index_;
             public Int32 unique_aggr_index_;
             public UInt16 port_number_;
-            public Byte flags_;
         }
 
         /// <summary>
@@ -1054,8 +1076,24 @@ START_RECEIVING:
                                 //Console.WriteLine("Dequeued from sent: " + nt.RequestBytes.Length);
                                 Interlocked.Decrement(ref sent_received_balance_);
 
-                                // Constructing the response from received bytes and calling user delegate.
-                                nt.ConstructResponseAndCallDelegate(aggregate_receive_blob_, receive_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+                                // Checking type of node task.
+                                switch (nt.AggrMsgType) {
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA: {
+
+                                        // Constructing the response from received bytes and calling user delegate.
+                                        nt.ConstructResponseAndCallDelegate(aggregate_receive_blob_, receive_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+
+                                        break;
+                                    }
+
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET:
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DESTROY_SOCKET: {
+
+                                        nt.AggrMsgDelegate(*ags);
+
+                                        break;
+                                    }
+                                }
 
                                 // Releasing free task index.
                                 free_task_indexes_.Enqueue(ags->unique_aggr_index_);
@@ -1073,6 +1111,7 @@ START_RECEIVING:
             catch (Exception exc)
             {
                 Console.WriteLine(exc);
+                throw exc;
             }
         }
 
@@ -1121,17 +1160,45 @@ START_RECEIVING:
                                     send_bytes_offset = 0;
                                 }
 
-                                // Creating the aggregation struct.
-                                AggregationStruct* ags = (AggregationStruct *)(sb + send_bytes_offset);
-                                *ags = this_node_aggr_struct_;
-                                ags->size_bytes_ = nt.RequestBytesLength;
-                                ags->unique_aggr_index_ = free_task_index;
+                                // Setting the message type.
+                                *(Byte*)(sb + send_bytes_offset) = (Byte)nt.AggrMsgType;
+                                send_bytes_offset++;
 
-                                // Using fast memory copy here.
-                                Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
-                            
-                                // Shifting offset in the array.
-                                send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
+                                switch (nt.AggrMsgType)
+                                {
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA:
+                                    {
+                                        // Creating the aggregation struct.
+                                        AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
+                                        *ags = this_node_aggr_struct_;
+                                        ags->size_bytes_ = nt.RequestBytesLength;
+                                        ags->unique_aggr_index_ = free_task_index;
+
+                                        // Using fast memory copy here.
+                                        Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+
+                                        // Shifting offset in the array.
+                                        send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
+
+                                        break;
+                                    }
+
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET:
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DESTROY_SOCKET:
+                                    {
+                                        // Creating the aggregation struct.
+                                        AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
+                                        *ags = this_node_aggr_struct_;
+                                        ags->size_bytes_ = 0;
+                                        ags->unique_aggr_index_ = free_task_index;
+
+                                        // Shifting offset in the array.
+                                        send_bytes_offset += AggregationStructSizeBytes;
+
+                                        break;
+                                    }
+                                }
+
                             }
 
                             // Sending last processed requests.
@@ -1144,6 +1211,7 @@ START_RECEIVING:
             catch(Exception exc)
             {
                 Console.WriteLine(exc);
+                throw exc;
             }
         }
 

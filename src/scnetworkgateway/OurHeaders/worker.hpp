@@ -165,6 +165,12 @@ public:
     // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(SocketDataChunkRef sd);
 
+    // Performs a send of given socket data on aggregation socket.
+    uint32_t SendOnAggregationSocket(
+        const session_index_type aggr_socket_info_index,
+        const uint8_t* data,
+        const int32_t data_len);
+
     // Tries to find current aggregation socket data from aggregation socket index.
     SocketDataChunk* FindAggregationSdBySocketIndex(session_index_type aggr_socket_info_index);
 
@@ -574,8 +580,9 @@ public:
 
     // Creates the socket data structure.
     uint32_t CreateSocketData(
-        session_index_type socket_info_index,
-        SocketDataChunkRef out_sd);
+        const session_index_type socket_info_index,
+        SocketDataChunkRef out_sd,
+        const int32_t data_len = GatewayChunkDataSizes[DefaultGatewayChunkSizeType]);
 
 #ifdef GW_TESTING_MODE
 
