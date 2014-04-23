@@ -1199,6 +1199,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     // Obtaining client interface.
     core::client_interface_type& client_int = g_gateway.get_worker(0)->GetWorkerDb(db_index)->get_shared_int()->client_interface();
 
+#ifndef WORKER_NO_SLEEP
+
     // Looping until the database dies (TODO, does not work, forcedly killed).
     while (true)
     {
@@ -1208,6 +1210,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
         // Waking up the worker thread with APC.
         WakeUpThreadUsingAPC(worker_thread_handle[work_event_index]);
     }
+
+#endif
 
     return 0;
 }
