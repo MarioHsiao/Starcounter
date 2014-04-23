@@ -360,7 +360,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-        public static void TestChangeAfterInsertItem() {
+        public static void TestChangeAfterInsertAndRemoveItem() {
             dynamic root = new Json();
             dynamic item1;
             dynamic item2;
@@ -381,12 +381,22 @@ namespace Starcounter.Internal.XSON.Tests {
             item2.Number = 99;
             root.Items.Insert(0, item2);
 
-            // Clearing any existing changes.
+            // Clearing existing changes.
             patch = Session.Current.CreateJsonPatch(true);
             
             item1.Number = 666;
             patch = Session.Current.CreateJsonPatch(true);
             correctPatch = @"[{""op"":""replace"",""path"":""/Items/1/Number"",""value"":666}]";
+            Assert.AreEqual(correctPatch, patch);
+
+            root.Items.RemoveAt(0); // item2
+
+            // Clearing existing changes.
+            patch = Session.Current.CreateJsonPatch(true);
+
+            item1.Number = 19;
+            patch = Session.Current.CreateJsonPatch(true);
+            correctPatch = @"[{""op"":""replace"",""path"":""/Items/0/Number"",""value"":19}]";
             Assert.AreEqual(correctPatch, patch);
         }
     }
