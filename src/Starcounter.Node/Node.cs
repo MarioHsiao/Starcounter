@@ -655,7 +655,7 @@ namespace Starcounter
 
             ho.DontModifyHeaders = true;
 
-            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, ho, req);
         }
 
         /// <summary>
@@ -675,7 +675,7 @@ namespace Starcounter
 
             ho.DontModifyHeaders = true;
 
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req);
         }
 
         /// <summary>
@@ -785,9 +785,9 @@ namespace Starcounter
                     writer = new Utf8Writer(p);
 
                     writer.Write(method);
-                    writer.Write(" ");
+                    writer.Write(' ');
                     writer.Write(relativeUri);
-                    writer.Write(" ");
+                    writer.Write(' ');
                     writer.Write(HttpHeadersUtf8.Http11NoSpace);
                     writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
@@ -892,7 +892,8 @@ namespace Starcounter
             Action<Response, Object> userDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
-            HandlerOptions ho)
+            HandlerOptions ho,
+            Request req = null)
         {
             // Checking if handler options is defined.
             if (ho == null)
@@ -904,7 +905,15 @@ namespace Starcounter
             String methodAndUriPlusSpace = method + " " + relativeUri + " ";
 
             Int32 requestBytesLength;
-            Byte[] requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
+            Byte[] requestBytes;
+            
+            // Checking if request is defined and initialized.
+            if ((req == null) || (req.CustomBytes == null)) {
+                requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
+            } else {
+                requestBytes = req.CustomBytes;
+                requestBytesLength = req.CustomBytesLength;
+            }
             
             // No response initially.
             Response resp = null;
