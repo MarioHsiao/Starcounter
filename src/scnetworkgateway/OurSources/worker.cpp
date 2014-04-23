@@ -1353,6 +1353,10 @@ uint32_t GatewayWorker::WorkerRoutine()
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
     uint32_t next_sleep_interval_ms = INFINITE;
 
+#ifdef WORKER_NO_SLEEP
+    next_sleep_interval_ms = 0;
+#endif
+
 #ifdef GW_PROFILER_ON
     uint32_t newTimeMs;
 #endif
@@ -1519,6 +1523,10 @@ uint32_t GatewayWorker::WorkerRoutine()
         err_code = ScanChannels(next_sleep_interval_ms);
         if (err_code)
             return err_code;
+
+#ifdef WORKER_NO_SLEEP
+        next_sleep_interval_ms = 0;
+#endif
 
         // NOTE: Checking inactive sockets cleanup (only first worker).
         if ((g_gateway.get_num_sockets_to_cleanup_unsafe()) && (worker_id_ == 0))
