@@ -213,18 +213,19 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         public void Insert(int index, object item) {
             Json j = VerifyJsonForInserting(item);
-
             Json otherItem;
+
+            list.Insert(index, j);
+            _SetFlag.Insert(index, false);
+            j._cacheIndexInArr = index;
+            j.Parent = this;
+            MarkAsReplaced(index);
+
             for (Int32 i = index + 1; i < list.Count; i++) {
                 otherItem = (Json)list[i];
                 otherItem._cacheIndexInArr = i;
             }
 
-            list.Insert(index, j);
-            _SetFlag.Insert(index, false);
-            MarkAsReplaced(index);
-            j._cacheIndexInArr = index;
-            j.Parent = this;
             CallHasAddedElement(index,j);
         }
 
