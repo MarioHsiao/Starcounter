@@ -1334,6 +1334,9 @@
     <code hex="0092" severity="Error" name="ScErrBadApplicationName">
         <message>Application name can only contain letters, numbers and underscores.</message>
     </code>
+    <code hex="0093" severity="Error" name="ScErrWeaverFailedResolveReference">
+      <message>The weaver failed to resolve a reference to an assembly.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
