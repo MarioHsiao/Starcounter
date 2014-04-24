@@ -40,6 +40,9 @@ public:
     {
         chunk_store_type store_index = sd->get_chunk_store_index();
 
+        // Invalidating before returning.
+        sd->InvalidateWhenReturning();
+
         // Checking if we should completely dispose the chunk.
         if (worker_chunks_[store_index].get_num_entries() >= GatewayChunkStoresSizes[store_index])
         {
@@ -51,7 +54,6 @@ public:
             worker_chunks_[store_index].PushBack(sd);
         }
 
-        sd->InvalidateWhenReturning();
         sd = NULL;
     }
 
