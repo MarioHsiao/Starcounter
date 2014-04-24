@@ -374,6 +374,10 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Handled successfully.
     *is_handled = true;
 
+    // Checking if client key is defined.
+    if (g_ts_client_key_len_ <= 0)
+        return SCERRGWWEBSOCKETWRONGHANDSHAKEDATA;
+
     // Generating handshake response.
     char handshake_resp_temp[128];
     strncpy_s(handshake_resp_temp, 128, g_ts_client_key_, _TRUNCATE);
