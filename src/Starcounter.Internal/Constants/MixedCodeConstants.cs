@@ -289,6 +289,8 @@ namespace Starcounter.Internal
         uint32_t* gen_code_str_num_bytes
         );
 
+    //#define GW_SMC_LOOPBACK_AGGREGATION
+
 #undef public
 }
 }
