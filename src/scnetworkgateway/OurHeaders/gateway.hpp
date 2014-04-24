@@ -78,6 +78,7 @@ typedef int8_t chunk_store_type;
 #define GW_COLLECT_INACTIVE_SOCKETS
 //#define GW_LOOPBACK_AGGREGATION
 //#define GW_IOCP_IMMEDIATE_COMPLETION
+//#define WORKER_NO_SLEEP
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -159,9 +160,6 @@ const int32_t MAX_GATEWAY_CHUNKS = 1024 * 1024;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
-
-// Aggregation buffer size.
-const int32_t AGGREGATION_BUFFER_SIZE = 1024 * 1024 * 16;
 
 // Size of circular log buffer.
 const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
@@ -330,7 +328,6 @@ struct AggregationStruct
     session_index_type socket_info_index_;
     int32_t unique_aggr_index_;
     uint16_t port_number_;
-    uint8_t flags;
 };
 
 const int32_t AggregationStructSizeBytes = sizeof(AggregationStruct);
@@ -513,22 +510,6 @@ uint32_t GatewayUriProcessEcho(
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-// POST sockets for Gateway.
-uint32_t PostSocketResource(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-// DELETE sockets for Gateway.
-uint32_t DeleteSocketResource(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,

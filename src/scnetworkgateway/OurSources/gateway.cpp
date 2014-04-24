@@ -1098,7 +1098,10 @@ uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port
 }
 
 // Applying session parameters to socket data.
-bool Gateway::ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id)
+bool Gateway::ApplySocketInfoToSocketData(
+    SocketDataChunkRef sd,
+    session_index_type socket_index,
+    random_salt_type unique_socket_id)
 {
     GW_ASSERT(socket_index < setting_max_connections_);
 
@@ -1196,6 +1199,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     // Obtaining client interface.
     core::client_interface_type& client_int = g_gateway.get_worker(0)->GetWorkerDb(db_index)->get_shared_int()->client_interface();
 
+#ifndef WORKER_NO_SLEEP
+
     // Looping until the database dies (TODO, does not work, forcedly killed).
     while (true)
     {
@@ -1205,6 +1210,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
         // Waking up the worker thread with APC.
         WakeUpThreadUsingAPC(worker_thread_handle[work_event_index]);
     }
+
+#endif
 
     return 0;
 }
@@ -1473,52 +1480,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     bmx::BMX_INVALID_HANDLER_INFO,
                     empty_db_index,
                     GatewayStatisticsInfo,
-                    true);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    ShutdownGateway(NULL, err_code);
-                }
-
-                // Registering URI handler for socket resource creation.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    setting_gw_stats_port_,
-                    "gateway",
-                    "POST /socket",
-                    "POST /socket ",
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    PostSocketResource,
-                    true);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    ShutdownGateway(NULL, err_code);
-                }
-
-                // Registering URI handler for socket resource deletion.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    setting_gw_stats_port_,
-                    "gateway",
-                    "DELETE /socket",
-                    "DELETE /socket ",
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    DeleteSocketResource,
                     true);
 
                 if (err_code)

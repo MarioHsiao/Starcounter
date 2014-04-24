@@ -910,7 +910,8 @@ namespace Starcounter {
 		/// <summary>
 		/// Constructs Response from fields that are set.
 		/// </summary>
-		public void ConstructFromFields() {
+		public void ConstructFromFields(Boolean dontModifyHeaders = false) {
+
 			// Checking if we have a custom response.
 			if (!customFields_)
 				return;
@@ -918,8 +919,8 @@ namespace Starcounter {
 			if (null == uriString_)
 				throw new ArgumentException("Relative URI should be set when creating custom Request.");
 
-			if (null == hostNameString_)
-				throw new ArgumentException("Host name should be set when creating custom Request.");
+            if (null == hostNameString_)
+                hostNameString_ = "SC";
 
 			if (null == methodString_)
 				methodString_ = "GET";
@@ -934,44 +935,41 @@ namespace Starcounter {
 					writer.Write(methodString_);
 					writer.Write(' ');
 					writer.Write(uriString_);
-					writer.Write(" HTTP/1.1"); // TODO: Change to static bytearray header.
+                    writer.Write(' ');
+                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
 					writer.Write(HttpHeadersUtf8.CRLF);
 
-					writer.Write("Host: "); // TODO: Change to static bytearray header.
-					writer.Write(hostNameString_);
-					writer.Write(HttpHeadersUtf8.CRLF);
+                    if (!dontModifyHeaders)
+                    {
+                        writer.Write(HttpHeadersUtf8.HostStart);
+                        writer.Write(hostNameString_);
+                        writer.Write(HttpHeadersUtf8.CRLF);
 
-					if (null != headersString_)
-                    {
-						writer.Write(headersString_);
-                    }
-                    else
-                    {
-                        if (null != customHeaderFields_)
-                        {
-                            foreach (KeyValuePair<string, string> h in customHeaderFields_)
-                            {
-                                writer.Write(h.Key);
-                                writer.Write(": ");
-                                writer.Write(h.Value);
-                                writer.Write(HttpHeadersUtf8.CRLF);
+                        if (null != headersString_) {
+                            writer.Write(headersString_);
+                        } else {
+                            if (null != customHeaderFields_) {
+                                foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+                                    writer.Write(h.Key);
+                                    writer.Write(": ");
+                                    writer.Write(h.Value);
+                                    writer.Write(HttpHeadersUtf8.CRLF);
+                                }
                             }
                         }
-                    }
 
-                    // Checking the cookies list.
-                    if ((null != _Cookies) && (_Cookies.Count > 0))
-                    {
-                        writer.Write(HttpHeadersUtf8.GetCookieStart);
-                        writer.Write(_Cookies[0]);
+                        // Checking the cookies list.
+                        if ((null != _Cookies) && (_Cookies.Count > 0)) {
+                            writer.Write(HttpHeadersUtf8.GetCookieStart);
+                            writer.Write(_Cookies[0]);
 
-                        for (Int32 i = 1; i < _Cookies.Count; i++)
-                        {
-                            writer.Write(HttpHeadersUtf8.SemicolonSpace);
-                            writer.Write(_Cookies[i]);
+                            for (Int32 i = 1; i < _Cookies.Count; i++) {
+                                writer.Write(HttpHeadersUtf8.SemicolonSpace);
+                                writer.Write(_Cookies[i]);
+                            }
+
+                            writer.Write(HttpHeadersUtf8.CRLF);
                         }
-
-                        writer.Write(HttpHeadersUtf8.CRLF);
                     }
 
 					if (null != bodyString_) {

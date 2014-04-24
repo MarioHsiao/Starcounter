@@ -76,6 +76,16 @@ namespace Starcounter.Internal
         };
 
         /// <summary>
+        /// Types of messages used in aggregation.
+        /// </summary>
+        public enum AggregationMessageTypes
+        {
+            AGGR_CREATE_SOCKET,
+            AGGR_DESTROY_SOCKET,
+            AGGR_DATA
+        };
+
+        /// <summary>
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
@@ -154,7 +164,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Maximum extra linked IPC chunks.
         /// </summary>
-        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 32;
+        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 64;
 
         /// <summary>
         /// Maximum linked chunks bytes.

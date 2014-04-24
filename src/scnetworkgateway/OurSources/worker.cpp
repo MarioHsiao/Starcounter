@@ -1353,6 +1353,10 @@ uint32_t GatewayWorker::WorkerRoutine()
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
     uint32_t next_sleep_interval_ms = INFINITE;
 
+#ifdef WORKER_NO_SLEEP
+    next_sleep_interval_ms = 0;
+#endif
+
 #ifdef GW_PROFILER_ON
     uint32_t newTimeMs;
 #endif
@@ -1520,6 +1524,10 @@ uint32_t GatewayWorker::WorkerRoutine()
         if (err_code)
             return err_code;
 
+#ifdef WORKER_NO_SLEEP
+        next_sleep_interval_ms = 0;
+#endif
+
         // NOTE: Checking inactive sockets cleanup (only first worker).
         if ((g_gateway.get_num_sockets_to_cleanup_unsafe()) && (worker_id_ == 0))
             g_gateway.CleanupInactiveSocketsOnWorkerZero();
@@ -1637,15 +1645,16 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 
 // Creates the socket data structure.
 uint32_t GatewayWorker::CreateSocketData(
-    session_index_type socket_info_index,
-    SocketDataChunkRef out_sd)
+    const session_index_type socket_info_index,
+    SocketDataChunkRef out_sd,
+    const int32_t data_len)
 {
     // Obtaining chunk from gateway private memory.
     // Checking if its an aggregation socket.
     if (g_gateway.IsAggregatingPort(socket_info_index))
         out_sd = worker_chunks_.ObtainChunk(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]);
     else
-        out_sd = worker_chunks_.ObtainChunk();
+        out_sd = worker_chunks_.ObtainChunk(data_len);
 
     // Initializing socket data.
     out_sd->Init(socket_info_index, worker_id_);

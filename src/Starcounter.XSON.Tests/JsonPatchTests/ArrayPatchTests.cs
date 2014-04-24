@@ -358,5 +358,46 @@ namespace Starcounter.Internal.XSON.Tests {
             string correctPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
             Assert.AreEqual(correctPatch, patch);
         }
+
+        [Test]
+        public static void TestChangeAfterInsertAndRemoveItem() {
+            dynamic root = new Json();
+            dynamic item1;
+            dynamic item2;
+            string correctPatch;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            item1 = new Json();
+            item1.Number = 1;
+            root.Items.Add(item1);
+
+            item2 = new Json();
+            item2.Number = 99;
+            root.Items.Insert(0, item2);
+
+            // Clearing existing changes.
+            patch = Session.Current.CreateJsonPatch(true);
+            
+            item1.Number = 666;
+            patch = Session.Current.CreateJsonPatch(true);
+            correctPatch = @"[{""op"":""replace"",""path"":""/Items/1/Number"",""value"":666}]";
+            Assert.AreEqual(correctPatch, patch);
+
+            root.Items.RemoveAt(0); // item2
+
+            // Clearing existing changes.
+            patch = Session.Current.CreateJsonPatch(true);
+
+            item1.Number = 19;
+            patch = Session.Current.CreateJsonPatch(true);
+            correctPatch = @"[{""op"":""replace"",""path"":""/Items/0/Number"",""value"":19}]";
+            Assert.AreEqual(correctPatch, patch);
+        }
     }
 }

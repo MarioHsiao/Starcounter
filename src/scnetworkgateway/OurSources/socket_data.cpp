@@ -124,7 +124,7 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
 {
     // Getting a chunk from new database.
     SocketDataChunk* sd;
-    uint32_t err_code = gw->CreateSocketData(socket_info_index, sd);
+    uint32_t err_code = gw->CreateSocketData(socket_info_index, sd, data_len);
     if (err_code)
     {
         // New chunk can not be obtained.
@@ -134,7 +134,7 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
     // Checking if data fits inside chunk.
-    GW_ASSERT(data_len < (int32_t)accum_buf->get_chunk_num_available_bytes());
+    GW_ASSERT(data_len <= (int32_t)accum_buf->get_chunk_num_available_bytes());
 
     // Checking if message should be copied.
     memcpy(accum_buf->get_chunk_orig_buf_ptr(), data, data_len);
