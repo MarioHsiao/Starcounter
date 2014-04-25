@@ -69,7 +69,7 @@ namespace QueryProcessingTest {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent, ipbytes) values (2, object " +
                     co.GetObjectNo() + ",'Opera',BINARY 'D91FA24E19FB065Ad')");
             });
-            var visits = Db.SQL<Visit>("select v from visit v where company = ? order by id desc", co).GetEnumerator();
+            var visits = Db.SQL<Visit>("select v from visit v where company = ?", co).GetEnumerator();
             Trace.Assert(visits.MoveNext());
             Visit v = visits.Current;
             Trace.Assert(v.Id == UInt64.MaxValue);
@@ -77,6 +77,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.Start == startV);
             Trace.Assert(v.End == endV);
+            Console.WriteLine(Db.BinaryToHex(v.IpBytes));
             Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             Trace.Assert(Db.BinaryToHex(v.IpBytes) == "01010101");
             Trace.Assert(visits.MoveNext());
