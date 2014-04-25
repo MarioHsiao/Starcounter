@@ -899,14 +899,14 @@ ALL_DATA_ACCUMULATED:
             sd->ResetUserDataOffset();
 
 #ifdef GW_LOOPBACK_AGGREGATION
+
             if (sd->GetSocketAggregatedFlag())
             {
                 char body[1024];
-                int32_t body_len = http_request_.content_len_bytes_;
-                memcpy(body, (char*)sd + http_request_.content_offset_, body_len);
+                int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
+                memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
                 err_code = gw->SendHttpBody(sd, body, body_len);
-                if (err_code)
-                    return err_code;
+                GW_ASSERT (0 == err_code);
             }
             else
 #endif
