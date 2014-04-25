@@ -49,11 +49,14 @@ namespace Starcounter.Query {
                 //throw;
                 if (prologException == null)
                     prologException = ex;
+            } catch (Exception e) {
+                prologException = e;
             }
             if (prologException != null) {
 #if !PROLOG_ONLY
                 if (nativeException != null)
-                    if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED)
+                    if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED || 
+                        (uint?)prologException.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRQUERYSTRINGTOOLONG)
                         throw nativeException;
 #endif //!PROLOG_ONLY
                 throw prologException;

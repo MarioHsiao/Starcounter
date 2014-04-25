@@ -31,6 +31,7 @@ namespace QueryProcessingTest {
         public int Spent;
         public int PageViewCount;
         public string Ip; //note: Henrik said they never show Ip in the interface, it is not even stored in PF3 database
+        public Binary IpBytes;
         public string Referer;
         public string UserAgent;
         public string TrackingCookie;

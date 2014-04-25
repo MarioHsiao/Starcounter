@@ -120,9 +120,9 @@ namespace Starcounter {
             switch (typeCode) {
                 case DbTypeCode.Binary:
                     Binary? binaryVal = values.GetBinary(index);
-                    if (binaryVal == null)
+                    if (binaryVal == null || ((Binary)binaryVal).IsNull)
                         return nullStr;
-                    return binaryVal.ToString();
+                    return "BINARY '" + Db.BinaryToHex((Binary)binaryVal) + "'";
                 case DbTypeCode.LargeBinary:
                     throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED,
                         "Large binary is not supported in unload.");

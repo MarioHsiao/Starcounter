@@ -62,12 +62,12 @@ namespace QueryProcessingTest {
             DateTime startV = Convert.ToDateTime("2006-11-01 00:08:40");
             DateTime endV = Convert.ToDateTime("2006-11-01 00:08:59");
             Db.Transaction(delegate {
-                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, start, end, UserAgent) values (" +
-                    UInt64.MaxValue + ", object " + co.GetObjectNo() + "," + startV.Ticks + "," + endV.Ticks + ",'Opera')");
+                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, start, end, UserAgent, ipbytes) values (" +
+                    UInt64.MaxValue + ", object " + co.GetObjectNo() + "," + startV.Ticks + "," + endV.Ticks + ",'Opera',binary '01010101')");
             });
             Db.Transaction(delegate {
-                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent) values (2, object " +
-                    co.GetObjectNo() + ",'Opera')");
+                Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent, ipbytes) values (2, object " +
+                    co.GetObjectNo() + ",'Opera',BINARY 'D91FA24E19FB065A')");
             });
             var visits = Db.SQL<Visit>("select v from visit v where company = ?", co).GetEnumerator();
             Trace.Assert(visits.MoveNext());
@@ -77,11 +77,14 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.Start == startV);
             Trace.Assert(v.End == endV);
+            Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
+            Trace.Assert(Db.BinaryToHex(v.IpBytes) == "01010101");
             Trace.Assert(visits.MoveNext());
             v = visits.Current;
             Trace.Assert(v.Id == 2);
             Trace.Assert(v.Company.Equals(co));
             Trace.Assert(v.UserAgent == "Opera");
+            Trace.Assert(Db.BinaryToHex(v.IpBytes) == "D91FA24E19FB065A");
             Trace.Assert(!visits.MoveNext());
             // Test insert __id value
             Db.Transaction(delegate { v.Delete(); });

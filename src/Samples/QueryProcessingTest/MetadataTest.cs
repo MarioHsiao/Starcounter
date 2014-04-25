@@ -201,7 +201,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(rw.FullNameReversed.ReverseOrderDotWords() == rw.FullName);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 102);
+            Trace.Assert(nrColumns == 103);
             MaterializedIndex i = Db.SQL<MaterializedIndex>("select i from materializedindex i where name = ?",
                 "TableColumnPrimaryKey").First;
             Trace.Assert(i != null);
