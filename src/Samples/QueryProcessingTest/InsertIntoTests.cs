@@ -67,9 +67,9 @@ namespace QueryProcessingTest {
             });
             Db.Transaction(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent, ipbytes) values (2, object " +
-                    co.GetObjectNo() + ",'Opera',BINARY 'D91FA24E19FB065A')");
+                    co.GetObjectNo() + ",'Opera',BINARY 'D91FA24E19FB065Ad')");
             });
-            var visits = Db.SQL<Visit>("select v from visit v where company = ?", co).GetEnumerator();
+            var visits = Db.SQL<Visit>("select v from visit v where company = ? order by id desc", co).GetEnumerator();
             Trace.Assert(visits.MoveNext());
             Visit v = visits.Current;
             Trace.Assert(v.Id == UInt64.MaxValue);
@@ -84,7 +84,19 @@ namespace QueryProcessingTest {
             Trace.Assert(v.Id == 2);
             Trace.Assert(v.Company.Equals(co));
             Trace.Assert(v.UserAgent == "Opera");
-            Trace.Assert(Db.BinaryToHex(v.IpBytes) == "D91FA24E19FB065A");
+            Trace.Assert(Db.BinaryToHex(v.IpBytes) == "0D91FA24E19FB065AD");
+            Trace.Assert(!visits.MoveNext());
+            visits = Db.SQL<Visit>("select v from visit v where Ipbytes = ? and id = ?",
+                new Binary(new byte[] { 1, 1, 1, 1 }), UInt64.MaxValue).GetEnumerator();
+            Trace.Assert(visits.MoveNext());
+            v = visits.Current;
+            Trace.Assert(v.Id == UInt64.MaxValue);
+            Trace.Assert(v.Company.Equals(co));
+            Trace.Assert(v.UserAgent == "Opera");
+            Trace.Assert(v.Start == startV);
+            Trace.Assert(v.End == endV);
+            Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
+            Trace.Assert(Db.BinaryToHex(v.IpBytes) == "01010101");
             Trace.Assert(!visits.MoveNext());
             // Test insert __id value
             Db.Transaction(delegate { v.Delete(); });
