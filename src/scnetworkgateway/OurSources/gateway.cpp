@@ -1114,6 +1114,9 @@ bool Gateway::ApplySocketInfoToSocketData(
         sd->set_socket_info_index(si.read_only_index_);
         sd->set_type_of_network_protocol((MixedCodeConstants::NetworkProtocolType)si.type_of_network_protocol_);
 
+        // Resetting the session based on protocol.
+        sd->ResetSessionBasedOnProtocol();
+
         return true;
     }
 

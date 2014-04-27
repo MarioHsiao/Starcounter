@@ -158,6 +158,13 @@ class GatewayWorker
 
 public:
 
+#if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
+
+    // Processes socket info for aggregation loopback.
+    void LoopbackForAggregation(SocketDataChunkRef sd);
+
+#endif
+
     // Worker chunks.
     WorkerChunks* GetWorkerChunks()
     {

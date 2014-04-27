@@ -84,6 +84,9 @@ class SocketDataChunk
 
 public:
 
+    // Resets session depending on protocol.
+    void ResetSessionBasedOnProtocol();
+
     // Checking that gateway chunk is valid.
     void CheckForValidity()
     {
