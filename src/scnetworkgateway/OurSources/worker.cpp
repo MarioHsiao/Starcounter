@@ -564,20 +564,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         }
     }
 
-    // Processing session according to protocol.
-    switch (sd->get_type_of_network_protocol())
-    {
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
-            sd->ResetSdSession();
-        break;
-
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
-            sd->SetSdSessionIfEmpty();
-        break;
-
-        default:
-            sd->ResetSdSession();
-    }
+    // Resetting the session based on protocol.
+    sd->ResetSessionBasedOnProtocol();
 
     // Running the handler.
     return RunReceiveHandlers(sd);
@@ -1342,6 +1330,21 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
 
     return err_code;
 }
+
+#if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
+
+// Processes socket info for aggregation loopback.
+void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
+{
+    char body[1024];
+    int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
+    GW_ASSERT (body_len <= 1024);
+    memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
+    uint32_t err_code = SendHttpBody(sd, body, body_len);
+    GW_ASSERT (0 == err_code);
+}
+
+#endif
 
 // Main gateway worker routine.
 uint32_t GatewayWorker::WorkerRoutine()
