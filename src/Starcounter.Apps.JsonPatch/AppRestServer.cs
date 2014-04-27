@@ -100,8 +100,8 @@ namespace Starcounter.Internal.Web {
 
             try {
 
-                Profiler.Current.Start("EMPTY PROFILER", 0);
-                Profiler.Current.Stop(0);
+                //Profiler.Current.Start("EMPTY PROFILER", 0);
+                //Profiler.Current.Stop(0);
 
                 // Running all available HTTP handlers.
                 UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
