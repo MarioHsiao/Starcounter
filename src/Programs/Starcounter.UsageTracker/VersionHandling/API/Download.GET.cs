@@ -46,12 +46,18 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             // Download a specific version
             Handle.GET(port, "/download/{?}/{?}/{?}", (string edition, string channel, string version, Request request) => {
 
-                // If version is "latest" then deliver the latest version on a specific edition and channel
-                if ("latest" == version.ToLower()) {
-                    return GetVersionResponse(request, edition, channel);
-                }
 
-                return GetVersionResponse(request, edition, channel, version);
+                Response response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Redirect };
+                response["Location"] = "/register.html";
+                return response;
+
+
+                //// If version is "latest" then deliver the latest version on a specific edition and channel
+                //if ("latest" == version.ToLower()) {
+                //    return GetVersionResponse(request, edition, channel);
+                //}
+
+                //return GetVersionResponse(request, edition, channel, version);
             });
 
 
