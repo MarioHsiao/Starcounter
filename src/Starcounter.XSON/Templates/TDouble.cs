@@ -12,37 +12,29 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class TDouble : PrimitiveProperty<double> {
-        /// <summary>
-        /// 
-        /// </summary>
-        private double _DefaultValue = 0;
-
         public override Type MetadataType {
             get { return typeof(DoubleMetadata<Json>); }
         }
 
-        /// <summary>
-        /// Gets or sets the default value.
-        /// </summary>
-        /// <value>The default value.</value>
-        public double DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
+        public double DefaultValue { get; set; }
+
+        internal override void SetDefaultValue(Json parent) {
+            UnboundSetter(parent, DefaultValue);
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (double)value;
-            }
-        }
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        return DefaultValue;
+        //    }
+        //    set {
+        //        DefaultValue = (double)value;
+        //    }
+        //}
 
         /// <summary>
         /// The .NET type of the instance represented by this template.

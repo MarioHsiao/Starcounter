@@ -28,19 +28,23 @@ namespace Starcounter.Templates {
             set { _DefaultValue = value; }
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (string)value;
-            }
+        internal override void SetDefaultValue(Json parent) {
+            UnboundSetter(parent, DefaultValue);
         }
+
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        return DefaultValue;
+        //    }
+        //    set {
+        //        DefaultValue = (string)value;
+        //    }
+        //}
 
         /// <summary>
         /// The .NET type of the instance represented by this template.
