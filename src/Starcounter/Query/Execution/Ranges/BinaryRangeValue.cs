@@ -14,8 +14,14 @@ namespace Starcounter.Query.Execution
 {
 internal class BinaryRangeValue : RangeValue, IComparable<BinaryRangeValue>
 {
+    public static Byte[] Populate(int nr, byte val) {
+        Byte[] data = new Byte[nr];
+        for (int i = 0; i < nr; i++)
+            data[i] = val;
+        return data;
+    }
     public static readonly Nullable<Binary> MIN_VALUE = null;
-    public static readonly Byte[] maxBinary = { 0, 255, 255, 255, 255, 255, 255, 255 };
+    public static readonly Byte[] maxBinary = Populate(Binary.BINARY_DATA_MAX_SIZE, 255);
     public static readonly Nullable<Binary> MAX_VALUE = new Binary(maxBinary); // TODO: Change to correct max value!
 
     private Nullable<Binary> value;
@@ -56,8 +62,8 @@ internal class BinaryRangeValue : RangeValue, IComparable<BinaryRangeValue>
     {
         Int32 result = 0;
 
-        Boolean leftIsNull = value.HasValue,
-                rightIsNull = rightRangeValue.GetValue.HasValue;
+        Boolean leftIsNull = !value.HasValue,
+                rightIsNull = !rightRangeValue.GetValue.HasValue;
 
         if (!leftIsNull && !rightIsNull)
         {
