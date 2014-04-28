@@ -38,6 +38,19 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.Id >= 0);
                 Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             }
+            var visits = Db.SQL<Visit>("select v from visit v where IpBytes = ? and id = ?", new Binary(new byte[] { 1, 1, 1, 1 }), 1).GetEnumerator();
+            Trace.Assert(visits.MoveNext());
+            Visit vi = visits.Current;
+            Trace.Assert(vi.Id == 1);
+            Trace.Assert(vi.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
+            Trace.Assert(Db.BinaryToHex(vi.IpBytes) == "01010101");
+            Trace.Assert(!visits.MoveNext());
+            Db.SQL("create index ipBytesIndx on visit(ipbytes)");
+            vi = Db.SQL<Visit>("select v from visit v where IpBytes = ?", new Binary(new byte[] { 1, 1, 1, 1 })).First;
+            Trace.Assert(vi != null);
+            Trace.Assert(vi.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
+            Trace.Assert(Db.BinaryToHex(vi.IpBytes) == "01010101");
+            Db.SQL("drop index ipBytesIndx on visit");
             HelpMethods.LogEvent("Finished testing queries on web visit data model");
         }
 
@@ -53,11 +66,12 @@ namespace QueryProcessingTest {
                     Title = "Contact"
                 };
 
-                for (var i = 0; i < 1000; i++) {
+                for (ulong i = 0; i < 1000; i++) {
                     var vis1 = new Visit() {
+                        Id = i,
                         Ip = "1.1.1.1",
-                        IpBytes = new Binary(new byte[] {1,1,1,1})
-                    }; 
+                        IpBytes = new Binary(new byte[] { 1, 1, 1, 1 })
+                    };
 
                     var imp1 = new Impression() {
                         Visit = vis1,
