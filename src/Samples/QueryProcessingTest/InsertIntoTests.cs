@@ -77,6 +77,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.Start == startV);
             Trace.Assert(v.End == endV);
+            Console.WriteLine(Db.BinaryToHex(v.IpBytes));
             Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             Trace.Assert(Db.BinaryToHex(v.IpBytes) == "01010101");
             Trace.Assert(visits.MoveNext());
