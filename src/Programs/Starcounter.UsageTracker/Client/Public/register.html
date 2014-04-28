@@ -1,0 +1,86 @@
+﻿<!doctype html>
+
+<head>
+    <title>Starcounter Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/img/favicon.ico">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+    <!-- Angular -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-resource.min.js "></script>
+
+    <!-- Angular localisation -->
+    <script type='text/javascript'>
+
+        var l_lang;
+        if (navigator.userLanguage) // Explorer
+            l_lang = navigator.userLanguage;
+        else if (navigator.language) // Chrome
+            l_lang = navigator.language;
+        else
+            l_lang = "en";
+
+        document.write('<scr' + 'ipt type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.0.7/angular-locale_' + l_lang.toLowerCase() + '.js"></sc' + 'ript>');
+    </script>
+
+    <script src="/js/register.js"></script>
+
+</head>
+
+<body ng-app="registerApp" ng-controller="RegisterCtrl as dCtrl" class="container">
+
+
+    <div class="container">
+        <div class="row">
+             <div class="col-md-3 col-md-offset-2">
+
+                <!-- Register -->
+                <div ng-hide="dCtrl.hasRegistered" class="panel panel-primary">
+                  <div class="panel-heading">Starcounter Register</div>
+                  <div class="panel-body">
+                    
+                    <form role="form">
+                      <div class="form-group">
+                        <label for="useremail">Email address</label>
+                        <input type="email" class="form-control" ng-model="dCtrl.userEmail" id="useremail" placeholder="Enter email">
+                      </div>
+                      <button type="submit" ng-click="dCtrl.register(dCtrl.userEmail)" class="btn btn-success pull-right">Register</button>
+                    </form>
+
+                  </div>
+                  </div>
+
+                <!-- Thank you -->
+                <div ng-show="dCtrl.hasRegistered" class="panel panel-primary">
+                  <div class="panel-heading">Starcounter Register</div>
+                  <div class="panel-body">
+
+                    <form role="form">
+                      <h4>Thank you for registering.</h4>
+                      <button type="submit" ng-click="dCtrl.close()" class="btn btn pull-right">Close</button>
+                    </form>
+
+                    
+        
+                  </div>
+                </div>                  
+                </div>                  
+            
+            </div>
+        </div>
+    </div>
+
+</body>

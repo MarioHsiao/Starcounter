@@ -40,6 +40,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
+        /// Email Settings file
+        /// </summary>
+        public string EmailSettingsFile;
+
+
+        /// <summary>
         /// Full path to the Certification File
         /// </summary>
         public string CertificationFile;
@@ -88,9 +94,13 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                 if (string.IsNullOrEmpty(settings.LogFile)) {
                     settings.LogFile = @"c:\versions\versionhandler.log";
                 }
+                if (string.IsNullOrEmpty(settings.EmailSettingsFile)) {
+                    settings.EmailSettingsFile = @"c:\versions\emailsettings.json";
+                }
                 if (string.IsNullOrEmpty(settings.CertificationFile)) {
                     settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";
                 }
+
                 if (settings.MaximumSourceCount == 0) {
                     settings.MaximumSourceCount = 5;
                 }
