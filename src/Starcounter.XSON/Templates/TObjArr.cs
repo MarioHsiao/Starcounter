@@ -274,25 +274,24 @@ namespace Starcounter.Templates {
             }
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override object DefaultValueAsObject {
-            get {
-                throw new System.NotImplementedException();
-            }
-            set {
-                throw new System.NotImplementedException();
-            }
-        }
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        ///// <exception cref="System.NotImplementedException"></exception>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        throw new System.NotImplementedException();
+        //    }
+        //    set {
+        //        throw new System.NotImplementedException();
+        //    }
+        //}
 
-        public override object CreateInstance(Json parent) {
-            return new Json((Json)parent, this);
+        public virtual Json CreateInstance(Json parent) {
+            return new Arr<Json>(parent, this);
 		}
-
 
         /// <summary>
         /// 
