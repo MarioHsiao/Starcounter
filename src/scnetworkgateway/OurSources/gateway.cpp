@@ -13,6 +13,9 @@
 #pragma comment(lib, "winmm.lib")
 
 namespace starcounter {
+
+utils::Profiler* utils::Profiler::schedulers_profilers_ = NULL;
+
 namespace network {
 
 // Main network gateway object.
@@ -1493,6 +1496,29 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     ShutdownGateway(NULL, err_code);
                 }
 
+                // Registering URI handler for gateway statistics.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    setting_gw_stats_port_,
+                    "gateway",
+                    "GET /profiler/gateway",
+                    "GET /profiler/gateway ",
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
+                    empty_db_index,
+                    GatewayProfilersInfo,
+                    true);
+
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    ShutdownGateway(NULL, err_code);
+                }
+
                 if (0 != setting_aggregation_port_)
                 {
                     // Registering port handler for aggregation.
@@ -1942,6 +1968,40 @@ void Gateway::PrintDatabaseStatistics(std::stringstream& stats_stream)
         }
     }
     stats_stream << "]";
+}
+
+// Current global profilers value.
+std::string Gateway::GetGlobalProfilersString(int32_t* out_stats_len_bytes)
+{
+    *out_stats_len_bytes = 0;
+
+    // Filing everything into one stream.
+    std::stringstream ss;
+
+    // Emptying the statistics stream.
+    ss.str(std::string());
+
+    bool first = true;
+
+    // Going through all ports.
+    ss << "{\"profilers\":[";
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        if (!first)
+            ss << ",";
+
+        first = false;
+
+        ss << "{\"schedulerId\":" << w << "," << utils::Profiler::GetCurrentNotHosted(w)->GetResultsInJson(false) << "}";
+    }
+    ss << "]}";
+
+    // Calculating final data length in bytes.
+    std::string str = ss.str();
+
+    *out_stats_len_bytes = static_cast<int32_t>(str.length());
+
+    return str;
 }
 
 // Current global statistics value.
@@ -2957,6 +3017,9 @@ int32_t Gateway::StartGateway()
     err_code = Init();
     if (err_code)
         return err_code;
+
+    // Initializing profilers.
+    utils::Profiler::InitAll(setting_num_workers_);
 
     // Starting workers and statistics printer.
     err_code = StartWorkerAndManagementThreads(
