@@ -325,7 +325,6 @@
     <Compile Include="Query\Optimization\_Optimizer.cs" />
     <Compile Include="Query\Optimization\_SortNode.cs" />
     <Compile Include="Query\Optimization\_SortSpecification.cs" />
-    <Compile Include="Query\Profiler\Profiler.cs" />
     <Compile Include="Query\prologbeans\AppSession.cs" />
     <Compile Include="Query\prologbeans\Bindings.cs" />
     <Compile Include="Query\prologbeans\FastParser.cs" />

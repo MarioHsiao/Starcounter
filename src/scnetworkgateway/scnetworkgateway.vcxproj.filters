@@ -36,9 +36,6 @@
     <ClInclude Include="OurHeaders\http_proto.hpp">
       <Filter>OurHeaders</Filter>
     </ClInclude>
-    <ClInclude Include="OurHeaders\profiler.hpp">
-      <Filter>OurHeaders</Filter>
-    </ClInclude>
     <ClInclude Include="OurHeaders\socket_data.hpp">
       <Filter>OurHeaders</Filter>
     </ClInclude>

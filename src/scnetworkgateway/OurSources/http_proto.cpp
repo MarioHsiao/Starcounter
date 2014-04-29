@@ -901,14 +901,9 @@ ALL_DATA_ACCUMULATED:
 #ifdef GW_LOOPBACK_AGGREGATION
 
             if (sd->GetSocketAggregatedFlag())
-            {
-                char body[1024];
-                int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
-                memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
-                err_code = gw->SendHttpBody(sd, body, body_len);
-                GW_ASSERT (0 == err_code);
-            }
+                gw->LoopbackForAggregation(sd);
             else
+
 #endif
             // Push chunk to corresponding channel/scheduler.
             err_code = gw->PushSocketDataToDb(sd, handler_id);
