@@ -17,7 +17,6 @@
   <ItemGroup>
     <ClInclude Include="OurHeaders\gateway.hpp" />
     <ClInclude Include="OurHeaders\http_proto.hpp" />
-    <ClInclude Include="OurHeaders\profiler.hpp" />
     <ClInclude Include="OurHeaders\random.hpp" />
     <ClInclude Include="OurHeaders\handlers.hpp" />
     <ClInclude Include="OurHeaders\socket_data.hpp" />

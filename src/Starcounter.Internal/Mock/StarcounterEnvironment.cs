@@ -49,25 +49,35 @@ namespace Starcounter.Internal
         internal static string OrigMapperCallerAppName;
 
         /// <summary>
+        /// Current scheduler ID value.
+        /// </summary>
+        [ThreadStatic]
+        internal static Nullable<Byte> currentSchedulerId_;
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte CurrentSchedulerId
         {
             get
             {
-                unsafe
+                if (currentSchedulerId_ == null)
                 {
-                    Byte cpun = 0;
-                    UInt32 errCode = cm3_get_cpun(null, &cpun);
-                    if (errCode != 0) {
-                        cm3_eautodet(IntPtr.Zero);
-                        errCode = cm3_get_cpun(null, &cpun);
+                    unsafe {
+                        Byte cpun = 0;
+                        UInt32 errCode = cm3_get_cpun(null, &cpun);
                         if (errCode != 0) {
-                            return 0;
+                            cm3_eautodet(IntPtr.Zero);
+                            errCode = cm3_get_cpun(null, &cpun);
+                            if (errCode != 0) {
+                                return 0;
+                            }
                         }
+                        currentSchedulerId_ = cpun;
                     }
-                    return cpun;
                 }
+
+                return currentSchedulerId_.Value;
             }
         }
 

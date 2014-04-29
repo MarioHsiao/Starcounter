@@ -100,8 +100,13 @@ namespace Starcounter.Internal.Web {
 
             try {
 
+                Profiler.Current.Start(ProfilerNames.Empty);
+                Profiler.Current.Stop(ProfilerNames.Empty);
+
                 // Running all available HTTP handlers.
+                Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
                 UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+                Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
                 // Checking if we still have no response.
                 if (resp == null || resp.HandlingStatus == HandlerStatusInternal.NotHandled)

@@ -27,6 +27,7 @@
 // Level0 includes.
 #include <sccoredbg.h>
 #include <sccorelog.h>
+#include <profiler.hpp>
 
 // HTTP related stuff.
 #include "../../HTTP/HttpParser/OurHeaders/http_request.hpp"
@@ -39,7 +40,6 @@
 
 // Internal includes.
 #include "utilities.hpp"
-#include "profiler.hpp"
 
 #pragma warning(pop)
 #pragma warning(pop)

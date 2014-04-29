@@ -93,7 +93,7 @@ class WorkerDbInterface;
 class GatewayWorker
 {
     // Performance profiler.
-    Profiler profiler_;
+    utils::Profiler profiler_;
 
     // Worker ID.
     worker_id_type worker_id_;
@@ -143,7 +143,7 @@ class GatewayWorker
     LinearList<SocketDataChunk*, 256> aggr_sds_to_send_;
 
     // Aggregation timer.
-    PreciseTimer aggr_timer_;
+    utils::PreciseTimer aggr_timer_;
 
     // Worker chunks.
     WorkerChunks worker_chunks_;
@@ -157,6 +157,13 @@ class GatewayWorker
     uint8_t pad[CACHE_LINE_SIZE];
 
 public:
+
+#if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
+
+    // Processes socket info for aggregation loopback.
+    void LoopbackForAggregation(SocketDataChunkRef sd);
+
+#endif
 
     // Worker chunks.
     WorkerChunks* GetWorkerChunks()
@@ -464,7 +471,7 @@ public:
     }
 
     // Gets a worker profiler reference.
-    Profiler& get_profiler()
+    utils::Profiler& get_profiler()
     {
         return profiler_;
     }
