@@ -3603,7 +3603,7 @@
 	<code hex="0029" severity="Error" name="ScErrRange">
 	  <message>Range error: value cannot be converted without loss.</message>
 	</code>
-	<code hex="002A" severity="Error" name="ScErrIvalidStatement">
+	<code hex="002A" severity="Error" name="ScErrInvalidStatement">
 	  <message>Given SQL statement is of unexpected type. Another API function should be called.</message>
 	</code>
   </facility>
