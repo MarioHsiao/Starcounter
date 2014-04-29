@@ -383,7 +383,7 @@ internal static class SqlConnectivity
             case SqlConnectivityInterface.PRINT_PROFILER_RESULTS:
             {
                 // Copying the profiling results.
-                CopyStringToCharBuffer(Application.Profiler.GetResults(),
+                CopyStringToCharBuffer(Application.Profiler.GetResultsInJson(),
                     (Char*)results,
                     maxBytes,
                     outLenBytes);

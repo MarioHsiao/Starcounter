@@ -35,6 +35,9 @@ namespace Starcounter.Internal.Tests {
             UriManagedHandlersCodegen.Setup(null, null, appServer.HandleRequest, UriHandlersManager.AddExtraHandlerLevel);
             Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
 
+            // Initializing system profilers.
+            Profiler.Init(true);
+
             X.LocalNode = true;
         }
     }
