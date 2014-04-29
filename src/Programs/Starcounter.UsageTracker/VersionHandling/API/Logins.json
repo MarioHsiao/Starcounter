@@ -1,0 +1,8 @@
+{
+	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp.API.Versions"},
+	"Items":
+		[{
+			name: "anonymous",
+			password:"account password"
+	}]
+}
