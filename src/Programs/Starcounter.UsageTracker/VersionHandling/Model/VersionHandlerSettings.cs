@@ -46,6 +46,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
+        /// Logins file
+        /// </summary>
+        public string LoginsFile;
+
+        /// <summary>
         /// Full path to the Certification File
         /// </summary>
         public string CertificationFile;
@@ -96,6 +101,9 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                 }
                 if (string.IsNullOrEmpty(settings.EmailSettingsFile)) {
                     settings.EmailSettingsFile = @"c:\versions\emailsettings.json";
+                }
+                if (string.IsNullOrEmpty(settings.LoginsFile)) {
+                    settings.LoginsFile = @"c:\versions\logins.json";
                 }
                 if (string.IsNullOrEmpty(settings.CertificationFile)) {
                     settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";

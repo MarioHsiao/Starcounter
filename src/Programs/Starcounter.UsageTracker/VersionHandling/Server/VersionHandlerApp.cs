@@ -79,6 +79,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
 
             Upload.BootStrap(incomingPort);
             Register.BootStrap(publicPort);
+            Login.BootStrap(publicPort);
 
             // Not Public API
             Utils.BootStrap(backendPort);

@@ -17,8 +17,23 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             // Show download page
             Handle.GET(port, "/download", (Request request) => {
-                Node node = new Node("127.0.0.1", port);
-                return node.GET("/downloads.html", null);
+
+                bool authorized = Login.IsAuthorized(request.Cookies);
+
+                if (authorized) {
+                    Node node = new Node("127.0.0.1", port);
+                    Response response = node.GET("/downloads.html", null);
+
+                    Response newResponse = new Response();
+                    newResponse.BodyBytes = response.BodyBytes;
+                    newResponse.ContentType = response.ContentType;
+//                    newResponse["Cache-Control"] = "private, max-age=0, no-cache";
+//                    newResponse["Cache-Control"] = "must-revalidate";
+                    return newResponse;
+                }
+                else {
+                    return GetLoginPageResponse(port);
+                }
             });
 
 
@@ -46,18 +61,22 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             // Download a specific version
             Handle.GET(port, "/download/{?}/{?}/{?}", (string edition, string channel, string version, Request request) => {
 
+                bool authorized = Login.IsAuthorized(request.Cookies);
 
-                Response response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Redirect };
-                response["Location"] = "/register.html";
-                return response;
+                if (authorized) {
 
+                    // If version is "latest" then deliver the latest version on a specific edition and channel
+                    if ("latest" == version.ToLower()) {
+                        return GetVersionResponse(request, edition, channel);
+                    }
 
-                //// If version is "latest" then deliver the latest version on a specific edition and channel
-                //if ("latest" == version.ToLower()) {
-                //    return GetVersionResponse(request, edition, channel);
-                //}
+                    return GetVersionResponse(request, edition, channel, version);
 
-                //return GetVersionResponse(request, edition, channel, version);
+                }
+                else {
+                    return GetLoginPageResponse(port);
+                }
+
             });
 
 
@@ -77,6 +96,28 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 response["Location"] = "/beta";
                 return response;
             });
+
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        private static Response GetLoginPageResponse(ushort port) {
+
+            Node node = new Node("127.0.0.1", port);
+
+            Response response = node.GET("/login.html", null);
+
+            Response newResponse = new Response();
+            newResponse.BodyBytes = response.BodyBytes;
+            newResponse.ContentType = response.ContentType;
+            //newResponse["Cache-Control"] = "private, max-age=0, no-cache";
+            //newResponse["Cache-Control"] = "must-revalidate";
+
+            return newResponse;
 
         }
 
