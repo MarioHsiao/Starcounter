@@ -20,12 +20,12 @@ namespace Starcounter {
         /// <summary>
         /// Maximum number of pending asynchronous tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 4096;
+        public const Int32 MaxNumPendingAsyncTasks = 4096 * 2;
 
         /// <summary>
         /// Maximum number of pending aggregated tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAggregatedTasks = 8192;
+        public const Int32 MaxNumPendingAggregatedTasks = 8192 * 2;
 
         /// <summary>
         /// Tcp client.
