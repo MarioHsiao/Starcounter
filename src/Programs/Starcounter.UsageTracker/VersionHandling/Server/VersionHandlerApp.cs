@@ -18,7 +18,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
         internal static BuildWorker BuildkWorker;
         internal static VersionHandlerSettings Settings;
 #if ANDWAH
-        internal static String StarcounterTrackerUrl = "192.168.8.183";
+        internal static String StarcounterTrackerUrl = "192.168.60.104";
 #else
         internal static String StarcounterTrackerUrl = "downloads.starcounter.com";
 #endif
@@ -78,6 +78,8 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             Documentation_Get.BootStrap(publicPort);
 
             Upload.BootStrap(incomingPort);
+            Register.BootStrap(publicPort);
+            Login.BootStrap(publicPort);
 
             // Not Public API
             Utils.BootStrap(backendPort);
