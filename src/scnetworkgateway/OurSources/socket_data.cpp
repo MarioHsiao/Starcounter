@@ -144,6 +144,25 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
     return 0;
 }
 
+// Resets session depending on protocol.
+void SocketDataChunk::ResetSessionBasedOnProtocol()
+{
+    // Processing session according to protocol.
+    switch (get_type_of_network_protocol())
+    {
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
+            ResetSdSession();
+            break;
+
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
+            SetSdSessionIfEmpty();
+            break;
+
+        default:
+            ResetSdSession();
+    }
+}
+
 // Clone current socket data to a bigger one.
 uint32_t SocketDataChunk::ChangeToBigger(
     GatewayWorker*gw,
