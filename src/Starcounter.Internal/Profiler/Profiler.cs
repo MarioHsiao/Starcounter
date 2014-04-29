@@ -13,9 +13,30 @@ using System.ComponentModel;
 using System.Threading;
 using Starcounter;
 using Starcounter.Internal;
+using System.Text;
+using System.Reflection;
 
 namespace Starcounter
 {
+    /// <summary>
+    /// Globally defined profilers.
+    /// </summary>
+    public enum ProfilerNames {
+        [Description("EMPTY PROFILER")]
+        Empty,
+
+        [Description("GetUriHandlersManager")]
+        GetUriHandlersManager
+    }
+
+    /// <summary>
+    /// Globally defined checkpoints.
+    /// </summary>
+    public enum CheckpointNames {
+        [Description("EMPTY CHECKPOINT")]
+        Empty
+    }
+
     /// <summary>
     /// Class PreciseTimer
     /// </summary>
@@ -129,35 +150,62 @@ namespace Starcounter
     }
 
     /// <summary>
+    /// To be able to add description to a enum.
+    /// </summary>
+    public static class DescriptionExtensions {
+        public static string GetDescriptionValue(this Enum value) {
+            // Get the type
+            Type type = value.GetType();
+
+            // Get field info for this type
+            FieldInfo fieldInfo = type.GetField(value.ToString());
+
+            // Get the string value attributes
+            DescriptionAttribute[] attribs = fieldInfo.GetCustomAttributes(
+                typeof(DescriptionAttribute), false) as DescriptionAttribute[];
+
+            // Return the first if there was a match.
+            return attribs.Length > 0 ? attribs[0].Description : null;
+        }
+    }
+
+    /// <summary>
     /// Class Profiler
     /// </summary>
     public class Profiler
     {
         // Each profiler has a descriptive name.
-        String[] profilerNames = null;
-        PreciseTimer[] stopwatches = null;
+        PreciseTimer[] profilers_ = null;
 
         // Each checkpoint has a descriptive name.
-        String[] checkpointNames = null;
-        Int64[] checkpointTicks = null;
-
-        // Maximum amount of profilers in the system.
-        const Int32 maxTimersNum = 64;
+        Int64[] checkpoints_ = null;
 
         /// <summary>
         /// All static profilers in the system.
         /// </summary>
-        static Profiler[] allProfilers_;
+        static Profiler[] schedulersProfilers_;
+
+        /// <summary>
+        /// Indicates if running non hosted unit tests.
+        /// </summary>
+        static Boolean unitTests_;
 
         /// <summary>
         /// Setting up the profilers.
         /// </summary>
-        public static void Init() {
+        public static void Init(Boolean unitTests = false) {
 
-            allProfilers_ = new Profiler[StarcounterEnvironment.SchedulerCount];
+            unitTests_ = unitTests;
 
-            for (Int32 i = 0; i < allProfilers_.Length; i++) {
-                allProfilers_[i] = new Profiler();
+            if (unitTests) {
+                schedulersProfilers_ = new Profiler[1];
+            } else {
+                schedulersProfilers_ = new Profiler[StarcounterEnvironment.SchedulerCount];
+                bmx.sc_init_profilers(64);
+            }
+
+            for (Int32 i = 0; i < schedulersProfilers_.Length; i++) {
+                schedulersProfilers_[i] = new Profiler();
             }
         }
 
@@ -168,19 +216,34 @@ namespace Starcounter
 
             Handle.GET(defaultSystemHttpPort, "/profiler/" + dbName, () => {
 
-                String[] allSchedProfilerResults = new String[StarcounterEnvironment.SchedulerCount];
+                String[] allSchedProfilerResults = new String[schedulersProfilers_.Length];
 
-                CountdownEvent countdownEvent = new CountdownEvent(StarcounterEnvironment.SchedulerCount);
+                CountdownEvent countdownEvent = new CountdownEvent(schedulersProfilers_.Length);
 
                 // For each scheduler.
-                for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+                for (Byte i = 0; i < schedulersProfilers_.Length; i++) {
 
                     Byte schedId = i;
 
                     // Running asynchronous task.
                     ScSessionClass.DbSession.RunAsync(() => {
 
-                        allSchedProfilerResults[StarcounterEnvironment.CurrentSchedulerId] = Profiler.Current.GetResults(false);
+                        Byte currentSchedId = StarcounterEnvironment.CurrentSchedulerId;
+                        allSchedProfilerResults[currentSchedId] = Profiler.Current.GetResultsInJson(false);
+
+                        String s;
+                        Byte[] tempBuf = new Byte[4096];
+                        unsafe {
+                            fixed (Byte* p = tempBuf) {
+                                UInt32 err = bmx.sc_profiler_get_results_in_json(currentSchedId, p, 4096);
+                                if (0 != err)
+                                    s = "{}";
+                                else
+                                    s = Marshal.PtrToStringAnsi(new IntPtr(p));
+                            }
+                        }
+                         
+                        allSchedProfilerResults[currentSchedId] += "," + s;
 
                         countdownEvent.Signal();
 
@@ -189,20 +252,26 @@ namespace Starcounter
 
                 countdownEvent.Wait();
 
-                String allResults = "";
+                String allResults = "{\"profilers\":[";
 
-                for (Int32 i = 0; i < allSchedProfilerResults.Length; i++)
-                    allResults += "############## Scheduler " + i + " ##############" + Environment.NewLine + allSchedProfilerResults[i] + Environment.NewLine;
+                for (Int32 i = 0; i < allSchedProfilerResults.Length; i++) {
+                    allResults += "{\"schedulerId\":" + i + "," + allSchedProfilerResults[i] + "}";
+
+                    if (i < (allSchedProfilerResults.Length - 1))
+                        allResults += ",";
+                }
+
+                allResults += "]}";
 
                 return allResults;
             });
 
             Handle.DELETE(defaultSystemHttpPort, "/profiler/" + dbName, () => {
 
-                CountdownEvent countdownEvent = new CountdownEvent(StarcounterEnvironment.SchedulerCount);
+                CountdownEvent countdownEvent = new CountdownEvent(schedulersProfilers_.Length);
 
                 // For each scheduler.
-                for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+                for (Byte i = 0; i < schedulersProfilers_.Length; i++) {
 
                     Byte schedId = i;
 
@@ -210,6 +279,7 @@ namespace Starcounter
                     ScSessionClass.DbSession.RunAsync(() => {
 
                         Profiler.Current.ResetAll();
+                        bmx.sc_profiler_reset(StarcounterEnvironment.CurrentSchedulerId);
 
                         countdownEvent.Signal();
 
@@ -229,7 +299,10 @@ namespace Starcounter
             get
             {
 #if (PROFILING)
-                return allProfilers_[StarcounterEnvironment.CurrentSchedulerId];
+                if (unitTests_)
+                    return schedulersProfilers_[0];
+                else
+                    return schedulersProfilers_[StarcounterEnvironment.CurrentSchedulerId];
 #else
                 return null;
 #endif
@@ -241,53 +314,55 @@ namespace Starcounter
         /// </summary>
         public Profiler()
         {
-            profilerNames = new String[maxTimersNum];
-            stopwatches = new PreciseTimer[maxTimersNum];
+            Int32 numProfilers = Enum.GetNames(typeof(ProfilerNames)).Length;
 
-            checkpointNames = new String[maxTimersNum];
-            checkpointTicks = new Int64[maxTimersNum];
+            profilers_ = new PreciseTimer[numProfilers];
+            for (Int32 i = 0; i < numProfilers; i++) {
+                profilers_[i] = new PreciseTimer();
+            }
 
-            for (Int32 i = 0; i < maxTimersNum; i++)
-            {
-                profilerNames[i] = null;
-                stopwatches[i] = new PreciseTimer();
+            Int32 numCheckpoints = Enum.GetNames(typeof(CheckpointNames)).Length;
 
-                checkpointNames[i] = null;
-                checkpointTicks[i] = 0;
+            checkpoints_ = new Int64[numCheckpoints];
+            for (Int32 i = 0; i < numCheckpoints; i++) {
+                checkpoints_[i] = 0;
             }
         }
 
         /// <summary>
         /// Used to count how many times execution went through this checkpoint.
         /// </summary>
+        /// <example>
+        /// Profiler.Current.Checkpoint(CheckpointNames.Empty);
+        /// </example>
         [Conditional("PROFILING")]
-        public void Checkpoint(String name, Int32 checkpointId) // Example: Application.Profiler.Checkpoint("Number of socket->send calls", 0);
+        public void Checkpoint(CheckpointNames id)
         {
-            if (checkpointNames[checkpointId] == null) // Assign description only on the first time.
-                checkpointNames[checkpointId] = name;
-
-            checkpointTicks[checkpointId]++;
+            checkpoints_[(int)id]++;
         }
 
         /// <summary>
         /// Starts specified profiler.
         /// </summary>
+        /// <example>
+        /// Profiler.Current.Start(ProfilerNames.Empty);
+        /// </example>
         [Conditional("PROFILING")]
-        public void Start(String name, Int32 timerId) // Example: Application.Profiler.Start("Time used for matrix multiplication", 0);
+        public void Start(ProfilerNames id)
         {
-            if (profilerNames[timerId] == null) // Assign description only on the first time.
-                profilerNames[timerId] = name;
-
-            stopwatches[timerId].Start();
+            profilers_[(int)id].Start();
         }
 
         /// <summary>
         /// Stops specified profiler.
         /// </summary>
+        /// <example>
+        /// Profiler.Current.Stop(ProfilerNames.Empty);
+        /// </example>
         [Conditional("PROFILING")]
-        public void Stop(Int32 timerIndex) // Example: Application.Profiler.Stop(0);
+        public void Stop(ProfilerNames id)
         {
-            stopwatches[timerIndex].Stop();
+            profilers_[(int)id].Stop();
         }
 
         /// <summary>
@@ -295,24 +370,22 @@ namespace Starcounter
         /// </summary>
         public void ResetAll()
         {
-            for (Int32 i = 0; i < maxTimersNum; i++) {
-                if (profilerNames[i] != null) {
-                    stopwatches[i].Reset();
-                }
+            foreach (ProfilerNames id in (ProfilerNames[])Enum.GetValues(typeof(ProfilerNames))) {
+                profilers_[(int)id].Reset();
+            }
 
-                if (checkpointNames[i] != null) {
-                    checkpointTicks[i] = 0;
-                }
+            foreach (CheckpointNames id in (CheckpointNames[])Enum.GetValues(typeof(CheckpointNames))) {
+                checkpoints_[(int)id] = 0;
             }
         }
 
         /// <summary>
         /// Gets profiling results when specified timer reaches certain start count.
         /// </summary>
-        public String GetResults(Int32 timerIndex, Int32 startCount, Boolean reset)
+        public String GetResultsInJson(ProfilerNames id, Int32 startCount, Boolean reset)
         {
-            if (stopwatches[timerIndex].StartCount >= startCount)
-                return GetResults(reset);
+            if (profilers_[(int)id].StartCount >= startCount)
+                return GetResultsInJson(reset);
 
             return null;
         }
@@ -322,72 +395,84 @@ namespace Starcounter
         /// </summary>
         public void DrawResults()
         {
-            Console.WriteLine(GetResults(true));
+            Console.WriteLine(GetResultsInJson(true));
         }
 
         /// <summary>
-        /// Fetches all profiler results and resets all counters.
+        /// Fetches all profiler results.
         /// </summary>
-        public String GetResults(Boolean reset)
+        public String GetResultsInJson(Boolean reset)
         {
             // Assuming that all timers stopped at this moment.
-            String outString = "==== Profiling results ====" + Environment.NewLine;
-            for (Int32 i = 0; i < maxTimersNum; i++)
-            {
-                if (profilerNames[i] != null)
-                {
-                    outString += String.Format("  #{0} \"{1}\" took {2} ms and was started {3} times.",
-                        i,
-                        profilerNames[i],
-                        stopwatches[i].Duration.ToString(),
-                        stopwatches[i].StartCount) + Environment.NewLine;
+            String outString = "\"managed_profilers\":[";
+            Boolean comma = false;
 
-                    if (reset)
-                        stopwatches[i].Reset();
-                }
+            foreach (ProfilerNames id in (ProfilerNames[])Enum.GetValues(typeof(ProfilerNames)))
+            {
+                Int32 i = (Int32) id;
+
+                if (comma)
+                    outString += ",";
+                else                    
+                    comma = true;
+                        
+                outString += "{" + String.Format("\"profiler_id\":\"{0}\",\"profiler_name\":\"{1}\",\"took_ms\":\"{2}\",\"started_times\":\"{3}\"",
+                    id.ToString(),
+                    id.GetDescriptionValue(),
+                    profilers_[i].Duration.ToString(),
+                    profilers_[i].StartCount) + "}";
+
+                if (reset)
+                    profilers_[i].Reset();
             }
-            outString += "==== End of Profiling results ====" + Environment.NewLine;
+
+            outString += "],";
 
             // Printing all checkpoints.
-            outString += "==== Checkpoint results ====" + Environment.NewLine;
-            for (Int32 i = 0; i < maxTimersNum; i++)
+            comma = false;
+            outString += "\"managed_checkpoints\":[";
+            foreach (CheckpointNames id in (CheckpointNames[])Enum.GetValues(typeof(CheckpointNames)))
             {
-                if (checkpointNames[i] != null)
-                {
-                    outString += String.Format("  #{0} \"{1}\" was called {2} times.",
-                        i,
-                        checkpointNames[i],
-                        checkpointTicks[i]) + Environment.NewLine;
+                Int32 i = (Int32) id;
 
-                    if (reset)
-                        checkpointTicks[i] = 0;
-                }
+                if (comma)
+                    outString += ",";
+                else
+                    comma = true;
+
+                outString += "{" + String.Format("\"checkpoint_id\":\"{0}\",\"checkpoint_name\":\"{1}\",\"cross_times\":\"{2}\"",
+                    id.ToString(),
+                    id.GetDescriptionValue(),
+                    checkpoints_[i]) + "}";
+
+                if (reset)
+                    checkpoints_[i] = 0;
             }
 
-            outString += "==== End of Checkpoint results ====" + Environment.NewLine;
+            outString += "]";
+
             return outString;
         }
 
         /// <summary>
         /// Gets specific profiler results and resets its counter.
         /// </summary>
-        public String GetSpecific(Int32 timerIndex, Boolean reset)
+        public String GetSpecific(ProfilerNames id, Boolean reset)
         {
             String outString = null;
 
-            if (profilerNames[timerIndex] != null)
-            {
-                stopwatches[timerIndex].Stop();
+            Int32 i = (Int32) id;
 
-                outString += String.Format("Profiler #{0} \"{1}\" took {2} ms and was started {3} times.",
-                    timerIndex,
-                    profilerNames[timerIndex],
-                    stopwatches[timerIndex].Duration.ToString(),
-                    stopwatches[timerIndex].StartCount) + Environment.NewLine;
+            profilers_[i].Stop();
 
-                if (reset)
-                    stopwatches[timerIndex].Reset();
-            }
+            outString += String.Format("Profiler #{0} \"{1}\" took {2} ms and was started {3} times.",
+                i,
+                id.GetDescriptionValue(),
+                profilers_[i].Duration.ToString(),
+                profilers_[i].StartCount) + Environment.NewLine;
+
+            if (reset)
+                profilers_[i].Reset();
 
             return outString;
         }

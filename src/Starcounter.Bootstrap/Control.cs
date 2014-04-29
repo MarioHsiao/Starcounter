@@ -161,6 +161,7 @@ namespace StarcounterInternal.Bootstrap {
                 // Initialize the Db environment (database name)
                 Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
+                // Initializing system profilers.
                 Profiler.Init();
 
                 // Initializing AppsBootstrapper.
