@@ -114,6 +114,12 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
         /// <returns></returns>
         internal static bool IsAuthorized(List<string> cookies) {
 
+            VersionHandlerSettings settings = VersionHandlerSettings.GetSettings();
+            if( !File.Exists( settings.LoginsFile) ) {
+                // No logon file defined then everybody is authorized
+                return true;
+            }
+
             try {
                 foreach (string cookie in cookies) {
 
