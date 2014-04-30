@@ -900,15 +900,20 @@ ALL_DATA_ACCUMULATED:
 
 #ifdef GW_LOOPBACK_AGGREGATION
 
+            // Performing aggregation loop on gateway.
             if (sd->GetSocketAggregatedFlag())
+            {
                 gw->LoopbackForAggregation(sd);
+            }
             else
 
 #endif
-            // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, handler_id);
-            if (err_code)
-                return err_code;
+            {
+                // Push chunk to corresponding channel/scheduler.
+                err_code = gw->PushSocketDataToDb(sd, handler_id);
+                if (err_code)
+                    return err_code;
+            }
 
 #endif
 
