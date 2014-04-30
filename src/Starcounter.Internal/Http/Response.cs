@@ -680,7 +680,11 @@ namespace Starcounter
 
 			byte[] bytes = bodyBytes_;
 			if (_Resource != null) {
+
+                Profiler.Current.Start(ProfilerNames.GetPreferredMimeType);
 				var mimetype = request_.PreferredMimeType;
+                Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
+
 				try {
 					bytes = _Resource.AsMimeType(mimetype, out mimetype);
 					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);

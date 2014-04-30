@@ -125,6 +125,7 @@ namespace Starcounter
         /// <value></value>
         public override T First {
             get {
+                Profiler.Current.Start(ProfilerNames.DbSQLFirst);
                 // Note that we needed to copy the code because if simply
                 // calling base.First the CLR refused to inline this method.
 
@@ -145,7 +146,7 @@ namespace Starcounter
                 finally {
                     if (execEnum != null) execEnum.Dispose();
                 }
-
+                Profiler.Current.Stop(ProfilerNames.DbSQLFirst);
                     return current;
             }
         }
