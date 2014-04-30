@@ -113,7 +113,9 @@ namespace Starcounter.Internal.Web {
                     return null;
 
                 // Handling and returning the HTTP response.
+                Profiler.Current.Start(ProfilerNames.HandleResponse);
                 resp = OnResponseHttp(request, resp);
+                Profiler.Current.Stop(ProfilerNames.HandleResponse);
 
                 return resp;
             }
