@@ -1,4 +1,4 @@
-﻿#define FAST_LOOPBACK
+﻿//#define FAST_LOOPBACK
 // ***********************************************************************
 // <copyright file="Node.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
