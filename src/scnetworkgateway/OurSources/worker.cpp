@@ -1300,7 +1300,8 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
     int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
     GW_ASSERT (body_len <= 4096);
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
-    uint32_t err_code = SendHttpBody(sd, body, body_len);
+    //uint32_t err_code = SendHttpBody(sd, body, body_len);
+    uint32_t err_code = RunFromDbHandlers(sd);
     GW_ASSERT (0 == err_code);
 }
 

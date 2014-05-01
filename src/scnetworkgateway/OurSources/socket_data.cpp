@@ -268,7 +268,7 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 
     uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(db_chunk_index, &ipc_smc);
     if (err_code)
-        return err_code;
+        GW_ASSERT(false);
 
     *new_ipc_sd = (SocketDataChunk*)((uint8_t*)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
