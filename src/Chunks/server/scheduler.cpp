@@ -844,9 +844,11 @@ check_next_channel:
 			next_channel_ &= 192; // ...011000000
 		}
 #endif // defined (IPC_VERSION_2_0)
-		
+
+#if 0		
 		// The scheduler has completed a scan of all its channels in queues.
 		this_scheduler_interface_->increment_channel_scan_counter();
+#endif
 		
 		// In the last scan we did not find any message to process in any of the
 		// channels that this scheduler watches (according to the mask), or in
