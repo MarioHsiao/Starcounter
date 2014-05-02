@@ -19,7 +19,7 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
      */
     this.getLogEntries = function (filter, successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive a list of log entries";
+        var errorHeader = "Failed to retrieve a list of log entries";
         var uri = "/api/admin/log";
 
         // Response
