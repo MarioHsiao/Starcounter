@@ -69,6 +69,9 @@ namespace Starcounter {
         /// </summary>
         internal bool HasBeenSent {
             get {
+                if (!_isStatefulObject)
+                    return false;
+
                 if (Parent != null) {
                     return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
                 } else {
@@ -79,16 +82,6 @@ namespace Starcounter {
                     return !s.BrandNew;
                 }
             }
-        }
-
-        private bool IsChanged(Template template) {
-            if (IsArray) {
-                throw new Exception("You can only call IsChanged on Json objects, not on Json Arrays");
-            }
-#if DEBUG
-            this.Template.VerifyProperty(template);
-#endif
-            return this.WasReplacedAt(template.TemplateIndex);
         }
 
         /// <summary>

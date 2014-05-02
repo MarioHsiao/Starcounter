@@ -267,7 +267,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         internal void CallHasChanged(TValue property) {
-            if (Session != null) {
+            if (_isStatefulObject &&  Session != null) {
                 if (HasBeenSent) {
                     // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
                     this.Dirtyfy();

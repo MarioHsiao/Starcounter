@@ -11,6 +11,9 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy() {
+            if (!_isStatefulObject)
+                return;
+
 			_Dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
@@ -20,6 +23,9 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void CheckpointChangeLog() {
+            if (!_isStatefulObject)
+                return;
+
 			if (this.IsArray) {
 				this.ArrayAddsAndDeletes = null;
 				if (Template != null) {
@@ -52,7 +58,9 @@ namespace Starcounter {
 #if DEBUG
 			this.Template.VerifyProperty(prop);
 #endif
-			return (WasReplacedAt(prop.TemplateIndex));
+            if (_isStatefulObject)
+                return (WasReplacedAt(prop.TemplateIndex));
+            return false;
 		}
 
 		/// <summary>
@@ -60,6 +68,9 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session (for faster access)</param>
 		internal void LogValueChangesWithDatabase(Session session) {
+            if (!_isStatefulObject)
+                return;
+
 			if (this.IsArray) {
 				LogArrayChangesWithDatabase(session);
 			} else {
@@ -235,9 +246,11 @@ namespace Starcounter {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         oldJson.Data = value;
-                        if (ArrayAddsAndDeletes == null)
-                            ArrayAddsAndDeletes = new List<Change>();
-                        ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+                        if (_isStatefulObject) {
+                            if (ArrayAddsAndDeletes == null)
+                                ArrayAddsAndDeletes = new List<Change>();
+                            ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+                        }
                         hasChanged = true;
                     }
                 }
