@@ -26,7 +26,19 @@ namespace Starcounter
         Empty,
 
         [Description("GetUriHandlersManager")]
-        GetUriHandlersManager
+        GetUriHandlersManager,
+
+        [Description("Profiler for handling and converting response and attached resource to bytes.")]
+        HandleResponse,
+
+        [Description("Profiler for retrieving preferred mimetype from the request.")]
+        GetPreferredMimeType,
+
+        [Description("Profiler for converting a jsonobject to the preferred mimetype for a response.")]
+        JsonMimeConverter,
+
+        [Description("Profiler for returning first result from a query.")]
+        DbSQLFirst,
     }
 
     /// <summary>

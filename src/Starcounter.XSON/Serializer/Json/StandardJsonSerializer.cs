@@ -186,7 +186,8 @@ namespace Starcounter.Advanced.XSON {
                             foreach (Json pp in obj.JsonSiblings) {
                                 htmlUriMerged += "&" + pp.AppName + "=" + pp.GetHtmlPartialUrl();
 
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, pp.AppName);
+//                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, pp.AppName);
+                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp.AppName);
 
                                 offset += valueSize;
                                 pfrag += valueSize;
@@ -204,7 +205,8 @@ namespace Starcounter.Advanced.XSON {
                             }
 
                             // Adding current sibling app name.
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.AppName);
+//                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.AppName);
+                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj.AppName);
 
                             offset += valueSize;
                             pfrag += valueSize;
@@ -221,7 +223,8 @@ namespace Starcounter.Advanced.XSON {
                             Template tProperty = exposedProperties[i];
 
                             // Property name.
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
+//                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
+                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
 
                             offset += valueSize;
                             pfrag += valueSize;
@@ -297,7 +300,8 @@ namespace Starcounter.Advanced.XSON {
                             offset++;
 
                             // Adding Html property to outer level.
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "Html");
+//                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "Html");
+                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, "Html");
 
                             offset += valueSize;
                             pfrag += valueSize;
