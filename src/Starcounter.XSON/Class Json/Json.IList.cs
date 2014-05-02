@@ -102,7 +102,8 @@ namespace Starcounter {
                         // even after instances have been created.
                         // For this reason, we need to allow the expansion of the 
                         // values.
-                        _SetFlag.Add(false);
+                        if (_isStatefulObject)
+                            _SetFlag.Add(false);
                         childIndex = _list.Count;
                         _list.Add(null);
                         ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
@@ -136,12 +137,14 @@ namespace Starcounter {
             int count = properties.Count;
 
             _list = new List<object>(count);
-            _SetFlag = new List<bool>(count);
+            if (_isStatefulObject)
+                _SetFlag = new List<bool>(count);
             _Dirty = false;
 
             for (int t = 0; t < count; t++) {
                 _list.Add(null);
-                _SetFlag.Add(false);
+                if (_isStatefulObject)
+                    _SetFlag.Add(false);
                 ((TValue)properties[t]).SetDefaultValue(this);
             }
         }
@@ -239,8 +242,13 @@ namespace Starcounter {
             Json j = VerifyJsonForInserting(item);
 
             list.Insert(index, j);
-            _SetFlag.Insert(index, false);
-            MarkAsReplaced(index);
+            j._cacheIndexInArr = index;
+            j.Parent = this;
+
+            if (_isStatefulObject) {
+                _SetFlag.Insert(index, false);
+                MarkAsReplaced(index);
+            }
             
             Json otherItem;
             for (Int32 i = index + 1; i < list.Count; i++) {
@@ -376,9 +384,11 @@ namespace Starcounter {
         /// <param name="index"></param>
         private void InternalRemove(Json item, int index) {
             list.RemoveAt(index);
-            _SetFlag.RemoveAt(index);
             item.SetParent(null);
 
+            if (_isStatefulObject)
+                _SetFlag.RemoveAt(index);
+            
             if (IsArray) {
                 Json otherItem;
                 var tarr = (TObjArr)this.Template;
@@ -396,8 +406,11 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         public void Clear() {
             VerifyIsArray();
-            Parent.MarkAsReplaced(Template);
-            _SetFlag.Clear();
+
+            if (_isStatefulObject) {
+                Parent.MarkAsReplaced(Template);
+                _SetFlag.Clear();
+            }
 
             InternalClear();
             Parent.CallHasChanged((TContainer)this.Template);
