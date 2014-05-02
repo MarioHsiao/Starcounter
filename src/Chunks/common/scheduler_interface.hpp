@@ -114,9 +114,13 @@ public:
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
 	channel_scan_mask_(),
+#if 0
 	channel_scan_counter_(0),
+#endif
 	notify_(false),
+#if 0
 	predicate_(false),
+#endif
 	client_interface_(0),
 	owner_id_(),
 	ipc_monitor_cleanup_event_() {
@@ -302,7 +306,8 @@ public:
 	// queue of the channel. But how do we guarantee that the scheduler will not
 	// access the out queue of the channel?
 	//--------------------------------------------------------------------------
-	
+
+#if 0	
 	//the scheduler have seen the update of the channel_scan_mask_ and the client
 	// can then release the channel. However, the scheduler may take a
 	// relatively long time to complete a scan. We may enter a periodic sleep
@@ -310,7 +315,9 @@ public:
 	channel_scan_counter_type get_channel_scan_counter() const {
 		return channel_scan_counter_;
 	}
-	
+#endif
+
+#if 0	
 	// A scheduler calls increment_channel_scan_counter() each time it has
 	// completed a scan of all channels in the channel_scan_mask_.
 	void increment_channel_scan_counter() {
@@ -319,6 +326,7 @@ public:
 		channel_scan_counter_ = next;
 		_mm_mfence();
 	}
+#endif
 	
 	bool get_notify_flag() const {
 		return notify_;
@@ -358,7 +366,8 @@ public:
 	/// signal channel, in order to wake up the scheduler it communicates with,
 	/// if but only if it is waiting for work.
 	void notify() { notify(work_); }
-	
+
+#if 0	
 	//--------------------------------------------------------------------------
 	// The monitor call notify_scheduler_to_do_clean_up() if a client
 	// process has crashed, in order to wake up the scheduler if it is waiting.
@@ -377,7 +386,9 @@ public:
 		// Error. Failed to notify the scheduler.
 		return false;
 	}
-	
+#endif
+
+#if 0
 	// Setting predicate to true means the condition is met
 	// and the wait is over, the thread waiting will not wait any more.
 	// Setting the predicate to false means the condition is not met
@@ -390,6 +401,7 @@ public:
 	bool do_work() const {
 		return predicate_;
 	}
+#endif
 	
 	/// Scheduler's call wait_for_work() if they don't find any work to do.
 	/// It is a "timed" function that can fail.
@@ -498,12 +510,16 @@ private:
 	char cache_line_pad_0_[CACHE_LINE_SIZE]; // Not needed if on another cache line.
 	channel_mask<channels> channel_scan_mask_;
 	char cache_line_pad_1_[CACHE_LINE_SIZE];
+#if 0
 	volatile channel_scan_counter_type channel_scan_counter_;
 	char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(channel_scan_counter_type)];
+#endif
 	volatile bool notify_;
 	char cache_line_pad_3_[CACHE_LINE_SIZE -sizeof(bool)];
+#if 0
 	volatile bool predicate_;
 	char cache_line_pad_4_[CACHE_LINE_SIZE -sizeof(bool)];
+#endif
 	
 	// The scheduler that have allocated this interface must store a pointer to
 	// the client_interface here, which will be relative to its own address
