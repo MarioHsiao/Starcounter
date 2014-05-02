@@ -96,7 +96,7 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
     }
 
     /**
-     * Retrive log information
+     * Retrieve log information
      */
     $scope.getLog = function () {
 

@@ -45,7 +45,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', '$
         }, function (response) {
             // Error
             var messageObject;
-            var errorHeader = "Failed to retrive the console output from database " + databaseName;
+            var errorHeader = "Failed to retrieve the console output from database " + databaseName;
 
             $log.error(errorHeader, response);
 

@@ -1296,11 +1296,12 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
 // Processes socket info for aggregation loopback.
 void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 {
-    char body[1024];
+    char body[4096];
     int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
-    GW_ASSERT (body_len <= 1024);
+    GW_ASSERT (body_len <= 4096);
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
-    uint32_t err_code = SendHttpBody(sd, body, body_len);
+    //uint32_t err_code = SendHttpBody(sd, body, body_len);
+    uint32_t err_code = RunFromDbHandlers(sd);
     GW_ASSERT (0 == err_code);
 }
 

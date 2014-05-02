@@ -1021,7 +1021,42 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
         GW_COUT << "WSASocket() failed." << GW_ENDL;
         return PrintLastError();
     }
+   
+    // Special settings for aggregation sockets.
+    if (port_num == setting_aggregation_port_)
+    {
+#ifdef FAST_LOOPBACK
+        int32_t OptionValue = 1;
+        DWORD numberOfBytesReturned = 0;
 
+        int status = 
+            WSAIoctl(
+            sock, 
+            SIO_LOOPBACK_FAST_PATH,
+            &OptionValue,
+            sizeof(OptionValue),
+            NULL,
+            0,
+            &numberOfBytesReturned,
+            0,
+            0);
+
+        if (SOCKET_ERROR == status) {
+            GW_ASSERT(false);
+        }
+#endif
+    
+        int32_t bufSize = 1 << 19;
+        if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(int)) == -1) {
+            GW_ASSERT(false);
+        }
+
+        bufSize = 1 << 19;
+        if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&bufSize, sizeof(int)) == -1) {
+            GW_ASSERT(false);
+        }
+    }
+    
     // Getting IOCP handle.
     HANDLE iocp = NULL;
     if (!gw)
