@@ -101,14 +101,30 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Json\JsonWithFiller.json" />
-    <None Include="Json\jsstyle.json" />
-    <None Include="Json\person.json" />
-    <None Include="Json\PlayerAndAccounts.json" />
-    <None Include="Json\SampleApp.json" />
-    <None Include="Json\simple.json" />
-    <None Include="Json\supersimple.json" />
-    <None Include="Json\TestMessage.json" />
+    <None Include="Json\JsonWithFiller.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\jsstyle.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\person.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\PlayerAndAccounts.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\SampleApp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\simple.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\supersimple.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\TestMessage.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

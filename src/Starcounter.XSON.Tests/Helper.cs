@@ -35,7 +35,8 @@ namespace Starcounter.Internal.XSON.Tests {
             return tobj;
         }
 
-        internal static TObject CreateJsonTemplateFromContent(string className, string json) {
+        internal static TObject CreateJsonTemplateFromContent(string filename, string json) {
+            var className = Path.GetFileNameWithoutExtension(filename);
             var tobj = TObject.CreateFromMarkup<Json, TObject>("json",json, className);
             tobj.ClassName = className;
             return tobj;
