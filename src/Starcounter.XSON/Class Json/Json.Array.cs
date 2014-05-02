@@ -9,7 +9,6 @@ using Starcounter.Templates;
 
 namespace Starcounter {
     public partial class Json {
-
         /// <summary>
         /// You can assign a result set from a SQL query operation directly to 
         /// a JSON array property.
@@ -23,7 +22,7 @@ namespace Starcounter {
             return new Json(res);
         }
         
-        public Json(Json parent, TObjArr templ) {
+        internal Json(Json parent, TObjArr templ) {
             this.Template = templ;
             Parent = parent;
         }
@@ -74,20 +73,6 @@ namespace Starcounter {
                 _PendingEnumeration = false;
             }
             parent.CallHasChanged(template);
-        }
-
-        public Json Add() {
-            var elementType = ((TObjArr)this.Template).ElementType;
-            Json x;
-            if (elementType == null) {
-                x = new Json();
-            } else {
-                x = (Json)elementType.CreateInstance(this);
-            }
-
-            //            var x = new App() { Template = ((TArr)this.Template).App };
-            Add(x);
-            return x;
         }
     }
 }

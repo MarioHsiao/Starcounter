@@ -56,7 +56,6 @@ namespace Starcounter {
     /// merely reflect the values of the database objects.
     /// </remarks>
     public partial class Json : StarcounterBase {
-
         /// <summary>
         /// Base classes to be derived by Json-by-example classes.
         /// </summary>
@@ -96,12 +95,16 @@ namespace Starcounter {
             : base() {
             _cacheIndexInArr = -1;
             _transaction = null;
-            //LogChanges = false;
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }
         }
 
+        /// <summary>
+        /// Returns true if this instance is backed by a codegenerated template.
+        /// </summary>
+        public virtual bool IsCodeGenerated { get { return false; } }
+        
         /// <summary>
         /// The QUICKTUPLE implementation keeps the property values of an App in a simple array of 
         /// boxed CLR values. This implementation should never be used on the server side as the
@@ -122,7 +125,6 @@ namespace Starcounter {
                 }
                 return _Session;
             }
-
             set {
                 _Session = value;
                 _Session.Data = this;
@@ -136,10 +138,8 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
         public Template Template {
             set {
-                //if (_Template != null) {
-                //    throw new Exception("Template is already set for App. Cannot change template once it is set");
-                //}
                 _Template = (TContainer)value;
+                _isArray = (_Template is TObjArr);
 
                 if (_Template is TObject && ((TObject)_Template).IsDynamic) {
                     TObject t = (TObject)_Template;
@@ -163,34 +163,13 @@ namespace Starcounter {
             }
         }
 
-        ///// <summary>
-        ///// Called when [set parent].
-        ///// </summary>
-        ///// <param name="child">The child.</param>
-        //internal virtual void OnSetParent(Container child) {
-        //    //child._parent = this;
-        //}
-
-        public virtual void ChildArrayHasAddedAnElement(TObjArr property, int elementIndex) {
+        protected virtual void ChildArrayHasAddedAnElement(TObjArr property, int elementIndex) {
         }
 
-        public virtual void ChildArrayHasRemovedAnElement(TObjArr property, int elementIndex) {
+        protected virtual void ChildArrayHasRemovedAnElement(TObjArr property, int elementIndex) {
         }
 
-        public virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
-        }
-
-        /// <summary>
-        /// Called when a Obj or Arr property value has been removed from its parent.
-        /// </summary>
-        /// <param name="property">The name of the property</param>
-        /// <param name="child">The old value of the property</param>
-        private void HasRemovedChild(Json child) {
-            // This Obj or Arr has been removed from its parent and should be deleted from the
-            // URI cache.
-            //
-            // TheCache.RemoveEntry( child );
-            //
+        protected virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
         }
 
         /// <summary>
@@ -198,7 +177,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public Boolean HasThisRoot(Json treeRoot) {
+        internal bool HasThisRoot(Json treeRoot) {
             Json r = this;
             while (r.Parent != null)
                 r = r.Parent;
@@ -239,18 +218,12 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Is overridden by Puppet to log changes.
+        /// 
         /// </summary>
         /// <remarks>
-        /// The puppet needs to log all changes as they will need to be sent to the client (the client keeps a mirrored view model).
-        /// See MVC/MVVM (TODO! REF!). See Puppets (TODO REF)
         /// </remarks>
         /// <param name="property">The property that has changed in this Obj</param>
         protected virtual void HasChanged(TValue property) {
-            //throw new Exception();
-            //var s = Session;
-            //if (s!=null)
-            //    Session.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -261,11 +234,9 @@ namespace Starcounter {
         /// <value>The metadata.</value>
         /// <remarks>It is much less expensive to set this kind of metadata for the
         /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
-        public ObjMetadata<TObject, Json> Metadata {
-            get {
-                return _Metadata;
-            }
-        }
+        // TODO:
+        // Metadata has never been used. It should either be fixed or removed.
+        internal ObjMetadata<TObject, Json> Metadata { get { return _Metadata; } }
 
         /// <summary>
         /// Gets or sets the parent.
@@ -284,33 +255,18 @@ namespace Starcounter {
             }
         }
 
-        public List<Json> JsonSiblings = new List<Json>();
-        public String AppName;
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
         internal void SetParent(Json value) {
-            if (value == null) {
-                if (_parent != null) {
-                    _parent.HasRemovedChild(this);
-                }
-            }
             _parent = value;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool IsArray {
-            get {
-                if (Template == null) {
-                    return false;
-                }
-                return Template is TObjArr;
-            }
-        }
+        public bool IsArray { get { return _isArray; } }
 
         /// <summary>
         /// 
