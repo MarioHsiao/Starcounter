@@ -4,7 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-
 using Starcounter.Templates;
 using System;
 using System.Text;
@@ -47,6 +46,7 @@ namespace Starcounter {
 			sb.Append(' ', indentation);
 			sb.Append("]");
 		}
+
 		internal string DebugString {
 			get {
 				var sb = new StringBuilder();

@@ -82,5 +82,19 @@ namespace Starcounter {
         /// reflect a person database object.
         /// </summary>
         internal object _data;
+
+        internal List<Json> _stepSiblings;
+
+        internal Json _stepParent;
+
+        internal String _appName;
+
+        /// <summary>
+        /// If set to true, additional features for keeping track of changes and getting a log of changes 
+        /// are initialized. If not needed this should not be enabled since the performance will be much worse.
+        /// </summary>
+        internal bool _isStatefulObject;
+
+        private bool _isArray;
     }
 }
