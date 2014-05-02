@@ -9,7 +9,7 @@ namespace Starcounter.Advanced.XSON {
     /// <summary>
     /// 
     /// </summary>
-    internal static class JsonHelper {
+    public static class JsonHelper {
         private static byte[] null_value = { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
         private static Encoder utf8Encoder = new UTF8Encoding(false, true).GetEncoder();
 
@@ -19,7 +19,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="pfrag"></param>
         /// <param name="fragmentSize"></param>
         /// <returns></returns>
-        internal static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
+        public static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
             byte current;
             int index = 0;
 
@@ -42,7 +42,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="fragmentSize"></param>
         /// <param name="needsJsonDecoding"></param>
         /// <returns></returns>
-        internal static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
+        public static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
             byte current;
             int index = 0;
 
@@ -70,7 +70,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
-        internal static bool ParseInt(IntPtr ptr, int size, out long value, out int valueSize) {
+        public static bool ParseInt(IntPtr ptr, int size, out long value, out int valueSize) {
             long result;
 
             unsafe {
@@ -98,7 +98,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
-        internal static bool ParseDecimal(IntPtr ptr, int size, out decimal value, out int valueSize) {
+        public static bool ParseDecimal(IntPtr ptr, int size, out decimal value, out int valueSize) {
             bool success;
             string valAsStr;
 
@@ -121,7 +121,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
-        internal static bool ParseDouble(IntPtr ptr, int size, out double value, out int valueSize) {
+        public static bool ParseDouble(IntPtr ptr, int size, out double value, out int valueSize) {
             bool success;
             string valAsStr;
 
@@ -144,7 +144,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
-        internal static bool ParseBoolean(IntPtr ptr, int size, out bool value, out int valueSize) {
+        public static bool ParseBoolean(IntPtr ptr, int size, out bool value, out int valueSize) {
             bool success = false;
 
             value = false;
@@ -195,7 +195,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
-        internal static bool ParseDateTime(IntPtr ptr, int size, out DateTime value, out int valueSize) {
+        public static bool ParseDateTime(IntPtr ptr, int size, out DateTime value, out int valueSize) {
             bool success;
             string valAsStr;
 
@@ -218,7 +218,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if parsing was succesful, <c>false</c> otherwise</returns>
-        internal static bool ParseString(IntPtr ptr, int size, out string value, out int valueSize) {
+        public static bool ParseString(IntPtr ptr, int size, out string value, out int valueSize) {
             bool needsDecoding;
             byte[] buffer;
             int extraSize = 0;
@@ -260,7 +260,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="srcSize"></param>
         /// <param name="valueSize"></param>
         /// <returns></returns>
-        internal static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
+        public static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
             byte current;
             int bufferOffset = 0;
             byte[] buffer = new byte[valueSize];
@@ -316,7 +316,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="bufferSize"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal unsafe static int WriteStringAsIs(IntPtr buffer, int bufferSize, string value) {
+        public unsafe static int WriteStringAsIs(IntPtr buffer, int bufferSize, string value) {
             byte* pbuf;
             int length;
 
@@ -363,7 +363,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        internal static int WriteString(IntPtr buffer, int bufferSize, string value) {
+        public static int WriteString(IntPtr buffer, int bufferSize, string value) {
             byte c;
             byte[] valueArr;
             int usedSize;
@@ -452,7 +452,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        internal static int WriteDouble(IntPtr ptr, int size, double value) {
+        public static int WriteDouble(IntPtr ptr, int size, double value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
                 return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
@@ -467,7 +467,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        internal static int WriteDecimal(IntPtr ptr, int size, decimal value) {
+        public static int WriteDecimal(IntPtr ptr, int size, decimal value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
                 return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
@@ -499,7 +499,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="size"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static int WriteInt(IntPtr ptr, int size, long value) {
+        public static int WriteInt(IntPtr ptr, int size, long value) {
             unsafe {
                 byte* p = (byte*)ptr;
                 return (int)Utf8Helper.WriteIntAsUtf8(p, value);
@@ -513,7 +513,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="size"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static int WriteBool(IntPtr ptr, int size, bool value) {
+        public static int WriteBool(IntPtr ptr, int size, bool value) {
             unsafe {
                 byte* p = (byte*)ptr;
 
@@ -544,7 +544,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="ptr"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        internal static int WriteNull(IntPtr ptr, int size) {
+        public static int WriteNull(IntPtr ptr, int size) {
             if (size < 4)
                 return -1;
             unsafe {
@@ -559,7 +559,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="size"></param>
         /// <param name="valueSize"></param>
         /// <returns></returns>
-        internal static bool IsNullValue(IntPtr ptr, int size, out int valueSize) {
+        public static bool IsNullValue(IntPtr ptr, int size, out int valueSize) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
                 valueSize = SizeToDelimiterOrEnd(pfrag, size);
@@ -620,7 +620,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="name"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        internal static void ThrowWrongValueTypeException(Exception innerException, string name, string type, string value) {
+        public static void ThrowWrongValueTypeException(Exception innerException, string name, string type, string value) {
             throw ErrorCode.ToException(
                             Error.SCERRJSONVALUEWRONGTYPE,
                             innerException,
@@ -634,11 +634,11 @@ namespace Starcounter.Advanced.XSON {
         /// 
         /// </summary>
         /// <param name="name"></param>
-        internal static void ThrowPropertyNotFoundException(string name) {
+        public static void ThrowPropertyNotFoundException(string name) {
             throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", name));
         }
 
-        internal static void ThrowPropertyNotFoundException(IntPtr ptr, int size) {
+        public static void ThrowPropertyNotFoundException(IntPtr ptr, int size) {
             string property = "";
             int valueSize;
             JsonHelper.ParseString(ptr, size, out property, out valueSize);
@@ -648,7 +648,7 @@ namespace Starcounter.Advanced.XSON {
         /// <summary>
         /// 
         /// </summary>
-        internal static void ThrowUnexpectedEndOfContentException() {
+        public static void ThrowUnexpectedEndOfContentException() {
             throw ErrorCode.ToException(
                             Error.SCERRJSONUNEXPECTEDENDOFCONTENT,
                             "",
@@ -660,7 +660,7 @@ namespace Starcounter.Advanced.XSON {
         /// <summary>
         /// 
         /// </summary>
-        internal static void ThrowInvalidJsonException(string message) {
+        public static void ThrowInvalidJsonException(string message) {
             throw ErrorCode.ToException(Error.SCERRINVALIDJSONFORINPUT, message);
         }
     }
