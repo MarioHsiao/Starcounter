@@ -8,6 +8,9 @@ namespace Starcounter.SqlProcessor {
         public static unsafe extern uint scsql_process_query([MarshalAs(UnmanagedType.LPWStr)]string query);
             /*void* caller, void* executor, */
         [DllImport("scsqlprocessor.dll")]
+        internal static unsafe extern uint scsql_process_modifyquery([MarshalAs(UnmanagedType.LPWStr)]string query, 
+            int* nrObjs);
+        [DllImport("scsqlprocessor.dll")]
         public static unsafe extern ScError* scsql_get_error();
         [DllImport("scsqlprocessor.dll")]
         public static extern uint scsql_free_memory();
@@ -30,6 +33,21 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
             return ex;
+        }
+
+        internal static unsafe int ExecuteQuerySqlProcessor(String query) {
+            int nrObjs = 0;
+            uint err = scsql_process_modifyquery(query, &nrObjs);
+            if (err == 0)
+                return nrObjs;
+            Exception ex = GetSqlException(err, query);
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < 10000);
+            // create the exception
+            scsql_free_memory();
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < 10000);
+            throw ex;
         }
 
         public static void PopulateRuntimeMetadata() {

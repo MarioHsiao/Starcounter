@@ -94,16 +94,18 @@ namespace Starcounter {
             return totalNrObj;
         }
 
-        internal static void Load(string filename) {
+        internal static int Load(string filename) {
+            int nrObjs = 0;
             using (StreamReader file = new StreamReader(filename)) {
                 string stmt = file.ReadLine();
                 if (stmt != "Database dump. DO NOT EDIT!")
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                 while ((stmt = file.ReadLine()) != null)
                     Db.SystemTransaction(delegate {
-                        Db.SQL(stmt);
+                        nrObjs += Db.Update(stmt);
                     });
             }
+            return nrObjs;
         }
 
         internal static void DeleteAll() {

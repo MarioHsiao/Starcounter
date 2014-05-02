@@ -9,8 +9,13 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
-                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt"))
-                    Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
+                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt")) {
+                    HelpMethods.LogEvent("Start loading query processing database.");
+                    int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
+                    HelpMethods.LogEvent("Finish loading query processing database. Loaded " +
+                        nrLoaded + " objects.");
+                } else
+                    HelpMethods.LogEvent("No reload.");
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
@@ -33,8 +38,9 @@ namespace QueryProcessingTest {
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("Start unloading query processing database.");
-                Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
-                HelpMethods.LogEvent("Finish unloading query processing database.");
+                int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
+                HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " + 
+                    nrUnloaded + " objects.");
                 HelpMethods.LogEvent("Start delete the database data.");
                 Starcounter.Reload.DeleteAll();
                 HelpMethods.LogEvent("Finish delete the database data.");
