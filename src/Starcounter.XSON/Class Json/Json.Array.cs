@@ -23,6 +23,7 @@ namespace Starcounter {
         }
         
         internal Json(Json parent, TObjArr templ) {
+            _isStatefulObject = DefaultStatefulState;
             this.Template = templ;
             Parent = parent;
         }
@@ -33,6 +34,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
+            _isStatefulObject = DefaultStatefulState;
             _data = result;
             _PendingEnumeration = true;
         }
