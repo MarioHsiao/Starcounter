@@ -114,7 +114,9 @@ public:
 	chunk_pool_(chunk_pool_capacity, chunk_pool_alloc),
 	overflow_pool_(overflow_pool_capacity, overflow_pool_alloc),
 	channel_scan_mask_(),
+#if 0
 	channel_scan_counter_(0),
+#endif
 	notify_(false),
 	predicate_(false),
 	client_interface_(0),
@@ -302,7 +304,8 @@ public:
 	// queue of the channel. But how do we guarantee that the scheduler will not
 	// access the out queue of the channel?
 	//--------------------------------------------------------------------------
-	
+
+#if 0	
 	//the scheduler have seen the update of the channel_scan_mask_ and the client
 	// can then release the channel. However, the scheduler may take a
 	// relatively long time to complete a scan. We may enter a periodic sleep
@@ -310,7 +313,9 @@ public:
 	channel_scan_counter_type get_channel_scan_counter() const {
 		return channel_scan_counter_;
 	}
-	
+#endif
+
+#if 0	
 	// A scheduler calls increment_channel_scan_counter() each time it has
 	// completed a scan of all channels in the channel_scan_mask_.
 	void increment_channel_scan_counter() {
@@ -319,6 +324,7 @@ public:
 		channel_scan_counter_ = next;
 		_mm_mfence();
 	}
+#endif
 	
 	bool get_notify_flag() const {
 		return notify_;
@@ -498,8 +504,10 @@ private:
 	char cache_line_pad_0_[CACHE_LINE_SIZE]; // Not needed if on another cache line.
 	channel_mask<channels> channel_scan_mask_;
 	char cache_line_pad_1_[CACHE_LINE_SIZE];
+#if 0
 	volatile channel_scan_counter_type channel_scan_counter_;
 	char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(channel_scan_counter_type)];
+#endif
 	volatile bool notify_;
 	char cache_line_pad_3_[CACHE_LINE_SIZE -sizeof(bool)];
 	volatile bool predicate_;
