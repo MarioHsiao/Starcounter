@@ -118,7 +118,9 @@ public:
 	channel_scan_counter_(0),
 #endif
 	notify_(false),
+#if 0
 	predicate_(false),
+#endif
 	client_interface_(0),
 	owner_id_(),
 	ipc_monitor_cleanup_event_() {
@@ -383,7 +385,8 @@ public:
 		// Error. Failed to notify the scheduler.
 		return false;
 	}
-	
+
+#if 0
 	// Setting predicate to true means the condition is met
 	// and the wait is over, the thread waiting will not wait any more.
 	// Setting the predicate to false means the condition is not met
@@ -396,6 +399,7 @@ public:
 	bool do_work() const {
 		return predicate_;
 	}
+#endif
 	
 	/// Scheduler's call wait_for_work() if they don't find any work to do.
 	/// It is a "timed" function that can fail.
@@ -510,8 +514,10 @@ private:
 #endif
 	volatile bool notify_;
 	char cache_line_pad_3_[CACHE_LINE_SIZE -sizeof(bool)];
+#if 0
 	volatile bool predicate_;
 	char cache_line_pad_4_[CACHE_LINE_SIZE -sizeof(bool)];
+#endif
 	
 	// The scheduler that have allocated this interface must store a pointer to
 	// the client_interface here, which will be relative to its own address
