@@ -223,7 +223,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasAddedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
-			if (Session != null) {
+			if (_isStatefulObject && Session != null) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
@@ -241,7 +241,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasRemovedElement(int index) {
 			var tarr = (TObjArr)this.Template;
-			if (Session != null) {
+			if (_isStatefulObject && Session != null) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
