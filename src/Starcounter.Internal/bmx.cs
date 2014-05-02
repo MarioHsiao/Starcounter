@@ -154,7 +154,7 @@ namespace Starcounter.Internal
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         internal extern static void sc_init_profilers(
-            Int32 numProfilers
+            Byte numSchedulers
             );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]

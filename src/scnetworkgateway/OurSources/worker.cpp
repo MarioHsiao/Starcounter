@@ -51,9 +51,6 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     // Creating random generator with current time seed.
     rand_gen_ = new random_generator(timeGetTime());
 
-    // Initializing profilers.
-    profiler_.Init(64);
-
     aggr_timer_.Start();
 
     return 0;
@@ -398,17 +395,9 @@ START_RECEIVING_AGAIN:
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
-#ifdef GW_PROFILER_ON
-    profiler_.Start("Receive()", 1);
-#endif
-
     uint32_t numBytes, err_code;
 
     err_code = sd->Receive(this, &numBytes);
-
-#ifdef GW_PROFILER_ON
-    profiler_.Stop(1);
-#endif
 
     // Checking if operation completed immediately.
     if (0 != err_code)
@@ -567,6 +556,9 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // Resetting the session based on protocol.
     sd->ResetSessionBasedOnProtocol();
 
+    ProfilerStart(worker_id_, utils::ProfilerEnums::Empty);
+    ProfilerStop(worker_id_, utils::ProfilerEnums::Empty);
+
     // Running the handler.
     return RunReceiveHandlers(sd);
 }
@@ -600,17 +592,9 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     }
 
     // Start sending on socket.
-#ifdef GW_PROFILER_ON
-    profiler_.Start("Send()", 2);
-#endif
-
     uint32_t num_sent_bytes, err_code;
 
     err_code = sd->Send(this, &num_sent_bytes);
-
-#ifdef GW_PROFILER_ON
-    profiler_.Stop(2);
-#endif
 
     // Checking if operation completed immediately.
     if (0 != err_code)
@@ -837,10 +821,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
     uint32_t err_code;
 
-#ifdef GW_PROFILER_ON
-    profiler_.Start("Disconnect()", 3);
-#endif
-
     // Sending dead session if its a WebSocket.
     if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol())
     {
@@ -863,10 +843,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     // Calling DisconnectEx.
     err_code = sd->Disconnect(this);
     GW_ASSERT(!err_code);
-
-#ifdef GW_PROFILER_ON
-    profiler_.Stop(3);
-#endif
 
     // Checking if operation completed immediately. 
     int32_t wsa_err_code = WSAGetLastError();
@@ -1014,19 +990,11 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
     {
         // Start connecting socket.
 
-#ifdef GW_PROFILER_ON
-        profiler_.Start("Connect()", 4);
-#endif
-
         // Setting unique socket id.
         sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
 
         // Calling ConnectEx.
         uint32_t err_code = sd->Connect(this, server_addr);
-
-#ifdef GW_PROFILER_ON
-        profiler_.Stop(4);
-#endif
 
         // Checking if operation completed immediately.
         GW_ASSERT(TRUE != err_code);
@@ -1164,10 +1132,6 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 
     // Start accepting on socket.
 
-#ifdef GW_PROFILER_ON
-    profiler_.Start("Accept()", 5);
-#endif
-
     // Updating number of accepting sockets.
     ChangeNumAcceptingSockets(sd->GetPortIndex(), 1);
 
@@ -1176,10 +1140,6 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 
     // Calling AcceptEx.
     uint32_t err_code = sd->Accept(this);
-
-#ifdef GW_PROFILER_ON
-    profiler_.Stop(5);
-#endif
 
     // Checking if operation completed immediately.
     GW_ASSERT(TRUE != err_code);
@@ -1336,11 +1296,12 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
 // Processes socket info for aggregation loopback.
 void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 {
-    char body[1024];
+    char body[4096];
     int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
-    GW_ASSERT (body_len <= 1024);
+    GW_ASSERT (body_len <= 4096);
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
-    uint32_t err_code = SendHttpBody(sd, body, body_len);
+    //uint32_t err_code = SendHttpBody(sd, body, body_len);
+    uint32_t err_code = RunFromDbHandlers(sd);
     GW_ASSERT (0 == err_code);
 }
 
@@ -1360,29 +1321,16 @@ uint32_t GatewayWorker::WorkerRoutine()
     next_sleep_interval_ms = 0;
 #endif
 
-#ifdef GW_PROFILER_ON
-    uint32_t newTimeMs;
-#endif
-
     sd_receive_clone_ = NULL;
 
     // Starting worker infinite loop.
     while (TRUE)
     {
-#ifdef GW_PROFILER_ON
-        profiler_.Start("GetQueuedCompletionStatusEx", 6);
-#endif
-
         // Getting IOCP status.
 #ifdef GW_LOOPED_TEST_MODE
         compl_status = ProcessEmulatedNetworkOperations(fetched_ovls, &num_fetched_ovls, MAX_FETCHED_OVLS);
 #else
         compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, (PULONG)&num_fetched_ovls, next_sleep_interval_ms, TRUE);
-#endif
-
-#ifdef GW_PROFILER_ON
-        profiler_.Stop(6);
-        profiler_.Start("ProcessingCycle", 7);
 #endif
 
         // Check if global lock is set.
@@ -1540,18 +1488,6 @@ uint32_t GatewayWorker::WorkerRoutine()
         BeginMeasuredTestIfReady();
 #endif
 
-#ifdef GW_PROFILER_ON
-
-        profiler_.Stop(7);
-
-        // Printing profiling results.
-        newTimeMs = timeGetTime();
-        if ((newTimeMs - oldTimeMs) >= 1000)
-        {
-            profiler_.DrawResults();
-            oldTimeMs = timeGetTime();
-        }
-#endif
     }
 
     GW_ASSERT(false);
@@ -1712,8 +1648,8 @@ uint32_t GatewayWorker::SendHttpBody(
     const char* body,
     const int32_t body_len)
 {
-    GW_ASSERT(body_len < 1800);
-    char temp_resp[2048];
+    GW_ASSERT(body_len < 3800);
+    char temp_resp[4096];
 
     // Copying predefined header.
     memcpy(temp_resp, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
