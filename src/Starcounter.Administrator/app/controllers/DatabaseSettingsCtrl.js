@@ -131,7 +131,7 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
             else {
 
                 var title = "Missing database";
-                var message = "Failed to the retrive database " + $routeParams.name;
+                var message = "Failed to retrieve the database " + $routeParams.name;
                 var buttons = [{ result: 0, label: 'Ok', cssClass: 'btn btn-primary' }];
 
                 UserMessageFactory.showMessageBox(title, message, buttons);

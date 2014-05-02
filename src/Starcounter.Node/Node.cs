@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿//#define FAST_LOOPBACK
+// ***********************************************************************
 // <copyright file="Node.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -137,9 +138,9 @@ namespace Starcounter
         UInt16 aggrPortNumber_;
 
         /// <summary>
-        /// Aggregation TCP client.
+        /// Aggregation TCP socket.
         /// </summary>
-        TcpClient aggrTcpClient_;
+        Socket aggrSocket_;
 
         /// <summary>
         /// Returns True if this node uses aggregation.
@@ -147,7 +148,7 @@ namespace Starcounter
         /// <returns></returns>
         public Boolean UsesAggregation()
         {
-            return (null != aggrTcpClient_);
+            return (null != aggrSocket_);
         }
 
         /// <summary>
@@ -259,7 +260,23 @@ namespace Starcounter
             // Initializing aggregation struct.
             if (useAggregation)
             {
-                aggrTcpClient_ = new TcpClient(hostName_, aggrPortNumber_);
+                aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+#if FAST_LOOPBACK
+                const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
+                
+                Byte[] OptionInValue = BitConverter.GetBytes(1);
+
+                aggrSocket_.IOControl(
+                    SIO_LOOPBACK_FAST_PATH,
+                    OptionInValue,
+                    null);
+#endif
+
+                aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
+                aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
+                
+                aggrSocket_.Connect(hostName_, aggrPortNumber_);
 
                 aggregate_send_blob_ = new Byte[AggregationBlobSizeBytes];
                 aggregate_receive_blob_ = new Byte[AggregationBlobSizeBytes];
@@ -1051,7 +1068,7 @@ namespace Starcounter
 
 START_RECEIVING:
 
-                            num_received_bytes += aggrTcpClient_.Client.Receive(aggregate_receive_blob_, num_received_bytes, AggregationBlobSizeBytes - num_received_bytes, SocketFlags.None);
+                            num_received_bytes += aggrSocket_.Receive(aggregate_receive_blob_, num_received_bytes, AggregationBlobSizeBytes - num_received_bytes, SocketFlags.None);
 
                             // Checking if we have received the aggregation structure at least.
                             if (num_received_bytes < AggregationStructSizeBytes)
@@ -1165,7 +1182,7 @@ START_RECEIVING:
                                     if (0 == send_bytes_offset)
                                         throw new Exception("Request size is bigger than: " + AggregationBlobSizeBytes);
 
-                                    aggrTcpClient_.Client.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
+                                    aggrSocket_.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
                                     send_bytes_offset = 0;
                                 }
 
@@ -1212,7 +1229,7 @@ START_RECEIVING:
 
                             // Sending last processed requests.
                             if (send_bytes_offset > 0)
-                                aggrTcpClient_.Client.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
+                                aggrSocket_.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
                         }
                     }
                 }

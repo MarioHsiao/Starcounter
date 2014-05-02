@@ -19,7 +19,7 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
      */
     this.getServerSettings = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive server settings";
+        var errorHeader = "Failed to retrieve the server settings";
         var uri = "/api/admin/servers/personal/settings";
 
         // Response
@@ -187,7 +187,7 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
      */
     this.getCollations = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive server settings";
+        var errorHeader = "Failed to retrieve the server settings";
         var uri = "/api/admin/servers/personal/collationfiles";
 
         // Get a list of all running Executables
