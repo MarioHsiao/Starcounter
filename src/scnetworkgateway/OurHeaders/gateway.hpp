@@ -82,6 +82,7 @@ typedef int8_t chunk_store_type;
 #endif
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
+//#define FAST_LOOPBACK
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -98,7 +99,6 @@ typedef int8_t chunk_store_type;
 //#define GW_PONG_MODE
 //#define GW_TESTING_MODE
 //#define GW_LOOPED_TEST_MODE
-//#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
 
 // Checking that macro definitions are correct.
@@ -517,6 +517,14 @@ uint32_t GatewayUriProcessEcho(
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_info,
+    bool* is_handled);
+
+// Profilers statistics for Gateway.
+uint32_t GatewayProfilersInfo(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
@@ -2056,8 +2064,11 @@ public:
         return setting_log_file_path_;
     }
 
-    // Current global statistics value.
+    // Current global statistics.
     const char* GetGlobalStatisticsString(int32_t* out_len);
+
+    // Current global profilers stats.
+    std::string GetGlobalProfilersString(int32_t* out_len);
 
     // Getting the number of used sockets.
     int64_t NumberCreatedSocketsAllWorkers();

@@ -900,15 +900,20 @@ ALL_DATA_ACCUMULATED:
 
 #ifdef GW_LOOPBACK_AGGREGATION
 
+            // Performing aggregation loop on gateway.
             if (sd->GetSocketAggregatedFlag())
+            {
                 gw->LoopbackForAggregation(sd);
+            }
             else
 
 #endif
-            // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, handler_id);
-            if (err_code)
-                return err_code;
+            {
+                // Push chunk to corresponding channel/scheduler.
+                err_code = gw->PushSocketDataToDb(sd, handler_id);
+                if (err_code)
+                    return err_code;
+            }
 
 #endif
 
@@ -1319,6 +1324,16 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
     *is_handled = true;
 
     return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
+}
+
+// Profilers statistics for Gateway.
+uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    int32_t resp_len_bytes;
+    std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);
+    *is_handled = true;
+
+    return gw->SendHttpBody(sd, s.c_str(), resp_len_bytes);
 }
 
 } // namespace network

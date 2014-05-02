@@ -77,11 +77,11 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
 
 // Initializes profilers.
 EXTERN_C void __stdcall sc_init_profilers(
-    int32_t numProfilers
+    uint8_t num_workers
     )
 {
     // Initializing profilers.
-    Profiler::InitAll(64);
+    Profiler::InitAll(num_workers);
 }
 
 // Gets profiler results for a given scheduler.

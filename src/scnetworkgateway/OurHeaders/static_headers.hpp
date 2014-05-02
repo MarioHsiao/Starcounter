@@ -22,6 +22,7 @@
 #include <mswsock.h>
 #include <mmsystem.h>
 #include <strsafe.h>
+#include <mstcpip.h>
 #undef WIN32_LEAN_AND_MEAN
 
 #include <conio.h>

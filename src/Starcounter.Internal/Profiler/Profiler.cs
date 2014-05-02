@@ -48,22 +48,22 @@ namespace Starcounter
         [DllImport("Kernel32.dll")]
         static extern bool QueryPerformanceFrequency(out Int64 lpFrequency);
 
-        Int64 startTicks, stopTicks, elapsedTicks, startedCount;
+        Int64 startTicks_, stopTicks_, elapsedTicks_, startedCount_;
 
-        static Double freqMs = 0, freqMcs = 0;
+        static Double freqMs_ = 0, freqMcs_ = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreciseTimer" /> class.
         /// </summary>
         public PreciseTimer()
         {
-            startTicks = 0;
-            stopTicks = 0;
-            elapsedTicks = 0;
-            startedCount = 0;
+            startTicks_ = 0;
+            stopTicks_ = 0;
+            elapsedTicks_ = 0;
+            startedCount_ = 0;
 
             // Checking if we already initialized the timer.
-            if (freqMs == 0)
+            if (freqMs_ == 0)
             {
                 Int64 freqTempVar;
                 if (QueryPerformanceFrequency(out freqTempVar) == false)
@@ -72,8 +72,8 @@ namespace Starcounter
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "High-performance counter not supported.");
                 }
 
-                freqMs = freqTempVar / 1000.0; // In milliseconds.
-                freqMcs = freqTempVar / 1000000.0; // In microseconds.
+                freqMs_ = freqTempVar / 1000.0; // In milliseconds.
+                freqMcs_ = freqTempVar / 1000000.0; // In microseconds.
             }
         }
 
@@ -83,8 +83,8 @@ namespace Starcounter
         /// </summary>
         public void Start()
         {
-            startedCount++;
-            QueryPerformanceCounter(out startTicks);
+            startedCount_++;
+            QueryPerformanceCounter(out startTicks_);
         }
 
         // Stop the timer.
@@ -93,8 +93,12 @@ namespace Starcounter
         /// </summary>
         public void Stop()
         {
-            QueryPerformanceCounter(out stopTicks);
-            elapsedTicks += (stopTicks - startTicks);
+            // Checking if profiler was started or just was reseted.
+            if (startTicks_ == 0)
+                return;
+
+            QueryPerformanceCounter(out stopTicks_);
+            elapsedTicks_ += (stopTicks_ - startTicks_);
         }
 
         // Reset all counters.
@@ -103,10 +107,10 @@ namespace Starcounter
         /// </summary>
         public void Reset()
         {
-            startTicks = 0;
-            stopTicks = 0;
-            elapsedTicks = 0;
-            startedCount = 0;
+            startTicks_ = 0;
+            stopTicks_ = 0;
+            elapsedTicks_ = 0;
+            startedCount_ = 0;
         }
 
         // Returns the number of times the timer was started.
@@ -118,7 +122,7 @@ namespace Starcounter
         {
             get
             {
-                return startedCount;
+                return startedCount_;
             }
         }
 
@@ -131,7 +135,7 @@ namespace Starcounter
         {
             get
             {
-                return elapsedTicks / freqMs;
+                return elapsedTicks_ / freqMs_;
             }
         }
 
@@ -144,7 +148,7 @@ namespace Starcounter
         {
             get
             {
-                return elapsedTicks / freqMcs;
+                return elapsedTicks_ / freqMcs_;
             }
         }
     }
@@ -201,7 +205,7 @@ namespace Starcounter
                 schedulersProfilers_ = new Profiler[1];
             } else {
                 schedulersProfilers_ = new Profiler[StarcounterEnvironment.SchedulerCount];
-                bmx.sc_init_profilers(64);
+                bmx.sc_init_profilers(StarcounterEnvironment.SchedulerCount);
             }
 
             for (Int32 i = 0; i < schedulersProfilers_.Length; i++) {
@@ -404,7 +408,7 @@ namespace Starcounter
         public String GetResultsInJson(Boolean reset)
         {
             // Assuming that all timers stopped at this moment.
-            String outString = "\"managed_profilers\":[";
+            String outString = "\"managedProfilers\":[";
             Boolean comma = false;
 
             foreach (ProfilerNames id in (ProfilerNames[])Enum.GetValues(typeof(ProfilerNames)))
@@ -416,7 +420,7 @@ namespace Starcounter
                 else                    
                     comma = true;
                         
-                outString += "{" + String.Format("\"profiler_id\":\"{0}\",\"profiler_name\":\"{1}\",\"took_ms\":\"{2}\",\"started_times\":\"{3}\"",
+                outString += "{" + String.Format("\"profilerId\":\"{0}\",\"profilerName\":\"{1}\",\"tookMs\":\"{2}\",\"startedTimes\":\"{3}\"",
                     id.ToString(),
                     id.GetDescriptionValue(),
                     profilers_[i].Duration.ToString(),
@@ -430,7 +434,7 @@ namespace Starcounter
 
             // Printing all checkpoints.
             comma = false;
-            outString += "\"managed_checkpoints\":[";
+            outString += "\"managedCheckpoints\":[";
             foreach (CheckpointNames id in (CheckpointNames[])Enum.GetValues(typeof(CheckpointNames)))
             {
                 Int32 i = (Int32) id;
@@ -440,7 +444,7 @@ namespace Starcounter
                 else
                     comma = true;
 
-                outString += "{" + String.Format("\"checkpoint_id\":\"{0}\",\"checkpoint_name\":\"{1}\",\"cross_times\":\"{2}\"",
+                outString += "{" + String.Format("\"checkpointId\":\"{0}\",\"checkpointName\":\"{1}\",\"crossTimes\":\"{2}\"",
                     id.ToString(),
                     id.GetDescriptionValue(),
                     checkpoints_[i]) + "}";

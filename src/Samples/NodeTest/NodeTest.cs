@@ -650,12 +650,13 @@ namespace NodeTest
                 delay_counter++;
                 if (delay_counter >= 100)
                 {
-                    Console.WriteLine("Finished echoes: " + num_finished_tests_ + " out of " + num_tests_all_workers + ", last second: " + (num_finished_tests_ - prev_num_finished_tests));
+                    Int64 num_finished_tests = num_finished_tests_;
+                    Console.WriteLine("Finished echoes: " + num_finished_tests + " out of " + num_tests_all_workers + ", last second: " + (num_finished_tests - prev_num_finished_tests));
                     
                     for (Int32 i = 0; i < workers_.Length; i++)
                         Console.WriteLine("Worker " + i + " send-recv balance: " + workers_[i].WorkerNode.SentReceivedBalance);
 
-                    prev_num_finished_tests = num_finished_tests_;
+                    prev_num_finished_tests = num_finished_tests;
                     delay_counter = 0;
                 }
             }
