@@ -21,7 +21,7 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
      */
     this.getNetworkStatistics = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive Network statistics";
+        var errorHeader = "Failed to retrieve the Network statistics";
         var uri = "/gwstats";
 
         $http.get(uri).then(function (response) {
@@ -70,7 +70,7 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
      */
     this.getNetworkWorkingFolders = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive Network working folders";
+        var errorHeader = "Failed to retrieve the Network working folders";
         var uri = "/staticcontentdir";
 
         $http.get(uri).then(function (response) {

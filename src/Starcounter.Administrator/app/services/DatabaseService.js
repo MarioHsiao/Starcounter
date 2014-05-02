@@ -30,7 +30,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this.getDatabases = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive a list of databases";
+        var errorHeader = "Failed to retrieve a list of databases";
         var uri = "/api/admin/databases";
 
         $http.get(uri).then(function (response) {
@@ -535,7 +535,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             // Error
             var messageObject;
 
-            var errorHeader = "Failed to retrive database settings";
+            var errorHeader = "Failed to retrieve the database settings";
 
             $log.error(errorHeader, response);
 
@@ -570,7 +570,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
      */
     this.getDatabaseDefaultSettings = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive database default settings";
+        var errorHeader = "Failed to retrieve the database default settings";
 
         //        var job = { message: "Retriving database defult settings" };
         //        JobFactory.AddJob(job);
