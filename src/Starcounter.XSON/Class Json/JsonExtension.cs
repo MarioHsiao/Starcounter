@@ -32,5 +32,9 @@ namespace Starcounter.Advanced.XSON {
         public static string GetAppName(this Json json) {
             return json._appName;
         }
+
+        public static void SetDefaultStatefulState(this Json json, bool value) {
+            json._isStatefulObject = value;
+        }
     }
 }

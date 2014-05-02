@@ -95,7 +95,7 @@ namespace Starcounter {
         /// </summary>
         internal bool _isStatefulObject;
 
-        internal static bool DefaultStatefulState;
+        internal static bool DefaultStatefulState = true;
 
         private bool _isArray;
     }
