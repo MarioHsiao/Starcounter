@@ -54,41 +54,41 @@ namespace Starcounter.Internal.XSON.Tests {
 		[Test]
 		[Ignore("Requires fixing FTJ serializer")]
         public static void TestFTJSerializer() {
-            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), false);
-            RunFTJSerializerTest("person.json", File.ReadAllText("Input\\person.json"), false);
-            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), false);
-            RunFTJSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), false);
-            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), false);
+            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), false);
+            RunFTJSerializerTest("person.json", File.ReadAllText("Json\\person.json"), false);
+            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), false);
+            RunFTJSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), false);
+            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), false);
 		}
 
 		[Test]
         [Ignore("Requires fixing FTJ serializer")]
 		public static void TestFTJCodegenSerializer() {
-            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), true);
-            RunFTJSerializerTest("person.json", File.ReadAllText("Input\\person.json"), true);
-            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), true);
-            RunFTJSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), true);
-            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), true);
+            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), true);
+            RunFTJSerializerTest("person.json", File.ReadAllText("Json\\person.json"), true);
+            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), true);
+            RunFTJSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), true);
+            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), true);
 		}
 
 		[Test]
 		public static void TestStandardSerializer() {
-            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), false);
-            RunStandardSerializerTest("person.json", File.ReadAllText("Input\\person.json"), false);
-            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), false);
-            RunStandardSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), false);
-            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), false);
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Input\\JsonWithFiller.json"), false);
+            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), false);
+            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"), false);
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), false);
+            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), false);
+            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), false);
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"), false);
 		}
 
 		[Test]
 		public static void TestStandardCodegenSerializer() {
-			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Input\\jsstyle.json"), true);
-            RunStandardSerializerTest("person.json", File.ReadAllText("Input\\person.json"), true);
-            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Input\\supersimple.json"), true);
-            RunStandardSerializerTest("simple.json", File.ReadAllText("Input\\simple.json"), true);
-            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Input\\TestMessage.json"), true);
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Input\\JsonWithFiller.json"), true);
+			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), true);
+            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"), true);
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), true);
+            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), true);
+            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), true);
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"), true);
 		}
 
 		private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
