@@ -504,7 +504,9 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 
 		//----------------------------------------------------------------------
 		this_scheduler_interface_->set_notify_flag(false);
+#if 0
 		this_scheduler_interface_->set_predicate(true);
+#endif
 
         // We must not mark the scheduler as active until it is fully
         // initialized.
