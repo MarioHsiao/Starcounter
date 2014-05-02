@@ -366,7 +366,8 @@ public:
 	/// signal channel, in order to wake up the scheduler it communicates with,
 	/// if but only if it is waiting for work.
 	void notify() { notify(work_); }
-	
+
+#if 0	
 	//--------------------------------------------------------------------------
 	// The monitor call notify_scheduler_to_do_clean_up() if a client
 	// process has crashed, in order to wake up the scheduler if it is waiting.
@@ -385,6 +386,7 @@ public:
 		// Error. Failed to notify the scheduler.
 		return false;
 	}
+#endif
 
 #if 0
 	// Setting predicate to true means the condition is met
