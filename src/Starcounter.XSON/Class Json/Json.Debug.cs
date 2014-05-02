@@ -81,12 +81,12 @@ namespace Starcounter {
 				return;
 			}
 
-			if (Session != null && Parent != null) {
-				var index = Parent.IndexOf(this);
-				if (Parent._SetFlag[index]) {
-					sb.Append("(set)");
-				}
-			}
+            //if (Session != null && Parent != null) {
+            //    var index = Parent.IndexOf(this);
+            //    if (Parent._isStatefulObject && Parent._SetFlag[index]) {
+            //        sb.Append("(set)");
+            //    }
+            //}
 
 			sb.AppendLine("{");
 
@@ -101,7 +101,7 @@ namespace Starcounter {
 				sb.Append('"');
 				sb.Append(prop.PropertyName);
 				sb.Append("\":");
-				if (WasReplacedAt(prop.TemplateIndex)) {
+				if (_isStatefulObject && WasReplacedAt(prop.TemplateIndex)) {
 					sb.Append("(direct-set)");
 				}
 
