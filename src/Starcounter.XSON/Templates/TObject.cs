@@ -260,7 +260,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
-		public override object CreateInstance(Json parent) {
+		public virtual object CreateInstance(Json parent = null) {
 			if (_JsonType != null) {
 				var msg = (Json)Activator.CreateInstance(_JsonType);
 				msg.Template = this;

@@ -219,6 +219,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         WriteAppClassPrefix(node as AstJsonClass);
                     } else if (node is AstSchemaClass) {
                         WriteTAppConstructor((node as AstSchemaClass).Constructor);
+                        WriteSchemaOverrides(node as AstSchemaClass);
                     }
                     node.Suffix.Add("}");
 
@@ -540,6 +541,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             a.Prefix.Add(
                 "    }");
+        }
+
+        private void WriteSchemaOverrides(AstSchemaClass node) {
+            node.Prefix.Add(
+                "    public override object CreateInstance(__Json__ parent) { return new "
+                + node.NValueClass.ClassAlias.Alias
+                + "(DefaultTemplate) { Parent = parent }; }"
+            );
         }
 
         /// <summary>
