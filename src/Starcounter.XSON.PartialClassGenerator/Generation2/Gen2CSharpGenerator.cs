@@ -369,6 +369,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                              + a.CodebehindClass.BoundDataClass
                              + ")base.Data; } set { base.Data = value; } }");
             }
+            a.Prefix.Add("    public override bool IsCodegenerated { get { return true; } }");
 
             foreach (AstBase kid in a.NTemplateClass.Children) {
                 var prop = kid as AstProperty;

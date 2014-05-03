@@ -104,7 +104,7 @@ namespace Starcounter {
         /// <summary>
         /// Returns true if this instance is backed by a codegenerated template.
         /// </summary>
-        public virtual bool IsCodeGenerated { get { return false; } }
+        public virtual bool IsCodegenerated { get { return false; } }
         
         /// <summary>
         /// The QUICKTUPLE implementation keeps the property values of an App in a simple array of 
