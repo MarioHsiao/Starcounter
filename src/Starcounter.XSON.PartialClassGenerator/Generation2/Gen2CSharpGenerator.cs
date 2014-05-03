@@ -546,7 +546,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         private void WriteSchemaOverrides(AstSchemaClass node) {
             node.Prefix.Add(
-                "    public override object CreateInstance(__Json__ parent) { return new "
+                "    public override object CreateInstance(s.Json parent) { return new "
                 + node.NValueClass.ClassAlias.Alias
                 + "(DefaultTemplate) { Parent = parent }; }"
             );
