@@ -425,9 +425,9 @@ namespace Starcounter.Internal.JsonPatch {
                         Template t = ((TObject)mainApp.Template).Properties.GetExposedTemplateByName(ptr.Current);
                         if (t == null) {
                             Boolean found = false;
-                            if (mainApp.JsonSiblings.Count > 0) {
-                                foreach (Json j in mainApp.JsonSiblings) {
-                                    if (j.AppName == ptr.Current) {
+                            if (mainApp._stepSiblings != null && mainApp._stepSiblings.Count > 0) {
+                                foreach (Json j in mainApp._stepSiblings) {
+                                    if (j._appName == ptr.Current) {
                                         current = j;
                                         found = true;
                                         break;
@@ -436,7 +436,7 @@ namespace Starcounter.Internal.JsonPatch {
                             }
                             
                             if (!found) {
-                                if (mainApp.AppName == ptr.Current) {
+                                if (mainApp._appName == ptr.Current) {
                                     current = mainApp;
                                 } else {
                                     throw new JsonPatchException(
