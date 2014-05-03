@@ -24,7 +24,7 @@ namespace AggrHttpClient {
 
         const UInt16 UserPort = 8080;
 
-        const Int32 NumRequestsInSingleSend = 10000;
+        const Int32 NumRequestsInSingleSend = 5000;
 
         public enum AggregationMessageTypes {
             AGGR_CREATE_SOCKET,
@@ -43,11 +43,14 @@ namespace AggrHttpClient {
 
         static unsafe void Main(string[] args) {
 
-            Int32 numWorkers = 3;
+            Int32 numWorkers = 1;
+
+            if (args.Length > 0)
+                numWorkers = Int32.Parse(args[0]);
 
             WorkerSettings ws = new WorkerSettings() {
-                NumRequestsToSend = 5000000,
-                NumBodyCharacters = 128,
+                NumRequestsToSend = 10000000,
+                NumBodyCharacters = 8,
                 CountdownEvent = new CountdownEvent(numWorkers),
                 PrintLock = "Lock",
                 WorkersRPS = new Int32[numWorkers]
@@ -164,7 +167,7 @@ namespace AggrHttpClient {
                 agsOrig = *(AggregationStruct*)p;
             }
 
-            String httpRequest = "POST /echotest HTTP/1.1\r\nHost: Starcounter\r\nContent-Length: " + ws.NumBodyCharacters + "\r\n\r\n";
+            String httpRequest = "POST /echotest HTTP/1.1\r\nContent-Length: " + ws.NumBodyCharacters + "\r\n\r\n";
             
             String body = "";
             for (Int32 i = 0; i < ws.NumBodyCharacters; i++)
