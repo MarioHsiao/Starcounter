@@ -183,10 +183,10 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request request) {
+        private static Boolean OnHttpMessageRoot(Request req) {
 
             // Handling request on initial level.
-            Response resp = AppServer_.HandleRequest(request, 0);
+            Response resp = AppServer_.HandleRequest(req, 0);
 
             // Checking if response was handled.
             if (resp == null)
@@ -198,8 +198,13 @@ namespace Starcounter.Internal {
                 case HandlerStatusInternal.Done:
                 {
                     // Standard response send.
-                    request.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
-                    request.Destroy();
+                    req.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+                    resp.Destroy();
+                    GC.SuppressFinalize(resp);
+
+                    req.Destroy();
+                    GC.SuppressFinalize(req);
+
                     break;
                 }
             }
