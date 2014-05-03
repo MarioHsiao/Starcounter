@@ -179,9 +179,9 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append('/');
                     sb.Append(path[i]);
                 } else {
-                    if (app.JsonSiblings.Count > 0) {
+                    if (app._stepSiblings != null && app._stepSiblings.Count > 0) {
                         sb.Append('/');
-                        sb.Append(app.AppName);
+                        sb.Append(app._appName);
                     }
 
                     if (app.IsArray) {
