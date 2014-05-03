@@ -33,6 +33,10 @@ namespace Starcounter.Advanced.XSON {
             return json._appName;
         }
 
+        public static void SetAppName(this Json json, string value) {
+            json._appName = value;
+        }
+
         public static void SetEnableDirtyCheck(this Json json, bool value) {
             json._dirtyCheckEnabled = value;
         }
