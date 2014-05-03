@@ -856,7 +856,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal Int32 CustomBytesLength
+        public Int32 CustomBytesLength
         {
             get { return customBytesLen_; }
         }
@@ -864,7 +864,7 @@ namespace Starcounter {
 		/// <summary>
 		/// 
 		/// </summary>
-		internal byte[] CustomBytes {
+		public byte[] CustomBytes {
 			get { return customBytes_; }
 		}
 
