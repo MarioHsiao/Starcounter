@@ -93,10 +93,13 @@ namespace Starcounter {
         /// If set to true, additional features for keeping track of changes and getting a log of changes 
         /// are initialized. If not needed this should not be enabled since the performance will be much worse.
         /// </summary>
-        internal bool _isStatefulObject;
-
-        internal static bool DefaultStatefulState = true;
+        internal bool _dirtyCheckEnabled;
 
         private bool _isArray;
+
+        /// <summary>
+        /// Default value for setting the dirtycheck on or off for new instances of Json.
+        /// </summary>
+        public static bool DirtyCheckEnabled = true;
     }
 }

@@ -17,7 +17,7 @@ namespace Starcounter.Internal.XSON.Tests {
         {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);
-            Json.DefaultStatefulState = true;
+            Json.DirtyCheckEnabled = true;
         }
 
 		[TearDown]
