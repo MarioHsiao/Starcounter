@@ -49,7 +49,7 @@ namespace AggrHttpClient {
                 numWorkers = Int32.Parse(args[0]);
 
             WorkerSettings ws = new WorkerSettings() {
-                NumRequestsToSend = 10000000,
+                NumRequestsToSend = 3000000,
                 NumBodyCharacters = 8,
                 CountdownEvent = new CountdownEvent(numWorkers),
                 PrintLock = "Lock",
@@ -223,6 +223,7 @@ namespace AggrHttpClient {
                 Int64 numBodyBytes = 0;
                 Int32 numResponses = 0;
                 Int64 checksum = 0;
+
                 CheckResponses(recvBuf, numRecvBytes, out restartOffset, out numResponses, out numBodyBytes, out checksum);
 
                 totalNumResponses += numResponses;
