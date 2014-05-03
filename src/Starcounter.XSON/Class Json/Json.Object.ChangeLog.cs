@@ -11,7 +11,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy() {
-            if (!_isStatefulObject)
+            if (!_dirtyCheckEnabled)
                 return;
 
 			_Dirty = true;
@@ -23,7 +23,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void CheckpointChangeLog() {
-            if (!_isStatefulObject)
+            if (!_dirtyCheckEnabled)
                 return;
 
 			if (this.IsArray) {
@@ -58,7 +58,7 @@ namespace Starcounter {
 #if DEBUG
 			this.Template.VerifyProperty(prop);
 #endif
-            if (_isStatefulObject)
+            if (_dirtyCheckEnabled)
                 return (WasReplacedAt(prop.TemplateIndex));
             return false;
 		}
@@ -68,7 +68,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session (for faster access)</param>
 		internal void LogValueChangesWithDatabase(Session session) {
-            if (!_isStatefulObject)
+            if (!_dirtyCheckEnabled)
                 return;
 
 			if (this.IsArray) {
@@ -246,7 +246,7 @@ namespace Starcounter {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         oldJson.Data = value;
-                        if (_isStatefulObject) {
+                        if (_dirtyCheckEnabled) {
                             if (ArrayAddsAndDeletes == null)
                                 ArrayAddsAndDeletes = new List<Change>();
                             ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));

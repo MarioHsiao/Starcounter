@@ -95,7 +95,7 @@ namespace Starcounter {
             : base() {
             _cacheIndexInArr = -1;
             _transaction = null;
-            _isStatefulObject = DefaultStatefulState;
+            _dirtyCheckEnabled = DirtyCheckEnabled;
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }

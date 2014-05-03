@@ -69,7 +69,7 @@ namespace Starcounter {
         /// </summary>
         internal bool HasBeenSent {
             get {
-                if (!_isStatefulObject)
+                if (!_dirtyCheckEnabled)
                     return false;
 
                 if (Parent != null) {
@@ -102,7 +102,7 @@ namespace Starcounter {
                         // even after instances have been created.
                         // For this reason, we need to allow the expansion of the 
                         // values.
-                        if (_isStatefulObject)
+                        if (_dirtyCheckEnabled)
                             _SetFlag.Add(false);
                         childIndex = _list.Count;
                         _list.Add(null);
@@ -121,7 +121,7 @@ namespace Starcounter {
             if (IsArray) {
                 _list = new List<Json>();
 
-                if (_isStatefulObject)
+                if (_dirtyCheckEnabled)
                     _SetFlag = new List<bool>();
             } else {
                 var template = (TObject)Template;
@@ -137,13 +137,13 @@ namespace Starcounter {
             int count = properties.Count;
 
             _list = new List<object>(count);
-            if (_isStatefulObject)
+            if (_dirtyCheckEnabled)
                 _SetFlag = new List<bool>(count);
             _Dirty = false;
 
             for (int t = 0; t < count; t++) {
                 _list.Add(null);
-                if (_isStatefulObject)
+                if (_dirtyCheckEnabled)
                     _SetFlag.Add(false);
                 ((TValue)properties[t]).SetDefaultValue(this);
             }
@@ -152,11 +152,11 @@ namespace Starcounter {
         private void InitializeBackingFields(PropertyList properties) {
             int count = properties.Count;
 
-            if (_isStatefulObject)
+            if (_dirtyCheckEnabled)
                 _SetFlag = new List<bool>(count);
             
             for (int t = 0; t < count; t++) {
-                if (_isStatefulObject)
+                if (_dirtyCheckEnabled)
                     _SetFlag.Add(false);
                 ((TValue)properties[t]).SetDefaultValue(this);
             }
@@ -245,7 +245,7 @@ namespace Starcounter {
             j._cacheIndexInArr = index;
             j.Parent = this;
 
-            if (_isStatefulObject) {
+            if (_dirtyCheckEnabled) {
                 _SetFlag.Insert(index, false);
                 MarkAsReplaced(index);
             }
@@ -334,7 +334,7 @@ namespace Starcounter {
             j._cacheIndexInArr = index;
             j.Parent = this;
 
-            if (_isStatefulObject) {
+            if (_dirtyCheckEnabled) {
                 _SetFlag.Add(true);
                 Dirtyfy();    
                 CallHasAddedElement(list.Count - 1, j);
@@ -386,7 +386,7 @@ namespace Starcounter {
             list.RemoveAt(index);
             item.SetParent(null);
 
-            if (_isStatefulObject)
+            if (_dirtyCheckEnabled)
                 _SetFlag.RemoveAt(index);
             
             if (IsArray) {
@@ -407,7 +407,7 @@ namespace Starcounter {
         public void Clear() {
             VerifyIsArray();
 
-            if (_isStatefulObject) {
+            if (_dirtyCheckEnabled) {
                 Parent.MarkAsReplaced(Template);
                 _SetFlag.Clear();
             }
