@@ -369,6 +369,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                              + a.CodebehindClass.BoundDataClass
                              + ")base.Data; } set { base.Data = value; } }");
             }
+            a.Prefix.Add("    public override bool IsCodegenerated { get { return true; } }");
 
             foreach (AstBase kid in a.NTemplateClass.Children) {
                 var prop = kid as AstProperty;
@@ -545,7 +546,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         private void WriteSchemaOverrides(AstSchemaClass node) {
             node.Prefix.Add(
-                "    public override object CreateInstance(__Json__ parent) { return new "
+                "    public override object CreateInstance(s.Json parent) { return new "
                 + node.NValueClass.ClassAlias.Alias
                 + "(DefaultTemplate) { Parent = parent }; }"
             );
