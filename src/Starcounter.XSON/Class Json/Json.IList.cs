@@ -125,7 +125,7 @@ namespace Starcounter {
                     _SetFlag = new List<bool>();
             } else {
                 var template = (TObject)Template;
-                if (IsCodeGenerated) {
+                if (IsCodegenerated) {
                     InitializeBackingFields(template.Properties);
                 } else {
                     InitializeQuickTuple(template.Properties);
