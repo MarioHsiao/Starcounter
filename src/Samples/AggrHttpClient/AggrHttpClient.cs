@@ -27,11 +27,12 @@ namespace AggrHttpClient {
 
         const UInt16 UserPort = 8080;
         const UInt16 AggregationPort = 9191;
-        const String ServerIp = "127.0.0.1";
+        const String ServerIp = "127.0.0.1"; // 192.168.200.107
         const Int32 RecvBufSize = 1024 * 1024 * 16;
         const Int32 SendBufSize = 1024 * 1024 * 16;
 
         const Int32 NumRequestsInSingleSend = 5000;
+        const Int32 RequestResponseBalance = 10000;
 
         public enum AggregationMessageTypes {
             AGGR_CREATE_SOCKET,
@@ -97,6 +98,7 @@ namespace AggrHttpClient {
                 numBytesReceived = acceptSock.Receive(recvBuf);
                 if (0 == numBytesReceived) {
                     Console.WriteLine("Client disconnected. Done.");
+                    acceptSock.Close();
                     return;
                 }
                 
@@ -289,7 +291,7 @@ namespace AggrHttpClient {
 
             while (totalNumResponses < ws.NumRequestsToSend) {
 
-                if (numSentRequests < ws.NumRequestsToSend) {
+                if ((numSentRequests < ws.NumRequestsToSend) && ((numSentRequests - totalNumResponses) <= RequestResponseBalance)) {
                     aggrTcpClient_.Send(sendBuf, numBytesToSend, SocketFlags.None);
                     numSentRequests += NumRequestsInSingleSend;
                 }
@@ -313,7 +315,7 @@ namespace AggrHttpClient {
             if (totalChecksum != origChecksum)
                 throw new Exception("Wrong checksums!");
 
-            aggrTcpClient_.Disconnect(false);
+            aggrTcpClient_.Close();
 
             Int32 workerRPS = (Int32) (ws.NumRequestsToSend / (time.ElapsedMilliseconds / 1000.0));
             ws.WorkersRPS[workerId] = workerRPS;
