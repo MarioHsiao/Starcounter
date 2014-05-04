@@ -1,5 +1,5 @@
 ﻿#define FAST_LOOPBACK
-#define FAKE_SERVER
+//#define FAKE_SERVER
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
