@@ -713,10 +713,13 @@ namespace Starcounter
 			}
 
             Int32 numBytes = EstimateNeededSize(bytes);
+            buf = new Byte[numBytes];
+            /*
             if (numBytes > SchedulerResources.ResponseTempBufSize)
                 buf = new Byte[numBytes];
             else			
                 buf = SchedulerResources.Current.ResponseTempBuf;
+            */
 			
 			unsafe {
 				fixed (byte* p = buf) {
