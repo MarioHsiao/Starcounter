@@ -114,16 +114,14 @@ namespace Starcounter.Rest
         /// <returns></returns>
         Response TryGetResponseFromCache(Request req) {
             // Checking if we are in session already.
-            if (!req.IsInternal) {
-
-                // Setting the original request.
-                Session.InitialRequest = req;
-
+            if (req.CameWithCorrectSession && !req.IsInternal) {
                 // Obtaining session.
                 Session s = (Session)req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
-                if ((req.CameWithCorrectSession) && (null != s)) {
+                if (null != s) {
+                    // Setting the original request.
+                    Session.InitialRequest = req;
 
                     // Starting session.
                     Session.Start(s);
@@ -149,21 +147,22 @@ namespace Starcounter.Rest
         /// <param name="req"></param>
         /// <param name="resp"></param>
         void TryAddResponseToCache(Request req, Response resp) {
+            // Checking if response is processed later.
+            if (Session.Current == null
+                || resp.HandlingStatus == HandlerStatusInternal.Handled
+                || !req.IsCachable())
+                return;
+
             // In case of returned JSON object within current session we need to save it
             // for later reuse.
-
             Json rootJsonObj = null;
             if (null != Session.Current)
                 rootJsonObj = Session.Current.Data;
 
             Json curJsonObj = null;
 
-            // Checking if response is processed later.
-            if (resp.HandlingStatus == HandlerStatusInternal.Handled)
-                return;
-
             // Setting session on result only if its original request.
-            if ((null != Session.Current) && (!req.IsInternal) && (!req.CameWithCorrectSession))
+            if ((!req.IsInternal) && (!req.CameWithCorrectSession))
                 resp.AppsSession = Session.Current.InternalSession;
 
             // Converting response to JSON.
@@ -171,7 +170,6 @@ namespace Starcounter.Rest
 
             if ((null != curJsonObj) &&
                 (null != rootJsonObj) &&
-                (req.IsCachable()) &&
                 (curJsonObj.HasThisRoot(rootJsonObj))) {
                 Session.Current.AddJsonNodeToCache(req.Uri, curJsonObj);
             }
