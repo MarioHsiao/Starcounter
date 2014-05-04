@@ -1,4 +1,6 @@
-﻿// ***********************************************************************
+﻿//#define STUB_AGGREGATED
+
+// ***********************************************************************
 // <copyright file="AppServer.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -51,6 +53,12 @@ namespace Starcounter.Internal.Web {
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponseHttp(Request req, Response resp) {
             Debug.Assert(resp != null);
+
+#if STUB_AGGREGATED
+
+            if (req.IsAggregated)
+                return SchedulerResources.Current.AggregationStubResponse;
+#endif
 
             try {
                 // Checking if we need to resolve static resource.
