@@ -30,6 +30,7 @@ namespace AggrHttpClient {
         const String ServerIp = "127.0.0.1"; // 192.168.200.107
         const Int32 RecvBufSize = 1024 * 1024 * 16;
         const Int32 SendBufSize = 1024 * 1024 * 16;
+        const Int32 SendRecvRatio = 2;
 
         const Int32 NumRequestsInSingleSend = 5000;
         const Int32 RequestResponseBalance = 10000;
@@ -292,8 +293,10 @@ namespace AggrHttpClient {
             while (totalNumResponses < ws.NumRequestsToSend) {
 
                 if ((numSentRequests < ws.NumRequestsToSend) && ((numSentRequests - totalNumResponses) <= RequestResponseBalance)) {
-                    aggrTcpClient_.Send(sendBuf, numBytesToSend, SocketFlags.None);
-                    numSentRequests += NumRequestsInSingleSend;
+                    for (Int32 i = 0; i < SendRecvRatio; i++) {
+                        aggrTcpClient_.Send(sendBuf, numBytesToSend, SocketFlags.None);
+                        numSentRequests += NumRequestsInSingleSend;
+                    }
                 }
 
                 numRecvBytes = aggrTcpClient_.Receive(recvBuf, restartOffset, recvBuf.Length - restartOffset, SocketFlags.None);
