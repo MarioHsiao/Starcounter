@@ -83,6 +83,8 @@ namespace Starcounter.Internal {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
 
+            SchedulerResources.Init(numSchedulers);
+
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
             int interval = 1000 * 60;
@@ -200,8 +202,8 @@ namespace Starcounter.Internal {
                     // Standard response send.
                     req.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
 
-                    resp.Destroy();
-                    GC.SuppressFinalize(resp);
+                    //resp.Destroy();
+                    //GC.SuppressFinalize(resp);
 
                     req.Destroy();
                     GC.SuppressFinalize(req);

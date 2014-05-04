@@ -49,7 +49,7 @@ namespace AggrHttpClient {
                 numWorkers = Int32.Parse(args[0]);
 
             WorkerSettings ws = new WorkerSettings() {
-                NumRequestsToSend = 3000000,
+                NumRequestsToSend = 5000000,
                 NumBodyCharacters = 8,
                 CountdownEvent = new CountdownEvent(numWorkers),
                 PrintLock = "Lock",
