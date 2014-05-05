@@ -40,8 +40,10 @@ class WorkerDbInterface
     // Number of active schedulers.
     int32_t num_schedulers_;
 
+#ifndef LEAST_USED_SCHEDULING
     // Current scheduler id.
     int32_t cur_scheduler_id_;
+#endif // !LEAST_USED_SCHEDULING
 
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireIPCChunksFromSharedPool(int32_t num_ipc_chunks)
@@ -75,6 +77,7 @@ class WorkerDbInterface
 
 public:
 
+#ifndef LEAST_USED_SCHEDULING
     // Round-robin scheduler number.
     uint32_t GenerateSchedulerId()
     {
@@ -84,6 +87,30 @@ public:
 
         return cur_scheduler_id_;
     }
+#endif // !LEAST_USED_SCHEDULING
+
+#ifdef LEAST_USED_SCHEDULING
+    uint32_t GenerateSchedulerId()
+    {
+        // Selects the scheduler with the least number of tasks enqueued on the
+        // channel reserved for the current worker.
+
+        int32_t least_used_queue_length = INT32_MAX;
+        int32_t sched_id = 0;
+        for (int32_t s = 0; s < num_schedulers_; s++)
+        {
+            core::channel_type& the_channel = shared_int_.channel(channels_[s]);
+            int32_t queue_length =
+              the_channel.in.count() + the_channel.in_overflow().count();
+            if (queue_length < least_used_queue_length)
+            {
+              least_used_queue_length = queue_length;
+              sched_id = s;
+            }
+        }
+        return (uint32_t)sched_id;
+    }
+#endif // LEAST_USED_SCHEDULING
 
     // Writes given big linear buffer into obtained linked chunks.
     uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
@@ -134,7 +161,9 @@ public:
         worker_id_ = INVALID_WORKER_INDEX;
 
         num_schedulers_ = 0;
+#ifndef LEAST_USED_SCHEDULING
         cur_scheduler_id_ = 0;
+#endif // !LEAST_USED_SCHEDULING
 
         if (channels_)
         {
