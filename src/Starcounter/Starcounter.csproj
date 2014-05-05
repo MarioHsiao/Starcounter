@@ -138,6 +138,7 @@
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
     <Compile Include="Mock\LogSources.cs" />
+	<Compile Include="Mock\Reload.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
     <Compile Include="TransientAttribute.cs" />
     <Compile Include="ObjectRef.cs" />
