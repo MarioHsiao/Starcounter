@@ -223,7 +223,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasAddedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
-			if (Session != null) {
+			if (_dirtyCheckEnabled && Session != null) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
@@ -241,7 +241,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasRemovedElement(int index) {
 			var tarr = (TObjArr)this.Template;
-			if (Session != null) {
+			if (_dirtyCheckEnabled && Session != null) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
@@ -267,7 +267,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         internal void CallHasChanged(TValue property) {
-            if (Session != null) {
+            if (_dirtyCheckEnabled &&  Session != null) {
                 if (HasBeenSent) {
                     // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
                     this.Dirtyfy();

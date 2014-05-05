@@ -120,7 +120,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
 
         if (!query) {
             // if this occure then the binding the the textarea failed..
-            var message = "Failed to retrive the query text due to some binding issues. Refresh the page and try again.";
+            var message = "Failed to retrieve the query text due to some binding issues. Refresh the page and try again.";
             NoticeFactory.ShowNotice({ type: 'danger', msg: message, helpLink: null });
             return;
         }

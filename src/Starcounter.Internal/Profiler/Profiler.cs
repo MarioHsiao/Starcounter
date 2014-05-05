@@ -26,7 +26,19 @@ namespace Starcounter
         Empty,
 
         [Description("GetUriHandlersManager")]
-        GetUriHandlersManager
+        GetUriHandlersManager,
+
+        [Description("Profiler for handling and converting response and attached resource to bytes.")]
+        HandleResponse,
+
+        [Description("Profiler for retrieving preferred mimetype from the request.")]
+        GetPreferredMimeType,
+
+        [Description("Profiler for converting a jsonobject to the preferred mimetype for a response.")]
+        JsonMimeConverter,
+
+        [Description("Profiler for returning first result from a query.")]
+        DbSQLFirst,
     }
 
     /// <summary>
@@ -205,7 +217,7 @@ namespace Starcounter
                 schedulersProfilers_ = new Profiler[1];
             } else {
                 schedulersProfilers_ = new Profiler[StarcounterEnvironment.SchedulerCount];
-                bmx.sc_init_profilers(64);
+                bmx.sc_init_profilers(StarcounterEnvironment.SchedulerCount);
             }
 
             for (Int32 i = 0; i < schedulersProfilers_.Length; i++) {
@@ -408,7 +420,7 @@ namespace Starcounter
         public String GetResultsInJson(Boolean reset)
         {
             // Assuming that all timers stopped at this moment.
-            String outString = "\"managed_profilers\":[";
+            String outString = "\"managedProfilers\":[";
             Boolean comma = false;
 
             foreach (ProfilerNames id in (ProfilerNames[])Enum.GetValues(typeof(ProfilerNames)))
@@ -420,7 +432,7 @@ namespace Starcounter
                 else                    
                     comma = true;
                         
-                outString += "{" + String.Format("\"profiler_id\":\"{0}\",\"profiler_name\":\"{1}\",\"took_ms\":\"{2}\",\"started_times\":\"{3}\"",
+                outString += "{" + String.Format("\"profilerId\":\"{0}\",\"profilerName\":\"{1}\",\"tookMs\":\"{2}\",\"startedTimes\":\"{3}\"",
                     id.ToString(),
                     id.GetDescriptionValue(),
                     profilers_[i].Duration.ToString(),
@@ -434,7 +446,7 @@ namespace Starcounter
 
             // Printing all checkpoints.
             comma = false;
-            outString += "\"managed_checkpoints\":[";
+            outString += "\"managedCheckpoints\":[";
             foreach (CheckpointNames id in (CheckpointNames[])Enum.GetValues(typeof(CheckpointNames)))
             {
                 Int32 i = (Int32) id;
@@ -444,7 +456,7 @@ namespace Starcounter
                 else
                     comma = true;
 
-                outString += "{" + String.Format("\"checkpoint_id\":\"{0}\",\"checkpoint_name\":\"{1}\",\"cross_times\":\"{2}\"",
+                outString += "{" + String.Format("\"checkpointId\":\"{0}\",\"checkpointName\":\"{1}\",\"crossTimes\":\"{2}\"",
                     id.ToString(),
                     id.GetDescriptionValue(),
                     checkpoints_[i]) + "}";

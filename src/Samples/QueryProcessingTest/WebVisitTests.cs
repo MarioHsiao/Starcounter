@@ -38,6 +38,11 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.Id >= 0);
                 Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             }
+            TestBinaries();
+            HelpMethods.LogEvent("Finished testing queries on web visit data model");
+        }
+
+        public static void TestBinaries() {
             var visits = Db.SQL<Visit>("select v from visit v where IpBytes = ? and id = ?", new Binary(new byte[] { 1, 1, 1, 1 }), 1).GetEnumerator();
             Trace.Assert(visits.MoveNext());
             Visit vi = visits.Current;
@@ -50,8 +55,11 @@ namespace QueryProcessingTest {
             Trace.Assert(vi != null);
             Trace.Assert(vi.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             Trace.Assert(Db.BinaryToHex(vi.IpBytes) == "01010101");
+            vi = Db.SQL<Visit>("select v from visit v where IpBytes > ?", new Binary(new byte[] { 1, 1, 1, 0 })).First;
+            Trace.Assert(vi != null);
+            Trace.Assert(vi.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
+            Trace.Assert(Db.BinaryToHex(vi.IpBytes) == "01010101");
             Db.SQL("drop index ipBytesIndx on visit");
-            HelpMethods.LogEvent("Finished testing queries on web visit data model");
         }
 
         static void PopulateData() {

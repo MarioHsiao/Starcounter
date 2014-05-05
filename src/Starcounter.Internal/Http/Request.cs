@@ -173,6 +173,18 @@ namespace Starcounter {
         Boolean webSocketUpgrade_;
 
         /// <summary>
+        /// Indicates if request is aggregated.
+        /// </summary>
+        Boolean isAggregated_;
+
+        /// <summary>
+        /// Returns True if request was aggregated.
+        /// </summary>
+        internal Boolean IsAggregated {
+            get { return isAggregated_; }
+        }
+
+        /// <summary>
         /// Just using Request as holder for user Message instance type.
         /// </summary>
         Type messageObjectType_ = null;
@@ -303,7 +315,8 @@ namespace Starcounter {
             Byte* http_request_begin,
             Byte* socket_data,
             NetworkDataStream data_stream,
-            Boolean webSocketUpgrade)
+            Boolean webSocketUpgrade,
+            Boolean isAggregated)
         {
             http_request_struct_ = (HttpRequestInternal*)http_request_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
@@ -311,6 +324,7 @@ namespace Starcounter {
             dataStream_ = data_stream;
             managedHandlerId_ = managed_handler_id;
             webSocketUpgrade_ = webSocketUpgrade;
+            isAggregated_ = isAggregated;
             isSingleChunk_ = single_chunk;
             origChunk_ = chunk_data;
 
@@ -856,7 +870,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal Int32 CustomBytesLength
+        public Int32 CustomBytesLength
         {
             get { return customBytesLen_; }
         }
@@ -864,7 +878,7 @@ namespace Starcounter {
 		/// <summary>
 		/// 
 		/// </summary>
-		internal byte[] CustomBytes {
+		public byte[] CustomBytes {
 			get { return customBytes_; }
 		}
 

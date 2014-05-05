@@ -92,9 +92,6 @@ class Profiler;
 class WorkerDbInterface;
 class GatewayWorker
 {
-    // Performance profiler.
-    utils::Profiler profiler_;
-
     // Worker ID.
     worker_id_type worker_id_;
 
@@ -468,12 +465,6 @@ public:
     // Default constructor.
     GatewayWorker()    
     {
-    }
-
-    // Gets a worker profiler reference.
-    utils::Profiler& get_profiler()
-    {
-        return profiler_;
     }
 
     // Destructor.

@@ -12,10 +12,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class TLong : PrimitiveProperty<long>
-    {
-        private long _DefaultValue = 0;
-
+    public class TLong : PrimitiveProperty<long> {
         public override Type MetadataType {
             get { return typeof(LongMetadata<Json>); }
         }
@@ -24,24 +21,25 @@ namespace Starcounter.Templates {
         /// Gets or sets the default value.
         /// </summary>
         /// <value>The default value.</value>
-        public long DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
+        public long DefaultValue { get; set; }
+
+        internal override void SetDefaultValue(Json parent) {
+            UnboundSetter(parent, DefaultValue);
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (long)value;
-            }
-        }
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        return DefaultValue;
+        //    }
+        //    set {
+        //        DefaultValue = (long)value;
+        //    }
+        //}
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>

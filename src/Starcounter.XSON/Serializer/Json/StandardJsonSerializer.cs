@@ -39,19 +39,19 @@ namespace Starcounter.Advanced.XSON {
                 return;
             }
 
-            if (obj.JsonSiblings.Count != 0)
+            if (obj._stepSiblings != null && obj._stepSiblings.Count != 0)
             {
-                sizeBytes += "/polyjuice-merger?".Length + obj.AppName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
+                sizeBytes += "/polyjuice-merger?".Length + obj._appName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
 
                 // Serializing every sibling first.
-                foreach (Json pp in obj.JsonSiblings)
+                foreach (Json pp in obj._stepSiblings)
                 {
-                    sizeBytes += 4 + pp.AppName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
-                    sizeBytes += pp.AppName.Length + 1; // 1 for ":".
+                    sizeBytes += 4 + pp._appName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
+                    sizeBytes += pp._appName.Length + 1; // 1 for ":".
                     sizeBytes += EstimateSizeBytes(pp) + 1; // 1 for ",".
                 }
 
-                sizeBytes += obj.AppName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
+                sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
             }
 
             List<Template> exposedProperties;
@@ -113,7 +113,7 @@ namespace Starcounter.Advanced.XSON {
             sizeBytes += 1; // 1 for "}".
 
             // Checking if we have Json siblings on this level.
-            if (obj.JsonSiblings.Count != 0) {
+            if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
 
                 sizeBytes += 1; // 1 for comma.
 
@@ -179,14 +179,15 @@ namespace Starcounter.Advanced.XSON {
                         tObj = (TObject)obj.Template;
 
                         // Checking if we have Json siblings on this level.
-                        if (obj.JsonSiblings.Count != 0) {
-                            htmlUriMerged = "/polyjuice-merger?" + obj.AppName + "=" + obj.GetHtmlPartialUrl();
+                        if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                            htmlUriMerged = "/polyjuice-merger?" + obj._appName + "=" + obj.GetHtmlPartialUrl();
 
                             // Serializing every sibling first.
-                            foreach (Json pp in obj.JsonSiblings) {
-                                htmlUriMerged += "&" + pp.AppName + "=" + pp.GetHtmlPartialUrl();
+                            foreach (Json pp in obj._stepSiblings) {
+                                htmlUriMerged += "&" + pp._appName + "=" + pp.GetHtmlPartialUrl();
 
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, pp.AppName);
+//                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, pp.AppName);
+                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp._appName);
 
                                 offset += valueSize;
                                 pfrag += valueSize;
@@ -204,7 +205,8 @@ namespace Starcounter.Advanced.XSON {
                             }
 
                             // Adding current sibling app name.
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.AppName);
+//                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, obj.AppName);
+                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
 
                             offset += valueSize;
                             pfrag += valueSize;
@@ -221,7 +223,8 @@ namespace Starcounter.Advanced.XSON {
                             Template tProperty = exposedProperties[i];
 
                             // Property name.
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
+//                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
+                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
 
                             offset += valueSize;
                             pfrag += valueSize;
@@ -291,13 +294,13 @@ namespace Starcounter.Advanced.XSON {
                         offset++;
 
                         // Checking if we have Json siblings on this level.
-                        if (obj.JsonSiblings.Count != 0) {
-
+                        if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
                             *pfrag++ = (byte)',';
                             offset++;
 
                             // Adding Html property to outer level.
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "Html");
+//                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "Html");
+                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, "Html");
 
                             offset += valueSize;
                             pfrag += valueSize;

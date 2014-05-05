@@ -408,6 +408,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
 {
     _SC_BEGIN_FUNC
 
+    ProfilerStart(starcounter::utils::ProfilerEnums::Empty);
+    ProfilerStop(starcounter::utils::ProfilerEnums::Empty);
+
     uint32_t err_code;
 
     uint8_t* cur_chunk_buf;
