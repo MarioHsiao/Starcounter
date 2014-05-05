@@ -1296,12 +1296,36 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
 // Processes socket info for aggregation loopback.
 void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 {
-    char body[4096];
+    char body[1024];
     int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
-    GW_ASSERT (body_len <= 4096);
+    GW_ASSERT (body_len <= 1024);
+
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
-    //uint32_t err_code = SendHttpBody(sd, body, body_len);
+
+    GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_accum_buf()->get_chunk_num_available_bytes());
+
+    uint8_t* dest_data = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+
+    // Copying predefined header.
+    memcpy(dest_data, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
+
+    // Making length a white space.
+    *(uint64_t*)(dest_data + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
+
+    // Converting content length to string.
+    WriteUIntToString((char*)dest_data + kHttpGenericHtmlHeaderInsertPoint, body_len);
+
+    // Copying body to response.
+    memcpy(dest_data + kHttpGenericHtmlHeaderLength, body, body_len);
+
+    // We don't need original chunk contents.
+    sd->ResetAccumBuffer();
+
+    // Prepare buffer to send outside.
+    sd->PrepareForSend(dest_data, kHttpGenericHtmlHeaderLength + body_len);
+
     uint32_t err_code = RunFromDbHandlers(sd);
+
     GW_ASSERT (0 == err_code);
 }
 
