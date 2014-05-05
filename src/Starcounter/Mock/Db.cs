@@ -146,15 +146,6 @@ namespace Starcounter
         public static int Reload(string fileName) {
             return Starcounter.Reload.Load(fileName);
         }
-
-        /// <summary>
-        /// Unloads entire database into given file as set of INSERT INTO statements
-        /// </summary>
-        /// <param name="fileName">Path of the file were the statements are written.</param>
-        /// <returns>Number of unloaded objects.</returns>
-        public static int Unload(string fileName) {
-            return Starcounter.Reload.Unload(fileName);
-        }
     }
 
     /// <summary>
