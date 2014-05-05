@@ -112,6 +112,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Internal\ExceptionManager.cs" />
+    <Compile Include="Internal\ImplicitTransaction.cs" />
     <Compile Include="Internal\Initialized.cs" />
     <Compile Include="Internal\HostedThread.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
