@@ -27,6 +27,7 @@ namespace Starcounter
         /// Max size allowed for unpacked small binary data (excluding header).
         /// </summary>
         public const int BINARY_DATA_MAX_SIZE = 8192;
+        public const int BINARY_DATA_FAKE_MAX_SIZE = 100;
 
         /// <summary>
         /// Equalses the specified LB1.
