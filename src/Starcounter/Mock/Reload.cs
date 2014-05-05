@@ -35,7 +35,7 @@ namespace Starcounter {
             using (StreamWriter fileStream = new StreamWriter(fileName, false)) {
                 fileStream.WriteLine("Database dump. DO NOT EDIT!");
             }
-            foreach (materialized_table tbl in Db.SQL<materialized_table>("select t from materialized_table t where objectno > ?", 3)) {
+            foreach (materialized_table tbl in Db.SQL<materialized_table>("select t from materialized_table t where table_id > ?", 3)) {
                 Debug.Assert(!String.IsNullOrEmpty(tbl.name));
                 int tblNrObj = 0;
                 String insertHeader;
