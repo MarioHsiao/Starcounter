@@ -80,6 +80,11 @@ namespace Starcounter
         private readonly unsafe UInt32* _pStateShare;
 
         /// <summary>
+        /// 
+        /// </summary>
+        internal ImplicitTransaction _implicitTransaction;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ThreadData" /> class.
         /// </summary>
         /// <param name="schedulerNumber">The scheduler number.</param>
@@ -88,6 +93,7 @@ namespace Starcounter
         {
             Scheduler = Scheduler.GetInstance(schedulerNumber);
             _pStateShare = pStateShare;
+            _implicitTransaction = null;
         }
     }
 }
