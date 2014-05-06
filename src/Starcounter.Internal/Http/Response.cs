@@ -193,7 +193,7 @@ namespace Starcounter
         /// <summary>
         /// The URIs.
         /// </summary>
-        internal List<string> Uris = new List<string>();
+        internal List<string> Uris = null;
 
         /// <summary>
         /// The file path
