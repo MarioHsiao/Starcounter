@@ -281,6 +281,46 @@ namespace Starcounter
 			}
         }
 
+        TResult ITransaction.Add<TResult>(Func<TResult> func) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func();
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.Add<T, TResult>(Func<T, TResult> func, T arg) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.Add<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg1, arg2);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.Add<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg1, arg2, arg3);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
         /// <summary>
         /// Commits changes made on transaction.
         /// </summary>
