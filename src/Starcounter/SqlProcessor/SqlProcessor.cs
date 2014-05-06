@@ -89,8 +89,8 @@ namespace Starcounter.SqlProcessor {
                     message += ", near or at token: " + token;
                     if (scerror->isKeyword > 0)
                         message += ". Note that the token is a keyword.";
-                } else
-                    message += ".";
+                }
+                message += ". In query: " + query;
                 return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, message, position, token, query));
             }
         }
