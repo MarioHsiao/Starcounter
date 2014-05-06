@@ -113,6 +113,9 @@ namespace Starcounter.Internal.Web {
             response.Content = payload;
 
             if (statusCode == HttpStatusCode.OK && shouldBeCached && cached == null) {
+                if (response.Uris == null)
+                    response.Uris = new List<string>();
+
                 response.Uris.Add(relativeUri);
                 string path = Path.Combine(dir,  fileName) + fileExtension;
                 string fileSignature = path.ToUpper();
@@ -132,6 +135,8 @@ namespace Starcounter.Internal.Web {
                 // the same physical file?
                 Response existing;
                 if (cacheOnFilePath.TryGetValue(fileSignature, out existing)) {
+                    if (existing.Uris == null)
+                        existing.Uris = new List<string>();
                     existing.Uris.Add(relativeUri);
                 } else {
                     cacheOnFilePath[fileSignature] = response;
@@ -266,12 +271,14 @@ namespace Starcounter.Internal.Web {
             // Locking because execution is done in separate thread.
             lock (lockObject) {
                 if (cacheOnFilePath.TryGetValue(fileSignature, out cached)) {
-                    foreach (var uri in cached.Uris) {
-                        Debug("(decache uri) " + uri);
-                        cacheOnUri.Remove(uri);
+                    if (cached.Uris != null) {
+                        foreach (var uri in cached.Uris) {
+                            Debug("(decache uri) " + uri);
+                            cacheOnUri.Remove(uri);
+                        }
+                        Debug("(decache file) " + fileSignature);
+                        cacheOnFilePath.Remove(fileSignature);
                     }
-                    Debug("(decache file) " + fileSignature);
-                    cacheOnFilePath.Remove(fileSignature);
                 }
             }
         }

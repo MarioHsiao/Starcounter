@@ -130,7 +130,7 @@ namespace Starcounter
                 // calling base.First the CLR refused to inline this method.
 
                 IExecutionEnumerator execEnum = null;
-                dynamic current = null;
+                T current;
 
                 try {
                     execEnum = GetExecutionEnumerator();
