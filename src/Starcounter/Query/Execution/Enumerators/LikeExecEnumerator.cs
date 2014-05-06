@@ -186,7 +186,7 @@ namespace Starcounter.Query.Execution
         }
 
         // Returns current proxy object.
-        public new dynamic Current
+        public new Object Current
         {
             get
             {
