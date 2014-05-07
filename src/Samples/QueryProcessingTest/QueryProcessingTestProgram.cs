@@ -33,7 +33,7 @@ namespace QueryProcessingTest {
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
                 MetadataTest.TestPopulatedMetadata();
-                if (TestLogger.IsNightlyBuild())
+                if (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") == "True")
                     BenchmarkQueryCache.BenchQueryCache();
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
