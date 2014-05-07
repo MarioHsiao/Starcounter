@@ -3115,6 +3115,7 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
         return false;
     }
 
+#ifndef DONT_CHECK_ECHOES
     // Running through all echoes.
     for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
     {
@@ -3129,6 +3130,7 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
             return false;
         }
     }
+#endif
 
     // Gracefully finishing the test.
     ShutdownTest(gw, true);

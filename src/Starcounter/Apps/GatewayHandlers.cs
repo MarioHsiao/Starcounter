@@ -283,16 +283,14 @@ namespace Starcounter
                 }
                 else
                 {
-                    /*if (isAggregated)
-                    {
-                        data_stream.Init(raw_chunk, true, chunk_index);
-                        data_stream.SendResponseInternal(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                    // Creating network data stream object.
+                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+
+                    /*if (isAggregated) {
+                        data_stream.SendResponse(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
 
                         return 0;
                     }*/
-
-                    // Creating network data stream object.
-                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
                     // Obtaining Request structure.
                     http_request = new Request(
