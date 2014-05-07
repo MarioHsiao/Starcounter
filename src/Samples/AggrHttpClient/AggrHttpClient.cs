@@ -1,5 +1,6 @@
 ﻿//#define FAST_LOOPBACK
 //#define FAKE_SERVER
+//#define POKER_DEMO_GETPLAYEDID
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -60,6 +61,7 @@ namespace AggrHttpClient {
             sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
 
 #if FAST_LOOPBACK
+
             const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
             Byte[] OptionInValue = BitConverter.GetBytes(1);
 
@@ -203,6 +205,7 @@ namespace AggrHttpClient {
         }
 
         static unsafe void Worker(Int32 workerId, WorkerSettings ws) {
+
             Socket aggrTcpClient_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
 #if FAST_LOOPBACK
@@ -242,21 +245,25 @@ namespace AggrHttpClient {
                 agsOrig = *(AggregationStruct*)p;
             }
 
-            String httpRequest = "POST /echotest HTTP/1.1\r\nContent-Length: " + ws.NumBodyCharacters + "\r\n\r\n";
-            
             String body = "";
             for (Int32 i = 0; i < ws.NumBodyCharacters; i++)
                 body += "A";
 
-            httpRequest += body;
-
-            Byte[] httpRequestBytes = Encoding.ASCII.GetBytes(httpRequest);
-
             Int64 origChecksum = 0;
             Int32 offset = 0;
+
             fixed (Byte* p = sendBuf) {
 
                 for (Int32 i = 0; i < NumRequestsInSingleSend; i++) {
+
+#if POKER_DEMO_GETPLAYEDID
+                    String httpRequest = "GET /players/" + i + " HTTP/1.1\r\nHost: SC\r\n\r\n";
+#else
+                    String httpRequest = "POST /echotest HTTP/1.1\r\nContent-Length: " + ws.NumBodyCharacters + "\r\n\r\n";
+                    httpRequest += body;
+#endif
+
+                    Byte[] httpRequestBytes = Encoding.ASCII.GetBytes(httpRequest);
 
 #if !FAKE_SERVER
 

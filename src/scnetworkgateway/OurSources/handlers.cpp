@@ -701,7 +701,9 @@ uint32_t GatewayPortProcessEcho(
     else
     {
         // Asserting correct number of bytes received.
+#ifndef DONT_CHECK_ECHOES
         GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == 16);
+#endif
 
         // Obtaining original echo number.
         echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);

@@ -84,6 +84,7 @@ typedef int8_t chunk_store_type;
 //#define WORKER_NO_SLEEP
 //#define FAST_LOOPBACK
 //#define LEAST_USED_SCHEDULING
+//#define DONT_CHECK_ECHOES
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -158,13 +159,13 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 10;
 
 // Maximum number of gateway chunks.
 const int32_t MAX_GATEWAY_CHUNKS = 1024 * 1024;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 10;
+const int32_t MAX_FETCHED_OVLS = 50;
 
 // Size of circular log buffer.
 const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
@@ -2191,6 +2192,10 @@ public:
     void ConfirmEcho(int64_t echo_num)
     {
         GW_ASSERT(echo_num < setting_num_echoes_to_master_);
+#ifdef DONT_CHECK_ECHOES
+        InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
+        return;
+#endif
 
         if (false != confirmed_echoes_shared_[echo_num])
         {
