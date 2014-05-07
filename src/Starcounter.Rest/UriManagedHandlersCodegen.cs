@@ -164,8 +164,7 @@ namespace Starcounter.Rest
             {
                 IntPtr bodyPtr;
                 uint bodySize;
-                Type argMessageType = req.ArgMessageObjectType;
-                Json m = (Json)Activator.CreateInstance(argMessageType);
+                Json m = (Json)req.ArgMessageObjectCreate();
 
                 req.GetBodyRaw(out bodyPtr, out bodySize);
                 m.PopulateFromJson(bodyPtr, (int)bodySize);
