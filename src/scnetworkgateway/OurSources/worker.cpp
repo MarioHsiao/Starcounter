@@ -1846,11 +1846,15 @@ bool GatewayWorker::ProcessEmulatedNetworkOperations(
             {
                 echo_id_type echo_id = -1;
 
+#ifdef DONT_CHECK_ECHOES
+                err_code = 0;
+#else
                 // Executing selected echo response processor.
                 err_code = g_gateway.get_looped_echo_response_processor()(
                     (char*)sd->get_data_blob(),
                     accum_buffer->get_chunk_num_available_bytes(),
                     &echo_id);
+#endif
 
                 GW_ASSERT(0 == err_code);
 
