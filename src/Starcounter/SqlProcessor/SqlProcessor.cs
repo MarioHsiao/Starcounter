@@ -91,7 +91,7 @@ namespace Starcounter.SqlProcessor {
                         message += ". Note that the token is a keyword.";
                 } else
                     message += ".";
-                message += "\nIn query: " + query;
+                message += "\nIn query: " + query.Substring(0,100);
                 return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, message, position, token, query));
             }
         }
