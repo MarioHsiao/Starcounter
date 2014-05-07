@@ -35,6 +35,7 @@ namespace Starcounter.Internal {
         internal const String ContentTypeHeader = "Content-Type";
         internal const String ContentEncodingHeader = "Content-Encoding";
         internal const String ContentLengthHeader = "Content-Length";
+        internal const String CacheControlHeader = "Cache-Control";
         internal const String HostHeader = "Host";
         internal const String SetLocationHeader = SetCookieHeader + ": Location=";
         internal const String SetSessionCookieHeader = SetCookieHeader + ": " + MixedCodeConstants.ScSessionCookieName + "=";
