@@ -32,6 +32,7 @@ public class SqlException : Exception
         beginPosition = -1;
         endPosition = -1;
         queryString = null;
+        throw this;
     }
 
     internal SqlException(String message, Exception innerException)
@@ -41,6 +42,7 @@ public class SqlException : Exception
         beginPosition = -1;
         endPosition = -1;
         queryString = null;
+        throw this;
     }
 
     // Additional custom constructors.
@@ -53,6 +55,7 @@ public class SqlException : Exception
         beginPosition = -1;
         endPosition = -1;
         queryString = null;
+        throw this;
     }
 
     internal SqlException(String message, String token, Int32 position)
@@ -62,6 +65,7 @@ public class SqlException : Exception
         beginPosition = position;
         endPosition = -1;
         queryString = null;
+        throw this;
     }
 
     internal SqlException(String message, String token, Int32 beginPosition, Int32 endPosition)
@@ -70,6 +74,7 @@ public class SqlException : Exception
         this.beginPosition = beginPosition;
         this.endPosition = endPosition;
         queryString = null;
+        throw this;
     }
 
     // Constructors used by Bison-based parser
@@ -82,6 +87,7 @@ public class SqlException : Exception
         beginPosition = position;
         endPosition = -1;
         queryString = query;
+        throw this;
     }
 
     internal SqlException(uint errorCode, String message, String errMessage, Int32 position, String token, String query)
@@ -92,6 +98,7 @@ public class SqlException : Exception
         beginPosition = position;
         endPosition = -1;
         queryString = query;
+        throw this;
     }
 
     // Public properties
