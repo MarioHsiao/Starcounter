@@ -25,11 +25,6 @@ namespace QueryProcessingTest {
                         c1.Delete();
                 }
             });
-            //Db.Transaction(delegate {
-            //    String query = "INSERT INTO WebPage (Title, uRL, PageValue, PersonalPageValue, TrackingCode, Located, deleted)" +
-            //        "Values ('MyCompany, AboutUs', '168.12.147.2/AboutUs', '100', -90, '', false, false)";
-            //    Db.Update(query);
-            //});
             Db.Transaction(delegate {
                 String query = "INSERT INTO WebPage (Title, uRL, PageValue, PersonalPageValue, TrackingCode, Located, deleted)" +
                     "Values ('MyCompany, AboutUs', '168.12.147.2/AboutUs', 100, -90, '', false, false)";
