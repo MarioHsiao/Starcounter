@@ -26,7 +26,7 @@ namespace Starcounter.Internal.XSON.Tests {
             byte[] patchBytes;
             TObject schema;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("simple.json"), "Simple");
+            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
 
             // Setting a value on a editable property
@@ -81,7 +81,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             handledCount = 0;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("simple.json"), "Simple");
+            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
 
             // Index (same order as declared in simple.json):

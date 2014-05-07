@@ -11,6 +11,7 @@ namespace Starcounter.Advanced.XSON {
     /// </summary>
     public static class JsonHelper {
         private static byte[] null_value = { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
+        private static Encoder utf8Encoder = new UTF8Encoding(false, true).GetEncoder();
 
         /// <summary>
         /// 
@@ -18,7 +19,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="pfrag"></param>
         /// <param name="fragmentSize"></param>
         /// <returns></returns>
-        internal static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
+        public static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
             byte current;
             int index = 0;
 
@@ -41,7 +42,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="fragmentSize"></param>
         /// <param name="needsJsonDecoding"></param>
         /// <returns></returns>
-        internal static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
+        public static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
             byte current;
             int index = 0;
 
@@ -259,7 +260,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="srcSize"></param>
         /// <param name="valueSize"></param>
         /// <returns></returns>
-        internal static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
+        public static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
             byte current;
             int bufferOffset = 0;
             byte[] buffer = new byte[valueSize];
@@ -308,6 +309,53 @@ namespace Starcounter.Advanced.XSON {
         }
 
         /// <summary>
+        /// Assumes that the string does not contain any special characters that needs
+        /// to be encoded and just writes the string to the buffer as is.
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="bufferSize"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public unsafe static int WriteStringAsIs(IntPtr buffer, int bufferSize, string value) {
+            byte* pbuf;
+            int length;
+
+            unsafe {
+                if (value == null) {
+                    if (bufferSize < 2)
+                        return -1;
+
+                    pbuf = (byte*)buffer;
+                    *pbuf++ = (byte)'"';
+                    *pbuf = (byte)'"';
+                    return 2;
+                }
+
+                fixed (char* pval = value) {
+                    // TODO: 
+                    // Do we need to get the length or can we assume it's the same as the
+                    // length of the string, since we are assuming that no special chars
+                    // exists in the string?
+                    length = utf8Encoder.GetByteCount(pval, value.Length, false);
+
+                    if (length != value.Length)
+                        throw new Exception("Apapapa");
+
+                    if (bufferSize < (length + 2))
+                        return -1;
+
+                    pbuf = (byte*)buffer;
+
+                    *pbuf++ = (byte)'"';
+                    length = utf8Encoder.GetBytes(pval, value.Length, pbuf, length, true);
+                    pbuf += length;
+                    *pbuf = (byte)'"';
+                    return length + 2;
+                }
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="ptr"></param>
@@ -326,13 +374,13 @@ namespace Starcounter.Advanced.XSON {
                 if (value != null) {
                     valueArr = Encoding.UTF8.GetBytes(value);
                     usedSize = valueArr.Length + 2;
+
                     if (bufferSize < usedSize)
                         return -1;
 
                     *pfrag++ = (byte)'"';
                     for (int i = 0; i < valueArr.Length; i++) {
                         c = valueArr[i];
-
                         if (c >= ' ' && c < 128 && c != '\\' && c != '"') {
                             *pfrag++ = c;
                             continue;

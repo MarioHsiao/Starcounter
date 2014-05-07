@@ -126,7 +126,7 @@ namespace Starcounter {
             }
         }
 
-        public new IEnumerator<T> GetEnumerator() {
+        public IEnumerator<T> GetEnumerator() {
             return new ArrEnumeratorWrapper<T>(list.GetEnumerator());
         }
 

@@ -78,7 +78,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public new dynamic Current {
+    public new Object Current {
         get {
             if (enumerator != null) {
                 return ProjectObject(enumerator.Current, projectionTypeCode);

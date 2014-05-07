@@ -4,7 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-
 using Starcounter.Templates;
 using System;
 using System.Text;
@@ -47,6 +46,7 @@ namespace Starcounter {
 			sb.Append(' ', indentation);
 			sb.Append("]");
 		}
+
 		internal string DebugString {
 			get {
 				var sb = new StringBuilder();
@@ -81,12 +81,12 @@ namespace Starcounter {
 				return;
 			}
 
-			if (Session != null && Parent != null) {
-				var index = Parent.IndexOf(this);
-				if (Parent._SetFlag[index]) {
-					sb.Append("(set)");
-				}
-			}
+            //if (Session != null && Parent != null) {
+            //    var index = Parent.IndexOf(this);
+            //    if (Parent._isStatefulObject && Parent._SetFlag[index]) {
+            //        sb.Append("(set)");
+            //    }
+            //}
 
 			sb.AppendLine("{");
 
@@ -101,7 +101,7 @@ namespace Starcounter {
 				sb.Append('"');
 				sb.Append(prop.PropertyName);
 				sb.Append("\":");
-				if (WasReplacedAt(prop.TemplateIndex)) {
+				if (_dirtyCheckEnabled && WasReplacedAt(prop.TemplateIndex)) {
 					sb.Append("(direct-set)");
 				}
 

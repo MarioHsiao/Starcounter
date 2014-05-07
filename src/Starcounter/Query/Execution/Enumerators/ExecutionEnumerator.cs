@@ -226,7 +226,7 @@ internal abstract class ExecutionEnumerator
         internal set { isBisonParserUsed = value; }
     }
 
-    public dynamic ProjectObject(Row currentObject, DbTypeCode? projectionTypeCode) {
+    public Object ProjectObject(Row currentObject, DbTypeCode? projectionTypeCode) {
         if (currentObject != null) {
             switch (projectionTypeCode) {
                 case null:
@@ -287,7 +287,7 @@ internal abstract class ExecutionEnumerator
         throw ErrorCode.ToException(Error.SCERRINVALIDCURRENT, (m, e) => new InvalidOperationException(m));
     }
 
-    public dynamic Current {
+    public Object Current {
         get {
             return ProjectObject(currentObject, projectionTypeCode);
         }

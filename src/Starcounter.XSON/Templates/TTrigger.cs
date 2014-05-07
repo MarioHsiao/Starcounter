@@ -55,14 +55,14 @@ namespace Starcounter.Templates {
         /// <value></value>
         public string OnRun { get; set; }
 
-        /// <summary>
-        /// Creates the default value of this property.
-        /// </summary>
-        /// <param name="parent">The object that will hold the created value (the host Obj or host Array)</param>
-        /// <returns>Always returns false or is it null????? TODO!??</returns>
-        public override object CreateInstance(Json parent) {
-            return false;
-        }
+        ///// <summary>
+        ///// Creates the default value of this property.
+        ///// </summary>
+        ///// <param name="parent">The object that will hold the created value (the host Obj or host Array)</param>
+        ///// <returns>Always returns false or is it null????? TODO!??</returns>
+        //public override object CreateInstance(Json parent) {
+        //    return false;
+        //}
 
         /// <summary>
         /// </summary>

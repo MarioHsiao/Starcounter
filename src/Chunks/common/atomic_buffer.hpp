@@ -56,6 +56,14 @@ public:
 	 */
 	atomic_buffer()
 	: head_(0), tail_(0) {}
+
+    int32_t count()
+    {
+	  int32_t tail = tail_;
+	  int32_t head = head_;
+      if (head < tail) head += size();
+      return head - tail;
+    }
 	
 	/// Push an item to the queue. Retry spin_count times.
 	/**

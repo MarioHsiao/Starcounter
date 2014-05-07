@@ -11,12 +11,7 @@ namespace Starcounter.Templates {
 
     /// <summary>
     /// </summary>
-    public class TDecimal : PrimitiveProperty<decimal>
-    {
-        /// <summary>
-        /// </summary>
-        decimal _DefaultValue = 0;
-
+    public class TDecimal : PrimitiveProperty<decimal> {
         public override Type MetadataType {
             get { return typeof(DecimalMetadata<Json>); }
         }
@@ -24,24 +19,25 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
-        public decimal DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
+        public decimal DefaultValue { get; set; }
+
+        internal override void SetDefaultValue(Json parent) {
+            UnboundSetter(parent, DefaultValue);
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (decimal)value;
-            }
-        }
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        return DefaultValue;
+        //    }
+        //    set {
+        //        DefaultValue = (decimal)value;
+        //    }
+        //}
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>

@@ -11,13 +11,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines a boolean property in an App object.
     /// </summary>
-    public class TBool : PrimitiveProperty<bool>
-    {
-        /// <summary>
-        /// The _ default value
-        /// </summary>
-        private bool _DefaultValue = false;
-
+    public class TBool : PrimitiveProperty<bool> {
         public override Type MetadataType {
             get { return typeof(BoolMetadata<Json>); }
         }
@@ -28,23 +22,24 @@ namespace Starcounter.Templates {
         /// default value (i.e. true).
         /// </summary>
         /// <value><c>true</c> if [default value]; otherwise, <c>false</c>.</value>
-        public bool DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
+        public bool DefaultValue { get; set; }
+
+        internal override void SetDefaultValue(Json parent) {
+            UnboundSetter(parent, DefaultValue);
         }
 
-        /// <summary>
-        /// Will return a boxed version of the DefaultValue property.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (bool)value;
-            }
-        }
+        ///// <summary>
+        ///// Will return a boxed version of the DefaultValue property.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        return DefaultValue;
+        //    }
+        //    set {
+        //        DefaultValue = (bool)value;
+        //    }
+        //}
 
         /// <summary>
         /// Will return the Boolean runtime type

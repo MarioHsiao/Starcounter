@@ -47,7 +47,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="template">The template.</param>
         /// <returns>Int32[][].</returns>
-        public Int32[] IndexPathFor(Template template) {
+        internal Int32[] IndexPathFor(Template template) {
             Int32[] path = new Int32[ChildPathDepth];
             path[path.Length - 1] = template.TemplateIndex;
             FillIndexPath(path, path.Length - 2);

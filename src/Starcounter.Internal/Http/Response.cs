@@ -1,5 +1,4 @@
-﻿
-using Starcounter.Internal;
+﻿using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -194,7 +193,7 @@ namespace Starcounter
         /// <summary>
         /// The URIs.
         /// </summary>
-        internal List<string> Uris = new List<string>();
+        internal List<string> Uris = null;
 
         /// <summary>
         /// The file path
@@ -678,7 +677,11 @@ namespace Starcounter
 
 			byte[] bytes = bodyBytes_;
 			if (_Resource != null) {
+
+                Profiler.Current.Start(ProfilerNames.GetPreferredMimeType);
 				var mimetype = request_.PreferredMimeType;
+                Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
+
 				try {
 					bytes = _Resource.AsMimeType(mimetype, out mimetype);
 					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
@@ -707,7 +710,14 @@ namespace Starcounter
 				// We have our precious bytes. Let's wrap them up in a response.
 			}
 
-			buf = new byte[EstimateNeededSize(bytes)];
+            Int32 numBytes = EstimateNeededSize(bytes);
+            buf = new Byte[numBytes];
+            /*
+            if (numBytes > SchedulerResources.ResponseTempBufSize)
+                buf = new Byte[numBytes];
+            else			
+                buf = SchedulerResources.Current.ResponseTempBuf;
+            */
 			
 			unsafe {
 				fixed (byte* p = buf) {
@@ -1157,13 +1167,13 @@ namespace Starcounter
             }
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Releases resources.
         /// </summary>
         ~Response()
         {
             Destroy();
-        }
+        }*/
 
         /// <summary>
         /// Debugs the specified message.

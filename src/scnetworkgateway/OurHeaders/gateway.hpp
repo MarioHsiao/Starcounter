@@ -83,6 +83,7 @@ typedef int8_t chunk_store_type;
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
 //#define FAST_LOOPBACK
+//#define LEAST_USED_SCHEDULING
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC

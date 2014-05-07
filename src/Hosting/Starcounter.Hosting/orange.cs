@@ -9,13 +9,11 @@ using System.Runtime.InteropServices;
 
 namespace StarcounterInternal.Hosting
 {
-
     /// <summary>
     /// Class orange
     /// </summary>
     public static class orange
     {
-
         /// <summary>
         /// The hmenv_
         /// </summary>
@@ -344,7 +342,7 @@ namespace StarcounterInternal.Hosting
             SetYieldBlock();
             try {
                 try {
-                    Starcounter.Transaction.SetCurrent(new Starcounter.Transaction(true));
+                    TaskHelper.CreateOrSetImplicitTransaction();
                     return 0;
                 }
                 catch (System.OutOfMemoryException) {
