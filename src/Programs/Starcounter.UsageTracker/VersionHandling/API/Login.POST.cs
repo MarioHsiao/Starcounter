@@ -33,7 +33,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
 
                     if (isAuthorized) {
-                        LogWriter.WriteLine(string.Format("NOTICE: User logged in {0}", clientIP.ToString()));
+                        LogWriter.WriteLine(string.Format("NOTICE: User '{0}' logged in from {1}", name, clientIP.ToString()));
 
                         Response response = new Response();
                         AuthorizeSession(ref response);
