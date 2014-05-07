@@ -333,13 +333,15 @@ namespace Starcounter.Rest
             uri_info_.original_uri_info_ = original_uri_info;
             uri_info_.processed_uri_info_ = processed_uri_info;
             uri_info_.param_message_type_ = param_message_type;
-            uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
             uri_info_.handler_id_ = handler_id;
             uri_info_.handler_info_ = handler_info;
             uri_info_.port_ = port;
             uri_info_.native_param_types_ = native_param_types;
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
+
+            if (param_message_type != null)
+                uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
 
             Debug.Assert(userDelegates_ == null);
 
