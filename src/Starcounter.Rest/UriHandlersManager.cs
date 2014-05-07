@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Linq.Expressions;
 
 namespace Starcounter.Rest
 {
@@ -20,6 +21,7 @@ namespace Starcounter.Rest
         public String processed_uri_info_ = null;
         public IntPtr processed_uri_info_ascii_bytes_;
         public Type param_message_type_ = null;
+        public Func<object> param_message_create_ = null;
         public Byte[] native_param_types_ = null;
         public Byte num_params_ = 0;
         public UInt16 handler_id_ = UInt16.MaxValue;
@@ -114,16 +116,14 @@ namespace Starcounter.Rest
         /// <returns></returns>
         Response TryGetResponseFromCache(Request req) {
             // Checking if we are in session already.
-            if (!req.IsInternal) {
-
-                // Setting the original request.
-                Session.InitialRequest = req;
-
+            if (req.CameWithCorrectSession && !req.IsInternal) {
                 // Obtaining session.
                 Session s = (Session)req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
-                if ((req.CameWithCorrectSession) && (null != s)) {
+                if (null != s) {
+                    // Setting the original request.
+                    Session.InitialRequest = req;
 
                     // Starting session.
                     Session.Start(s);
@@ -149,21 +149,22 @@ namespace Starcounter.Rest
         /// <param name="req"></param>
         /// <param name="resp"></param>
         void TryAddResponseToCache(Request req, Response resp) {
+            // Checking if response is processed later.
+            if (Session.Current == null
+                || resp.HandlingStatus == HandlerStatusInternal.Handled
+                || !req.IsCachable())
+                return;
+
             // In case of returned JSON object within current session we need to save it
             // for later reuse.
-
             Json rootJsonObj = null;
             if (null != Session.Current)
                 rootJsonObj = Session.Current.Data;
 
             Json curJsonObj = null;
 
-            // Checking if response is processed later.
-            if (resp.HandlingStatus == HandlerStatusInternal.Handled)
-                return;
-
             // Setting session on result only if its original request.
-            if ((null != Session.Current) && (!req.IsInternal) && (!req.CameWithCorrectSession))
+            if ((!req.IsInternal) && (!req.CameWithCorrectSession))
                 resp.AppsSession = Session.Current.InternalSession;
 
             // Converting response to JSON.
@@ -171,7 +172,6 @@ namespace Starcounter.Rest
 
             if ((null != curJsonObj) &&
                 (null != rootJsonObj) &&
-                (req.IsCachable()) &&
                 (curJsonObj.HasThisRoot(rootJsonObj))) {
                 Session.Current.AddJsonNodeToCache(req.Uri, curJsonObj);
             }
@@ -265,6 +265,10 @@ namespace Starcounter.Rest
             set { uri_info_.param_message_type_ = value; }
         }
 
+        public Func<object> ArgMessageCreate {
+            get { return uri_info_.param_message_create_; }
+        }
+
         public String AppNames
         {
             get {
@@ -335,6 +339,9 @@ namespace Starcounter.Rest
             uri_info_.native_param_types_ = native_param_types;
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
+
+            if (param_message_type != null)
+                uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
 
             Debug.Assert(userDelegates_ == null);
 
@@ -497,8 +504,10 @@ namespace Starcounter.Rest
                 UserHandlerInfo uhi = allUriHandlers_[r.ManagedHandlerId];
 
                 // Checking if we had custom type user Message argument.
-                if (uhi.ArgMessageType != null)
+                if (uhi.ArgMessageType != null) {
                     r.ArgMessageObjectType = uhi.ArgMessageType;
+                    r.ArgMessageObjectCreate = uhi.ArgMessageCreate;
+                }
 
                 // Setting some request parameters.
                 r.PortNumber = uhi.UriInfo.port_;

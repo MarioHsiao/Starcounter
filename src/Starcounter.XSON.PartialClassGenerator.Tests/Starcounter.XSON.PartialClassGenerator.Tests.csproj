@@ -81,9 +81,6 @@
     <None Include="Input\emptyarray.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Input\JsonWithFiller.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Input\ChildMsg.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -125,12 +122,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Input\databound.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Input\jsstyle.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Input\person.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Input\supersimple.json">
@@ -179,7 +170,6 @@
     <None Include="Input\incorrect2.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="JsonSerializeTests.cs" />
     <None Include="Input\minimal.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>minimal.json</DependentUpon>
@@ -191,9 +181,6 @@
     <Compile Include="DetectVersionToUseTests.cs" />
     <Compile Include="InputMappingTests.cs" />
     <Compile Include="PartialClassGenerationTests.cs" />
-    <None Include="PregeneratedSerializationCode.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CodeBehindParserTests.cs" />
     <None Include="Input\TestMessage.json.cs">
@@ -238,10 +225,6 @@
     <ProjectReference Include="..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
-      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
-      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

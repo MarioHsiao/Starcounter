@@ -85,7 +85,7 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var json = UnboundGetter(parent);
 
-			if (json != null && UseBinding(parent)) {
+			if (parent._dirtyCheckEnabled && json != null && UseBinding(parent)) {
 				json.CheckBoundObject(BoundGetter(parent));
 			}
 
@@ -122,7 +122,7 @@ namespace Starcounter.Templates {
 
 		private Json BoundOrUnboundGet(Json parent) {
 			Json value = UnboundGetter(parent);
-			if (value != null && UseBinding(parent))
+			if (parent._dirtyCheckEnabled && value != null && UseBinding(parent))
 				value.CheckBoundObject(BoundGetter(parent));
 			return value;
 		}
@@ -260,7 +260,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
-		public override object CreateInstance(Json parent) {
+		public virtual object CreateInstance(Json parent = null) {
 			if (_JsonType != null) {
 				var msg = (Json)Activator.CreateInstance(_JsonType);
 				msg.Template = this;

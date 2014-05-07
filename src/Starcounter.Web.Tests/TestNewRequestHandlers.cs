@@ -225,6 +225,7 @@ namespace Starcounter.Internal.Test
 
                         Request req = new Request(requestStrWithContent, requestStrWithContent.Length);
                         req.ArgMessageObjectType = typeof(PersonMessage);
+                        req.ArgMessageObjectCreate = () => new PersonMessage();
 
                         Assert.IsTrue("UserFunc6!" == (String)genDel6(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
                         Assert.IsTrue("UserFunc7!" == (String)genDel7(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);

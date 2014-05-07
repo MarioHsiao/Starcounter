@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;PROFILING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -137,6 +137,7 @@
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
     <Compile Include="Mock\LogSources.cs" />
+    <Compile Include="Mock\Reload.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
     <Compile Include="TransientAttribute.cs" />
     <Compile Include="ObjectRef.cs" />

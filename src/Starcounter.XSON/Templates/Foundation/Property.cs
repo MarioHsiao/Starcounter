@@ -82,13 +82,13 @@ namespace Starcounter.Templates {
 			hasCustomAccessors = true;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="parent"></param>
-		internal override void SetDefaultValue(Json parent) {
-			UnboundSetter(parent, (T)CreateInstance(parent));
-		}
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="parent"></param>
+        //internal override void SetDefaultValue(Json parent) {
+        //    UnboundSetter(parent, (T)CreateInstance(parent));
+        //}
 
 		/// <summary>
 		/// 

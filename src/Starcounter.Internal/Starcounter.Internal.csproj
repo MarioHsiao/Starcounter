@@ -86,6 +86,7 @@
     <Compile Include="Interfaces\XSON\IBindableRetriever.cs" />
     <Compile Include="LockFreeStack.cs" />
     <Compile Include="Profiler\Profiler.cs" />
+    <Compile Include="SchedulerResources.cs" />
     <Compile Include="Sessions\InternalSessions.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="Http\Request.cs" />

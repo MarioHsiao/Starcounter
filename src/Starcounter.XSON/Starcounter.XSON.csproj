@@ -62,6 +62,7 @@
     <Compile Include="Class Json\Json.JsonPointer.cs" />
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\Json.Transaction.cs" />
+    <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstBase.cs" />

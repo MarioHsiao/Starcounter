@@ -271,46 +271,46 @@ namespace Starcounter.Templates {
             }
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        /// <exception cref="System.NotImplementedException">This template </exception>
-        public virtual object DefaultValueAsObject {
-            get {
-                return null;
-            }
-            set {
-                throw new NotImplementedException("This template " + GetType().FullName + " does not implement DefaultValueAsObject");
-            }
-        }
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        ///// <exception cref="System.NotImplementedException">This template </exception>
+        //public virtual object DefaultValueAsObject {
+        //    get {
+        //        return null;
+        //    }
+        //    set {
+        //        throw new NotImplementedException("This template " + GetType().FullName + " does not implement DefaultValueAsObject");
+        //    }
+        //}
 
-        /// <summary>
-        /// Gets the instance.
-        /// </summary>
-        /// <param name="parent">The parent.</param>
-        /// <returns>System.Object.</returns>
-        public object GetInstance(Json parent) {
-            return this.CreateInstance(parent);
-        }
+        ///// <summary>
+        ///// Gets the instance.
+        ///// </summary>
+        ///// <param name="parent">The parent.</param>
+        ///// <returns>System.Object.</returns>
+        //public object GetInstance(Json parent) {
+        //    return this.CreateInstance(parent);
+        //}
 
-        /// <summary>
-        /// Creates the instance.
-        /// </summary>
-        /// <param name="parent">The parent.</param>
-        /// <returns>System.Object.</returns>
-        public virtual object CreateInstance(Json parent) {
-            return DefaultValueAsObject;
-        }
+        ///// <summary>
+        ///// Creates the instance.
+        ///// </summary>
+        ///// <param name="parent">The parent.</param>
+        ///// <returns>System.Object.</returns>
+        //public virtual object CreateInstance(Json parent) {
+        //    return null;
+        //}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public object CreateInstance() {
-            return CreateInstance(null);
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <returns></returns>
+        //public object CreateInstance() {
+        //    return CreateInstance(null);
+        //}
 
         /// <summary>
         /// 

@@ -10,7 +10,7 @@ namespace Starcounter.Internal.XSON.Tests {
         internal const string PATCH = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
 
         internal static AppAndTemplate CreateSampleApp() {
-            dynamic template = TObject.CreateFromJson(File.ReadAllText("SampleApp.json"));
+            dynamic template = TObject.CreateFromJson(File.ReadAllText("json\\SampleApp.json"));
             dynamic app = new Json() { Template = template };
 
             app.FirstName = "Cliff";
@@ -28,9 +28,16 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         internal static TObject CreateJsonTemplateFromFile(string filePath) {
-            string json = File.ReadAllText(filePath);
+            string json = File.ReadAllText("json\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
             var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
+            tobj.ClassName = className;
+            return tobj;
+        }
+
+        internal static TObject CreateJsonTemplateFromContent(string filename, string json) {
+            var className = Path.GetFileNameWithoutExtension(filename);
+            var tobj = TObject.CreateFromMarkup<Json, TObject>("json",json, className);
             tobj.ClassName = className;
             return tobj;
         }
@@ -167,6 +174,37 @@ namespace Starcounter.Internal.XSON.Tests {
             extraInfo.Add<TString>("Text");
 
             return personSchema;
+        }
+
+        internal static void AssertAreEqual(Json expected, Json actual) {
+            TObject tExpected = (TObject)expected.Template;
+            TObject tActual = (TObject)actual.Template;
+
+            // We assume that the instances used the same Template.
+            Assert.AreEqual(tExpected, tActual);
+            foreach (Template child in tExpected.Properties) {
+                if (child is TBool)
+                    Assert.AreEqual(((TBool)child).Getter(expected), ((TBool)child).Getter(actual));
+                else if (child is TDecimal)
+                    Assert.AreEqual(((TDecimal)child).Getter(expected), ((TDecimal)child).Getter(actual));
+                else if (child is TDouble)
+                    Assert.AreEqual(((TDouble)child).Getter(expected), ((TDouble)child).Getter(actual));
+                else if (child is TLong)
+                    Assert.AreEqual(((TLong)child).Getter(expected), ((TLong)child).Getter(actual));
+                else if (child is TString)
+                    Assert.AreEqual(((TString)child).Getter(expected), ((TString)child).Getter(actual));
+                else if (child is TObject)
+                    AssertAreEqual(((TObject)child).Getter(expected), ((TObject)child).Getter(actual));
+                else if (child is TObjArr) {
+                    var arr1 = ((TObjArr)child).Getter(expected);
+                    var arr2 = ((TObjArr)child).Getter(actual);
+                    Assert.AreEqual(arr1.Count, arr2.Count);
+                    for (int i = 0; i < arr1.Count; i++) {
+                        AssertAreEqual((Json)arr1._GetAt(i), (Json)arr2._GetAt(i));
+                    }
+                } else
+                    throw new NotSupportedException();
+            }
         }
 
         internal static void AssertCorrectErrorCodeIsThrown(Action action, uint expectedErrorCode) {
