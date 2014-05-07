@@ -47,7 +47,6 @@ namespace Starcounter.SqlProcessor {
             scsql_free_memory();
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
-            LogSources.Sql.LogNotice(query);
             throw ex;
         }
 

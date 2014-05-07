@@ -165,6 +165,7 @@ public class SqlException : Exception
         info.AddValue("tokenList", unexpectedToken);
         info.AddValue("beginPosition", beginPosition);
         info.AddValue("endPosition", endPosition);
+        info.AddValue("query", queryString);
     }
 
     /// <summary>
