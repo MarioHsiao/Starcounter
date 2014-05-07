@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Mono.CSharp;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
@@ -68,6 +70,12 @@ namespace Starcounter.Internal.XSON.DeserializerCompiler {
             settings.Unsafe = true;
             settings.GenerateDebugInfo = false;
             settings.Optimize = true;
+            settings.LoadDefaultReferences = false;
+
+            settings.AssemblyReferences.Add(Assembly.GetAssembly(typeof(Uri)).FullName); // System
+            settings.AssemblyReferences.Add(Assembly.GetAssembly(typeof(CallSite)).FullName); // System.Core
+            settings.AssemblyReferences.Add(Assembly.GetAssembly(typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)).FullName);
+
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");
 			settings.AssemblyReferences.Add("FasterThanJson.dll");
