@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Linq.Expressions;
 
 namespace Starcounter.Rest
 {
@@ -20,6 +21,7 @@ namespace Starcounter.Rest
         public String processed_uri_info_ = null;
         public IntPtr processed_uri_info_ascii_bytes_;
         public Type param_message_type_ = null;
+        public Func<object> param_message_create_ = null;
         public Byte[] native_param_types_ = null;
         public Byte num_params_ = 0;
         public UInt16 handler_id_ = UInt16.MaxValue;
@@ -263,6 +265,10 @@ namespace Starcounter.Rest
             set { uri_info_.param_message_type_ = value; }
         }
 
+        public Func<object> ArgMessageCreate {
+            get { return uri_info_.param_message_create_; }
+        }
+
         public String AppNames
         {
             get {
@@ -327,6 +333,7 @@ namespace Starcounter.Rest
             uri_info_.original_uri_info_ = original_uri_info;
             uri_info_.processed_uri_info_ = processed_uri_info;
             uri_info_.param_message_type_ = param_message_type;
+            uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
             uri_info_.handler_id_ = handler_id;
             uri_info_.handler_info_ = handler_info;
             uri_info_.port_ = port;
@@ -495,8 +502,10 @@ namespace Starcounter.Rest
                 UserHandlerInfo uhi = allUriHandlers_[r.ManagedHandlerId];
 
                 // Checking if we had custom type user Message argument.
-                if (uhi.ArgMessageType != null)
+                if (uhi.ArgMessageType != null) {
                     r.ArgMessageObjectType = uhi.ArgMessageType;
+                    r.ArgMessageObjectCreate = uhi.ArgMessageCreate;
+                }
 
                 // Setting some request parameters.
                 r.PortNumber = uhi.UriInfo.port_;
