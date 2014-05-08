@@ -80,11 +80,22 @@ namespace staradmin {
         }
 
         static void ViewLogEntries(string[] args) {
-            // staradmin log <type: debug, notice, warning (default), error>> <num-entries> <source-filter>
+            // staradmin log <num-entries> <type: debug, notice, warning (default), error>> <source-filter>
+            int count = 25;
+            var types = Sc.Tools.Logging.Severity.Notice;
+            
+            if (args.Length > 1) {
+                try {
+                    count = int.Parse(args[1]);
+                } catch (Exception e) {
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Invalid command-line: {0}", e.Message), ConsoleColor.Red);
+                }
+            }
+
             try {
                 FilterableLogReader.Fetch((log) => {
                     LogConsole.OutputLog(log);
-                });   
+                }, types, count);   
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
