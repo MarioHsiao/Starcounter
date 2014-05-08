@@ -83,7 +83,7 @@ namespace staradmin {
             // staradmin log <type: debug, notice, warning (default), error>> <num-entries> <source-filter>
             try {
                 FilterableLogReader.Fetch((log) => {
-                    Console.WriteLine(log.Message);
+                    LogConsole.OutputLog(log);
                 });   
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
