@@ -46,6 +46,7 @@
     <Compile Include="CLITemplate.cs" />
     <Compile Include="ConsoleSession.cs" />
     <Compile Include="FilterableLogReader.cs" />
+    <Compile Include="LogConsole.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
