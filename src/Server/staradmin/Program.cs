@@ -1,4 +1,5 @@
 ﻿
+using Sc.Tools.Logging;
 using Starcounter;
 using Starcounter.CLI;
 using Starcounter.Internal;
@@ -37,6 +38,9 @@ namespace staradmin {
                     case "console":
                         RunConsoleSessionInCurrentProcess(args);
                         break;
+                    case "log":
+                        ViewLogEntries(args);
+                        break;
                     default:
                         var template = CLITemplate.GetTemplate(command);
                         if (template == null) {
@@ -73,6 +77,17 @@ namespace staradmin {
                 session.Stop();
             };
             session.Wait();
+        }
+
+        static void ViewLogEntries(string[] args) {
+            // staradmin log <type: debug, notice, warning (default), error>> <num-entries> <source-filter>
+            try {
+                FilterableLogReader.Fetch((log) => {
+                    Console.WriteLine(log.Message);
+                });   
+            } catch (Exception e) {
+                ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
+            }
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
