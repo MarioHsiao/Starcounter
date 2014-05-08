@@ -548,7 +548,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             node.Prefix.Add(
                 "    public override object CreateInstance(s.Json parent) { return new "
                 + node.NValueClass.ClassAlias.Alias
-                + "(DefaultTemplate) { Parent = parent }; }"
+                + "(this) { Parent = parent }; }"
             );
         }
 
