@@ -15,8 +15,6 @@ namespace staradmin {
     /// filtering.
     /// </summary>
     internal sealed class FilterableLogReader {
-        public const int DefaultNumberOfLogEntries = 25;
-
         /// <summary>
         /// Fetches a given number of log entries from the server log and
         /// invokes the specified callback on every matching entry.
@@ -26,7 +24,7 @@ namespace staradmin {
         /// <param name="count">Number of entries to fetch.</param>
         /// <param name="sourceFilter">Optional source to filter on</param>
         /// <returns>Number of entries actually fetched.</returns>
-        public static int Fetch(Action<LogEntry> callback, Severity type = Severity.Warning, int count = DefaultNumberOfLogEntries, string sourceFilter = null) {
+        public static int Fetch(Action<LogEntry> callback, Severity type, int count, string sourceFilter = null) {
             int read = 0;
             var logDirectory = GetLogDirectory();
             var logReader = new LogReader();
