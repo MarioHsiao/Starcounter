@@ -116,15 +116,12 @@ namespace Starcounter.Rest
         /// <returns></returns>
         Response TryGetResponseFromCache(Request req) {
             // Checking if we are in session already.
-            if (req.CameWithCorrectSession && !req.IsInternal) {
+            if ( !req.IsInternal && req.CameWithCorrectSession) {
                 // Obtaining session.
                 Session s = (Session)req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
                 if (null != s) {
-                    // Setting the original request.
-                    Session.InitialRequest = req;
-
                     // Starting session.
                     Session.Start(s);
 
@@ -150,17 +147,14 @@ namespace Starcounter.Rest
         /// <param name="resp"></param>
         void TryAddResponseToCache(Request req, Response resp) {
             // Checking if response is processed later.
-            if (Session.Current == null
-                || resp.HandlingStatus == HandlerStatusInternal.Handled
-                || !req.IsCachable())
+            if (resp.HandlingStatus == HandlerStatusInternal.Handled
+                || !req.IsCachable()
+                || Session.Current == null)
                 return;
 
             // In case of returned JSON object within current session we need to save it
             // for later reuse.
-            Json rootJsonObj = null;
-            if (null != Session.Current)
-                rootJsonObj = Session.Current.Data;
-
+            Json rootJsonObj = Session.Current.Data;
             Json curJsonObj = null;
 
             // Setting session on result only if its original request.
