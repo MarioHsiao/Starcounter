@@ -4,16 +4,38 @@ using Starcounter.CLI;
 using System;
 using System.Text;
 
-namespace staradmin {
+namespace Starcounter.CLI {
     /// <summary>
     /// Governs the output of logs to be printed to the console.
     /// </summary>
-    internal sealed class LogConsole {
+    public sealed class LogConsole {
+        /// <summary>
+        /// Indicates if the source and the host should be part of
+        /// the output.
+        /// </summary>
         public bool ShowSourceAndHost { get; set; }
+
+        /// <summary>
+        /// Specifies the color of the header.
+        /// </summary>
         public ConsoleColor HeaderColor { get; set; }
+
+        /// <summary>
+        /// Dictates if the console should output the host information
+        /// in a simplfied form, as oppopsed to the "native" URI format
+        /// using in the log.
+        /// </summary>
         public bool ShowSimplifiedHost { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that cause the severity of each log
+        /// entry written to be part of the header.
+        /// </summary>
         public bool IncludeSeverityInHeader { get; set; }
 
+        /// <summary>
+        /// Initialize a new <see cref="LogConsole"/>.
+        /// </summary>
         public LogConsole() {
             ShowSourceAndHost = true;
             ShowSimplifiedHost = true;
@@ -21,6 +43,11 @@ namespace staradmin {
             IncludeSeverityInHeader = Console.IsOutputRedirected;
         }
 
+        /// <summary>
+        /// Writes the given log entry to the console, formatted using
+        /// the settings of the current instance.
+        /// </summary>
+        /// <param name="log">The log entry to write.</param>
         public void Write(LogEntry log) {
             var time = GetTimeString(log);
             var color = GetMessageColor(log);
