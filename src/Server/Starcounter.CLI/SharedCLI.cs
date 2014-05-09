@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 
 namespace Starcounter.CLI {
+    using Severity = Sc.Tools.Logging.Severity;
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
