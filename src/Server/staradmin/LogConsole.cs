@@ -1,21 +1,34 @@
 ﻿using Sc.Tools.Logging;
 using Starcounter.CLI;
 using System;
+using System.Text;
 
 namespace staradmin {
     /// <summary>
     /// Governs the output of logs to be printed to the console.
     /// </summary>
-    internal static class LogConsole {
+    internal sealed class LogConsole {
+        public bool ShowSourceAndHost { get; set; }
+        public ConsoleColor HeaderColor { get; set; }
 
-        public static void OutputLog(LogEntry log) {
+        public LogConsole() {
+            ShowSourceAndHost = true;
+            HeaderColor = ConsoleColor.DarkGray;
+        }
+
+        public void Write(LogEntry log) {
             var time = GetTimeString(log);
-            var color = GetColor(log);
+            var color = GetMessageColor(log);
 
+            var header = new StringBuilder();
+            header.AppendFormat("[{0}", time);
+            if (ShowSourceAndHost) {
+                header.AppendFormat(", {0} / {1}", log.Source, log.HostName);
+            }
+            header.Append("]");
+
+            ConsoleUtil.ToConsoleWithColor(header.ToString(), HeaderColor);
             ConsoleUtil.ToConsoleWithColor(log.Message, color);
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("[{0}, {1} @ {2}]", time, log.Source, log.HostName), 
-                ConsoleColor.DarkGray);
             Console.WriteLine();
         }
 
@@ -27,7 +40,7 @@ namespace staradmin {
             return x.ToString();
         }
 
-        static ConsoleColor GetColor(LogEntry log) {
+        static ConsoleColor GetMessageColor(LogEntry log) {
             switch (log.Severity) {
                 case Severity.Debug:
                     return ConsoleColor.Gray;

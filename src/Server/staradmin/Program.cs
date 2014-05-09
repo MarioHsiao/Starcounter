@@ -93,11 +93,12 @@ namespace staradmin {
             }
 
             try {
+                var console = new LogConsole();
                 var reader = new FilterableLogReader() {
                     Count = count,
                     TypeOfLogs = types
                 };
-                reader.Fetch((log) => { LogConsole.OutputLog(log); });
+                reader.Fetch((log) => { console.Write(log); });
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
