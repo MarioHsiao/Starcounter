@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace staradmin {    
+namespace Starcounter.CLI {    
     using Severity = Sc.Tools.Logging.Severity;
 
     /// <summary>
@@ -14,7 +14,7 @@ namespace staradmin {
     /// from the (local) Starcounter log, possibly applying some
     /// filtering.
     /// </summary>
-    internal sealed class FilterableLogReader {
+    public sealed class FilterableLogReader {
         /// <summary>
         /// Number of log records to fetch.
         /// </summary>
