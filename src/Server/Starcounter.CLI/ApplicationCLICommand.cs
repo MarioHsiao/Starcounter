@@ -16,6 +16,7 @@ namespace Starcounter.CLI {
     using ExecutableReference = Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
+    using Severity = Sc.Tools.Logging.Severity;
 
     /// <summary>
     /// Provides the principal entrypoint to use when a CLI client
@@ -92,12 +93,17 @@ namespace Starcounter.CLI {
         public void Execute() {
             Node = new Node(ServerHost, (ushort)ServerPort);
             Status = StatusConsole.Open();
+            var start = DateTime.Now;
 
             try {
                 Run();
             } finally {
                 Node = null;
                 Status = null;
+            }
+
+            if (SharedCLI.ShowLogs) {
+                WriteLogsToConsole(start);
             }
         }
 
@@ -193,6 +199,30 @@ namespace Starcounter.CLI {
                 // If any unexpected problem when constructing the error information
                 // or writing them to the console, at least always set the error code.
                 Environment.ExitCode = (int)scErrorCode;
+            }
+        }
+
+        static void WriteLogsToConsole(DateTime started) {
+            var count = int.MaxValue;
+            var types = SharedCLI.LogDisplaySeverity;
+
+            try {
+                var console = new LogConsole();
+                var reader = new FilterableLogReader() {
+                    Count = count,
+                    TypeOfLogs = types,
+                    Since = started
+                };
+
+                var title = string.Format("Logs (since {0})", started.TimeOfDay);
+                Console.WriteLine();
+                Console.WriteLine(title);
+                Console.WriteLine("".PadRight(title.Length, '-'));
+
+                reader.Fetch((log) => { console.Write(log); });
+
+            } catch (Exception e) {
+                ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
         }
     }
