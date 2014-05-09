@@ -204,6 +204,12 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Gets or sets a value instructing the shared CLI library to
+        /// display server logs at the end of a application command.
+        /// </summary>
+        public static bool ShowLogs = false;
+
+        /// <summary>
         /// Defines and includes the well-known, shared CLI options in
         /// the given <see cref="SyntaxDefinition"/>.
         /// </summary>
@@ -317,6 +323,13 @@ namespace Starcounter.CLI {
                 Verbosity = OutputLevel.Verbose;
             } else if (appArgs.ContainsFlag(Option.Detailed)) {
                 Verbosity = OutputLevel.Normal;
+            }
+
+            if (appArgs.ContainsFlag(Option.Logs)) {
+                ShowLogs = true;
+            }
+            else if (appArgs.ContainsFlag(Option.LogSteps)) {
+                ShowLogs = true;
             }
 
             return true;
