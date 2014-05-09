@@ -210,6 +210,12 @@ namespace Starcounter.CLI {
         public static bool ShowLogs = false;
 
         /// <summary>
+        /// Gets or sets a value controlling the minimum severity of
+        /// logs to be displayed in case <see cref="ShowLogs"/> is set.
+        /// </summary>
+        public static Severity LogDisplaySeverity = Severity.Notice;
+
+        /// <summary>
         /// Defines and includes the well-known, shared CLI options in
         /// the given <see cref="SyntaxDefinition"/>.
         /// </summary>
@@ -330,6 +336,12 @@ namespace Starcounter.CLI {
             }
             else if (appArgs.ContainsFlag(Option.LogSteps)) {
                 ShowLogs = true;
+            }
+
+            if (ShowLogs) {
+                LogDisplaySeverity = Verbose || appArgs.ContainsFlag(Option.LogSteps)
+                    ? Severity.Debug 
+                    : Severity.Notice;
             }
 
             return true;
