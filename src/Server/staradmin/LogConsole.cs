@@ -12,11 +12,13 @@ namespace staradmin {
         public bool ShowSourceAndHost { get; set; }
         public ConsoleColor HeaderColor { get; set; }
         public bool ShowSimplifiedHost { get; set; }
+        public bool IncludeSeverityInHeader { get; set; }
 
         public LogConsole() {
             ShowSourceAndHost = true;
             ShowSimplifiedHost = true;
             HeaderColor = ConsoleColor.DarkGray;
+            IncludeSeverityInHeader = Console.IsOutputRedirected;
         }
 
         public void Write(LogEntry log) {
@@ -25,9 +27,13 @@ namespace staradmin {
 
             var header = new StringBuilder();
             header.AppendFormat("[{0}", time);
+            if (IncludeSeverityInHeader) {
+                header.AppendFormat(", {0}", log.Severity.ToString());
+            }
             if (ShowSourceAndHost) {
                 header.AppendFormat(", {0} ({1})", log.Source, GetHostString(log));
             }
+            
             header.Append("]");
 
             ConsoleUtil.ToConsoleWithColor(header.ToString(), HeaderColor);
