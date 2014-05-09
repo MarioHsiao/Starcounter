@@ -613,6 +613,21 @@ namespace Starcounter.Advanced.XSON {
             return (byte)(h - 48);
         }
 
+        public static void ThrowExceptionIfError(Response response, string errormsg) {
+            int statusCode = 500;
+            try { statusCode = response.StatusCode; } catch { }
+
+            if (response.StatusCode > 400) {
+                var str = response.Body;
+                if (str != null) {
+                    var index = str.IndexOf("HResult");
+                    if (index != -1) str = str.Substring(0, index);
+                    throw new Exception(errormsg, new Exception(str));
+                }
+                throw new Exception(errormsg);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
