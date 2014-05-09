@@ -107,6 +107,8 @@ namespace Starcounter.Internal.Web {
             Response resp = null;
 
             try {
+                if (!request.IsInternal)
+                    Session.InitialRequest = request;
 
                 Profiler.Current.Start(ProfilerNames.Empty);
                 Profiler.Current.Stop(ProfilerNames.Empty);

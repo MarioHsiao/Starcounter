@@ -75,13 +75,7 @@ namespace Starcounter {
                         path[pos] = _cacheIndexInArr;
                     }
                     else {
-                        // We use the cacheIndexInArr to keep track of obj that is set
-                        // in the parent as an untyped object since the template here is not
-                        // the template in the parent (which we want).
-                        if (_cacheIndexInArr != -1)
-                            path[pos] = _cacheIndexInArr;
-                        else
-                            path[pos] = Template.TemplateIndex;
+                        path[pos] = IndexInParent;
                     }
                     Parent.FillIndexPath(path, pos - 1);
                 }

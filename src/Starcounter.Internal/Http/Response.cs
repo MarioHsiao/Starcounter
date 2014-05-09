@@ -360,8 +360,6 @@ namespace Starcounter
             }
         }
 
-		String cacheControl_;
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -369,13 +367,13 @@ namespace Starcounter
         {
 			get
             {
-                return cacheControl_;
+                return this[HttpHeadersUtf8.CacheControlHeader];
             }
 
 			set
             {
 				customFields_ = true;
-				cacheControl_ = value;
+                this[HttpHeadersUtf8.CacheControlHeader] = value;
 			}
 		}
 
@@ -756,24 +754,23 @@ namespace Starcounter
 
 					writer.Write(HttpHeadersUtf8.ServerSc);
 
-					// TODO:
-					// What should the default cache control be?
-					if (null != cacheControl_) {
-						writer.Write(HttpHeadersUtf8.CacheControlStart);
-						writer.Write(cacheControl_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					} else
-						writer.Write(HttpHeadersUtf8.CacheControlNoCache);
-
+                    Boolean cacheControl = false;
                     if (null != customHeaderFields_) {
 
                         foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+
+                            if (h.Key == HttpHeadersUtf8.CacheControlHeader)
+                                cacheControl = true;
+
                             writer.Write(h.Key);
                             writer.Write(": ");
                             writer.Write(h.Value);
                             writer.Write(HttpHeadersUtf8.CRLF);
                         }
                     }
+
+                    if (!cacheControl)
+                        writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
                     // Checking if session is defined.
                     if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
@@ -843,9 +840,6 @@ namespace Starcounter
                     size += (h.Key.Length + h.Value.Length + 4);
                 }
             }
-
-			if (null != cacheControl_)
-				size += cacheControl_.Length;
 
 			if (null != AppsSession) {
 				size += ScSessionClass.DataLocationUriPrefixEscaped.Length;

@@ -207,6 +207,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Setting function for creating a new instance of the message object.
+        /// </summary>
+        internal Func<object> ArgMessageObjectCreate {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Accessors to HTTP method.
         /// </summary>
         public HTTP_METHODS MethodEnum { get; set; }
