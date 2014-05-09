@@ -45,6 +45,8 @@
   <ItemGroup>
     <Compile Include="CLITemplate.cs" />
     <Compile Include="ConsoleSession.cs" />
+    <Compile Include="FilterableLogReader.cs" />
+    <Compile Include="LogConsole.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -65,6 +67,10 @@
     <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Utilities\Sc.Tools.Logging\Sc.Tools.Logging.csproj">
+      <Project>{d41f6760-fb7d-413b-b07b-3062a9741ef5}</Project>
+      <Name>Sc.Tools.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.CLI\Starcounter.CLI.csproj">
       <Project>{c20f6d2a-3988-4abc-bfc2-95e19aca3c07}</Project>
