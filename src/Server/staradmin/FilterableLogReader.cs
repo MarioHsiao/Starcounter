@@ -16,6 +16,31 @@ namespace staradmin {
     /// </summary>
     internal sealed class FilterableLogReader {
         /// <summary>
+        /// Number of log records to fetch.
+        /// </summary>
+        public int Count { get; set; }
+
+        /// <summary>
+        /// Minimum severity of logs to consider.
+        /// </summary>
+        public Severity TypeOfLogs { get; set; }
+
+        /// <summary>
+        /// Filters logs fetched on a specified source.
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// Fetches a log entries from the server log and invokes the specified
+        /// callback on every matching entry.
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public int Fetch(Action<LogEntry> callback) {
+            return Fetch(callback, TypeOfLogs, Count, Source);
+        }
+
+        /// <summary>
         /// Fetches a given number of log entries from the server log and
         /// invokes the specified callback on every matching entry.
         /// </summary>
@@ -24,7 +49,7 @@ namespace staradmin {
         /// <param name="count">Number of entries to fetch.</param>
         /// <param name="sourceFilter">Optional source to filter on</param>
         /// <returns>Number of entries actually fetched.</returns>
-        public static int Fetch(Action<LogEntry> callback, Severity type, int count, string sourceFilter = null) {
+        static int Fetch(Action<LogEntry> callback, Severity type, int count, string sourceFilter = null) {
             int read = 0;
             var logDirectory = GetLogDirectory();
             var logReader = new LogReader();
