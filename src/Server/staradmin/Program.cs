@@ -81,10 +81,13 @@ namespace staradmin {
         }
 
         static void ViewLogEntries(string[] args) {
-            // staradmin log <num-entries> <type: debug, notice, warning (default), error>> <source-filter>
             int count = 25;
             var types = Severity.Notice;
-            
+            string source = null;
+
+            // We have 'staradmin log'. Check what more we've
+            // got, if any. We support a command-line like:
+            // staradmin log <num-entries> <debug, notice, warning, error> <source-filter>
             if (args.Length > 1) {
                 try {
                     count = int.Parse(args[1]);
@@ -116,17 +119,24 @@ namespace staradmin {
                         };
                     }
 
+                    if (args.Length > 3) {
+                        source = args[3];
+                    }
+
                 } catch (Exception e) {
                     ConsoleUtil.ToConsoleWithColor(string.Format("Invalid command-line: {0}", e.Message), ConsoleColor.Red);
                     return;
                 }
             }
 
+            // Read and filter the log and send the result
+            // to the console
             try {
                 var console = new LogConsole();
                 var reader = new FilterableLogReader() {
                     Count = count,
-                    TypeOfLogs = types
+                    TypeOfLogs = types,
+                    Source = source
                 };
                 reader.Fetch((log) => { console.Write(log); });
             } catch (Exception e) {
