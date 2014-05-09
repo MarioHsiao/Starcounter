@@ -54,6 +54,11 @@ namespace star {
                 Debugger.Launch();
             }
 
+            var showLogs = Environment.GetEnvironmentVariable("STAR_CLI_SHOW_LOGS");
+            if (!string.IsNullOrEmpty(showLogs)) {
+                SharedCLI.ShowLogs = true;
+            }
+
             if (appArgs.ContainsFlag(StarOption.NoColor)) {
                 ConsoleUtil.DisableColors = true;
             }
@@ -298,6 +303,10 @@ namespace star {
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServer, "Holds the server to use by default.");
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerPersonalPort, "Personal server port used by default.");
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
+            if (unofficial) {
+                Console.WriteLine(formatting, "STAR_CLI_SHOW_LOGS", "Make star.exe act as '--logs' is always set.");
+            }
+
             Console.WriteLine();
             Console.WriteLine("For complete help, see {0}/{1}.", StarcounterEnvironment.InternetAddresses.StarcounterWiki, "star.exe");
 
