@@ -31,38 +31,39 @@ namespace Starcounter.CLI {
         public string Source { get; set; }
 
         /// <summary>
+        /// Specifies a filter that ignores any log entry
+        /// older than the given value.
+        /// </summary>
+        public DateTime Since { get; set; }
+
+        /// <summary>
+        /// Initialize a new <see cref="FilterableLogReader"/>.
+        /// </summary>
+        public FilterableLogReader() {
+            Since = DateTime.MinValue;
+        }
+
+        /// <summary>
         /// Fetches a log entries from the server log and invokes the specified
         /// callback on every matching entry.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
         public int Fetch(Action<LogEntry> callback) {
-            return Fetch(callback, TypeOfLogs, Count, Source);
-        }
-
-        /// <summary>
-        /// Fetches a given number of log entries from the server log and
-        /// invokes the specified callback on every matching entry.
-        /// </summary>
-        /// <param name="callback">The callback to invoke on each hit.</param>
-        /// <param name="type">Specifies the severity to use as a lower bound.</param>
-        /// <param name="count">Number of entries to fetch.</param>
-        /// <param name="sourceFilter">Optional source to filter on</param>
-        /// <returns>Number of entries actually fetched.</returns>
-        static int Fetch(Action<LogEntry> callback, Severity type, int count, string sourceFilter = null) {
             int read = 0;
+            bool stop = false;
+            int count = Count;
+            
             var logDirectory = GetLogDirectory();
             var logReader = new LogReader();
             logReader.Open(logDirectory, ReadDirection.Reverse, 1024 * 32);
             try {
-
-                while (read < count) {
+                while (read < count && !stop) {
                     var next = logReader.Next();
                     if (next == null) break;
-                    if (IsPartOfResult(next, type, sourceFilter)) {
-                        callback(next);
-                        read++;
-                    }
+                    if (FilterAway(next, ref stop)) continue;
+                    callback(next);
+                    read++;
                 }
             } finally {
                 logReader.Close();
@@ -71,10 +72,20 @@ namespace Starcounter.CLI {
             return read;
         }
 
-        static bool IsPartOfResult(LogEntry entry, Severity type, string sourceFilter) {
-            if (entry.Severity >= type) {
-                return sourceFilter == null ? true : entry.Source.Equals(sourceFilter, StringComparison.InvariantCultureIgnoreCase);
+        bool FilterAway(LogEntry entry, ref bool stop) {
+            var since = Since;
+            var type = TypeOfLogs;
+            var source = Source;
+
+            if (entry.DateTime < since) {
+                stop = true;
+                return true;
             }
+
+            if (entry.Severity < type) return true;
+            if (source != null && !entry.Source.Equals(source, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+
             return false;
         }
 
