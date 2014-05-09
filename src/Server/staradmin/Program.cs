@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace staradmin {
+    using Severity = Sc.Tools.Logging.Severity;
 
     class Program {
         static void Main(string[] args) {
@@ -82,13 +83,42 @@ namespace staradmin {
         static void ViewLogEntries(string[] args) {
             // staradmin log <num-entries> <type: debug, notice, warning (default), error>> <source-filter>
             int count = 25;
-            var types = Sc.Tools.Logging.Severity.Notice;
+            var types = Severity.Notice;
             
             if (args.Length > 1) {
                 try {
                     count = int.Parse(args[1]);
+
+                    if (args.Length > 2) {
+                        var t = args[2].ToLowerInvariant();
+                        switch (t) {
+                            case "d":
+                            case "debug":
+                                types = Severity.Debug;
+                                break;
+                            case "n":
+                            case "notice":
+                            case "info":
+                                types = Severity.Notice;
+                                break;
+                            case "w":
+                            case "warning":
+                            case "warnings":
+                                types = Severity.Warning;
+                                break;
+                            case "e":
+                            case "error":
+                            case "errors":
+                                types = Severity.Error;
+                                break;
+                            default:
+                                throw new Exception(string.Format("Unknown log entry type: {0}", t));
+                        };
+                    }
+
                 } catch (Exception e) {
                     ConsoleUtil.ToConsoleWithColor(string.Format("Invalid command-line: {0}", e.Message), ConsoleColor.Red);
+                    return;
                 }
             }
 
