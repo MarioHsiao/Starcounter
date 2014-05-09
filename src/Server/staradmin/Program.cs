@@ -90,13 +90,27 @@ namespace staradmin {
             // staradmin log <num-entries> <debug, notice, warning, error> <source-filter>
             if (args.Length > 1) {
                 try {
-                    count = int.Parse(args[1]);
+                    var c = args[1];
+                    if (!int.TryParse(c, out count)) {
+                        c = c.ToLowerInvariant();
+                        switch (c) {
+                            case "all":
+                            case "any":
+                            case "max":
+                                count = int.MaxValue;
+                                break;
+                            default:
+                                throw new Exception(string.Format("Incorrect count: {0}", c));
+                        }
+                    }
 
                     if (args.Length > 2) {
                         var t = args[2].ToLowerInvariant();
                         switch (t) {
                             case "d":
                             case "debug":
+                            case "all":
+                            case "any":
                                 types = Severity.Debug;
                                 break;
                             case "n":
