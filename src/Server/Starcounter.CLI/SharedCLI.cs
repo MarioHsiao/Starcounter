@@ -119,6 +119,12 @@ namespace Starcounter.CLI {
             public const string Detailed = "detailed";
             /// <summary>
             /// Gets the option name of the parameter that instructs the
+            /// client to output matching logs from the server log at the
+            /// end of an operation
+            /// </summary>
+            public const string Logs = "logs";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
             /// client to return as soon as the executable has been passed
             /// to the host, not awaiting the full entrypoint of the
             /// executable to return.
@@ -265,6 +271,10 @@ namespace Starcounter.CLI {
             definition.DefineFlag(
                 Option.Detailed,
                 "Specifies that detailed output is to be written."
+                );
+            definition.DefineFlag(
+                Option.Logs,
+                "Specifies that log entries are to be displayed."
                 );
 
             if (includeUnofficial) {
