@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace Starcounter {
     public static class Reload {
@@ -30,6 +31,14 @@ namespace Starcounter {
             return quotedPath.ToString();
         }
 
+        private static string GetPropertyName(TableColumn col) {
+            Debug.Assert(col.BaseTable is RawView);
+            PropertyDef prop = (from propDef in Bindings.GetTypeDef(((RawView)col.BaseTable).MaterializedTable.Name).PropertyDefs
+                                where propDef.ColumnName == col.MaterializedColumn.Name
+                                select propDef).First();
+            return prop.Name;
+        }
+
         internal static int Unload(string fileName) {
             int totalNrObj = 0;
             // Create empty file
@@ -50,7 +59,7 @@ namespace Starcounter {
                     inStmt.Append(",");
                     inStmt.Append(QuoteName(col.Name));
                     selectObjs.Append(",");
-                    selectObjs.Append(QuoteName(col.Name));
+                    selectObjs.Append(QuoteName(GetPropertyName(col)));
                 }
                 inStmt.Append(")");
                 inStmt.Append("VALUES");
