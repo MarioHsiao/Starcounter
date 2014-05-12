@@ -127,8 +127,18 @@ namespace Starcounter {
                 return _Session;
             }
             set {
+                if (Parent != null)
+                    throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+
+                if (_Session != null) {
+                    // This instance is already attached to a session. We need to remove the old
+                    // before setting the new.
+                    _Session.Data = null;
+                }
+
                 _Session = value;
-                _Session.Data = this;
+                if (value != null)
+                    _Session.Data = this;
             }
         }
 
