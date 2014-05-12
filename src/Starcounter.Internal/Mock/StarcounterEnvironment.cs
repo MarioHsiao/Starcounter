@@ -321,6 +321,12 @@ namespace Starcounter.Internal
             /// 32BitComponents directory.
             /// </summary>
             public const String Bit32Components = "32BitComponents";
+
+            /// <summary>
+            /// Configuration folder, relative to the installation folder,
+            /// where we keep configuration files like "Personal.xml".
+            /// </summary>
+            public const string InstallationConfiguration = "Configuration";
         }
 
         /// <summary>
