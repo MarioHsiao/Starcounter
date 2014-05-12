@@ -9,9 +9,9 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
-                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt")) {
+                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql")) {
                     HelpMethods.LogEvent("Start loading query processing database.");
-                    int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
+                    int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                     HelpMethods.LogEvent("Finish loading query processing database. Loaded " +
                         nrLoaded + " objects.");
                 } else
