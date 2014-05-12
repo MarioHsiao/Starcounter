@@ -1,39 +1,35 @@
-﻿
-using Starcounter.Internal.JsonPatch;
-using Starcounter.Internal.XSON;
-using Starcounter.Templates;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Internal;
+using Starcounter.Internal.JsonPatch;
+using Starcounter.Internal.XSON;
+using Starcounter.Templates;
+
 namespace Starcounter {
     partial class Session : IEnumerable<Change> {
-
-        private bool _BrandNew = true;
+        private bool _brandNew = true;
 
         /// <summary>
         /// The log of Json tree changes pertaining to the session data
         /// </summary>
-        internal List<Change> _Changes;
+        private List<Change> _changes;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
-        public Session()
-        {
-            _Changes = new List<Change>();
+        public Session() {
+            _changes = new List<Change>();
+            _indexPerApplication = new Dictionary<string, int>();
+            _stateList = new List<DataAndCache>();
 
             UInt32 errCode = 0;
 
-            if (_Request != null)
-            {
-                errCode = _Request.GenerateNewSession(this);
-            }
-            else
-            {
+            if (_request != null) {
+                errCode = _request.GenerateNewSession(this);
+            } else {
                 // Simply generating new session.
                 ScSessionStruct sss = new ScSessionStruct(true);
-
                 errCode = GlobalSessions.AllGlobalSessions.CreateNewSession(ref sss, this);
             }
 
@@ -44,17 +40,35 @@ namespace Starcounter {
         /// <summary>
         /// Adds an value update change.
         /// </summary>
-        /// <param name="obj">The Obj.</param>
-        /// <param name="property">The property.</param>
+        /// <param name="obj">The json containing the value.</param>
+        /// <param name="property">The property to update</param>
         internal void UpdateValue(Json obj, TValue property) {
-                _Changes.Add(Change.Update(obj, property));
+            _changes.Add(Change.Update(obj, property));
+        }
+
+        /// <summary>
+        /// Adds a value update for an array.
+        /// </summary>
+        /// <param name="obj">The json containing the value.</param>
+        /// <param name="property">The property to update</param>
+        /// <param name="index">The index in the array that should be updated.</param>
+        internal void UpdateValue(Json obj, TObjArr property, int index) {
+            _changes.Add(Change.Update(obj, property, index));
+        }
+
+        /// <summary>
+        /// Adds a list of changes to the log
+        /// </summary>
+        /// <param name="toAdd"></param>
+        internal void AddRangeOfChanges(List<Change> toAdd) {
+            _changes.AddRange(toAdd);
         }
 
         /// <summary>
         /// Clears all changes.
         /// </summary>
         public void Clear() {
-            _Changes.Clear();
+            _changes.Clear();
         }
 
         /// <summary>
@@ -62,7 +76,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>IEnumerator{Change}.</returns>
         public IEnumerator<Change> GetEnumerator() {
-            return _Changes.GetEnumerator();
+            return _changes.GetEnumerator();
         }
 
         /// <summary>
@@ -70,42 +84,22 @@ namespace Starcounter {
         /// </summary>
         /// <returns><see cref="T:System.Collections.IEnumerator" /></returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-            return _Changes.GetEnumerator();
+            return _changes.GetEnumerator();
         }
 
         /// <summary>
         /// Returns the number of changes in the log.
         /// </summary>
         /// <value></value>
-        public Int32 Count { get { return _Changes.Count; } }
+        public Int32 Count { get { return _changes.Count; } }
 
         /// <summary>
         /// Generates a JSON-Patch array for all changes made to the session data
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public string CreateJsonPatch( bool flushLog ) {
-
-			//if (_BrandNew) {
-			//	// Just return the whole thing as a change to the root
-			//	//GenerateChangeLog(); // Needed to update bound dirty check values.
-			//	this.CheckpointChangeLog();
-			//	_BrandNew = false;
-			//	return "[{\"op\":\"add\",\"path\":\"/\",\"value\":"+_Data.ToJson()+"}]";
-			//}
-
-			//this.GenerateChangeLog();
-
-			//var buffer = new List<byte>();
-			//HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
-			//var ret = Encoding.UTF8.GetString(buffer.ToArray());
-
-			//if (flushLog) {
-			//	this._Changes = new List<Change>();
-			//}
-			//return ret;
-
-			return Encoding.UTF8.GetString(CreateJsonPatchBytes(flushLog));
+        public string CreateJsonPatch(bool flushLog) {
+            return Encoding.UTF8.GetString(CreateJsonPatchBytes(flushLog));
         }
 
         /// <summary>
@@ -114,21 +108,26 @@ namespace Starcounter {
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
         public byte[] CreateJsonPatchBytes(bool flushLog) {
-			if (_BrandNew) {
-				// TODO: 
-				// might be array.
-				_Changes.Add(Change.Add(_Data));
-				this.CheckpointChangeLog();
-				_BrandNew = false;
-			} else {
-				this.GenerateChangeLog();
-			}
+            if (_brandNew) {
+                // TODO: 
+                // might be array.
+
+                foreach (var dac in _stateList) {
+                    if (dac.Data != null) {
+                        _changes.Add(Change.Add(dac.Data));
+                        dac.Data.CheckpointChangeLog();
+                    }
+                }
+                _brandNew = false;
+            } else {
+                this.GenerateChangeLog();
+            }
 
             var buffer = new List<byte>();
             HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
 
             if (flushLog) {
-                this._Changes = new List<Change>();
+                this._changes = new List<Change>();
             }
 
             return buffer.ToArray();
@@ -140,11 +139,14 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         private void GenerateChangeLog() {
-            if (DatabaseHasBeenUpdatedInCurrentTask) {
-                this._Data.LogValueChangesWithDatabase(this);
-            }
-            else {
-                this._Data.LogValueChangesWithoutDatabase(this);
+            foreach (var dac in _stateList) {
+                if (dac.Data != null) {
+                    if (DatabaseHasBeenUpdatedInCurrentTask) {
+                        dac.Data.LogValueChangesWithDatabase(this);
+                    } else {
+                        dac.Data.LogValueChangesWithoutDatabase(this);
+                    }
+                }
             }
         }
 
@@ -166,15 +168,17 @@ namespace Starcounter {
         /// 
         /// </summary>
         public void CheckpointChangeLog() {
-            this._Data.CheckpointChangeLog();
-			_BrandNew = false;
+            foreach (var dac in _stateList) {
+                if (dac.Data != null)
+                    dac.Data.CheckpointChangeLog();
+            }
+            _brandNew = false;
         }
 
         public bool BrandNew {
             get {
-                return _BrandNew;
+                return _brandNew;
             }
         }
     }
-
 }

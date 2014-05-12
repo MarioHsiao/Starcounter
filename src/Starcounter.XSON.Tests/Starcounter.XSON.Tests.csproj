@@ -76,6 +76,7 @@
     <Compile Include="JsonSerializeTests.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PuppetTests.cs" />
     <Compile Include="TypedJsonTests.cs" />
   </ItemGroup>
   <ItemGroup>
