@@ -32,18 +32,45 @@ namespace Starcounter.Internal.XSON.Tests {
             StarcounterEnvironment.AppName = "SingleApp";
             session.Data = root;
 
-            Assert.AreEqual(session, root.Session);
-            Assert.AreEqual(root, session.Data);
-
-            // For single applications appname should not be used to avoid dictionary lookup.
-            StarcounterEnvironment.AppName = null;
-            Assert.AreEqual(root, session.Data);
+            Assert.IsTrue(session == root.Session);
+            Assert.IsTrue(root == session.Data);
 
             StarcounterEnvironment.AppName = "SingleApp2";
             session2.Data = root;
 
             Assert.IsTrue(session.Data == null);
-            Assert.AreEqual(session2, root.Session);
+            Assert.IsTrue(session2 == root.Session);
+
+            StarcounterEnvironment.AppName = "Test";
+        }
+
+        [Test]
+        public static void TestMultiAppSessionState() {
+            var root1 = new Json();
+            var root2 = new Json();
+            var root3 = new Json();
+            var app1 = "App1";
+            var app2 = "App2";
+            var app3 = "App3";
+            var session = new Session();
+
+            StarcounterEnvironment.AppName = app1;
+            session.Data = root1;
+
+            StarcounterEnvironment.AppName = app2;
+            session.Data = root2;
+
+            StarcounterEnvironment.AppName = app3;
+            session.Data = root3;
+
+            StarcounterEnvironment.AppName = app2;
+            Assert.IsTrue(root2 == session.Data);
+
+            StarcounterEnvironment.AppName = app1;
+            Assert.IsTrue(root1 == session.Data);
+
+            StarcounterEnvironment.AppName = app3;
+            Assert.IsTrue(root3 == session.Data);
 
             StarcounterEnvironment.AppName = "Test";
         }
