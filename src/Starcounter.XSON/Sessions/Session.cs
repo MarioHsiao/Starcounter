@@ -86,8 +86,11 @@ namespace Starcounter {
             string appName;
 
             appName = CurrentApplicationName;
-            if (appName == null)
+            if (appName == null) {
+                // TODO: 
+                // Should appname always be set and we treat this as an error?
                 return null;
+            }
 
             dac = new DataAndCache();
             stateIndex = _stateList.Count;
@@ -280,10 +283,19 @@ namespace Starcounter {
                 return null;
             }
             set {
+                if (value != null && value.Parent != null)
+                    throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+
                 DataAndCache dac = GetCurrentStateObject();
                 if (dac == null)
                     dac = AddStateObject();
                 dac.Data = value;
+                if (value != null) {
+                    if (value._Session != null)
+                        value._Session.Data = null;
+
+                    value._Session = this;
+                }
 
                 // Setting current session.
                 Current = this;
