@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace Starcounter {
     public static class Reload {
@@ -37,6 +38,7 @@ namespace Starcounter {
             }
             foreach (materialized_table tbl in Db.SQL<materialized_table>("select t from materialized_table t where table_id > ?", 3)) {
                 Debug.Assert(!String.IsNullOrEmpty(tbl.name));
+                Trace.Assert(Binding.Bindings.GetTypeDef(tbl.name) != null);
                 int tblNrObj = 0;
                 String insertHeader;
                 StringBuilder inStmt = new StringBuilder();
@@ -46,12 +48,16 @@ namespace Starcounter {
                 inStmt.Append("(__id");
                 selectObjs.Append("SELECT __o as __id");
                 foreach (materialized_column col in Db.SQL<materialized_column>("select c from materialized_column c where \"table\" = ?", tbl)) {
-                    if (col.name == "__id")
-                        continue;
-                    inStmt.Append(",");
-                    inStmt.Append(QuoteName(col.name));
-                    selectObjs.Append(",");
-                    selectObjs.Append(QuoteName(col.name));
+                    if (col.name != "__id") {
+                        PropertyDef prop = (from propDef in Bindings.GetTypeDef(tbl.name).PropertyDefs
+                                    where propDef.ColumnName == col.name
+                                    select propDef).First<PropertyDef>();
+                        inStmt.Append(",");
+                        inStmt.Append(QuoteName(col.name));
+                        selectObjs.Append(",");
+                        selectObjs.Append(QuoteName(prop.Name));
+
+                    }
                 }
                 inStmt.Append(")");
                 inStmt.Append("VALUES");
