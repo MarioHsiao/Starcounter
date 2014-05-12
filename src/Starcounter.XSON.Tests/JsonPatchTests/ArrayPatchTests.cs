@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.XSON.Tests {
 
     [TestFixture]
-    class ArrayPatchTests : GenerateJsonPatchTests {
+    public class ArrayPatchTests : GenerateJsonPatchTests {
         [Test]
         public static void TestJsonPatchSimpleArray() {
 			dynamic j = new Json();
