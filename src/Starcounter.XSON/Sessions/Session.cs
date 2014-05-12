@@ -5,63 +5,101 @@
 // ***********************************************************************
 
 using System;
-using System.Diagnostics; 
-using Starcounter.Templates;
-using Starcounter.Advanced;
-using Starcounter.Internal;
-using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Starcounter.Internal;
+using Starcounter.Templates;
 
 namespace Starcounter {
     /// <summary>
     /// Class Session
     /// </summary>
     public partial class Session : IAppsSession {
+        private class DataAndCache {
+            internal Json Data;
+            internal Dictionary<string, Json> Cache;
+        }
+
         /// <summary>
         /// Current static JSON object.
         /// </summary>
         [ThreadStatic]
-        internal static Session _Current;
+        private static Session _current;
 
         /// <summary>
         /// Current static Request object.
         /// </summary>
         [ThreadStatic]
-        static Request _Request;
+        private static Request _request;
 
         /// <summary>
-        /// Attached Json object.
+        /// Dictionary for index in statelist for each application.
         /// </summary>
-        internal Json _Data;
+        private Dictionary<string, int> _indexPerApplication;
+
+        /// <summary>
+        /// A list of state and nodecache for each application.
+        /// </summary>
+        private List<DataAndCache> _stateList;
 
         /// <summary>
         /// Indicates if session is being used.
         /// </summary>
-        bool _IsInUse;
-
-        /// <summary>
-        /// Cached pages dictionary.
-        /// </summary>
-        Dictionary<String, Json> _JsonNodeCacheDict;
+        private bool _isInUse;
 
         /// <summary>
         /// Destroy session delegate.
         /// </summary>
-        internal Action<Session> _SessionDestroyUserDelegate;
+        private Action<Session> _sessionDestroyUserDelegate;
 
         /// <summary>
-        /// Runs a task asynchronously on a given scheduler.
+        /// 
         /// </summary>
-        public void RunAsync(Action action, Byte schedId = Byte.MaxValue)
-        {
-            InternalSession.RunAsync(action, schedId);
+        private string CurrentApplicationName {
+            get {
+                return StarcounterEnvironment.AppName;
+            }
+        }
+
+        private DataAndCache GetCurrentStateObject() {
+            int stateIndex;
+            string appName;
+
+            // if we only have one state (i.e no merged applications) we always return 
+            // directly, no need for a lookup.
+            if (_stateList.Count == 1)
+                return _stateList[0];
+
+            appName = CurrentApplicationName;
+            if (appName == null)
+                return null;
+
+            if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
+                return null;
+
+            return _stateList[stateIndex];
+        }
+
+        private DataAndCache AddStateObject() {
+            DataAndCache dac;
+            int stateIndex;
+            string appName;
+
+            appName = CurrentApplicationName;
+            if (appName == null)
+                return null;
+
+            dac = new DataAndCache();
+            stateIndex = _stateList.Count;
+            _stateList.Add(dac);
+            _indexPerApplication.Add(appName, stateIndex);
+            return dac;
         }
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
-        public void RunSync(Action action, Byte schedId = Byte.MaxValue)
-        {
+        public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
             InternalSession.RunSync(action, schedId);
         }
 
@@ -83,13 +121,11 @@ namespace Starcounter {
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
                 Byte schedId = i;
 
-                ScSessionClass.DbSession.RunAsync(() => 
-                {
+                ScSessionClass.DbSession.RunAsync(() => {
                     // Saving current session since we are going to set other.
                     Session origCurrentSession = Session.Current;
 
-                    try
-                    {
+                    try {
                         SchedulerSessions ss = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(schedId);
 
                         LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
@@ -118,8 +154,7 @@ namespace Starcounter {
                             // Getting next used session.
                             used_session_index_node = next_used_session_index_node;
                         }
-                    }
-                    finally {
+                    } finally {
                         // Restoring original current session.
                         Session.Current = origCurrentSession;
                     }
@@ -133,23 +168,30 @@ namespace Starcounter {
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        internal Json GetCachedJsonNode(String uri)
-        {
+        internal Json GetCachedJsonNode(String uri) {
             Json obj;
+            Json root;
+            DataAndCache dac;
+            
+            dac = GetCurrentStateObject();
+            if (dac == null)
+                return null;
 
-            if ((_JsonNodeCacheDict == null) || (!_JsonNodeCacheDict.TryGetValue(uri, out obj)))
+            var cache = dac.Cache;
+            if ((cache == null) || (!cache.TryGetValue(uri, out obj)))
                 return null;
 
             Debug.Assert(null != obj);
 
             // Checking if its a root.
-            if (_Data == obj)
-                return _Data;
+            root = dac.Data;
+            if (root == obj)
+                return root;
 
             // Checking if node has no parent, indicating that it was removed from tree.
             // We need to check all the way up to the root, since a parent might have been removed 
             // further up.
-            if (obj.HasThisRoot(_Data))
+            if (obj.HasThisRoot(root))
                 return obj;
 
             return null;
@@ -161,12 +203,19 @@ namespace Starcounter {
         /// <param name="uri"></param>
         /// <param name="obj"></param>
         internal void AddJsonNodeToCache(String uri, Json obj) {
-            // Checking if cached state dictionary is already created.
-            if (null == _JsonNodeCacheDict)
-                _JsonNodeCacheDict = new Dictionary<String, Json>();
+            DataAndCache dac;
+
+            dac = GetCurrentStateObject();
+            if (dac == null) {
+                dac = AddStateObject();
+                dac.Cache = new Dictionary<string, Json>();
+            } 
+
+            if (dac.Cache == null)
+                dac.Cache = new Dictionary<string, Json>();
 
             // Adding current URI to cache.
-            _JsonNodeCacheDict[uri] = obj;
+            dac.Cache[uri] = obj;
         }
 
         /// <summary>
@@ -175,13 +224,10 @@ namespace Starcounter {
         /// <param name="uri">URI entry.</param>
         /// <returns>True if URI entry is removed.</returns>
         internal Boolean RemoveUriFromCache(String uri) {
-            // Checking if cached state dictionary is already created.
-            if (null == _JsonNodeCacheDict)
-                return false;
-
-            // Adding current URI to cache.
-            if (_JsonNodeCacheDict.ContainsKey(uri)) {
-                _JsonNodeCacheDict[uri] = null;
+            DataAndCache dac = GetCurrentStateObject();
+            
+            if (dac != null && dac.Cache != null && dac.Cache.ContainsKey(uri)) {
+                dac.Cache.Remove(uri);
                 return true;
             }
 
@@ -201,8 +247,8 @@ namespace Starcounter {
         /// </summary>
         /// <value></value>
         public static Request InitialRequest {
-            get { return _Request; }
-            set { _Request = value; }
+            get { return _request; }
+            set { _request = value; }
         }
 
         /// <summary>
@@ -213,32 +259,31 @@ namespace Starcounter {
         /// <summary>
         /// Current static session object.
         /// </summary>
-        public static Session Current
-        {
+        public static Session Current {
             get {
-                return _Current;
+                return _current;
             }
-
             set {
-                // Creating new empty session.
-                _Current = value;
+                _current = value;
 
             }
         }
 
         /// <summary>
-        /// Sets session data.
+        /// Gets or sets session data for one specific application. 
         /// </summary>
         public Json Data {
             get {
-                return _Data;
+                var dac = GetCurrentStateObject();
+                if (dac != null)
+                    return dac.Data;
+                return null;
             }
-
             set {
-                _Data = value;
-                if (value != null) {
-                    value._Session = this;
-                }
+                DataAndCache dac = GetCurrentStateObject();
+                if (dac == null)
+                    dac = AddStateObject();
+                dac.Data = value;
 
                 // Setting current session.
                 Current = this;
@@ -248,15 +293,11 @@ namespace Starcounter {
         /// <summary>
         /// Specific saved user object ID.
         /// </summary>
-        public UInt64 CargoId
-        {
-            get
-            {
+        public UInt64 CargoId {
+            get {
                 return InternalSession.CargoId;
             }
-
-            set
-            {
+            set {
                 InternalSession.CargoId = value;
             }
         }
@@ -264,8 +305,7 @@ namespace Starcounter {
         /// <summary>
         /// Getting session creation time. 
         /// </summary>
-        public DateTime Created
-        {
+        public DateTime Created {
             get {
                 return InternalSession.Created;
             }
@@ -274,8 +314,7 @@ namespace Starcounter {
         /// <summary>
         /// Getting last active session time. 
         /// </summary>
-        public DateTime LastActive
-        {
+        public DateTime LastActive {
             get {
                 return InternalSession.LastActive;
             }
@@ -284,8 +323,7 @@ namespace Starcounter {
         /// <summary>
         /// Session timeout.
         /// </summary>
-        public UInt64 TimeoutMinutes
-        {
+        public UInt64 TimeoutMinutes {
             get {
                 return InternalSession.TimeoutMinutes;
             }
@@ -297,8 +335,7 @@ namespace Starcounter {
         /// <summary>
         /// Internal session string.
         /// </summary>
-        public String SessionIdString
-        {
+        public String SessionIdString {
             get { return InternalSession.ToAsciiString(); }
         }
 
@@ -312,26 +349,24 @@ namespace Starcounter {
         /// Start usage of given session.
         /// </summary>
         /// <param name="session"></param>
-        internal static void Start(Session session)
-        {
-            Debug.Assert(_Current == null);
+        internal static void Start(Session session) {
+            Debug.Assert(_current == null);
 
             // Session still can be null, e.g. did not pass the verification.
             if (session == null)
                 return;
 
-            Session._Current = session;
+            Session._current = session;
         }
 
         /// <summary>
         /// Finish usage of current session.
         /// </summary>
-        internal static void End()
-        {
-			if (_Current != null) {
-				_Current.Clear();
-				Session._Current = null;
-			}
+        internal static void End() {
+            if (_current != null) {
+                _current.Clear();
+                Session._current = null;
+            }
         }
 
         /// <summary>
@@ -353,29 +388,28 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public bool IsBeingUsed() {
-            return _IsInUse;
+            return _isInUse;
         }
 
         /// <summary>
         /// Start using specific session.
         /// </summary>
         public void StartUsing() {
-            _IsInUse = true;
+            _isInUse = true;
         }
 
         /// <summary>
         /// Stop using specific session.
         /// </summary>
         public void StopUsing() {
-            _IsInUse = false;
+            _isInUse = false;
         }
 
         /// <summary>
         /// Checks if session is active.
         /// </summary>
         /// <returns></returns>
-        public Boolean IsAlive()
-        {
+        public Boolean IsAlive() {
             return (InternalSession != null) && (InternalSession.IsAlive());
         }
 
@@ -383,32 +417,32 @@ namespace Starcounter {
         /// Set user destroy callback.  
         /// </summary>
         /// <param name="destroy_user_delegate"></param>
-        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod)
-        {
-            _SessionDestroyUserDelegate = userDestroyMethod;
+        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod) {
+            _sessionDestroyUserDelegate = userDestroyMethod;
         }
 
         /// <summary>
         /// Gets destroy callback if it was supplied before.
         /// </summary>
         /// <returns></returns>
-        public Action<Session> GetDestroyCallback()
-        {
-            return _SessionDestroyUserDelegate;
+        public Action<Session> GetDestroyCallback() {
+            return _sessionDestroyUserDelegate;
         }
 
         /// <summary>
         /// Destroys the session.
         /// </summary>
-        public void Destroy()
-        {
-            if (_Data != null) {
-                DisposeJsonRecursively(_Data);
-                _Data = null;
+        public void Destroy() {
+            foreach (var dac in _stateList) {
+                if (dac.Data != null)
+                    DisposeJsonRecursively(dac.Data);
+                if (dac.Cache != null)
+                    dac.Cache.Clear();
             }
+            _indexPerApplication.Clear();
 
             if (InternalSession != null) {
-                
+
                 // NOTE: Preventing recursive destroy call.
                 InternalSession.apps_session_int_ = null;
 
@@ -417,13 +451,12 @@ namespace Starcounter {
             }
 
             // Checking if destroy callback is supplied.
-            if (null != _SessionDestroyUserDelegate)
-            {
-                _SessionDestroyUserDelegate(this);
-                _SessionDestroyUserDelegate = null;
+            if (null != _sessionDestroyUserDelegate) {
+                _sessionDestroyUserDelegate(this);
+                _sessionDestroyUserDelegate = null;
             }
 
-            Session._Current = null;
+            Session._current = null;
         }
 
         /// <summary>
