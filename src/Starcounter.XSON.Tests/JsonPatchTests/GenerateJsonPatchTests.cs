@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
-    class GenerateJsonPatchTests {
+    public class GenerateJsonPatchTests {
         /// <summary>
         /// Sets up the test.
         /// </summary>
@@ -18,6 +18,7 @@ namespace Starcounter.Internal.XSON.Tests {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);
             Json.DirtyCheckEnabled = true;
+            StarcounterEnvironment.AppName = "Test";
         }
 
 		[TearDown]
