@@ -4497,6 +4497,11 @@
         The datatype needs to be set as generic argument on the inheritance on the class.
       </message>
     </code>
+    <code hex="000A" severity="Error" name="ScErrSessionJsonNotRoot">
+      <message>
+        The json is not a rootobject (have no parent) and cannot be used as sessiondata.
+      </message>
+    </code>
 <!--
     <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
       <message> A template needs to be specified before this object can be used. </message>
