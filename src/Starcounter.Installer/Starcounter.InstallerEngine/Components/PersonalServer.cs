@@ -435,7 +435,9 @@ public class CPersonalServer : CComponentBase
             if (InstallerMain.InstallationDir == null)
                 return null;
 
-            personalServerConfigPath_ = Path.Combine(InstallerMain.InstallationDir, StarcounterEnvironment.ServerNames.PersonalServer + ".xml");
+            var folder = Path.Combine(InstallerMain.InstallationDir, StarcounterEnvironment.Directories.InstallationConfiguration);
+
+            personalServerConfigPath_ = Path.Combine(folder, StarcounterEnvironment.ServerNames.PersonalServer + ".xml");
 
             return personalServerConfigPath_;
         }
