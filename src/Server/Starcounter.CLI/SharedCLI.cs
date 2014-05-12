@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 
 namespace Starcounter.CLI {
+    using Severity = Sc.Tools.Logging.Severity;
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
@@ -119,6 +120,12 @@ namespace Starcounter.CLI {
             public const string Detailed = "detailed";
             /// <summary>
             /// Gets the option name of the parameter that instructs the
+            /// client to output matching logs from the server log at the
+            /// end of an operation
+            /// </summary>
+            public const string Logs = "logs";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
             /// client to return as soon as the executable has been passed
             /// to the host, not awaiting the full entrypoint of the
             /// executable to return.
@@ -198,6 +205,18 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Gets or sets a value instructing the shared CLI library to
+        /// display server logs at the end of a application command.
+        /// </summary>
+        public static bool ShowLogs = false;
+
+        /// <summary>
+        /// Gets or sets a value controlling the minimum severity of
+        /// logs to be displayed in case <see cref="ShowLogs"/> is set.
+        /// </summary>
+        public static Severity LogDisplaySeverity = Severity.Notice;
+
+        /// <summary>
         /// Defines and includes the well-known, shared CLI options in
         /// the given <see cref="SyntaxDefinition"/>.
         /// </summary>
@@ -266,6 +285,10 @@ namespace Starcounter.CLI {
                 Option.Detailed,
                 "Specifies that detailed output is to be written."
                 );
+            definition.DefineFlag(
+                Option.Logs,
+                "Specifies that log entries are to be displayed."
+                );
 
             if (includeUnofficial) {
                 definition.DefineFlag(
@@ -307,6 +330,19 @@ namespace Starcounter.CLI {
                 Verbosity = OutputLevel.Verbose;
             } else if (appArgs.ContainsFlag(Option.Detailed)) {
                 Verbosity = OutputLevel.Normal;
+            }
+
+            if (appArgs.ContainsFlag(Option.Logs)) {
+                ShowLogs = true;
+            }
+            else if (appArgs.ContainsFlag(Option.LogSteps)) {
+                ShowLogs = true;
+            }
+
+            if (ShowLogs) {
+                LogDisplaySeverity = Verbose || appArgs.ContainsFlag(Option.LogSteps)
+                    ? Severity.Debug 
+                    : Severity.Notice;
             }
 
             return true;
