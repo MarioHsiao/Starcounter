@@ -136,9 +136,9 @@ namespace Starcounter {
                     _Session.Data = null;
                 }
 
-                _Session = value;
                 if (value != null)
-                    _Session.Data = this;
+                    value.Data = this;
+                _Session = value;
             }
         }
 
