@@ -61,14 +61,9 @@ namespace Starcounter {
             }
         }
 
-        private DataAndCache GetCurrentStateObject() {
+        private DataAndCache GetStateObject() {
             int stateIndex;
             string appName;
-
-            // if we only have one state (i.e no merged applications) we always return 
-            // directly, no need for a lookup.
-            if (_stateList.Count == 1)
-                return _stateList[0];
 
             appName = CurrentApplicationName;
             if (appName == null)
@@ -80,7 +75,7 @@ namespace Starcounter {
             return _stateList[stateIndex];
         }
 
-        private DataAndCache AddStateObject() {
+        private DataAndCache AssureStateObject() {
             DataAndCache dac;
             int stateIndex;
             string appName;
@@ -92,10 +87,15 @@ namespace Starcounter {
                 return null;
             }
 
-            dac = new DataAndCache();
-            stateIndex = _stateList.Count;
-            _stateList.Add(dac);
-            _indexPerApplication.Add(appName, stateIndex);
+            if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
+                dac = new DataAndCache();
+                stateIndex = _stateList.Count;
+                _stateList.Add(dac);
+                _indexPerApplication.Add(appName, stateIndex);
+            } else {
+                dac = _stateList[stateIndex];
+            }
+
             return dac;
         }
 
@@ -176,7 +176,7 @@ namespace Starcounter {
             Json root;
             DataAndCache dac;
             
-            dac = GetCurrentStateObject();
+            dac = GetStateObject();
             if (dac == null)
                 return null;
 
@@ -208,12 +208,7 @@ namespace Starcounter {
         internal void AddJsonNodeToCache(String uri, Json obj) {
             DataAndCache dac;
 
-            dac = GetCurrentStateObject();
-            if (dac == null) {
-                dac = AddStateObject();
-                dac.Cache = new Dictionary<string, Json>();
-            } 
-
+            dac = AssureStateObject();
             if (dac.Cache == null)
                 dac.Cache = new Dictionary<string, Json>();
 
@@ -227,7 +222,7 @@ namespace Starcounter {
         /// <param name="uri">URI entry.</param>
         /// <returns>True if URI entry is removed.</returns>
         internal Boolean RemoveUriFromCache(String uri) {
-            DataAndCache dac = GetCurrentStateObject();
+            DataAndCache dac = GetStateObject();
             
             if (dac != null && dac.Cache != null && dac.Cache.ContainsKey(uri)) {
                 dac.Cache.Remove(uri);
@@ -277,7 +272,7 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
-                var dac = GetCurrentStateObject();
+                var dac = GetStateObject();
                 if (dac != null)
                     return dac.Data;
                 return null;
@@ -286,9 +281,7 @@ namespace Starcounter {
                 if (value != null && value.Parent != null)
                     throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
 
-                DataAndCache dac = GetCurrentStateObject();
-                if (dac == null)
-                    dac = AddStateObject();
+                DataAndCache dac = AssureStateObject();
                 dac.Data = value;
                 if (value != null) {
                     if (value._Session != null)
