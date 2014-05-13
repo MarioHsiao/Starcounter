@@ -46,9 +46,9 @@ internal sealed class GlobalQueryCache
     /// </summary>
     internal Int32 AddNewQuery<T>(String query, IExecutionEnumerator newEnum)
     {
-        Starcounter.ThreadHelper.SetYieldBlock();
-        try
-        {
+        // Caller is expected to set yield block.
+        //Starcounter.ThreadHelper.SetYieldBlock();
+        try {
             // Mutually excluding.
             lock (indexDict)
             {
@@ -88,9 +88,8 @@ internal sealed class GlobalQueryCache
                 return enumIndex;
             }
         }
-        finally
-        {
-            Starcounter.ThreadHelper.ReleaseYieldBlock();
+        finally {
+            //Starcounter.ThreadHelper.ReleaseYieldBlock();
         }
     }
 
