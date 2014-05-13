@@ -314,7 +314,6 @@ internal class VariableArray
                     case DbTypeCode.Decimal:
                     case DbTypeCode.Object:
                     case DbTypeCode.Binary:
-                    case DbTypeCode.LargeBinary:
                     //case DbTypeCode.Objects:
                     //    stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.GLOBAL_DATA, "INTERNAL_DATA VOID *g_QueryParam" + i + " = 0;");
                     //    break;
