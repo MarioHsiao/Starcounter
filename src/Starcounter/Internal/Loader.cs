@@ -235,9 +235,9 @@ namespace Starcounter.Internal
                     case DbTypeCode.Object:
                     case DbTypeCode.String:
                     case DbTypeCode.Binary:
-                    case DbTypeCode.LargeBinary:
                         isNullable = true;
                         break;
+                    default: throw new NotSupportedException();
                 }
 
                 switch (databaseAttribute.AttributeKind) {
@@ -349,8 +349,6 @@ namespace Starcounter.Internal
                 return DbTypeCode.UInt64;
             case DatabasePrimitive.Binary:
                 return DbTypeCode.Binary;;
-            case DatabasePrimitive.LargeBinary:
-                return DbTypeCode.LargeBinary;
             case DatabasePrimitive.None:
             default:
                 throw new NotSupportedException();

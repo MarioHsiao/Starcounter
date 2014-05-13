@@ -39,9 +39,6 @@ namespace Starcounter {
                     if (binaryVal == null || ((Binary)binaryVal).IsNull)
                         return nullStr;
                     return "BINARY '" + Db.BinaryToHex((Binary)binaryVal) + "'";
-                case DbTypeCode.LargeBinary:
-                    throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED,
-                        "Large binary is not supported in unload.");
                 case DbTypeCode.Boolean: 
                     Boolean? boolVal = values.GetBoolean(index);
                     if (boolVal == null)

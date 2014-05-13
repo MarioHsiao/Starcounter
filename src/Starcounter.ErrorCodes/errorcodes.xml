@@ -2564,9 +2564,9 @@
         renamed or possibly deleted.
       </message>
     </code>
-    <code hex="0099" severity="Error" name="ScErrLBinaryValueExceedMaxSize">
+    <!--code hex="0099" severity="Error" name="ScErrLBinaryValueExceedMaxSize">
       <message>Large binary data exceeds maximum size.</message>
-    </code>
+    </code-->
     <code hex="009A" severity="Error" name="ScErrStringValueExceedsMaxSize">
       <message>String data exceeds maximum size.</message>
       <remarks>
