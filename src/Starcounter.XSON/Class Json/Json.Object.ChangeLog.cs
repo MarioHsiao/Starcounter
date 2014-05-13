@@ -232,7 +232,7 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    Add(newJson);
+                    ((IList)this).Add(newJson);
                     newJson.Data = value;
                     hasChanged = true;
                 } else {
@@ -251,7 +251,7 @@ namespace Starcounter {
             }
 
             for (int i = _list.Count - 1; i >= index; i--) {
-                RemoveAt(i);
+                ((IList)this).RemoveAt(i);
                 hasChanged = true;
             }
 

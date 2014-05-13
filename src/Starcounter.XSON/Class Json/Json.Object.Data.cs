@@ -126,7 +126,7 @@ namespace Starcounter {
 					} else {
                         var thisj = AssertIsObject();
 						var arr = (Json)child.Getter(thisj);
-						arr.Clear();
+						((IList)arr).Clear();
 					}
                 }
             }

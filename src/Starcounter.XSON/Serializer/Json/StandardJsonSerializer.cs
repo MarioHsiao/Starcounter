@@ -6,6 +6,7 @@ using System.Text;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using System.Diagnostics;
+using System.Collections;
 
 namespace Starcounter.Advanced.XSON {
 
@@ -38,7 +39,7 @@ namespace Starcounter.Advanced.XSON {
 
                 sizeBytes = 2; // 2 for "[]".
 
-                for (int arrPos = 0; arrPos < obj.Count; arrPos++) {
+                for (int arrPos = 0; arrPos < ((IList)obj).Count; arrPos++) {
                     sizeBytes += EstimateSizeBytes(obj._GetAt(arrPos) as Json) + 1; // 1 for ",".
                 }
 
@@ -93,7 +94,7 @@ namespace Starcounter.Advanced.XSON {
 
                     sizeBytes += 1; // 1 for "[".
 
-                    for (int arrPos = 0; arrPos < arr.Count; arrPos++) {
+                    for (int arrPos = 0; arrPos < ((IList)arr).Count; arrPos++) {
                         sizeBytes += EstimateSizeBytes(arr._GetAt(arrPos) as Json) + 1; // 1 for ",".
                     }
 
@@ -164,13 +165,13 @@ namespace Starcounter.Advanced.XSON {
                         *pfrag++ = (byte)'[';
                         offset++;
 
-                        for (int arrPos = 0; arrPos < obj.Count; arrPos++) {
+                        for (int arrPos = 0; arrPos < ((IList)obj).Count; arrPos++) {
                             valueSize = (obj._GetAt(arrPos) as Json).ToJsonUtf8(buf, offset);
 
                             pfrag += valueSize;
                             offset += valueSize;
 
-                            if ((arrPos + 1) < obj.Count) {
+                            if ((arrPos + 1) < ((IList)obj).Count) {
                                 *pfrag++ = (byte)',';
                                 offset++;
                             }
@@ -261,13 +262,13 @@ namespace Starcounter.Advanced.XSON {
                             *pfrag++ = (byte)'[';
                             offset++;
 
-                            for (int arrPos = 0; arrPos < arr.Count; arrPos++) {
+                            for (int arrPos = 0; arrPos < ((IList)arr).Count; arrPos++) {
                                 valueSize = (arr._GetAt(arrPos) as Json).ToJsonUtf8(buf, offset);
 
                                 pfrag += valueSize;
                                 offset += valueSize;
 
-                                if ((arrPos + 1) < arr.Count) {
+                                if ((arrPos + 1) < ((IList)arr).Count) {
                                     *pfrag++ = (byte)',';
                                     offset++;
                                 }
@@ -374,7 +375,7 @@ namespace Starcounter.Advanced.XSON {
                         arr = ((TObjArr)tProperty).Getter(obj);
                         arrayReader = reader.CreateSubReader();
                         while (arrayReader.GotoNextObject()) {
-                            childObj = arr.Add();
+                            childObj = arr.NewItem();
                             arrayReader.PopulateObject(childObj);
                         }
                         reader.Skip(arrayReader.Used);
