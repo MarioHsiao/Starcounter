@@ -46,7 +46,6 @@ namespace LoadAndLatency
             Nullable<DateTime> prop_datetime_,
 
             Binary prop_binary_,
-            LargeBinary prop_large_binary_,
 
             String prop_string_)
         {
@@ -66,7 +65,6 @@ namespace LoadAndLatency
             prop_single = prop_single_;
             prop_datetime = prop_datetime_;
             prop_binary = prop_binary_;
-            prop_large_binary = prop_large_binary_;
 
             prop_string = prop_string_;
             prop_sbyte = prop_sbyte_;
@@ -104,8 +102,6 @@ namespace LoadAndLatency
         public Nullable<Byte> prop_byte;
         public Nullable<Int16> prop_int16;
         public Nullable<UInt16> prop_uint16;
-
-        public LargeBinary prop_large_binary;
 
         // Checksum calculation always on Int64 property.
         public Int64 GetCheckSum()

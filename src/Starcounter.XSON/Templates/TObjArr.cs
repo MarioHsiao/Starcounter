@@ -88,7 +88,7 @@ namespace Starcounter.Templates {
 		}
 
 		internal override void SetDefaultValue(Json parent) {
-			UnboundSetter(parent, new Json(parent, this));
+			UnboundSetter(parent, new Arr<Json>(parent, this));
 		}
 
 		internal override void InvalidateBoundGetterAndSetter() {
@@ -110,7 +110,7 @@ namespace Starcounter.Templates {
 		internal override void Checkpoint(Json parent) {
 			Json arr = UnboundGetter(parent);
 
-			for (int i = 0; i < arr.Count; i++) {
+			for (int i = 0; i < ((IList)arr).Count; i++) {
 				var row = (Json)arr._GetAt(i);
 				row.CheckpointChangeLog();
 				arr.CheckpointAt(i);

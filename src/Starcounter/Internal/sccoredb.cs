@@ -51,10 +51,6 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_LBINARY = 0x03;
-
-        /// <summary>
-        /// </summary>
         public const byte STAR_TYPE_LONG = 0x04;
 
         /// <summary>
@@ -738,11 +734,6 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_lbinary(ulong record_id, ulong record_addr, int column_index, byte** pvalue);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static uint star_get_reference(
 	        ulong record_id,
             ulong record_addr,
@@ -786,16 +777,6 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint star_put_long(ulong record_id, ulong record_addr, int column_index, long value);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_lbinary(
-            ulong record_id,
-            ulong record_addr,
-            int column_index,
-            byte[] value
-        );
 
         /// <summary>
         /// </summary>

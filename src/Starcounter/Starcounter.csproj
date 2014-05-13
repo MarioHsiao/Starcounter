@@ -71,7 +71,6 @@
     <Compile Include="Binding\BytePropertyBinding.cs" />
     <Compile Include="Binding\DotNetBindingHelpers.cs" />
     <Compile Include="Binding\TableCreate.cs" />
-    <Compile Include="Binding\LargeBinaryPropertyBinding.cs" />
     <Compile Include="Binding\ObjectPropertyBinding.cs" />
     <Compile Include="Binding\SinglePropertyBinding.cs" />
     <Compile Include="Binding\DateTimePropertyBinding.cs" />
@@ -117,7 +116,6 @@
     <Compile Include="Internal\TaskHelper.cs" />
     <Compile Include="Binding\IObjectProxy.cs" />
     <Compile Include="ITransactionConflictException.cs" />
-    <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />
     <Compile Include="Internal\Kernel32.cs" />

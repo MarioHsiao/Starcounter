@@ -106,10 +106,6 @@ namespace Starcounter.Hosting {
             return DbStateRedirect.Target.ReadBinary(oid, address, index);
         }
 
-        public static LargeBinary ReadLargeBinary(ulong oid, ulong address, int index) {
-            return DbStateRedirect.Target.ReadLargeBinary(oid, address, index);
-        }
-
         public static TimeSpan ReadTimeSpan(ulong oid, ulong address, int index) {
             return DbStateRedirect.Target.ReadTimeSpan(oid, address, index);
         }
@@ -276,10 +272,6 @@ namespace Starcounter.Hosting {
 
         public static void WriteBinary(ulong oid, ulong address, int index, Binary value) {
             DbStateRedirect.Target.WriteBinary(oid, address, index, value);
-        }
-
-        public static void WriteLargeBinary(ulong oid, ulong address, int index, LargeBinary value) {
-            DbStateRedirect.Target.WriteLargeBinary(oid, address, index, value);
         }
     }
 }

@@ -286,9 +286,6 @@ namespace Starcounter.Binding
                         case sccoredb.STAR_TYPE_BINARY:
                             output.Add(new BinaryColumnValueTransfer(oi, ni));
                             break;
-                        case sccoredb.STAR_TYPE_LBINARY:
-                            output.Add(new LargeBinaryColumnValueTransfer(oi, ni));
-                            break;
                         case sccoredb.STAR_TYPE_KEY: break;
                         default:
                             throw new NotSupportedException();
@@ -906,45 +903,6 @@ namespace Starcounter.Binding
             rec_.ThisRef = target;
             if (value_.HasValue)
                 DbState.WriteInt64(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
-        }
-    }
-
-    /// <summary>
-    /// Class LargeBinaryColumnValueTransfer
-    /// </summary>
-    internal class LargeBinaryColumnValueTransfer : ColumnValueTransfer
-    {
-
-        /// <summary>
-        /// The value_
-        /// </summary>
-        private LargeBinary value_;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LargeBinaryColumnValueTransfer" /> class.
-        /// </summary>
-        /// <param name="sourceIndex">Index of the source.</param>
-        /// <param name="targetIndex">Index of the target.</param>
-        public LargeBinaryColumnValueTransfer(int sourceIndex, int targetIndex) : base(sourceIndex, targetIndex) { }
-
-        /// <summary>
-        /// Reads the specified source.
-        /// </summary>
-        /// <param name="source">The source.</param>
-        public override void Read(ObjectRef source)
-        {
-            rec_.ThisRef = source;
-            value_ = DbState.ReadLargeBinary(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
-        }
-
-        /// <summary>
-        /// Writes the specified target.
-        /// </summary>
-        /// <param name="target">The target.</param>
-        public override void Write(ObjectRef target)
-        {
-            rec_.ThisRef = target;
-            DbState.WriteLargeBinary(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_);
         }
     }
 

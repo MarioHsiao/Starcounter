@@ -60,7 +60,7 @@ namespace Starcounter {
                 var notEnumeratedResult = (IEnumerable)_data;
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is Json) {
-                        Add(entity);
+                        ((IList)this).Add(entity);
                     } else {
                         var tobj = template.ElementType;
                         if (tobj == null) {
@@ -68,7 +68,7 @@ namespace Starcounter {
                             tobj = template.ElementType;
                         }
                         newApp = (Json)tobj.CreateInstance(this);
-                        Add(newApp);
+                        ((IList)this).Add(newApp);
                         newApp.Data = entity;
                     }
                 }
