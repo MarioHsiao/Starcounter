@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections;
 using System.IO;
 using NUnit.Framework;
 using Starcounter.Internal.JsonPatch;
@@ -198,8 +199,8 @@ namespace Starcounter.Internal.XSON.Tests {
                 else if (child is TObjArr) {
                     var arr1 = ((TObjArr)child).Getter(expected);
                     var arr2 = ((TObjArr)child).Getter(actual);
-                    Assert.AreEqual(arr1.Count, arr2.Count);
-                    for (int i = 0; i < arr1.Count; i++) {
+                    Assert.AreEqual(((IList)arr1).Count, ((IList)arr2).Count);
+                    for (int i = 0; i < ((IList)arr1).Count; i++) {
                         AssertAreEqual((Json)arr1._GetAt(i), (Json)arr2._GetAt(i));
                     }
                 } else
