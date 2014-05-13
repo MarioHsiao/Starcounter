@@ -56,7 +56,7 @@ typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
 typedef int16_t uri_index_type;
-typedef int16_t port_index_type;
+typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
 typedef int8_t chunk_store_type;
@@ -189,7 +189,7 @@ const db_index_type INVALID_DB_INDEX = -1;
 const worker_id_type INVALID_WORKER_INDEX = -1;
 
 // Bad port index.
-const int32_t INVALID_PORT_INDEX = -1;
+const port_index_type INVALID_PORT_INDEX = -1;
 
 // Bad index.
 const int32_t INVALID_INDEX = -1;
@@ -1274,12 +1274,33 @@ class ServerPort
     RegisteredSubports* registered_subports_;
 
     // This port index in global array.
-    int32_t port_index_;
+    port_index_type port_index_;
 
     // Is this an aggregation port.
     bool aggregating_flag_;
 
+    // Number of active sockets for this server port.
+    int32_t num_active_sockets_[MAX_WORKER_THREADS];
+
 public:
+
+    port_index_type get_port_index() {
+        return port_index_;
+    }
+
+    void AddToActiveSockets(worker_id_type worker_id) {
+        num_active_sockets_[worker_id]++;
+    }
+
+    void RemoveFromActiveSockets(worker_id_type worker_id) {
+        num_active_sockets_[worker_id]--;
+
+        GW_ASSERT(num_active_sockets_[worker_id] >= 0);
+    }
+
+    int32_t GetNumberOfActiveSocketsAllWorkers();
+
+    worker_id_type GetLeastBusyWorkerId();
 
     // Sets an aggregating port flag.
     void set_aggregating_flag()
@@ -1333,7 +1354,7 @@ public:
     bool IsEmpty();
 
     // Initializes server socket.
-    void Init(int32_t port_index, uint16_t port_number, SOCKET port_socket);
+    void Init(port_index_type port_index, uint16_t port_number, SOCKET port_socket);
 
     // Server port.
     ServerPort();
@@ -1773,7 +1794,7 @@ public:
     session_index_type ObtainFreeSocketIndex(
         GatewayWorker* gw,
         SOCKET s,
-        int32_t port_index,
+        port_index_type port_index,
         bool proxy_connect_socket);
 
     // Releases used socket index.
@@ -1883,7 +1904,7 @@ public:
     }
 
     // Getting socket id.
-    int32_t GetPortIndex(session_index_type socket_index)
+    port_index_type GetPortIndex(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
@@ -1896,6 +1917,13 @@ public:
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_;
+    }
+
+    void SetBoundWorkerId(session_index_type socket_index, worker_id_type worker_id)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
     }
 
     // Getting scheduler id.
@@ -2015,7 +2043,7 @@ public:
     bool ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id);
 
     // Creates new socket info.
-    void CreateNewSocketInfo(session_index_type socket_index, int32_t port_index, worker_id_type worker_id)
+    void CreateNewSocketInfo(session_index_type socket_index, port_index_type port_index, worker_id_type worker_id)
     {
         all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
         all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
@@ -2071,9 +2099,6 @@ public:
 
     // Current global profilers stats.
     std::string GetGlobalProfilersString(int32_t* out_len);
-
-    // Getting the number of used sockets.
-    int64_t NumberCreatedSocketsAllWorkers();
 
     // Getting the number of reusable connect sockets.
     int64_t NumberOfReusableConnectSockets();
@@ -2476,9 +2501,9 @@ public:
     }
 
     // Checks if certain server port exists.
-    int32_t FindServerPortIndex(uint16_t port_num)
+    port_index_type FindServerPortIndex(uint16_t port_num)
     {
-        for (int32_t i = 0; i < num_server_ports_slots_; i++)
+        for (port_index_type i = 0; i < num_server_ports_slots_; i++)
         {
             if (port_num == server_ports_[i].get_port_number())
                 return i;
@@ -2518,7 +2543,7 @@ public:
     void CleanUpEmptyPorts();
 
     // Get active server ports.
-    ServerPort* get_server_port(int32_t port_index)
+    ServerPort* get_server_port(port_index_type port_index)
     {
         return server_ports_ + port_index;
     }
@@ -2608,7 +2633,7 @@ public:
     int64_t NumberOverflowChunksPerDatabase(db_index_type db_index);
 
     // Getting the number of active connections per port.
-    int64_t NumberOfActiveConnectionsPerPort(int32_t port_index);
+    int64_t NumberOfActiveConnectionsPerPort(port_index_type port_index);
 
     // Get IOCP.
     HANDLE get_iocp()
@@ -2645,9 +2670,6 @@ public:
 
     // Creates socket and binds it to server port.
     uint32_t CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock);
-
-    // Creates new connections on all workers.
-    uint32_t CreateNewConnectionsAllWorkers(int32_t howMany, uint16_t port_num, db_index_type db_index);
 
     // Start workers.
     uint32_t StartWorkerAndManagementThreads(
