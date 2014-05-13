@@ -15,7 +15,6 @@ using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
-
 namespace Starcounter.XSON.JsonPatch {
     /// <summary>
     /// Class for evaluating, handling and creating json-patch to and from typed json objects 
@@ -106,7 +105,7 @@ namespace Starcounter.XSON.JsonPatch {
                     writer.Write('[');
 
                     for (int i = 0; i < changes.Count; i++) {
-                        WritePatch(changes[i], writer, pathSizes[i]);
+                        WritePatch(changes[i], ref writer, pathSizes[i]);
                         if ((i + 1) < changes.Count)
                             writer.Write(',');
                     }
@@ -125,7 +124,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="from">From.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        internal static void WritePatch(Change change, Utf8Writer writer, int pathSize) {
+        private static void WritePatch(Change change, ref Utf8Writer writer, int pathSize) {
 			Json childJson = null;
 
             // TODO:
@@ -135,7 +134,7 @@ namespace Starcounter.XSON.JsonPatch {
             writer.Write("\",\"path\":\"");
 
             if (change.Property != null) {
-                WritePath(writer, change, pathSize);
+                WritePath(ref writer, change, pathSize);
             } else {
                 writer.Write('/');
                 childJson = change.Obj;
@@ -144,46 +143,46 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (change.ChangeType != REMOVE) {
                 writer.Write(",\"value\":");
-				if (childJson == null && change.Property is TContainer) {
-					childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
-					if (change.Index != -1)
-						childJson = (Json)childJson._GetAt(change.Index);
+                //if (childJson == null && change.Property is TContainer) {
+                //    childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
+                //    if (change.Index != -1)
+                //        childJson = (Json)childJson._GetAt(change.Index);
 
-					if (childJson == null) {
-						writer.Write('{');
-                        writer.Write('}');
-                    }
-				}
+                //    if (childJson == null) {
+                //        writer.Write('{');
+                //        writer.Write('}');
+                //    }
+                //}
 
-				if (childJson != null) {
-                    // TODO:
-                    // Should be able to serialize it directly to the current buffer...
-					writer.Write(childJson.ToJsonUtf8());
-					childJson.SetBoundValuesInTuple();
-				} else {
-                    change.Obj.ExecuteInScope(() => {
-                        writer.Write(change.Property.ValueToJsonString(change.Obj));
-                    });
-                }
+                //if (childJson != null) {
+                //    // TODO:
+                //    // Should be able to serialize it directly to the current buffer...
+                //    writer.Write(childJson.ToJsonUtf8());
+                //    childJson.SetBoundValuesInTuple();
+                //} else {
+                //    change.Obj.ExecuteInScope(() => {
+                //        writer.Write(change.Property.ValueToJsonString(change.Obj));
+                //    });
+                //}
             }
             writer.Write('}');
         }
 
-        private static int CalculateSize(Change change, out int pathSize) {
+        internal static int CalculateSize(Change change, out int pathSize) {
             int size;
 
             // {"op":"???","path":"???","value":???}
-            // size = 7 + op + 10 + path + 10 + value => 27 + var
+            // size = 7 + op + 10 + path + 10 + value + 1 => 28 + var
 
             // {"op":"???","path":"???"}
-            // size = 7 + op + 10 + path + 1 => 18 + var
+            // size = 7 + op + 10 + path + 2 => 19 + var
             
-            size = 18;
+            size = 19;
             size += _patchOpUtf8Arr[change.ChangeType].Length;
 
             pathSize = CalculateSizeOfPath(change.Obj);
             if (change.Property != null)
-                pathSize += change.Property.TemplateName.Length + 1;
+                pathSize += change.Property.TemplateName.Length;
             size += pathSize;
 
             if (change.ChangeType != REMOVE) {
@@ -227,7 +226,7 @@ namespace Starcounter.XSON.JsonPatch {
         }
 
 
-        private static void WritePath(Utf8Writer writer, Change change, int pathSize) {
+        private static void WritePath(ref Utf8Writer writer, Change change, int pathSize) {
             int sizeToWrite = change.Property.TemplateName.Length + 1;
             
             if (change.Index != -1) {
@@ -245,11 +244,11 @@ namespace Starcounter.XSON.JsonPatch {
                 writer.Write(change.Index);
             }
 
-            WritePath_2(writer, change.Obj, sizeToWrite);
+            WritePath_2(ref writer, change.Obj, sizeToWrite);
 
         }
 
-        private static void WritePath_2(Utf8Writer writer, Json json, int prevSize) {
+        private static void WritePath_2(ref Utf8Writer writer, Json json, int prevSize) {
             int size;
             Json parent;
             Template template;
@@ -288,7 +287,7 @@ namespace Starcounter.XSON.JsonPatch {
                     writer.Write(template.TemplateName);
                 }
             }
-            WritePath_2(writer, parent, size);
+            WritePath_2(ref writer, parent, size);
         }
 
         // TODO:

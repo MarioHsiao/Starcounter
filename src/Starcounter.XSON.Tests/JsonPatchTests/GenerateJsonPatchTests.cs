@@ -29,6 +29,55 @@ namespace Starcounter.Internal.XSON.Tests {
 		}
 
         [Test]
+        public static void TestCalculatePatchSizes() {
+            Change change;
+            dynamic json;
+            int patchSize;
+            int pathSize;
+            TObject schema;
+            TValue property;
+            string patch;
+            string path;
+            
+            // ["op":"replace","path":"/FirstName","value":]
+            path = "/FirstName";
+            patch = string.Format(Helper.PATCH, path, "");
+            schema = new TObject();
+            property = schema.Add<TString>("FirstName");
+            json = new Json() { Template = schema };
+            change = Change.Update(json, property);
+            patchSize = JsonPatch.CalculateSize(change, out pathSize);
+            Assert.AreEqual(path.Length, pathSize);
+            Assert.AreEqual(patch.Length, patchSize);
+
+            // ["op":"replace","path":"/Focused/FirstName","value":]
+            path = "/Focused/FirstName";
+            patch = string.Format(Helper.PATCH, path, "");
+            schema = new TObject();
+            property = schema.Add<TObject>("Focused");
+            property = ((TObject)property).Add<TString>("FirstName");
+            json = new Json() { Template = schema };
+            change = Change.Update(json.Focused, property);
+            patchSize = JsonPatch.CalculateSize(change, out pathSize);
+            Assert.AreEqual(path.Length, pathSize);
+            Assert.AreEqual(patch.Length, patchSize);
+
+            // ["op":"replace","path":"/Items/0/FirstName","value":]
+            path = "/Items/0/FirstName";
+            patch = string.Format(Helper.PATCH, path, "");
+            schema = new TObject();
+            var tarr = schema.Add<TArray<Json>>("Items");
+            tarr.ElementType = new TObject();
+            property = tarr.ElementType.Add<TString>("FirstName");
+            json = new Json() { Template = schema };
+            json = json.Items.Add();
+            change = Change.Update(json, property, 0);
+            patchSize = JsonPatch.CalculateSize(change, out pathSize);
+            Assert.AreEqual(path.Length, pathSize);
+            Assert.AreEqual(patch.Length, patchSize);
+        }
+
+        [Test]
         public static void TestSimpleJsonPatch() {
             dynamic j = new Json();
             dynamic nicke = new Json();
