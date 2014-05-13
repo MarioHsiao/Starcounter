@@ -449,7 +449,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 }
 
 // Initializes server socket.
-void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening_sock)
+void ServerPort::Init(port_index_type port_index, uint16_t port_number, SOCKET listening_sock)
 {
     GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
 
@@ -463,6 +463,8 @@ void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening
     port_number_ = port_number;
     port_handlers_->set_port_number(port_number_);
     port_index_ = port_index;
+
+    memset(num_active_sockets_, 0, sizeof(num_active_sockets_));
 }
 
 // Resets the number of created sockets and active connections.
@@ -589,6 +591,33 @@ void ServerPort::Erase()
     Reset();
 }
 
+worker_id_type ServerPort::GetLeastBusyWorkerId() {
+
+    int32_t cur_least_active_sockets = num_active_sockets_[0];
+    worker_id_type wi = 0;
+
+    for (int32_t i = 1; i < g_gateway.setting_num_workers(); i++) {
+        if (cur_least_active_sockets > num_active_sockets_[i]) {
+            cur_least_active_sockets = num_active_sockets_[i];
+            wi = i;
+        }
+    }
+
+    GW_ASSERT(cur_least_active_sockets >= 0);
+
+    return wi;
+}
+
+int32_t ServerPort::GetNumberOfActiveSocketsAllWorkers() {
+    int32_t num_active_sockets = num_active_sockets_[0];
+
+    for (int32_t i = 1; i < g_gateway.setting_num_workers(); i++) {
+        num_active_sockets += num_active_sockets_[i];
+    }
+
+    return num_active_sockets;
+}
+
 // Printing the registered URIs.
 void ServerPort::PrintInfo(std::stringstream& stats_stream)
 {
@@ -597,9 +626,20 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     stats_stream << "\"activeConnections\":" << NumberOfActiveConnections() << ",";
+
+    stats_stream << "\"activeSockets\":\"";
+
+    stats_stream << num_active_sockets_[0];
+    for (int32_t i = 1; i < g_gateway.setting_num_workers(); i++) {
+        stats_stream << "-" << num_active_sockets_[i];
+    }
+
+    stats_stream << "\",";
+
     //stats_stream << "\"allocatedAcceptSockets\":" << get_num_allocated_accept_sockets() << ",";
     //stats_stream << "\"allocatedConnectSockets\": " << get_num_allocated_connect_sockets() << ",";
 #endif
+
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
     registered_ws_channels_->PrintRegisteredChannels(stats_stream);
@@ -1118,23 +1158,6 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     return 0;
 }
 
-// Creates new connections on all workers.
-uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port_num, db_index_type db_index)
-{
-    // Getting server port index.
-    int32_t port_index = g_gateway.FindServerPortIndex(port_num);
-
-    // Creating new connections for each worker.
-    for (int32_t i = 0; i < setting_num_workers_; i++)
-    {
-        uint32_t err_code = gw_workers_[i].CreateNewConnections(how_many, port_index);
-        if (err_code)
-            return err_code;
-    }
-
-    return 0;
-}
-
 // Applying session parameters to socket data.
 bool Gateway::ApplySocketInfoToSocketData(
     SocketDataChunkRef sd,
@@ -1165,7 +1188,7 @@ bool Gateway::ApplySocketInfoToSocketData(
 session_index_type Gateway::ObtainFreeSocketIndex(
     GatewayWorker* gw,
     SOCKET s,
-    int32_t port_index,
+    port_index_type port_index,
     bool proxy_connect_socket)
 {
     PSLIST_ENTRY free_socket_index_entry = InterlockedPopEntrySList(free_socket_indexes_unsafe_);
@@ -2165,28 +2188,6 @@ void Gateway::CleanUpEmptyPorts()
     }
 }
 
-// Getting the number of created sockets.
-int64_t Gateway::NumberCreatedSocketsAllWorkers()
-{
-    int64_t num_used_sockets = 0;
-
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-        num_used_sockets += gw_workers_[w].get_worker_stats_num_bound_sockets();
-
-    return num_used_sockets;
-}
-
-// Getting the number of reusable connect sockets.
-int64_t Gateway::NumberOfReusableConnectSockets()
-{
-    int64_t num_reusable_connect_sockets = 0;
-
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-        num_reusable_connect_sockets += gw_workers_[w].NumberOfReusableConnectSockets();
-
-    return num_reusable_connect_sockets;
-}
-
 // Getting the total number of overflow chunks for all databases.
 int64_t Gateway::NumberOverflowChunksAllWorkersAndDatabases()
 {
@@ -2212,7 +2213,7 @@ int64_t Gateway::NumberOverflowChunksPerDatabase(db_index_type db_index)
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
 // Getting the number of active connections per port.
-int64_t Gateway::NumberOfActiveConnectionsPerPort(int32_t port_index)
+int64_t Gateway::NumberOfActiveConnectionsPerPort(port_index_type port_index)
 {
     int64_t num_active_conns = 0;
 
@@ -2838,7 +2839,6 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() 
             << ",\"activeSockets\":" << g_gateway.get_num_active_sockets() 
-            << ",\"createdSockets\":" << g_gateway.NumberCreatedSocketsAllWorkers() 
             << ",\"reusableConn-socks\":" << g_gateway.NumberOfReusableConnectSockets()
 
 #ifdef GW_TESTING_MODE
@@ -3421,8 +3421,6 @@ end:
 // Releases used socket index.
 void Gateway::ReleaseSocketIndex(GatewayWorker* gw, session_index_type index)
 {
-    gw->PushToReusableAcceptSockets(all_sockets_infos_unsafe_[index].socket_);
-
     // Pushing to free indexes list.
     InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[index].free_socket_indexes_entry_));
 }

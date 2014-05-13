@@ -102,8 +102,7 @@ class GatewayWorker
     int64_t worker_stats_bytes_received_,
         worker_stats_bytes_sent_,
         worker_stats_sent_num_,
-        worker_stats_recv_num_,
-        worker_stats_num_bound_sockets_;
+        worker_stats_recv_num_;
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     int64_t port_num_active_conns_[MAX_PORTS_NUM];
@@ -123,12 +122,6 @@ class GatewayWorker
 
     // Clone made during last iteration.
     SocketDataChunk* sd_receive_clone_;
-
-    // List of reusable connect sockets.
-    LinearQueue<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_connect_sockets_;
-
-    // List of reusable accept sockets.
-    LinearQueue<SOCKET, MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER> reusable_accept_sockets_;
 
     // Number of created connections calculated for worker.
     int32_t num_created_conns_worker_;
@@ -188,12 +181,6 @@ public:
 
     // Processes all aggregated chunks.
     uint32_t SendAggregatedChunks();
-
-    // Pushes socket for further reuse.
-    void PushToReusableAcceptSockets(SOCKET sock)
-    {
-        reusable_accept_sockets_.PushBack(sock);
-    }
 
     // Adds socket to be disconnected.
     void AddSocketToDisconnectListUnsafe(session_index_type socket_index)
@@ -258,18 +245,6 @@ public:
 
 #endif
 
-    // Getting number of reusable connect sockets.
-    int32_t NumberOfReusableConnectSockets()
-    {
-        return reusable_connect_sockets_.get_num_entries();
-    }
-
-    // Getting number of reusable accept sockets.
-    int32_t NumberOfReusableAcceptSockets()
-    {
-        return reusable_accept_sockets_.get_num_entries();
-    }
-
     // Getting number of chunks in overflow queue.
     int64_t NumberOverflowChunksPerDatabasePerWorker(db_index_type db_index)
     {
@@ -299,11 +274,8 @@ public:
         sd_receive_clone_ = sd_clone;
     }
 
-    // Creating accepting sockets on all ports and for all databases.
-    uint32_t CheckAcceptingSocketsOnAllActivePorts();
-
     // Changes number of accepting sockets.
-    int64_t ChangeNumAcceptingSockets(int32_t port_index, int64_t change_value)
+    int64_t ChangeNumAcceptingSockets(port_index_type port_index, int64_t change_value)
     {
 #ifdef GW_DETAILED_STATISTICS
         GW_COUT << "ChangeNumAcceptingSockets: " << change_value << GW_ENDL;
@@ -312,10 +284,25 @@ public:
         return g_gateway.get_server_port(port_index)->ChangeNumAcceptingSockets(change_value);
     }
 
+    void AddToActiveSockets(port_index_type port_index)
+    {
+        g_gateway.get_server_port(port_index)->AddToActiveSockets(worker_id_);
+    }
+
+    void RemoveFromActiveSockets(port_index_type port_index)
+    {
+        g_gateway.get_server_port(port_index)->RemoveFromActiveSockets(worker_id_);
+    }
+
+    worker_id_type GetLeastBusyWorkerId(port_index_type port_index)
+    {
+        return g_gateway.get_server_port(port_index)->GetLeastBusyWorkerId();
+    }
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Changes number of active connections.
-    void ChangeNumActiveConnections(int32_t port_index, int64_t change_value)
+    void ChangeNumActiveConnections(port_index_type port_index, int64_t change_value)
     {
 #ifdef GW_DETAILED_STATISTICS
         GW_COUT << "ChangeNumActiveConnections: " << change_value << GW_ENDL;
@@ -328,13 +315,13 @@ public:
     }
 
     // Set number of active connections.
-    void SetNumActiveConnections(int32_t port_index, int64_t set_value)
+    void SetNumActiveConnections(port_index_type port_index, int64_t set_value)
     {
         port_num_active_conns_[port_index] += set_value;
     }
 
     // Getting number of active connections per port.
-    int64_t NumberOfActiveConnectionsPerPortPerWorker(int32_t port_index)
+    int64_t NumberOfActiveConnectionsPerPortPerWorker(port_index_type port_index)
     {
         return port_num_active_conns_[port_index];
     }
@@ -422,11 +409,6 @@ public:
         return worker_stats_bytes_received_;
     }
 
-    int64_t get_worker_stats_num_bound_sockets()
-    {
-        return worker_stats_num_bound_sockets_;
-    }
-
     // Getting the bytes sent statistics.
     int64_t get_worker_stats_bytes_sent()
     {
@@ -453,7 +435,6 @@ public:
         stats_stream << "\"packetsReceived\":" << worker_stats_recv_num_ << ",";
         stats_stream << "\"bytesSent\":" << worker_stats_bytes_sent_ << ",";
         stats_stream << "\"packetsSent\":" << worker_stats_sent_num_ << ",";
-        stats_stream << "\"boundSockets\":" << worker_stats_num_bound_sockets_ << ",";
         stats_stream << "\"allocatedChunks\":\"";
         worker_chunks_.PrintInfo(stats_stream);
         stats_stream << "\"}";
@@ -491,7 +472,7 @@ public:
     HANDLE get_worker_iocp() { return worker_iocp_; }
 
     // Used to create new connections when reaching the limit.
-    uint32_t CreateNewConnections(int32_t how_many, int32_t port_index);
+    uint32_t CreateNewConnections(int32_t how_many, port_index_type port_index);
 
 #ifdef GW_PROXY_MODE
     // Allocates a bunch of new connections.

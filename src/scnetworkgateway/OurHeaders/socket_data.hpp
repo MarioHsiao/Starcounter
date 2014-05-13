@@ -441,6 +441,21 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
     }
 
+    bool get_rebalanced_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_REBALANCED) != 0;
+    }
+
+    void set_rebalanced_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_REBALANCED;
+    }
+
+    void reset_rebalanced_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_REBALANCED;
+    }
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Getting socket diagnostics active connection flag.
@@ -686,6 +701,11 @@ public:
         return g_gateway.GetBoundWorkerId(socket_info_index_);
     }
 
+    void SetBoundWorkerId(worker_id_type worker_id)
+    {
+        return g_gateway.SetBoundWorkerId(socket_info_index_, worker_id);
+    }
+
     // Getting destination database index.
     db_index_type GetDestDbIndex()
     {
@@ -765,9 +785,9 @@ public:
     }
 
     // Returns port index.
-    int32_t GetPortIndex()
+    port_index_type GetPortIndex()
     {
-        int32_t port_index = g_gateway.GetPortIndex(socket_info_index_);
+        port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
         GW_ASSERT ((port_index != INVALID_PORT_INDEX) && (port_index < g_gateway.get_num_server_ports_slots()));
 
         return port_index;
@@ -1076,7 +1096,7 @@ public:
         return FALSE;
 #endif
 
-        return DisconnectExFunc(GetSocket(), &ovl_, TF_REUSE_SOCKET, 0);
+        return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
     }
 
     // Puts socket data to database.
