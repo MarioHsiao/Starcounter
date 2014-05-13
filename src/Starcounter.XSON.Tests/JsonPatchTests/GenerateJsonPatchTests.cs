@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -46,7 +47,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             var before = ((Json)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
-            string str = Session.Current.CreateJsonPatch(true);
+            string str = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             j.Daughter = daughter;
             j.FirstName = "Timothy";
@@ -54,7 +55,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.FirstName = "Charlie";
 
             var after = ((Json)j).DebugString;
-            var result = Session.Current.CreateJsonPatch(true);
+            var result = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Write("Before",before);
             Write("After",after);
@@ -92,14 +93,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Write("New stuff",((Json)j).DebugString);
 
-//            Session.Current.CheckpointChangeLog();            
-            Session.Current.CreateJsonPatch(true);
+            JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("Flushed");
             Console.WriteLine("=========");
             Console.WriteLine(((Json)j).DebugString);
 
-            var str = Session.Current.CreateJsonPatch(true);
+            var str = JsonPatch.CreateJsonPatch(Session.Current, true);
             Assert.AreEqual("[]", str);
 
             j.Friends[1].FirstName = "Henke";
@@ -112,7 +112,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("=========");
             Console.WriteLine(((Json)j).DebugString);
 
-            str = Session.Current.CreateJsonPatch(true);
+            str = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("JSON-Patch");
             Console.WriteLine("==========");
@@ -153,14 +153,13 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("=========");
             Console.WriteLine(((Json)jockeJson).DebugString);
 
-            //Session.Current.CheckpointChangeLog();
-            Session.Current.CreateJsonPatch(true);
+            JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("Flushed");
             Console.WriteLine("=========");
             Console.WriteLine(((Json)jockeJson).DebugString);
 
-            var str = Session.Current.CreateJsonPatch(true);
+            var str = JsonPatch.CreateJsonPatch(Session.Current, true);
             Assert.AreEqual("[]", str);
 
             jockeJson.Friends[1].FirstName = "Henke";
@@ -173,7 +172,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("=========");
             Console.WriteLine(((Json)jockeJson).DebugString);
 
-            str = Session.Current.CreateJsonPatch(true);
+            str = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("JSON-Patch");
             Console.WriteLine("==========");
@@ -199,14 +198,8 @@ namespace Starcounter.Internal.XSON.Tests {
             Session.Current = new Session() { Data = j };
 
             var before = ((Json)j).DebugString;
-//            Session.Current.CheckpointChangeLog();
-            Session.Current.CreateJsonPatch(true);
 
-            //Session.Current.LogChanges = true;
-
-//            Session.Data.LogChanges = true;
-//            nicke.LogChanges = true;
-//            ChangeLog.CurrentOnThread = new ChangeLog();
+            JsonPatch.CreateJsonPatch(Session.Current, true);
 
             j.FirstName = "Timothy";
             j.LastName = "Wester";
@@ -216,7 +209,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Friends.Add().FirstName = "Henrik";
 
             var after = ((Json)j).DebugString;
-            var result = Session.Current.CreateJsonPatch(true);
+            var result = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("Before");
             Console.WriteLine("=====");
@@ -270,14 +263,14 @@ Assert.AreEqual(facit, result );
             Assert.IsTrue(!json.HasBeenSent);
             Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
 
-            Session.Current.CreateJsonPatch(true); // Flush
+            JsonPatch.CreateJsonPatch(Session.Current, true); // Flush
             var before = ((Json)j).DebugString;
 
             p.FirstName = "Douglas";
 
             var after = ((Json)j).DebugString;
 
-            var patch = Session.Current.CreateJsonPatch(true);
+            var patch = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("Start");
             Console.WriteLine("=====");
@@ -307,26 +300,17 @@ Assert.AreEqual(facit, result );
             dynamic nicke = new Json();
 
             Session.Current = new Session() { Data = j };
-
             Assert.NotNull(Session.Current);
-
-            //Session.Data.LogChanges = true;
-            //var cl = ChangeLog.CurrentOnThread = new ChangeLog();
 
             j.FirstName = "Jack";
             nicke.FirstName = "Nicke";
-            //((Json)j).LogChanges = true;
-
-            // Session.Current.LogChanges = true;
-
             j.Friends = new List<Json>() { nicke };
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
             Console.WriteLine(j.DebugString);
 
-
-            var patch = Session.Current.CreateJsonPatch(true);
+            var patch = JsonPatch.CreateJsonPatch(Session.Current, true);
 
             Console.WriteLine("Changes:");
             Console.WriteLine("========");
