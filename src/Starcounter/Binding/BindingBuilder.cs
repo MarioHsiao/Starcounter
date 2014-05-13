@@ -239,9 +239,6 @@ namespace Starcounter.Binding
                 case DbTypeCode.Binary:
                     propertyBinding = CreateBinaryPropertyBinding(propertyDef, type);
                     break;
-                case DbTypeCode.LargeBinary:
-                    propertyBinding = CreateLargeBinaryPropertyBinding(propertyDef, type);
-                    break;
                 default:
                     throw new NotSupportedException();
                 }
@@ -757,24 +754,6 @@ namespace Starcounter.Binding
                 binaryPropertyBindingReturnType,
                 thisType
                 );
-        }
-
-        /// <summary>
-        /// The largebinary property binding return type
-        /// </summary>
-        private static Type largebinaryPropertyBindingReturnType = typeof(LargeBinary);
-
-        /// <summary>
-        /// Creates the large binary property binding.
-        /// </summary>
-        /// <param name="propertyDef">The property def.</param>
-        /// <param name="thisType">Type of the this.</param>
-        /// <returns>PropertyBinding.</returns>
-        private PropertyBinding CreateLargeBinaryPropertyBinding(PropertyDef propertyDef, Type thisType)
-        {
-            PropertyInfo propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
-            VerifyProperty(propertyInfo, largebinaryPropertyBindingReturnType);
-            return new LargeBinaryPropertyBinding();
         }
 
         /// <summary>

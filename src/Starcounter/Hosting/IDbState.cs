@@ -30,7 +30,6 @@ namespace Starcounter.Hosting {
         Nullable<float> ReadNullableSingle(ulong oid, ulong address, int index);
         string ReadString(ulong oid, ulong address, int index);
         Binary ReadBinary(ulong oid, ulong address, int index);
-        LargeBinary ReadLargeBinary(ulong oid, ulong address, int index);
         TimeSpan ReadTimeSpan(ulong oid, ulong address, int index);
         Nullable<TimeSpan> ReadNullableTimeSpan(ulong oid, ulong address, int index);
         long ReadTimeSpanEx(ulong oid, ulong address, int index);
@@ -73,6 +72,5 @@ namespace Starcounter.Hosting {
         void WriteUInt64(ulong oid, ulong address, int index, ulong value);
         void WriteNullableUInt64(ulong oid, ulong address, int index, Nullable<ulong> value);
         void WriteBinary(ulong oid, ulong address, int index, Binary value);
-        void WriteLargeBinary(ulong oid, ulong address, int index, LargeBinary value);
     }
 }

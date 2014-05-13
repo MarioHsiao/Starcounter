@@ -84,27 +84,21 @@ namespace Starcounter {
 		/// <param name="session"></param>
 		private void LogArrayChangesWithDatabase(Session session) {
 			if (ArrayAddsAndDeletes != null) {
-				Session._Changes.AddRange(ArrayAddsAndDeletes);
+                session.AddRangeOfChanges(ArrayAddsAndDeletes);
 				ArrayAddsAndDeletes.Clear();
 
 				for (int i = 0; i < list.Count; i++) {
 					CheckpointAt(i);
 				}
 			}
-			//            foreach (var e in _Values) {
-			//                (e as Json).LogValueChangesWithDatabase(session);
-			//            }
-			//           if (_Dirty) {
-
-
-			var property = Template as TValue;
+			
+			var property = Template as TObjArr;
 			for (int t = 0; t < _list.Count; t++) {
 				if (WasReplacedAt(t)) {
-					session._Changes.Add(Change.Update(this.Parent as Json, property, t));
+                    session.UpdateValue(this.Parent, property, t);
 				}
 				(_list[t] as Json).LogValueChangesWithDatabase(session);
 			}
-			//            }
 		}
 
 		/// <summary>
@@ -117,7 +111,6 @@ namespace Starcounter {
 		internal void LogValueChangesWithoutDatabase(Session s) {
 			throw new NotImplementedException();
 		}
-
 
 		/// <summary>
 		/// Dirty checks each value of the object and reports any changes
@@ -239,7 +232,7 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    Add(newJson);
+                    ((IList)this).Add(newJson);
                     newJson.Data = value;
                     hasChanged = true;
                 } else {
@@ -258,7 +251,7 @@ namespace Starcounter {
             }
 
             for (int i = _list.Count - 1; i >= index; i--) {
-                RemoveAt(i);
+                ((IList)this).RemoveAt(i);
                 hasChanged = true;
             }
 

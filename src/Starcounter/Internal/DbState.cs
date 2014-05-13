@@ -582,31 +582,6 @@ namespace Starcounter.Internal
         /// <param name="address"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static LargeBinary ReadLargeBinary(ulong oid, ulong address, Int32 index) {
-            unsafe {
-                uint r;
-                byte* pValue;
-
-                r = sccoredb.star_get_lbinary(oid, address, index, &pValue);
-                if (r == 0) {
-                    return LargeBinary.FromNative(pValue);
-                }
-                else if (r == Error.SCERRVALUEUNDEFINED) {
-                    return LargeBinary.Null;
-                }
-                else {
-                    throw ErrorCode.ToException(r);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oid"></param>
-        /// <param name="address"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
         public static TimeSpan ReadTimeSpan(ulong oid, ulong address, Int32 index) {
             return new TimeSpan(ReadTimeSpanEx(oid, address, index));
         }
@@ -1257,27 +1232,6 @@ namespace Starcounter.Internal
                       address,
                       index,
                       value.GetInternalBuffer()
-                  );
-            if (r == 0) {
-                return;
-            }
-            throw ErrorCode.ToException(r);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oid"></param>
-        /// <param name="address"></param>
-        /// <param name="index"></param>
-        /// <param name="value"></param>
-        public static void WriteLargeBinary(ulong oid, ulong address, Int32 index, LargeBinary value) {
-            uint r;
-            r = sccoredb.star_put_lbinary(
-                      oid,
-                      address,
-                      index,
-                      value.GetBuffer()
                   );
             if (r == 0) {
                 return;
