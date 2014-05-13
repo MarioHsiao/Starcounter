@@ -27,7 +27,8 @@ namespace Starcounter
         /// Max size allowed for unpacked small binary data (excluding header).
         /// </summary>
         public const int BINARY_DATA_MAX_SIZE = (8192 - 1);
-        public const int BINARY_DATA_FAKE_MAX_SIZE = 100;
+
+        internal static readonly Binary Infinite = ConstructInfinite();
 
         /// <summary>
         /// Equalses the specified LB1.
@@ -122,6 +123,12 @@ namespace Starcounter
                 }
             }
             return true;
+        }
+
+        private static Binary ConstructInfinite() {
+            var b = new Binary();
+            b._buffer = new byte[] { 1, 0, 0, 0, 1 };
+            return b;
         }
 
         //
