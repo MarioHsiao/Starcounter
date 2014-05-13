@@ -69,7 +69,7 @@ namespace Starcounter.Internal {
 
             results.rows = (Json)rowObjectTemplate.CreateInstance();
 
-			Json rowArr = rowsTemplate.Getter(results.rows);
+			Arr<Json> rowArr = (Arr<Json>)rowsTemplate.Getter(results.rows);
 
             try {
 
