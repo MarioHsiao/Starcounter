@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using Starcounter.Advanced;
+using Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal {
     /// <summary>
@@ -45,7 +46,7 @@ namespace Starcounter.Internal {
                             String.Format("Cannot supply mime-type {0} for the JSON resource. There is no session, so no JSON-Patch message can be generated.", mimeType.ToString()));
                     }
 
-                    ret = s.CreateJsonPatchBytes(true);
+                    ret = JsonPatch.CreateJsonPatchBytes(s, true);
                     break;
                 default:
                     resultingMimeType = MimeType.Unspecified;
