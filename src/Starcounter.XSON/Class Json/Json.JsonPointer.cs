@@ -2,6 +2,7 @@
 
 using Starcounter.Templates;
 using System;
+using System.Collections;
 namespace Starcounter {
     partial class Json {
 
@@ -70,7 +71,7 @@ namespace Starcounter {
                 if (Parent != null) {
                     if (Parent.IsArray) {
                         if (_cacheIndexInArr == -1) {
-                            _cacheIndexInArr = Parent.IndexOf(this);
+                            _cacheIndexInArr = ((IList)Parent).IndexOf(this);
                         }
                         path[pos] = _cacheIndexInArr;
                     }

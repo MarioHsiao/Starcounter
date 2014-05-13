@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.XSON.Tests {
 
     [TestFixture]
-    class ArrayPatchTests : GenerateJsonPatchTests {
+    public class ArrayPatchTests : GenerateJsonPatchTests {
         [Test]
         public static void TestJsonPatchSimpleArray() {
 			dynamic j = new Json();
@@ -105,7 +105,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			j.Friends.Add(nicke);
 			j["FirstName"] = "Jack";
 			nicke["FirstName"] = "Nicke";
-			(j["Friends"] as Json).Add( nicke );
+			(j["Friends"] as Arr<Json>).Add( nicke );
 
             string str = Session.Current.CreateJsonPatch(true);
 
