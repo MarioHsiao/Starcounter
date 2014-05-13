@@ -10,9 +10,9 @@ namespace QueryProcessingTest {
         public String FirstName;
         public String LastName;
 
-        private string nickName;
-        public String NickName { get { return nickName; } set { nickName = value; } }
-        public String AnotherNickName { get { return nickName; } set { nickName = value; } }
+        private string _nickName;
+        public String NickName { get { return _nickName; } set { _nickName = value; } }
+        public String AnotherNickName { get { return _nickName; } set { _nickName = value; } }
 
         public String PatronymicName { get; set; }
 
