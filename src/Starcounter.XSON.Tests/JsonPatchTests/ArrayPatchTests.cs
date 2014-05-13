@@ -105,7 +105,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			j.Friends.Add(nicke);
 			j["FirstName"] = "Jack";
 			nicke["FirstName"] = "Nicke";
-			(j["Friends"] as Json).Add( nicke );
+			(j["Friends"] as Arr<Json>).Add( nicke );
 
             string str = Session.Current.CreateJsonPatch(true);
 

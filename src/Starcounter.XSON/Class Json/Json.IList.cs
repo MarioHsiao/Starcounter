@@ -17,26 +17,6 @@ namespace Starcounter {
                 throw new InvalidOperationException("Can only be called on arrays.");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public int IndexOf(Json item) {
-            VerifyIsArray();
-            return list.IndexOf(item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="item"></param>
-        public void Insert(int index, Json item) {
-            VerifyIsArray();
-            ((IList)this).Insert(index, (object)item);
-        }
-
         bool IList.IsFixedSize {
             get {
                 return false;
@@ -187,6 +167,13 @@ namespace Starcounter {
             this.Dirtyfy();
         }
 
+        internal Json NewItem() {
+            var template = ((TObjArr)this.Template).ElementType;
+            var item = (template != null) ? (Json)template.CreateInstance() : new Json();
+            _Add(item);
+            return item;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -215,7 +202,7 @@ namespace Starcounter {
         /// </summary>
         /// <value>The count.</value>
         /// <returns>The number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
-        public int Count {
+        int ICollection.Count {
             get {
                 VerifyIsArray();
                 return list.Count;
@@ -300,16 +287,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int Add(object item) {
+        int IList.Add(object item) {
             return _Add(item);
-        }
-
-        public Json Add() {
-            VerifyIsArray();
-            var template = ((TObjArr)this.Template).ElementType;
-            Json item = (template != null) ? (Json)template.CreateInstance() : new Json();
-            _Add(item);
-            return item;
         }
 
         /// <summary>
@@ -356,7 +335,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(Json item) {
+        protected bool Remove(Json item) {
             bool b;
             int index;
 
@@ -372,7 +351,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index">The index.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public void RemoveAt(int index) {
+        void IList.RemoveAt(int index) {
             Json item = VerifyJsonForRemoving(list[index]);
             InternalRemove(item, index);
         }
@@ -404,7 +383,7 @@ namespace Starcounter {
         /// Clears this instance.
         /// </summary>
         /// <exception cref="System.NotImplementedException"></exception>
-        public void Clear() {
+        void IList.Clear() {
             VerifyIsArray();
 
             if (_dirtyCheckEnabled) {
