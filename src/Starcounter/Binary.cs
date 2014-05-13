@@ -24,9 +24,9 @@ namespace Starcounter
         public static readonly Binary Null = new Binary();
 
         /// <summary>
-        /// Max size allowed for unpacked small binary data (excluding header).
+        /// Max size allowed for unpacked binary data (excluding header).
         /// </summary>
-        public const int BINARY_DATA_MAX_SIZE = (8192 - 1);
+        public const int BINARY_DATA_MAX_SIZE = (1048576 - 1);
 
         internal static readonly Binary Infinite = ConstructInfinite();
 
@@ -478,9 +478,11 @@ namespace Starcounter
 
         internal Int32 GetLength()
         {
-            // The length is actually 4 bytes but byte 2 and 3 always contain
-            // 0. Header byte is included in the length.
-            return ((((Int32)_buffer[1]) << 8) | _buffer[0]) - 1;
+            // The length is actually 4 bytes but byte 3 always contain 0.
+            // Header byte is included in the length.
+            return
+                ((((int)_buffer[2]) << 16) | (((int)_buffer[1]) << 8) |
+                _buffer[0]) - 1;
         }
 
         private void VerifyNotNull()
