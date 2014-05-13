@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Rest;
-using jp = Starcounter.Internal.JsonPatch;
+using jp = Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal {
 
@@ -32,11 +32,15 @@ namespace Starcounter.Internal {
                 try {
                     if (session == null)
                         return CreateErrorResponse(404, "No session found for the specified uri.");
-                    root = session.Data;
+//                    root = session.Data;
+                    root = session.GetFirstData();
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
-                    jp::JsonPatch.EvaluatePatches(root, request.BodyBytes);
+                    IntPtr bodyPtr;
+                    uint bodySize;
+                    request.GetBodyRaw(out bodyPtr, out bodySize);
+                    jp::JsonPatch.EvaluatePatches(session, bodyPtr, (int)bodySize);
 
                     return root;
                 } catch (jp::JsonPatchException nex) {

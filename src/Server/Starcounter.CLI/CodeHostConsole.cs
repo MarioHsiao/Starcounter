@@ -1,5 +1,4 @@
 ﻿
-using Starcounter.JsonPatch.BuiltInRestHandlers;
 using SuperSocket.ClientEngine;
 using System;
 using System.Diagnostics;
@@ -12,6 +11,7 @@ namespace Starcounter.CLI {
     using System.Globalization;
     using Task = System.Threading.Tasks.Task;
     using WebSocket = WebSocket4Net.WebSocket;
+    using Starcounter.Internal;
 
     /// <summary>
     /// Implements a console bound to a given code host.

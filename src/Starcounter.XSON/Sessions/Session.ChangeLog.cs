@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Starcounter.Internal;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
@@ -64,6 +63,10 @@ namespace Starcounter {
             _changes.AddRange(toAdd);
         }
 
+        internal List<Change> GetChanges() {
+            return _changes;
+        }
+
         /// <summary>
         /// Clears all changes.
         /// </summary>
@@ -94,20 +97,10 @@ namespace Starcounter {
         public Int32 Count { get { return _changes.Count; } }
 
         /// <summary>
-        /// Generates a JSON-Patch array for all changes made to the session data
+        /// Logs all changes since the last JSON-Patch update. This method generates the log
+        /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
-        /// <param name="flushLog">If true, the change log will be reset</param>
-        /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public string CreateJsonPatch(bool flushLog) {
-            return Encoding.UTF8.GetString(CreateJsonPatchBytes(flushLog));
-        }
-
-        /// <summary>
-        /// Generates a JSON-Patch array for all changes made to the session data
-        /// </summary>
-        /// <param name="flushLog">If true, the change log will be reset</param>
-        /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public byte[] CreateJsonPatchBytes(bool flushLog) {
+        public void GenerateChangeLog() {
             if (_brandNew) {
                 // TODO: 
                 // might be array.
@@ -120,31 +113,13 @@ namespace Starcounter {
                 }
                 _brandNew = false;
             } else {
-                this.GenerateChangeLog();
-            }
-
-            var buffer = new List<byte>();
-            HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
-
-            if (flushLog) {
-                this._changes = new List<Change>();
-            }
-
-            return buffer.ToArray();
-        }
-
-
-        /// <summary>
-        /// Logs all changes since the last JSON-Patch update. This method generates the log
-        /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
-        /// </summary>
-        private void GenerateChangeLog() {
-            foreach (var dac in _stateList) {
-                if (dac.Data != null) {
-                    if (DatabaseHasBeenUpdatedInCurrentTask) {
-                        dac.Data.LogValueChangesWithDatabase(this);
-                    } else {
-                        dac.Data.LogValueChangesWithoutDatabase(this);
+                foreach (var dac in _stateList) {
+                    if (dac.Data != null) {
+                        if (DatabaseHasBeenUpdatedInCurrentTask) {
+                            dac.Data.LogValueChangesWithDatabase(this);
+                        } else {
+                            dac.Data.LogValueChangesWithoutDatabase(this);
+                        }
                     }
                 }
             }

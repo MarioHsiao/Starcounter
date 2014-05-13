@@ -76,6 +76,10 @@ namespace Starcounter {
             }
             parent.CallHasChanged(template);
         }
+
+        internal void UpdateCachedIndex() {
+            _cacheIndexInArr = ((IList)Parent).IndexOf(this);
+        }
     }
 }
 
