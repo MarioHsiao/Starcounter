@@ -170,7 +170,10 @@ namespace Starcounter.Internal.XSON.Tests {
             company.Name = "Starcounter";
  
             Session.Current = new Session() { Data = company };
-            JsonPatch.CreateJsonPatch(Session.Current, true);
+            var patch = JsonPatch.CreateJsonPatch(Session.Current, true);
+
+            Console.WriteLine(patch);
+            Console.WriteLine();
 
             dynamic person = new Json();
             dynamic person2 = new Json();
