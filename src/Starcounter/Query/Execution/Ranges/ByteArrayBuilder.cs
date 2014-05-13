@@ -374,21 +374,10 @@ public sealed class ByteArrayBuilder
         dataBuffer[position] = embedType;
         position++;
 
-        // First byte in value stored is part of header used to store how the
-        // binary value is stored. Must also be included in search key. Always
-        // 0.
-
         var valueLen = value.GetLength();
-        var adjustedLen = valueLen + 1;
-
-        dataBuffer[position++] = (byte)(adjustedLen >> 0);
-        dataBuffer[position++] = (byte)(adjustedLen >> 8);
-        dataBuffer[position++] = 0; // (byte)(adjustedLen >> 16);
-        dataBuffer[position++] = 0; // (byte)(adjustedLen >> 24);
-        dataBuffer[position++] = 0;
-
-        Buffer.BlockCopy(value.GetInternalBuffer(), 4, dataBuffer, position, valueLen);
-        position += valueLen;
+        var adjustedLen = valueLen + 5;
+        Buffer.BlockCopy(value.GetInternalBuffer(), 0, dataBuffer, position, adjustedLen);
+        position += adjustedLen;
     }
 
     private static void AppendNonNullValue(
@@ -399,20 +388,9 @@ public sealed class ByteArrayBuilder
         // First byte is non-zero for defined values.
         dataArray[0] = embedType;
 
-        // First byte in value stored is part of header used to store how the
-        // binary value is stored. Must also be included in search key. Always
-        // 0.
-
         var valueLen = value.GetLength();
-        var adjustedLen = valueLen + 1;
-
-        dataArray[1] = (byte)(adjustedLen >> 0);
-        dataArray[2] = (byte)(adjustedLen >> 8);
-        dataArray[3] = 0; // (byte)(adjustedLen >> 16);
-        dataArray[4] = 0; // (byte)(adjustedLen >> 24);
-        dataArray[5] = 0;
-
-        Buffer.BlockCopy(value.GetInternalBuffer(), 4, dataArray, 6, valueLen);
+        var adjustedLen = valueLen + 5;
+        Buffer.BlockCopy(value.GetInternalBuffer(), 0, dataArray, 1, adjustedLen);
     }
 
     internal void Append(
