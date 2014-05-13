@@ -237,7 +237,6 @@ namespace Starcounter.Internal
                     case DbTypeCode.Binary:
                         isNullable = true;
                         break;
-                    default: throw new NotSupportedException();
                 }
 
                 switch (databaseAttribute.AttributeKind) {
