@@ -491,7 +491,7 @@ namespace Starcounter
             {
                 return;
             }
-            throw new InvalidOperationException("Large binary is null.");
+            throw new InvalidOperationException("Binary is null.");
         }
 
         internal unsafe void WriteToTuple(ref TupleWriterBase64 tuple) {
