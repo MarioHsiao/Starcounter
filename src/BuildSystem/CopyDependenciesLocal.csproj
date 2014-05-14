@@ -7,7 +7,8 @@
     <OutputPath>..\..\bin\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
-	<OutputPath32>$(OutputPath)\32BitComponents</OutputPath32>
+	  <OutputPath32>$(OutputPath)\32BitComponents</OutputPath32>
+    <OutputPathConfig>$(OutputPath)\Configuration\</OutputPathConfig>
   </PropertyGroup>
   <PropertyGroup>
     <ProjectGuid>{8B599BFF-B414-41A3-A270-96CDA0C522AF}</ProjectGuid>
@@ -17,8 +18,10 @@
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
-	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(BUILD_BLUE_CONFIGURATION)</Level0Configuration>
-	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
+	  <Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(BUILD_BLUE_CONFIGURATION)</Level0Configuration>
+	  <Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
+    <ServiceConfigFile>Personal.xml</ServiceConfigFile>
+	<ServiceConfigTargetFile>$(OutputPathConfig)\$(ServiceConfigFile)</ServiceConfigTargetFile>
   </PropertyGroup>
   <ItemGroup>
     
@@ -33,6 +36,8 @@
     <GACScripts Include="..\BuildSystem\Scripts\gac_*" />
     <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
 
+    <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
+    
   </ItemGroup>
   
   <!-- Builds Level0 if necessary and copies output files. -->
@@ -65,6 +70,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
   </Target>
   
   <Target Name="Rebuild" DependsOnTargets="CopyLocalFiles" />

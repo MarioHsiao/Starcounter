@@ -321,6 +321,12 @@ namespace Starcounter.Internal
             /// 32BitComponents directory.
             /// </summary>
             public const String Bit32Components = "32BitComponents";
+
+            /// <summary>
+            /// Configuration folder, relative to the installation folder,
+            /// where we keep configuration files like "Personal.xml".
+            /// </summary>
+            public const string InstallationConfiguration = "Configuration";
         }
 
         /// <summary>
@@ -369,6 +375,18 @@ namespace Starcounter.Internal
             ///     Version: 2
             /// </summary>
             public const String CollationFileNamePrefix = "TurboText";
+
+            /// <summary>
+            /// Gets the name of the configuration file we host under the
+            /// installation folder that contains the path/reference to
+            /// the server repository directory.
+            /// </summary>
+            /// <remarks>Traditionally named "Personal.xml".</remarks>
+            public static string InstallationServerConfigReferenceFile {
+                get {
+                    return ServerNames.PersonalServer + ".xml";
+                }
+            }
         }
 
         /// <summary>
