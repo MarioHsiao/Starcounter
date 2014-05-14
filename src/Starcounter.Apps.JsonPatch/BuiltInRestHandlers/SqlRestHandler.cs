@@ -154,9 +154,6 @@ namespace Starcounter.Internal {
                                 case DbTypeCode.Int64:
 									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
-                                //case DbTypeCode.LargeBinary:
-                                //    value = obj.GetBinary(prop.Index);
-                                //    break;
                                 case DbTypeCode.Object:
                                     IObjectView value = (IObjectView)row;
                                     if (value != null) {
@@ -228,9 +225,6 @@ namespace Starcounter.Internal {
                                     case DbTypeCode.Int64:
                                         ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetInt64(prop.Index));
                                         break;
-                                    //case DbTypeCode.LargeBinary:
-                                    //    value = obj.GetBinary(prop.Index);
-                                    //    break;
                                     case DbTypeCode.Object:
 
                                         IObjectView value = obj.GetObject(prop.Index);
@@ -307,8 +301,6 @@ namespace Starcounter.Internal {
         private static void AddProperty(TObject parent, SqlQueryResult.columnsElementJson col, DbTypeCode dbTypeCode) {
             switch (dbTypeCode) {
                 case DbTypeCode.Binary:
-                case DbTypeCode.LargeBinary:
-                    throw new NotSupportedException();
                 case DbTypeCode.Object:
                     parent.Add<TString>(col.value);
                     break;
@@ -345,6 +337,8 @@ namespace Starcounter.Internal {
                 case DbTypeCode.Single:
                     parent.Add<TDouble>(col.value);
                     break;
+                default: 
+                    throw new NotSupportedException();
             }
         }
 

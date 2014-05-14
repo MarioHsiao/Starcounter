@@ -79,9 +79,5 @@ public enum DatabasePrimitive
     /// The binary
     /// </summary>
     Binary,
-    /// <summary>
-    /// The large binary
-    /// </summary>
-    LargeBinary
 }
 }
