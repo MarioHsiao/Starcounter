@@ -28,7 +28,6 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(count == 10);
             Trace.Assert(acc == 55);
-
             MappedType mapt = Db.SQL<MappedType>("select t from mappedtype t where name = ?", "Int16").First;
             Trace.Assert(mapt != null);
             Trace.Assert(mapt is ClrPrimitiveType);
@@ -41,7 +40,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(mpt.MaterializedType != null);
                 count++;
             }
-            Trace.Assert(count == 16);
+            Trace.Assert(count == 15);
             MaterializedTable m = Db.SQL<MaterializedTable>("select m from MaterializedTable m where name = ?", "BaseType").First;
             Trace.Assert(m != null);
             Trace.Assert(m.BaseTable == null);
@@ -106,7 +105,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(mt.Name == Enum.GetName(typeof(Starcounter.Binding.DbTypeCode), typeCode));
                 count++;
             }
-            Trace.Assert(count == 16);
+            Trace.Assert(count == 15);
         }
 
         public static void TestRuntimeColumnMetadata() {

@@ -424,7 +424,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 {
                     // Checking if recreation key is valid.
                     if ((*(Int32*)recrKey) > IteratorHelper.RK_EMPTY_LEN)
-                        return TryRecreateEnumerator(recrKey + 4);
+                        return TryRecreateEnumerator(recrKey + 4 + 1);
                 }
             }
 
