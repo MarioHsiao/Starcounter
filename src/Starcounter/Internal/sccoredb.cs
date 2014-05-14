@@ -51,31 +51,31 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_LONG = 0x04;
+        public const byte STAR_TYPE_LONG = 0x03;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_ULONG = 0x05;
+        public const byte STAR_TYPE_ULONG = 0x04;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_DECIMAL = 0x06;
+        public const byte STAR_TYPE_DECIMAL = 0x05;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_FLOAT = 0x07;
+        public const byte STAR_TYPE_FLOAT = 0x06;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_DOUBLE = 0x08;
+        public const byte STAR_TYPE_DOUBLE = 0x07;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_REFERENCE = 0x09;
+        public const byte STAR_TYPE_REFERENCE = 0x08;
 
         /// <summary>
         /// </summary>
-        public const byte STAR_TYPE_KEY = 0x0A;
+        public const byte STAR_TYPE_KEY = 0x09;
 
         /// <summary>
         /// </summary>
