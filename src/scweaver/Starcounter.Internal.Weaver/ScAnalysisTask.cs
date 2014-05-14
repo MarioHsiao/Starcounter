@@ -804,8 +804,6 @@ namespace Starcounter.Internal.Weaver {
                         return DatabasePrimitive.TimeSpan;
                     case "Starcounter.Binary":
                         return DatabasePrimitive.Binary;
-                    case "Starcounter.LargeBinary":
-                        return DatabasePrimitive.LargeBinary;
                     default:
                         return DatabasePrimitive.None;
                 }

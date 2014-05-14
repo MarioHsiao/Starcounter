@@ -27,7 +27,7 @@ namespace QueryProcessingTest {
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("Start unloading query processing database.");
-                int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.txt");
+                int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                 HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " +
                     nrUnloaded + " objects.");
                 HelpMethods.LogEvent("All tests completed");
