@@ -219,7 +219,6 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                                 break;
                             case DbTypeCode.Binary:
                             case DbTypeCode.Key:
-                            case DbTypeCode.LargeBinary:
                             default:
                                 throw new NotSupportedException(prop.Type.ToString() + " type not supported");
                         }
