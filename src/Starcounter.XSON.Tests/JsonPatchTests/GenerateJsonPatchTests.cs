@@ -29,7 +29,8 @@ namespace Starcounter.Internal.XSON.Tests {
 		}
 
         [Test]
-        public static void TestCalculatePatchSizes() {
+        public static void TestPatchSizes() {
+            byte[] patchArr;
             Change change;
             dynamic json;
             int patchSize;
@@ -38,43 +39,58 @@ namespace Starcounter.Internal.XSON.Tests {
             TValue property;
             string patch;
             string path;
+
+            List<Change> changeList = new List<Change>(1);
+            changeList.Add(new Change());
             
-            // ["op":"replace","path":"/FirstName","value":]
+            // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
             path = "/FirstName";
-            patch = string.Format(Helper.PATCH, path, "");
+            patch = string.Format(Helper.PATCH, path, Helper.Jsonify("ApaPapa"));
             schema = new TObject();
             property = schema.Add<TString>("FirstName");
             json = new Json() { Template = schema };
+            json.FirstName = "ApaPapa";
             change = Change.Update(json, property);
             patchSize = JsonPatch.CalculateSize(change, out pathSize);
             Assert.AreEqual(path.Length, pathSize);
-            Assert.AreEqual(patch.Length, patchSize);
+            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+            changeList[0] = change;
+            patchSize = JsonPatch.CreatePatches(changeList, out patchArr);
+            Assert.AreEqual(patchSize, patchSize);
 
-            // ["op":"replace","path":"/Focused/FirstName","value":]
-            path = "/Focused/FirstName";
-            patch = string.Format(Helper.PATCH, path, "");
+            // ["op":"replace","path":"/Focused/Age","value":19]
+            path = "/Focused/Age";
+            patch = string.Format(Helper.PATCH, path, 19);
             schema = new TObject();
             property = schema.Add<TObject>("Focused");
-            property = ((TObject)property).Add<TString>("FirstName");
+            property = ((TObject)property).Add<TLong>("Age");
             json = new Json() { Template = schema };
+            json.Focused.Age = 19;
             change = Change.Update(json.Focused, property);
             patchSize = JsonPatch.CalculateSize(change, out pathSize);
             Assert.AreEqual(path.Length, pathSize);
-            Assert.AreEqual(patch.Length, patchSize);
+            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+            changeList[0] = change;
+            patchSize = JsonPatch.CreatePatches(changeList, out patchArr);
+            Assert.AreEqual(patchSize, patchSize);
 
-            // ["op":"replace","path":"/Items/0/FirstName","value":]
-            path = "/Items/0/FirstName";
-            patch = string.Format(Helper.PATCH, path, "");
+            // ["op":"replace","path":"/Items/0/Stats","value":23.5]
+            path = "/Items/0/Stats";
+            patch = string.Format(Helper.PATCH, path, 23.5d);
             schema = new TObject();
             var tarr = schema.Add<TArray<Json>>("Items");
             tarr.ElementType = new TObject();
-            property = tarr.ElementType.Add<TString>("FirstName");
+            property = tarr.ElementType.Add<TDouble>("Stats");
             json = new Json() { Template = schema };
             json = json.Items.Add();
-            change = Change.Update(json, property, 0);
+            json.Stats = 23.5d;
+            change = Change.Update(json, property);
             patchSize = JsonPatch.CalculateSize(change, out pathSize);
             Assert.AreEqual(path.Length, pathSize);
-            Assert.AreEqual(patch.Length, patchSize);
+            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+            changeList[0] = change;
+            patchSize = JsonPatch.CreatePatches(changeList, out patchArr);
+            Assert.AreEqual(patchSize, patchSize);
         }
 
         [Test]
@@ -110,7 +126,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Write("After",after);
             Write("Changes",result);
 
-            string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},\n{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},\n{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
+            string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
             Assert.AreEqual(facit, result);
         }
 
@@ -167,7 +183,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("==========");
             Console.WriteLine(str);
 
-            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
+            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},{\"op\":\"add\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
         }
 
       //  [Test]
