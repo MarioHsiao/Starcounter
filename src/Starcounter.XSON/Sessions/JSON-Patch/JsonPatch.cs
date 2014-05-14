@@ -651,6 +651,8 @@ namespace Starcounter.XSON.JsonPatch {
         private static void HandleParsedPatch(Session session, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
             Debug.WriteLine("Handling patch for: " + pointer.ToString());
 
+            if (session == null) return;
+
 //            JsonProperty aat = pointer.Evaluate(rootApp);
             JsonProperty aat = pointer.Evaluate(session.GetFirstData());
 

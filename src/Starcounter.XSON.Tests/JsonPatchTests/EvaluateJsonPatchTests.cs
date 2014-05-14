@@ -11,6 +11,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void Setup() {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);
+            StarcounterEnvironment.AppName = "Test";
         }
 
         [TearDown]
@@ -28,11 +29,14 @@ namespace Starcounter.Internal.XSON.Tests {
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
 
             // Setting a value on a editable property
             patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(json, patchBytes);
+            
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, patchCount);
             Assert.AreEqual("Alpha", json.VirtualValue);
 
@@ -40,7 +44,7 @@ namespace Starcounter.Internal.XSON.Tests {
             patchStr = string.Format(Helper.PATCH, "/BaseValue", Helper.Jsonify("Beta"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             var ex = Assert.Throws<JsonPatchException>(() => {
-                JsonPatch.EvaluatePatches(json, patchBytes);
+                JsonPatch.EvaluatePatches(session, patchBytes);
             });
             Console.WriteLine(ex.Message);
 
@@ -53,7 +57,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(json, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(3, patchCount);
             Assert.AreEqual("Apa", json.VirtualValue);
             Assert.AreEqual("Peta", json.AbstractValue);
@@ -83,6 +87,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
 
             // Index (same order as declared in simple.json):
             // 0 - VirtualValue (string)
@@ -116,7 +122,7 @@ namespace Starcounter.Internal.XSON.Tests {
             // Setting a value on a editable property
             patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(json, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, handledCount);
             Assert.AreEqual(1, patchCount);
            
@@ -131,7 +137,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(json, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(3, handledCount);
             Assert.AreEqual(3, patchCount);
         }
