@@ -39,9 +39,6 @@ namespace Starcounter {
                     if (binaryVal == null || ((Binary)binaryVal).IsNull)
                         return nullStr;
                     return "BINARY '" + Db.BinaryToHex((Binary)binaryVal) + "'";
-                case DbTypeCode.LargeBinary:
-                    throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED,
-                        "Large binary is not supported in unload.");
                 case DbTypeCode.Boolean: 
                     Boolean? boolVal = values.GetBoolean(index);
                     if (boolVal == null)
@@ -103,66 +100,70 @@ namespace Starcounter {
             }
             foreach (materialized_table tbl in Db.SQL<materialized_table>("select t from materialized_table t where table_id > ?", 3)) {
                 Debug.Assert(!String.IsNullOrEmpty(tbl.name));
-                Trace.Assert(Binding.Bindings.GetTypeDef(tbl.name) != null);
-                int tblNrObj = 0;
-                String insertHeader;
-                StringBuilder inStmt = new StringBuilder();
-                StringBuilder selectObjs = new StringBuilder();
-                inStmt.Append("INSERT INTO ");
-                inStmt.Append(QuotePath(tbl.name));
-                inStmt.Append("(__id");
-                selectObjs.Append("SELECT __o as __id");
-                foreach (materialized_column col in Db.SQL<materialized_column>("select c from materialized_column c where \"table\" = ?", tbl)) {
-                    if (col.name != "__id") {
-                        PropertyDef prop = (from propDef in Bindings.GetTypeDef(tbl.name).PropertyDefs
-                                            where propDef.ColumnName == col.name
-                                            select propDef).First<PropertyDef>();
-                        inStmt.Append(",");
-                        inStmt.Append(QuoteName(col.name));
-                        selectObjs.Append(",");
-                        selectObjs.Append(QuoteName(prop.Name));
+                if (Binding.Bindings.GetTypeDef(tbl.name) == null) {
+                    LogSources.Hosting.LogWarning("Table " + tbl.name + " cannot be unloaded, since its class is not loaded.");
+                    Console.WriteLine("Warning: Table " + tbl.name + " cannot be unloaded, since its class is not loaded.");
+                }  else {
+                    int tblNrObj = 0;
+                    String insertHeader;
+                    StringBuilder inStmt = new StringBuilder();
+                    StringBuilder selectObjs = new StringBuilder();
+                    inStmt.Append("INSERT INTO ");
+                    inStmt.Append(QuotePath(tbl.name));
+                    inStmt.Append("(__id");
+                    selectObjs.Append("SELECT __o as __id");
+                    foreach (materialized_column col in Db.SQL<materialized_column>("select c from materialized_column c where \"table\" = ?", tbl)) {
+                        if (col.name != "__id") {
+                            PropertyDef prop = (from propDef in Bindings.GetTypeDef(tbl.name).PropertyDefs
+                                                where propDef.ColumnName == col.name
+                                                select propDef).First<PropertyDef>();
+                            inStmt.Append(",");
+                            inStmt.Append(QuoteName(col.name));
+                            selectObjs.Append(",");
+                            selectObjs.Append(QuoteName(prop.Name));
 
-                    }
-                }
-                inStmt.Append(")");
-                inStmt.Append("VALUES");
-                insertHeader = inStmt.ToString();
-                selectObjs.Append(" FROM ");
-                selectObjs.Append(QuotePath(tbl.name));
-                selectObjs.Append(" __o");
-                SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
-                Debug.Assert(selectEnum.PropertyBinding == null);
-                Debug.Assert(selectEnum.TypeBinding != null);
-                Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
-                while (selectEnum.MoveNext()) {
-                    IObjectView val = selectEnum.Current;
-                    if (tblNrObj == 0)
-                        inStmt.Append("(");
-                    else
-                        inStmt.Append(",(");
-                    Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                    inStmt.Append("object " + val.GetObject(0).GetObjectNo()); // Value __id
-                    for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
-                        inStmt.Append(",");
-                        inStmt.Append(GetString(val, i));
+                        }
                     }
                     inStmt.Append(")");
-                    tblNrObj++;
-                    if (tblNrObj == 1000) {
+                    inStmt.Append("VALUES");
+                    insertHeader = inStmt.ToString();
+                    selectObjs.Append(" FROM ");
+                    selectObjs.Append(QuotePath(tbl.name));
+                    selectObjs.Append(" __o");
+                    SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
+                    Debug.Assert(selectEnum.PropertyBinding == null);
+                    Debug.Assert(selectEnum.TypeBinding != null);
+                    Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
+                    while (selectEnum.MoveNext()) {
+                        IObjectView val = selectEnum.Current;
+                        if (tblNrObj == 0)
+                            inStmt.Append("(");
+                        else
+                            inStmt.Append(",(");
+                        Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
+                        inStmt.Append("object " + val.GetObject(0).GetObjectNo()); // Value __id
+                        for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
+                            inStmt.Append(",");
+                            inStmt.Append(GetString(val, i));
+                        }
+                        inStmt.Append(")");
+                        tblNrObj++;
+                        if (tblNrObj == 1000) {
+                            using (StreamWriter file = new StreamWriter(fileName, true)) {
+                                file.WriteLine(inStmt.ToString());
+                            }
+                            totalNrObj += tblNrObj;
+                            tblNrObj = 0;
+                            inStmt = new StringBuilder();
+                            inStmt.Append(insertHeader);
+                        }
+                    }
+                    if (tblNrObj > 0)
                         using (StreamWriter file = new StreamWriter(fileName, true)) {
                             file.WriteLine(inStmt.ToString());
                         }
-                        totalNrObj += tblNrObj;
-                        tblNrObj = 0;
-                        inStmt = new StringBuilder();
-                        inStmt.Append(insertHeader);
-                    }
+                    totalNrObj += tblNrObj;
                 }
-                if (tblNrObj > 0)
-                    using (StreamWriter file = new StreamWriter(fileName, true)) {
-                        file.WriteLine(inStmt.ToString());
-                    }
-                totalNrObj += tblNrObj;
             }
             return totalNrObj;
         }

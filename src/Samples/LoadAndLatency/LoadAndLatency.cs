@@ -2020,7 +2020,6 @@ namespace LoadAndLatency
                                 (Nullable<Single>)curObjectNum,
                                 new DateTime(curObjectNum),
                                 new Binary(BitConverter.GetBytes(curObjectNum)),
-                                new LargeBinary(BitConverter.GetBytes(curObjectNum)),
                                 curObjectNum.ToString()
                                 );
 

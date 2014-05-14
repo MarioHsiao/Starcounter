@@ -40,7 +40,6 @@ namespace Starcounter.Binding
             case DbTypeCode.UInt32: return sccoredb.STAR_TYPE_ULONG;
             case DbTypeCode.UInt16: return sccoredb.STAR_TYPE_ULONG;
             case DbTypeCode.Binary: return sccoredb.STAR_TYPE_BINARY;
-            case DbTypeCode.LargeBinary: return sccoredb.STAR_TYPE_LBINARY;
             case DbTypeCode.Key: return sccoredb.STAR_TYPE_KEY;
             default: throw new ArgumentException();
             };
@@ -52,7 +51,6 @@ namespace Starcounter.Binding
             switch (t) {
             case sccoredb.STAR_TYPE_STRING: return DbTypeCode.String;
             case sccoredb.STAR_TYPE_BINARY: return DbTypeCode.Binary;
-            case sccoredb.STAR_TYPE_LBINARY: return DbTypeCode.LargeBinary;
             case sccoredb.STAR_TYPE_LONG: return DbTypeCode.Int64;
             case sccoredb.STAR_TYPE_ULONG: return DbTypeCode.UInt64;
             case sccoredb.STAR_TYPE_DECIMAL: return DbTypeCode.Decimal;
