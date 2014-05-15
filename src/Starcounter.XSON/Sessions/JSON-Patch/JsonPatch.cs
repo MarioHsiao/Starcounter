@@ -254,7 +254,7 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (json._stepParent != null) {
                 parent = json._stepParent;
-                size += parent.GetAppName().Length;
+                size += json.GetAppName().Length;
             } else {
                 parent = json.Parent;
                 if (parent == null)
@@ -311,11 +311,11 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (json._stepParent != null) {
                 parent = json._stepParent;
-                size = parent.GetAppName().Length + 1;
+                size = json.GetAppName().Length + 1;
 
                 writer.Skip(-(size + prevSize));
                 writer.Write('/');
-                writer.Write(parent.GetAppName());
+                writer.Write(json.GetAppName());
             } else {
                 parent = json.Parent;
                 if (parent == null)
@@ -653,15 +653,14 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (session == null) return;
 
-//            JsonProperty aat = pointer.Evaluate(rootApp);
             JsonProperty aat = pointer.Evaluate(session.GetFirstData());
 
-                if (!aat.Property.Editable) {
-                    throw new JsonPatchException(
-                        "Property '" + aat.Property.PropertyName + "' is readonly.",
-                        null
-                    );
-                }
+            if (!aat.Property.Editable) {
+                throw new JsonPatchException(
+                    "Property '" + aat.Property.PropertyName + "' is readonly.",
+                    null
+                );
+            }
 
             aat.Json.ExecuteInScope(() => {
                 if (aat.Property is TBool) {
