@@ -3,14 +3,14 @@ using System;
 using System.Collections;
 using System.IO;
 using NUnit.Framework;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Templates;
+using Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal.XSON.Tests {
     internal static class Helper {
         internal const string PATCH = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
 
-        internal static AppAndTemplate CreateSampleApp() {
+        internal static JsonProperty CreateSampleApp() {
             dynamic template = TObject.CreateFromJson(File.ReadAllText("json\\SampleApp.json"));
             dynamic app = new Json() { Template = template };
 
@@ -25,7 +25,7 @@ namespace Starcounter.Internal.XSON.Tests {
             itemApp.Description = "Fix Apps!";
             itemApp.IsDone = true;
 
-            return new AppAndTemplate(app, template);
+            return new JsonProperty(app, template);
         }
 
         internal static TObject CreateJsonTemplateFromFile(string filePath) {

@@ -2,8 +2,8 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Templates;
+using Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal.XSON.Tests {
     class EvaluateJsonPatchTests {
@@ -11,6 +11,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void Setup() {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);
+            StarcounterEnvironment.AppName = "Test";
         }
 
         [TearDown]
@@ -28,19 +29,22 @@ namespace Starcounter.Internal.XSON.Tests {
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
 
             // Setting a value on a editable property
             patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, patchCount);
             Assert.AreEqual("Alpha", json.VirtualValue);
 
             // Setting a value on a readonly property
             patchStr = string.Format(Helper.PATCH, "/BaseValue", Helper.Jsonify("Beta"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            var ex = Assert.Throws<JsonPatch.JsonPatchException>(() => {
-                JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            var ex = Assert.Throws<JsonPatchException>(() => {
+                JsonPatch.EvaluatePatches(session, patchBytes);
             });
             Console.WriteLine(ex.Message);
 
@@ -53,7 +57,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(3, patchCount);
             Assert.AreEqual("Apa", json.VirtualValue);
             Assert.AreEqual("Peta", json.AbstractValue);
@@ -66,7 +70,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(null, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(null, patchBytes);
             Assert.AreEqual(2, patchCount);
 
         }
@@ -83,6 +87,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
 
             // Index (same order as declared in simple.json):
             // 0 - VirtualValue (string)
@@ -116,7 +122,7 @@ namespace Starcounter.Internal.XSON.Tests {
             // Setting a value on a editable property
             patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, handledCount);
             Assert.AreEqual(1, patchCount);
            
@@ -131,7 +137,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.JsonPatch.EvaluatePatches(json, patchBytes);
+            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(3, handledCount);
             Assert.AreEqual(3, patchCount);
         }
@@ -217,29 +223,29 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Session.Execute(session, () => {
 
-                AppAndTemplate aat = Helper.CreateSampleApp();
-                dynamic app = aat.App;
+                JsonProperty aat = Helper.CreateSampleApp();
+                dynamic app = aat.Json;
 
-                AppAndTemplate obj = JsonPatch.JsonPatch.Evaluate(app, "/FirstName");
-                String value = ((Property<string>)obj.Template).Getter(obj.App);
+                JsonProperty obj = JsonPointer.Evaluate(app, "/FirstName");
+                String value = ((Property<string>)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(value, "Cliff");
 
-                obj = JsonPatch.JsonPatch.Evaluate(app, "/LastName");
-                value = ((Property<string>)obj.Template).Getter(obj.App);
+                obj = JsonPointer.Evaluate(app, "/LastName");
+                value = ((Property<string>)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(value, "Barnes");
 
-                obj = JsonPatch.JsonPatch.Evaluate(app, "/Items/0/Description");
-                value = ((Property<string>)obj.Template).Getter(obj.App);
+                obj = JsonPointer.Evaluate(app, "/Items/0/Description");
+                value = ((Property<string>)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(value, "Take a nap!");
 
-                obj = JsonPatch.JsonPatch.Evaluate(app, "/Items/1/IsDone");
-                bool b = ((TBool)obj.Template).Getter(obj.App);
+                obj = JsonPointer.Evaluate(app, "/Items/1/IsDone");
+                bool b = ((TBool)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(b, true);
 
-                obj = JsonPatch.JsonPatch.Evaluate(app, "/Items/1");
+                obj = JsonPointer.Evaluate(app, "/Items/1");
                 //                Assert.IsInstanceOf<SampleApp.ItemsApp>(obj);
 
-                var jpex = Assert.Throws<JsonPatchException>(() => { JsonPatch.JsonPatch.Evaluate(app, "/Nonono"); });
+                var jpex = Assert.Throws<JsonPatchException>(() => { JsonPointer.Evaluate(app, "/Nonono"); });
                 Assert.IsTrue(jpex.Message.Contains("Unknown property"));
             });
         }
