@@ -77,6 +77,7 @@ namespace Starcounter {
                     String strVal = values.GetString(index);
                     if (strVal == null)
                         return nullStr;
+                    strVal.Replace("'", "\'");
                     return "'" + strVal + "'";
                 case DbTypeCode.Byte: 
                 case DbTypeCode.UInt16: 

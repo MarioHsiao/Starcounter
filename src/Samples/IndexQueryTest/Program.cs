@@ -32,6 +32,8 @@ namespace IndexQueryTest
             TestHint();
             TestJoinWIndex();
             TestAggregate();
+            int unloaded = Db.Unload(@"s\IndexQueryTest\IndexQueryDbDump.sql");
+            Console.WriteLine("Unloaded {0} objects.", unloaded);
             //CreateDropIndexParallelTest();
 #endif
 
