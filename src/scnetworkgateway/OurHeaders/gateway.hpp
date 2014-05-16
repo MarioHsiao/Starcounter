@@ -1009,7 +1009,7 @@ enum SOCKET_FLAGS
 // Structure that facilitates the socket.
 _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 {
-    // Entry to lock-free free list.
+    // NOTE: Lock-free SLIST_ENTRY should be the first field!
     SLIST_ENTRY free_socket_indexes_entry_;
 
     // Main session structure attached to this socket.
@@ -2039,6 +2039,8 @@ public:
     // Creates new socket info.
     void CreateNewSocketInfo(session_index_type socket_index, port_index_type port_index, worker_id_type worker_id)
     {
+        GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
+
         all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
         all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
     }
