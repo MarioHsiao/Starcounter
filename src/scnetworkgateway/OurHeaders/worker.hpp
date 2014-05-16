@@ -90,6 +90,10 @@ RETURN_SD:
 };
 
 _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) class RebalancedSocketInfo {
+
+    // NOTE: Lock-free SLIST_ENTRY should be the first field!
+    SLIST_ENTRY lockfree_entry_;
+
     port_index_type port_index_;
     SOCKET socket_;
 

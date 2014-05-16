@@ -770,6 +770,7 @@ public:
     port_index_type GetPortIndex()
     {
         port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
+
         GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
 
         return port_index;
