@@ -168,7 +168,12 @@ namespace Starcounter.XSON.JsonPatch {
                 } else {
                     // TODO: 
                     // Should write value directly to buffer.
-                    writer.Write(GetValueAsString(change.Property, change.Obj));
+                    string value = 
+                        change.Obj.AddAndReturnInScope<Change, string>(
+                            (Change c) => { return GetValueAsString(c.Property, c.Obj); },
+                            change
+                        );
+                    writer.Write(value);
                 }
             }
             writer.Write('}');
@@ -212,7 +217,7 @@ namespace Starcounter.XSON.JsonPatch {
         private static string GetValueAsString(TValue property, Json parent) {
             string value;
             if (parent.Transaction != null) {
-                value = parent.Transaction.Add<TValue, Json, string>(
+                value = parent.Transaction.AddAndReturn<TValue, Json, string>(
                     (p, json) => { return p.ValueToJsonString(json); }, property, parent);
             } else {
                 value = property.ValueToJsonString(parent);
@@ -242,7 +247,11 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (change.ChangeType != REMOVE) {
                 size += 9;
-                size += EstimatePropertyValueSizeInBytes(change.Property, change.Obj, change.Index);
+                size += change.Obj.AddAndReturnInScope<Change, int>(
+                            (Change c) => {
+                                return EstimatePropertyValueSizeInBytes(c.Property, c.Obj, c.Index);
+                            },
+                            change);
             }
             return size;
         }
@@ -662,7 +671,7 @@ namespace Starcounter.XSON.JsonPatch {
                 );
             }
 
-            aat.Json.ExecuteInScope(() => {
+            aat.Json.AddInScope(() => {
                 if (aat.Property is TBool) {
                     ParseAndProcess((TBool)aat.Property, aat.Json, valuePtr, valueSize);
                 } else if (aat.Property is TDecimal) {
