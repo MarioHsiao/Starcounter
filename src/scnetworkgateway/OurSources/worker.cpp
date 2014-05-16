@@ -28,6 +28,10 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     // Getting global IOCP.
     //worker_iocp_ = g_gateway.get_iocp();
 
+    rebalance_accept_sockets_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    GW_ASSERT(rebalance_accept_sockets_);
+    InitializeSListHead(rebalance_accept_sockets_);
+
     worker_suspended_unsafe_ = false;
 
     worker_stats_bytes_received_ = 0;
@@ -880,6 +884,9 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     // Removing from active sockets.
     RemoveFromActiveSockets(sd->GetPortIndex());
 
+    // Releasing socket resources.
+    closesocket(sd->GetSocket());
+
 #ifdef GW_TESTING_MODE
 
     if (!g_gateway.setting_is_master())
@@ -899,7 +906,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 #endif
 
     // Resetting the socket data.
-    sd->ResetOnDisconnect();
+    sd->ResetOnDisconnect(this);
 
     // Returning chunks to pool.
     ReturnSocketDataChunksToPool(sd);
@@ -1105,16 +1112,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 #endif
 
     // Checking if was rebalanced.
-    if (sd->get_rebalanced_flag()) {
-
-        sd->reset_rebalanced_flag();
-
-    } else {
-
-        // Checking that socket arrived on correct worker.
-#ifndef GW_TESTING_MODE
-        GW_ASSERT(0 == worker_id_);
-#endif
+    if (0 == worker_id_) {
 
         // Decreasing number of accepting sockets.
         int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
@@ -1152,18 +1150,24 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
         GW_ASSERT(iocp_handler == worker_iocp_handler);
 
         // Checking if rebalanced worker is different.
-        if (least_busy_worker_id != worker_id_) {
+        if (0 != least_busy_worker_id) {
 
-            // Assigning to a different worker.
-            sd->set_rebalanced_flag();
+            // Getting temporary rebalance container.
+            RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
+            if (NULL == rsi) {
+                rsi = (RebalancedSocketInfo*)_aligned_malloc(sizeof(RebalancedSocketInfo), MEMORY_ALLOCATION_ALIGNMENT);
+            }
+            rsi->Init(sd->GetPortIndex(), sd->GetSocket());
 
-            sd->set_bound_worker_id(least_busy_worker_id);
-            sd->SetBoundWorkerId(least_busy_worker_id);
+            // Returning all allocated resources except socket.
+            sd->ResetAllFlags();
+            sd->ReleaseSocketIndex(this);
+            ReturnSocketDataChunksToPool(sd);
+
+            g_gateway.get_worker(least_busy_worker_id)->PushRebalanceSocketInfo(rsi);
 
             // Posting this finish Accept on a new worker IOCP.
-            BOOL success = PostQueuedCompletionStatus(worker_iocp_handler, 0, NULL, sd->get_ovl());
-            GW_ASSERT(TRUE == success);
-            sd = NULL;
+            WakeUpThreadUsingAPC(g_gateway.get_worker_thread_handle(least_busy_worker_id));
 
             return 0;
         }
@@ -1339,11 +1343,34 @@ uint32_t GatewayWorker::WorkerRoutine()
                 sd->CheckForValidity();
                 GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
 
+                // Checking that socket is bound to the correct worker.
+                GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
                 {
-                    // Disconnecting this socket data.
-                    DisconnectAndReleaseChunk(sd);
+                    uint32_t flags;
+                    BOOL success = WSAGetOverlappedResult(sd->GetSocket(), fetched_ovls[i].lpOverlapped, (LPDWORD)&oper_num_bytes, FALSE, (LPDWORD)&flags);
+                    GW_ASSERT(FALSE == success);
+
+                    // IOCP operation has completed but with error.
+                    GW_ASSERT(success != WSAGetLastError());
+
+                    // Checking correct unique socket.
+                    if ((sd->CompareUniqueSocketId()) && (sd->get_socket_representer_flag())) {
+
+                        err_code = FinishDisconnect(sd);
+                        GW_ASSERT(0 == err_code);
+
+                    } else {
+
+                        // Resetting socket representer flags.
+                        sd->reset_socket_representer_flag();
+                        sd->reset_socket_diag_active_conn_flag();
+
+                        // Returning chunks to pool.
+                        ReturnSocketDataChunksToPool(sd);
+                    }
 
                     continue;
                 }
@@ -1424,6 +1451,49 @@ uint32_t GatewayWorker::WorkerRoutine()
             {
                 PrintLastError();
                 return err_code;
+            }
+            else
+            {
+                if (worker_id_ != 0) {
+
+                    RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
+
+                    if (NULL != rsi) {
+
+                        port_index_type pi = rsi->get_port_index();
+                        SOCKET s = rsi->get_socket();
+
+                        // Returning socket info back to origin.
+                        g_gateway.get_worker(0)->PushRebalanceSocketInfo(rsi);
+
+                        // Creating new socket data structure inside chunk.
+                        SocketDataChunk* new_sd = NULL;
+
+                        // Getting new socket index.
+                        session_index_type new_socket_index = g_gateway.ObtainFreeSocketIndex(this, s, pi, false);
+
+                        // Creating new socket data.
+                        err_code = CreateSocketData(new_socket_index, new_sd);
+
+                        if (err_code) {
+                            // Just closing the socket.
+                            closesocket(s);
+                            continue;
+                        }
+
+                        // Finishing accept.
+                        new_sd->set_type_of_network_oper(ACCEPT_SOCKET_OPER);
+                        err_code = FinishAccept(new_sd);
+
+                        if (err_code) {
+                            // Disconnecting this socket data.
+                            DisconnectAndReleaseChunk(new_sd);
+
+                            // Releasing the cloned chunk.
+                            ProcessReceiveClones(true);
+                        }
+                    }
+                }
             }
         }
 #endif

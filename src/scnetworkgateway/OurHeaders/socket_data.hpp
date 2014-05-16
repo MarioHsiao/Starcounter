@@ -441,21 +441,6 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
     }
 
-    bool get_rebalanced_flag()
-    {
-        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_REBALANCED) != 0;
-    }
-
-    void set_rebalanced_flag()
-    {
-        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_REBALANCED;
-    }
-
-    void reset_rebalanced_flag()
-    {
-        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_REBALANCED;
-    }
-
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Getting socket diagnostics active connection flag.
@@ -755,10 +740,7 @@ public:
     }
 
     // Releases socket info index.
-    void ReleaseSocketIndex(GatewayWorker* gw)
-    {
-        g_gateway.ReleaseSocketIndex(gw, socket_info_index_);
-    }
+    void ReleaseSocketIndex(GatewayWorker* gw);
 
     // Deletes global session.
     void DeleteGlobalSessionOnDisconnect()
@@ -788,7 +770,7 @@ public:
     port_index_type GetPortIndex()
     {
         port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
-        GW_ASSERT ((port_index != INVALID_PORT_INDEX) && (port_index < g_gateway.get_num_server_ports_slots()));
+        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
 
         return port_index;
     }
@@ -987,7 +969,7 @@ public:
         worker_id_type bound_worker_id);
 
     // Resetting socket.
-    void ResetOnDisconnect();
+    void ResetOnDisconnect(GatewayWorker *gw);
 
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
@@ -1062,8 +1044,11 @@ public:
         SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
 
 #ifndef GW_LOOPED_TEST_MODE
-        if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
-            return SCERRGWACCEPTEXFAILED;
+        if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
+            uint32_t err_code = WSAGetLastError();
+
+            return err_code;
+        }
 #endif
 
         return 0;

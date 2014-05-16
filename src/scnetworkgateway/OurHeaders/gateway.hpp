@@ -130,7 +130,6 @@ enum GatewayErrorCodes
     SCERRGWHTTPPROCESSFAILED,
     SCERRGWHTTPSPROCESSFAILED,
     SCERRGWCONNECTEXFAILED,
-    SCERRGWACCEPTEXFAILED,
     SCERRGWOPERATIONONWRONGSOCKET,
     SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING,
     SCERRGWTESTTIMEOUT,
@@ -1107,9 +1106,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         unique_socket_id_ = INVALID_SESSION_SALT;
         session_.Reset();
 
-        // NOTE: Fields that stays the same for the same socket.
-        //socket_ = INVALID_SOCKET;
-        //port_index_ = INVALID_PORT_INDEX;
+        socket_ = INVALID_SOCKET;
+        port_index_ = INVALID_PORT_INDEX;
 
         ResetTimestamp();
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
@@ -1117,6 +1115,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SESSION_INDEX;
         aggr_socket_info_index_ = INVALID_SESSION_INDEX;
+    }
+
+    bool IsReset() {
+        return (INVALID_SOCKET == socket_);
     }
 };
 
@@ -1798,7 +1800,7 @@ public:
         bool proxy_connect_socket);
 
     // Releases used socket index.
-    void ReleaseSocketIndex(GatewayWorker* gw, session_index_type index);
+    void ReleaseSocketIndex(session_index_type index);
 
     // Checks if IP is on white list.
     bool CheckIpForWhiteList(ip_info_type ip)
@@ -1877,14 +1879,6 @@ public:
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return (MixedCodeConstants::NetworkProtocolType) all_sockets_infos_unsafe_[socket_index].type_of_network_protocol_;
-    }
-
-    // Resets socket info when socket is disconnected.
-    void ResetSocketInfoOnDisconnect(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].Reset();
     }
 
     // Getting destination database index.
@@ -2055,6 +2049,7 @@ public:
         GW_ASSERT(socket_index < setting_max_connections_);
 
         random_salt_type unique_id = get_unique_socket_id();
+        GW_ASSERT(unique_id != INVALID_SESSION_SALT);
 
         all_sockets_infos_unsafe_[socket_index].unique_socket_id_ = unique_id;
         all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = scheduler_id;
@@ -2099,9 +2094,6 @@ public:
 
     // Current global profilers stats.
     std::string GetGlobalProfilersString(int32_t* out_len);
-
-    // Getting the number of reusable connect sockets.
-    int64_t NumberOfReusableConnectSockets();
 
     // Getting the number of used sockets per worker.
     int64_t NumberUsedSocketsPerWorker(int32_t worker_id);
