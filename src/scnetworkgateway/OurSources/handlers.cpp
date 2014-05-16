@@ -215,6 +215,7 @@ uint32_t HandlersTable::RegisterPortHandler(
         err_code = g_gateway.get_worker(0)->CreateNewConnections(how_many, server_port->get_port_index());
         if (err_code)
             goto ERROR_HANDLING;
+
 #endif
     }
 

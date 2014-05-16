@@ -1111,23 +1111,26 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishAccept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+#ifdef GW_LOOPED_TEST_MODE
+
+    // Checking that we don't exceed number of active connections.
+    if (num_created_conns_worker_ < g_gateway.setting_num_connections_to_master_per_worker())
+    {
+        // Creating new set of prepared connections.
+        uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
+        GW_ERR_CHECK(err_code);
+    }
+
+#endif
+
+
+#ifndef GW_TESTING_MODE
+
     // Checking if was rebalanced.
     if (0 == worker_id_) {
 
         // Decreasing number of accepting sockets.
         int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
-
-#ifdef GW_LOOPED_TEST_MODE
-
-        // Checking that we don't exceed number of active connections.
-        if (num_created_conns_worker_ < g_gateway.setting_num_connections_to_master_per_worker())
-        {
-            // Creating new set of prepared connections.
-            err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
-            GW_ERR_CHECK(err_code);
-        }
-
-#else
 
         // Checking if we need to extend number of accepting sockets.
         if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
@@ -1136,10 +1139,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
             GW_ERR_CHECK(err_code);
         }
-
-#endif
-
-#ifndef GW_TESTING_MODE
 
         worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(sd->GetPortIndex());
 
@@ -1171,9 +1170,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
             return 0;
         }
+    }
 
 #endif
-    }
 
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
@@ -1454,6 +1453,7 @@ uint32_t GatewayWorker::WorkerRoutine()
             }
             else
             {
+#ifndef GW_TESTING_MODE
                 if (worker_id_ != 0) {
 
                     RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
@@ -1494,6 +1494,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                         }
                     }
                 }
+#endif
             }
         }
 #endif
