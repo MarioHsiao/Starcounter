@@ -15,7 +15,7 @@ namespace Starcounter.Advanced.XSON {
         public override int EstimateSizeBytes(Json obj) {
             var transaction = obj.Transaction;
             if (transaction != null) {
-                return transaction.Add<Json, int>(_EstimateSizeBytes, obj);
+                return transaction.AddAndReturn<Json, int>(_EstimateSizeBytes, obj);
             }
             return _EstimateSizeBytes(obj);
         }
@@ -23,7 +23,7 @@ namespace Starcounter.Advanced.XSON {
         public override int Serialize(Json obj, byte[] buf, int origOffset) {
             var transaction = obj.Transaction;
             if (transaction != null) {
-                return transaction.Add<Json, byte[], int, int>(_Serialize, obj, buf, origOffset);
+                return transaction.AddAndReturn<Json, byte[], int, int>(_Serialize, obj, buf, origOffset);
             }
             return _Serialize(obj, buf, origOffset);
         }

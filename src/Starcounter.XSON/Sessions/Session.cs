@@ -61,6 +61,13 @@ namespace Starcounter {
             }
         }
 
+        // TODO:
+        internal Json GetFirstData() {
+            if (_stateList.Count > 0)
+                return _stateList[0].Data;
+            return null;
+        }
+
         private DataAndCache GetStateObject() {
             int stateIndex;
             string appName;

@@ -297,6 +297,11 @@ public class CInstallationBase : CComponentBase
         if (!Directory.Exists(startMenuDir))
             Directory.CreateDirectory(startMenuDir);
 
+        // Installation configuration directory
+        var configDir = Path.Combine(InstallerMain.InstallationDir, StarcounterEnvironment.Directories.InstallationConfiguration);
+        if (!Directory.Exists(configDir))
+            Directory.CreateDirectory(configDir);
+
         // Calling external tool to create shortcut.
         Utilities.CreateShortcut(
             Path.Combine(ComponentPath, ConstantsBank.SCInstallerGUI + ".exe"),

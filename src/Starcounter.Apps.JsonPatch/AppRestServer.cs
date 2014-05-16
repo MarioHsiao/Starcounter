@@ -12,7 +12,6 @@ using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;
 using Codeplex.Data;
-using Starcounter.Internal.JsonPatch;
 using System.Collections.Generic;
 using Starcounter.Rest;
 using Starcounter.Logging;

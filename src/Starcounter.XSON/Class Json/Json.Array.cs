@@ -24,6 +24,7 @@ namespace Starcounter {
         
         internal Json(Json parent, TObjArr templ) {
             _dirtyCheckEnabled = DirtyCheckEnabled;
+            _cacheIndexInArr = -1;
             this.Template = templ;
             Parent = parent;
         }
@@ -35,6 +36,7 @@ namespace Starcounter {
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
             _dirtyCheckEnabled = DirtyCheckEnabled;
+            _cacheIndexInArr = -1;
             _data = result;
             _PendingEnumeration = true;
         }
@@ -75,6 +77,10 @@ namespace Starcounter {
                 _PendingEnumeration = false;
             }
             parent.CallHasChanged(template);
+        }
+
+        internal void UpdateCachedIndex() {
+            _cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
     }
 }

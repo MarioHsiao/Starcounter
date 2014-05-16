@@ -17,9 +17,7 @@ using Starcounter.Logging;
 using StarcounterInternal.Hosting;
 using System.Text.RegularExpressions;
 using System.IO;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Bootstrap.Management;
-using Starcounter.JsonPatch.BuiltInRestHandlers;
 
 namespace StarcounterInternal.Bootstrap {
     /// <summary>

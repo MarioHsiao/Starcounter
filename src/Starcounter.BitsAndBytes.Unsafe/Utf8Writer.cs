@@ -58,6 +58,11 @@ namespace Starcounter.Internal {
 			}
 		}
 
+        public void Skip(int count) {
+            pbuf += count;
+            totalWritten += count;
+        }
+
 		// Copied from FasterThanJson.MemcpyUtil
 		private unsafe static void Memcpy16fwd(byte* dest, byte* src, uint len) {
 			if (len >= 16) {

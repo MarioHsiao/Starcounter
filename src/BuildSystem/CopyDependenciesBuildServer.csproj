@@ -22,10 +22,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   
-  <PropertyGroup>
-    <LocalServiceConfig>..\scservicelib\config\personal.xml</LocalServiceConfig>
-  </PropertyGroup>
-  
   <Target Name="CopyBuildServerFiles">
 
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
@@ -40,7 +36,6 @@
     <!-- Build system needed static files. -->
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetPackages)" DestinationFiles="@(RemoteNuGetPackages->'..\packages\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteNuGetDir)" DestinationFiles="@(RemoteNuGetDir->'..\.nuget\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalServiceConfig)" DestinationFolder="$(OutputPath)" />
     
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
