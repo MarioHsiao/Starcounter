@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Starcounter.Advanced;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter {
 	partial class Json {
@@ -34,16 +35,16 @@ namespace Starcounter {
 				}
 			} else {
 				if (Template != null) {
-					var tjson = (TObject)Template;
-
-                    this.ExecuteInScope(() => {
-                        for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-                            var property = tjson.Properties.ExposedProperties[i] as TValue;
-                            if (property != null) {
-                                property.Checkpoint(this);
+                    this.AddInScope<TObject>( 
+                        (tjson) => {
+                            for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
+                                var property = tjson.Properties.ExposedProperties[i] as TValue;
+                                if (property != null) {
+                                    property.Checkpoint(this);
+                                }
                             }
-                        }
-                    });
+                        },
+                        (TObject)Template);
 				}
 			}
 			_Dirty = false;
@@ -118,20 +119,19 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session to report to</param>
 		private void LogObjectValueChangesWithDatabase(Session session) {
-			var template = (TObject)Template;
-			var exposed = template.Properties.ExposedProperties;
+            this.AddInScope<Session>((s) => {
+                var template = (TObject)Template;
+                var exposed = template.Properties.ExposedProperties;
 
-            this.ExecuteInScope(() => {
                 if (_Dirty) {
                     for (int t = 0; t < exposed.Count; t++) {
                         if (WasReplacedAt(exposed[t].TemplateIndex)) {
-                            var s = Session;
                             if (s != null) {
                                 if (IsArray) {
                                     throw new NotImplementedException();
                                 } else {
                                     var childTemplate = (TValue)exposed[t];
-                                    Session.UpdateValue(this, childTemplate);
+                                    s.UpdateValue(this, childTemplate);
 
                                     // TODO:
                                     // Added this code to make current implementation work.
@@ -155,7 +155,7 @@ namespace Starcounter {
                             if (p is TContainer) {
                                 var c = ((TContainer)p).GetValue(this);
                                 if (c != null)
-                                    c.LogValueChangesWithDatabase(session);
+                                    c.LogValueChangesWithDatabase(s);
                             } else {
                                 if (IsArray)
                                     throw new NotImplementedException();
@@ -170,7 +170,7 @@ namespace Starcounter {
                         if (exposed[t] is TContainer) {
                             var c = ((TContainer)exposed[t]).GetValue(this);
                             if (c != null)
-                                c.LogValueChangesWithDatabase(session);
+                                c.LogValueChangesWithDatabase(s);
                         } else {
                             if (IsArray) {
                                 throw new NotImplementedException();
@@ -183,11 +183,12 @@ namespace Starcounter {
                 } else {
                     foreach (var e in list) {
                         if (e is Json) {
-                            ((Json)e).LogValueChangesWithDatabase(session);
+                            ((Json)e).LogValueChangesWithDatabase(s);
                         }
                     }
                 }
-            });
+            },
+            session);
 		}
 
 		internal void SetBoundValuesInTuple() {
@@ -196,7 +197,7 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
-                this.ExecuteInScope(() => {
+                this.AddInScope(() => {
                     TObject tobj = (TObject)Template;
                     if (tobj != null) {
                         for (int i = 0; i < tobj.Properties.Count; i++) {
