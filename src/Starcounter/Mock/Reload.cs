@@ -30,69 +30,6 @@ namespace Starcounter {
             return quotedPath.ToString();
         }
 
-        public static string GetString(IObjectView values, int index) {
-            string nullStr = "NULL";
-            DbTypeCode typeCode = values.TypeBinding.GetPropertyBinding(index).TypeCode;
-            switch (typeCode) {
-                case DbTypeCode.Binary:
-                    Binary? binaryVal = values.GetBinary(index);
-                    if (binaryVal == null || ((Binary)binaryVal).IsNull)
-                        return nullStr;
-                    return "BINARY '" + Db.BinaryToHex((Binary)binaryVal) + "'";
-                case DbTypeCode.Boolean: 
-                    Boolean? boolVal = values.GetBoolean(index);
-                    if (boolVal == null)
-                        return nullStr;
-                    return boolVal.ToString();
-                case DbTypeCode.DateTime: 
-                    DateTime? timeVal = values.GetDateTime(index);
-                    if (timeVal == null)
-                        return nullStr;
-                    return ((DateTime)timeVal).Ticks.ToString();
-                case DbTypeCode.Decimal:
-                    Decimal? decVal = values.GetDecimal(index);
-                    if (decVal == null)
-                        return nullStr;
-                    return decVal.ToString();
-                case DbTypeCode.Single: 
-                case DbTypeCode.Double:
-                    Double? doubVal = values.GetDouble(index);
-                    if (doubVal == null)
-                        return nullStr;
-                    return doubVal.ToString();
-                case DbTypeCode.SByte: 
-                case DbTypeCode.Int16: 
-                case DbTypeCode.Int32: 
-                case DbTypeCode.Int64: 
-                    Int64? intVal = values.GetInt64(index);
-                    if (intVal == null)
-                        return nullStr;
-                    return intVal.ToString();
-                case DbTypeCode.Object: 
-                    Object objVal = values.GetObject(index);
-                    if (objVal == null)
-                        return nullStr;
-                    return "Object " + objVal.GetObjectNo().ToString();
-                case DbTypeCode.String:
-                    String strVal = values.GetString(index);
-                    if (strVal == null)
-                        return nullStr;
-                    strVal.Replace("'", "\'");
-                    return "'" + strVal + "'";
-                case DbTypeCode.Byte: 
-                case DbTypeCode.UInt16: 
-                case DbTypeCode.UInt32: 
-                case DbTypeCode.UInt64:
-                    UInt64? uintVal = values.GetUInt64(index);
-                    if (uintVal == null)
-                        return nullStr;
-                return uintVal.ToString();
-            }
-            throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
-                "Error during unloading a database: type code of selected property is unexpected, " +
-                typeCode.ToString() + ".");
-        }
-
         internal static int Unload(string fileName) {
             int totalNrObj = 0;
             // Create empty file
@@ -104,7 +41,7 @@ namespace Starcounter {
                 if (Binding.Bindings.GetTypeDef(tbl.name) == null) {
                     LogSources.Hosting.LogWarning("Table " + tbl.name + " cannot be unloaded, since its class is not loaded.");
                     Console.WriteLine("Warning: Table " + tbl.name + " cannot be unloaded, since its class is not loaded.");
-                }  else {
+                } else {
                     int tblNrObj = 0;
                     String insertHeader;
                     StringBuilder inStmt = new StringBuilder();
@@ -167,6 +104,69 @@ namespace Starcounter {
                 }
             }
             return totalNrObj;
+        }
+
+        public static string GetString(IObjectView values, int index) {
+            string nullStr = "NULL";
+            DbTypeCode typeCode = values.TypeBinding.GetPropertyBinding(index).TypeCode;
+            switch (typeCode) {
+                case DbTypeCode.Binary:
+                    Binary? binaryVal = values.GetBinary(index);
+                    if (binaryVal == null || ((Binary)binaryVal).IsNull)
+                        return nullStr;
+                    return "BINARY '" + Db.BinaryToHex((Binary)binaryVal) + "'";
+                case DbTypeCode.Boolean: 
+                    Boolean? boolVal = values.GetBoolean(index);
+                    if (boolVal == null)
+                        return nullStr;
+                    return boolVal.ToString();
+                case DbTypeCode.DateTime: 
+                    DateTime? timeVal = values.GetDateTime(index);
+                    if (timeVal == null)
+                        return nullStr;
+                    return ((DateTime)timeVal).Ticks.ToString();
+                case DbTypeCode.Decimal:
+                    Decimal? decVal = values.GetDecimal(index);
+                    if (decVal == null)
+                        return nullStr;
+                    return decVal.ToString();
+                case DbTypeCode.Single: 
+                case DbTypeCode.Double:
+                    Double? doubVal = values.GetDouble(index);
+                    if (doubVal == null)
+                        return nullStr;
+                    return doubVal.ToString();
+                case DbTypeCode.SByte: 
+                case DbTypeCode.Int16: 
+                case DbTypeCode.Int32: 
+                case DbTypeCode.Int64: 
+                    Int64? intVal = values.GetInt64(index);
+                    if (intVal == null)
+                        return nullStr;
+                    return intVal.ToString();
+                case DbTypeCode.Object: 
+                    Object objVal = values.GetObject(index);
+                    if (objVal == null)
+                        return nullStr;
+                    return "Object " + objVal.GetObjectNo().ToString();
+                case DbTypeCode.String:
+                    String strVal = values.GetString(index);
+                    if (strVal == null)
+                        return nullStr;
+                    strVal.Replace("'", "\'");
+                    return "'" + strVal + "'";
+                case DbTypeCode.Byte: 
+                case DbTypeCode.UInt16: 
+                case DbTypeCode.UInt32: 
+                case DbTypeCode.UInt64:
+                    UInt64? uintVal = values.GetUInt64(index);
+                    if (uintVal == null)
+                        return nullStr;
+                return uintVal.ToString();
+            }
+            throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
+                "Error during unloading a database: type code of selected property is unexpected, " +
+                typeCode.ToString() + ".");
         }
     }
 }
