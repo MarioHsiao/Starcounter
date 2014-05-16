@@ -90,8 +90,8 @@ namespace Starcounter.CLI {
         }
 
         static string GetLogDirectory() {
-            var installationDir = StarcounterEnvironment.InstallationDirectory;
-            var configFile = Path.Combine(installationDir, "Personal.xml");
+            var configDir = Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterEnvironment.Directories.InstallationConfiguration);
+            var configFile = Path.Combine(configDir, StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile);
 
             var xml = XDocument.Load(configFile);
             var query = from c in xml.Root.Descendants("server-dir")

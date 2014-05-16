@@ -4,21 +4,6 @@ using System;
 namespace Starcounter {
     partial class Json {
         /// <summary>
-        /// Executes the specifed Action either in the scope of a transaction
-        /// on the object or if no transaction is found, just executes the action.
-        /// </summary>
-        /// <param name="action">The delegate to execute</param>
-        internal void ExecuteInScope(Action action) {
-            var t = Transaction;
-
-            if (t != null) {
-                t.Add(action);
-            } else {
-                action();
-            }
-        }
-
-        /// <summary>
         /// Gets the nearest transaction.
         /// </summary>
         public ITransaction Transaction {

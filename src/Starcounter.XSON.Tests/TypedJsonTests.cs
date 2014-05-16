@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Advanced;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Templates;
+using Starcounter.XSON.JsonPatch;
 using Starcounter.XSON.Tests;
 
 namespace Starcounter.Internal.XSON.Tests {
@@ -22,22 +22,22 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestAppIndexPath() {
-            AppAndTemplate aat = Helper.CreateSampleApp();
-            TObject appt = (TObject)aat.Template;
+            JsonProperty aat = Helper.CreateSampleApp();
+            TObject appt = (TObject)aat.Property;
 
             var firstName = (Property<string>)appt.Properties[0];
-            Int32[] indexPath = aat.App.IndexPathFor(firstName);
+            Int32[] indexPath = aat.Json.IndexPathFor(firstName);
             Helper.VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
             TObject anotherAppt = (TObject)appt.Properties[3];
-            Json nearestApp = anotherAppt.Getter(aat.App);
+            Json nearestApp = anotherAppt.Getter(aat.Json);
 
             var desc = (Property<string>)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
             Helper.VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
             TObjArr itemProperty = (TObjArr)appt.Properties[2];
-            Json items = itemProperty.Getter(aat.App);
+            Json items = itemProperty.Getter(aat.Json);
 
             nearestApp = (Json)items._GetAt(1);
             anotherAppt = (TObject)nearestApp.Template;

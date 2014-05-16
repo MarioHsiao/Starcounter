@@ -18,6 +18,7 @@ uint32_t _read_service_config(const wchar_t *name, wchar_t **pserver_dir)
     xml_document<> *doc; // Character type defaults to char.
     size_t str_num_chars;
     size_t str_size_bytes;
+	const wchar_t *configDir = L"Configuration";
 
     r = SCERRBADSERVICECONFIG;
 
@@ -26,13 +27,13 @@ uint32_t _read_service_config(const wchar_t *name, wchar_t **pserver_dir)
     config_data = 0;
     doc = 0;
 
-    str_num_chars = wcslen(name) + 4 + 1;
+    str_num_chars = wcslen(configDir) + 1 + wcslen(name) + 4 + 1;
     str_size_bytes = str_num_chars * sizeof(wchar_t);
 
     file_name = (wchar_t *)malloc(str_size_bytes);
     if (!file_name) goto end;
 
-    swprintf(file_name, str_num_chars, L"%s.xml", name);
+    swprintf(file_name, str_num_chars, L"%s\\%s.xml", configDir, name);
 
     errno_t errno;
     int32_t file_size;
