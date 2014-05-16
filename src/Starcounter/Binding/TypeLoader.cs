@@ -26,6 +26,13 @@ namespace Starcounter.Binding
         private readonly string typeName_;
 
         /// <summary>
+        /// Gets the assembly name of the current instance.
+        /// </summary>
+        public AssemblyName AssemblyName {
+            get { return assemblyName_; }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TypeLoader" /> class.
         /// </summary>
         /// <param name="assemblyName">Name of the assembly.</param>
