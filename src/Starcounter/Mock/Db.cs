@@ -134,8 +134,8 @@ namespace Starcounter
         /// </summary>
         /// <param name="fileName">Path of the file were the statements are written.</param>
         /// <returns>Number of unloaded objects.</returns>
-        public static int Unload(string fileName) {
-            return Starcounter.Reload.Unload(fileName);
+        public static int Unload(string fileName, ulong shiftId = 0) {
+            return Starcounter.Reload.Unload(fileName, shiftId);
         }
 
         /// <summary>

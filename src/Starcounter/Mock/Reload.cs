@@ -39,7 +39,7 @@ namespace Starcounter {
             return prop.Name;
         }
 
-        internal static int Unload(string fileName) {
+        internal static int Unload(string fileName, ulong shiftId) {
             int totalNrObj = 0;
             // Create empty file
             using (StreamWriter fileStream = new StreamWriter(fileName, false)) {
@@ -78,10 +78,10 @@ namespace Starcounter {
                     else
                         inStmt.Append(",(");
                     Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                    inStmt.Append("object " + val.GetObject(0).GetObjectNo()); // Value __id
+                    inStmt.Append("object " + (val.GetObject(0).GetObjectNo()+shiftId).ToString()); // Value __id
                     for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
                         inStmt.Append(",");
-                        inStmt.Append(GetString(val, i));
+                        inStmt.Append(GetString(val, i, shiftId));
                     }
                     inStmt.Append(")");
                     tblNrObj++;
@@ -126,7 +126,7 @@ namespace Starcounter {
             }
         }
 
-        public static string GetString(IObjectView values, int index) {
+        public static string GetString(IObjectView values, int index, ulong shiftId) {
             string nullStr = "NULL";
             DbTypeCode typeCode = values.TypeBinding.GetPropertyBinding(index).TypeCode;
             switch (typeCode) {
@@ -168,12 +168,12 @@ namespace Starcounter {
                     Object objVal = values.GetObject(index);
                     if (objVal == null)
                         return nullStr;
-                    return "Object " + objVal.GetObjectNo().ToString();
+                    return "Object " + (objVal.GetObjectNo() + shiftId).ToString();
                 case DbTypeCode.String:
                     String strVal = values.GetString(index);
                     if (strVal == null)
                         return nullStr;
-                    strVal.Replace("'", "\'");
+                    strVal = strVal.Replace("'", "''");
                     return "'" + strVal + "'";
                 case DbTypeCode.Byte: 
                 case DbTypeCode.UInt16: 
