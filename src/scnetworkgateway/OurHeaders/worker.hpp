@@ -79,12 +79,33 @@ public:
 
         // Creating new chunk.
         sd = (SocketDataChunk*) _aligned_malloc(GatewayChunkSizes[chunk_store_index], MEMORY_ALLOCATION_ALIGNMENT);
+        GW_ASSERT(NULL != sd);
         num_allocated_chunks_[chunk_store_index]++;
 
 RETURN_SD:
 
         sd->set_chunk_store_index(chunk_store_index);
         return sd;
+    }
+};
+
+_declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) class RebalancedSocketInfo {
+    port_index_type port_index_;
+    SOCKET socket_;
+
+public:
+
+    void Init(port_index_type port_index, SOCKET socket) {
+        port_index_ = port_index;
+        socket_ = socket;
+    }
+
+    port_index_type get_port_index() {
+        return port_index_;
+    }
+
+    SOCKET get_socket() {
+        return socket_;
     }
 };
 
@@ -129,6 +150,9 @@ class GatewayWorker
     // List of sockets indexes to be disconnected.
     std::list<session_index_type> sockets_indexes_to_disconnect_;
 
+    // Thread-safe list of rebalanced accept sockets.
+    PSLIST_HEADER rebalance_accept_sockets_;
+
     // Aggregation sockets waiting for send.
     LinearList<SocketDataChunk*, 256> aggr_sds_to_send_;
 
@@ -145,6 +169,16 @@ class GatewayWorker
 
     // Avoiding false sharing.
     uint8_t pad[CACHE_LINE_SIZE];
+
+    RebalancedSocketInfo* PopRebalanceSocketInfo() {
+        RebalancedSocketInfo* rsi = (RebalancedSocketInfo*) InterlockedPopEntrySList(rebalance_accept_sockets_);
+        return rsi;
+    }
+
+    void PushRebalanceSocketInfo(RebalancedSocketInfo*& rsi) {
+        InterlockedPushEntrySList(rebalance_accept_sockets_, (PSLIST_ENTRY) rsi);
+        rsi = NULL;
+    }
 
 public:
 

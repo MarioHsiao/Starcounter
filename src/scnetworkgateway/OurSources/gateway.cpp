@@ -1197,8 +1197,7 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     // NOTE: Socket info has the same address as socket index entry.
     ScSocketInfoStruct* si = (ScSocketInfoStruct*) free_socket_index_entry;
 
-    // Resetting the socket structure.
-    si->Reset();
+    GW_ASSERT(si->IsReset());
 
     // Marking socket as alive.
     si->socket_ = s;
@@ -1772,7 +1771,8 @@ uint32_t Gateway::Init()
         all_sockets_infos_unsafe_[i].read_only_index_ = i;
 
         // Pushing to free indexes list.
-        InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_));
+        SLIST_ENTRY* e = &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_);
+        InterlockedPushEntrySList(free_socket_indexes_unsafe_, e);
     }
 
     // Checking if already initialized.
@@ -2826,7 +2826,6 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
                 << ",\"receivedTimes\":" << gw_workers_[worker_id_].get_worker_stats_recv_num() 
                 << ",\"sentBytes\":" << gw_workers_[worker_id_].get_worker_stats_bytes_sent() 
                 << ",\"sentTimes\":" << gw_workers_[worker_id_].get_worker_stats_sent_num() 
-                << ",\"boundSockets\":" << gw_workers_[worker_id_].get_worker_stats_num_bound_sockets() 
                 << "}";
         }
         global_statistics_stream_ << "]";
@@ -2839,7 +2838,6 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() 
             << ",\"activeSockets\":" << g_gateway.get_num_active_sockets() 
-            << ",\"reusableConn-socks\":" << g_gateway.NumberOfReusableConnectSockets()
 
 #ifdef GW_TESTING_MODE
             << ",\"perfTestInfo\":{"
@@ -3419,10 +3417,15 @@ end:
 }
 
 // Releases used socket index.
-void Gateway::ReleaseSocketIndex(GatewayWorker* gw, session_index_type index)
+void Gateway::ReleaseSocketIndex(session_index_type socket_info_index)
 {
+    // Checking that this socket info wasn't returned before.
+    GW_ASSERT(!all_sockets_infos_unsafe_[socket_info_index].IsReset());
+    
+    all_sockets_infos_unsafe_[socket_info_index].Reset();
+    
     // Pushing to free indexes list.
-    InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[index].free_socket_indexes_entry_));
+    InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[socket_info_index].free_socket_indexes_entry_));
 }
 
 // Closes Starcounter log.
