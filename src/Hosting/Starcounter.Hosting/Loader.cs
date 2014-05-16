@@ -186,13 +186,9 @@ namespace StarcounterInternal.Hosting
                     }
 
                     if (!assemblyMatch) {
-                        // Can't load types with same name from incompatible assemblies.
-                        // Can not bind type {0} in assembly {1}. It collides with
-                        // the same type already loaded from assembly {2}.
-                        // 
-                        // Type failing: 0. Already loaded: 1.
-                        throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED,
-                            string.Format("{0} != {1}",
+                        throw ErrorCode.ToException(
+                            Starcounter.Error.SCERRTYPEALREADYLOADED,
+                            string.Format("Type failing: {0}. Already loaded: {1}",
                             typeDef.TypeLoader.ScopedName, 
                             alreadyRegisteredTypeDef.TypeLoader.ScopedName));
                     }
