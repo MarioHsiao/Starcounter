@@ -79,7 +79,15 @@ namespace Starcounter.CLI {
 
             if (statusCode == 404) {
                 errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.Body);
+                try {
+                    errorDetail.PopulateFromJson(response.Body);
+                } catch {
+                    // The content of the response is not ErrorDetail json. It might be some other 
+                    // 404 sent from a different source, that sets the content to the original 
+                    // exception message. Lets handle it as an unexpected response.
+                    HandleUnexpectedResponse(response);
+                }
+
                 if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
                     var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
                     if (!allowed) {
