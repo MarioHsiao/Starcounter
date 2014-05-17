@@ -141,6 +141,10 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
     port_index_type port_index = sd->GetPortIndex();
     session_index_type proxied_socket_info_index = g_gateway.ObtainFreeSocketIndex(this, new_connect_socket, port_index, true);
 
+    // Associating new socket with current worker IOCP.
+    HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_connect_socket, worker_iocp_, 0, 1);
+    GW_ASSERT(iocp_handler == worker_iocp_);
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Changing number of created sockets.
