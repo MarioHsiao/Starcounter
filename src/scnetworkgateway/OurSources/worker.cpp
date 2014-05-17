@@ -332,6 +332,10 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, port_index_type p
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
@@ -350,10 +354,6 @@ START_RECEIVING_AGAIN:
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "Receive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     uint32_t numBytes, err_code;
 
@@ -423,16 +423,16 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     GW_PRINT_WORKER << "FinishReceive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Checking that socket arrived on correct worker.
-    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
+    // Checking that socket arrived on correct worker.
+    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
@@ -530,16 +530,16 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Send: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
     // Checking that socket data is valid.
     sd->CheckForValidity();
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Checking if aggregation is involved.
     if (sd->GetSocketAggregatedFlag())
@@ -603,6 +603,10 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     GW_PRINT_WORKER << "FinishSend: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
     // Checking that socket data is valid.
     sd->CheckForValidity();
 
@@ -613,10 +617,6 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
         return SCERRGWDISCONNECTAFTERSENDFLAG;
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -766,12 +766,12 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Checking that socket data is valid.
-    sd->CheckForValidity();
-
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
+
+    // Checking that socket data is valid.
+    sd->CheckForValidity();
 
     // NOTE: The following is needed because the actual owner of the socket
     // will not pass the CompareUniqueSocketId check on the next IO operation.
@@ -858,16 +858,16 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 #endif
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Deleting session.
     sd->DeleteGlobalSessionOnDisconnect();
@@ -1115,6 +1115,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishAccept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    GW_ASSERT(true == sd->CompareUniqueSocketId());
+
 #ifdef GW_LOOPED_TEST_MODE
 
     // Checking that we don't exceed number of active connections.
@@ -1177,9 +1180,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     }
 
 #endif
-
-    // Checking correct unique socket.
-    GW_ASSERT(true == sd->CompareUniqueSocketId());
 
     // Updating connection timestamp.
     sd->UpdateConnectionTimeStamp();
@@ -1346,9 +1346,6 @@ uint32_t GatewayWorker::WorkerRoutine()
                 sd->CheckForValidity();
                 GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
 
-                // Checking that socket is bound to the correct worker.
-                GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
-
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
                 {
@@ -1377,6 +1374,10 @@ uint32_t GatewayWorker::WorkerRoutine()
 
                     continue;
                 }
+
+                // Checking that socket is bound to the correct worker.
+                if (true == sd->CompareUniqueSocketId())
+                    GW_ASSERT(worker_id_ == sd->GetBoundWorkerId());
 
                 // Getting number of bytes in operation.
                 oper_num_bytes = fetched_ovls[i].dwNumberOfBytesTransferred;
