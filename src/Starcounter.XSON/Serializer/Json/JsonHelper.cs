@@ -639,7 +639,7 @@ namespace Starcounter.Advanced.XSON {
             throw ErrorCode.ToException(
                             Error.SCERRJSONVALUEWRONGTYPE,
                             innerException,
-                            string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", name, type, value),
+                            string.Format("Property=\"{0} ({1})\", Value={2}", name, type, value),
                             (msg, e) => {
                                 return new FormatException(msg, e);
                             });
