@@ -33,11 +33,6 @@ namespace Starcounter {
         internal bool _PendingEnumeration;
 
         /// <summary>
-        /// Contains the depth of this Container. Used when creating the indexpath.
-        /// </summary>
-        private Int32 _cachePathDepth = -1;
-
-        /// <summary>
         /// For unbound values, we keep a list of flags to know which properties has changed.
         /// </summary>
         protected List<bool> _SetFlag;

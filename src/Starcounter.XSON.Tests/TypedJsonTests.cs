@@ -20,33 +20,6 @@ namespace Starcounter.Internal.XSON.Tests {
             StarcounterBase._DB = new FakeDbImpl();
         }
 
-        [Test]
-        public static void TestAppIndexPath() {
-            JsonProperty aat = Helper.CreateSampleApp();
-            TObject appt = (TObject)aat.Property;
-
-            var firstName = (Property<string>)appt.Properties[0];
-            Int32[] indexPath = aat.Json.IndexPathFor(firstName);
-            Helper.VerifyIndexPath(new Int32[] { 0 }, indexPath);
-
-            TObject anotherAppt = (TObject)appt.Properties[3];
-            Json nearestApp = anotherAppt.Getter(aat.Json);
-
-            var desc = (Property<string>)anotherAppt.Properties[1];
-            indexPath = nearestApp.IndexPathFor(desc);
-            Helper.VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
-
-            TObjArr itemProperty = (TObjArr)appt.Properties[2];
-            Json items = itemProperty.Getter(aat.Json);
-
-            nearestApp = (Json)items._GetAt(1);
-            anotherAppt = (TObject)nearestApp.Template;
-
-            TBool delete = (TBool)anotherAppt.Properties[2];
-            indexPath = nearestApp.IndexPathFor(delete);
-            Helper.VerifyIndexPath(new Int32[] { 2, 1, 2 }, indexPath);
-        }
-
         /// <summary>
         /// Creates a template (schema) and Puppets using that schema in code.
         /// </summary>
