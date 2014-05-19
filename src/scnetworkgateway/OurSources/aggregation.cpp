@@ -62,7 +62,7 @@ uint32_t PortAggregator(
             case starcounter::MixedCodeConstants::AGGR_CREATE_SOCKET:
             {
                 // Getting port handler.
-                int32_t port_index = g_gateway.FindServerPortIndex(ags->port_number_);
+                port_index_type port_index = g_gateway.FindServerPortIndex(ags->port_number_);
                 GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
                 // Getting new socket index.

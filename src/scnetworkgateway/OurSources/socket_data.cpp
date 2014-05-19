@@ -41,12 +41,17 @@ void SocketDataChunk::Init(
     get_ws_proto()->Init();
 }
 
-// Resetting socket.
-void SocketDataChunk::ResetOnDisconnect()
+// Releases socket info index.
+void SocketDataChunk::ReleaseSocketIndex(GatewayWorker* gw)
 {
-    // Resetting associated socket info.
-    g_gateway.ResetSocketInfoOnDisconnect(socket_info_index_);
 
+    g_gateway.ReleaseSocketIndex(socket_info_index_);
+    socket_info_index_ = INVALID_SESSION_INDEX;
+}
+
+// Resetting socket.
+void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
+{
     set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
@@ -57,6 +62,9 @@ void SocketDataChunk::ResetOnDisconnect()
 
     // Removing reference to/from session.
     session_.Reset();
+
+    // Releasing socket index.
+    ReleaseSocketIndex(gw);
 
     // Resetting HTTP/WS stuff.
     get_http_proto()->Reset();
