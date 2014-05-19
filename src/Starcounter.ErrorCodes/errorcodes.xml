@@ -3813,6 +3813,12 @@
         resource.
       </message>
     </code>
+    <code hex="0025" severity="Error" name="ScErrInvalidOperationAbort">
+      <message>
+        The transaction was aborted because an invalid operation attempted left
+        the transaction in an inconsistent state.
+      </message>
+    </code>
   </facility>
 
 <!--
