@@ -28,13 +28,16 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     // Getting global IOCP.
     //worker_iocp_ = g_gateway.get_iocp();
 
+    rebalance_accept_sockets_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    GW_ASSERT(rebalance_accept_sockets_);
+    InitializeSListHead(rebalance_accept_sockets_);
+
     worker_suspended_unsafe_ = false;
 
     worker_stats_bytes_received_ = 0;
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
     worker_stats_recv_num_ = 0;
-    worker_stats_num_bound_sockets_ = 0;
 
 #ifdef GW_TESTING_MODE
     num_created_conns_worker_ = 0;
@@ -64,112 +67,92 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
     // Creating new socket.
     SOCKET new_connect_socket;
 
-    // Indicates if we used previously created socket.
-    bool reused_socket = false;
-    
-    // Checking if we can reuse existing socket.
-    if (reusable_connect_sockets_.get_num_entries())
+    new_connect_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+    if (new_connect_socket == INVALID_SOCKET)
     {
-        new_connect_socket = reusable_connect_sockets_.PopFront();
-
-#ifdef GW_SOCKET_DIAG
-        GW_PRINT_WORKER << "Reusing 'connect' socket: " << new_connect_socket << GW_ENDL;
+#ifdef GW_ERRORS_DIAG
+        GW_PRINT_WORKER << "WSASocket() failed." << GW_ENDL;
 #endif
-
-        reused_socket = true;
+        return PrintLastError();
     }
-    else
+
+    // Trying to bind socket until this succeeds.
+    while (true)
     {
-        new_connect_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-        if (new_connect_socket == INVALID_SOCKET)
+        // The socket address to be passed to bind.
+        sockaddr_in binding_addr;
+        memset(&binding_addr, 0, sizeof(sockaddr_in));
+        binding_addr.sin_family = AF_INET;
+
+        // Checking if we have local interfaces to bind.
+        if (g_gateway.setting_local_interfaces().size() > 0)
+            binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(g_gateway.get_last_bind_interface_num()).c_str());
+        else
+            binding_addr.sin_addr.s_addr = INADDR_ANY;
+
+        // Generating new port/interface.
+        g_gateway.GenerateNewBindPortInterfaceNumbers();
+
+        // Initially used when too many ports were needed (>64K).
+        //binding_addr.sin_port = htons(g_gateway.get_last_bind_port_num());
+
+        // Binding socket to certain interface and port.
+        if (bind(new_connect_socket, (SOCKADDR *) &binding_addr, sizeof(binding_addr)))
         {
 #ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "WSASocket() failed." << GW_ENDL;
+            GW_PRINT_WORKER << "Failed to bind port!" << GW_ENDL;
 #endif
-            return PrintLastError();
+            continue;
         }
 
-        // Adding to IOCP.
-        HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_connect_socket, worker_iocp_, 0, 1);
-        GW_ASSERT(iocp_handler == worker_iocp_);
+        break;
+    }
 
-        // Trying to bind socket until this succeeds.
-        while (true)
-        {
-            // The socket address to be passed to bind.
-            sockaddr_in binding_addr;
-            memset(&binding_addr, 0, sizeof(sockaddr_in));
-            binding_addr.sin_family = AF_INET;
+    int32_t onFlag = 1;
 
-            // Checking if we have local interfaces to bind.
-            if (g_gateway.setting_local_interfaces().size() > 0)
-                binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(g_gateway.get_last_bind_interface_num()).c_str());
-            else
-                binding_addr.sin_addr.s_addr = INADDR_ANY;
+    // Does not block close waiting for unsent data to be sent.
+    if (setsockopt(new_connect_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&onFlag, 4))
+    {
+        GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
 
-            // Generating new port/interface.
-            g_gateway.GenerateNewBindPortInterfaceNumbers();
+        closesocket(new_connect_socket);
 
-            // Initially used when too many ports were needed (>64K).
-            //binding_addr.sin_port = htons(g_gateway.get_last_bind_port_num());
-
-            // Binding socket to certain interface and port.
-            if (bind(new_connect_socket, (SOCKADDR *) &binding_addr, sizeof(binding_addr)))
-            {
-#ifdef GW_ERRORS_DIAG
-                GW_PRINT_WORKER << "Failed to bind port!" << GW_ENDL;
-#endif
-                continue;
-            }
-
-            break;
-        }
-
-        int32_t onFlag = 1;
-
-        // Does not block close waiting for unsent data to be sent.
-        if (setsockopt(new_connect_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&onFlag, 4))
-        {
-            GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
-
-            closesocket(new_connect_socket);
-
-            return PrintLastError();
-        }
+        return PrintLastError();
+    }
 
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
-        // Skipping completion port if operation is already successful.
-        SetFileCompletionNotificationModes((HANDLE)new_connect_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+    // Skipping completion port if operation is already successful.
+    SetFileCompletionNotificationModes((HANDLE)new_connect_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 #endif
 
-        // Putting socket into non-blocking mode.
-        uint32_t ul = 1, temp;
-        if (WSAIoctl(new_connect_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
-        {
+    // Putting socket into non-blocking mode.
+    uint32_t ul = 1, temp;
+    if (WSAIoctl(new_connect_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
+    {
 #ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "Can't put socket into non-blocking mode." << GW_ENDL;
+        GW_PRINT_WORKER << "Can't put socket into non-blocking mode." << GW_ENDL;
 #endif
-            closesocket(new_connect_socket);
+        closesocket(new_connect_socket);
 
-            return PrintLastError();
-        }
+        return PrintLastError();
     }
 
     // Getting new socket index.
-    int32_t port_index = sd->GetPortIndex();
+    port_index_type port_index = sd->GetPortIndex();
     session_index_type proxied_socket_info_index = g_gateway.ObtainFreeSocketIndex(this, new_connect_socket, port_index, true);
+
+    // Associating new socket with current worker IOCP.
+    HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_connect_socket, worker_iocp_, 0, 1);
+    GW_ASSERT(iocp_handler == worker_iocp_);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
-    if (!reused_socket)
-    {
-        // Changing number of created sockets.
-        int64_t created_sockets = g_gateway.get_server_port(port_index)->ChangeNumAllocatedConnectSockets(1);
+    // Changing number of created sockets.
+    int64_t created_sockets = g_gateway.get_server_port(port_index)->ChangeNumAllocatedConnectSockets(1);
 
 #ifdef GW_SOCKET_DIAG
-        GW_PRINT_WORKER << "New sockets amount: " << created_sockets << GW_ENDL;
+    GW_PRINT_WORKER << "New sockets amount: " << created_sockets << GW_ENDL;
 #endif
-    }
 
 #endif
 
@@ -185,124 +168,110 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
 #endif
 
 // Allocates a bunch of new connections.
-uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_index)
+uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, port_index_type port_index)
 {
+#ifndef GW_TESTING_MODE
+    GW_ASSERT(0 == worker_id_);
+#endif
+
     uint32_t err_code;
     int32_t curIntNum = 0;
 
     for (int32_t i = 0; i < how_many; i++)
     {
         SOCKET new_socket;
-        bool reused_socket = false;
 
-        // Checking if we can reuse existing socket.
-        if (reusable_accept_sockets_.get_num_entries())
+        // Creating new socket.
+        new_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+        if (new_socket == INVALID_SOCKET)
         {
-            new_socket = reusable_accept_sockets_.PopFront();
-
-#ifdef GW_SOCKET_DIAG
-            GW_PRINT_WORKER << "Reusing 'accept' socket: " << new_socket << GW_ENDL;
-#endif
-
-            reused_socket = true;
-        }
-        else
-        {
-            // Creating new socket.
-            new_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-            if (new_socket == INVALID_SOCKET)
-            {
 #ifdef GW_ERRORS_DIAG
-                GW_PRINT_WORKER << "WSASocket() failed." << GW_ENDL;
+            GW_PRINT_WORKER << "WSASocket() failed." << GW_ENDL;
 #endif
-                return PrintLastError();
-            }
-
-            // Adding to IOCP.
-            HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_socket, worker_iocp_, 0, 1);
-            GW_ASSERT(iocp_handler == worker_iocp_);
+            return PrintLastError();
+        }
 
 #ifdef GW_TESTING_MODE
 
-            // Binding sockets if we are on client.
-            if (!g_gateway.setting_is_master())
+        // Binding sockets if we are on client.
+        if (!g_gateway.setting_is_master())
+        {
+            // Trying to bind socket until this succeeds.
+            while(true)
             {
-                // Trying to bind socket until this succeeds.
-                while(true)
+                // The socket address to be passed to bind.
+                sockaddr_in binding_addr;
+                memset(&binding_addr, 0, sizeof(sockaddr_in));
+                binding_addr.sin_family = AF_INET;
+
+                // Checking if we have local interfaces to bind.
+                if (g_gateway.setting_local_interfaces().size() > 0)
+                    binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(g_gateway.get_last_bind_interface_num()).c_str());
+                else
+                    binding_addr.sin_addr.s_addr = INADDR_ANY;
+
+
+                // Generating new port/interface.
+                g_gateway.GenerateNewBindPortInterfaceNumbers();
+
+                // Initially used when too many ports were needed (>64K).
+                //binding_addr.sin_port = htons(g_gateway.get_last_bind_port_num());
+
+                // Binding socket to certain interface and port.
+                if (bind(new_socket, (SOCKADDR *) &binding_addr, sizeof(binding_addr)))
                 {
-                    // The socket address to be passed to bind.
-                    sockaddr_in binding_addr;
-                    memset(&binding_addr, 0, sizeof(sockaddr_in));
-                    binding_addr.sin_family = AF_INET;
-
-                    // Checking if we have local interfaces to bind.
-                    if (g_gateway.setting_local_interfaces().size() > 0)
-                        binding_addr.sin_addr.s_addr = inet_addr(g_gateway.setting_local_interfaces().at(g_gateway.get_last_bind_interface_num()).c_str());
-                    else
-                        binding_addr.sin_addr.s_addr = INADDR_ANY;
-
-
-                    // Generating new port/interface.
-                    g_gateway.GenerateNewBindPortInterfaceNumbers();
-
-                    // Initially used when too many ports were needed (>64K).
-                    //binding_addr.sin_port = htons(g_gateway.get_last_bind_port_num());
-
-                    // Binding socket to certain interface and port.
-                    if (bind(new_socket, (SOCKADDR *) &binding_addr, sizeof(binding_addr)))
-                    {
 #ifdef GW_ERRORS_DIAG
-                        GW_PRINT_WORKER << "Failed to bind port!" << GW_ENDL;
+                    GW_PRINT_WORKER << "Failed to bind port!" << GW_ENDL;
 #endif
-                        continue;
-                    }
-
-                    break;
+                    continue;
                 }
+
+                break;
             }
+        }
 
 #endif
 
-            // Setting needed socket options.
-            int32_t on_flag = 1;
+        // Setting needed socket options.
+        int32_t on_flag = 1;
 
-            // Disables the Nagle algorithm for send coalescing.
-            if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&on_flag, 4))
-            {
-                GW_PRINT_WORKER << "Can't set TCP_NODELAY on socket." << GW_ENDL;
+        // Disables the Nagle algorithm for send coalescing.
+        if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&on_flag, 4))
+        {
+            GW_PRINT_WORKER << "Can't set TCP_NODELAY on socket." << GW_ENDL;
 
-                closesocket(new_socket);
+            closesocket(new_socket);
 
-                return PrintLastError();
-            }
+            return PrintLastError();
+        }
 
-            // Does not block close waiting for unsent data to be sent.
-            if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
-            {
-                GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
+        // Does not block close waiting for unsent data to be sent.
+        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
+        {
+            GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
 
-                closesocket(new_socket);
+            closesocket(new_socket);
 
-                return PrintLastError();
-            }
+            return PrintLastError();
+        }
 
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
-            // Skipping completion port if operation is already successful.
-            SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
+        // Skipping completion port if operation is already successful.
+        SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 #endif
-            /*
-            // Putting socket into non-blocking mode.
-            uint32_t ul = 1, temp;
-            if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
-            {
+        /*
+        // Putting socket into non-blocking mode.
+        uint32_t ul = 1, temp;
+        if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
+        {
 #ifdef GW_ERRORS_DIAG
-                GW_PRINT_WORKER << "Can't put socket into non-blocking mode." << GW_ENDL;
+            GW_PRINT_WORKER << "Can't put socket into non-blocking mode." << GW_ENDL;
 #endif
-                closesocket(new_socket);
+            closesocket(new_socket);
 
-                return PrintLastError();
-            }*/
-        }
+            return PrintLastError();
+        }*/
+
 
         // Creating new socket data structure inside chunk.
         SocketDataChunk* new_sd = NULL;
@@ -342,17 +311,12 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
-        if (!reused_socket)
-        {
-            // Changing number of created sockets.
-            int64_t created_sockets = g_gateway.get_server_port(port_index)->ChangeNumAllocatedAcceptSockets(how_many);
-
-            worker_stats_num_bound_sockets_ += how_many;
+        // Changing number of created sockets.
+        int64_t created_sockets = g_gateway.get_server_port(port_index)->ChangeNumAllocatedAcceptSockets(how_many);
 
 #ifdef GW_SOCKET_DIAG
-            GW_PRINT_WORKER << "New sockets amount: " << created_sockets << GW_ENDL;
+        GW_PRINT_WORKER << "New sockets amount: " << created_sockets << GW_ENDL;
 #endif
-        }
 
 #endif
     }
@@ -368,13 +332,13 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
-    // NOTE: Only Accept has the problem of not binding to a correct socket.
-    if (sd->get_type_of_network_oper() != ACCEPT_SOCKET_OPER)
-    {
-        // Checking that socket arrived on correct worker.
-        GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-        GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
-    }
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
+    // Checking that socket arrived on correct worker.
+    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
@@ -390,10 +354,6 @@ START_RECEIVING_AGAIN:
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "Receive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     uint32_t numBytes, err_code;
 
@@ -463,16 +423,16 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     GW_PRINT_WORKER << "FinishReceive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Checking that socket arrived on correct worker.
-    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
+    // Checking that socket arrived on correct worker.
+    GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
@@ -570,16 +530,16 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Send: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
     // Checking that socket data is valid.
     sd->CheckForValidity();
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Checking if aggregation is involved.
     if (sd->GetSocketAggregatedFlag())
@@ -643,6 +603,10 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     GW_PRINT_WORKER << "FinishSend: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
     // Checking that socket data is valid.
     sd->CheckForValidity();
 
@@ -653,10 +617,6 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
         return SCERRGWDISCONNECTAFTERSENDFLAG;
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -806,12 +766,12 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Checking that socket data is valid.
-    sd->CheckForValidity();
-
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
+
+    // Checking that socket data is valid.
+    sd->CheckForValidity();
 
     // NOTE: The following is needed because the actual owner of the socket
     // will not pass the CompareUniqueSocketId check on the next IO operation.
@@ -867,8 +827,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
             // Closing socket resource.
             closesocket(sd->GetSocket());
 
-            worker_stats_num_bound_sockets_--;
-
             goto RELEASE_CHUNK_TO_POOL;
         }
 
@@ -900,16 +858,16 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKET;
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 #endif
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
-
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Deleting session.
     sd->DeleteGlobalSessionOnDisconnect();
@@ -927,35 +885,11 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper())
         ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
 
-#ifdef GW_PROXY_MODE
+    // Removing from active sockets.
+    RemoveFromActiveSockets(sd->GetPortIndex());
 
-    // Checking if we have reusable proxied server connect.
-    if (sd->HasProxySocket())
-    {
-        // Returning socket for reuse.
-        if (sd->IsProxyConnectSocket())
-        {
-            SOCKET sock = sd->GetSocket();
-            reusable_connect_sockets_.PushBack(sock);
-
-#ifdef GW_SOCKET_DIAG
-            GW_COUT << "Added connect socket for reuse: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
-#endif
-        }
-
-        // Resetting the socket data.
-        sd->ResetOnDisconnect();
-
-        // Returning chunks to pool.
-        ReturnSocketDataChunksToPool(sd);
-
-        return 0;
-    }
-
-#endif
-
-    // Resetting the socket data.
-    sd->ResetOnDisconnect();
+    // Releasing socket resources.
+    closesocket(sd->GetSocket());
 
 #ifdef GW_TESTING_MODE
 
@@ -975,8 +909,13 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 
 #endif
 
-    // Performing accept.
-    return Accept(sd);
+    // Resetting the socket data.
+    sd->ResetOnDisconnect(this);
+
+    // Returning chunks to pool.
+    ReturnSocketDataChunksToPool(sd);
+
+    return 0;
 }
 
 // Running connect on socket data.
@@ -1179,9 +1118,67 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
 
-    // Checking that socket arrived on correct worker.
+#ifdef GW_LOOPED_TEST_MODE
+
+    // Checking that we don't exceed number of active connections.
+    if (num_created_conns_worker_ < g_gateway.setting_num_connections_to_master_per_worker())
+    {
+        // Creating new set of prepared connections.
+        uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
+        GW_ERR_CHECK(err_code);
+    }
+
+#endif
+
+
 #ifndef GW_TESTING_MODE
-    GW_ASSERT(0 == worker_id_);
+
+    // Checking if was rebalanced.
+    if (0 == worker_id_) {
+
+        // Decreasing number of accepting sockets.
+        int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
+
+        // Checking if we need to extend number of accepting sockets.
+        if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
+        {
+            // Creating new set of prepared connections.
+            uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
+            GW_ERR_CHECK(err_code);
+        }
+
+        worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(sd->GetPortIndex());
+
+        HANDLE worker_iocp_handler = g_gateway.get_worker(least_busy_worker_id)->get_worker_iocp();
+
+        // Associating new socket with least busy worker IOCP.
+        HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) sd->GetSocket(), worker_iocp_handler, 0, 1);
+        GW_ASSERT(iocp_handler == worker_iocp_handler);
+
+        // Checking if rebalanced worker is different.
+        if (0 != least_busy_worker_id) {
+
+            // Getting temporary rebalance container.
+            RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
+            if (NULL == rsi) {
+                rsi = (RebalancedSocketInfo*)_aligned_malloc(sizeof(RebalancedSocketInfo), MEMORY_ALLOCATION_ALIGNMENT);
+            }
+            rsi->Init(sd->GetPortIndex(), sd->GetSocket());
+
+            // Returning all allocated resources except socket.
+            sd->ResetAllFlags();
+            sd->ReleaseSocketIndex(this);
+            ReturnSocketDataChunksToPool(sd);
+
+            g_gateway.get_worker(least_busy_worker_id)->PushRebalanceSocketInfo(rsi);
+
+            // Posting this finish Accept on a new worker IOCP.
+            WakeUpThreadUsingAPC(g_gateway.get_worker_thread_handle(least_busy_worker_id));
+
+            return 0;
+        }
+    }
+
 #endif
 
     // Updating connection timestamp.
@@ -1191,14 +1188,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
     // Setting SO_UPDATE_ACCEPT_CONTEXT.
     err_code = sd->SetAcceptSocketOptions();
-    if (err_code)
-    {
-        GW_PRINT_WORKER << "Can't set SO_UPDATE_ACCEPT_CONTEXT on socket." << GW_ENDL;
-
-        PrintLastError();
-
-        return err_code;
-    }
+    GW_ASSERT (0 == err_code);
 
     // This socket data is socket representation.
     sd->set_socket_representer_flag();
@@ -1212,6 +1202,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
 #endif
 
+    // Adding to active sockets for this worker.
+    AddToActiveSockets(sd->GetPortIndex());
+
     // Checking client IP address information.
     sockaddr_in client_addr = *(sockaddr_in *)(sd->get_accept_or_params_data() + sizeof(sockaddr_in) + 16);
     sd->set_client_ip_info(client_addr.sin_addr.S_un.S_addr);
@@ -1219,31 +1212,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     // Checking if white list is on.
     if (!g_gateway.CheckIpForWhiteList(sd->get_client_ip_info()))
         return SCERRGWIPISNOTONWHITELIST;
-
-    // Decreasing number of accepting sockets.
-    int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
-
-#ifdef GW_LOOPED_TEST_MODE
-
-    // Checking that we don't exceed number of active connections.
-    if (num_created_conns_worker_ < g_gateway.setting_num_connections_to_master_per_worker())
-    {
-        // Creating new set of prepared connections.
-        err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
-        GW_ERR_CHECK(err_code);
-    }
-
-#else
-
-    // Checking if we need to extend number of accepting sockets.
-    if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
-    {
-        // Creating new set of prepared connections.
-        err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
-        GW_ERR_CHECK(err_code);
-    }
-
-#endif
 
     // Performing receive.
     return Receive(sd);
@@ -1381,11 +1349,35 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
                 {
-                    // Disconnecting this socket data.
-                    DisconnectAndReleaseChunk(sd);
+                    uint32_t flags;
+                    BOOL success = WSAGetOverlappedResult(sd->GetSocket(), fetched_ovls[i].lpOverlapped, (LPDWORD)&oper_num_bytes, FALSE, (LPDWORD)&flags);
+                    GW_ASSERT(FALSE == success);
+
+                    // IOCP operation has completed but with error.
+                    GW_ASSERT(success != WSAGetLastError());
+
+                    // Checking correct unique socket.
+                    if ((sd->CompareUniqueSocketId()) && (sd->get_socket_representer_flag())) {
+
+                        err_code = FinishDisconnect(sd);
+                        GW_ASSERT(0 == err_code);
+
+                    } else {
+
+                        // Resetting socket representer flags.
+                        sd->reset_socket_representer_flag();
+                        sd->reset_socket_diag_active_conn_flag();
+
+                        // Returning chunks to pool.
+                        ReturnSocketDataChunksToPool(sd);
+                    }
 
                     continue;
                 }
+
+                // Checking that socket is bound to the correct worker.
+                if (true == sd->CompareUniqueSocketId())
+                    GW_ASSERT(worker_id_ == sd->GetBoundWorkerId());
 
                 // Getting number of bytes in operation.
                 oper_num_bytes = fetched_ovls[i].dwNumberOfBytesTransferred;
@@ -1464,6 +1456,51 @@ uint32_t GatewayWorker::WorkerRoutine()
                 PrintLastError();
                 return err_code;
             }
+            else
+            {
+#ifndef GW_TESTING_MODE
+                if (worker_id_ != 0) {
+
+                    RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
+
+                    if (NULL != rsi) {
+
+                        port_index_type pi = rsi->get_port_index();
+                        SOCKET s = rsi->get_socket();
+
+                        // Returning socket info back to origin.
+                        g_gateway.get_worker(0)->PushRebalanceSocketInfo(rsi);
+
+                        // Creating new socket data structure inside chunk.
+                        SocketDataChunk* new_sd = NULL;
+
+                        // Getting new socket index.
+                        session_index_type new_socket_index = g_gateway.ObtainFreeSocketIndex(this, s, pi, false);
+
+                        // Creating new socket data.
+                        err_code = CreateSocketData(new_socket_index, new_sd);
+
+                        if (err_code) {
+                            // Just closing the socket.
+                            closesocket(s);
+                            continue;
+                        }
+
+                        // Finishing accept.
+                        new_sd->set_type_of_network_oper(ACCEPT_SOCKET_OPER);
+                        err_code = FinishAccept(new_sd);
+
+                        if (err_code) {
+                            // Disconnecting this socket data.
+                            DisconnectAndReleaseChunk(new_sd);
+
+                            // Releasing the cloned chunk.
+                            ProcessReceiveClones(true);
+                        }
+                    }
+                }
+#endif
+            }
         }
 #endif
 
@@ -1517,29 +1554,6 @@ uint32_t GatewayWorker::WorkerRoutine()
     GW_ASSERT(false);
 }
 
-// Creating accepting sockets on all ports.
-uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
-{
-    for (int32_t p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
-    {
-        ServerPort* server_port = g_gateway.get_server_port(p);
-
-        // Checking that port is not empty.
-        if (!server_port->IsEmpty())
-        {
-            // Checking if we need to extend number of accepting sockets.
-            if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
-            {
-                // Creating new set of prepared connections.
-                uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p);
-                GW_ERR_CHECK(err_code);
-            }
-        }
-    }
-
-    return 0;
-}
-
 // Scans all channels for any incoming chunks.
 uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 {
@@ -1576,13 +1590,6 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
                     // Leaving global lock.
                     LeaveGlobalLock();
 
-#ifndef GW_LOOPED_TEST_MODE
-
-                    // Creating accepting sockets on all ports and for all databases.
-                    err_code = CheckAcceptingSocketsOnAllActivePorts();
-                    GW_ERR_CHECK(err_code);
-
-#endif
                 }
                 else
                 {

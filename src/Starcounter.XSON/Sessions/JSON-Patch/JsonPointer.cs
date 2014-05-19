@@ -15,11 +15,18 @@ namespace Starcounter.XSON.JsonPatch {
     /// Class JsonPointer
     /// </summary>
     public class JsonPointer : IEnumerator<string> {
+        private struct PointerState {
+            internal bool NextTokenShouldBeIndex;
+            internal object Current;
+            internal Json Json;
+        }
+
         private byte[] buffer;
         private byte[] pointer;
         private int offset;
         private int bufferPos;
         private string currentToken;
+        private PointerState state;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonPointer" /> class.
@@ -204,6 +211,8 @@ namespace Starcounter.XSON.JsonPatch {
             return Encoding.UTF8.GetString(pointer, 0, pointer.Length);
         }
 
+        
+
         /// <summary>
         /// Evaluates the jsonpointer and retrieves the property it points to 
         /// and the correct jsoninstance for the template starting from the specified root.
@@ -212,87 +221,76 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="ptr">The pointer containing the path to the template.</param>
         /// <returns></returns>
         public JsonProperty Evaluate(Json root) {
-            Boolean currentIsTApp;
-            Boolean nextTokenShouldBeIndex;
-            Int32 index;
-            Object current = null;
-            Json mainApp = root;
+            state.NextTokenShouldBeIndex = false;
+            state.Current = null;
+            state.Json = root;
 
-            nextTokenShouldBeIndex = false;
-            currentIsTApp = false;
             while (this.MoveNext()) {
                 // TODO: 
                 // Check if this can be improved. Searching for transaction and execute every
                 // step in a new action is not the most efficient way.
-                mainApp.ExecuteInScope(() => {
-                    if (nextTokenShouldBeIndex) {
-                        // Previous object was a Set. This token should be an index
-                        // to that Set. If not, it's an invalid patch.
-                        nextTokenShouldBeIndex = false;
-                        index = this.CurrentAsInt;
+                state.Json.AddInScope<JsonPointer>((ptr) => { ptr.EvalutateCurrent(); }, this);
+            }
+            return new JsonProperty(state.Json, state.Current as TValue);
+        }
 
-                        Json list = ((TObjArr)current).Getter(mainApp);
-                        current = list._GetAt(index);
-                    } else {
-                        if (currentIsTApp) {
-                            mainApp = ((TObject)current).Getter(mainApp);
-                            //                            mainApp.ResumeTransaction(false);
-                            currentIsTApp = false;
-                        }
-
-                        if (mainApp.IsArray) {
-                            throw new NotImplementedException();
-                        }
-
-                        Template t = ((TObject)mainApp.Template).Properties.GetExposedTemplateByName(this.Current);
-                        if (t == null) {
-                            Boolean found = false;
-                            if (mainApp.HasStepSiblings()) {
-                                foreach (Json j in mainApp.GetStepSiblings()) {
-                                    if (j.GetAppName() == this.Current) {
-                                        current = j;
-                                        found = true;
-                                        break;
-                                    }
-                                }
+        private void EvalutateCurrent() {
+            int index;
+            if (state.NextTokenShouldBeIndex) {
+                // Previous object was a Set. This token should be an index
+                // to that Set. If not, it's an invalid patch.
+                state.NextTokenShouldBeIndex = false;
+                index = CurrentAsInt;
+                Json list = ((TObjArr)state.Current).Getter(state.Json);
+                state.Current = list._GetAt(index);
+            } else {
+                if (state.Current is TObject) {
+                    state.Json = ((TObject)state.Current).Getter(state.Json);
+                }
+                if (state.Json.IsArray) {
+                    throw new NotImplementedException();
+                }
+                Template t = ((TObject)state.Json.Template).Properties.GetExposedTemplateByName(Current);
+                if (t == null) {
+                    Boolean found = false;
+                    if (state.Json.HasStepSiblings()) {
+                        foreach (Json j in state.Json.GetStepSiblings()) {
+                            if (j.GetAppName() == Current) {
+                                state.Current = j;
+                                found = true;
+                                break;
                             }
-
-                            if (!found) {
-                                if (mainApp.GetAppName() == this.Current) {
-                                    current = mainApp;
-                                } else {
-                                    throw new JsonPatchException(
-                                        String.Format("Unknown property '{0}' in path.", this.Current),
-                                        null
-                                    );
-                                }
-                            }
-                        } else {
-                            current = t;
                         }
                     }
 
-                    if (current is Json && !(current as Json).IsArray) {
-                        mainApp = current as Json;
-                    } else if (current is TObject) {
-                        currentIsTApp = true;
-                    } else if (current is TObjArr) {
-                        nextTokenShouldBeIndex = true;
-                    } else {
-                        // Current token points to a value or an action.
-                        // No more tokens should exist. If it does we need to 
-                        // return an error.
-                        if (this.MoveNext()) {
+                    if (!found) {
+                        if (state.Json.GetAppName() == Current) {
+                            state.Current = state.Json;
+                        } else {
                             throw new JsonPatchException(
-                                        String.Format("Invalid path in patch. Property: '{0}' was not expected", this.Current),
-                                        null
+                                String.Format("Unknown property '{0}' in path.", Current),
+                                null
                             );
                         }
                     }
-                });
+                } else {
+                    state.Current = t;
+                }
             }
 
-            return new JsonProperty(mainApp, current as TValue);
+            if (state.Current is Json && !(state.Current as Json).IsArray) {
+                state.Json = state.Current as Json;
+            } else if (state.Current is TObjArr) {
+                state.NextTokenShouldBeIndex = true;
+            } else if (!(state.Current is TObject)) {
+                // Current token points to a value or an action. No more tokens should exist. 
+                if (MoveNext()) {
+                    throw new JsonPatchException(
+                                String.Format("Invalid path in patch. Property: '{0}' was not expected.", this.Current),
+                                null
+                    );
+                }
+            }
         }
 
         public static JsonProperty Evaluate(Json root, string pointer) {

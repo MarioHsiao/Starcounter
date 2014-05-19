@@ -1167,13 +1167,13 @@ namespace Starcounter
             }
         }
 
-        /*/// <summary>
+        /// <summary>
         /// Releases resources.
         /// </summary>
         ~Response()
         {
             Destroy();
-        }*/
+        }
 
         /// <summary>
         /// Debugs the specified message.
