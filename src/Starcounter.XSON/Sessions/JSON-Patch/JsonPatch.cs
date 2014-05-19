@@ -714,12 +714,26 @@ namespace Starcounter.XSON.JsonPatch {
             });
         }
 
+        private static string ValueAsString(IntPtr valuePtr, int valueSize) {
+            string value;
+            int size;
+            JsonHelper.ParseString(valuePtr, valueSize, out value, out size);
+
+            unsafe {
+                byte* pval = (byte*)valuePtr;
+                if (*pval == (byte)'"')
+                    value = '"' + value + '"';
+            }
+
+            return value;
+        }
+
         private static void ParseAndProcess(TBool property, Json parent, IntPtr valuePtr, int valueSize) {
             bool value;
             int size;
 
-            if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+            if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size)) 
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
@@ -728,7 +742,7 @@ namespace Starcounter.XSON.JsonPatch {
             int size;
 
             if (!JsonHelper.ParseDecimal(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
@@ -737,7 +751,7 @@ namespace Starcounter.XSON.JsonPatch {
             int size;
 
             if (!JsonHelper.ParseDouble(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
@@ -745,7 +759,7 @@ namespace Starcounter.XSON.JsonPatch {
             long value;
 
             if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
