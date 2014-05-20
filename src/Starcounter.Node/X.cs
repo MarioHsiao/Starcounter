@@ -250,18 +250,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Performs asynchronous HTTP GET.
-        /// </summary>
-        /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static object GET(String uri, Int32 receiveTimeoutMs = 0)
-        {
-            Response r;
-            GET(uri, out r, null, receiveTimeoutMs);
-            return r.Content;
-        }
-
-        /// <summary>
         /// Checks if given URI is cached.
         /// </summary>
         /// <param name="uri">URI string.</param>
@@ -291,11 +279,32 @@ namespace Starcounter
         /// </summary>
         /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0)
-        {
+        public static object GET(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
             Response r;
-            GET(uri, out r, null, receiveTimeoutMs);
+            GET(uri, out r, null, receiveTimeoutMs, ho);
+            return r.Content;
+        }
+
+        /// <summary>
+        /// Performs asynchronous HTTP GET.
+        /// </summary>
+        /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
+        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
+        public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+            Response r;
+            GET(uri, out r, null, receiveTimeoutMs, ho);
             return r.GetContent<T>();
+        }
+
+        /// <summary>
+        /// Performs asynchronous HTTP GET.
+        /// </summary>
+        /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
+        /// <param name="response">Generated response.</param>
+        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
+        public static T GET<T>(String uri, out Response response, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+            GET(uri, out response, null, receiveTimeoutMs, ho);
+            return response.GetContent<T>();
         }
 
         /// <summary>
@@ -305,7 +314,7 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="response">Generated response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void GET(String uri, out Response response, String customHeaders = null, Int32 receiveTimeoutMs = 0)
+        public static void GET(String uri, out Response response, String customHeaders = null, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             // Checking if we can reuse the cache.
             if (IsInSccode && CheckLocalCache(uri, null, null, out response))
@@ -316,7 +325,7 @@ namespace Starcounter
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            response = node.GET(relativeUri, customHeaders, receiveTimeoutMs);
+            response = node.GET(relativeUri, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -327,7 +336,7 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void GET(String uri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void GET(String uri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Response resp;
 
@@ -340,7 +349,7 @@ namespace Starcounter
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.GET(relativeUri, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.GET(relativeUri, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -352,14 +361,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void POST(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void POST(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.POST(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.POST(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -371,14 +380,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void POST(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void POST(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.POST(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.POST(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -389,14 +398,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response POST(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response POST(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.POST(relativeUri, body, customHeaders, receiveTimeoutMs);
+            return node.POST(relativeUri, body, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -407,14 +416,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response POST(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response POST(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.POST(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs);
+            return node.POST(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -426,14 +435,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void PUT(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void PUT(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.PUT(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.PUT(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -445,14 +454,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void PUT(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void PUT(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.PUT(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.PUT(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -463,14 +472,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response PUT(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response PUT(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.PUT(relativeUri, body, customHeaders, receiveTimeoutMs);
+            return node.PUT(relativeUri, body, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -481,14 +490,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response PUT(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response PUT(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.PUT(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs);
+            return node.PUT(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -500,14 +509,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void PATCH(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void PATCH(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.PATCH(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.PATCH(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -519,14 +528,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void PATCH(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void PATCH(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.PATCH(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.PATCH(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -537,14 +546,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response PATCH(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response PATCH(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.PATCH(relativeUri, body, customHeaders, receiveTimeoutMs);
+            return node.PATCH(relativeUri, body, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -555,14 +564,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response PATCH(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response PATCH(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.PATCH(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs);
+            return node.PATCH(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -574,14 +583,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void DELETE(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void DELETE(String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.DELETE(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.DELETE(relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -593,14 +602,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void DELETE(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void DELETE(String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.DELETE(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.DELETE(relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -611,14 +620,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response DELETE(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response DELETE(String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.DELETE(relativeUri, body, customHeaders, receiveTimeoutMs);
+            return node.DELETE(relativeUri, body, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -629,14 +638,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response DELETE(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response DELETE(String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.DELETE(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs);
+            return node.DELETE(relativeUri, bodyBytes, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -649,14 +658,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void CustomRESTRequest(String method, String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void CustomRESTRequest(String method, String uri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.CustomRESTRequest(method, relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.CustomRESTRequest(method, relativeUri, body, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -669,14 +678,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void CustomRESTRequest(String method, String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void CustomRESTRequest(String method, String uri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            node.CustomRESTRequest(method, relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs);
+            node.CustomRESTRequest(method, relativeUri, bodyBytes, customHeaders, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -688,14 +697,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response CustomRESTRequest(String method, String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response CustomRESTRequest(String method, String uri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.CustomRESTRequest(method, relativeUri, body, customHeaders, receiveTimeoutMs);
+            return node.CustomRESTRequest(method, relativeUri, body, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -707,14 +716,14 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response CustomRESTRequest(String method, String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public static Response CustomRESTRequest(String method, String uri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.CustomRESTRequest(method, relativeUri, bodyBytes, customHeaders, receiveTimeoutMs);
+            return node.CustomRESTRequest(method, relativeUri, bodyBytes, customHeaders, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -728,14 +737,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public static void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(req.Uri, out node, out relativeUri);
 
-            node.CustomRESTRequest(req, userObject, userDelegate, receiveTimeoutMs);
+            node.CustomRESTRequest(req, userObject, userDelegate, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -748,14 +757,14 @@ namespace Starcounter
         /// <param name="req">Original HTTP request.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public static Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0)
+        public static Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(req.Uri, out node, out relativeUri);
 
-            return node.CustomRESTRequest(req, receiveTimeoutMs);
+            return node.CustomRESTRequest(req, receiveTimeoutMs, ho);
         }
     }
 }

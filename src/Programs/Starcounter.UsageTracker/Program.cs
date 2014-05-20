@@ -4,6 +4,7 @@ using Starcounter.Advanced;
 using System.Net.NetworkInformation;
 using Starcounter.Internal;
 using System.Net;
+using System.IO;
 
 namespace Starcounter.Applications.UsageTrackerApp {
     class Program {
@@ -26,7 +27,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
                 }
 
                 // Putting port and full path to resources directory.
-                String body = port + StarcounterConstants.NetworkConstants.CRLF + resourceFolder;
+                String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceFolder);
 
                 // Sending REST POST request to Administrator to register static resources directory.
                 Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {

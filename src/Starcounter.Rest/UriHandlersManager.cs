@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Linq.Expressions;
 
 namespace Starcounter.Rest
 {
@@ -20,6 +21,7 @@ namespace Starcounter.Rest
         public String processed_uri_info_ = null;
         public IntPtr processed_uri_info_ascii_bytes_;
         public Type param_message_type_ = null;
+        public Func<object> param_message_create_ = null;
         public Byte[] native_param_types_ = null;
         public Byte num_params_ = 0;
         public UInt16 handler_id_ = UInt16.MaxValue;
@@ -108,28 +110,18 @@ namespace Starcounter.Rest
         List<String> appNames_ = null;
 
         /// <summary>
-        /// Mapper handler index.
-        /// </summary>
-        Int32 mapperHandlerIndex_ = -1;
-
-        /// <summary>
         /// Checks if response is in local cache.
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
         Response TryGetResponseFromCache(Request req) {
             // Checking if we are in session already.
-            if (!req.IsInternal) {
-
-                // Setting the original request.
-                Session.InitialRequest = req;
-
+            if ( !req.IsInternal && req.CameWithCorrectSession) {
                 // Obtaining session.
                 Session s = (Session)req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
-                if ((req.CameWithCorrectSession) && (null != s)) {
-
+                if (null != s) {
                     // Starting session.
                     Session.Start(s);
 
@@ -154,21 +146,19 @@ namespace Starcounter.Rest
         /// <param name="req"></param>
         /// <param name="resp"></param>
         void TryAddResponseToCache(Request req, Response resp) {
-            // In case of returned JSON object within current session we need to save it
-            // for later reuse.
-
-            Json rootJsonObj = null;
-            if (null != Session.Current)
-                rootJsonObj = Session.Current.Data;
-
-            Json curJsonObj = null;
-
             // Checking if response is processed later.
-            if (resp.HandlingStatus == HandlerStatusInternal.Handled)
+            if (resp.HandlingStatus == HandlerStatusInternal.Handled
+                || !req.IsCachable()
+                || Session.Current == null)
                 return;
 
+            // In case of returned JSON object within current session we need to save it
+            // for later reuse.
+            Json rootJsonObj = Session.Current.Data;
+            Json curJsonObj = null;
+
             // Setting session on result only if its original request.
-            if ((null != Session.Current) && (!req.IsInternal) && (!req.CameWithCorrectSession))
+            if ((!req.IsInternal) && (!req.CameWithCorrectSession))
                 resp.AppsSession = Session.Current.InternalSession;
 
             // Converting response to JSON.
@@ -176,7 +166,6 @@ namespace Starcounter.Rest
 
             if ((null != curJsonObj) &&
                 (null != rootJsonObj) &&
-                (req.IsCachable()) &&
                 (curJsonObj.HasThisRoot(rootJsonObj))) {
                 Session.Current.AddJsonNodeToCache(req.Uri, curJsonObj);
             }
@@ -189,12 +178,15 @@ namespace Starcounter.Rest
         /// <param name="methodAndUri">Method and URI pointer.</param>
         /// <param name="rawParamsInfo">Raw parameters info.</param>
         /// <returns>Response or merged response.</returns>
-        public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo) {
+        public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo, UriHandlersManager uhm) {
 
             Debug.Assert(userDelegates_ != null);
 
-            // Checking if there is only one delegate.
-            if (userDelegates_.Count == 1) {
+            // Checking if there is only one delegate or merge function is not defined.
+            if ((UriInjectMethods.ResponsesMergerRoutine_ == null) ||
+                (userDelegates_.Count == 1)) {
+
+                // Setting current application name.
                 StarcounterEnvironment.AppName = appNames_[0];
 
                 // Checking local cache.
@@ -213,23 +205,9 @@ namespace Starcounter.Rest
             
             List<Response> responses = new List<Response>();
 
-            // Checking if we have an external call and mapper handler defined.
-            if ((mapperHandlerIndex_ >= 0) && (!Handle.CallOnlyNonMapperHandlers)) {
-                
-                StarcounterEnvironment.AppName = appNames_[mapperHandlerIndex_];
-                StarcounterEnvironment.OrigMapperCallerAppName = appNames_[mapperHandlerIndex_];
-                Response resp = userDelegates_[mapperHandlerIndex_](req, methodAndUri, rawParamsInfo);
-
-                return resp;
-            }
-
             // Running every delegate from the list.
             for (int i = 0; i < userDelegates_.Count; i++) {
                 var func = userDelegates_[i];
-
-                // If handler is a mapper and we in non-mapper mode - just skip this handler.
-                if (Handle.CallOnlyNonMapperHandlers && (mapperHandlerIndex_ == i))
-                    continue;
 
                 // Setting application name.
                 StarcounterEnvironment.AppName = appNames_[i];
@@ -255,14 +233,13 @@ namespace Starcounter.Rest
                     responses.Add(resp);
             }
 
-            Handle.CallOnlyNonMapperHandlers = false;
-
             // Checking if we have a response merging function defined.
-            if ((responses.Count > 1) &&
-                (UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_ != null))
-            {
+            if (responses.Count > 1) {
+                Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
+
                 // Creating merged response.
-                return UserHandlerCodegen.HandlersManager.ResponsesMergerRoutine_(req, responses);
+                return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
+
             } else {
 
                 return responses[0];
@@ -280,6 +257,10 @@ namespace Starcounter.Rest
         {
             get { return uri_info_.param_message_type_; }
             set { uri_info_.param_message_type_ = value; }
+        }
+
+        public Func<object> ArgMessageCreate {
+            get { return uri_info_.param_message_create_; }
         }
 
         public String AppNames
@@ -319,15 +300,16 @@ namespace Starcounter.Rest
             userDelegates_ = null;
         }
 
-        public void AddDelegateToList(Func<Request, IntPtr, IntPtr, Response> user_delegate)
+        public void AddDelegateToList(
+            Func<Request, IntPtr, IntPtr, Response> user_delegate,
+            HandlerOptions ho)
         {
             userDelegates_.Add(user_delegate);
-            appNames_.Add(StarcounterEnvironment.AppName);
 
-            if (Handle.IsMapperHandler) {
-                mapperHandlerIndex_ = appNames_.Count - 1;
-                Handle.IsMapperHandler = false;
-            }
+            if (ho.AppName != null)
+                appNames_.Add(ho.AppName);
+            else
+                appNames_.Add(StarcounterEnvironment.AppName);
         }
 
         public void Init(
@@ -339,7 +321,8 @@ namespace Starcounter.Rest
             Type param_message_type,
             UInt16 handler_id,
             UInt64 handler_info,
-            MixedCodeConstants.NetworkProtocolType protoType)
+            MixedCodeConstants.NetworkProtocolType protoType,
+            HandlerOptions ho)
         {
             uri_info_.original_uri_info_ = original_uri_info;
             uri_info_.processed_uri_info_ = processed_uri_info;
@@ -351,28 +334,62 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
 
+            if (param_message_type != null)
+                uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
+
             Debug.Assert(userDelegates_ == null);
 
             userDelegates_ = new List<Func<Request,IntPtr,IntPtr,Response>>();
             userDelegates_.Add(user_delegate);
 
             appNames_ = new List<String>();
-            appNames_.Add(StarcounterEnvironment.AppName);
 
-            if (Handle.IsMapperHandler)
-            {
-                mapperHandlerIndex_ = appNames_.Count - 1;
-                Handle.IsMapperHandler = false;
-            }
+            if (ho.AppName != null)
+                appNames_.Add(ho.AppName);
+            else
+                appNames_.Add(StarcounterEnvironment.AppName);
 
             uri_info_.InitUriPointers();
         }
     }
 
+    public class UriInjectMethods {
+
+        public static Func<Request, Int32, Response> HandleInternalRequest_;
+        public static Func<Request, Boolean> OnHttpMessageRoot_;
+        public static Action<string, ushort> OnHandlerRegistered_;
+        public static bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
+        public static Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
+
+        public static void SetHandlerRegisteredCallback(Action<string, ushort> callback) {
+            OnHandlerRegistered_ = callback;
+        }
+
+        // Checking if this Node supports local resting.
+        internal static Boolean IsSupportingLocalNodeResting() {
+            return HandleInternalRequest_ != null;
+        }
+
+        public static void SetRegisterUriHandlerNew(
+            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
+            Func<Request, Boolean> onHttpMessageRoot,
+            Func<Request, Int32, Response> handleInternalRequest) {
+
+            HttpOuterHandler_ = httpOuterHandler;
+            OnHttpMessageRoot_ = onHttpMessageRoot;
+            HandleInternalRequest_ = handleInternalRequest;
+        }
+
+        /// <summary>
+        /// Incorrect session exception.
+        /// </summary>
+        public class IncorrectSessionException : Exception { }
+    }
+
     /// <summary>
     /// All registered handlers manager.
     /// </summary>
-    internal class HandlersManagement
+    internal class UriHandlersManager
     {
         UserHandlerInfo[] allUriHandlers_ = null;
 
@@ -380,37 +397,13 @@ namespace Starcounter.Rest
 
         Int32 maxNumHandlersEntries_ = 0;
 
-        internal Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
+        Boolean registerWithGateway_ = false;
 
-        public HandleInternalRequestDelegate HandleInternalRequest_;
-
-        public delegate Boolean UriCallbackDelegate(Request req);
-
-        public delegate Response HandleInternalRequestDelegate(Request request);
-
-        // Checking if this Node supports local resting.
-        internal Boolean IsSupportingLocalNodeResting()
-        {
-            return HandleInternalRequest_ != null;
-        }
-
-        public static UriCallbackDelegate OnHttpMessageRoot_;
-        static Action<string, ushort> OnHandlerRegistered_;
-        bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
-
-        public static void SetHandlerRegisteredCallback(Action<string, ushort> callback)
-        {
-            OnHandlerRegistered_ = callback;
-        }
-
-        public void SetRegisterUriHandlerNew(
-            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
-            UriCallbackDelegate onHttpMessageRoot,
-            HandleInternalRequestDelegate handleInternalRequest)
-        {
-            HttpOuterHandler_ = httpOuterHandler;
-            OnHttpMessageRoot_ = onHttpMessageRoot;
-            HandleInternalRequest_ = handleInternalRequest;
+        /// <summary>
+        /// Indicates if this Uri handlers manager should register with gateway.
+        /// </summary>
+        public Boolean RegisterWithGateway {
+            set { registerWithGateway_ = value; }
         }
 
         public List<PortUris> PortUrisList
@@ -430,7 +423,7 @@ namespace Starcounter.Rest
 
         public PortUris AddPort(UInt16 port)
         {
-            lock (HandleInternalRequest_)
+            lock (UriInjectMethods.HandleInternalRequest_)
             {
                 // Searching for existing port if any.
                 PortUris portUris = SearchPort(port);
@@ -442,6 +435,25 @@ namespace Starcounter.Rest
                 portUris_.Add(portUris);
                 return portUris;
             }
+        }
+
+        static List<UriHandlersManager> uriHandlersManagers_ = new List<UriHandlersManager>();
+
+        public static UriHandlersManager GetUriHandlersManager(Int32 handlersIndex) {
+            return uriHandlersManagers_[handlersIndex];
+        }
+
+        internal static void AddExtraHandlerLevel(Boolean registerWithGateway) {
+            uriHandlersManagers_.Add(new UriHandlersManager(registerWithGateway));
+        }
+
+        internal static void ResetUriHandlersManagers() {
+            foreach (UriHandlersManager uhm in uriHandlersManagers_)
+                uhm.Reset();
+
+            uriHandlersManagers_ = new List<UriHandlersManager>();
+
+            AddExtraHandlerLevel(false);
         }
 
         public UserHandlerInfo[] AllUserHandlerInfos
@@ -467,7 +479,7 @@ namespace Starcounter.Rest
                 allUriHandlers_[i] = new UserHandlerInfo();
         }
 
-        public HandlersManagement()
+        public UriHandlersManager(Boolean registerWithGateway)
         {
             // Initializing port uris.
             PortUris.GlobalInit();
@@ -475,6 +487,8 @@ namespace Starcounter.Rest
             allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
             for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 allUriHandlers_[i] = new UserHandlerInfo();
+
+            registerWithGateway_ = registerWithGateway;
         }
 
         public void RunDelegate(Request r, out Response resp)
@@ -484,8 +498,10 @@ namespace Starcounter.Rest
                 UserHandlerInfo uhi = allUriHandlers_[r.ManagedHandlerId];
 
                 // Checking if we had custom type user Message argument.
-                if (uhi.ArgMessageType != null)
+                if (uhi.ArgMessageType != null) {
                     r.ArgMessageObjectType = uhi.ArgMessageType;
+                    r.ArgMessageObjectCreate = uhi.ArgMessageCreate;
+                }
 
                 // Setting some request parameters.
                 r.PortNumber = uhi.UriInfo.port_;
@@ -498,7 +514,8 @@ namespace Starcounter.Rest
                 resp = uhi.RunUserDelegates(
                     r,
                     r.GetRawMethodAndUri(),
-                    r.GetRawParametersInfo());
+                    r.GetRawParametersInfo(),
+                    this);
 
                 // Setting back the application name.
                 StarcounterEnvironment.AppName = origAppName;
@@ -540,7 +557,7 @@ namespace Starcounter.Rest
                         processedUriInfo,
                         pp,
                         numParams,
-                        HttpOuterHandler_,
+                        UriInjectMethods.HttpOuterHandler_,
                         managedHandlerIndex,
                         out handlerInfo);
 
@@ -560,7 +577,8 @@ namespace Starcounter.Rest
             Byte[] nativeParamTypes,
             Type messageType,
             Func<Request, IntPtr, IntPtr, Response> wrappedDelegate,
-            MixedCodeConstants.NetworkProtocolType protoType)
+            MixedCodeConstants.NetworkProtocolType protoType,
+            HandlerOptions ho)
         {
             lock (allUriHandlers_)
             {
@@ -572,7 +590,7 @@ namespace Starcounter.Rest
                     if ((0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
                         (port == allUriHandlers_[i].Port))
                     {
-                        allUriHandlers_[i].AddDelegateToList(wrappedDelegate);
+                        allUriHandlers_[i].AddDelegateToList(wrappedDelegate, ho);
                         return;
                     }
                 }
@@ -595,29 +613,31 @@ namespace Starcounter.Rest
                     messageType,
                     handlerId,
                     handlerInfo,
-                    protoType);
+                    protoType,
+                    ho);
 
                 // Registering the outer native handler (if any).
-                if (HttpOuterHandler_ != null)
-                {
-                    RegisterUriHandlerNative(
-                        port,
-                        allUriHandlers_[handlerId].AppNames,
-                        originalUriInfo,
-                        processedUriInfo,
-                        nativeParamTypes,
-                        handlerId,
-                        out handlerInfo);
+                if (UriInjectMethods.HttpOuterHandler_ != null) {
+                    if (registerWithGateway_) {
+                        RegisterUriHandlerNative(
+                            port,
+                            allUriHandlers_[handlerId].AppNames,
+                            originalUriInfo,
+                            processedUriInfo,
+                            nativeParamTypes,
+                            handlerId,
+                            out handlerInfo);
+                    }
                 }
 
                 // Updating handler info from received value.
                 allUriHandlers_[handlerId].UriInfo.handler_info_ = handlerInfo;
 
-                if (OnHandlerRegistered_ != null)
-                    OnHandlerRegistered_(originalUriInfo, port);
+                if (UriInjectMethods.OnHandlerRegistered_ != null)
+                    UriInjectMethods.OnHandlerRegistered_(originalUriInfo, port);
 
                 // Resetting port URIs matcher.
-                PortUris portUris = UserHandlerCodegen.HandlersManager.SearchPort(port);
+                PortUris portUris = SearchPort(port);
                 if (portUris != null)
                     portUris.MatchUriAndGetHandlerId = null;
             }
@@ -645,10 +665,5 @@ namespace Starcounter.Rest
                 }
             }
         }
-
-        /// <summary>
-        /// Incorrect session exception.
-        /// </summary>
-        public class IncorrectSessionException : Exception { }
     }
 }

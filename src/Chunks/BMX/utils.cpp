@@ -172,8 +172,6 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     bool aggregated_flag =
         (0 != ((*(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED));
 
-    _SC_ASSERT(!aggregated_flag);
-
     // Checking if data fits in one chunk.
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {
@@ -198,8 +196,9 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     int32_t num_bytes_to_write = buf_len_bytes;
 
     // Checking if more than maximum chunks we can take at once.
-    if ((num_extra_chunks > starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS) && (!aggregated_flag))
+    if (num_extra_chunks > starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS)
     {
+        _SC_ASSERT(!aggregated_flag);
         num_extra_chunks = starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS;
         num_bytes_to_write = starcounter::MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS + num_bytes_left_first_chunk;
     }
@@ -408,6 +407,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     )
 {
     _SC_BEGIN_FUNC
+
+    ProfilerStart(starcounter::utils::ProfilerEnums::Empty);
+    ProfilerStop(starcounter::utils::ProfilerEnums::Empty);
 
     uint32_t err_code;
 

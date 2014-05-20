@@ -87,7 +87,7 @@ namespace Starcounter.Templates {
 		private Arr<OT> BoundOrUnboundGet(Json parent) {
 			Arr<OT> arr = UnboundGetter(parent);
 
-			if (UseBinding(parent)) {
+			if (parent._dirtyCheckEnabled && UseBinding(parent)) {
 				var data = BoundGetter(parent);
 				arr.CheckBoundArray(data);
 			}
@@ -119,7 +119,7 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var arr = UnboundGetter(parent);
 
-			if (UseBinding(parent)) {
+			if (parent._dirtyCheckEnabled && UseBinding(parent)) {
 				arr.CheckBoundArray(BoundGetter(parent));
 			}
 
@@ -153,8 +153,8 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent.</param>
 		/// <returns>System.Object.</returns>
-		public override object CreateInstance(Json parent) {
-			return new Arr<OT>((Json)parent, this);
+		public override Json CreateInstance(Json parent) {
+			return new Arr<OT>(parent, this);
 		}
 
 		/// <summary>

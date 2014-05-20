@@ -41,12 +41,17 @@ void SocketDataChunk::Init(
     get_ws_proto()->Init();
 }
 
-// Resetting socket.
-void SocketDataChunk::ResetOnDisconnect()
+// Releases socket info index.
+void SocketDataChunk::ReleaseSocketIndex(GatewayWorker* gw)
 {
-    // Resetting associated socket info.
-    g_gateway.ResetSocketInfoOnDisconnect(socket_info_index_);
 
+    g_gateway.ReleaseSocketIndex(socket_info_index_);
+    socket_info_index_ = INVALID_SESSION_INDEX;
+}
+
+// Resetting socket.
+void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
+{
     set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
@@ -57,6 +62,9 @@ void SocketDataChunk::ResetOnDisconnect()
 
     // Removing reference to/from session.
     session_.Reset();
+
+    // Releasing socket index.
+    ReleaseSocketIndex(gw);
 
     // Resetting HTTP/WS stuff.
     get_http_proto()->Reset();
@@ -124,7 +132,7 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
 {
     // Getting a chunk from new database.
     SocketDataChunk* sd;
-    uint32_t err_code = gw->CreateSocketData(socket_info_index, sd);
+    uint32_t err_code = gw->CreateSocketData(socket_info_index, sd, data_len);
     if (err_code)
     {
         // New chunk can not be obtained.
@@ -134,7 +142,7 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
     // Checking if data fits inside chunk.
-    GW_ASSERT(data_len < (int32_t)accum_buf->get_chunk_num_available_bytes());
+    GW_ASSERT(data_len <= (int32_t)accum_buf->get_chunk_num_available_bytes());
 
     // Checking if message should be copied.
     memcpy(accum_buf->get_chunk_orig_buf_ptr(), data, data_len);
@@ -142,6 +150,25 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
     *new_sd = sd;
 
     return 0;
+}
+
+// Resets session depending on protocol.
+void SocketDataChunk::ResetSessionBasedOnProtocol()
+{
+    // Processing session according to protocol.
+    switch (get_type_of_network_protocol())
+    {
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
+            ResetSdSession();
+            break;
+
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
+            SetSdSessionIfEmpty();
+            break;
+
+        default:
+            ResetSdSession();
+    }
 }
 
 // Clone current socket data to a bigger one.
@@ -249,7 +276,7 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 
     uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(db_chunk_index, &ipc_smc);
     if (err_code)
-        return err_code;
+        GW_ASSERT(false);
 
     *new_ipc_sd = (SocketDataChunk*)((uint8_t*)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 

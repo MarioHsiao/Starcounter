@@ -2,9 +2,11 @@
 
 using namespace starcounter::bmx;
 using namespace starcounter::core;
+using namespace starcounter::utils;
 
 // Global BMX data structures.
 static BmxData* starcounter::bmx::g_bmx_data = NULL;
+Profiler* Profiler::schedulers_profilers_ = NULL;
 CRITICAL_SECTION g_bmx_cs_;
 std::list<BmxData*> g_bmx_old_clones_;
 
@@ -71,6 +73,38 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     g_error_handling_callback = error_handling_callback;
 
     return 0;
+}
+
+// Initializes profilers.
+EXTERN_C void __stdcall sc_init_profilers(
+    uint8_t num_workers
+    )
+{
+    // Initializing profilers.
+    Profiler::InitAll(num_workers);
+}
+
+// Gets profiler results for a given scheduler.
+EXTERN_C uint32_t __stdcall sc_profiler_get_results_in_json(
+    uint8_t sched_id,
+    uint8_t* buf,
+    int32_t buf_max_len)
+{
+    std::string s = Profiler::GetProfiler(sched_id)->GetResultsInJson(false);
+
+    if (s.length() >= buf_max_len)
+        return SCERRBADARGUMENTS;
+
+    strncpy_s((char*)buf, buf_max_len, s.c_str(), _TRUNCATE);
+
+    return 0;
+}
+
+// Reset profilers on given scheduler.
+EXTERN_C void __stdcall sc_profiler_reset(
+    uint8_t sched_id)
+{
+    Profiler::GetProfiler(sched_id)->ResetAll();
 }
 
 // Main message loop for incoming requests. Handles the 

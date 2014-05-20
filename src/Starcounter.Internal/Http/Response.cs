@@ -1,5 +1,4 @@
-﻿
-using Starcounter.Internal;
+﻿using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -44,7 +43,12 @@ namespace Starcounter
         /// The handler didn't handle the request.
         /// Request is going to be handled by outer handler, for example, a static files resolver.
         /// </summary>
-        NotHandled = 2
+        NotHandled = 2,
+
+        /// <summary>
+        /// If static files resolver should take care of response.
+        /// </summary>
+        ResolveStaticContent = 3
     }
 
     /// <summary>
@@ -66,7 +70,12 @@ namespace Starcounter
         /// The handler didn't handle the request.
         /// Request is going to be handled by outer handler, for example, a static files resolver.
         /// </summary>
-        NotHandled
+        NotHandled,
+
+        /// <summary>
+        /// If static files resolver should take care of response.
+        /// </summary>
+        ResolveStaticContent
     }
 
     /// <summary>
@@ -184,7 +193,7 @@ namespace Starcounter
         /// <summary>
         /// The URIs.
         /// </summary>
-        internal List<string> Uris = new List<string>();
+        internal List<string> Uris = null;
 
         /// <summary>
         /// The file path
@@ -318,7 +327,7 @@ namespace Starcounter
                     unsafe
                     {
                         if (null == http_response_struct_)
-                            throw new ArgumentException("HTTP response not initialized.");
+                            return null;
 
                         return http_response_struct_->GetStatusDescription();
                     }
@@ -351,8 +360,6 @@ namespace Starcounter
             }
         }
 
-		String cacheControl_;
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -360,13 +367,13 @@ namespace Starcounter
         {
 			get
             {
-                return cacheControl_;
+                return this[HttpHeadersUtf8.CacheControlHeader];
             }
 
 			set
             {
 				customFields_ = true;
-				cacheControl_ = value;
+                this[HttpHeadersUtf8.CacheControlHeader] = value;
 			}
 		}
 
@@ -670,7 +677,11 @@ namespace Starcounter
 
 			byte[] bytes = bodyBytes_;
 			if (_Resource != null) {
+
+                Profiler.Current.Start(ProfilerNames.GetPreferredMimeType);
 				var mimetype = request_.PreferredMimeType;
+                Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
+
 				try {
 					bytes = _Resource.AsMimeType(mimetype, out mimetype);
 					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
@@ -699,7 +710,14 @@ namespace Starcounter
 				// We have our precious bytes. Let's wrap them up in a response.
 			}
 
-			buf = new byte[EstimateNeededSize(bytes)];
+            Int32 numBytes = EstimateNeededSize(bytes);
+            buf = new Byte[numBytes];
+            /*
+            if (numBytes > SchedulerResources.ResponseTempBufSize)
+                buf = new Byte[numBytes];
+            else			
+                buf = SchedulerResources.Current.ResponseTempBuf;
+            */
 			
 			unsafe {
 				fixed (byte* p = buf) {
@@ -736,24 +754,23 @@ namespace Starcounter
 
 					writer.Write(HttpHeadersUtf8.ServerSc);
 
-					// TODO:
-					// What should the default cache control be?
-					if (null != cacheControl_) {
-						writer.Write(HttpHeadersUtf8.CacheControlStart);
-						writer.Write(cacheControl_);
-						writer.Write(HttpHeadersUtf8.CRLF);
-					} else
-						writer.Write(HttpHeadersUtf8.CacheControlNoCache);
-
+                    Boolean cacheControl = false;
                     if (null != customHeaderFields_) {
 
                         foreach (KeyValuePair<string, string> h in customHeaderFields_) {
+
+                            if (h.Key == HttpHeadersUtf8.CacheControlHeader)
+                                cacheControl = true;
+
                             writer.Write(h.Key);
                             writer.Write(": ");
                             writer.Write(h.Value);
                             writer.Write(HttpHeadersUtf8.CRLF);
                         }
                     }
+
+                    if (!cacheControl)
+                        writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
                     // Checking if session is defined.
                     if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
@@ -824,9 +841,6 @@ namespace Starcounter
                 }
             }
 
-			if (null != cacheControl_)
-				size += cacheControl_.Length;
-
 			if (null != AppsSession) {
 				size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
 				size += AppsSession.ToAsciiString().Length;
@@ -885,7 +899,7 @@ namespace Starcounter
                 unsafe
                 {
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return 0;
 
                     return http_response_struct_->content_len_bytes_;
                 }
@@ -938,7 +952,7 @@ namespace Starcounter
                 unsafe
                 {
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return 0;
 
                     return (Int32)http_response_struct_->response_len_bytes_;
                 }
@@ -1234,7 +1248,7 @@ namespace Starcounter
                     }
 
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return null;
                     
                     headersString_ = http_response_struct_->GetHeadersStringUtf8_Slow();
                     return headersString_;
@@ -1285,7 +1299,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                    return null;
 
                 return http_response_struct_->GetBodyByteArray_Slow();
             }
@@ -1310,7 +1324,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                    return null;
 
                 return http_response_struct_->GetBodyStringUtf8_Slow();
             }
@@ -1324,7 +1338,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
+                    return null;
 
                 return http_response_struct_->GetBodyByteArray_Slow();
             }
@@ -1339,7 +1353,7 @@ namespace Starcounter
             unsafe
             {
                 if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                    return null;
 
                 return http_response_struct_->GetHeadersStringUtf8_Slow();
             }

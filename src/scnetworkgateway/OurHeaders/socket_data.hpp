@@ -84,6 +84,9 @@ class SocketDataChunk
 
 public:
 
+    // Resets session depending on protocol.
+    void ResetSessionBasedOnProtocol();
+
     // Checking that gateway chunk is valid.
     void CheckForValidity()
     {
@@ -683,6 +686,11 @@ public:
         return g_gateway.GetBoundWorkerId(socket_info_index_);
     }
 
+    void SetBoundWorkerId(worker_id_type worker_id)
+    {
+        return g_gateway.SetBoundWorkerId(socket_info_index_, worker_id);
+    }
+
     // Getting destination database index.
     db_index_type GetDestDbIndex()
     {
@@ -732,10 +740,7 @@ public:
     }
 
     // Releases socket info index.
-    void ReleaseSocketIndex(GatewayWorker* gw)
-    {
-        g_gateway.ReleaseSocketIndex(gw, socket_info_index_);
-    }
+    void ReleaseSocketIndex(GatewayWorker* gw);
 
     // Deletes global session.
     void DeleteGlobalSessionOnDisconnect()
@@ -762,10 +767,11 @@ public:
     }
 
     // Returns port index.
-    int32_t GetPortIndex()
+    port_index_type GetPortIndex()
     {
-        int32_t port_index = g_gateway.GetPortIndex(socket_info_index_);
-        GW_ASSERT ((port_index != INVALID_PORT_INDEX) && (port_index < g_gateway.get_num_server_ports_slots()));
+        port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
+
+        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
 
         return port_index;
     }
@@ -964,7 +970,7 @@ public:
         worker_id_type bound_worker_id);
 
     // Resetting socket.
-    void ResetOnDisconnect();
+    void ResetOnDisconnect(GatewayWorker *gw);
 
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
@@ -1039,8 +1045,11 @@ public:
         SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
 
 #ifndef GW_LOOPED_TEST_MODE
-        if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock)))
-            return SCERRGWACCEPTEXFAILED;
+        if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
+            uint32_t err_code = WSAGetLastError();
+
+            return err_code;
+        }
 #endif
 
         return 0;
@@ -1073,7 +1082,7 @@ public:
         return FALSE;
 #endif
 
-        return DisconnectExFunc(GetSocket(), &ovl_, TF_REUSE_SOCKET, 0);
+        return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
     }
 
     // Puts socket data to database.

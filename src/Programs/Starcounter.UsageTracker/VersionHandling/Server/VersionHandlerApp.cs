@@ -18,7 +18,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
         internal static BuildWorker BuildkWorker;
         internal static VersionHandlerSettings Settings;
 #if ANDWAH
-        internal static String StarcounterTrackerUrl = "192.168.8.183";
+        internal static String StarcounterTrackerUrl = "192.168.60.104";
 #else
         internal static String StarcounterTrackerUrl = "downloads.starcounter.com";
 #endif
@@ -36,7 +36,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
 
             // Add public static resource
-            String body = publicPort.ToString() + "\r\n" + System.IO.Path.Combine(folder, "public");
+            String body = publicPort.ToString() + "\r\n" +  Path.GetFullPath(System.IO.Path.Combine(folder, "public"));
 
             Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
                 String respString = resp.Body;
@@ -52,7 +52,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
                 Directory.CreateDirectory(publicDocumentationFolder);
             }
 
-            String publicDocfolder = publicPort.ToString() + "\r\n" + publicDocumentationFolder;
+            String publicDocfolder = publicPort.ToString() + "\r\n" +  Path.GetFullPath(publicDocumentationFolder);
 
             Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", publicDocfolder, null, null, (Response resp, Object userObject) => {
                 String respString = resp.Body;
@@ -78,6 +78,8 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             Documentation_Get.BootStrap(publicPort);
 
             Upload.BootStrap(incomingPort);
+            Register.BootStrap(publicPort);
+            Login.BootStrap(publicPort);
 
             // Not Public API
             Utils.BootStrap(backendPort);

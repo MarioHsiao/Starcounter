@@ -45,7 +45,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this.getApplications = function (successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrive a list of applications";
+        var errorHeader = "Failed to retrieve a list of applications";
         var uri = "/api/admin/applications";
 
         // Example JSON response 
@@ -488,7 +488,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 }],
                 "DefaultUserPort": 0,
                 "ResourceDirectories": [],
-                "WorkingDirectory": null,
+                "WorkingDirectory": application.WorkingDirectory,
                 "IsTool": true,
                 "StartedBy": application.StartedBy,
                 "Engine": { "Uri": "" },

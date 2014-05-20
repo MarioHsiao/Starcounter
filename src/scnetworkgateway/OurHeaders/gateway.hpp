@@ -27,6 +27,7 @@
 // Level0 includes.
 #include <sccoredbg.h>
 #include <sccorelog.h>
+#include <profiler.hpp>
 
 // HTTP related stuff.
 #include "../../HTTP/HttpParser/OurHeaders/http_request.hpp"
@@ -39,7 +40,6 @@
 
 // Internal includes.
 #include "utilities.hpp"
-#include "profiler.hpp"
 
 #pragma warning(pop)
 #pragma warning(pop)
@@ -56,7 +56,7 @@ typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
 typedef int16_t uri_index_type;
-typedef int16_t port_index_type;
+typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
 typedef int8_t chunk_store_type;
@@ -77,7 +77,14 @@ typedef int8_t chunk_store_type;
 //#define GW_SESSIONS_DIAG
 #define GW_COLLECT_INACTIVE_SOCKETS
 //#define GW_LOOPBACK_AGGREGATION
+#ifdef GW_SMC_LOOPBACK_AGGREGATION
+#undef GW_LOOPBACK_AGGREGATION
+#endif
 //#define GW_IOCP_IMMEDIATE_COMPLETION
+//#define WORKER_NO_SLEEP
+//#define FAST_LOOPBACK
+//#define LEAST_USED_SCHEDULING
+//#define DONT_CHECK_ECHOES
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -94,7 +101,6 @@ typedef int8_t chunk_store_type;
 //#define GW_PONG_MODE
 //#define GW_TESTING_MODE
 //#define GW_LOOPED_TEST_MODE
-//#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
 
 // Checking that macro definitions are correct.
@@ -124,7 +130,6 @@ enum GatewayErrorCodes
     SCERRGWHTTPPROCESSFAILED,
     SCERRGWHTTPSPROCESSFAILED,
     SCERRGWCONNECTEXFAILED,
-    SCERRGWACCEPTEXFAILED,
     SCERRGWOPERATIONONWRONGSOCKET,
     SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING,
     SCERRGWTESTTIMEOUT,
@@ -136,7 +141,8 @@ enum GatewayErrorCodes
     SCERRGWIPISNOTONWHITELIST,
     SCERRGWMAXCHUNKSIZEREACHED,
     SCERRGWMAXDATASIZEREACHED,
-    SCERRGWWEBSOCKET
+    SCERRGWWEBSOCKET,
+    SCERRGWWEBSOCKETWRONGHANDSHAKEDATA
 };
 
 // Maximum number of ports the gateway operates with.
@@ -152,16 +158,13 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 10;
 
 // Maximum number of gateway chunks.
 const int32_t MAX_GATEWAY_CHUNKS = 1024 * 1024;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 10;
-
-// Aggregation buffer size.
-const int32_t AGGREGATION_BUFFER_SIZE = 1024 * 1024 * 16;
+const int32_t MAX_FETCHED_OVLS = 50;
 
 // Size of circular log buffer.
 const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
@@ -185,7 +188,7 @@ const db_index_type INVALID_DB_INDEX = -1;
 const worker_id_type INVALID_WORKER_INDEX = -1;
 
 // Bad port index.
-const int32_t INVALID_PORT_INDEX = -1;
+const port_index_type INVALID_PORT_INDEX = -1;
 
 // Bad index.
 const int32_t INVALID_INDEX = -1;
@@ -283,7 +286,7 @@ enum GatewayTestingMode
     MODE_GATEWAY_UNKNOWN = 6
 };
 
-const int32_t NumGatewayChunkSizes = 6;
+const int32_t NumGatewayChunkSizes = 7;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
@@ -292,7 +295,8 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     8 * 1024,
     32 * 1024,
     128 * 1024,
-    512 * 1024
+    512 * 1024,
+    4096 * 1024
 };
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
@@ -301,7 +305,8 @@ const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     100000,
     50000,
     50000,
-    1000
+    1000,
+    100
 };
 
 const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
@@ -310,7 +315,8 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
+    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[6] - SOCKET_DATA_OFFSET_BLOB
 };
 
 inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
@@ -330,7 +336,6 @@ struct AggregationStruct
     session_index_type socket_info_index_;
     int32_t unique_aggr_index_;
     uint16_t port_number_;
-    uint8_t flags;
 };
 
 const int32_t AggregationStructSizeBytes = sizeof(AggregationStruct);
@@ -519,16 +524,8 @@ uint32_t GatewayStatisticsInfo(
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
-// POST sockets for Gateway.
-uint32_t PostSocketResource(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-// DELETE sockets for Gateway.
-uint32_t DeleteSocketResource(
+// Profilers statistics for Gateway.
+uint32_t GatewayProfilersInfo(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
@@ -1012,7 +1009,7 @@ enum SOCKET_FLAGS
 // Structure that facilitates the socket.
 _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 {
-    // Entry to lock-free free list.
+    // NOTE: Lock-free SLIST_ENTRY should be the first field!
     SLIST_ENTRY free_socket_indexes_entry_;
 
     // Main session structure attached to this socket.
@@ -1109,9 +1106,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         unique_socket_id_ = INVALID_SESSION_SALT;
         session_.Reset();
 
-        // NOTE: Fields that stays the same for the same socket.
-        //socket_ = INVALID_SOCKET;
-        //port_index_ = INVALID_PORT_INDEX;
+        socket_ = INVALID_SOCKET;
+        port_index_ = INVALID_PORT_INDEX;
 
         ResetTimestamp();
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
@@ -1119,6 +1115,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SESSION_INDEX;
         aggr_socket_info_index_ = INVALID_SESSION_INDEX;
+    }
+
+    bool IsReset() {
+        return (INVALID_SOCKET == socket_);
     }
 };
 
@@ -1276,12 +1276,33 @@ class ServerPort
     RegisteredSubports* registered_subports_;
 
     // This port index in global array.
-    int32_t port_index_;
+    port_index_type port_index_;
 
     // Is this an aggregation port.
     bool aggregating_flag_;
 
+    // Number of active sockets for this server port.
+    int32_t num_active_sockets_[MAX_WORKER_THREADS];
+
 public:
+
+    port_index_type get_port_index() {
+        return port_index_;
+    }
+
+    void AddToActiveSockets(worker_id_type worker_id) {
+        num_active_sockets_[worker_id]++;
+    }
+
+    void RemoveFromActiveSockets(worker_id_type worker_id) {
+        num_active_sockets_[worker_id]--;
+
+        GW_ASSERT(num_active_sockets_[worker_id] >= 0);
+    }
+
+    int32_t GetNumberOfActiveSocketsAllWorkers();
+
+    worker_id_type GetLeastBusyWorkerId();
 
     // Sets an aggregating port flag.
     void set_aggregating_flag()
@@ -1335,7 +1356,7 @@ public:
     bool IsEmpty();
 
     // Initializes server socket.
-    void Init(int32_t port_index, uint16_t port_number, SOCKET port_socket);
+    void Init(port_index_type port_index, uint16_t port_number, SOCKET port_socket);
 
     // Server port.
     ServerPort();
@@ -1775,11 +1796,11 @@ public:
     session_index_type ObtainFreeSocketIndex(
         GatewayWorker* gw,
         SOCKET s,
-        int32_t port_index,
+        port_index_type port_index,
         bool proxy_connect_socket);
 
     // Releases used socket index.
-    void ReleaseSocketIndex(GatewayWorker* gw, session_index_type index);
+    void ReleaseSocketIndex(session_index_type index);
 
     // Checks if IP is on white list.
     bool CheckIpForWhiteList(ip_info_type ip)
@@ -1860,14 +1881,6 @@ public:
         return (MixedCodeConstants::NetworkProtocolType) all_sockets_infos_unsafe_[socket_index].type_of_network_protocol_;
     }
 
-    // Resets socket info when socket is disconnected.
-    void ResetSocketInfoOnDisconnect(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].Reset();
-    }
-
     // Getting destination database index.
     db_index_type GetDestDbIndex(session_index_type socket_index)
     {
@@ -1885,7 +1898,7 @@ public:
     }
 
     // Getting socket id.
-    int32_t GetPortIndex(session_index_type socket_index)
+    port_index_type GetPortIndex(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
@@ -1898,6 +1911,13 @@ public:
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_;
+    }
+
+    void SetBoundWorkerId(session_index_type socket_index, worker_id_type worker_id)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
     }
 
     // Getting scheduler id.
@@ -2017,8 +2037,10 @@ public:
     bool ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id);
 
     // Creates new socket info.
-    void CreateNewSocketInfo(session_index_type socket_index, int32_t port_index, worker_id_type worker_id)
+    void CreateNewSocketInfo(session_index_type socket_index, port_index_type port_index, worker_id_type worker_id)
     {
+        GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
+
         all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
         all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
     }
@@ -2029,6 +2051,7 @@ public:
         GW_ASSERT(socket_index < setting_max_connections_);
 
         random_salt_type unique_id = get_unique_socket_id();
+        GW_ASSERT(unique_id != INVALID_SESSION_SALT);
 
         all_sockets_infos_unsafe_[socket_index].unique_socket_id_ = unique_id;
         all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = scheduler_id;
@@ -2068,14 +2091,11 @@ public:
         return setting_log_file_path_;
     }
 
-    // Current global statistics value.
+    // Current global statistics.
     const char* GetGlobalStatisticsString(int32_t* out_len);
 
-    // Getting the number of used sockets.
-    int64_t NumberCreatedSocketsAllWorkers();
-
-    // Getting the number of reusable connect sockets.
-    int64_t NumberOfReusableConnectSockets();
+    // Current global profilers stats.
+    std::string GetGlobalProfilersString(int32_t* out_len);
 
     // Getting the number of used sockets per worker.
     int64_t NumberUsedSocketsPerWorker(int32_t worker_id);
@@ -2191,6 +2211,10 @@ public:
     void ConfirmEcho(int64_t echo_num)
     {
         GW_ASSERT(echo_num < setting_num_echoes_to_master_);
+#ifdef DONT_CHECK_ECHOES
+        InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
+        return;
+#endif
 
         if (false != confirmed_echoes_shared_[echo_num])
         {
@@ -2471,9 +2495,9 @@ public:
     }
 
     // Checks if certain server port exists.
-    int32_t FindServerPortIndex(uint16_t port_num)
+    port_index_type FindServerPortIndex(uint16_t port_num)
     {
-        for (int32_t i = 0; i < num_server_ports_slots_; i++)
+        for (port_index_type i = 0; i < num_server_ports_slots_; i++)
         {
             if (port_num == server_ports_[i].get_port_number())
                 return i;
@@ -2513,7 +2537,7 @@ public:
     void CleanUpEmptyPorts();
 
     // Get active server ports.
-    ServerPort* get_server_port(int32_t port_index)
+    ServerPort* get_server_port(port_index_type port_index)
     {
         return server_ports_ + port_index;
     }
@@ -2603,7 +2627,7 @@ public:
     int64_t NumberOverflowChunksPerDatabase(db_index_type db_index);
 
     // Getting the number of active connections per port.
-    int64_t NumberOfActiveConnectionsPerPort(int32_t port_index);
+    int64_t NumberOfActiveConnectionsPerPort(port_index_type port_index);
 
     // Get IOCP.
     HANDLE get_iocp()
@@ -2640,9 +2664,6 @@ public:
 
     // Creates socket and binds it to server port.
     uint32_t CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock);
-
-    // Creates new connections on all workers.
-    uint32_t CreateNewConnectionsAllWorkers(int32_t howMany, uint16_t port_num, db_index_type db_index);
 
     // Start workers.
     uint32_t StartWorkerAndManagementThreads(

@@ -33,11 +33,6 @@ namespace Starcounter {
         internal bool _PendingEnumeration;
 
         /// <summary>
-        /// Contains the depth of this Container. Used when creating the indexpath.
-        /// </summary>
-        private Int32 _cachePathDepth = -1;
-
-        /// <summary>
         /// For unbound values, we keep a list of flags to know which properties has changed.
         /// </summary>
         protected List<bool> _SetFlag;
@@ -82,5 +77,24 @@ namespace Starcounter {
         /// reflect a person database object.
         /// </summary>
         internal object _data;
+
+        internal List<Json> _stepSiblings;
+
+        internal Json _stepParent;
+
+        internal String _appName;
+
+        /// <summary>
+        /// If set to true, additional features for keeping track of changes and getting a log of changes 
+        /// are initialized. If not needed this should not be enabled since the performance will be much worse.
+        /// </summary>
+        internal bool _dirtyCheckEnabled;
+
+        private bool _isArray;
+
+        /// <summary>
+        /// Default value for setting the dirtycheck on or off for new instances of Json.
+        /// </summary>
+        public static bool DirtyCheckEnabled = true;
     }
 }

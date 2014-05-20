@@ -88,7 +88,7 @@ namespace Starcounter.Templates {
 		}
 
 		internal override void SetDefaultValue(Json parent) {
-			UnboundSetter(parent, new Json(parent, this));
+			UnboundSetter(parent, new Arr<Json>(parent, this));
 		}
 
 		internal override void InvalidateBoundGetterAndSetter() {
@@ -110,7 +110,7 @@ namespace Starcounter.Templates {
 		internal override void Checkpoint(Json parent) {
 			Json arr = UnboundGetter(parent);
 
-			for (int i = 0; i < arr.Count; i++) {
+			for (int i = 0; i < ((IList)arr).Count; i++) {
 				var row = (Json)arr._GetAt(i);
 				row.CheckpointChangeLog();
 				arr.CheckpointAt(i);
@@ -127,7 +127,7 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var arr = UnboundGetter(parent);
 
-			if (UseBinding(parent)) {
+			if (parent._dirtyCheckEnabled && UseBinding(parent)) {
 				arr.CheckBoundArray(BoundGetter(parent));	
 			}
 
@@ -162,7 +162,7 @@ namespace Starcounter.Templates {
 		/// <param name="parent"></param>
 		/// <returns></returns>
 		internal override object GetUnboundValueAsObject(Json parent) {
-			return Getter(parent);
+			return UnboundGetter(parent);
 		}
 
 		/// <summary>
@@ -186,7 +186,7 @@ namespace Starcounter.Templates {
 		private Json BoundOrUnboundGet(Json parent) {
 			Json arr = UnboundGetter(parent);
 
-			if (UseBinding(parent)) {
+			if (parent._dirtyCheckEnabled && UseBinding(parent)) {
 				var data = BoundGetter(parent);
 				arr.CheckBoundArray(data);
 			}
@@ -274,25 +274,24 @@ namespace Starcounter.Templates {
             }
         }
 
-        /// <summary>
-        /// Contains the default value for the property represented by this
-        /// Template for each new App object.
-        /// </summary>
-        /// <value>The default value as object.</value>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override object DefaultValueAsObject {
-            get {
-                throw new System.NotImplementedException();
-            }
-            set {
-                throw new System.NotImplementedException();
-            }
-        }
+        ///// <summary>
+        ///// Contains the default value for the property represented by this
+        ///// Template for each new App object.
+        ///// </summary>
+        ///// <value>The default value as object.</value>
+        ///// <exception cref="System.NotImplementedException"></exception>
+        //public override object DefaultValueAsObject {
+        //    get {
+        //        throw new System.NotImplementedException();
+        //    }
+        //    set {
+        //        throw new System.NotImplementedException();
+        //    }
+        //}
 
-        public override object CreateInstance(Json parent) {
-            return new Json((Json)parent, this);
+        public virtual Json CreateInstance(Json parent) {
+            return new Arr<Json>(parent, this);
 		}
-
 
         /// <summary>
         /// 

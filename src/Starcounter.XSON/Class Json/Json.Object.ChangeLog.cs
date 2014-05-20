@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Starcounter.Advanced;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter {
 	partial class Json {
@@ -11,6 +12,9 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy() {
+            if (!_dirtyCheckEnabled)
+                return;
+
 			_Dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
@@ -20,6 +24,9 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void CheckpointChangeLog() {
+            if (!_dirtyCheckEnabled)
+                return;
+
 			if (this.IsArray) {
 				this.ArrayAddsAndDeletes = null;
 				if (Template != null) {
@@ -28,16 +35,16 @@ namespace Starcounter {
 				}
 			} else {
 				if (Template != null) {
-					var tjson = (TObject)Template;
-
-                    this.ExecuteInScope(() => {
-                        for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-                            var property = tjson.Properties.ExposedProperties[i] as TValue;
-                            if (property != null) {
-                                property.Checkpoint(this);
+                    this.AddInScope<TObject>( 
+                        (tjson) => {
+                            for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
+                                var property = tjson.Properties.ExposedProperties[i] as TValue;
+                                if (property != null) {
+                                    property.Checkpoint(this);
+                                }
                             }
-                        }
-                    });
+                        },
+                        (TObject)Template);
 				}
 			}
 			_Dirty = false;
@@ -52,7 +59,9 @@ namespace Starcounter {
 #if DEBUG
 			this.Template.VerifyProperty(prop);
 #endif
-			return (WasReplacedAt(prop.TemplateIndex));
+            if (_dirtyCheckEnabled)
+                return (WasReplacedAt(prop.TemplateIndex));
+            return false;
 		}
 
 		/// <summary>
@@ -60,6 +69,9 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session (for faster access)</param>
 		internal void LogValueChangesWithDatabase(Session session) {
+            if (!_dirtyCheckEnabled)
+                return;
+
 			if (this.IsArray) {
 				LogArrayChangesWithDatabase(session);
 			} else {
@@ -73,27 +85,21 @@ namespace Starcounter {
 		/// <param name="session"></param>
 		private void LogArrayChangesWithDatabase(Session session) {
 			if (ArrayAddsAndDeletes != null) {
-				Session._Changes.AddRange(ArrayAddsAndDeletes);
+                session.AddRangeOfChanges(ArrayAddsAndDeletes);
 				ArrayAddsAndDeletes.Clear();
 
 				for (int i = 0; i < list.Count; i++) {
 					CheckpointAt(i);
 				}
 			}
-			//            foreach (var e in _Values) {
-			//                (e as Json).LogValueChangesWithDatabase(session);
-			//            }
-			//           if (_Dirty) {
-
-
-			var property = Template as TValue;
+			
+			var property = Template as TObjArr;
 			for (int t = 0; t < _list.Count; t++) {
 				if (WasReplacedAt(t)) {
-					session._Changes.Add(Change.Update(this.Parent as Json, property, t));
+                    session.UpdateValue(this.Parent, property, t);
 				}
 				(_list[t] as Json).LogValueChangesWithDatabase(session);
 			}
-			//            }
 		}
 
 		/// <summary>
@@ -107,27 +113,25 @@ namespace Starcounter {
 			throw new NotImplementedException();
 		}
 
-
 		/// <summary>
 		/// Dirty checks each value of the object and reports any changes
 		/// to the session changelog.
 		/// </summary>
 		/// <param name="session">The session to report to</param>
 		private void LogObjectValueChangesWithDatabase(Session session) {
-			var template = (TObject)Template;
-			var exposed = template.Properties.ExposedProperties;
+            this.AddInScope<Session>((s) => {
+                var template = (TObject)Template;
+                var exposed = template.Properties.ExposedProperties;
 
-            this.ExecuteInScope(() => {
                 if (_Dirty) {
                     for (int t = 0; t < exposed.Count; t++) {
                         if (WasReplacedAt(exposed[t].TemplateIndex)) {
-                            var s = Session;
                             if (s != null) {
                                 if (IsArray) {
                                     throw new NotImplementedException();
                                 } else {
                                     var childTemplate = (TValue)exposed[t];
-                                    Session.UpdateValue(this, childTemplate);
+                                    s.UpdateValue(this, childTemplate);
 
                                     // TODO:
                                     // Added this code to make current implementation work.
@@ -151,7 +155,7 @@ namespace Starcounter {
                             if (p is TContainer) {
                                 var c = ((TContainer)p).GetValue(this);
                                 if (c != null)
-                                    c.LogValueChangesWithDatabase(session);
+                                    c.LogValueChangesWithDatabase(s);
                             } else {
                                 if (IsArray)
                                     throw new NotImplementedException();
@@ -166,7 +170,7 @@ namespace Starcounter {
                         if (exposed[t] is TContainer) {
                             var c = ((TContainer)exposed[t]).GetValue(this);
                             if (c != null)
-                                c.LogValueChangesWithDatabase(session);
+                                c.LogValueChangesWithDatabase(s);
                         } else {
                             if (IsArray) {
                                 throw new NotImplementedException();
@@ -179,11 +183,12 @@ namespace Starcounter {
                 } else {
                     foreach (var e in list) {
                         if (e is Json) {
-                            ((Json)e).LogValueChangesWithDatabase(session);
+                            ((Json)e).LogValueChangesWithDatabase(s);
                         }
                     }
                 }
-            });
+            },
+            session);
 		}
 
 		internal void SetBoundValuesInTuple() {
@@ -192,7 +197,7 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
-                this.ExecuteInScope(() => {
+                this.AddInScope(() => {
                     TObject tobj = (TObject)Template;
                     if (tobj != null) {
                         for (int i = 0; i < tobj.Properties.Count; i++) {
@@ -228,16 +233,18 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    Add(newJson);
+                    ((IList)this).Add(newJson);
                     newJson.Data = value;
                     hasChanged = true;
                 } else {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         oldJson.Data = value;
-                        if (ArrayAddsAndDeletes == null)
-                            ArrayAddsAndDeletes = new List<Change>();
-                        ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+                        if (_dirtyCheckEnabled) {
+                            if (ArrayAddsAndDeletes == null)
+                                ArrayAddsAndDeletes = new List<Change>();
+                            ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+                        }
                         hasChanged = true;
                     }
                 }
@@ -245,7 +252,7 @@ namespace Starcounter {
             }
 
             for (int i = _list.Count - 1; i >= index; i--) {
-                RemoveAt(i);
+                ((IList)this).RemoveAt(i);
                 hasChanged = true;
             }
 

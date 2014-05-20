@@ -24,6 +24,12 @@ namespace Starcounter
         public static readonly Binary Null = new Binary();
 
         /// <summary>
+        /// Max size allowed for unpacked small binary data (excluding header).
+        /// </summary>
+        public const int BINARY_DATA_MAX_SIZE = 8192;
+        public const int BINARY_DATA_FAKE_MAX_SIZE = 100;
+
+        /// <summary>
         /// Equalses the specified LB1.
         /// </summary>
         /// <param name="lb1">The LB1.</param>
@@ -133,6 +139,10 @@ namespace Starcounter
             if (data != null)
             {
                 len = data.Length;
+                if (len > BINARY_DATA_MAX_SIZE)
+                    throw ErrorCode.ToException(Error.SCERRBINARYVALUEEXCEEDSMAXSIZE,
+                        "Maximum possible size is " + BINARY_DATA_MAX_SIZE + 
+                        ", while actual size of data is " + len);
                 _buffer = new Byte[len + 4];
                 _buffer[0] = (Byte)len;
                 _buffer[1] = (Byte)(len >> 8);
@@ -145,6 +155,10 @@ namespace Starcounter
 
         internal unsafe Binary(ref TupleReaderBase64 tuple) {
             int len = (int)Base64Binary.MeasureNeededSizeToDecode(tuple.GetValueLength());
+            if (len > BINARY_DATA_MAX_SIZE)
+                throw ErrorCode.ToException(Error.SCERRBINARYVALUEEXCEEDSMAXSIZE,
+                    "Maximum possible size is " + BINARY_DATA_MAX_SIZE +
+                    ", while actual size of data is " + len);
             _buffer = new Byte[len + 4];
             _buffer[0] = (Byte)len;
             _buffer[1] = (Byte)(len >> 8);

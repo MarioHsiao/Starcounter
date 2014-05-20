@@ -219,6 +219,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         WriteAppClassPrefix(node as AstJsonClass);
                     } else if (node is AstSchemaClass) {
                         WriteTAppConstructor((node as AstSchemaClass).Constructor);
+                        WriteSchemaOverrides(node as AstSchemaClass);
                     }
                     node.Suffix.Add("}");
 
@@ -323,14 +324,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="a">A.</param>
         private void WriteAppClassPrefix(AstJsonClass a) {
+            var sb = new StringBuilder();
+
             AppendLineDirectiveIfDefined(a.Prefix, "    #line hidden");
 
             a.Prefix.Add("    " + markAsCodegen);
-            a.Prefix.Add("    public static "
-                         + a.ClassSpecifierWithoutOwners
-                         + " GET(string uri) { return ("
-                         + a.ClassSpecifierWithoutOwners
-                         + ")X.GET(uri); }");
+            sb.Append("    public static ");
+            sb.Append(a.ClassSpecifierWithoutOwners);
+            sb.AppendLine(" GET(string uri, bool throwOnError = true) {");
+            sb.AppendLine("        Response r;");
+            sb.AppendLine("        X.GET(uri, out r);");
+            sb.AppendLine("        var j = r.Resource as " + a.ClassSpecifierWithoutOwners + ";");
+            sb.AppendLine("        if (j == null && throwOnError) { JsonHelper.ThrowExceptionIfError(r, \"Internal GET returned error response (uri: \\\"\" + uri + \"\\\").\"); }");
+            sb.AppendLine("        return j;");
+            sb.Append("    }");
+            a.Prefix.Add(sb.ToString());
 
             a.Prefix.Add("    " + markAsCodegen2);
             a.Prefix.Add("    public static "
@@ -368,6 +376,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                              + a.CodebehindClass.BoundDataClass
                              + ")base.Data; } set { base.Data = value; } }");
             }
+            a.Prefix.Add("    public override bool IsCodegenerated { get { return true; } }");
 
             foreach (AstBase kid in a.NTemplateClass.Children) {
                 var prop = kid as AstProperty;
@@ -542,6 +551,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 "    }");
         }
 
+        private void WriteSchemaOverrides(AstSchemaClass node) {
+            node.Prefix.Add(
+                "    public override object CreateInstance(s.Json parent) { return new "
+                + node.NValueClass.ClassAlias.Alias
+                + "(this) { Parent = parent }; }"
+            );
+        }
+
         /// <summary>
         /// Gets the add input handler code.
         /// </summary>
@@ -636,6 +653,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 defaultUsings.Add("System.Collections");
                 defaultUsings.Add("System.Collections.Generic");
                 defaultUsings.Add("Starcounter.Advanced");
+                defaultUsings.Add("Starcounter.Advanced.XSON");
                 defaultUsings.Add("Starcounter");
                 defaultUsings.Add("Starcounter.Internal");
                 defaultUsings.Add("Starcounter.Templates");

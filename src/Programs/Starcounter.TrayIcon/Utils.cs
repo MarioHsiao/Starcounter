@@ -1,4 +1,5 @@
 ﻿using Starcounter.Advanced;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -28,7 +29,10 @@ namespace Starcounter.Tools {
             port = 0;
             error = null;
 
-            string file = "personal.xml";
+            string file = Path.Combine(
+                StarcounterEnvironment.Directories.InstallationConfiguration, 
+                StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile
+                );
             string serverDir;
 
             bool result = ReadConfiguration(file, out serverDir, out error);

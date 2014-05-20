@@ -15,6 +15,7 @@ namespace Starcounter.CLI {
     using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
+    using System.Threading;
 
     internal class StartApplicationCommand : ApplicationCLICommand {
 
@@ -78,7 +79,15 @@ namespace Starcounter.CLI {
 
             if (statusCode == 404) {
                 errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.Body);
+                try {
+                    errorDetail.PopulateFromJson(response.Body);
+                } catch {
+                    // The content of the response is not ErrorDetail json. It might be some other 
+                    // 404 sent from a different source, that sets the content to the original 
+                    // exception message. Lets handle it as an unexpected response.
+                    HandleUnexpectedResponse(response);
+                }
+
                 if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
                     var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
                     if (!allowed) {
@@ -181,7 +190,7 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
-            ShowStatus("starting executable", true);
+            ShowStatus("starting application");
             exe = new Executable();
             exe.Path = app.BinaryFilePath;
             exe.ApplicationFilePath = app.FilePath;
@@ -195,7 +204,13 @@ namespace Starcounter.CLI {
                 }
             }
 
-            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null);
+            var responded = new ManualResetEvent(false);
+            node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null, (resp, ignored) => {
+                response = resp;
+                responded.Set();
+            });
+            AwaitExecutableStartup(databaseName, exe.Name, responded);
+            
             response.FailIfNotSuccess();
             exe.PopulateFromJson(response.Body);
         }
@@ -219,6 +234,17 @@ namespace Starcounter.CLI {
                 string.Format("Running in process {0}, started by \"{1}\"", engine.CodeHostProcess.PID, exe.StartedBy),
                 color);
             Environment.ExitCode = 0;
+        }
+
+        void AwaitExecutableStartup(string databaseName, string appName, ManualResetEvent started) {
+            var c = new CodeHostConsole(databaseName, DateTime.Now, appName);
+            c.MessageWritten = (a, b) => {
+                Console.Write(b);
+            };
+            
+            c.Open();
+            started.WaitOne();
+            c.Close();
         }
 
         void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {

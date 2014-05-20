@@ -59,9 +59,9 @@
     <Compile Include="Binding\BindingInfo.cs" />
     <Compile Include="Class Json\Json.IList.cs" />
     <Compile Include="Class Json\Json.cs" />
-    <Compile Include="Class Json\Json.JsonPointer.cs" />
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\Json.Transaction.cs" />
+    <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstBase.cs" />
@@ -92,14 +92,13 @@
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatchException.cs" />
+    <Compile Include="Sessions\JSON-Patch\JsonProperty.cs" />
     <Compile Include="TemplateDelegateGenerator.cs" />
     <Compile Include="Templates\Foundation\TValue.cs" />
     <Compile Include="Templates\TArray.cs" />
     <Compile Include="Templates\TObject.cs" />
     <Compile Include="Sessions\JSON-Patch\Change.cs" />
-    <Compile Include="Sessions\JSON-Patch\HttpPatchBuilder.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
-    <Compile Include="Sessions\JSON-Patch\JsonPatch.Incoming.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPointer.cs" />
     <Compile Include="Sessions\Session.ChangeLog.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />

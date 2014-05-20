@@ -81,9 +81,9 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HandlersManagement.cs" />
+    <Compile Include="UriHandlersManager.cs" />
     <Compile Include="PortUris.cs" />
-    <Compile Include="RestManager.cs" />
+    <Compile Include="UriManagedHandlersCodegen.cs" />
     <Compile Include="RestInitialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

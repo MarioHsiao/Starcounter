@@ -17,7 +17,6 @@
   <ItemGroup>
     <ClInclude Include="OurHeaders\gateway.hpp" />
     <ClInclude Include="OurHeaders\http_proto.hpp" />
-    <ClInclude Include="OurHeaders\profiler.hpp" />
     <ClInclude Include="OurHeaders\random.hpp" />
     <ClInclude Include="OurHeaders\handlers.hpp" />
     <ClInclude Include="OurHeaders\socket_data.hpp" />
@@ -122,7 +121,7 @@
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\x86_64\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -133,12 +132,12 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>GW_LOG_TO_CONSOLE;GW_LOOPED_TEST_MODE;GW_LIMITED_ECHO_TEST;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROFILING;GW_LOG_TO_CONSOLE;GW_LOOPED_TEST_MODE;GW_LIMITED_ECHO_TEST;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\x86_64\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -151,11 +150,12 @@
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>_UNICODE;PROFILING;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\x86_64\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>

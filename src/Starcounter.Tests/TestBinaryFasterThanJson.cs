@@ -47,46 +47,5 @@ namespace Starcounter.Tests {
                 Assert.AreEqual(value3, DbHelper.ReadBinary(ref reader, 0));
             }
         }
-
-        [Test]
-        public unsafe static void TestLargeBinaryTuple() {
-            LargeBinary value1 = new LargeBinary(new byte[15] 
-            {10, 0, 255, 32, 125, 
-                10, 0, 255, 132, 5, 
-                1, 10, 255, 32, 125});
-            LargeBinary value2 = new LargeBinary((byte[])null);
-            LargeBinary value3 = new LargeBinary(new byte[0]);
-            fixed (byte* start = new byte[25]) {
-                TupleWriterBase64 writter = new TupleWriterBase64(start, 3, 1);
-                DbHelper.WriteLargeBinary(ref writter, value1);
-                DbHelper.WriteLargeBinary(ref writter, value2);
-                DbHelper.WriteLargeBinary(ref writter, value3);
-                Assert.AreEqual(25, writter.SealTuple());
-                TupleReaderBase64 reader = new TupleReaderBase64(start, 3);
-                Assert.AreEqual(value1, DbHelper.ReadLargeBinary(ref reader));
-                Assert.AreEqual(value2, DbHelper.ReadLargeBinary(ref reader));
-                Assert.AreEqual(value3, DbHelper.ReadLargeBinary(ref reader));
-            }
-        }
-        [Test]
-        public unsafe static void TestSafeLargeBinaryTuple() {
-            LargeBinary value1 = new LargeBinary(new byte[15] 
-            {10, 0, 255, 32, 125, 
-                10, 0, 255, 132, 5, 
-                1, 10, 255, 32, 125});
-            LargeBinary value2 = new LargeBinary((byte[])null);
-            LargeBinary value3 = new LargeBinary(new byte[0]);
-            fixed (byte* start = new byte[25]) {
-                SafeTupleWriterBase64 writter = new SafeTupleWriterBase64(start, 3, 1, 25);
-                DbHelper.WriteLargeBinary(ref writter, value3);
-                DbHelper.WriteLargeBinary(ref writter, value1);
-                DbHelper.WriteLargeBinary(ref writter, value2);
-                Assert.AreEqual(25, writter.SealTuple());
-                SafeTupleReaderBase64 reader = new SafeTupleReaderBase64(start, 3);
-                Assert.AreEqual(value1, DbHelper.ReadLargeBinary(ref reader, 1));
-                Assert.AreEqual(value2, DbHelper.ReadLargeBinary(ref reader, 2));
-                Assert.AreEqual(value3, DbHelper.ReadLargeBinary(ref reader, 0));
-            }
-        }
     }
 }

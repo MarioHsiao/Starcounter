@@ -66,21 +66,24 @@ namespace Starcounter.Internal {
 
             // Giving REST needed delegates.
             unsafe {
-                UserHandlerCodegen.Setup(
+                UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.HandleIncomingHttpRequest,
                     OnHttpMessageRoot,
-                    AppServer_.HandleRequest);
+                    AppServer_.HandleRequest,
+                    UriHandlersManager.AddExtraHandlerLevel);
 
                 AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.HandleWebSocket);
             }
 
             // Injecting required hosted Node functionality.
             Node.InjectHostedImpl(
-                UserHandlerCodegen.DoLocalNodeRest,
+                UriManagedHandlersCodegen.DoLocalNodeRest,
                 NodeErrorLogSource.LogException);
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
+
+            SchedulerResources.Init(numSchedulers);
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
@@ -172,7 +175,7 @@ namespace Starcounter.Internal {
                 else
                 {
                     // Administrator registers itself.
-                    AddFileServingDirectory(port, resourceResolvePath);
+                    AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
                 }
             }
         }
@@ -182,17 +185,29 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request request) {
-            Response response = AppServer_.HandleRequest(request);
+        private static Boolean OnHttpMessageRoot(Request req) {
+
+            // Handling request on initial level.
+            Response resp = AppServer_.HandleRequest(req, 0);
+
+            // Checking if response was handled.
+            if (resp == null)
+                return false;
 
             // Determining what we should do with response.
-            switch (response.HandlingStatus)
+            switch (resp.HandlingStatus)
             {
                 case HandlerStatusInternal.Done:
                 {
                     // Standard response send.
-                    request.SendResponse(response.ResponseBytes, 0, response.ResponseSizeBytes, response.ConnFlags);
-                    request.Destroy();
+                    req.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+
+                    //resp.Destroy();
+                    //GC.SuppressFinalize(resp);
+
+                    req.Destroy();
+                    GC.SuppressFinalize(req);
+
                     break;
                 }
             }

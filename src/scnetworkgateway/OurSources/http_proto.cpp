@@ -899,21 +899,21 @@ ALL_DATA_ACCUMULATED:
             sd->ResetUserDataOffset();
 
 #ifdef GW_LOOPBACK_AGGREGATION
+
+            // Performing aggregation loop on gateway.
             if (sd->GetSocketAggregatedFlag())
             {
-                char body[1024];
-                int32_t body_len = http_request_.content_len_bytes_;
-                memcpy(body, (char*)sd + http_request_.content_offset_, body_len);
-                err_code = gw->SendHttpBody(sd, body, body_len);
+                gw->LoopbackForAggregation(sd);
+            }
+            else
+
+#endif
+            {
+                // Push chunk to corresponding channel/scheduler.
+                err_code = gw->PushSocketDataToDb(sd, handler_id);
                 if (err_code)
                     return err_code;
             }
-            else
-#endif
-            // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, handler_id);
-            if (err_code)
-                return err_code;
 
 #endif
 
@@ -1166,7 +1166,9 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Asserting correct number of bytes received.
+#ifndef DONT_CHECK_ECHOES
         GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
+#endif
 
         // Obtaining original echo number.
         //echo_id_type echo_id = *(int32_t*)sd->get_accum_buf()->get_orig_buf_ptr();
@@ -1326,55 +1328,14 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
     return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
 }
 
-// POST sockets for Gateway.
-uint32_t PostSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+// Profilers statistics for Gateway.
+uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    GW_ASSERT(false == sd->GetSocketAggregatedFlag());
-
-    // Cloning for receiving immediately.
-    sd->CloneToReceive(gw);
-
-    // Getting the aggregation info.
-    AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
-
-    // Getting port handler.
-    int32_t port_index = g_gateway.FindServerPortIndex(ags.port_number_);
-    GW_ASSERT(INVALID_PORT_INDEX != port_index);
-
-    // Getting new socket index.
-    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, INVALID_SOCKET, port_index, false);
-    ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
-
-    // Setting some socket options.
-    g_gateway.SetSocketAggregatedFlag(ags.socket_info_index_);
-
-    char temp_buf[AggregationStructSizeBytes];
-    *(AggregationStruct*) temp_buf = ags;
-
+    int32_t resp_len_bytes;
+    std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);
     *is_handled = true;
 
-    return gw->SendHttpBody(sd, temp_buf, AggregationStructSizeBytes);
-}
-
-// DELETE sockets for Gateway.
-uint32_t DeleteSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
-{
-    // Getting the aggregation info.
-    AggregationStruct ags = *(AggregationStruct*) (sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes() - AggregationStructSizeBytes);
-
-    // Checking if socket is legitimate.
-    if (g_gateway.CompareUniqueSocketId(ags.socket_info_index_, ags.unique_socket_id_))
-    {
-        // Closing socket which will results in stop of all pending operations on that socket.
-        gw->AddSocketToDisconnectListUnsafe(ags.socket_info_index_);
-    }
-
-    char temp_buf[AggregationStructSizeBytes];
-    *(AggregationStruct*) temp_buf = ags;
-
-    *is_handled = true;
-
-    return gw->SendHttpBody(sd, temp_buf, AggregationStructSizeBytes);
+    return gw->SendHttpBody(sd, s.c_str(), resp_len_bytes);
 }
 
 } // namespace network

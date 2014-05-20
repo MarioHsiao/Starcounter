@@ -17,9 +17,7 @@ using Starcounter.Logging;
 using StarcounterInternal.Hosting;
 using System.Text.RegularExpressions;
 using System.IO;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Bootstrap.Management;
-using Starcounter.JsonPatch.BuiltInRestHandlers;
 
 namespace StarcounterInternal.Bootstrap {
     /// <summary>
@@ -142,10 +140,10 @@ namespace StarcounterInternal.Bootstrap {
                         // Register console output handlers (Except for the Administrator)
                         if (!StarcounterEnvironment.IsAdministratorApp) {
                             ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
+                            Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                         }
 
-                        PuppetRestHandler.Register(
-                        configuration.DefaultUserHttpPort);
+                        PuppetRestHandler.Register(configuration.DefaultUserHttpPort);
                     });
                 }
 
@@ -160,6 +158,9 @@ namespace StarcounterInternal.Bootstrap {
 
                 // Initialize the Db environment (database name)
                 Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
+
+                // Initializing system profilers.
+                Profiler.Init();
 
                 // Initializing AppsBootstrapper.
                 AppsBootstrapper.InitAppsBootstrapper(

@@ -24,6 +24,10 @@
 #include <cassert>
 #include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
+
+#define CODE_HOSTED
+#include "profiler.hpp"
+
 #include "sccoredbg.h"
 #include "sccoredb.h"
 #include "chunk_helper.h"

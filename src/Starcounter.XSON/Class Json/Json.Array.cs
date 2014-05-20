@@ -9,7 +9,6 @@ using Starcounter.Templates;
 
 namespace Starcounter {
     public partial class Json {
-
         /// <summary>
         /// You can assign a result set from a SQL query operation directly to 
         /// a JSON array property.
@@ -23,7 +22,9 @@ namespace Starcounter {
             return new Json(res);
         }
         
-        public Json(Json parent, TObjArr templ) {
+        internal Json(Json parent, TObjArr templ) {
+            _dirtyCheckEnabled = DirtyCheckEnabled;
+            _cacheIndexInArr = -1;
             this.Template = templ;
             Parent = parent;
         }
@@ -34,6 +35,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
+            _dirtyCheckEnabled = DirtyCheckEnabled;
+            _cacheIndexInArr = -1;
             _data = result;
             _PendingEnumeration = true;
         }
@@ -59,7 +62,7 @@ namespace Starcounter {
                 var notEnumeratedResult = (IEnumerable)_data;
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is Json) {
-                        Add(entity);
+                        ((IList)this).Add(entity);
                     } else {
                         var tobj = template.ElementType;
                         if (tobj == null) {
@@ -67,7 +70,7 @@ namespace Starcounter {
                             tobj = template.ElementType;
                         }
                         newApp = (Json)tobj.CreateInstance(this);
-                        Add(newApp);
+                        ((IList)this).Add(newApp);
                         newApp.Data = entity;
                     }
                 }
@@ -76,18 +79,8 @@ namespace Starcounter {
             parent.CallHasChanged(template);
         }
 
-        public Json Add() {
-            var elementType = ((TObjArr)this.Template).ElementType;
-            Json x;
-            if (elementType == null) {
-                x = new Json();
-            } else {
-                x = (Json)elementType.CreateInstance(this);
-            }
-
-            //            var x = new App() { Template = ((TArr)this.Template).App };
-            Add(x);
-            return x;
+        internal void UpdateCachedIndex() {
+            _cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
     }
 }

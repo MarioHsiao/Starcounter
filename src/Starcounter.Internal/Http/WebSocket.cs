@@ -232,9 +232,35 @@ namespace Starcounter
         /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
         /// </summary>
         /// <param name="action">Given action that should be performed with each WebSocket.</param>
+        public static void ForEach(Action<WebSocket> action) {
+            ForEach(null, UInt64.MaxValue, action);
+        }
+
+        /// <summary>
+        /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
+        /// </summary>
+        /// <param name="action">Given action that should be performed with each WebSocket.</param>
+        /// <param name="channelName">Channel name filter for WebSockets.</param>
+        public static void ForEach(String channelName, Action<WebSocket> action) {
+            ForEach(channelName, UInt64.MaxValue, action);
+        }
+
+        /// <summary>
+        /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
+        /// </summary>
+        /// <param name="action">Given action that should be performed with each WebSocket.</param>
+        /// <param name="cargoId">Cargo ID filter.</param>
+        public static void ForEach(UInt64 cargoId, Action<WebSocket> action) {
+            ForEach(null, cargoId, action);
+        }
+
+        /// <summary>
+        /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
+        /// </summary>
+        /// <param name="action">Given action that should be performed with each WebSocket.</param>
         /// <param name="channelName">Channel name filter for WebSockets.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void RunOnWebSockets(Action<WebSocket> action, String channelName = null, UInt64 cargoId = UInt64.MaxValue) {
+        public static void ForEach(String channelName, UInt64 cargoId, Action<WebSocket> action) {
 
             UInt32 channelId = 0;
             if (channelName != null)
@@ -297,8 +323,8 @@ namespace Starcounter
         /// <summary>
         /// Disconnecting WebSockets that meet given criteria.
         /// </summary>
-        public static void DisconnectWebSockets(String channelName = null, UInt64 cargoId = UInt64.MaxValue) {
-            RunOnWebSockets((WebSocket ws) => { ws.Disconnect(); }, channelName, cargoId);
+        public static void DisconnectEach(String channelName = null, UInt64 cargoId = UInt64.MaxValue) {
+            ForEach(channelName, cargoId, (WebSocket ws) => { ws.Disconnect(); });
         }
 
         String message_;
@@ -525,7 +551,8 @@ namespace Starcounter
                     webSockets_[socketIndexNum] = new WebSocketInternal();
                 }
 
-                Debug.Assert(webSockets_[socketIndexNum].IsDead());
+                // TODO: Check what happens with WebSockets occupying same slot and if this can happen at all.
+                //Debug.Assert(webSockets_[socketIndexNum].IsDead());
 
                 LinkedListNode<UInt32> lln = null;
                 if (freeLinkedListNodes_.First != null) {

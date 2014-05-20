@@ -150,5 +150,21 @@ namespace Starcounter.Internal
             GlobalSessions.CreateNewAppsSessionCallback create_new_apps_session_callback,
             ErrorHandlingCallback error_handling_callback
             );
+
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        internal extern static void sc_init_profilers(
+            Byte numSchedulers
+            );
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        internal extern static void sc_profiler_reset(
+            Byte schedId);
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        internal unsafe extern static UInt32 sc_profiler_get_results_in_json(
+            Byte schedId,
+            Byte* buf,
+            Int32 bufMaxLen);
     }
 }

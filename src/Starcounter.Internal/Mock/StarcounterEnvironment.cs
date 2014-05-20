@@ -49,25 +49,35 @@ namespace Starcounter.Internal
         internal static string OrigMapperCallerAppName;
 
         /// <summary>
+        /// Current scheduler ID value.
+        /// </summary>
+        [ThreadStatic]
+        internal static Nullable<Byte> currentSchedulerId_;
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte CurrentSchedulerId
         {
             get
             {
-                unsafe
+                if (currentSchedulerId_ == null)
                 {
-                    Byte cpun = 0;
-                    UInt32 errCode = cm3_get_cpun(null, &cpun);
-                    if (errCode != 0) {
-                        cm3_eautodet(IntPtr.Zero);
-                        errCode = cm3_get_cpun(null, &cpun);
+                    unsafe {
+                        Byte cpun = 0;
+                        UInt32 errCode = cm3_get_cpun(null, &cpun);
                         if (errCode != 0) {
-                            return 0;
+                            cm3_eautodet(IntPtr.Zero);
+                            errCode = cm3_get_cpun(null, &cpun);
+                            if (errCode != 0) {
+                                return 0;
+                            }
                         }
+                        currentSchedulerId_ = cpun;
                     }
-                    return cpun;
                 }
+
+                return currentSchedulerId_.Value;
             }
         }
 
@@ -311,6 +321,12 @@ namespace Starcounter.Internal
             /// 32BitComponents directory.
             /// </summary>
             public const String Bit32Components = "32BitComponents";
+
+            /// <summary>
+            /// Configuration folder, relative to the installation folder,
+            /// where we keep configuration files like "Personal.xml".
+            /// </summary>
+            public const string InstallationConfiguration = "Configuration";
         }
 
         /// <summary>
@@ -359,6 +375,18 @@ namespace Starcounter.Internal
             ///     Version: 2
             /// </summary>
             public const String CollationFileNamePrefix = "TurboText";
+
+            /// <summary>
+            /// Gets the name of the configuration file we host under the
+            /// installation folder that contains the path/reference to
+            /// the server repository directory.
+            /// </summary>
+            /// <remarks>Traditionally named "Personal.xml".</remarks>
+            public static string InstallationServerConfigReferenceFile {
+                get {
+                    return ServerNames.PersonalServer + ".xml";
+                }
+            }
         }
 
         /// <summary>

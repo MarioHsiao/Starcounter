@@ -1,4 +1,5 @@
 ﻿
+using Sc.Tools.Logging;
 using Starcounter;
 using Starcounter.CLI;
 using Starcounter.Internal;
@@ -7,10 +8,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace staradmin {
+    using Severity = Sc.Tools.Logging.Severity;
 
     class Program {
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
+            SharedCLI.InitCLIContext();
 
             try {
                 string command = args.Length > 0 ? args[0] : string.Empty;
@@ -35,6 +38,9 @@ namespace staradmin {
                         break;
                     case "console":
                         RunConsoleSessionInCurrentProcess(args);
+                        break;
+                    case "log":
+                        ViewLogEntries(args);
                         break;
                     default:
                         var template = CLITemplate.GetTemplate(command);
@@ -72,6 +78,84 @@ namespace staradmin {
                 session.Stop();
             };
             session.Wait();
+        }
+
+        static void ViewLogEntries(string[] args) {
+            int count = 25;
+            var types = Severity.Notice;
+            string source = null;
+
+            // We have 'staradmin log'. Check what more we've
+            // got, if any. We support a command-line like:
+            // staradmin log <num-entries> <debug, notice, warning, error> <source-filter>
+            if (args.Length > 1) {
+                try {
+                    var c = args[1];
+                    if (!int.TryParse(c, out count)) {
+                        c = c.ToLowerInvariant();
+                        switch (c) {
+                            case "all":
+                            case "any":
+                            case "max":
+                                count = int.MaxValue;
+                                break;
+                            default:
+                                throw new Exception(string.Format("Incorrect count: {0}", c));
+                        }
+                    }
+
+                    if (args.Length > 2) {
+                        var t = args[2].ToLowerInvariant();
+                        switch (t) {
+                            case "d":
+                            case "debug":
+                            case "all":
+                            case "any":
+                                types = Severity.Debug;
+                                break;
+                            case "n":
+                            case "notice":
+                            case "info":
+                                types = Severity.Notice;
+                                break;
+                            case "w":
+                            case "warning":
+                            case "warnings":
+                                types = Severity.Warning;
+                                break;
+                            case "e":
+                            case "error":
+                            case "errors":
+                                types = Severity.Error;
+                                break;
+                            default:
+                                throw new Exception(string.Format("Unknown log entry type: {0}", t));
+                        };
+                    }
+
+                    if (args.Length > 3) {
+                        source = args[3];
+                    }
+
+                } catch (Exception e) {
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Invalid command-line: {0}", e.Message), ConsoleColor.Red);
+                    return;
+                }
+            }
+
+            // Read and filter the log and send the result
+            // to the console
+            try {
+                var console = new LogConsole();
+                var reader = new FilterableLogReader() {
+                    Count = count,
+                    TypeOfLogs = types,
+                    Source = source
+                };
+                reader.Fetch((log) => { console.Write(log); });
+            } catch (Exception e) {
+                ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
+            }
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {

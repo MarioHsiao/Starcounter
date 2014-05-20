@@ -173,9 +173,9 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             lock (LOCK) {
 
-                WebSocket.RunOnWebSockets((WebSocket ws) => {
+                WebSocket.ForEach(ServerLogWebSocketChannelName, (WebSocket ws) => {
                     ws.Send("1"); // Log has changed.
-                }, ServerLogWebSocketChannelName);
+                });
 
             }
         }

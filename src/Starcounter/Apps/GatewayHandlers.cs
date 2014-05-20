@@ -241,6 +241,9 @@ namespace Starcounter
 
                 }
 
+                // Getting aggregation flag.
+                Boolean isAggregated = (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_AGGREGATED) != 0);
+
                 // Checking if flag to upgrade to WebSockets is set.
                 Boolean wsUpgradeRequest = (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_REQUEST) != 0);
 
@@ -275,20 +278,19 @@ namespace Starcounter
                         (Byte*) plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
                         (Byte*) plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
                         data_stream,
-                        wsUpgradeRequest);
+                        wsUpgradeRequest,
+                        isAggregated);
                 }
                 else
                 {
-                    /*if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants.SOCKET_DATA_FLAGS_AGGREGATED) != 0)
-                    {
-                        data_stream.Init(raw_chunk, true, chunk_index);
-                        data_stream.SendResponseInternal(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
+                    // Creating network data stream object.
+                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+
+                    /*if (isAggregated) {
+                        data_stream.SendResponse(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
 
                         return 0;
                     }*/
-
-                    // Creating network data stream object.
-                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
                     // Obtaining Request structure.
                     http_request = new Request(
@@ -299,11 +301,12 @@ namespace Starcounter
                         socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
                         socket_data_begin,
                         data_stream,
-                        wsUpgradeRequest);
+                        wsUpgradeRequest,
+                        isAggregated);
                 }
 
                 // Calling user callback.
-                *is_handled = HandlersManagement.OnHttpMessageRoot_(http_request);
+                *is_handled = UriInjectMethods.OnHttpMessageRoot_(http_request);
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();

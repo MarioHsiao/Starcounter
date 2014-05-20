@@ -203,13 +203,20 @@ uint32_t HandlersTable::RegisterPortHandler(
         if (!g_gateway.setting_is_master())
             how_many = g_gateway.setting_num_connections_to_master_per_worker();
 
-#endif
+        // Creating new connections if needed for this database.
+        for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++) {
+            err_code = g_gateway.get_worker(w)->CreateNewConnections(how_many, server_port->get_port_index());
+            if (err_code)
+                goto ERROR_HANDLING;
+        }
+#else
 
         // Creating new connections if needed for this database.
-        // NOTE: Creating connections only on database 0.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, 0);
+        err_code = g_gateway.get_worker(0)->CreateNewConnections(how_many, server_port->get_port_index());
         if (err_code)
             goto ERROR_HANDLING;
+
+#endif
     }
 
     // Adding port handler if does not exist.
@@ -701,7 +708,9 @@ uint32_t GatewayPortProcessEcho(
     else
     {
         // Asserting correct number of bytes received.
+#ifndef DONT_CHECK_ECHOES
         GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == 16);
+#endif
 
         // Obtaining original echo number.
         echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);

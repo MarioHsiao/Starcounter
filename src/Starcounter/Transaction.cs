@@ -281,6 +281,76 @@ namespace Starcounter
 			}
         }
 
+        void ITransaction.Add<T>(Action<T> action, T arg) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                action(arg);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        void ITransaction.Add<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                action(arg1, arg2);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        void ITransaction.Add<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                action(arg1, arg2, arg3);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.AddAndReturn<TResult>(Func<TResult> func) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func();
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.AddAndReturn<T, TResult>(Func<T, TResult> func, T arg) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.AddAndReturn<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg1, arg2);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        TResult ITransaction.AddAndReturn<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg1, arg2, arg3);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
         /// <summary>
         /// Commits changes made on transaction.
         /// </summary>

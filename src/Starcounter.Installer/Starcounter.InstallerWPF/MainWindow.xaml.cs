@@ -998,11 +998,7 @@ namespace Starcounter.InstallerWPF {
         #endregion
 
         private void ChooseFolderDialog(TextBox textBox, string title) {
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog {
-
-                //Description = "Select installation folder",
-                ShowNewFolderButton = false,
-            };
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
 
             if (!string.IsNullOrEmpty(title)) {
                 folderBrowserDialog.Description = title;

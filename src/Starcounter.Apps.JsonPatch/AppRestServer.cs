@@ -1,4 +1,6 @@
-﻿// ***********************************************************************
+﻿//#define STUB_AGGREGATED
+
+// ***********************************************************************
 // <copyright file="AppServer.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -10,10 +12,10 @@ using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;
 using Codeplex.Data;
-using Starcounter.Internal.JsonPatch;
 using System.Collections.Generic;
 using Starcounter.Rest;
 using Starcounter.Logging;
+using System.Diagnostics;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -49,9 +51,17 @@ namespace Starcounter.Internal.Web {
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponseHttp(Request req, Response resp) {
+            Debug.Assert(resp != null);
+
+#if STUB_AGGREGATED
+
+            if (req.IsAggregated)
+                return SchedulerResources.Current.AggregationStubResponse;
+#endif
+
             try {
                 // Checking if we need to resolve static resource.
-                if (resp.HandlingStatus == HandlerStatusInternal.NotHandled) {
+                if (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent) {
                     resp = ResolveAndPrepareFile(req.Uri, req);
                     resp.HandlingStatus = HandlerStatusInternal.Done;
                 }
@@ -92,15 +102,29 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
-        public Response HandleRequest(Request request) {
+        public Response HandleRequest(Request request, Int32 handlerLevel) {
             Response resp = null;
 
             try {
-                // Invoking original user delegate with parameters here.
-                UserHandlerCodegen.HandlersManager.RunDelegate(request, out resp);
+                if (!request.IsInternal)
+                    Session.InitialRequest = request;
+
+                Profiler.Current.Start(ProfilerNames.Empty);
+                Profiler.Current.Stop(ProfilerNames.Empty);
+
+                // Running all available HTTP handlers.
+                Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
+                UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+                Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
+
+                // Checking if we still have no response.
+                if (resp == null || resp.HandlingStatus == HandlerStatusInternal.NotHandled)
+                    return null;
 
                 // Handling and returning the HTTP response.
+                Profiler.Current.Start(ProfilerNames.HandleResponse);
                 resp = OnResponseHttp(request, resp);
+                Profiler.Current.Stop(ProfilerNames.HandleResponse);
 
                 return resp;
             }
@@ -114,7 +138,7 @@ namespace Starcounter.Internal.Web {
                 resp.ConstructFromFields();
                 return resp;
             }
-            catch (HandlersManagement.IncorrectSessionException) {
+            catch (UriInjectMethods.IncorrectSessionException) {
                 resp = Response.FromStatusCode(400);
                 resp["Connection"] = "close";
                 resp.ConstructFromFields();
@@ -188,7 +212,7 @@ namespace Starcounter.Internal.Web {
 
                     // Registering static handler on given port.
                     Handle.GET(port, "/{?}", (string res) => {
-                        return HandlerStatus.NotHandled;
+                        return HandlerStatus.ResolveStaticContent;
                     });
                 }
             }

@@ -76,6 +76,16 @@ namespace Starcounter.Internal
         };
 
         /// <summary>
+        /// Types of messages used in aggregation.
+        /// </summary>
+        public enum AggregationMessageTypes
+        {
+            AGGR_CREATE_SOCKET,
+            AGGR_DESTROY_SOCKET,
+            AGGR_DATA
+        };
+
+        /// <summary>
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
@@ -106,6 +116,7 @@ namespace Starcounter.Internal
         public const int CHUNK_OFFSET_WS_PAYLOAD_LEN = 176;
         public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 180;
         public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 168;
+
         /// <summary>
         /// Maximum number of URI callback parameters.
         /// </summary>
@@ -154,7 +165,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Maximum extra linked IPC chunks.
         /// </summary>
-        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 32;
+        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 64;
 
         /// <summary>
         /// Maximum linked chunks bytes.
@@ -278,6 +289,8 @@ namespace Starcounter.Internal
         char* gen_code_str,
         uint32_t* gen_code_str_num_bytes
         );
+
+    //#define GW_SMC_LOOPBACK_AGGREGATION
 
 #undef public
 }

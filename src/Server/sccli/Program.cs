@@ -16,6 +16,7 @@ namespace star {
        
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
+            SharedCLI.InitCLIContext();
 
             ApplicationArguments appArgs;
             int serverPort;
@@ -51,6 +52,11 @@ namespace star {
 
             if (appArgs.ContainsFlag(SharedCLI.UnofficialOptions.Debug)) {
                 Debugger.Launch();
+            }
+
+            var showLogs = Environment.GetEnvironmentVariable("STAR_CLI_SHOW_LOGS");
+            if (!string.IsNullOrEmpty(showLogs)) {
+                SharedCLI.ShowLogs = true;
             }
 
             if (appArgs.ContainsFlag(StarOption.NoColor)) {
@@ -276,6 +282,7 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Async), "Returns before the entrypoint has finished.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Detailed), "Instructs star.exe to show detailed output.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.Logs), "Instructs star.exe to show logs in the console.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
                 Console.WriteLine(formatting, string.Format("-hxx, -{0}", StarOption.HelpUnofficial), "Shows unofficial help about star.exe.");
@@ -296,6 +303,10 @@ namespace star {
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServer, "Holds the server to use by default.");
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerPersonalPort, "Personal server port used by default.");
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
+            if (unofficial) {
+                Console.WriteLine(formatting, "STAR_CLI_SHOW_LOGS", "Make star.exe act as '--logs' is always set.");
+            }
+
             Console.WriteLine();
             Console.WriteLine("For complete help, see {0}/{1}.", StarcounterEnvironment.InternetAddresses.StarcounterWiki, "star.exe");
 

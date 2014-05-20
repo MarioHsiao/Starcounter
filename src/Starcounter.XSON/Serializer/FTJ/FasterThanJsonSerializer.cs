@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -224,9 +225,9 @@ restart:
 
 							var itemReader = new TupleReaderBase64(arrReader.AtEnd, (uint)arrItemCount);
 							
-
 							for (int aic = 0; aic < arrItemCount; aic++) {
-								childObj = arr.Add();
+
+                                childObj = arr.NewItem();
 								((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)itemReader.AtEnd, 0);
 								itemReader.Skip();
 							}

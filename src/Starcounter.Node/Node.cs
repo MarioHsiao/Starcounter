@@ -1,4 +1,5 @@
-﻿// ***********************************************************************
+﻿//#define FAST_LOOPBACK
+// ***********************************************************************
 // <copyright file="Node.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -54,7 +55,7 @@ namespace Starcounter
         /// <summary>
         /// The Node log source for logging exceptions.
         /// </summary>
-        internal static NodeLogException NodeLogException_;
+        internal static Action<Exception> NodeLogException_;
 
         /// <summary>
         /// Initializes Node implementation.
@@ -62,11 +63,11 @@ namespace Starcounter
         /// <param name="rest"></param>
         /// <param name="logSource"></param>
         internal static void InjectHostedImpl(
-            DoLocalNodeRest doLocalNodeRest_,
-            NodeLogException nodeLogException_)
+            DoLocalNodeRest doLocalNodeRest,
+            Action<Exception> nodeLogException)
         {
-            DoLocalNodeRest_ = doLocalNodeRest_;
-            NodeLogException_ = nodeLogException_;
+            DoLocalNodeRest_ = doLocalNodeRest;
+            NodeLogException_ = nodeLogException;
         }
 
         /// <summary>
@@ -137,9 +138,9 @@ namespace Starcounter
         UInt16 aggrPortNumber_;
 
         /// <summary>
-        /// Aggregation TCP client.
+        /// Aggregation TCP socket.
         /// </summary>
-        TcpClient aggrTcpClient_;
+        Socket aggrSocket_;
 
         /// <summary>
         /// Returns True if this node uses aggregation.
@@ -147,7 +148,7 @@ namespace Starcounter
         /// <returns></returns>
         public Boolean UsesAggregation()
         {
-            return (null != aggrTcpClient_);
+            return (null != aggrSocket_);
         }
 
         /// <summary>
@@ -195,13 +196,8 @@ namespace Starcounter
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
+            Int32 handlerLevel,
             out Response resp);
-
-        /// <summary>
-        /// Delegate to log Node exceptions.
-        /// </summary>
-        /// <param name="exc"></param>
-        internal delegate void NodeLogException(Exception exc);
 
         /// <summary>
         /// Returns this node port number.
@@ -264,7 +260,23 @@ namespace Starcounter
             // Initializing aggregation struct.
             if (useAggregation)
             {
-                aggrTcpClient_ = new TcpClient(hostName_, aggrPortNumber_);
+                aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+#if FAST_LOOPBACK
+                const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
+                
+                Byte[] OptionInValue = BitConverter.GetBytes(1);
+
+                aggrSocket_.IOControl(
+                    SIO_LOOPBACK_FAST_PATH,
+                    OptionInValue,
+                    null);
+#endif
+
+                aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
+                aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
+                
+                aggrSocket_.Connect(hostName_, aggrPortNumber_);
 
                 aggregate_send_blob_ = new Byte[AggregationBlobSizeBytes];
                 aggregate_receive_blob_ = new Byte[AggregationBlobSizeBytes];
@@ -273,21 +285,22 @@ namespace Starcounter
                     free_task_indexes_.Enqueue(i);
 
                 this_node_aggr_struct_.port_number_ = portNumber_;
-                this_node_aggr_struct_.flags_ = 0;
-
-                // Creating socket resource.
-
-                Byte[] aggr_struct_bytes = new Byte[AggregationStructSizeBytes];
-                unsafe { fixed (Byte* p = aggr_struct_bytes) { *(AggregationStruct*) p = this_node_aggr_struct_; } }
-
-                Response resp = X.POST(hostName_ + ":" + StarcounterEnvironment.Default.SystemHttpPort + "/socket", aggr_struct_bytes, null);
-
-                Byte[] resp_bytes = resp.BodyBytes;
-                unsafe { fixed (Byte* p = resp_bytes) { this_node_aggr_struct_ = *(AggregationStruct*)p; } }
 
                 // Starting send and receive threads.
                 (new Thread(new ThreadStart(AggregateSendThread))).Start();
                 (new Thread(new ThreadStart(AggregateReceiveThread))).Start();
+
+                Boolean nodeAggrInitialized = false;
+
+                // Requesting socket creation.
+                DoAsyncTransfer(null, 0, null, (AggregationStruct aggr_struct) => {
+                    unsafe { this_node_aggr_struct_ = aggr_struct; }
+                    nodeAggrInitialized = true;
+                }, null, 0, MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET);
+
+                // Waiting for socket creation result.
+                while (!nodeAggrInitialized)
+                    Thread.Sleep(1);
             }
         }
 
@@ -299,9 +312,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void GET(String relativeUri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void GET(String relativeUri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -310,9 +323,9 @@ namespace Starcounter
         /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response GET(String relativeUri, Int32 receiveTimeoutMs = 0)
+        public Response GET(String relativeUri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -322,9 +335,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response GET(String relativeUri, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response GET(String relativeUri, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -336,13 +349,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void POST(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void POST(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -354,9 +367,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -367,13 +380,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response POST(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response POST(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -384,9 +397,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -398,13 +411,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PUT(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PUT(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -416,9 +429,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -429,13 +442,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <returns>HTTP response.</returns>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public Response PUT(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PUT(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -446,9 +459,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -460,13 +473,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PATCH(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PATCH(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -478,9 +491,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -491,13 +504,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response PATCH(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PATCH(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -508,9 +521,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -522,13 +535,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void DELETE(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void DELETE(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -540,9 +553,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -553,13 +566,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response DELETE(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response DELETE(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -570,9 +583,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -585,13 +598,13 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -604,9 +617,9 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs);
+            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -618,13 +631,13 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -636,9 +649,9 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0)
+        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs);
+            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
@@ -652,9 +665,14 @@ namespace Starcounter
         /// <param name="userObject">User object to be passed on response.</param>
         /// <param name="userDelegate">User delegate to be called on response.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0)
+        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, true);
+            if (ho == null)
+                ho = new HandlerOptions();
+
+            ho.DontModifyHeaders = true;
+
+            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, ho, req);
         }
 
         /// <summary>
@@ -667,9 +685,14 @@ namespace Starcounter
         /// <param name="req">Original HTTP request.</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0)
+        public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, true);
+            if (ho == null)
+                ho = new HandlerOptions();
+
+            ho.DontModifyHeaders = true;
+
+            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req);
         }
 
         /// <summary>
@@ -762,6 +785,114 @@ namespace Starcounter
             return len_bytes;
         }
 
+        public Byte[] ConstructRequestBytes(
+            String method,
+            String relativeUri,
+            String customHeaders,
+            Byte[] bodyBytes,
+            Boolean dontModifyHeaders,
+            out Int32 requestBytesLength) {
+
+            Utf8Writer writer;
+
+            Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
+
+            unsafe {
+                fixed (byte* p = requestBytes) {
+                    writer = new Utf8Writer(p);
+
+                    writer.Write(method);
+                    writer.Write(' ');
+                    writer.Write(relativeUri);
+                    writer.Write(' ');
+                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
+                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                    // Checking if headers should be sent as-is.
+                    if (!dontModifyHeaders) {
+                        writer.Write(HttpHeadersUtf8.HostStart);
+                        writer.Write(hostName_);
+                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        if (bodyBytes != null)
+                            writer.Write(bodyBytes.Length);
+                        else
+                            writer.Write(0);
+
+                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+                    }
+
+                    // Checking if headers already supplied.
+                    if (customHeaders != null) {
+                        // Checking for correct custom headers format.
+                        if (!customHeaders.EndsWith(StarcounterConstants.NetworkConstants.CRLF))
+                            throw new ArgumentException("Each custom header should be in following form: \"<HeaderName>:<space><value>\\r\\n\" For example: \"MyNewHeader: value123\\r\\n\"");
+
+                        writer.Write(customHeaders);
+                    }
+
+                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+
+                    if (bodyBytes != null)
+                        writer.Write(bodyBytes);
+                }
+
+                requestBytesLength = writer.Written;
+            }
+
+            return requestBytes;
+        }
+
+        void DoAsyncTransfer(
+            Byte[] dataBytes,
+            Int32 dataBytesLength,
+            Action<Response, Object> userDelegate,
+            Action<AggregationStruct> aggrMsgDelegate = null,
+            Object userObject = null,
+            Int32 receiveTimeoutMs = 0,
+            MixedCodeConstants.AggregationMessageTypes aggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA)
+        {
+            // Setting the receive timeout.
+            if (0 == receiveTimeoutMs)
+                receiveTimeoutMs = DefaultReceiveTimeoutMs;
+
+            NodeTask nt = null;
+
+            // Checking if any tasks are finished.
+            if (!finished_async_tasks_.Dequeue(out nt)) {
+                // Checking if we exceeded the maximum number of created tasks.
+                if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks) {
+                    // Looping until task is dequeued.
+                    while (!finished_async_tasks_.Dequeue(out nt))
+                        Thread.Sleep(1);
+                }
+            }
+
+            // Checking if any empty tasks was dequeued.
+            if (null == nt) {
+                Interlocked.Increment(ref num_tasks_created_);
+                nt = new NodeTask(this);
+            }
+
+            // Getting current scheduler number if in Starcounter.
+            Byte currentSchedulerId = 0;
+            if (StarcounterEnvironment.IsCodeHosted)
+                currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
+
+            // Initializing connection.
+            nt.Reset(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId, aggrMsgType);
+
+            // Checking if we don't use aggregation.
+            if (!UsesAggregation()) {
+                // Starting async request on that node task.
+                nt.PerformAsyncRequest();
+            } else {
+                // Putting to aggregation queue.
+                aggr_pending_async_tasks_.Enqueue(nt);
+            }
+        }
+
         /// <summary>
         /// Core function to send REST requests and get the responses.
         /// </summary>
@@ -778,90 +909,72 @@ namespace Starcounter
             Action<Response, Object> userDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
-            Boolean dontModifyHeaders = false)
+            HandlerOptions ho,
+            Request req = null)
         {
+            // Checking if handler options is defined.
+            if (ho == null)
+                ho = HandlerOptions.DefaultHandlerOptions;
+
             if (relativeUri == null || relativeUri.Length < 1)
                 throw new ArgumentOutOfRangeException("URI should contain at least one character.");
 
-            Utf8Writer writer;
-
-            Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
-
-            Int32 requestBytesLength;
-
             String methodAndUriPlusSpace = method + " " + relativeUri + " ";
 
-            unsafe
-            {
-			    fixed (byte* p = requestBytes)
-                {
-                    writer = new Utf8Writer(p);
-
-                    writer.Write(methodAndUriPlusSpace);
-                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    // Checking if headers should be sent as-is.
-                    if (!dontModifyHeaders)
-                    {
-                        writer.Write(HttpHeadersUtf8.HostStart);
-                        writer.Write(hostName_);
-                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-                        if (bodyBytes != null)
-                            writer.Write(bodyBytes.Length);
-                        else
-                            writer.Write(0);
-
-                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-                    }
-
-                    // Checking if headers already supplied.
-                    if (customHeaders != null)
-                    {
-                        // Checking for correct custom headers format.
-                        if (!customHeaders.EndsWith(StarcounterConstants.NetworkConstants.CRLF))
-                            throw new ArgumentException("Each custom header should be in following form: \"<HeaderName>:<space><value>\\r\\n\" For example: \"MyNewHeader: value123\\r\\n\"");
-
-                        writer.Write(customHeaders);
-                    }
-
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    if (bodyBytes != null)
-                        writer.Write(bodyBytes);
-                }
-
-                requestBytesLength = writer.Written;
+            Int32 requestBytesLength;
+            Byte[] requestBytes;
+            
+            // Checking if request is defined and initialized.
+            if ((req == null) || (req.CustomBytes == null)) {
+                requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
+            } else {
+                requestBytes = req.CustomBytes;
+                requestBytesLength = req.CustomBytesLength;
             }
             
             // No response initially.
             Response resp = null;
 
             // Checking if we are on local node.
-            if (localNode_)
-            {
-                // Trying to do local node REST.
-                if (DoLocalNodeRest_(methodAndUriPlusSpace, requestBytes, requestBytesLength, portNumber_, out resp))
-                {
-                    // Checking if user has supplied a delegate to be called.
-                    if (null != userDelegate)
-                    {
-                        // Invoking user delegate.
-                        userDelegate.Invoke(resp, userObject);
+            if ((localNode_) && (!ho.ExternalOnly)) {
 
-                        // Checking if response should be sent.
-                        if (resp.Request != null)
-                        {
-                            resp.Request.SendResponse(resp);
-                            resp.Request = null;
+                Int32 handlerLevel = 0;
+                if (ho.IsSpecificHandler)
+                    handlerLevel = ho.HandlerLevel;
+
+                // Going through all handlers in the list.
+                for (Int32 i = 0; i < HandlerOptions.NumHandlerLevels; i++) {
+
+                    // Trying to do local node REST.
+                    if (DoLocalNodeRest_(methodAndUriPlusSpace, requestBytes, requestBytesLength, portNumber_, handlerLevel, out resp)) {
+
+                        // Checking if handled.
+                        if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {
+
+                            // Checking if user has supplied a delegate to be called.
+                            if (null != userDelegate) {
+
+                                // Invoking user delegate.
+                                userDelegate.Invoke(resp, userObject);
+
+                                // Checking if response should be sent.
+                                if (resp.Request != null) {
+                                    resp.Request.SendResponse(resp);
+                                    resp.Request = null;
+                                }
+
+                                return null;
+                            }
+
+                            return resp;
                         }
-
-                        return null;
                     }
-
-                    return resp;
+            
+                    // Checking if we have a special handler.
+                    if (ho.IsSpecificHandler)
+                        return resp;
+                    else
+                        handlerLevel = i;
                 }
             }
 
@@ -870,48 +983,10 @@ namespace Starcounter
                 receiveTimeoutMs = DefaultReceiveTimeoutMs;
 
             // Checking if user has supplied a delegate to be called.
-            if (null != userDelegate)
-            {
-                NodeTask nt = null;
+            if (null != userDelegate) {
 
-                // Checking if any tasks are finished.
-                if (!finished_async_tasks_.Dequeue(out nt))
-                {
-                    // Checking if we exceeded the maximum number of created tasks.
-                    if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks)
-                    {
-                        // Looping until task is dequeued.
-                        while (!finished_async_tasks_.Dequeue(out nt))
-                            Thread.Sleep(1);
-                    }
-                }
-
-                // Checking if any empty tasks was dequeued.
-                if (null == nt)
-                {
-                    Interlocked.Increment(ref num_tasks_created_);
-                    nt = new NodeTask(this);
-                }
-
-                // Getting current scheduler number if in Starcounter.
-                Byte currentSchedulerId = 0;
-                if (StarcounterEnvironment.IsCodeHosted)
-                    currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
-
-                // Initializing connection.
-                nt.Reset(requestBytes, requestBytesLength, userDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
-
-                // Checking if we don't use aggregation.
-                if (!UsesAggregation())
-                {
-                    // Starting async request on that node task.
-                    nt.PerformAsyncRequest();
-                }
-                else
-                {
-                    // Putting to aggregation queue.
-                    aggr_pending_async_tasks_.Enqueue(nt);
-                }
+                // Trying to perform an async request.
+                DoAsyncTransfer(requestBytes, requestBytesLength, userDelegate, null, userObject, receiveTimeoutMs);
 
                 return null;
             }
@@ -919,7 +994,7 @@ namespace Starcounter
             lock (finished_async_tasks_)
             {
                 // Initializing connection.
-                sync_task_info_.Reset(requestBytes, requestBytesLength, null, userObject, receiveTimeoutMs, 0);
+                sync_task_info_.Reset(requestBytes, requestBytesLength, null, null, userObject, receiveTimeoutMs, 0);
 
                 // Doing synchronous request and returning response.
                 return sync_task_info_.PerformSyncRequest();
@@ -942,14 +1017,13 @@ namespace Starcounter
         Byte[] aggregate_receive_blob_;
 
         [StructLayout(LayoutKind.Sequential)]
-        struct AggregationStruct
+        public struct AggregationStruct
         {
             public UInt64 unique_socket_id_;
             public Int32 size_bytes_;
             public UInt32 socket_info_index_;
             public Int32 unique_aggr_index_;
             public UInt16 port_number_;
-            public Byte flags_;
         }
 
         /// <summary>
@@ -994,7 +1068,7 @@ namespace Starcounter
 
 START_RECEIVING:
 
-                            num_received_bytes += aggrTcpClient_.Client.Receive(aggregate_receive_blob_, num_received_bytes, AggregationBlobSizeBytes - num_received_bytes, SocketFlags.None);
+                            num_received_bytes += aggrSocket_.Receive(aggregate_receive_blob_, num_received_bytes, AggregationBlobSizeBytes - num_received_bytes, SocketFlags.None);
 
                             // Checking if we have received the aggregation structure at least.
                             if (num_received_bytes < AggregationStructSizeBytes)
@@ -1028,8 +1102,24 @@ START_RECEIVING:
                                 //Console.WriteLine("Dequeued from sent: " + nt.RequestBytes.Length);
                                 Interlocked.Decrement(ref sent_received_balance_);
 
-                                // Constructing the response from received bytes and calling user delegate.
-                                nt.ConstructResponseAndCallDelegate(aggregate_receive_blob_, receive_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+                                // Checking type of node task.
+                                switch (nt.AggrMsgType) {
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA: {
+
+                                        // Constructing the response from received bytes and calling user delegate.
+                                        nt.ConstructResponseAndCallDelegate(aggregate_receive_blob_, receive_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+
+                                        break;
+                                    }
+
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET:
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DESTROY_SOCKET: {
+
+                                        nt.AggrMsgDelegate(*ags);
+
+                                        break;
+                                    }
+                                }
 
                                 // Releasing free task index.
                                 free_task_indexes_.Enqueue(ags->unique_aggr_index_);
@@ -1047,6 +1137,7 @@ START_RECEIVING:
             catch (Exception exc)
             {
                 Console.WriteLine(exc);
+                throw exc;
             }
         }
 
@@ -1091,26 +1182,54 @@ START_RECEIVING:
                                     if (0 == send_bytes_offset)
                                         throw new Exception("Request size is bigger than: " + AggregationBlobSizeBytes);
 
-                                    aggrTcpClient_.Client.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
+                                    aggrSocket_.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
                                     send_bytes_offset = 0;
                                 }
 
-                                // Creating the aggregation struct.
-                                AggregationStruct* ags = (AggregationStruct *)(sb + send_bytes_offset);
-                                *ags = this_node_aggr_struct_;
-                                ags->size_bytes_ = nt.RequestBytesLength;
-                                ags->unique_aggr_index_ = free_task_index;
+                                // Setting the message type.
+                                *(Byte*)(sb + send_bytes_offset) = (Byte)nt.AggrMsgType;
+                                send_bytes_offset++;
 
-                                // Using fast memory copy here.
-                                Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
-                            
-                                // Shifting offset in the array.
-                                send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
+                                switch (nt.AggrMsgType)
+                                {
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA:
+                                    {
+                                        // Creating the aggregation struct.
+                                        AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
+                                        *ags = this_node_aggr_struct_;
+                                        ags->size_bytes_ = nt.RequestBytesLength;
+                                        ags->unique_aggr_index_ = free_task_index;
+
+                                        // Using fast memory copy here.
+                                        Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+
+                                        // Shifting offset in the array.
+                                        send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
+
+                                        break;
+                                    }
+
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET:
+                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DESTROY_SOCKET:
+                                    {
+                                        // Creating the aggregation struct.
+                                        AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
+                                        *ags = this_node_aggr_struct_;
+                                        ags->size_bytes_ = 0;
+                                        ags->unique_aggr_index_ = free_task_index;
+
+                                        // Shifting offset in the array.
+                                        send_bytes_offset += AggregationStructSizeBytes;
+
+                                        break;
+                                    }
+                                }
+
                             }
 
                             // Sending last processed requests.
                             if (send_bytes_offset > 0)
-                                aggrTcpClient_.Client.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
+                                aggrSocket_.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
                         }
                     }
                 }
@@ -1118,6 +1237,7 @@ START_RECEIVING:
             catch(Exception exc)
             {
                 Console.WriteLine(exc);
+                throw exc;
             }
         }
 

@@ -12,37 +12,24 @@ using Starcounter.Templates;
 
 namespace Starcounter {
     partial class Json : IList {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public int IndexOf(Json item) {
-            return list.IndexOf(item);
+        private void VerifyIsArray() {
+            if (!IsArray)
+                throw new InvalidOperationException("Can only be called on arrays.");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="item"></param>
-        public void Insert(int index, Json item) {
-            this.Insert(index, (object)item);
-        }
-
-        public bool IsFixedSize {
+        bool IList.IsFixedSize {
             get {
                 return false;
             }
         }
 
-        public object SyncRoot {
+        object ICollection.SyncRoot {
             get {
                 return null;
             }
         }
 
-        public bool IsSynchronized {
+        bool ICollection.IsSynchronized {
             get {
                 return false;
             }
@@ -60,12 +47,14 @@ namespace Starcounter {
         /// If true, this object has been flushed from the change log (usually an
         /// indication that the object has been sent to its client.
         /// </summary>
-        public bool HasBeenSent {
+        internal bool HasBeenSent {
             get {
-				if (Parent != null) {
-					return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
-				}
-				else {
+                if (!_dirtyCheckEnabled)
+                    return false;
+
+                if (Parent != null) {
+                    return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
+                } else {
                     var s = Session;
                     if (s == null) {
                         return false;
@@ -73,16 +62,6 @@ namespace Starcounter {
                     return !s.BrandNew;
                 }
             }
-        }
-
-        private bool IsChanged(Template template) {
-            if (IsArray) {
-                throw new Exception("You can only call IsChanged on Json objects, not on Json Arrays");
-            }
-#if DEBUG
-            this.Template.VerifyProperty(template);
-#endif
-            return this.WasReplacedAt(template.TemplateIndex);
         }
 
         /// <summary>
@@ -95,8 +74,7 @@ namespace Starcounter {
                 }
                 if (IsArray) {
                     return _list;
-                }
-                else {
+                } else {
                     int childIndex;
                     var template = (TObject)Template;
                     while (_list.Count < template.Properties.Count) {
@@ -104,7 +82,8 @@ namespace Starcounter {
                         // even after instances have been created.
                         // For this reason, we need to allow the expansion of the 
                         // values.
-                        _SetFlag.Add(false);
+                        if (_dirtyCheckEnabled)
+                            _SetFlag.Add(false);
                         childIndex = _list.Count;
                         _list.Add(null);
                         ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
@@ -119,31 +98,55 @@ namespace Starcounter {
         /// </summary>
         /// <param name="vc"></param>
         internal void InitializeCache() {
-
             if (IsArray) {
                 _list = new List<Json>();
-                _SetFlag = new List<bool>();
-            }
-            else {
+
+                if (_dirtyCheckEnabled)
+                    _SetFlag = new List<bool>();
+            } else {
                 var template = (TObject)Template;
-                var prop = template.Properties;
-                var vc = prop.Count;
-                _list = new List<object>(vc);
-                _SetFlag = new List<bool>(vc);
-                _Dirty = false;
-                for (int t = 0; t < vc; t++) {
-					_list.Add(null);
-					_SetFlag.Add(false);
-					((TValue)prop[t]).SetDefaultValue(this);
+                if (IsCodegenerated) {
+                    InitializeBackingFields(template.Properties);
+                } else {
+                    InitializeQuickTuple(template.Properties);
                 }
             }
         }
 
-        public bool WasReplacedAt(int index) {
+        private void InitializeQuickTuple(PropertyList properties) {
+            int count = properties.Count;
+
+            _list = new List<object>(count);
+            if (_dirtyCheckEnabled)
+                _SetFlag = new List<bool>(count);
+            _Dirty = false;
+
+            for (int t = 0; t < count; t++) {
+                _list.Add(null);
+                if (_dirtyCheckEnabled)
+                    _SetFlag.Add(false);
+                ((TValue)properties[t]).SetDefaultValue(this);
+            }
+        }
+
+        private void InitializeBackingFields(PropertyList properties) {
+            int count = properties.Count;
+
+            if (_dirtyCheckEnabled)
+                _SetFlag = new List<bool>(count);
+            
+            for (int t = 0; t < count; t++) {
+                if (_dirtyCheckEnabled)
+                    _SetFlag.Add(false);
+                ((TValue)properties[t]).SetDefaultValue(this);
+            }
+        }
+
+        internal bool WasReplacedAt(int index) {
             return _SetFlag[index];
         }
 
-        public void CheckpointAt(int index) {
+        internal void CheckpointAt(int index) {
             _SetFlag[index] = false;
         }
 
@@ -162,6 +165,13 @@ namespace Starcounter {
         internal void MarkAsReplaced(int index) {
             _SetFlag[index] = true;
             this.Dirtyfy();
+        }
+
+        internal Json NewItem() {
+            var template = ((TObjArr)this.Template).ElementType;
+            var item = (template != null) ? (Json)template.CreateInstance() : new Json();
+            _Add(item);
+            return item;
         }
 
         /// <summary>
@@ -183,7 +193,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="array">The destination array.</param>
         /// <param name="arrayIndex">The start index in the source.</param>
-        public void CopyTo(Array array, int arrayIndex) {
+        void ICollection.CopyTo(Array array, int arrayIndex) {
             list.CopyTo(array, arrayIndex);
         }
 
@@ -192,8 +202,11 @@ namespace Starcounter {
         /// </summary>
         /// <value>The count.</value>
         /// <returns>The number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
-        public int Count {
-            get { return list.Count; }
+        int ICollection.Count {
+            get {
+                VerifyIsArray();
+                return list.Count;
+            }
         }
 
         /// <summary>
@@ -201,7 +214,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns>System.Int32.</returns>
-        public int IndexOf(object item) {
+        int IList.IndexOf(object item) {
+            VerifyIsArray();
             return list.IndexOf((object)item);
         }
 
@@ -211,19 +225,24 @@ namespace Starcounter {
         /// <param name="index">The index.</param>
         /// <param name="item">The item.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public void Insert(int index, object item) {
+        void IList.Insert(int index, object item) {
             Json j = VerifyJsonForInserting(item);
 
+            list.Insert(index, j);
+            j._cacheIndexInArr = index;
+            j.Parent = this;
+
+            if (_dirtyCheckEnabled) {
+                _SetFlag.Insert(index, false);
+                MarkAsReplaced(index);
+            }
+            
             Json otherItem;
             for (Int32 i = index + 1; i < list.Count; i++) {
                 otherItem = (Json)list[i];
                 otherItem._cacheIndexInArr = i;
             }
-
-            list.Insert(index, j);
-            _SetFlag.Insert(index, false);
-            MarkAsReplaced(index);
-            CallHasAddedElement(index,j);
+            CallHasAddedElement(index, j);
         }
 
         /// <summary>
@@ -232,13 +251,11 @@ namespace Starcounter {
         /// <param name="item"></param>
         /// <returns></returns>
         private Json VerifyJsonForInserting(object item) {
-            if (!IsArray) {
-                throw new Exception("You are not allowed to insert/add elements to an Object. Use an array instead");
-            }
+            VerifyIsArray();
             if (item == null) {
                 throw new Exception("Typed object arrays cannot contain null elements");
             }
-            if (!(item is Json) ) {
+            if (!(item is Json)) {
                 throw new Exception("You are only allowed to insert/add elements of type Json to a type Json array");
             }
             if ((item as Json).IsArray) {
@@ -254,9 +271,7 @@ namespace Starcounter {
         private Json VerifyJsonForRemoving(object item) {
             Json ret;
 
-            if (!IsArray) {
-                throw new Exception("You are not allowed to remove elements from an Object. Use an array instead");
-            }
+            VerifyIsArray();
             if (item == null) {
                 throw new Exception("Type object arrays cannot contain null elements");
             }
@@ -272,7 +287,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int Add(object item) {
+        int IList.Add(object item) {
             return _Add(item);
         }
 
@@ -282,7 +297,6 @@ namespace Starcounter {
         /// <param name="item">The item.</param>
         /// <exception cref="System.Exception">This template is already used by an App. Cannot add more properties.</exception>
         internal int _Add(object item) {
-
             var j = VerifyJsonForInserting(item);
 
             var typedListTemplate = ((TObjArr)Template).ElementType;
@@ -294,16 +308,16 @@ namespace Starcounter {
                                 typedListTemplate.DebugString));
                 }
             }
-            _SetFlag.Add(true);
-//            MarkAsReplaced( this.IndexOf(item));
 
             var index = list.Add(j);
-            Dirtyfy();
             j._cacheIndexInArr = index;
             j.Parent = this;
 
-            
-            CallHasAddedElement(list.Count - 1, j);
+            if (_dirtyCheckEnabled) {
+                _SetFlag.Add(true);
+                Dirtyfy();    
+                CallHasAddedElement(list.Count - 1, j);
+            }
             return index;
         }
 
@@ -312,7 +326,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public void Remove(object item) {
+        void IList.Remove(object item) {
             Remove(item as Json);
         }
 
@@ -321,7 +335,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(Json item) {
+        protected bool Remove(Json item) {
             bool b;
             int index;
 
@@ -337,7 +351,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index">The index.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public void RemoveAt(int index) {
+        void IList.RemoveAt(int index) {
             Json item = VerifyJsonForRemoving(list[index]);
             InternalRemove(item, index);
         }
@@ -349,9 +363,11 @@ namespace Starcounter {
         /// <param name="index"></param>
         private void InternalRemove(Json item, int index) {
             list.RemoveAt(index);
-            _SetFlag.RemoveAt(index);
             item.SetParent(null);
 
+            if (_dirtyCheckEnabled)
+                _SetFlag.RemoveAt(index);
+            
             if (IsArray) {
                 Json otherItem;
                 var tarr = (TObjArr)this.Template;
@@ -367,12 +383,13 @@ namespace Starcounter {
         /// Clears this instance.
         /// </summary>
         /// <exception cref="System.NotImplementedException"></exception>
-        public void Clear() {
-            if (!IsArray)
-                throw new NotSupportedException("Clear on non-arrays are not supported");
+        void IList.Clear() {
+            VerifyIsArray();
 
-            Parent.MarkAsReplaced(Template);
-            _SetFlag.Clear();
+            if (_dirtyCheckEnabled) {
+                Parent.MarkAsReplaced(Template);
+                _SetFlag.Clear();
+            }
 
             InternalClear();
             Parent.CallHasChanged((TContainer)this.Template);
@@ -398,7 +415,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns><c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
-        public bool Contains(object item) {
+        bool IList.Contains(object item) {
+            VerifyIsArray();
             return list.Contains(item);
         }
 
@@ -407,7 +425,7 @@ namespace Starcounter {
         /// </summary>
         /// <value><c>true</c> if this instance is read only; otherwise, <c>false</c>.</value>
         /// <returns>true if the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only; otherwise, false.</returns>
-        public bool IsReadOnly {
+        bool IList.IsReadOnly {
             get { return false; }
         }
 
@@ -415,7 +433,8 @@ namespace Starcounter {
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
         /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
-        public IEnumerator GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator() {
+            VerifyIsArray();
             if (list != null)
                 return list.GetEnumerator();
             return System.Linq.Enumerable.Empty<Json>().GetEnumerator();
@@ -425,7 +444,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <returns></returns>
-        public List<Json> GetJsonArray() {
+        internal List<Json> GetJsonArray() {
             return (List<Json>)list;
         }
 
@@ -434,12 +453,11 @@ namespace Starcounter {
         /// object or array. For arrays, this means the index of the element and
         /// for objects it means the index of the property.
         /// </summary>
-        public int IndexInParent {
+        internal int IndexInParent {
             get {
                 if (_cacheIndexInArr != -1) {
                     return _cacheIndexInArr;
-                }
-                else {
+                } else {
                     return Template.TemplateIndex;
                 }
             }

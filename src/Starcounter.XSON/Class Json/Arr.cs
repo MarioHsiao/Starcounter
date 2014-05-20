@@ -45,43 +45,29 @@ namespace Starcounter {
             : base(parent, templ) {
         }
 
+        public T Add() {
+            var template = ((TObjArr)this.Template).ElementType;
+            var item = (template != null) ? (T)template.CreateInstance() : new T();
+            _Add(item);
+            return item;
+        }
 
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="item"></param>
         /// <returns></returns>
-        public new T Add() {
-            /*
-            TObjArr template = (TObjArr)Template;
-            Template typed = template.ElementType;
-            T app;
-            if (typed != null) {
-                app = (T)typed.CreateInstance(this);
-            }
-            else {
-                throw new NotImplementedException();
-//                app = new T();
-//                app.Parent = this;
-            }
-            Add(app);
-            return app;
-             */
+        public int IndexOf(T item) {
+            return list.IndexOf(item);
+        }
 
-            TObjArr template = (TObjArr)Template;
-            T app = new T();
-            //app.Parent = this;
-
-            Template typed = template.ElementType;
-            if (typed != null) {
-                app.Template = (TObject)typed;
-            } else {
-                app.CreateDynamicTemplate();
-                //                app.Template = new Schema();
-                //                CreateGe
-            }
-            Add(app);
-            return app;
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        public void Insert(int index, Json item) {
+            ((IList)this).Insert(index, (object)item);
         }
 
         /// <summary>
@@ -89,7 +75,25 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         public void Add(T item) {
-            base.Add(item);
+            ((IList)this).Add(item);
+        }
+
+        public int Count {
+            get {
+                return ((IList)this).Count;
+            }
+        }
+
+        public void RemoveAt(int index) {
+            ((IList)this).RemoveAt(index);
+        }
+
+        public void Clear() {
+            ((IList)this).Clear();
+        }
+
+        public bool Remove(T item) {
+            return base.Remove(item);
         }
 
         /// <summary>
@@ -97,7 +101,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public new T Add(object data) {
+        public T Add(object data) {
             T app;
             TObjArr template = (TObjArr)Template;
 
@@ -126,7 +130,7 @@ namespace Starcounter {
             }
         }
 
-        public new IEnumerator<T> GetEnumerator() {
+        public IEnumerator<T> GetEnumerator() {
             return new ArrEnumeratorWrapper<T>(list.GetEnumerator());
         }
 

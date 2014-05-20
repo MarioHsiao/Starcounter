@@ -158,16 +158,16 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             // NOTE: We always override the global session with active session received from database.
             sd->ForceSetGlobalSessionIfEmpty();
 
-            // Checking if data is aggregated.
-            /*if (sd->GetSocketAggregatedFlag())
+#ifdef GW_SMC_LOOPBACK_AGGREGATION
+
+            // Checking if data was aggregated.
+            if (sd->GetSocketAggregatedFlag())
             {
-                char body[1024];
-                int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
-                memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
-                err_code = gw->SendHttpBody(sd, body, body_len);
-                GW_ASSERT (0 == err_code);
+                gw->LoopbackForAggregation(sd);
                 continue;
-            }*/
+            }
+
+#endif
 
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);
