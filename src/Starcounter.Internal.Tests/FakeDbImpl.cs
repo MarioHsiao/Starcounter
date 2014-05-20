@@ -54,20 +54,32 @@ namespace Starcounter.XSON.Tests {
 
         }
 
-        public TResult Add<TResult>(Func<TResult> func) {
+        public TResult AddAndReturn<TResult>(Func<TResult> func) {
             return func();
         }
 
-        public TResult Add<T, TResult>(Func<T, TResult> func, T arg) {
+        public TResult AddAndReturn<T, TResult>(Func<T, TResult> func, T arg) {
             return func(arg);
         }
 
-        public TResult Add<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+        public TResult AddAndReturn<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
             return func(arg1, arg2);
         }
 
-        public TResult Add<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+        public TResult AddAndReturn<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
             return func(arg1, arg2, arg3);
+        }
+
+        public void Add<T>(Action<T> action, T arg) {
+            action(arg);
+        }
+
+        public void Add<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+            action(arg1, arg2);
+        }
+
+        public void Add<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+            action(arg1, arg2, arg3);
         }
     }
 }

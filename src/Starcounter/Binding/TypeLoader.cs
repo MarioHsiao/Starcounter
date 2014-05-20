@@ -26,6 +26,24 @@ namespace Starcounter.Binding
         private readonly string typeName_;
 
         /// <summary>
+        /// Gets the assembly name of the current instance.
+        /// </summary>
+        public AssemblyName AssemblyName {
+            get { return assemblyName_; }
+        }
+
+        /// <summary>
+        /// Gets the name of the current type, scoped by
+        /// the assembly.
+        /// </summary>
+        public string ScopedName {
+            get {
+                var version = assemblyName_.Version == null ? "null" : assemblyName_.Version.ToString();
+                return string.Format("{0}, ({1}, Version={2})", typeName_, assemblyName_.Name, version);
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TypeLoader" /> class.
         /// </summary>
         /// <param name="assemblyName">Name of the assembly.</param>

@@ -175,9 +175,40 @@ namespace StarcounterInternal.Hosting
                 if (alreadyRegisteredTypeDef == null) {
                     unregisteredTypeDefs.Add(typeDef);
                 } else {
+                    // If the type has a different ASSEMBLY than the already
+                    // loaded type, we raise an error. We match by exact version,
+                    // i.e including the revision and build.
+
+                    bool assemblyMatch = true;
+                    if (!AssemblyName.ReferenceMatchesDefinition(
+                        typeDef.TypeLoader.AssemblyName,
+                        alreadyRegisteredTypeDef.TypeLoader.AssemblyName)) {
+                        assemblyMatch = false;
+                    } else if (typeDef.TypeLoader.AssemblyName.Version == null) {
+                        assemblyMatch = alreadyRegisteredTypeDef.TypeLoader.AssemblyName.Version == null;
+                    } else if (alreadyRegisteredTypeDef.TypeLoader.AssemblyName.Version == null) {
+                        assemblyMatch = false;
+                    } else {
+                        assemblyMatch = typeDef.TypeLoader.AssemblyName.Version.Equals(
+                            alreadyRegisteredTypeDef.TypeLoader.AssemblyName.Version);
+                    }
+
+                    if (!assemblyMatch) {
+                        throw ErrorCode.ToException(
+                            Starcounter.Error.SCERRTYPEALREADYLOADED,
+                            string.Format("Type failing: {0}. Already loaded: {1}",
+                            typeDef.TypeLoader.ScopedName, 
+                            alreadyRegisteredTypeDef.TypeLoader.ScopedName));
+                    }
+
+                    // A type with the exact matching name has already been loaded
+                    // from an assembly with the exact same matching name and the
+                    // exact same version. We are still not certain they are completely
+                    // equal, but we won't do a full equality-on-value implementation
+                    // now. It's for a future release.
                     // TODO:
-                    // Assure that the already loaded type definition has
-                    // the same structure.
+                    // Provide full checking of type defintion (including table
+                    // definition) to see they fully match.
                 }
             }
 

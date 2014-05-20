@@ -3176,6 +3176,10 @@
     <code hex="0111" severity="Error" name="ScErrRecordNotFound">
       <message>Record with specified id not found.</message>
     </code>
+    <code hex="0112" severity="Error" name="ScErrTypeAlreadyLoaded">
+      <message>
+        A type with the same name was already loaded, from a different assembly.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3807,6 +3811,12 @@
       <message>
         The transaction was aborted because limit reached on limited memory
         resource.
+      </message>
+    </code>
+    <code hex="0025" severity="Error" name="ScErrInvalidOperationAbort">
+      <message>
+        The transaction was aborted because an invalid operation attempted left
+        the transaction in an inconsistent state.
       </message>
     </code>
   </facility>

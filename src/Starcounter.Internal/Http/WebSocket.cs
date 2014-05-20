@@ -551,7 +551,8 @@ namespace Starcounter
                     webSockets_[socketIndexNum] = new WebSocketInternal();
                 }
 
-                Debug.Assert(webSockets_[socketIndexNum].IsDead());
+                // TODO: Check what happens with WebSockets occupying same slot and if this can happen at all.
+                //Debug.Assert(webSockets_[socketIndexNum].IsDead());
 
                 LinkedListNode<UInt32> lln = null;
                 if (freeLinkedListNodes_.First != null) {

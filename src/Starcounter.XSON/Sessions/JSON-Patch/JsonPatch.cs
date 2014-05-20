@@ -168,7 +168,12 @@ namespace Starcounter.XSON.JsonPatch {
                 } else {
                     // TODO: 
                     // Should write value directly to buffer.
-                    writer.Write(GetValueAsString(change.Property, change.Obj));
+                    string value = 
+                        change.Obj.AddAndReturnInScope<Change, string>(
+                            (Change c) => { return GetValueAsString(c.Property, c.Obj); },
+                            change
+                        );
+                    writer.Write(value);
                 }
             }
             writer.Write('}');
@@ -212,7 +217,7 @@ namespace Starcounter.XSON.JsonPatch {
         private static string GetValueAsString(TValue property, Json parent) {
             string value;
             if (parent.Transaction != null) {
-                value = parent.Transaction.Add<TValue, Json, string>(
+                value = parent.Transaction.AddAndReturn<TValue, Json, string>(
                     (p, json) => { return p.ValueToJsonString(json); }, property, parent);
             } else {
                 value = property.ValueToJsonString(parent);
@@ -232,7 +237,7 @@ namespace Starcounter.XSON.JsonPatch {
             size = 19;
             size += _patchOpUtf8Arr[change.ChangeType].Length;
 
-            pathSize = CalculateSizeOfPath(change.Obj);
+            pathSize = CalculateSizeOfPath(change.Obj, false);
             if (change.Property != null)
                 pathSize += change.Property.TemplateName.Length;
 
@@ -242,44 +247,58 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (change.ChangeType != REMOVE) {
                 size += 9;
-                size += EstimatePropertyValueSizeInBytes(change.Property, change.Obj, change.Index);
+                size += change.Obj.AddAndReturnInScope<Change, int>(
+                            (Change c) => {
+                                return EstimatePropertyValueSizeInBytes(c.Property, c.Obj, c.Index);
+                            },
+                            change);
             }
             return size;
         }
 
-        private static int CalculateSizeOfPath(Json json) {
-            int size = 1;
+        private static int CalculateSizeOfPath(Json json, bool fromStepParent) {
+            int size;
             Json parent;
             Template template;
 
+            size = 0;
             if (json._stepParent != null) {
+                fromStepParent = true;
                 parent = json._stepParent;
-                size += json.GetAppName().Length;
+                size += json.GetAppName().Length + 1;
             } else {
                 parent = json.Parent;
-                if (parent == null)
-                    return size;
 
-                if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
-                        json.UpdateCachedIndex();
-                    size += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
-                } else {
-                    // We use the cacheIndexInArr to keep track of obj that is set
-                    // in the parent as an untyped object since the template here is not
-                    // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-                    } else {
-                        template = json.Template;
-                    }
-                    size += template.TemplateName.Length;
+                if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
+                    size += json._appName.Length + 1;
                 }
+                fromStepParent = false;
+
+                size += 1;
+                if (parent != null) {
+                    if (parent.IsArray) {
+                        if (json._cacheIndexInArr == -1)
+                            json.UpdateCachedIndex();
+                        size += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
+                    } else {
+                        // We use the cacheIndexInArr to keep track of obj that is set
+                        // in the parent as an untyped object since the template here is not
+                        // the template in the parent (which we want).
+                        if (json._cacheIndexInArr != -1) {
+                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                        } else {
+                            template = json.Template;
+                        }
+                        size += template.TemplateName.Length;
+                    }
+                }   
             }
-            size += CalculateSizeOfPath(parent);
+
+            if (parent != null)
+                size += CalculateSizeOfPath(parent, fromStepParent);
+
             return size;
         }
-
 
         private static void WritePath(ref Utf8Writer writer, Change change, int pathSize) {
             int sizeToWrite = change.Property.TemplateName.Length + 1;
@@ -298,13 +317,13 @@ namespace Starcounter.XSON.JsonPatch {
             }
 
             int positionAfter = writer.Written;
-            WritePath_2(ref writer, change.Obj, sizeToWrite);
+            WritePath_2(ref writer, change.Obj, sizeToWrite, false);
             if (positionAfter != writer.Written) {
                 writer.Skip(positionAfter - writer.Written);
             }
         }
 
-        private static void WritePath_2(ref Utf8Writer writer, Json json, int prevSize) {
+        private static void WritePath_2(ref Utf8Writer writer, Json json, int prevSize, bool fromStepParent) {
             int size;
             Json parent;
             Template template;
@@ -312,40 +331,51 @@ namespace Starcounter.XSON.JsonPatch {
             if (json._stepParent != null) {
                 parent = json._stepParent;
                 size = json.GetAppName().Length + 1;
-
                 writer.Skip(-(size + prevSize));
                 writer.Write('/');
                 writer.Write(json.GetAppName());
+                fromStepParent = true;
             } else {
+                size = 0;
                 parent = json.Parent;
-                if (parent == null)
-                    return;
-
-                if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
-                        json.UpdateCachedIndex();
-
-                    size = GetSizeOfIntAsUtf8(json._cacheIndexInArr) + 1;
-                    writer.Skip(-(size + prevSize));
-                    writer.Write('/');
-                    writer.Write(json._cacheIndexInArr);
-                } else {
-                    // We use the cacheIndexInArr to keep track of obj that is set
-                    // in the parent as an untyped object since the template here is not
-                    // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-                    } else {
-                        template = json.Template;
+                if (parent != null) {
+                    if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
+                        size = json.GetAppName().Length + 1;
+                        writer.Skip(-(size + prevSize));
+                        writer.Write('/');
+                        writer.Write(json._appName);
+                        prevSize = size;
                     }
+                    fromStepParent = false;
 
-                    size = template.TemplateName.Length + 1;
-                    writer.Skip(-(size + prevSize));
-                    writer.Write('/');
-                    writer.Write(template.TemplateName);
+                    if (parent.IsArray) {
+                        if (json._cacheIndexInArr == -1)
+                            json.UpdateCachedIndex();
+
+                        size = GetSizeOfIntAsUtf8(json._cacheIndexInArr) + 1;
+                        writer.Skip(-(size + prevSize));
+                        writer.Write('/');
+                        writer.Write(json._cacheIndexInArr);
+                    } else {
+                        // We use the cacheIndexInArr to keep track of obj that is set
+                        // in the parent as an untyped object since the template here is not
+                        // the template in the parent (which we want).
+                        if (json._cacheIndexInArr != -1) {
+                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                        } else {
+                            template = json.Template;
+                        }
+
+                        size = template.TemplateName.Length + 1;
+                        writer.Skip(-(size + prevSize));
+                        writer.Write('/');
+                        writer.Write(template.TemplateName);
+                    }
                 }
             }
-            WritePath_2(ref writer, parent, size);
+
+            if (parent != null)
+                WritePath_2(ref writer, parent, size, fromStepParent);
         }
 
         // TODO:
@@ -662,7 +692,7 @@ namespace Starcounter.XSON.JsonPatch {
                 );
             }
 
-            aat.Json.ExecuteInScope(() => {
+            aat.Json.AddInScope(() => {
                 if (aat.Property is TBool) {
                     ParseAndProcess((TBool)aat.Property, aat.Json, valuePtr, valueSize);
                 } else if (aat.Property is TDecimal) {
@@ -684,12 +714,26 @@ namespace Starcounter.XSON.JsonPatch {
             });
         }
 
+        private static string ValueAsString(IntPtr valuePtr, int valueSize) {
+            string value;
+            int size;
+            JsonHelper.ParseString(valuePtr, valueSize, out value, out size);
+
+            unsafe {
+                byte* pval = (byte*)valuePtr;
+                if (*pval == (byte)'"')
+                    value = '"' + value + '"';
+            }
+
+            return value;
+        }
+
         private static void ParseAndProcess(TBool property, Json parent, IntPtr valuePtr, int valueSize) {
             bool value;
             int size;
 
-            if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+            if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size)) 
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
@@ -698,7 +742,7 @@ namespace Starcounter.XSON.JsonPatch {
             int size;
 
             if (!JsonHelper.ParseDecimal(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
@@ -707,7 +751,7 @@ namespace Starcounter.XSON.JsonPatch {
             int size;
 
             if (!JsonHelper.ParseDouble(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
@@ -715,7 +759,7 @@ namespace Starcounter.XSON.JsonPatch {
             long value;
 
             if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
+                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }
 
