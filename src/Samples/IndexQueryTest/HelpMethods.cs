@@ -20,7 +20,7 @@ namespace IndexQueryTest
                     accounttest.User user = new accounttest.User
                     {
                         FirstName = "Kalle",
-                        LastName = "Larsson",
+                        LastName = "O'Connor",
                         UserId = "KalLar01"
                     };
                     new accounttest.account { AccountId = 0, Amount = 10, Client = user };
@@ -29,7 +29,7 @@ namespace IndexQueryTest
                     {
                         FirstName = "Oleg",
                         LastName = "Popov",
-                        UserId = "OlePop02"
+                        UserId = "OlePop02\""
                     };
                     new accounttest.account { AccountId = 2, Amount = 15, Client = user };
                     new accounttest.account { AccountId = 3, Amount = 25, Client = user };

@@ -1,5 +1,5 @@
 ﻿{
-	"$": { Namespace: "Starcounter.JsonPatch.BuiltInRestHandlers" },
+	"$": { Namespace: "Starcounter.Internal" },
     "message": "message",
     "stackTrace": "stackTrace",
 	"helpLink":"helpLink"
