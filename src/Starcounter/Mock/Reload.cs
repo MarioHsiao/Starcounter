@@ -74,26 +74,27 @@ namespace Starcounter {
                 while (selectEnum.MoveNext()) {
                     IObjectView val = selectEnum.Current;
                     Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                    if (val.GetObject(0).GetType().ToString() != tbl.MaterializedTable.Name) continue;
-                    if (tblNrObj == 0)
-                        inStmt.Append("(");
-                    else
-                        inStmt.Append(",(");
-                    inStmt.Append("object " + (val.GetObject(0).GetObjectNo()+shiftId).ToString()); // Value __id
-                    for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
-                        inStmt.Append(",");
-                        inStmt.Append(GetString(val, i, shiftId));
-                    }
-                    inStmt.Append(")");
-                    tblNrObj++;
-                    if (tblNrObj == 1000) {
-                        using (StreamWriter file = new StreamWriter(fileName, true)) {
-                            file.WriteLine(inStmt.ToString());
+                    if (val.GetObject(0).GetType().ToString() == tbl.MaterializedTable.Name) {
+                        if (tblNrObj == 0)
+                            inStmt.Append("(");
+                        else
+                            inStmt.Append(",(");
+                        inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
+                        for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
+                            inStmt.Append(",");
+                            inStmt.Append(GetString(val, i, shiftId));
                         }
-                        totalNrObj += tblNrObj;
-                        tblNrObj = 0;
-                        inStmt = new StringBuilder();
-                        inStmt.Append(insertHeader);
+                        inStmt.Append(")");
+                        tblNrObj++;
+                        if (tblNrObj == 1000) {
+                            using (StreamWriter file = new StreamWriter(fileName, true)) {
+                                file.WriteLine(inStmt.ToString());
+                            }
+                            totalNrObj += tblNrObj;
+                            tblNrObj = 0;
+                            inStmt = new StringBuilder();
+                            inStmt.Append(insertHeader);
+                        }
                     }
                 }
                 if (tblNrObj > 0)
