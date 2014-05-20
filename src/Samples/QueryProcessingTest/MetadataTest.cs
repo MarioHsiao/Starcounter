@@ -26,8 +26,8 @@ namespace QueryProcessingTest {
                 acc += mt.PrimitiveType;
                 count++;
             }
-            Trace.Assert(count == 10);
-            Trace.Assert(acc == 55);
+            Trace.Assert(count == 9);
+            Trace.Assert(acc == 45);
             MappedType mapt = Db.SQL<MappedType>("select t from mappedtype t where name = ?", "Int16").First;
             Trace.Assert(mapt != null);
             Trace.Assert(mapt is ClrPrimitiveType);
