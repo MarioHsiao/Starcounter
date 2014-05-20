@@ -78,7 +78,7 @@ namespace Starcounter {
                     else
                         inStmt.Append(",(");
                     Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                        if (val.GetObject(0).GetType().ToString() != tbl.name) continue;
+                    if (val.GetObject(0).GetType().ToString() != tbl.MaterializedTable.Name) continue;
                     inStmt.Append("object " + (val.GetObject(0).GetObjectNo()+shiftId).ToString()); // Value __id
                     for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
                         inStmt.Append(",");
