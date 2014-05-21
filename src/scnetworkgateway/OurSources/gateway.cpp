@@ -1279,6 +1279,101 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
+const char* const kHttpOKResponse =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpOKResponseLength = static_cast<int32_t> (strlen(kHttpOKResponse));
+
+uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    *is_handled = true;
+
+    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+
+    // Looking for the \r\n\r\n\r\n\r\n.
+    char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
+    GW_ASSERT(NULL != end_of_message);
+
+    // Looking for the \r\n\r\n.
+    char* body_string = strstr(request_begin, "\r\n\r\n");
+    GW_ASSERT(NULL != body_string);
+    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+
+    std::stringstream ss(body_string);
+    BMX_HANDLER_TYPE handler_info;
+    uint16_t port;
+    std::string db_name;
+    std::string app_name;
+    std::string original_uri_info;
+    std::string processed_uri_info;
+    int32_t num_params;
+    uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
+
+    ss >> db_name;
+    ss >> app_name;
+    ss >> handler_info;
+    ss >> port;
+    ss >> original_uri_info;
+    ss >> processed_uri_info;
+    ss >> num_params;
+
+    std::replace(original_uri_info.begin(), original_uri_info.end(), '\\', ' ');
+    std::replace(processed_uri_info.begin(), processed_uri_info.end(), '\\', ' ');
+
+    for (int32_t i = 0; i < num_params; i++) {
+        ss >> param_types[i];
+    }
+
+    std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
+    db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
+    GW_ASSERT(INVALID_DB_INDEX != db_index);
+
+    GW_COUT << "Registering URI handler on " << db_name << " \"" << processed_uri_info << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+
+    // Entering global lock.
+    gw->EnterGlobalLock();
+
+    // Registering handler on active database.
+    HandlersTable* handlers_table = g_gateway.GetDatabase(db_index)->get_user_handlers();
+
+    // Registering determined URI Apps handler.
+    uint32_t err_code = g_gateway.AddUriHandler(
+        gw,
+        handlers_table,
+        port,
+        app_name.c_str(),
+        original_uri_info.c_str(),
+        processed_uri_info.c_str(),
+        param_types,
+        num_params,
+        handler_info,
+        db_index,
+        AppsUriProcessData);
+
+    // Releasing global lock.
+    gw->LeaveGlobalLock();
+
+    if (err_code) {
+
+        // Ignoring error code if its existing handler.
+        if (SCERRHANDLERALREADYREGISTERED == err_code)
+            err_code = 0;
+
+        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register URI handler '%S' on port %d", original_uri_info, port);
+
+        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
+        return err_code;
+
+    } else {
+
+        return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+    }
+}
+
 // Checks for new/existing databases and updates corresponding shared memory structures.
 uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_databases)
 {
@@ -1305,6 +1400,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
         // Extracting the database name (skipping the server name and underscore).
         current_db_name = current_db_name.substr(server_name_len + 1, current_db_name.length() - server_name_len);
+        std::transform(current_db_name.begin(), current_db_name.end(), current_db_name.begin(), ::tolower);
 
         bool is_new_database = true;
         for (int32_t i = 0; i < num_dbs_slots_; i++)
@@ -1526,6 +1622,33 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
                         ShutdownGateway(NULL, err_code);
                     }
+                }
+
+#endif
+
+#ifdef HANDLER_REST_REGISTRATION
+
+                // Registering URI handler for gateway statistics.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    8282,
+                    "gateway",
+                    "POST /gw/handler/uri",
+                    "POST /gw/handler/uri ",
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
+                    empty_db_index,
+                    RegisterUriHandler,
+                    true);
+
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    ShutdownGateway(NULL, err_code);
                 }
 
 #endif
@@ -3199,6 +3322,7 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
 
     // Calling managed function.
     uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(
+        port_uris->get_port_number(),
         root_function_name,
         &uris_managed.front(),
         static_cast<uint32_t>(uris_managed.size()));

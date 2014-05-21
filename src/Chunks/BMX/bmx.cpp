@@ -151,7 +151,8 @@ uint32_t BmxData::RegisterPortHandler(
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
 
-    unique_handler_num_++;
+    if (port_num)
+        GenerateNewId();
 
     uint32_t err_code = 0;
 
@@ -236,7 +237,7 @@ uint32_t BmxData::RegisterSubPortHandler(
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
 
-    unique_handler_num_++;
+    GenerateNewId();
 
     uint32_t err_code = 0;
 
@@ -328,7 +329,7 @@ uint32_t BmxData::RegisterUriHandler(
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
 
-    unique_handler_num_++;
+    GenerateNewId();
 
     uint32_t err_code = 0;
 
@@ -425,7 +426,7 @@ uint32_t BmxData::RegisterWsHandler(
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
 
-    unique_handler_num_++;
+    GenerateNewId();
 
     uint32_t err_code = 0;
 

@@ -2605,6 +2605,21 @@ public:
         return active_databases_ + db_index;
     }
 
+    // Returns active database on this slot index.
+    db_index_type FindDatabaseIndex(std::string db_name_lower)
+    {
+        for (int32_t i = 0; i < num_dbs_slots_; i++) {
+
+            if (!active_databases_[i].IsEmpty()) {
+
+                if (active_databases_[i].get_db_name() == db_name_lower)
+                    return i;
+            }
+        }
+
+        return INVALID_DB_INDEX;
+    }
+
     // Get number of active databases.
     db_index_type get_num_dbs_slots()
     {

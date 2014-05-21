@@ -33,6 +33,9 @@
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
 
+//#undef _SC_ASSERT
+//#define _SC_ASSERT assert
+
 // BMX task information.
 struct TASK_INFO_TYPE
 {
@@ -650,7 +653,16 @@ namespace bmx
         {
             registered_handlers_ = new HandlersList[max_total_handlers]();
             max_num_entries_ = 0;
-            unique_handler_num_ = 0;
+
+            unique_handler_num_ = 1;
+        }
+
+        // Generates new unique id.
+        void GenerateNewId() {
+
+            LARGE_INTEGER t;
+            QueryPerformanceCounter(&t);
+            unique_handler_num_ = t.LowPart;
         }
 
         // Destructor.

@@ -22,9 +22,11 @@ namespace network {
 //#define GW_LOG_TO_FILE
 
 // Define if Gateway log should be printed to console as well.
+/*
 #ifdef GW_DEV_DEBUG
 #define GW_LOG_TO_CONSOLE
 #endif
+*/
 
 #if defined(GW_LOG_TO_FILE) || defined(GW_LOG_TO_CONSOLE)
 #define GW_LOGGING_ON
@@ -152,6 +154,16 @@ inline void revert_string(char *str_in, int32_t len)
         char c = str_in[i];
         str_in[i] = str_in[len - i - 1];
         str_in[len - i - 1] = c;
+    }
+}
+
+inline void replace_char_in_string(char *str_in, const char s, const char r) {
+    
+    int32_t t = static_cast<int32_t> (strlen(str_in));
+
+    for (int32_t i = 0; i < t; i++) {
+        if (str_in[i] == s)
+            str_in[i] = r;
     }
 }
 

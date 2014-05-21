@@ -5,6 +5,8 @@
 // C++ code--removes public keyword for C++
 #define public
 
+//#define HANDLER_REST_REGISTRATION
+
 typedef char* const String;
 typedef unsigned int uint;
 
