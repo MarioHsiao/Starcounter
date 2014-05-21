@@ -92,7 +92,7 @@ namespace Starcounter.Binding
                     TypeDef alreadyTypeDef;
                     if (typeDefsByName.TryGetValue(typeDef.ShortName, out alreadyTypeDef)) {
                         if (alreadyTypeDef != null) // Already ambiguous short names
-                            if (typeDef.ShortName != alreadyTypeDef.Name) // If equal then stored short name is real name
+                            if (typeDef.ShortName != alreadyTypeDef.LowerName) // If case-insensitive equal then stored short name is real name
                                 typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
                     } else typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
                 }
