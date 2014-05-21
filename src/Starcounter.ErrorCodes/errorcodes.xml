@@ -3819,6 +3819,11 @@
         the transaction in an inconsistent state.
       </message>
     </code>
+    <code hex="0026" severity="Error" name="ScErrTransactionMergedAbort">
+      <message>
+        The transaction was aborted after being merged into another transaction.
+      </message>
+    </code>
   </facility>
 
 <!--
