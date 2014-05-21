@@ -263,7 +263,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
         return err_code;
 
     // Pushing registered handler.
+#ifndef HANDLER_REST_REGISTRATION
     err_code = g_bmx_data->GetRegisteredHandlerByIndex(GetBmxHandlerIndex(*phandler_info))->PushRegisteredUriHandler(g_bmx_data);
+#endif
 
     return err_code;
 

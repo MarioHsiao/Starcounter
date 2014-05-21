@@ -41,6 +41,7 @@ public:
 
     // Generate the code using managed generator.
     uint32_t GenerateUriMatcher(
+        uint16_t port_num,
         const char* const root_function_name,
         MixedCodeConstants::RegisteredUriManaged* uri_infos,
         uint32_t num_uris)
@@ -62,7 +63,7 @@ public:
         GW_ASSERT(0 == err_code);
 
         // Printing how much time it took for generating the matcher.
-        std::cout << "Wrapper URI matcher generation(" << num_uris << ") took: " << timeGetTime() - begin_time << " ms." << std::endl;
+        std::cout << "Wrapper URI matcher (" << num_uris << ", " << port_num << ") took: " << timeGetTime() - begin_time << " ms." << std::endl;
 
         /*std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
         std::stringstream str_stream;

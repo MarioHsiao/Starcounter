@@ -1,4 +1,5 @@
-﻿using Starcounter;
+﻿//#define HANDLER_REST_REGISTRATION
+using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Rest;
 using System;
@@ -619,14 +620,53 @@ namespace Starcounter.Rest
                 // Registering the outer native handler (if any).
                 if (UriInjectMethods.HttpOuterHandler_ != null) {
                     if (registerWithGateway_) {
+
+                        String appNames = allUriHandlers_[handlerId].AppNames;
+                        if (String.IsNullOrEmpty(appNames)) {
+                            appNames = "unknown";
+                        }
+
                         RegisterUriHandlerNative(
                             port,
-                            allUriHandlers_[handlerId].AppNames,
+                            appNames,
                             originalUriInfo,
                             processedUriInfo,
                             nativeParamTypes,
                             handlerId,
                             out handlerInfo);
+
+#if HANDLER_REST_REGISTRATION
+                        String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+                        String uriHandlerInfo =
+                            dbName + " " +
+                            appNames + " " +
+                            handlerInfo + " " +
+                            port + " " +                            
+                            originalUriInfo.Replace(' ', '\\') + " " +
+                            processedUriInfo.Replace(' ', '\\') + " " +
+                            nativeParamTypes.Length;
+
+                        String t = "";
+                        if (nativeParamTypes.Length == 0) {
+                            t = " 0";
+                        } else {
+                            for (Int32 i = 0; i < nativeParamTypes.Length; i++) {
+                                t += " " + nativeParamTypes[i];
+                            }
+                        }   
+
+                        uriHandlerInfo += t + "\r\n\r\n\r\n\r\n";
+
+                        Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
+
+                        Node n = new Node("127.0.0.1", 8282);
+                        Response r = n.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                        
+                        if (r.StatusCode != 200)
+                            throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "URI string: " + originalUriInfo);
+
+#endif
                     }
                 }
 
