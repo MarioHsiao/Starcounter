@@ -97,7 +97,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         /// <returns></returns>
         Boolean IsCompatibleDatabaseImages() {
-            return false;
+            return true;
         }
 
         /// <summary>
