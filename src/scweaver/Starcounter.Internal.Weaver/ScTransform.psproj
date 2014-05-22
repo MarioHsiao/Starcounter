@@ -59,6 +59,7 @@
     better part of the cooperative scheduler.
     -->
     <ScEnhanceThreadingTask />
+    <ReplaceCEQWithEqualityCallTask/>
     
     <!-- 
     Now we compile the weaved code into a binary form, writing the file to
