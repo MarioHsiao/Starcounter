@@ -111,8 +111,8 @@ namespace Starcounter.Server.Commands {
                     config = DatabaseConfiguration.Load(stream, fakePath);
                 }
 
-                var imageFiles = storage.GetImageFiles(config.Runtime.ImageDirectory, file.DatabaseName);
-                var logFiles = storage.GetTransactionLogFiles(config.Runtime.ImageDirectory, file.DatabaseName);
+                var imageFiles = DatabaseStorageService.GetImageFiles(config.Runtime.ImageDirectory, file.DatabaseName);
+                var logFiles = DatabaseStorageService.GetTransactionLogFiles(config.Runtime.ImageDirectory, file.DatabaseName);
 
                 foreach (var imageFile in imageFiles) {
                     File.Delete(imageFile);
