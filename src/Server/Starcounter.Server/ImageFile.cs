@@ -33,10 +33,17 @@ namespace Starcounter.Server {
             var size = Marshal.SizeOf(typeof(KernelAPI.NativeStructImageHeader));
             var data = new byte[size];
 
+            // If we can't properly find, read or interpret/validate the
+            // content of the given image file, we should issue
+            // ScErrCantOpenImageFile and ScErrCantReadImageFile respectively,
+            // adding to them the reason why we could not do so (and the
+            // proper exception, like FileNotFound, or FormatExceltion.
+            // TODO:
+
             using (var file = File.OpenRead(imageFiles[0])) {
                 var read = file.Read(data, 0, data.Length);
                 if (read != size) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                    throw ErrorCode.ToException(Error.SCERRCANTREADIMAGEFILE);
                 }
             }
 
