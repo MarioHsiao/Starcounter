@@ -38,5 +38,11 @@
             Implementation="Starcounter.Internal.Weaver.ScEnhanceThreadingTask, scweaver">
     <Dependency TaskType="ScTransform" Required="false" />
   </TaskType>
+
+  <TaskType Name="ReplaceCEQWithEqualityCallTask"
+            Phase="Transform"
+            Implementation="Starcounter.Internal.Weaver.ReplaceCEQWithEqualityCallTask, scweaver">
+    <Dependency TaskType="ScTransform" Required="false" />
+  </TaskType>
   
 </PlugIn>
