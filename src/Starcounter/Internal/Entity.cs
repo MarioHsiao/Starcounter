@@ -175,5 +175,34 @@ namespace Starcounter.Internal {
                 return DatabaseObjectRetriever.Instance;
             }
         }
+
+        /// <summary>
+        /// Compares the equality of two objects, relying on the
+        /// weaved Equals implementation if these objects are in fact
+        /// database class instances.
+        /// </summary>
+        /// <remarks>
+        /// Used by the weaver, replacing every ceq IL-instruction in
+        /// any Starcounter application. This is still just work in
+        /// progress, and it's not decided this will go into the main
+        /// branch. If it does, it must be properly designed and tested,
+        /// and the impact on runtime- and development-cycle-time
+        /// performance investigated.
+        /// </remarks>
+        /// <param name="one">The first object</param>
+        /// <param name="two">The second object</param>
+        /// <returns>1 if equal; 0 otherwise</returns>
+        public static int RuntimeCompareEquality(object one, object two) {
+            if (object.ReferenceEquals(one, two)) {
+                return 1;
+            }
+            else if (((object)one) == null) {
+                return ((object)two) == null ? 1 : 0;
+            }
+
+            var proxy = one as IObjectProxy;
+            var result = proxy == null ? one == two : proxy.Equals(two);
+            return result ? 1 : 0;
+        }
     }
 }
