@@ -497,7 +497,6 @@ namespace Starcounter.Controls
             //EnableMenuItem(hMenu, SC_MINIMIZE, MF_BYCOMMAND | MF_GRAYED);
             //EnableMenuItem(hMenu, SC_RESTORE, MF_BYCOMMAND | MF_GRAYED);
             //EnableMenuItem(hMenu, SC_SIZE, MF_BYCOMMAND | MF_GRAYED);
-
         }
 
         void WpfMessageBox_Loaded(object sender, RoutedEventArgs e)
@@ -556,7 +555,6 @@ namespace Starcounter.Controls
             //this.Content_Part.MinWidth = Math.Min(maxSize.Width, minSize.Width);
 
             // Content width
-
 
 
         }
@@ -670,7 +668,7 @@ namespace Starcounter.Controls
 
             WpfMessageBox win = new WpfMessageBox();
 
-            // Fix so the window dosent own itself
+            // Fix so the window doesn't own itself
             if (System.Windows.Application.Current.MainWindow != win) {
                 win.Owner = System.Windows.Application.Current.MainWindow;
             }
@@ -706,8 +704,6 @@ namespace Starcounter.Controls
             win.SizeToContent = SizeToContent.WidthAndHeight;
             win.DefaultResult = defaultResult;
             win.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-
-
 
             win.ShowDialog();
 
@@ -929,6 +925,9 @@ namespace Starcounter.Controls
             while (sourcetext.Length > 0)
             {
                 int startpos = sourcetext.IndexOf("http://", StringComparison.InvariantCultureIgnoreCase);
+                if (startpos < 0)
+                    startpos = sourcetext.IndexOf("https://", StringComparison.InvariantCultureIgnoreCase);
+
                 if (startpos != -1)
                 {
 
