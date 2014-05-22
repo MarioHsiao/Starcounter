@@ -105,6 +105,7 @@
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="DatabaseApplication.cs" />
     <Compile Include="ImageFile.cs" />
+    <Compile Include="KernelAPI.cs" />
     <Compile Include="Service\ServerService.cs" />
     <Compile Include="Setup\ServerServiceSetup.cs">
       <SubType>Code</SubType>
