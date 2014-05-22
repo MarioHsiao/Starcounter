@@ -181,7 +181,7 @@ namespace Starcounter.InstallerWPF {
 
             InstallationBase installationBase = this.GetComponent(InstallationBase.Identifier) as InstallationBase;
             if (installationBase == null || string.IsNullOrEmpty(installationBase.Path)) {
-                MessageBox.Show("Corrupt Installation", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                WpfMessageBox.Show("Corrupt Installation", "Error", WpfMessageBoxButton.OK, WpfMessageBoxImage.Error);
                 return;
             }
 
