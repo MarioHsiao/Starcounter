@@ -256,24 +256,15 @@ namespace Starcounter.TestFramework
                 return _nightlyBuild.Value;
 
             // Getting nightly build environment variable.
-            Boolean nightlyEnvVar = (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") != null);
-
-            // Checking if its already a personal build and not explicit nightly build.
-            if (IsPersonalBuild() && (!nightlyEnvVar))
-            {
-                _nightlyBuild = false;
-                return false;
-            }
-
-            // Checking if its a scheduled nightly build.
-            if (nightlyEnvVar || (DateTime.Now.Hour >= 1) && (DateTime.Now.Hour <= 6))
-            {
-                _nightlyBuild = true;
-                return true;
-            }
+            String isNightlyBuild = Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD");
 
             _nightlyBuild = false;
-            return false;
+
+            // Checking if variable is set to true.
+            if ((null != isNightlyBuild) && (0 == String.Compare(isNightlyBuild, "true", true)))
+                _nightlyBuild = true;
+
+            return _nightlyBuild.Value;
         }
 
         /// <summary>
@@ -285,7 +276,9 @@ namespace Starcounter.TestFramework
             if (_personalBuild != null)
                 return _personalBuild.Value;
 
-            if (Environment.GetEnvironmentVariable("BUILD_IS_PERSONAL") != null)
+            String isPersonalBuild = Environment.GetEnvironmentVariable("BUILD_IS_PERSONAL");
+
+            if ((null != isPersonalBuild) && (0 == String.Compare(isPersonalBuild, "true", true)))
             {
                 _personalBuild = true;
                 return true;
@@ -304,7 +297,9 @@ namespace Starcounter.TestFramework
             if (_debugBuild != null)
                 return _debugBuild.Value;
 
-            if (String.Compare(Environment.GetEnvironmentVariable("Configuration"), "Debug", StringComparison.InvariantCultureIgnoreCase) == 0)
+            String configuration = Environment.GetEnvironmentVariable("Configuration");
+
+            if ((null != configuration) && (0 == String.Compare(configuration, "debug", true)))
             {
                 _debugBuild = true;
                 return true;
@@ -323,7 +318,9 @@ namespace Starcounter.TestFramework
             if (_runningOnBuildServer != null)
                 return _runningOnBuildServer.Value;
 
-            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") != null)
+            String isOnBuildServer = Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER");
+
+            if ((null != isOnBuildServer) && (0 == String.Compare(isOnBuildServer, "true", true)))
             {
                 _runningOnBuildServer = true;
                 return true;
@@ -336,9 +333,21 @@ namespace Starcounter.TestFramework
         /// <summary>
         /// Skips in-process tests on demand.
         /// </summary>
+        static Nullable<Boolean> _skipInprocess = null;
         public static Boolean SkipInProcessTests()
         {
-            return (Environment.GetEnvironmentVariable("SC_SKIP_INPROCESS_TESTS") != null);
+            if (_skipInprocess != null)
+                return _skipInprocess.Value;
+            
+            String skipInprocess = Environment.GetEnvironmentVariable("SC_SKIP_INPROCESS_TESTS");
+            if ((null != skipInprocess) && (0 == String.Compare(skipInprocess, "true", true)))
+            {
+                _skipInprocess = true;
+                return true;
+            }
+
+            _skipInprocess = false;
+            return false;
         }
 
         /// <summary>
