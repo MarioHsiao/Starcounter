@@ -115,6 +115,7 @@
     </Compile>
     <Compile Include="Starcounter.Internal.Weaver\DatabaseClassInitCallMethodAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\PostSharpExtensions.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\ReplaceCEQWithEqualityCallTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScAnalysisTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScAnalysisTrace.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScCopyTask.cs" />
