@@ -240,9 +240,9 @@ namespace Starcounter.Server {
         }
 
         void SetupDatabases() {
-            foreach (var databaseDirectory in Directory.GetDirectories(this.DatabaseDirectory)) {
+            foreach (var databaseConfigPath in DatabaseConfiguration.GetAllFiles(this.DatabaseDirectory)) {
+                var databaseDirectory = Path.GetDirectoryName(databaseConfigPath);
                 var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
-                var databaseConfigPath = Path.Combine(databaseDirectory, databaseName + DatabaseConfiguration.FileExtension);
 
                 if (File.Exists(databaseConfigPath)) {
                     // If the file exist, it means this database exist and should
