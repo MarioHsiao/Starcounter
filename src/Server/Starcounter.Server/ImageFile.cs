@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using StarcounterInternal.Hosting;
+using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace Starcounter.Server {
@@ -43,17 +45,37 @@ namespace Starcounter.Server {
             using (var file = File.OpenRead(imageFiles[0])) {
                 var read = file.Read(data, 0, data.Length);
                 if (read != size) {
-                    throw ErrorCode.ToException(Error.SCERRCANTREADIMAGEFILE);
+                    throw ErrorCode.ToException(Error.SCERRCANTREADIMAGEFILE, 
+                        string.Format("Unable to read image header; only {0} of {1} bytes read.", read, size));
                 }
             }
 
             return ImageFile.FromBytes(data);
         }
 
+        /// <summary>
+        /// Gets current image version as expected by the runtime of the
+        /// current installation.
+        /// </summary>
+        /// <returns>The image version of the current runtime.</returns>
+        public static uint GetRuntimeImageVersion() {
+            uint version, ignored;
+            orange.GetRuntimeImageSymbols(out version, out ignored);
+            return version;
+        }
+
         static ImageFile FromBytes(byte[] data) {
+            uint version, magic;
+            orange.GetRuntimeImageSymbols(out version, out magic);
+
             unsafe {
                 fixed (byte* p = data) {
                     var ph = (KernelAPI.NativeStructImageHeader*)p;
+                    if (ph->Magic != magic) {
+                        throw ErrorCode.ToException(
+                            Error.SCERRCANTREADIMAGEFILE,
+                            string.Format("Magic number didn't match; {0} != {1}.", ph->Magic, magic));
+                    }
                     return new ImageFile() { Version = ph->Version };
                 }
             }
