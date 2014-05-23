@@ -1,5 +1,5 @@
 
-#include "internal.h"
+#include "internal.hpp"
 
 #include <crtdbg.h>
 #include <stdint.h>

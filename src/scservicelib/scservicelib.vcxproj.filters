@@ -8,8 +8,8 @@
     <ClCompile Include="logging.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="internal.h" />
     <ClInclude Include="rapidxml.hpp" />
+    <ClInclude Include="internal.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="config">

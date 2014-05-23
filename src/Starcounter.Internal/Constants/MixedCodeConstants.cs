@@ -204,6 +204,16 @@ namespace Starcounter.Internal
         public const String ScSessionCookieName = "ScSessionCookie";
 
         /// <summary>
+        /// Server directory XML element name in configuration file.
+        /// </summary>
+        public const String ServerConfigDirName = "server-dir";
+
+        /// <summary>
+        /// Server directory parent XML element name.
+        /// </summary>
+        public const String ServerConfigParentXmlName = "service";
+
+        /// <summary>
         /// Session cookie length.
         /// </summary>
         public const int ScSessionCookieNameLength = 15;
