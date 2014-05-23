@@ -29,7 +29,7 @@ namespace Starcounter.SqlProcessor {
                     if (typeDef.BaseName != null)
                         parentView = Db.SQL<ClrView>("select v from clrview v where fullclassname = ?", typeDef.BaseName).First;
                     ClrView obj = new ClrView {
-                        Name = typeDef.Name.LastDotWord(),
+                        Name = typeDef.Name,
                         FullClassName = typeDef.Name,
                         FullNameReversed = fullNameRev,
                         FullName = fullName,
@@ -99,7 +99,7 @@ namespace Starcounter.SqlProcessor {
             RawView parentTab = Db.SQL<RawView>(
                 "select v from rawview v where name = ?", typeDef.TableDef.BaseName).First;
             RawView rawView = new RawView {
-                Name = typeDef.TableDef.Name.LastDotWord(),
+                Name = typeDef.TableDef.Name,
                 MaterializedTable = matTab,
                 ParentTable = parentTab,
                 Updatable = true
