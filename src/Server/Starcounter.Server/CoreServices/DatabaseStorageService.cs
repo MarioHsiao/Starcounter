@@ -95,12 +95,15 @@ namespace Starcounter.Server {
         }
 
         internal static string[] GetImageFiles(string directory, string databaseName) {
-            var pattern = string.Format("{0}.?.sci", databaseName);
-            return Directory.GetFiles(directory, pattern);
+            var files = new List<string>();
+            files.AddRange(Directory.GetFiles(directory, string.Format("{0}.?.sci", databaseName)));
+            files.AddRange(Directory.GetFiles(directory, string.Format("{0}.?.sci2", databaseName)));
+
+            return files.ToArray();
         }
 
         internal static string[] GetTransactionLogFiles(string directory, string databaseName) {
-            var pattern = string.Format("{0}.???.log", databaseName);
+            var pattern = string.Format("{0}.??????????.log", databaseName);
             return Directory.GetFiles(directory, pattern);
         }
 

@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Starcounter.Advanced.Configuration {
 
@@ -161,6 +162,38 @@ namespace Starcounter.Advanced.Configuration {
         public List<TraceSourceConfiguration> TraceSources {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Gets the full database directory path after any substitions
+        /// have been made, resolved with the help of the current file if
+        /// the configured path is relative.
+        /// </summary>
+        /// <returns>Full, resolved path to the database directory.
+        /// </returns>
+        public string GetResolvedDatabaseDirectory() {
+            var databaseDirectory = Environment.ExpandEnvironmentVariables(DatabaseDirectory);
+            if (!Path.IsPathRooted(databaseDirectory)) {
+                var serverRepositoryDirectory = Path.GetDirectoryName(Path.GetFullPath(ConfigurationFilePath));
+                databaseDirectory = Path.Combine(serverRepositoryDirectory, databaseDirectory);
+            }
+            return Path.GetFullPath(databaseDirectory);
+        }
+
+        /// <summary>
+        /// Gets the full temporary directory path after any substitions
+        /// have been made, resolved with the help of the current file if
+        /// the configured path is relative.
+        /// </summary>
+        /// <returns>Full, resolved path to the temporary directory.
+        /// </returns>
+        public string GetResolvedTempDirectory() {
+            var tempDirectory = Environment.ExpandEnvironmentVariables(TempDirectory);
+            if (!Path.IsPathRooted(tempDirectory)) {
+                var serverRepositoryDirectory = Path.GetDirectoryName(Path.GetFullPath(ConfigurationFilePath));
+                tempDirectory = Path.Combine(serverRepositoryDirectory, tempDirectory);
+            }
+            return Path.GetFullPath(tempDirectory);
         }
 
         /// <summary>

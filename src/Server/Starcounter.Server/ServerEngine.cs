@@ -162,21 +162,12 @@ namespace Starcounter.Server {
         /// Executes setup of the current engine.
         /// </summary>
         public void Setup() {
-            string serverRepositoryDirectory;
-            string tempDirectory;
-            string databaseDirectory;
-
             ServerHost.Configure(this.Configuration);
 
             // Validate the database directory exist. We refuse to start if
             // we can not properly resolve it to an existing directory.
 
-            serverRepositoryDirectory = Path.GetDirectoryName(Path.GetFullPath(this.Configuration.ConfigurationFilePath));
-            databaseDirectory = Environment.ExpandEnvironmentVariables(this.Configuration.DatabaseDirectory);
-            if (!Path.IsPathRooted(databaseDirectory)) {
-                databaseDirectory = Path.Combine(serverRepositoryDirectory, databaseDirectory);
-            }
-            databaseDirectory = Path.GetFullPath(databaseDirectory);
+            var databaseDirectory = this.Configuration.GetResolvedDatabaseDirectory();
             if (!Directory.Exists(databaseDirectory)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database directory doesn't exist. Path: {0}", databaseDirectory));
             }
@@ -186,11 +177,7 @@ namespace Starcounter.Server {
             // it's wrongly given and temporary files end up somewhere
             // not intended.
 
-            tempDirectory = Environment.ExpandEnvironmentVariables(this.Configuration.TempDirectory);
-            if (!Path.IsPathRooted(tempDirectory)) {
-                tempDirectory = Path.Combine(serverRepositoryDirectory, tempDirectory);
-            }
-            tempDirectory = Path.GetFullPath(tempDirectory);
+            var tempDirectory = this.Configuration.GetResolvedTempDirectory();
             if (!Directory.Exists(tempDirectory)) {
                 Directory.CreateDirectory(tempDirectory);
             }
@@ -253,9 +240,9 @@ namespace Starcounter.Server {
         }
 
         void SetupDatabases() {
-            foreach (var databaseDirectory in Directory.GetDirectories(this.DatabaseDirectory)) {
+            foreach (var databaseConfigPath in DatabaseConfiguration.GetAllFiles(this.DatabaseDirectory)) {
+                var databaseDirectory = Path.GetDirectoryName(databaseConfigPath);
                 var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
-                var databaseConfigPath = Path.Combine(databaseDirectory, databaseName + DatabaseConfiguration.FileExtension);
 
                 if (File.Exists(databaseConfigPath)) {
                     // If the file exist, it means this database exist and should
