@@ -1,4 +1,4 @@
-#include "internal.h"
+#include "internal.hpp"
 #include <windows.h>
 #include <stdlib.h>
 #include <stdint.h>

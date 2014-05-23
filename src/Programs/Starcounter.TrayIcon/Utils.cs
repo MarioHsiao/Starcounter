@@ -64,7 +64,7 @@ namespace Starcounter.Tools {
             serverDir = null;
             error = null;
 
-            bool success = ReadConfigFile(file, "server-dir", out result, out error);
+            bool success = ReadConfigFile(file, MixedCodeConstants.ServerConfigDirName, out result, out error);
             if (success) {
 
                 serverDir = result;

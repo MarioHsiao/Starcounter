@@ -75,9 +75,9 @@ namespace Starcounter.InstallerEngine
             String whereToSaveConfig)
         {
             XmlDocument xmlDoc = new XmlDocument();
-            XmlElement rootElem = xmlDoc.CreateElement("service");
+            XmlElement rootElem = xmlDoc.CreateElement(MixedCodeConstants.ServerConfigParentXmlName);
 
-            XmlElement elem = xmlDoc.CreateElement("server-dir");
+            XmlElement elem = xmlDoc.CreateElement(MixedCodeConstants.ServerConfigDirName);
             elem.InnerText = pathToServerDir;
             rootElem.AppendChild(elem);
 

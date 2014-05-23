@@ -64,7 +64,7 @@ namespace Starcounter.InstallerEngine
 
             XmlDocument serverXML = new XmlDocument();
             serverXML.Load(serverConfigPath);
-            return (serverXML.GetElementsByTagName("server-dir"))[0].InnerText;
+            return (serverXML.GetElementsByTagName(MixedCodeConstants.ServerConfigDirName))[0].InnerText;
         }
 
         /// <summary>
