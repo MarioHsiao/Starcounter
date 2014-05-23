@@ -181,6 +181,22 @@ namespace Starcounter.Advanced.Configuration {
         }
 
         /// <summary>
+        /// Gets the full temporary directory path after any substitions
+        /// have been made, resolved with the help of the current file if
+        /// the configured path is relative.
+        /// </summary>
+        /// <returns>Full, resolved path to the temporary directory.
+        /// </returns>
+        public string GetResolvedTempDirectory() {
+            var tempDirectory = Environment.ExpandEnvironmentVariables(TempDirectory);
+            if (!Path.IsPathRooted(tempDirectory)) {
+                var serverRepositoryDirectory = Path.GetDirectoryName(Path.GetFullPath(ConfigurationFilePath));
+                tempDirectory = Path.Combine(serverRepositoryDirectory, tempDirectory);
+            }
+            return Path.GetFullPath(tempDirectory);
+        }
+
+        /// <summary>
         /// Loads an <see cref="ServerConfiguration"/> from a file.
         /// </summary>
         /// <param name="fileName">Name of the file containing the serialized <see cref="ServerConfiguration"/>.</param>
