@@ -74,6 +74,15 @@ namespace Starcounter.Server.PublicModel {
         public readonly EngineInfo Engine;
 
         /// <summary>
+        /// Gets the image file of the current database.
+        /// </summary>
+        public ImageFile ImageFile {
+            get {
+                return ImageFile.Read(Configuration.Runtime.ImageDirectory, this.Name);
+            }
+        }
+
+        /// <summary>
         /// Initializes a <see cref="DatabaseInfo"/>.
         /// </summary>
         internal DatabaseInfo(

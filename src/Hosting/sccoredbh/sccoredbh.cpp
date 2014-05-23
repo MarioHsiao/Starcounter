@@ -21,6 +21,16 @@ extern "C" void __stdcall sccoredbh_init(uint64_t hmenv)
 	__hmenv = hmenv;
 }
 
+extern "C" uint32_t __stdcall sccoredbh_get_image_version()
+{
+	return SC_VERSION_IMAGE;
+}
+
+extern "C" uint32_t __stdcall sccoredbh_get_image_magic()
+{
+	return SC_IMAGE_MAGIC_NUMBER;
+}
+
 extern "C" void __stdcall sccoredbh_thread_enter(void* hsched, uint8_t cpun, void* p, int32_t init)
 {
 	uint32_t r;

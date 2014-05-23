@@ -7,3 +7,4 @@
 #include <memhelp4.h>
 #include <sccoredb.h>
 #include <sccorelog.h>
+#include <scpmm.h>
