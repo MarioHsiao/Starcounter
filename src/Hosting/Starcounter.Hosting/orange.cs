@@ -65,6 +65,17 @@ namespace StarcounterInternal.Hosting
         [DllImport("sccoredbh.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint sccoredbh_init(ulong hmenv);
 
+        [DllImport("sccoredbh.dll", CallingConvention = CallingConvention.StdCall)]
+        static extern unsafe uint sccoredbh_get_image_version();
+
+        [DllImport("sccoredbh.dll", CallingConvention = CallingConvention.StdCall)]
+        static extern unsafe uint sccoredbh_get_image_magic();
+
+        public static void GetRuntimeImageSymbols(out uint imageVersion, out uint magic) {
+            imageVersion = sccoredbh_get_image_version();
+            magic = sccoredbh_get_image_magic();
+        }
+
         /// <summary>
         /// Orange_configure_scheduler_callbackses the specified setup.
         /// </summary>

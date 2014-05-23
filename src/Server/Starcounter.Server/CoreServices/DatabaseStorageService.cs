@@ -94,12 +94,12 @@ namespace Starcounter.Server {
             return false;
         }
 
-        internal string[] GetImageFiles(string directory, string databaseName) {
+        internal static string[] GetImageFiles(string directory, string databaseName) {
             var pattern = string.Format("{0}.?.sci", databaseName);
             return Directory.GetFiles(directory, pattern);
         }
 
-        internal string[] GetTransactionLogFiles(string directory, string databaseName) {
+        internal static string[] GetTransactionLogFiles(string directory, string databaseName) {
             var pattern = string.Format("{0}.???.log", databaseName);
             return Directory.GetFiles(directory, pattern);
         }
