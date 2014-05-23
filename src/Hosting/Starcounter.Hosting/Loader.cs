@@ -75,7 +75,7 @@ namespace StarcounterInternal.Hosting
 
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
-                    BaseType.CreateTypeDef(), MaterializedType.CreateTypeDef(), 
+                    Starcounter.Metadata.Type.CreateTypeDef(), MaterializedType.CreateTypeDef(), 
                     MappedType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
                     BaseTable.CreateTypeDef(), HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef(), ClrView.CreateTypeDef(), BaseMember.CreateTypeDef(), 

@@ -253,7 +253,7 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(MaterializedIndex.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(MaterializedIndexColumn.__starcounterTypeSpecification));
 
-            HostManager.InitTypeSpecification(typeof(BaseType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(MaterializedType.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(MappedType.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));

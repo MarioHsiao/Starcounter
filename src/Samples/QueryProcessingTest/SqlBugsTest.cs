@@ -342,7 +342,7 @@ namespace QueryProcessingTest {
         public static void TestEnumerators() {
             HelpMethods.LogEvent("Test enumerator related bugs");
             QueryResultRows<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
-            Type t = accounts.First.GetType();
+            System.Type t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
             t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));

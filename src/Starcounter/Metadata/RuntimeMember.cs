@@ -29,7 +29,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.BaseType")
+                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type")
                 });
         }
 
@@ -57,9 +57,9 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public BaseType Type {
+        public Starcounter.Metadata.Type Type {
             get {
-                return (BaseType)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (Starcounter.Metadata.Type)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_Type);
             }
             internal set {
@@ -99,7 +99,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.BaseType"),
+                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
                     new PropertyDef("MaterializedColumn", DbTypeCode.Object, "Starcounter.Metadata.MaterializedColumn"),
                     new PropertyDef("Unique", DbTypeCode.Boolean)
                 });
@@ -164,7 +164,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.BaseType"),
+                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
                     new PropertyDef("Polymorphic", DbTypeCode.Byte)
                 });
         }

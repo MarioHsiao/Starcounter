@@ -3,7 +3,7 @@ using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Metadata {
-    public abstract class BaseTable : BaseType {
+    public abstract class BaseTable : Type {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -31,8 +31,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.BaseTable", "Starcounter.Metadata.BaseType",
-                "BaseTable", "BaseType",
+                "Starcounter.Metadata.BaseTable", "Starcounter.Metadata.Type",
+                "BaseTable", "Type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),

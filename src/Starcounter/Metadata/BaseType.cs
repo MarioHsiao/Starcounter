@@ -11,7 +11,7 @@ using System;
 using System.Diagnostics;
 
 namespace Starcounter.Metadata {
-    public abstract class BaseType : Entity {
+    public abstract class Type : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {
@@ -35,8 +35,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.BaseType", null,
-                "BaseType", null,
+                "Starcounter.Metadata.Type", null,
+                "Type", null,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false)
@@ -48,11 +48,11 @@ namespace Starcounter.Metadata {
 
 
         /// <inheritdoc />
-        public BaseType(Uninitialized u)
+        public Type(Uninitialized u)
             : base(u) {
         }
 
-        //internal BaseType()
+        //internal Type()
         //    : this(null) {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
@@ -69,7 +69,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class MaterializedType : BaseType {
+    public sealed class MaterializedType : Starcounter.Metadata.Type {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -94,8 +94,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.MaterializedType", "Starcounter.Metadata.BaseType",
-                "MaterializedType", "BaseType",
+                "Starcounter.Metadata.MaterializedType", "Starcounter.Metadata.Type",
+                "MaterializedType", "Type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -127,7 +127,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class MappedType : BaseType {
+    public abstract class MappedType : Starcounter.Metadata.Type {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -155,8 +155,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.MappedType", "Starcounter.Metadata.BaseType",
-                "MappedType", "BaseType",
+                "Starcounter.Metadata.MappedType", "Starcounter.Metadata.Type",
+                "MappedType", "Type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),

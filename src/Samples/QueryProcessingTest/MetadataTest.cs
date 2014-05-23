@@ -43,10 +43,10 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(count == 15);
             MaterializedTable m = Db.SQL<MaterializedTable>("select m from MaterializedTable m where name = ?", 
-                "BaseType").First;
+                "Type").First;
             Trace.Assert(m != null);
             Trace.Assert(m.BaseTable == null);
-            Trace.Assert(m.Name == "BaseType");
+            Trace.Assert(m.Name == "Type");
             MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?", 
                 "parenttable", "basetable").First;
             Trace.Assert(c != null);
@@ -58,9 +58,9 @@ namespace QueryProcessingTest {
                 }
             Trace.Assert(count == 5);
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
-                "BaseType").First;
+                "Type").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "BaseType.Raw.Starcounter");
+            Trace.Assert(rv.FullNameReversed == "Type.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -77,7 +77,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable != null);
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable.Name == "BaseTable");
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable != null);
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.Name == "BaseType");
+            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.Name == "Type");
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.ParentTable == null);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
