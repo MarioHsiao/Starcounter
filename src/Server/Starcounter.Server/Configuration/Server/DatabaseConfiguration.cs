@@ -91,6 +91,61 @@ namespace Starcounter.Advanced.Configuration {
         }
 
         /// <summary>
+        /// Gets a list of all database configurations (materialized) based on the
+        /// given server configuration.
+        /// </summary>
+        /// <param name="serverConfiguration">The configuration to consult.</param>
+        /// <returns>A list of all referenced database configurations.</returns>
+        public static DatabaseConfiguration[] LoadAll(ServerConfiguration serverConfiguration) {
+            return LoadAll(serverConfiguration.GetResolvedDatabaseDirectory());
+        }
+
+        /// <summary>
+        /// Gets a list of all database configurations (materialized) based on the
+        /// given database top-level repository directory.
+        /// </summary>
+        /// <param name="databasesDirectory">The directory in where the
+        /// server keep database configurations.</param>
+        /// <returns>A list of all referenced database configurations.</returns>
+        public static DatabaseConfiguration[] LoadAll(string databasesDirectory) {
+            List<DatabaseConfiguration> configurations = new List<DatabaseConfiguration>();
+            foreach (var file in GetAllFiles(databasesDirectory)) {
+                if (File.Exists(file)) {
+                    var config = DatabaseConfiguration.Load(file);
+                    configurations.Add(config);
+                }
+            }
+            return configurations.ToArray();
+        }
+
+        /// <summary>
+        /// Gets a list of all datbase configuration files based on the
+        /// given server configuration.
+        /// </summary>
+        /// <param name="serverConfiguration">The configuration to consult.</param>
+        /// <returns>A list of all referenced database configuration files.</returns>
+        public static string[] GetAllFiles(ServerConfiguration serverConfiguration) {
+            return GetAllFiles(serverConfiguration.GetResolvedDatabaseDirectory());
+        }
+
+        /// <summary>
+        /// Gets a list of all datbase configuration files based on the
+        /// given database top-level repository directory.
+        /// </summary>
+        /// <param name="databasesDirectory">The directory in where the
+        /// server keep database configurations.</param>
+        /// <returns>A list of all referenced database configuration files.</returns>
+        public static string[] GetAllFiles(string databasesDirectory) {
+            var files = new List<string>();
+            foreach (var databaseDirectory in Directory.GetDirectories(databasesDirectory)) {
+                var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
+                var databaseConfigPath = Path.Combine(databaseDirectory, databaseName + DatabaseConfiguration.FileExtension);
+                files.Add(databaseConfigPath);
+            }
+            return files.ToArray();
+        }
+
+        /// <summary>
         /// Returns a deep clone of the current <see cref="DatabaseConfiguration"/>
         /// and assigns it a file name.
         /// </summary>
