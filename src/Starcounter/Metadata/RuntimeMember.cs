@@ -27,7 +27,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("Type", sccoredb.STAR_TYPE_REFERENCE, true, false)
                 },
                 new PropertyDef[] {
-                    new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type")
                 });
@@ -35,9 +35,9 @@ namespace Starcounter.Metadata {
 
         public BaseMember(Uninitialized u) : base(u) { }
 
-        public BaseTable BaseTable {
+        public Table BaseTable {
             get {
-                return (BaseTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (Table)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_BaseTable);
             }
             internal set {
@@ -97,7 +97,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("Unique", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
-                    new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
                     new PropertyDef("MaterializedColumn", DbTypeCode.Object, "Starcounter.Metadata.MaterializedColumn"),
@@ -162,7 +162,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("Polymorphic", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
-                    new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("BaseTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
                     new PropertyDef("Polymorphic", DbTypeCode.Byte)

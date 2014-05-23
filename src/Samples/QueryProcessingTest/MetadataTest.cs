@@ -48,9 +48,9 @@ namespace QueryProcessingTest {
             Trace.Assert(m.BaseTable == null);
             Trace.Assert(m.Name == "Type");
             MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?", 
-                "parenttable", "basetable").First;
+                "parenttable", "table").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Table.Name == "BaseTable");
+            Trace.Assert(c.Table.Name == "Table");
             count = 0;
             foreach(MaterializedColumn mc in Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", 
                 "parenttable")) {
@@ -75,7 +75,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.ParentTable.Name == "VMView");
             Trace.Assert(rv.ParentTable.ParentTable != null);
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable != null);
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.Name == "BaseTable");
+            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.Name == "Table");
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable != null);
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.Name == "Type");
             Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.ParentTable == null);
@@ -152,11 +152,11 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Name == "ParentTable");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is HostMaterializedTable);
-            Trace.Assert(c.Type.Name == "BaseTable");
+            Trace.Assert(c.Type.Name == "Table");
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == c.Type.Name);
             Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "BaseTable");
+            Trace.Assert(c.BaseTable.Name == "Table");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
             Trace.Assert(c.MaterializedColumn != null);
@@ -171,7 +171,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type.Name == "string");
             Trace.Assert((c.Type as MaterializedType).PrimitiveType == sccoredb.STAR_TYPE_STRING);
             Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "BaseTable");
+            Trace.Assert(c.BaseTable.Name == "Table");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
             Trace.Assert(c.MaterializedColumn != null);

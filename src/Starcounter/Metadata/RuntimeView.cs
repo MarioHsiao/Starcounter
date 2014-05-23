@@ -3,7 +3,7 @@ using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Metadata {
-    public abstract class BaseTable : Type {
+    public abstract class Table : Type {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -31,8 +31,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.BaseTable", "Starcounter.Metadata.Type",
-                "BaseTable", "Type",
+                "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
+                "Table", "Type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -44,18 +44,18 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullNameReversed", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("FullName", DbTypeCode.String)
                 });
         }
 
         /// <inheritdoc />
-        public BaseTable(Uninitialized u)
+        public Table(Uninitialized u)
             : base(u) {
         }
 
-        //internal BaseTable() : this(null) {
+        //internal Table() : this(null) {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
@@ -67,9 +67,9 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public BaseTable ParentTable {
+        public Table ParentTable {
             get {
-                return (BaseTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (Table)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_ParentTable);
             }
             internal set {
@@ -95,7 +95,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class HostMaterializedTable : BaseTable {
+    public abstract class HostMaterializedTable : Table {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -113,8 +113,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.HostMaterializedTable", "Starcounter.Metadata.BaseTable",
-                "HostMaterializedTable", "BaseTable",
+                "Starcounter.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
+                "HostMaterializedTable", "Table",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -127,7 +127,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullNameReversed", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
@@ -184,7 +184,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullNameReversed", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
@@ -229,7 +229,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullNameReversed", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
@@ -277,7 +277,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullNameReversed", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),

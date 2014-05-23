@@ -77,7 +77,7 @@ namespace StarcounterInternal.Hosting
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
                     Starcounter.Metadata.Type.CreateTypeDef(), MaterializedType.CreateTypeDef(), 
                     MappedType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
-                    BaseTable.CreateTypeDef(), HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
+                    Table.CreateTypeDef(), HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef(), ClrView.CreateTypeDef(), BaseMember.CreateTypeDef(), 
                     TableColumn.CreateTypeDef(), CodeProperty.CreateTypeDef()
                 },
