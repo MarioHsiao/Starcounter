@@ -24,24 +24,189 @@ using Starcounter.InstallerEngine;
 using System.IO.Compression;
 using Starcounter.Internal;
 using System.Windows.Interop;
+using System.Xml;
 
 namespace Starcounter.InstallerWPF {
+
     /// <summary>
     /// Interaction logic for InitializationWindow.xaml
     /// </summary>
     public partial class InitializationWindow : Window {
+
+        const String ScVersion = "2.0.0.0";
+        const String StarcounterBin = "StarcounterBin";
+        const String ScInstallerGUI = "Starcounter-Setup";
+
+        /// <summary>
+        /// Returns the directory path where Starcounter is installed,
+        /// obtained from environment variables.
+        /// </summary>
+        String GetInstalledDirFromEnv() {
+            // First checking the user-wide installation directory.
+            String scInstDir = Environment.GetEnvironmentVariable(StarcounterBin, EnvironmentVariableTarget.User);
+
+            if (scInstDir != null)
+                return scInstDir;
+
+            // Then checking the system-wide installation directory.
+            scInstDir = Environment.GetEnvironmentVariable(StarcounterBin, EnvironmentVariableTarget.Machine);
+
+            return scInstDir;
+        }
+
+        /// <summary>
+        /// Compares installed and current running Starcounter versions.
+        /// Returns installed version string if versions are different.
+        /// If versions are the same returns NULL.
+        /// </summary>
+        String CompareScVersions() {
+            // Setting version to default value.
+            String scVersion = "unknown";
+
+            // Reading INSTALLED Starcounter version XML file.
+            String installedVersion = null;
+            String installDir = GetInstalledDirFromEnv();
+            if (installDir != null) {
+                XmlDocument versionXML = new XmlDocument();
+                String versionInfoFilePath = System.IO.Path.Combine(installDir, "VersionInfo.xml");
+
+                // Checking that version file exists and loading it.
+                try {
+                    versionXML.Load(versionInfoFilePath);
+
+                    // NOTE: We are getting only first element.
+                    installedVersion = (versionXML.GetElementsByTagName("Version"))[0].InnerText;
+                } catch { }
+            }
+
+            // Reading CURRENT embedded Starcounter version XML file.
+            String currentVersion = ScVersion;
+
+            // Checking if versions are not the same.
+            if ((installedVersion != null) && (installedVersion != currentVersion))
+                return installedVersion;
+
+            // Setting version value to embedded version value.
+            scVersion = currentVersion;
+            return null;
+        }
+
+
+        /// <summary>
+        /// Checks for compatible database image files version for existing installation.
+        /// </summary>
+        /// <returns></returns>
+        Boolean IsCompatibleDatabaseImages() {
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if another version of Starcounter is installed.
+        /// </summary>
+        /// <returns></returns>
+        Boolean IsAnotherVersionInstalled() {
+
+            // Compares installation versions.
+            String previousVersion = CompareScVersions();
+
+            if (previousVersion != null) {
+
+                // IMPORTANT: Since StarcounterBin can potentially be used
+                // in this installer we have to delete it for this process.
+                Environment.SetEnvironmentVariable(StarcounterBin, null);
+
+                WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
+
+                String uninstallQuestion = "Would you like to uninstall previous (" + previousVersion + ") version of Starcounter now?",
+                    headingMessage = "Starcounter is already installed...";
+
+                // Checking for the existing databases compatibility.
+                if (IsCompatibleDatabaseImages()) {
+
+                    userChoice = WpfMessageBox.Show(
+                        uninstallQuestion,
+                        headingMessage,
+                        WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+
+                } else {
+
+                    userChoice = WpfMessageBox.Show(
+                        uninstallQuestion + Environment.NewLine + Environment.NewLine +
+                        "Existing database image files are incompatible with this installation. " +
+                        "Please follow the instructions at: " + Environment.NewLine +
+                        "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions" + Environment.NewLine +
+                        " to unload/reload the databases data.",
+                        headingMessage,
+                        WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+                }
+
+                if (userChoice == WpfMessageBoxResult.Yes) {
+
+                    // Asking to launch previous version uninstaller.
+                    String installDir = GetInstalledDirFromEnv();
+
+                    // Trying "Starcounter-[Version]-Setup.exe".
+                    String prevSetupExeName = "Starcounter-" + previousVersion + "-Setup.exe";
+                    String prevSetupExePath = System.IO.Path.Combine(installDir, prevSetupExeName);
+                    if (!File.Exists(prevSetupExePath)) {
+                        // Trying "Starcounter-Setup.exe".
+                        prevSetupExeName = ScInstallerGUI + ".exe";
+                        prevSetupExePath = System.IO.Path.Combine(installDir, prevSetupExeName);
+                        if (!File.Exists(prevSetupExePath)) {
+                            System.Windows.MessageBox.Show(
+                                "Can't find " + prevSetupExeName + " for Starcounter " + previousVersion +
+                                " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
+
+                            return true;
+                        }
+                    }
+
+                    Process prevSetupProcess = new Process();
+                    prevSetupProcess.StartInfo.FileName = prevSetupExePath;
+                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances";
+                    prevSetupProcess.Start();
+
+                    // Waiting until previous installer finishes its work.
+                    prevSetupProcess.WaitForExit();
+
+                    // Checking version once again.
+                    previousVersion = CompareScVersions();
+
+                    // IMPORTANT: Since PATH env var still contains path to old installation directory
+                    // we have to reset it for this process as well, once uninstallation is complete.
+                    String pathUserEnvVar = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User);
+                    Environment.SetEnvironmentVariable("PATH", pathUserEnvVar);
+
+                    // No more old installation - just continue the new one.
+                    if (null == previousVersion)
+                        return false;
+                }
+
+                WpfMessageBox.Show(
+                    "Please uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
+                    "Starcounter is already installed...");
+
+                return true;
+            }
+
+            return false;
+        }
+
         Dispatcher _dispatcher;
         bool canClose = false;
+
         /// <summary>
         /// Entry point for installer.
         /// </summary>
         public InitializationWindow() {
+
             // Setting library-resolving hooks.
             SetLibraryHooks();
 
             _dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
             this.Loaded += new RoutedEventHandler(InitializationWindow_Loaded);
             this.Closing += new System.ComponentModel.CancelEventHandler(InitializationWindow_Closing);
+
             InitializeComponent();
         }
 
@@ -74,6 +239,20 @@ namespace Starcounter.InstallerWPF {
 
 
         void InitializationWindow_Loaded(object sender, RoutedEventArgs e) {
+
+            // TODO: Fix automatic loading of styles!
+
+            var colors = new Uri("pack://application:,,,/colors.xaml", UriKind.RelativeOrAbsolute);
+            Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = colors });
+
+            var styles = new Uri("pack://application:,,,/styles.xaml", UriKind.RelativeOrAbsolute);
+            Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = styles });
+
+            // Checking if another Starcounter version is installed.
+            // NOTE: Environment.Exit is used on purpose here, not just "return";
+            if (IsAnotherVersionInstalled())
+                Environment.Exit(0);
+
             this.Visibility = Visibility.Hidden;
             ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
         }
@@ -563,7 +742,7 @@ namespace Starcounter.InstallerWPF {
                 ((MainWindow)Application.Current.MainWindow).UpdateLayout();
             }
             else {
-                MessageBox.Show(e.ToString(), "Starcounter Installer", MessageBoxButton.OK, MessageBoxImage.Error);
+                WpfMessageBox.Show(e.ToString(), "Starcounter Installer", WpfMessageBoxButton.OK, WpfMessageBoxImage.Error);
             }
         }
 
