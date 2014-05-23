@@ -10,3 +10,5 @@ EXPORTS
 	sccoredbh_vproc_idle
 	sccoredbh_vproc_wait
 	sccoredbh_alert_lowmem
+	sccoredbh_get_image_version
+	sccoredbh_get_image_magic
