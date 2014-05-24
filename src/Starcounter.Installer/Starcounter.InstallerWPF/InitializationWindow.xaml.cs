@@ -181,10 +181,10 @@ namespace Starcounter.InstallerWPF {
                         String dbListToUnloadText = String.Join(Environment.NewLine, dbListToUnload);
 
                         uninstallQuestion += Environment.NewLine + Environment.NewLine +
-                            "Existing database image files are incompatible with this installation (databases: " + dbListToUnloadText + ")." +
+                            "Existing database image files are incompatible with this installation (database(s): " + dbListToUnloadText + "). " +
                             "Please follow the instructions at: " + Environment.NewLine +
-                            "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions" + Environment.NewLine +
-                            " to unload/reload databases.";
+                            "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
+                            "to unload/reload databases.";
 
                     }
                 } else {
@@ -193,8 +193,8 @@ namespace Starcounter.InstallerWPF {
                     uninstallQuestion += 
                         "Error occurred during verification of existing database image files versions." + Environment.NewLine +
                         "Please follow the instructions at: " + Environment.NewLine +
-                        "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions" + Environment.NewLine +
-                        " to unload/reload databases." +
+                        "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
+                        "to unload/reload databases." +
                         "Error message: " + errorString;
                 }
 
