@@ -101,54 +101,45 @@ namespace Starcounter.InstallerWPF {
         /// Checks for compatible database image files version for existing installation.
         /// </summary>
         /// <returns></returns>
-        static UInt32 CheckExistingDatabasesForCompatibility(out List<String> dbListToUnload, out String errorString) {
+        static void CheckExistingDatabasesForCompatibility(out List<String> dbListToUnload, out String errorString) {
 
             errorString = "";
 
             dbListToUnload = new List<String>();
 
-            try {
-                var configDir = System.IO.Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterEnvironment.Directories.InstallationConfiguration);
+            var configDir = System.IO.Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterEnvironment.Directories.InstallationConfiguration);
 
-                if (!Directory.Exists(configDir)) {
-                    configDir = System.IO.Path.Combine(StarcounterEnvironment.InstallationDirectory);
+            if (!Directory.Exists(configDir)) {
+                configDir = System.IO.Path.Combine(StarcounterEnvironment.InstallationDirectory);
 
-                    if (!Directory.Exists(configDir))
-                        throw new Exception("Starcounter installation directory does not exist: " + configDir);
+                if (!Directory.Exists(configDir))
+                    throw new Exception("Starcounter installation directory does not exist: " + configDir);
+            }
+
+            var configFile = System.IO.Path.Combine(configDir, StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile);
+
+            if (!File.Exists(configFile))
+                throw new Exception("Starcounter server installation configuration file does not exist: " + configFile);
+
+            var xml = XDocument.Load(configFile);
+            var query = from c in xml.Root.Descendants(MixedCodeConstants.ServerConfigDirName)
+                        select c.Value;
+
+            var serverDir = query.First();
+            var serverConfigPath = System.IO.Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
+
+            if (!File.Exists(serverConfigPath))
+                throw new Exception("Starcounter server configuration file does not exist: " + serverConfigPath);
+
+            var serverConfig = ServerConfiguration.Load(serverConfigPath);
+
+            foreach (var databaseConfig in DatabaseConfiguration.LoadAll(serverConfig)) {
+
+                var image = ImageFile.Read(databaseConfig.Runtime.ImageDirectory, databaseConfig.Name);
+
+                if (image.Version != ImageFile.GetRuntimeImageVersion()) {
+                    dbListToUnload.Add(databaseConfig.Name);
                 }
-
-                var configFile = System.IO.Path.Combine(configDir, StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile);
-
-                if (!File.Exists(configFile))
-                    throw new Exception("Starcounter server installation configuration file does not exist: " + configFile);
-
-                var xml = XDocument.Load(configFile);
-                var query = from c in xml.Root.Descendants(MixedCodeConstants.ServerConfigDirName)
-                            select c.Value;
-
-                var serverDir = query.First();
-                var serverConfigPath = System.IO.Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
-
-                if (!File.Exists(serverConfigPath))
-                    throw new Exception("Starcounter server configuration file does not exist: " + serverConfigPath);
-
-                var serverConfig = ServerConfiguration.Load(serverConfigPath);
-
-                foreach (var databaseConfig in DatabaseConfiguration.LoadAll(serverConfig)) {
-
-                    var image = ImageFile.Read(databaseConfig.Runtime.ImageDirectory, databaseConfig.Name);
-
-                    if (image.Version != ImageFile.GetRuntimeImageVersion()) {
-                        dbListToUnload.Add(databaseConfig.Name);
-                    }
-                }
-
-                return 0;
-            } catch (Exception exc) {
-
-                errorString = exc.ToString();
-
-                return 1;
             }
         }
 
@@ -169,12 +160,16 @@ namespace Starcounter.InstallerWPF {
                     headingMessage = "Starcounter is already installed...";
 
                 // Checking for the existing databases compatibility.
-                List<String> dbListToUnload;
-                String errorString;
+                List<String> dbListToUnload = new List<String>();
+                String errorString = null;
 
-                UInt32 errCode = CheckExistingDatabasesForCompatibility(out dbListToUnload, out errorString);
+                try {
+                    CheckExistingDatabasesForCompatibility(out dbListToUnload, out errorString);
+                } catch (Exception exc) {
+                    errorString = exc.ToString();
+                }
 
-                if (0 == errCode) {
+                if (null == errorString) {
 
                     if (dbListToUnload.Count > 0) {
 
