@@ -236,8 +236,8 @@ namespace QueryProcessingTest {
             ClrClass cl = c.BaseTable as ClrClass;
             Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
             Trace.Assert(c.BaseTable.FullNameReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
-                (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppdomainName);
-            Trace.Assert(c.BaseTable.FullName == cl.AppdomainName + "." + 
+                (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppDomainName);
+            Trace.Assert(c.BaseTable.FullName == cl.AppDomainName + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.FullClassName);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
@@ -265,7 +265,7 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as MappedType).DbTypeCode == (ushort)DbTypeCode.Boolean);
             Trace.Assert(c.Type.Name == "Boolean");
             Trace.Assert(String.IsNullOrEmpty((c.BaseTable as ClrClass).AssemblyName));
-            Trace.Assert((c.BaseTable as ClrClass).AppdomainName == "sccode.exe");
+            Trace.Assert((c.BaseTable as ClrClass).AppDomainName == "sccode.exe");
             c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.basetable is ClrClass", 
                 "Client").First;
             Trace.Assert(c != null);
@@ -292,7 +292,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.BaseTable != null);
                 Trace.Assert(tc.BaseTable is ClrClass);
                 Trace.Assert((tc.BaseTable as ClrClass).AssemblyName == "QueryProcessingTest");
-                Trace.Assert((tc.BaseTable as ClrClass).AppdomainName == "sccode.exe");
+                Trace.Assert((tc.BaseTable as ClrClass).AppDomainName == "sccode.exe");
                 Trace.Assert(tc.Type != null);
                 Trace.Assert(tc.Type is MappedType);
                 Trace.Assert((tc.Type as MappedType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
@@ -310,7 +310,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.BaseTable != null);
                 if (tc.BaseTable is ClrClass) {
                     Trace.Assert((tc.BaseTable as ClrClass).AssemblyName == "QueryProcessingTest");
-                    Trace.Assert((tc.BaseTable as ClrClass).AppdomainName == "sccode.exe");
+                    Trace.Assert((tc.BaseTable as ClrClass).AppDomainName == "sccode.exe");
                 } else {
                     Trace.Assert(tc.BaseTable is RawView);
                 }

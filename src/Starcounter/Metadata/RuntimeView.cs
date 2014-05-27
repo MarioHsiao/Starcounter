@@ -252,7 +252,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_FullName;
             internal static int columnHandle_MaterializedTable;
             internal static int columnHandle_AssemblyName;
-            internal static int columnHandle_AppdomainName;
+            internal static int columnHandle_AppDomainName;
             internal static int columnHandle_FullClassName;
         }
 #pragma warning disable 0628, 0169
@@ -271,7 +271,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("AssemblyName", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("AppdomainName", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("AppDomainName", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("FullClassName", sccoredb.STAR_TYPE_STRING, true, false)
                 },
                 new PropertyDef[] {
@@ -282,7 +282,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
                     new PropertyDef("AssemblyName", DbTypeCode.String),
-                    new PropertyDef("AppdomainName", DbTypeCode.String),
+                    new PropertyDef("AppDomainName", DbTypeCode.String),
                     new PropertyDef("FullClassName", DbTypeCode.String)
                 });
         }
@@ -305,14 +305,14 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public String AppdomainName {
+        public String AppDomainName {
             get {
                 return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_AppdomainName);
+                    __starcounterTypeSpecification.columnHandle_AppDomainName);
             }
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_AppdomainName, value);
+                    __starcounterTypeSpecification.columnHandle_AppDomainName, value);
             }
         }
 

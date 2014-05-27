@@ -35,7 +35,7 @@ namespace Starcounter.SqlProcessor {
                         FullName = fullName,
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
-                        AppdomainName = AppDomain.CurrentDomain.FriendlyName,
+                        AppDomainName = AppDomain.CurrentDomain.FriendlyName,
                         Inherits = parentView,
                         Updatable = app == null ? false : true
                     };
