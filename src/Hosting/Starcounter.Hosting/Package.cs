@@ -264,7 +264,7 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
 
-            HostManager.InitTypeSpecification(typeof(BaseMember.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Member.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
         }
