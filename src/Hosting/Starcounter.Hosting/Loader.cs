@@ -79,7 +79,7 @@ namespace StarcounterInternal.Hosting
                     MappedType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
                     Table.CreateTypeDef(), HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), Member.CreateTypeDef(), 
-                    TableColumn.CreateTypeDef(), CodeProperty.CreateTypeDef()
+                    Column.CreateTypeDef(), CodeProperty.CreateTypeDef()
                 },
                 stopwatch_
                 );

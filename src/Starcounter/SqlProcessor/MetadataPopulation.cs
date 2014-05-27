@@ -64,7 +64,7 @@ namespace Starcounter.SqlProcessor {
                                 MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
                                     "select c from materializedcolumn c where table = ? and name = ?",
                                     theView.MaterializedTable, propDef.ColumnName).First;
-                                TableColumn col = new TableColumn {
+                                Column col = new Column {
                                     BaseTable = theView,
                                     Name = propDef.Name,
                                     MaterializedColumn = matCol,
@@ -130,18 +130,18 @@ namespace Starcounter.SqlProcessor {
                 }
                 thisType.ParentTable = newParent;
             }
-            RemoveTableColumnInstances(thisType);
+            RemoveColumnInstances(thisType);
         }
 
-        internal static void RemoveTableColumnInstances(RawView thisView) {
+        internal static void RemoveColumnInstances(RawView thisView) {
             Debug.Assert(thisView != null);
-            foreach(TableColumn t in Db.SQL<TableColumn>(
-                "select t from tablecolumn t where t.basetable = ?", thisView)) {
+            foreach(Column t in Db.SQL<Column>(
+                "select t from starcounter.metadata.column t where t.basetable = ?", thisView)) {
                     Debug.Assert(t.BaseTable.Equals(thisView));
                     t.Delete();
             }
         }
-        internal static void CreateTableColumnInstances(TypeDef typeDef) {
+        internal static void CreateColumnInstances(TypeDef typeDef) {
             RawView thisView = Db.SQL<RawView>("select v from rawview v where materializedtable.name =?",
         typeDef.TableDef.Name).First;
             Debug.Assert(thisView != null);
@@ -151,7 +151,7 @@ namespace Starcounter.SqlProcessor {
                     "select c from materializedcolumn c where name = ? and table = ?",
                     col.Name, thisView.MaterializedTable).First;
                 Debug.Assert(matCol != null);
-                TableColumn newCol = new TableColumn {
+                Column newCol = new Column {
                     BaseTable = thisView,
                     Name = matCol.Name,
                     MaterializedColumn = matCol

@@ -69,7 +69,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class TableColumn : Member {
+    public sealed class Column : Member {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -86,8 +86,8 @@ namespace Starcounter.Metadata {
 
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.TableColumn", "Starcounter.Metadata.Member",
-                "TableColumn", "Member",
+                "Starcounter.Metadata.Column", "Starcounter.Metadata.Member",
+                "Column", "Member",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("BaseTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
@@ -105,9 +105,9 @@ namespace Starcounter.Metadata {
                 });
         }
 
-        public TableColumn(Uninitialized u) : base(u) { }
+        public Column(Uninitialized u) : base(u) { }
 
-        internal TableColumn()
+        internal Column()
             : this(null) {
                 DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, 
                     ref this.__sc__this_id__, ref this.__sc__this_handle__);

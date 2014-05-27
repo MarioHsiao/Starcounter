@@ -220,7 +220,7 @@ namespace Starcounter.Hosting {
                 }
                 foreach (TypeDef typeDef in updateColumns)
                     Db.SystemTransaction(delegate {
-                        MetadataPopulation.CreateTableColumnInstances(typeDef);
+                        MetadataPopulation.CreateColumnInstances(typeDef);
                     });
 
                 OnDatabaseSchemaCheckedAndUpdated();
@@ -265,7 +265,7 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Member.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Column.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
         }
 
