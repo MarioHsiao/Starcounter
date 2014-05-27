@@ -47,13 +47,13 @@ namespace QueryProcessingTest {
             Trace.Assert(m != null);
             Trace.Assert(m.BaseTable == null);
             Trace.Assert(m.Name == "Type");
-            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?", 
-                "parenttable", "table").First;
+            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?",
+                "Inherits", "table").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Table.Name == "Table");
             count = 0;
-            foreach(MaterializedColumn mc in Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", 
-                "parenttable")) {
+            foreach(MaterializedColumn mc in Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?",
+                "inherits")) {
                 count++;
                 }
             Trace.Assert(count == 5);
@@ -64,21 +64,21 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
-            Trace.Assert(rv.ParentTable == null);
+            Trace.Assert(rv.Inherits == null);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "ClrClass").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.FullNameReversed == "ClrClass.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
-            Trace.Assert(rv.ParentTable != null);
-            Trace.Assert(rv.ParentTable.Name == "VMView");
-            Trace.Assert(rv.ParentTable.ParentTable != null);
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable != null);
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.Name == "Table");
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable != null);
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.Name == "Type");
-            Trace.Assert(rv.ParentTable.ParentTable.ParentTable.ParentTable.ParentTable == null);
+            Trace.Assert(rv.Inherits != null);
+            Trace.Assert(rv.Inherits.Name == "VMView");
+            Trace.Assert(rv.Inherits.Inherits != null);
+            Trace.Assert(rv.Inherits.Inherits.Inherits != null);
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "Table");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits != null);
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Name == "Type");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Inherits == null);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
                 Trace.Assert(v.MaterializedTable != null);
@@ -103,7 +103,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
-            Trace.Assert(rv.ParentTable == null);
+            Trace.Assert(rv.Inherits == null);
             count = 0;
             foreach (MappedType mt in Db.SQL<MappedType>("select t from mappedtype t")) {
                 Starcounter.Binding.DbTypeCode typeCode = (Starcounter.Binding.DbTypeCode)mt.DbTypeCode;
@@ -126,7 +126,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "Column");
             Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            Trace.Assert((c.BaseTable as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
@@ -142,14 +142,14 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "materialized_table");
             Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).ParentTable == null);
+            Trace.Assert((c.BaseTable as RawView).Inherits == null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.BaseTable is RawView", 
-                "parenttable").First;
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.BaseTable is RawView",
+                "inherits").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Name == "ParentTable");
+            Trace.Assert(c.Name == "Inherits");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is HostMaterializedTable);
             Trace.Assert(c.Type.Name == "Table");
@@ -158,7 +158,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "Table");
             Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            Trace.Assert((c.BaseTable as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
@@ -173,7 +173,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable != null);
             Trace.Assert(c.BaseTable.Name == "Table");
             Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            Trace.Assert((c.BaseTable as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);

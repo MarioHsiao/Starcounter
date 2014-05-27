@@ -36,7 +36,7 @@ namespace Starcounter.SqlProcessor {
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
                         AppdomainName = AppDomain.CurrentDomain.FriendlyName,
-                        ParentTable = parentView,
+                        Inherits = parentView,
                         Updatable = app == null ? false : true
                     };
                     createdViews[j] = obj;
@@ -101,7 +101,7 @@ namespace Starcounter.SqlProcessor {
             RawView rawView = new RawView {
                 Name = typeDef.TableDef.Name,
                 MaterializedTable = matTab,
-                ParentTable = parentTab,
+                Inherits = parentTab,
                 Updatable = true
             };
             rawView.FullName = GetFullName(matTab.Name);
@@ -119,8 +119,8 @@ namespace Starcounter.SqlProcessor {
                 "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
             Debug.Assert(matTab != null);
             thisType.MaterializedTable = matTab;
-            Debug.Assert(thisType.ParentTable == null || thisType.ParentTable is RawView);
-            if ((thisType.ParentTable == null) || (thisType.ParentTable as RawView).MaterializedTable.Name != typeDef.TableDef.BaseName) {
+            Debug.Assert(thisType.Inherits == null || thisType.Inherits is RawView);
+            if ((thisType.Inherits == null) || (thisType.Inherits as RawView).MaterializedTable.Name != typeDef.TableDef.BaseName) {
                 // The parent was changed
                 RawView newParent = null;
                 if (typeDef.TableDef.BaseName != null) {
@@ -128,7 +128,7 @@ namespace Starcounter.SqlProcessor {
                         typeDef.TableDef.BaseName).First;
                     Debug.Assert(newParent != null);
                 }
-                thisType.ParentTable = newParent;
+                thisType.Inherits = newParent;
             }
             RemoveColumnInstances(thisType);
         }
