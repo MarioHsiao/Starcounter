@@ -56,7 +56,7 @@ namespace Starcounter.SqlProcessor {
                         if (propType != null) {
                             if (propDef.ColumnName == null) {
                                 CodeProperty codeProp = new CodeProperty {
-                                    BaseTable = theView,
+                                    Table = theView,
                                     Name = propDef.Name,
                                     Type = propType
                                 };
@@ -65,7 +65,7 @@ namespace Starcounter.SqlProcessor {
                                     "select c from materializedcolumn c where table = ? and name = ?",
                                     theView.MaterializedTable, propDef.ColumnName).First;
                                 Column col = new Column {
-                                    BaseTable = theView,
+                                    Table = theView,
                                     Name = propDef.Name,
                                     MaterializedColumn = matCol,
                                     Type = propType,
@@ -136,8 +136,8 @@ namespace Starcounter.SqlProcessor {
         internal static void RemoveColumnInstances(RawView thisView) {
             Debug.Assert(thisView != null);
             foreach(Column t in Db.SQL<Column>(
-                "select t from starcounter.metadata.column t where t.basetable = ?", thisView)) {
-                    Debug.Assert(t.BaseTable.Equals(thisView));
+                "select t from starcounter.metadata.column t where t.table = ?", thisView)) {
+                    Debug.Assert(t.Table.Equals(thisView));
                     t.Delete();
             }
         }
@@ -152,7 +152,7 @@ namespace Starcounter.SqlProcessor {
                     col.Name, thisView.MaterializedTable).First;
                 Debug.Assert(matCol != null);
                 Column newCol = new Column {
-                    BaseTable = thisView,
+                    Table = thisView,
                     Name = matCol.Name,
                     MaterializedColumn = matCol
                 };

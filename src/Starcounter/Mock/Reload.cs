@@ -32,8 +32,8 @@ namespace Starcounter {
         }
 
         private static string GetPropertyName(Column col) {
-            Debug.Assert(col.BaseTable is RawView);
-            PropertyDef prop = (from propDef in Bindings.GetTypeDef(((RawView)col.BaseTable).MaterializedTable.Name).PropertyDefs
+            Debug.Assert(col.Table is RawView);
+            PropertyDef prop = (from propDef in Bindings.GetTypeDef(((RawView)col.Table).MaterializedTable.Name).PropertyDefs
                                 where propDef.ColumnName == col.MaterializedColumn.Name
                                 select propDef).First();
             return prop.Name;
@@ -55,7 +55,7 @@ namespace Starcounter {
                 inStmt.Append(QuotePath(tbl.FullName));
                 inStmt.Append("(__id");
                 selectObjs.Append("SELECT __o as __id");
-                foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where basetable = ?", tbl)) {
+                foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
                     inStmt.Append(",");
                     inStmt.Append(QuoteName(col.Name));
                     selectObjs.Append(",");

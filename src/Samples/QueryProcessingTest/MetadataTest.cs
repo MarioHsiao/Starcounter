@@ -114,7 +114,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestRuntimeColumnMetadata() {
-            Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.BaseTable is rawview", 
+            Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is rawview", 
                 "materializedcolumn").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "MaterializedColumn");
@@ -123,10 +123,10 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type.Name == "materialized_column");
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == "materialized_column");
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "Column");
-            Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).Inherits != null);
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "Column");
+            Trace.Assert(c.Table is RawView);
+            Trace.Assert((c.Table as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
@@ -139,14 +139,14 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type.Name == "materialized_table");
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == "materialized_table");
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "materialized_table");
-            Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).Inherits == null);
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "materialized_table");
+            Trace.Assert(c.Table is RawView);
+            Trace.Assert((c.Table as RawView).Inherits == null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.BaseTable is RawView",
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView",
                 "inherits").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "Inherits");
@@ -155,14 +155,14 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type.Name == "Table");
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable != null);
             Trace.Assert((c.Type as HostMaterializedTable).MaterializedTable.Name == c.Type.Name);
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "Table");
-            Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).Inherits != null);
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "Table");
+            Trace.Assert(c.Table is RawView);
+            Trace.Assert((c.Table as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.BaseTable is RawView", 
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView", 
                 "fullNameReversed").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "FullNameReversed");
@@ -170,16 +170,16 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type is MaterializedType);
             Trace.Assert(c.Type.Name == "string");
             Trace.Assert((c.Type as MaterializedType).PrimitiveType == sccoredb.STAR_TYPE_STRING);
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "Table");
-            Trace.Assert(c.BaseTable is RawView);
-            Trace.Assert((c.BaseTable as RawView).Inherits != null);
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "Table");
+            Trace.Assert(c.Table is RawView);
+            Trace.Assert((c.Table as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
             int nrColumns = 0;
             foreach (Column tc in Db.SQL<Column>(
-                "select c from starcounter.metadata.column c, rawview v where c.BaseTable = v and v.updatable = ?", false)) {
+                "select c from starcounter.metadata.column c, rawview v where c.Table = v and v.updatable = ?", false)) {
                 Trace.Assert(tc.Type != null);
                 if (tc.Type is HostMaterializedTable)
                     Trace.Assert((tc.Type as HostMaterializedTable).MaterializedTable.Name == tc.Type.Name);
@@ -187,8 +187,8 @@ namespace QueryProcessingTest {
                     Trace.Assert(tc.Type is MaterializedType);
                     Trace.Assert((tc.Type as MaterializedType).PrimitiveType != sccoredb.STAR_TYPE_REFERENCE);
                 }
-                Trace.Assert(tc.BaseTable != null);
-                Trace.Assert(tc.BaseTable is RawView);
+                Trace.Assert(tc.Table != null);
+                Trace.Assert(tc.Table is RawView);
                 Trace.Assert(tc.MaterializedColumn != null);
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(!tc.Unique);
@@ -196,16 +196,16 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrColumns == 20 + 20);
             nrColumns = 0;
-            foreach (Column tc in Db.SQL<Column>("select c from starcounter.metadata.column c where c.BaseTable is RawView")) {
+            foreach (Column tc in Db.SQL<Column>("select c from starcounter.metadata.column c where c.Table is RawView")) {
                 Trace.Assert(tc.Type != null);
                 if (tc.Type is MaterializedType)
                     Trace.Assert((tc.Type as MaterializedType).PrimitiveType != sccoredb.STAR_TYPE_REFERENCE);
-                Trace.Assert(tc.BaseTable != null);
-                Trace.Assert(tc.BaseTable is RawView);
+                Trace.Assert(tc.Table != null);
+                Trace.Assert(tc.Table is RawView);
                 Trace.Assert(tc.MaterializedColumn != null);
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(!tc.Unique);
-                RawView rw = tc.BaseTable as RawView;
+                RawView rw = tc.Table as RawView;
                 Trace.Assert(rw.FullNameReversed.ReverseOrderDotWords() == rw.FullName);
                 nrColumns++;
             }
@@ -226,58 +226,58 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrCc == 7);
             Trace.Assert(nrcc == 1);
-            Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.basetable is ClrClass", 
+            Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
                 "UserIdNr").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "UserIdNr");
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "QueryProcessingTest.User");
-            Trace.Assert(c.BaseTable is ClrClass);
-            ClrClass cl = c.BaseTable as ClrClass;
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "QueryProcessingTest.User");
+            Trace.Assert(c.Table is ClrClass);
+            ClrClass cl = c.Table as ClrClass;
             Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
-            Trace.Assert(c.BaseTable.FullNameReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
+            Trace.Assert(c.Table.FullNameReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppDomainName);
-            Trace.Assert(c.BaseTable.FullName == cl.AppDomainName + "." + 
+            Trace.Assert(c.Table.FullName == cl.AppDomainName + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.FullClassName);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
-            Trace.Assert(c.MaterializedColumn.Table.Equals((c.BaseTable as HostMaterializedTable).MaterializedTable));
-            Trace.Assert(c.MaterializedColumn.Table.Name == (c.BaseTable as ClrClass).FullClassName);
+            Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as HostMaterializedTable).MaterializedTable));
+            Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullClassName);
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is MappedType);
             Trace.Assert((c.Type as MappedType).DbTypeCode == (ushort)DbTypeCode.Int32);
             Trace.Assert(c.Type.Name == "Int32");
-            Trace.Assert((c.BaseTable as ClrClass).AssemblyName == "QueryProcessingTest");
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.basetable is ClrClass", 
+            Trace.Assert((c.Table as ClrClass).AssemblyName == "QueryProcessingTest");
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
                 "WriteLoss").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "Starcounter.Metadata.ClrPrimitiveType");
-            Trace.Assert(c.BaseTable is ClrClass);
-            Trace.Assert((c.BaseTable as ClrClass).FullClassName == "Starcounter.Metadata.ClrPrimitiveType");
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "Starcounter.Metadata.ClrPrimitiveType");
+            Trace.Assert(c.Table is ClrClass);
+            Trace.Assert((c.Table as ClrClass).FullClassName == "Starcounter.Metadata.ClrPrimitiveType");
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
-            Trace.Assert(c.MaterializedColumn.Table.Equals((c.BaseTable as HostMaterializedTable).MaterializedTable));
-            Trace.Assert(c.MaterializedColumn.Table.Name == (c.BaseTable as ClrClass).Name.LastDotWord());
+            Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as HostMaterializedTable).MaterializedTable));
+            Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).Name.LastDotWord());
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is MappedType);
             Trace.Assert((c.Type as MappedType).DbTypeCode == (ushort)DbTypeCode.Boolean);
             Trace.Assert(c.Type.Name == "Boolean");
-            Trace.Assert(String.IsNullOrEmpty((c.BaseTable as ClrClass).AssemblyName));
-            Trace.Assert((c.BaseTable as ClrClass).AppDomainName == "sccode.exe");
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.basetable is ClrClass", 
+            Trace.Assert(String.IsNullOrEmpty((c.Table as ClrClass).AssemblyName));
+            Trace.Assert((c.Table as ClrClass).AppDomainName == "sccode.exe");
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
                 "Client").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "Client");
-            Trace.Assert(c.BaseTable != null);
-            Trace.Assert(c.BaseTable.Name == "QueryProcessingTest.Account");
-            Trace.Assert(c.BaseTable is ClrClass);
-            Trace.Assert((c.BaseTable as ClrClass).FullClassName == "QueryProcessingTest.Account");
+            Trace.Assert(c.Table != null);
+            Trace.Assert(c.Table.Name == "QueryProcessingTest.Account");
+            Trace.Assert(c.Table is ClrClass);
+            Trace.Assert((c.Table as ClrClass).FullClassName == "QueryProcessingTest.Account");
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
-            Trace.Assert(c.MaterializedColumn.Table.Equals((c.BaseTable as HostMaterializedTable).MaterializedTable));
-            Trace.Assert(c.MaterializedColumn.Table.Name == (c.BaseTable as ClrClass).FullClassName);
+            Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as HostMaterializedTable).MaterializedTable));
+            Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullClassName);
             Trace.Assert(c.Type != null);
             Trace.Assert(!(c.Type is MappedType));
             Trace.Assert(c.Type is ClrClass);
@@ -285,21 +285,21 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as ClrClass).FullClassName == "QueryProcessingTest.User");
             nrcc = 0;
             foreach (Column tc in Db.SQL<Column>(
-                "select c from starcounter.metadata.column c where name = ? and basetable is ClrClass", 
+                "select c from starcounter.metadata.column c where name = ? and table is ClrClass", 
                 "DecimalProperty")) {
                 nrcc++;
                 Trace.Assert(tc.Name == "DecimalProperty");
-                Trace.Assert(tc.BaseTable != null);
-                Trace.Assert(tc.BaseTable is ClrClass);
-                Trace.Assert((tc.BaseTable as ClrClass).AssemblyName == "QueryProcessingTest");
-                Trace.Assert((tc.BaseTable as ClrClass).AppDomainName == "sccode.exe");
+                Trace.Assert(tc.Table != null);
+                Trace.Assert(tc.Table is ClrClass);
+                Trace.Assert((tc.Table as ClrClass).AssemblyName == "QueryProcessingTest");
+                Trace.Assert((tc.Table as ClrClass).AppDomainName == "sccode.exe");
                 Trace.Assert(tc.Type != null);
                 Trace.Assert(tc.Type is MappedType);
                 Trace.Assert((tc.Type as MappedType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
                 Trace.Assert(tc.MaterializedColumn != null);
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
-                Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.BaseTable as HostMaterializedTable).MaterializedTable));
-                Trace.Assert(tc.MaterializedColumn.Table.Name == (tc.BaseTable as ClrClass).FullClassName);
+                Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.Table as HostMaterializedTable).MaterializedTable));
+                Trace.Assert(tc.MaterializedColumn.Table.Name == (tc.Table as ClrClass).FullClassName);
             }
             Trace.Assert(nrcc == 7);
             nrcc = 0;
@@ -307,12 +307,12 @@ namespace QueryProcessingTest {
                 "DecimalProperty")) {
                 nrcc++;
                 Trace.Assert(tc.Name == "DecimalProperty");
-                Trace.Assert(tc.BaseTable != null);
-                if (tc.BaseTable is ClrClass) {
-                    Trace.Assert((tc.BaseTable as ClrClass).AssemblyName == "QueryProcessingTest");
-                    Trace.Assert((tc.BaseTable as ClrClass).AppDomainName == "sccode.exe");
+                Trace.Assert(tc.Table != null);
+                if (tc.Table is ClrClass) {
+                    Trace.Assert((tc.Table as ClrClass).AssemblyName == "QueryProcessingTest");
+                    Trace.Assert((tc.Table as ClrClass).AppDomainName == "sccode.exe");
                 } else {
-                    Trace.Assert(tc.BaseTable is RawView);
+                    Trace.Assert(tc.Table is RawView);
                 }
                 Trace.Assert(tc.Type != null);
                 if (tc.Type is MappedType) 
@@ -323,7 +323,7 @@ namespace QueryProcessingTest {
                 }
                 Trace.Assert(tc.MaterializedColumn != null);
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
-                Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.BaseTable as HostMaterializedTable).MaterializedTable));
+                Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.Table as HostMaterializedTable).MaterializedTable));
             }
             Trace.Assert(nrcc == 7*2);
         }
