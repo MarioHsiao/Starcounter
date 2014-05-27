@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerWPF.Pages
 {
@@ -56,6 +57,13 @@ namespace Starcounter.InstallerWPF.Pages
                     {
                         return this.ParseText(this.Exception.Message);
                         //return this.Exception.Message;
+                    }
+
+                    // Trying to extract an error message.
+                    ErrorMessage errMessage;
+                    Boolean isScException = ErrorCode.TryGetCodedMessage(this.Exception, out errMessage);
+                    if (isScException && (!String.IsNullOrEmpty(errMessage.Body))) {
+                        return this.ParseText(errMessage.Body);
                     }
 
                     return this.ParseText(this.Exception.ToString());
