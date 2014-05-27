@@ -101,7 +101,7 @@
     <ClCompile Include="win32_acl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="internal.h" />
+    <ClInclude Include="internal.hpp" />
     <ClInclude Include="rapidxml.hpp" />
   </ItemGroup>
   <ItemGroup>

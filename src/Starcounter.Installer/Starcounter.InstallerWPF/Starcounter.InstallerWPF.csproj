@@ -535,12 +535,17 @@
       <Project>{210ac05e-453f-4ab0-abff-10d3804a9596}</Project>
       <Name>Starcounter.InstallerEngine</Name>
     </ProjectReference>
+	<ProjectReference Include="..\..\Server\Starcounter.Server\Starcounter.Server.csproj">
+      <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
+      <Name>Starcounter.Server</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup Condition="$(GenerateUniqueBuild) == 'True'">
     <Reference Include="$(OutputPath)\Starcounter.Internal.dll" />
     <Reference Include="$(OutputPath)\Starcounter.Tracking.dll" />
     <Reference Include="$(OutputPath)\Starcounter.Controls.WpfMessageBox.dll" />
     <Reference Include="$(OutputPath)\Starcounter.InstallerEngine.dll" />
+	<Reference Include="$(OutputPath)\Starcounter.Server.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="sc.ico">

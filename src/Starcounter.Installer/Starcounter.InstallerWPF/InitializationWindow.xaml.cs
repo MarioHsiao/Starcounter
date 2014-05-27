@@ -25,6 +25,9 @@ using System.IO.Compression;
 using Starcounter.Internal;
 using System.Windows.Interop;
 using System.Xml;
+using System.Xml.Linq;
+using Starcounter.Advanced.Configuration;
+using Starcounter.Server;
 
 namespace Starcounter.InstallerWPF {
 
@@ -60,13 +63,16 @@ namespace Starcounter.InstallerWPF {
         /// If versions are the same returns NULL.
         /// </summary>
         String CompareScVersions() {
+
             // Setting version to default value.
             String scVersion = "unknown";
 
             // Reading INSTALLED Starcounter version XML file.
             String installedVersion = null;
             String installDir = GetInstalledDirFromEnv();
+
             if (installDir != null) {
+
                 XmlDocument versionXML = new XmlDocument();
                 String versionInfoFilePath = System.IO.Path.Combine(installDir, "VersionInfo.xml");
 
@@ -91,13 +97,50 @@ namespace Starcounter.InstallerWPF {
             return null;
         }
 
-
         /// <summary>
         /// Checks for compatible database image files version for existing installation.
         /// </summary>
         /// <returns></returns>
-        Boolean IsCompatibleDatabaseImages() {
-            return true;
+        static void CheckExistingDatabasesForCompatibility(out List<String> dbListToUnload, out String errorString) {
+
+            errorString = "";
+
+            dbListToUnload = new List<String>();
+
+            var configDir = System.IO.Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterEnvironment.Directories.InstallationConfiguration);
+
+            if (!Directory.Exists(configDir)) {
+                configDir = System.IO.Path.Combine(StarcounterEnvironment.InstallationDirectory);
+
+                if (!Directory.Exists(configDir))
+                    throw new Exception("Starcounter installation directory does not exist: " + configDir);
+            }
+
+            var configFile = System.IO.Path.Combine(configDir, StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile);
+
+            if (!File.Exists(configFile))
+                throw new Exception("Starcounter server installation configuration file does not exist: " + configFile);
+
+            var xml = XDocument.Load(configFile);
+            var query = from c in xml.Root.Descendants(MixedCodeConstants.ServerConfigDirName)
+                        select c.Value;
+
+            var serverDir = query.First();
+            var serverConfigPath = System.IO.Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
+
+            if (!File.Exists(serverConfigPath))
+                throw new Exception("Starcounter server configuration file does not exist: " + serverConfigPath);
+
+            var serverConfig = ServerConfiguration.Load(serverConfigPath);
+
+            foreach (var databaseConfig in DatabaseConfiguration.LoadAll(serverConfig)) {
+
+                var image = ImageFile.Read(databaseConfig.Runtime.ImageDirectory, databaseConfig.Name);
+
+                if (image.Version != ImageFile.GetRuntimeImageVersion()) {
+                    dbListToUnload.Add(databaseConfig.Name);
+                }
+            }
         }
 
         /// <summary>
@@ -111,34 +154,54 @@ namespace Starcounter.InstallerWPF {
 
             if (previousVersion != null) {
 
-                // IMPORTANT: Since StarcounterBin can potentially be used
-                // in this installer we have to delete it for this process.
-                Environment.SetEnvironmentVariable(StarcounterBin, null);
-
                 WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
 
                 String uninstallQuestion = "Would you like to uninstall previous (" + previousVersion + ") version of Starcounter now?",
                     headingMessage = "Starcounter is already installed...";
 
                 // Checking for the existing databases compatibility.
-                if (IsCompatibleDatabaseImages()) {
+                List<String> dbListToUnload = new List<String>();
+                String errorString = null;
 
-                    userChoice = WpfMessageBox.Show(
-                        uninstallQuestion,
-                        headingMessage,
-                        WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+                try {
+                    CheckExistingDatabasesForCompatibility(out dbListToUnload, out errorString);
+                } catch (Exception exc) {
+                    errorString = exc.ToString();
+                }
 
+                if (null == errorString) {
+
+                    if (dbListToUnload.Count > 0) {
+
+                        String dbListToUnloadText = String.Join(Environment.NewLine, dbListToUnload);
+
+                        uninstallQuestion += Environment.NewLine + Environment.NewLine +
+                            "Existing database image files are incompatible with this installation (database(s): " + dbListToUnloadText + "). " +
+                            "Please follow the instructions at: " + Environment.NewLine +
+                            "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
+                            "to unload/reload databases.";
+
+                    }
                 } else {
 
-                    userChoice = WpfMessageBox.Show(
-                        uninstallQuestion + Environment.NewLine + Environment.NewLine +
-                        "Existing database image files are incompatible with this installation. " +
+                    // Some error occurred during the check.
+                    uninstallQuestion += 
+                        "Error occurred during verification of existing database image files versions." + Environment.NewLine +
                         "Please follow the instructions at: " + Environment.NewLine +
-                        "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions" + Environment.NewLine +
-                        " to unload/reload the databases data.",
-                        headingMessage,
-                        WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+                        "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
+                        "to unload/reload databases." +
+                        "Error message: " + errorString;
                 }
+
+                // IMPORTANT: Since StarcounterBin can potentially be used
+                // in this installer we have to delete it for this process.
+                Environment.SetEnvironmentVariable(StarcounterBin, null);
+
+                // Asking for user choice about uninstalling.
+                userChoice = WpfMessageBox.Show(
+                    uninstallQuestion,
+                    headingMessage,
+                    WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
                 if (userChoice == WpfMessageBoxResult.Yes) {
 

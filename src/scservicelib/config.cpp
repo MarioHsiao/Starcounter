@@ -1,11 +1,13 @@
 
-#include "internal.h"
+#include "internal.hpp"
 
 #include <windows.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
 #include "rapidxml.hpp"
+
+#include "../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 
 uint32_t _read_service_config(const wchar_t *name, wchar_t **pserver_dir)
 {
@@ -67,10 +69,10 @@ uint32_t _read_service_config(const wchar_t *name, wchar_t **pserver_dir)
         goto end;
     }
 
-    xml_node<> *root_elem = doc->first_node("service");
+    xml_node<> *root_elem = doc->first_node(starcounter::MixedCodeConstants::ServerConfigParentXmlName);
     if (!root_elem) goto end;
 
-    xml_node<> *server_dir_elem = root_elem->first_node("server-dir");
+    xml_node<> *server_dir_elem = root_elem->first_node(starcounter::MixedCodeConstants::ServerConfigDirName);
     if (!server_dir_elem) goto end;
 
     str_num_chars = server_dir_elem->value_size() + 1;
