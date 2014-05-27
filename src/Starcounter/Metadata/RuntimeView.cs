@@ -239,7 +239,7 @@ namespace Starcounter.Metadata {
         public VMView(Uninitialized u) : base(u) { }
     }
 
-    public sealed class ClrView : VMView {
+    public sealed class ClrClass : VMView {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -260,8 +260,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.ClrView", "Starcounter.Metadata.VMView",
-                "ClrView", "VMView",
+                "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
+                "ClrClass", "VMView",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -287,9 +287,9 @@ namespace Starcounter.Metadata {
                 });
         }
 
-        public ClrView(Uninitialized u) : base(u) { }
+        public ClrClass(Uninitialized u) : base(u) { }
         
-        internal ClrView()
+        internal ClrClass()
             : this(null) {
             DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }

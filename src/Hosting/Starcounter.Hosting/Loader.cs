@@ -78,7 +78,7 @@ namespace StarcounterInternal.Hosting
                     Starcounter.Metadata.Type.CreateTypeDef(), MaterializedType.CreateTypeDef(), 
                     MappedType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
                     Table.CreateTypeDef(), HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
-                    VMView.CreateTypeDef(), ClrView.CreateTypeDef(), BaseMember.CreateTypeDef(), 
+                    VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), BaseMember.CreateTypeDef(), 
                     TableColumn.CreateTypeDef(), CodeProperty.CreateTypeDef()
                 },
                 stopwatch_

@@ -197,9 +197,9 @@ namespace Starcounter.Hosting {
                 if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable") {
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                     OnRuntimeMetadataPopulated();
-                    // Call CLR view clean up
+                    // Call CLR class clean up
                     Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
-                    OnCleanClrViewsMetadata();
+                    OnCleanClrMetadata();
                 }
 
                 List<TypeDef> updateColumns = new List<TypeDef>();
@@ -242,8 +242,8 @@ namespace Starcounter.Hosting {
                     OnTypeSpecificationsInitialized();
                 }
 
-                MetadataPopulation.PopulateClrViewsMetaData(typeDefs);
-                OnPopulateClrViewsMetaData();
+                MetadataPopulation.PopulateClrMetadata(typeDefs);
+                OnPopulateClrMetadata();
             }
         }
 
@@ -262,7 +262,7 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(HostMaterializedTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(ClrView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(BaseMember.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
@@ -352,8 +352,8 @@ namespace Starcounter.Hosting {
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
         private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
-        private void OnCleanClrViewsMetadata() { Trace("CLR view meta-data were deleted on host start."); }
-        private void OnPopulateClrViewsMetaData() { Trace("CLR view meta-data were populated for the given types."); }
+        private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
+        private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)

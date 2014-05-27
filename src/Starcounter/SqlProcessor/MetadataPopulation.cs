@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public static class MetadataPopulation {
-        internal static void PopulateClrViewsMetaData(TypeDef[] typeDefs) {
+        internal static void PopulateClrMetadata(TypeDef[] typeDefs) {
             Db.SystemTransaction(delegate {
-                ClrView[] createdViews = new ClrView[typeDefs.Length];
+                ClrClass[] createdViews = new ClrClass[typeDefs.Length];
                 // Insert meta-data about types
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
@@ -25,10 +25,10 @@ namespace Starcounter.SqlProcessor {
                     string fullName = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
                     MaterializedTable mattab = Db.SQL<MaterializedTable>("select m from materializedtable m where name = ?",
                         typeDef.TableDef.Name).First;
-                    ClrView parentView = null;
+                    ClrClass parentView = null;
                     if (typeDef.BaseName != null)
-                        parentView = Db.SQL<ClrView>("select v from clrview v where fullclassname = ?", typeDef.BaseName).First;
-                    ClrView obj = new ClrView {
+                        parentView = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", typeDef.BaseName).First;
+                    ClrClass obj = new ClrClass {
                         Name = typeDef.Name,
                         FullClassName = typeDef.Name,
                         FullNameReversed = fullNameRev,
@@ -44,13 +44,13 @@ namespace Starcounter.SqlProcessor {
                 // Insert meta-data about properties
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
-                    ClrView theView = createdViews[j];
+                    ClrClass theView = createdViews[j];
                     Debug.Assert(theView.FullClassName == typeDef.Name);
                     for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
                         PropertyDef propDef = typeDef.PropertyDefs[i];
                         Starcounter.Metadata.Type propType = null;
                         if (propDef.Type == DbTypeCode.Object)
-                            propType = Db.SQL<ClrView>("select v from clrview v where fullclassname = ?", propDef.TargetTypeName).First;
+                            propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
                         else
                             propType = Db.SQL<MappedType>("select t from mappedtype t where dbtypecode = ?", propDef.Type).First;
                         if (propType != null) {

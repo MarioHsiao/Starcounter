@@ -64,7 +64,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                             table.Name == "Type" || table.Name == "MaterializedType" || table.Name == "MappedType" || table.Name == "ClrPrimitiveType" ||
                             // Runtime table system tables
                             table.Name == "Table" || table.Name == "HostMaterializedTable" || table.Name == "RawView" ||
-                            table.Name == "VMView" || table.Name == "ClrView" ||
+                            table.Name == "VMView" || table.Name == "ClrClass" ||
                             // Runtime column system tables
                             table.Name == "BaseMember" || table.Name == "TableColumn" || table.Name == "CodeProperty"
                             ) continue;
