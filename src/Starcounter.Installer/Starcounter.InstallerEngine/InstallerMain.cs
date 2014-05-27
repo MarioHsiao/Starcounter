@@ -421,7 +421,7 @@ namespace Starcounter.InstallerEngine
         }
 
         // List of processes to be killed.
-        internal static String[] ScProcessesList = new String[]
+        public static String[] ScProcessesList = new String[]
         {
             StarcounterConstants.ProgramNames.ScService,
             StarcounterConstants.ProgramNames.ScAdminServer,
