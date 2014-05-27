@@ -176,9 +176,9 @@ namespace Starcounter.InstallerWPF {
         static void CheckExistingDatabasesForCompatibility(out List<String> dbListToUnload) {
 
             // Killing all disturbing processes.
-            if (!KillDisturbingProcesses(InstallerMain.ScProcessesList)) {
-                Environment.Exit(1);
-            }
+            //if (!KillDisturbingProcesses(InstallerMain.ScProcessesList)) {
+            //    Environment.Exit(1);
+            //}
 
             dbListToUnload = new List<String>();
 
