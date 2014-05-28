@@ -393,7 +393,7 @@ namespace Starcounter.InstallerWPF {
 
                             // User confirmed to delete previous installation directory.
                             if (result != WpfMessageBoxResult.Yes)
-                                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User has canceled file copy process.");
+                                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User rejected the cleanup of installation directory.");
 
                             // Removing directory.
                             Utilities.ForceDeleteDirectory(new DirectoryInfo(installationPath));

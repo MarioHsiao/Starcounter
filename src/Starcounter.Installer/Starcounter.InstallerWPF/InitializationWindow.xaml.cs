@@ -98,12 +98,87 @@ namespace Starcounter.InstallerWPF {
         }
 
         /// <summary>
+        /// Stops current execution to ask a user to make a decision about a question.
+        /// </summary>
+        /// <param name="question">Question string.</param>
+        /// <param name="title">Message box title.</param>
+        /// <returns>'True' if user agreed, 'False' otherwise.</returns>
+        static Boolean AskUserForDecision(String question, String title) {
+
+            WpfMessageBoxResult userChoice = WpfMessageBox.Show(
+                question,
+                title,
+                WpfMessageBoxButton.YesNo,
+                WpfMessageBoxImage.Exclamation,
+                WpfMessageBoxResult.No);
+
+            // Checking user's choice.
+            if (userChoice != WpfMessageBoxResult.Yes)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Kills all disturbing processes and waits for them to shutdown.
+        /// </summary>
+        /// <param name="procNames">Names of processes.</param>
+        /// Returns true if processes were killed.
+        static Boolean KillDisturbingProcesses(String[] procNames) {
+
+            Boolean promptedKillMessage = false;
+
+            foreach (String procName in procNames) {
+                
+                Process[] procs = Process.GetProcessesByName(procName);
+
+                foreach (Process proc in procs) {
+
+                    // Asking for user decision about killing processes.
+                    if (!promptedKillMessage) {
+
+                        promptedKillMessage = true;
+
+                        if (!AskUserForDecision(
+                            "All running Starcounter processes will be stopped to continue the setup." + Environment.NewLine +
+                            "Are you sure you want to proceed?",
+                            "Stopping Starcounter processes...")) {
+
+                            return false;
+                        }
+                    }
+
+                    try {
+                        proc.Kill();
+                        proc.WaitForExit(30000);
+
+                        if (!proc.HasExited) {
+                            String processCantBeKilled = 
+                                "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
+                                "Please shutdown the corresponding application explicitly.";
+
+                            WpfMessageBox.Show(processCantBeKilled, "Process can not be killed...");
+
+                            return false;
+                        }
+
+                    } catch { } finally { proc.Close(); }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Checks for compatible database image files version for existing installation.
         /// </summary>
         /// <returns></returns>
-        static void CheckExistingDatabasesForCompatibility(out List<String> dbListToUnload, out String errorString) {
+        static void CheckExistingDatabasesForCompatibility(out List<String> dbListToUnload) {
 
-            errorString = "";
+            // Killing all disturbing processes.
+            //if (!KillDisturbingProcesses(InstallerMain.ScProcessesList)) {
+            //    Environment.Exit(1);
+            //}
 
             dbListToUnload = new List<String>();
 
@@ -164,7 +239,7 @@ namespace Starcounter.InstallerWPF {
                 String errorString = null;
 
                 try {
-                    CheckExistingDatabasesForCompatibility(out dbListToUnload, out errorString);
+                    CheckExistingDatabasesForCompatibility(out dbListToUnload);
                 } catch (Exception exc) {
                     errorString = exc.ToString();
                 }
@@ -189,7 +264,7 @@ namespace Starcounter.InstallerWPF {
                         "Error occurred during verification of existing database image files versions." + Environment.NewLine +
                         "Please follow the instructions at: " + Environment.NewLine +
                         "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
-                        "to unload/reload databases." +
+                        "to unload/reload databases." + Environment.NewLine +
                         "Error message: " + errorString;
                 }
 

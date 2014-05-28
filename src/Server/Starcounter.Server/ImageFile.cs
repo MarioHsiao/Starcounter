@@ -42,7 +42,7 @@ namespace Starcounter.Server {
             // proper exception, like FileNotFound, or FormatExceltion.
             // TODO:
 
-            using (var file = File.OpenRead(imageFiles[0])) {
+            using (var file = File.Open(imageFiles[0], FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 var read = file.Read(data, 0, data.Length);
                 if (read != size) {
                     throw ErrorCode.ToException(Error.SCERRCANTREADIMAGEFILE, 
