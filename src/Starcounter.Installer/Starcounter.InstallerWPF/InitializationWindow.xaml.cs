@@ -604,7 +604,18 @@ namespace Starcounter.InstallerWPF {
             "Starcounter.REST.dll",
             "scerrres.dll",
             "schttpparser.dll",
-            "sccoredbh.dll"
+            "sccoredbh.dll",
+            "behemoth.dll",
+            "bmx.dll",
+            "coalmine.dll",
+            "sccoreapp.dll",
+            "sccoredb.dll",
+            "sccoredbg.dll",
+            "sccoredbm.dll",
+            "sccorelib.dll",
+            "sccorelog.dll",
+            "server.dll",
+            "sunflower.dll"
         };
 
         // PID of the parent process.
