@@ -384,7 +384,7 @@ namespace Starcounter.InstallerWPF {
 
                             // Asking if user wants to delete installation path before proceeding.
                             Utilities.MessageBoxEventArgs messageBoxEventArgs = new Utilities.MessageBoxEventArgs(
-                                "Installation path '" + installationPath + "' is occupied. Do you want to delete existing directory? ALL DATA IN THIS DIRECTORY WILL BE LOST!", "Installation path is occupied...",
+                                "Installation path '" + installationPath + "' is occupied. Do you want to delete existing directory? All files in this directory will be automatically deleted!", "Installation path is occupied...",
                                 WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Exclamation, WpfMessageBoxResult.No);
                             messageboxCallback(this, messageBoxEventArgs);
 
