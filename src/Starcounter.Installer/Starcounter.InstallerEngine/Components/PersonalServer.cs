@@ -257,7 +257,8 @@ public class CPersonalServer : CComponentBase
         {
             if (!Utilities.AskUserForDecision(
                 "Server directory already exists: " + serverDir + Environment.NewLine +
-                "Would you like to remove it? ALL DATA IN THIS DIRECTORY WILL BE LOST!",
+                "Would you like to delete it? NOTE: Databases and files stored in the server directory would be automatically removed!" + Environment.NewLine +
+                "(by clicking 'NO' server configuration files would be overwritten and other files would try to be preserved).",
                 "Server directory already exists..."))
             {
                 // TODO: Talk with Anders about catching this type of exception in GUI.
