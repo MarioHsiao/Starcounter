@@ -386,6 +386,9 @@ namespace Starcounter.InstallerWPF {
             var styles = new Uri("pack://application:,,,/styles.xaml", UriKind.RelativeOrAbsolute);
             Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = styles });
 
+            // Try extracting static installer dependencies (only parent process does this).
+            ExtractInstallerDependencies();
+
             // Checking if another Starcounter version is installed.
             // NOTE: Environment.Exit is used on purpose here, not just "return";
             if (IsAnotherVersionInstalled())
@@ -600,7 +603,19 @@ namespace Starcounter.InstallerWPF {
             "Starcounter.InstallerNativeHelper.dll",
             "Starcounter.REST.dll",
             "scerrres.dll",
-            "schttpparser.dll"
+            "schttpparser.dll",
+            "sccoredbh.dll",
+            "behemoth.dll",
+            "bmx.dll",
+            "coalmine.dll",
+            "sccoreapp.dll",
+            "sccoredb.dll",
+            "sccoredbg.dll",
+            "sccoredbm.dll",
+            "sccorelib.dll",
+            "sccorelog.dll",
+            "server.dll",
+            "sunflower.dll"
         };
 
         // PID of the parent process.
@@ -652,9 +667,6 @@ namespace Starcounter.InstallerWPF {
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception(errMsg, new InstallerException(errMsg, InstallerErrorCode.ExistingInstance));
             }
-
-            // Try extracting static installer dependencies (only parent process does this).
-            ExtractInstallerDependencies();
 
             // Registering exceptions handling and application exit event.
             Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
