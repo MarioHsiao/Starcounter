@@ -32,7 +32,7 @@ namespace Starcounter.Metadata {
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
-                "Table", "Type",
+                "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -95,7 +95,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class HostMaterializedTable : Table {
+    public sealed class RawView : Starcounter.Internal.Metadata.HostMaterializedTable {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -113,65 +113,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
-                "HostMaterializedTable", "Table",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("FullNameReversed", DbTypeCode.String),
-                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
-                });
-        }
-
-        public HostMaterializedTable(Uninitialized u) : base(u) { }
-
-        //internal HostMaterializedTable()
-        //    : this(null) {
-        //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        //}
-
-        public MaterializedTable MaterializedTable {
-            get {
-                return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, 
-                __starcounterTypeSpecification.columnHandle_MaterializedTable); }
-            internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedTable, value);
-            }
-        }
-    }
-
-    public sealed class RawView : HostMaterializedTable {
-        #region Infrastructure, reflecting what is emitted by the weaver.
-#pragma warning disable 0649, 0169
-        internal new class __starcounterTypeSpecification {
-            internal static ushort tableHandle;
-            internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_FullNameReversed;
-            internal static int columnHandle_Inherits;
-            internal static int columnHandle_Updatable;
-            internal static int columnHandle_FullName;
-            internal static int columnHandle_MaterializedTable;
-        }
-#pragma warning disable 0628, 0169
-        #endregion
-
-        static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RawView", "Starcounter.Metadata.HostMaterializedTable",
-                "RawView", "HostMaterializedTable",
+                "Starcounter.Metadata.RawView", "Starcounter.Internal.Metadata.HostMaterializedTable",
+                "Starcounter.Metadata.RawView", "Starcounter.Internal.Metadata.HostMaterializedTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -197,7 +140,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class VMView : HostMaterializedTable {
+    public abstract class VMView : Starcounter.Internal.Metadata.HostMaterializedTable {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -215,8 +158,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.VMView", "Starcounter.Metadata.HostMaterializedTable",
-                "VMView", "HostMaterializedTable",
+                "Starcounter.Metadata.VMView", "Starcounter.Internal.Metadata.HostMaterializedTable",
+                "Starcounter.Metadata.VMView", "Starcounter.Internal.Metadata.HostMaterializedTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -261,7 +204,7 @@ namespace Starcounter.Metadata {
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
-                "ClrClass", "VMView",
+                "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -327,4 +270,66 @@ namespace Starcounter.Metadata {
             }
         }
     }
+}
+
+namespace Starcounter.Internal.Metadata {
+    public abstract class HostMaterializedTable : Starcounter.Metadata.Table {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_FullNameReversed;
+            internal static int columnHandle_Inherits;
+            internal static int columnHandle_Updatable;
+            internal static int columnHandle_FullName;
+            internal static int columnHandle_MaterializedTable;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static new internal TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                "Starcounter.Internal.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
+                "Starcounter.Internal.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
+                new ColumnDef[] {
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullNameReversed", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
+                },
+                new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("FullNameReversed", DbTypeCode.String),
+                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
+                    new PropertyDef("Updatable", DbTypeCode.Boolean),
+                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
+                });
+        }
+
+        public HostMaterializedTable(Uninitialized u) : base(u) { }
+
+        //internal HostMaterializedTable()
+        //    : this(null) {
+        //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //}
+
+        public Starcounter.Metadata.MaterializedTable MaterializedTable {
+            get {
+                return (Starcounter.Metadata.MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle_MaterializedTable);
+            }
+            internal set {
+                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_MaterializedTable, value);
+            }
+        }
+    }
+
+
 }

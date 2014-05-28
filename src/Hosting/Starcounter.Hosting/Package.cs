@@ -254,12 +254,12 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(MaterializedIndexColumn.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MappedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MappedType.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Table.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(HostMaterializedTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.HostMaterializedTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
