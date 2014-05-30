@@ -212,20 +212,16 @@ namespace star {
                 return;
             }
 
-            string[] userArgs = null;
-            if (appArgs.CommandParameters != null) {
-                int userArgsCount = appArgs.CommandParameters.Count;
 
-                // Check if we have more arguments than one. Remember that we
-                // reserve the first argument as the name/path of the executable
-                // and that we are really hiding a general "Exec exe [others]"
-                // scenario.
+            // Check if we have more arguments than one. Remember that we
+            // reserve the first argument as the name/path of the executable
+            // and that we are really hiding a general "Exec exe [others]"
+            // scenario.
 
-                if (userArgsCount > 1) {
-                    userArgsCount--;
-                    userArgs = new string[userArgsCount];
-                    appArgs.CommandParameters.CopyTo(1, userArgs, 0, userArgsCount);
-                }
+            int userArgsCount = appArgs.CommandParameters.Count - 1;
+            var userArgs = new string[userArgsCount];
+            if (userArgsCount > 0) {
+                appArgs.CommandParameters.CopyTo(1, userArgs, 0, userArgsCount);
             }
 
             // Turn to the shared CLI library to do the bulk of the
