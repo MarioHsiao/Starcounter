@@ -79,7 +79,7 @@ namespace StarcounterInternal.Hosting
                     Starcounter.Internal.Metadata.MappedType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
                     Table.CreateTypeDef(), Starcounter.Internal.Metadata.HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), Member.CreateTypeDef(), 
-                    Column.CreateTypeDef(), CodeProperty.CreateTypeDef(), Index.CreateTypeDef()
+                    Column.CreateTypeDef(), CodeProperty.CreateTypeDef(), Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
                 },
                 stopwatch_
                 );

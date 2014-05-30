@@ -269,6 +269,7 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Index.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(IndexedColumn.__starcounterTypeSpecification));
         }
 
         /// <summary>
