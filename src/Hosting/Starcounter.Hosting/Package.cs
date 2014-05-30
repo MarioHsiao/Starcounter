@@ -276,7 +276,7 @@ namespace Starcounter.Hosting {
                 if (entrypoint.GetParameters().Length == 0) {
                     entrypoint.Invoke(null, null);
                 } else {
-                    var arguments = application.Arguments;
+                    var arguments = application.Arguments ?? new string[0];
                     entrypoint.Invoke(null, new object[] { arguments });
                 }
             } catch (TargetInvocationException te) {
