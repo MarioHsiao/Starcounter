@@ -159,6 +159,10 @@ namespace Starcounter.Metadata {
         public ulong Position {
             get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, 
                 __starcounterTypeSpecification.columnHandle_Position); }
+            internal set {
+                DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Position, value);
+            }
         }
 
         public Boolean Ascending {

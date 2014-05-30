@@ -219,6 +219,20 @@ namespace QueryProcessingTest {
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "ColumnPrimaryKey").First;
             Trace.Assert(i != null);
+            Index idx = Db.SQL<Index>("select i from starcounter.metadata.\"index\" i where i.\"table\".name = ?", "VersionSource").First;
+            Trace.Assert(idx == null);
+            IndexedColumn idxc = Db.SQL<IndexedColumn>(
+                "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.column.name = ?",
+                "account", "accountid").First;
+            Trace.Assert(idxc == null);
+            var indexedColumnEnum = Db.SQL<IndexedColumn>(
+                "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.\"index\".name = ? order by i.\"position\"",
+                "materializedtable", "built-in").GetEnumerator();
+            Trace.Assert(!indexedColumnEnum.MoveNext());
+            indexedColumnEnum = Db.SQL<IndexedColumn>(
+                "select i from indexedcolumn i where i.\"index\".name = ? order by \"position\"",
+                "ColumnPrimaryKey").GetEnumerator();
+            Trace.Assert(!indexedColumnEnum.MoveNext());
         }
 
         public static void ClrMetadatTest() {
