@@ -194,7 +194,7 @@ namespace Starcounter.Hosting {
 
             if (typeDefs.Length != 0)
             {
-                if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable") {
+                if (typeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                     OnRuntimeMetadataPopulated();
                     // Call CLR class clean up
@@ -248,10 +248,10 @@ namespace Starcounter.Hosting {
         }
 
         private void InitTypeSpecifications() {
-            HostManager.InitTypeSpecification(typeof(MaterializedTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedColumn.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedIndex.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MaterializedIndexColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndex.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndexColumn.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedType.__starcounterTypeSpecification));

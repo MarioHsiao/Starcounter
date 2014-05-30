@@ -8,7 +8,7 @@ using Starcounter.Binding;
 using Starcounter.Internal;
 using System.Reflection;
 
-namespace Starcounter.Metadata {
+namespace Starcounter.Internal.Metadata {
     /// <summary>
     /// Class MaterializedIndex
     /// </summary>
@@ -53,17 +53,18 @@ namespace Starcounter.Metadata {
                 );
 
             var sysIndexTypeDef = new TypeDef(
-                "Starcounter.Metadata.MaterializedIndex",
+                "Starcounter.Internal.Metadata.MaterializedIndex",
                 null,
                 new PropertyDef[]
                 {
                     new PropertyDef("IndexId", DbTypeCode.UInt64, false) { ColumnName = "index_id" },
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedTable") { ColumnName = "table" },
+                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedTable") 
+                    { ColumnName = "table" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
                     new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedIndex"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedIndex"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.UInt64, DbTypeCode.Object,
@@ -157,16 +158,16 @@ namespace Starcounter.Metadata {
                 );
 
             var sysIndexTypeDef = new TypeDef(
-                "Starcounter.Metadata.MaterializedIndexColumn",
+                "Starcounter.Internal.Metadata.MaterializedIndexColumn",
                 null,
                 new PropertyDef[]
                 {
-                    new PropertyDef("Index", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedIndex") { ColumnName = "index" },
+                    new PropertyDef("Index", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedIndex") { ColumnName = "index" },
                     new PropertyDef("Place", DbTypeCode.UInt64, false) { ColumnName = "place" },
-                    new PropertyDef("Column", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedColumn") { ColumnName = "column" },
+                    new PropertyDef("Column", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedColumn") { ColumnName = "column" },
                     new PropertyDef("Order", DbTypeCode.UInt64, false) { ColumnName = "order" }
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedIndexColumn"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedIndexColumn"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.Object, DbTypeCode.UInt64, DbTypeCode.Object,

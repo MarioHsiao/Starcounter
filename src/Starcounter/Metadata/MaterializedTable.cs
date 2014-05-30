@@ -8,7 +8,7 @@ using Starcounter.Binding;
 using Starcounter.Internal;
 using System.Reflection;
 
-namespace Starcounter.Metadata {
+namespace Starcounter.Internal.Metadata {
 
     /// <summary>
     /// Class MaterializedTable
@@ -52,15 +52,15 @@ namespace Starcounter.Metadata {
                 );
 
             var sysTableTypeDef = new TypeDef(
-                "Starcounter.Metadata.MaterializedTable",
+                "Starcounter.Internal.Metadata.MaterializedTable",
                 null,
                 new PropertyDef[]
                 {
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("BaseTable", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedTable") { ColumnName = "base_table" }
+                    new PropertyDef("BaseTable", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedTable") { ColumnName = "base_table" }
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedTable"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedTable"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.String, DbTypeCode.Object

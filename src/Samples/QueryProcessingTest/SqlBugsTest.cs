@@ -255,22 +255,26 @@ namespace QueryProcessingTest {
         public static void TestComparison() {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
             ulong accountTableId = Db.SQL<ulong>("select TableId from MaterializedTable where name = ?", "QueryProcessingTest.Account").First;
-            var e = Db.SQL<MaterializedTable>("select s from MaterializedTable s where TableId = ?", accountTableId).GetEnumerator();
+            var e = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = ?", 
+                accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
-            MaterializedTable s = e.Current;
+            Starcounter.Internal.Metadata.MaterializedTable s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
             Trace.Assert(s.TableId == accountTableId);
             e.Dispose();
-            e = Db.SlowSQL<MaterializedTable>("select s from MaterializedTable s where TableId = "+accountTableId).GetEnumerator();
+            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>(
+                "select s from MaterializedTable s where TableId = " + accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
             Trace.Assert(s.TableId == accountTableId);
             e.Dispose();
-            e = Db.SlowSQL<MaterializedTable>("select s from MaterializedTable s where TableId = 10").GetEnumerator();
+            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = 10").
+                GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
-            e = Db.SlowSQL<MaterializedTable>("select s from MaterializedTable s where TableId = 1.0E1").GetEnumerator();
+            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = 1.0E1").
+                GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
             HelpMethods.LogEvent("Finished testing queries on comparison bug");
@@ -471,14 +475,14 @@ namespace QueryProcessingTest {
             try {
                 Db.SQL("create index anwhereindx on account (where)");
             } catch (SqlException) { }
-            Trace.Assert(Db.SQL<MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whenindx").First != null);
-            Trace.Assert(Db.SQL<MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First != null);
-            Trace.Assert(Db.SQL<MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whenindx").First != null);
+            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First != null);
+            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
             Db.SQL("drop index whenindx on account ");
             Db.SQL("drop index whereindx on account");
-            Trace.Assert(Db.SQL<MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whenindx").First == null);
-            Trace.Assert(Db.SQL<MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First == null);
-            Trace.Assert(Db.SQL<MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whenindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
             HelpMethods.LogEvent("Finished testing DDL statements");
         }
     }

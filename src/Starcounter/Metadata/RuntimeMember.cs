@@ -100,7 +100,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
-                    new PropertyDef("MaterializedColumn", DbTypeCode.Object, "Starcounter.Metadata.MaterializedColumn"),
+                    new PropertyDef("MaterializedColumn", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedColumn"),
                     new PropertyDef("Unique", DbTypeCode.Boolean)
                 });
         }
@@ -113,9 +113,9 @@ namespace Starcounter.Metadata {
                     ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
-        public MaterializedColumn MaterializedColumn {
+        public Starcounter.Internal.Metadata.MaterializedColumn MaterializedColumn {
             get {
-                return (MaterializedColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (Starcounter.Internal.Metadata.MaterializedColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_MaterializedColumn);
             }
             internal set {

@@ -32,7 +32,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("Unique", DbTypeCode.Boolean),
-                    new PropertyDef("MaterializedIndex", DbTypeCode.Object, "Starcounter.Metadata.MaterializedIndex")
+                    new PropertyDef("MaterializedIndex", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedIndex")
                 });
 
         }
@@ -78,9 +78,9 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public MaterializedIndex MaterializedIndex {
+        public Starcounter.Internal.Metadata.MaterializedIndex MaterializedIndex {
             get {
-                return (MaterializedIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (Starcounter.Internal.Metadata.MaterializedIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_MaterializedIndex);
             }
             internal set {

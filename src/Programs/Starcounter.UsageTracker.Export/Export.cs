@@ -39,7 +39,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
             Console.WriteLine(string.Format("NOTICE: Exporting to: {0} ", file));
 
 
-            QueryResultRows<Starcounter.Metadata.MaterializedTable> result = Db.SlowSQL<Starcounter.Metadata.MaterializedTable>("SELECT o FROM MaterializedTable o");
+            QueryResultRows<Starcounter.Internal.Metadata.MaterializedTable> result = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("SELECT o FROM MaterializedTable o");
             int tableCnt = 0;
 
             try {
@@ -49,7 +49,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                     writer.WriteLine("{");
                     writer.Write("    \"Tables\": [");
 
-                    foreach (Starcounter.Metadata.MaterializedTable table in result) {
+                    foreach (Starcounter.Internal.Metadata.MaterializedTable table in result) {
 
                         // Exclude system tables from export.
 
@@ -100,7 +100,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
 
         }
 
-        private static int ExportTable(Starcounter.Metadata.MaterializedTable table, TextWriter writer) {
+        private static int ExportTable(Starcounter.Internal.Metadata.MaterializedTable table, TextWriter writer) {
 
             FastReflectionCaches.ClearAllCaches();
             Utils.ClearCache();

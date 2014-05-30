@@ -23,7 +23,8 @@ namespace Starcounter.SqlProcessor {
                     }
                     string fullNameRev = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
                     string fullName = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
-                    MaterializedTable mattab = Db.SQL<MaterializedTable>("select m from materializedtable m where name = ?",
+                    Starcounter.Internal.Metadata.MaterializedTable mattab = 
+                        Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
                         typeDef.TableDef.Name).First;
                     ClrClass parentView = null;
                     if (typeDef.BaseName != null)
@@ -61,7 +62,8 @@ namespace Starcounter.SqlProcessor {
                                     Type = propType
                                 };
                             } else {
-                                MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
+                                Starcounter.Internal.Metadata.MaterializedColumn matCol = 
+                                    Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
                                     "select c from materializedcolumn c where table = ? and name = ?",
                                     theView.MaterializedTable, propDef.ColumnName).First;
                                 Column col = new Column {
@@ -91,7 +93,7 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void CreateRawTableInstance(TypeDef typeDef) {
-            MaterializedTable matTab = Db.SQL<MaterializedTable>(
+            Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
                 "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
             Debug.Assert(matTab != null);
             Debug.Assert(Db.SQL<RawView>("select v from rawview v where materializedtable = ?",
@@ -115,7 +117,7 @@ namespace Starcounter.SqlProcessor {
                 GetFullName(typeDef.TableDef.Name)).First;
             Debug.Assert(thisType != null);
             Debug.Assert(thisType.MaterializedTable == null);
-            MaterializedTable matTab = Db.SQL<MaterializedTable>(
+            Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
                 "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
             Debug.Assert(matTab != null);
             thisType.MaterializedTable = matTab;
@@ -147,7 +149,7 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(thisView != null);
             for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
                 ColumnDef col = typeDef.TableDef.ColumnDefs[i];
-                MaterializedColumn matCol = Db.SQL<MaterializedColumn>(
+                Starcounter.Internal.Metadata.MaterializedColumn matCol = Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
                     "select c from materializedcolumn c where name = ? and table = ?",
                     col.Name, thisView.MaterializedTable).First;
                 Debug.Assert(matCol != null);

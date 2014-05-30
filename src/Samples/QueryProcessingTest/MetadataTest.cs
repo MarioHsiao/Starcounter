@@ -44,17 +44,20 @@ namespace QueryProcessingTest {
                 count++;
             }
             Trace.Assert(count == 15);
-            MaterializedTable m = Db.SQL<MaterializedTable>("select m from MaterializedTable m where name = ?", 
+            Starcounter.Internal.Metadata.MaterializedTable m = 
+                Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from MaterializedTable m where name = ?", 
                 "Starcounter.Metadata.Type").First;
             Trace.Assert(m != null);
             Trace.Assert(m.BaseTable == null);
             Trace.Assert(m.Name == "Starcounter.Metadata.Type");
-            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?",
+            Starcounter.Internal.Metadata.MaterializedColumn c = 
+                Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>("select c from materializedcolumn c where name = ? and c.table.name = ?",
                 "Inherits", "starcounter.metadata.table").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Table.Name == "Starcounter.Metadata.Table");
             count = 0;
-            foreach(MaterializedColumn mc in Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?",
+            foreach (Starcounter.Internal.Metadata.MaterializedColumn mc in 
+                Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>("select c from materializedcolumn c where name = ?",
                 "inherits")) {
                 count++;
                 }
@@ -212,7 +215,8 @@ namespace QueryProcessingTest {
                 nrColumns++;
             }
             Trace.Assert(nrColumns == 112);
-            MaterializedIndex i = Db.SQL<MaterializedIndex>("select i from materializedindex i where name = ?",
+            Starcounter.Internal.Metadata.MaterializedIndex i = 
+                Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "ColumnPrimaryKey").First;
             Trace.Assert(i != null);
         }

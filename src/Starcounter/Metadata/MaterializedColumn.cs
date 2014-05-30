@@ -8,7 +8,7 @@ using Starcounter.Binding;
 using Starcounter.Internal;
 using System.Reflection;
 
-namespace Starcounter.Metadata {
+namespace Starcounter.Internal.Metadata {
 
     /// <summary>
     /// </summary>
@@ -59,12 +59,12 @@ namespace Starcounter.Metadata {
                 );
 
             var sysColumnTypeDef = new TypeDef(
-                "Starcounter.Metadata.MaterializedColumn",
+                "Starcounter.Internal.Metadata.MaterializedColumn",
                 null,
                 new PropertyDef[]
                 {
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedTable") { ColumnName = "table" },
+                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedTable") { ColumnName = "table" },
                     new PropertyDef("Index", DbTypeCode.UInt64, false) { ColumnName = "index" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
                     new PropertyDef("PrimitiveType", DbTypeCode.UInt64, false) { ColumnName = "primitive_type" },
@@ -72,7 +72,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("Nullable", DbTypeCode.Boolean, false) { ColumnName = "nullable" },
                     new PropertyDef("Inherited", DbTypeCode.Boolean, false) { ColumnName = "inherited" },
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedColumn"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedColumn"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.Object, DbTypeCode.UInt64,

@@ -66,10 +66,10 @@ namespace StarcounterInternal.Hosting
             else
                 stopwatch_ = new Stopwatch();
 
-            var sysTableTypeDef = MaterializedTable.CreateTypeDef();
-            var sysColumnTypeDef = MaterializedColumn.CreateTypeDef();
-            var sysIndexTypeDef = MaterializedIndex.CreateTypeDef();
-            var sysIndexColumnTypeDef = MaterializedIndexColumn.CreateTypeDef();
+            var sysTableTypeDef = Starcounter.Internal.Metadata.MaterializedTable.CreateTypeDef();
+            var sysColumnTypeDef = Starcounter.Internal.Metadata.MaterializedColumn.CreateTypeDef();
+            var sysIndexTypeDef = Starcounter.Internal.Metadata.MaterializedIndex.CreateTypeDef();
+            var sysIndexColumnTypeDef = Starcounter.Internal.Metadata.MaterializedIndexColumn.CreateTypeDef();
 
             // Add view meta-data
 
