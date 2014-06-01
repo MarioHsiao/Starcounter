@@ -83,7 +83,7 @@ typedef int8_t chunk_store_type;
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
 //#define FAST_LOOPBACK
-//#define LEAST_USED_SCHEDULING
+#define LEAST_USED_SCHEDULING
 //#define DONT_CHECK_ECHOES
 
 #ifdef GW_DEV_DEBUG
@@ -140,9 +140,11 @@ enum GatewayErrorCodes
     SCERRGWFAILEDTOLISTENONSOCKET,
     SCERRGWIPISNOTONWHITELIST,
     SCERRGWMAXCHUNKSIZEREACHED,
+    SCERRGWMAXCHUNKSNUMBERREACHED,
     SCERRGWMAXDATASIZEREACHED,
     SCERRGWWEBSOCKET,
-    SCERRGWWEBSOCKETWRONGHANDSHAKEDATA
+    SCERRGWWEBSOCKETWRONGHANDSHAKEDATA,
+    SCERRGWNULLCODEHOST
 };
 
 // Maximum number of ports the gateway operates with.
@@ -160,11 +162,11 @@ const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 // Maximum number of chunks to pop at once.
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 10;
 
-// Maximum number of gateway chunks.
-const int32_t MAX_GATEWAY_CHUNKS = 1024 * 1024;
-
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 50;
+
+// Maximum number of attempts to push overflow SDs.
+const int32_t MAX_OVERFLOW_ATTEMPTS = 100;
 
 // Size of circular log buffer.
 const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
@@ -308,6 +310,16 @@ const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     1000,
     100
 };
+
+// Maximum number of chunks for each worker.
+const int32_t MAX_WORKER_CHUNKS = 
+    100000 +
+    500000 + // Default chunk size.
+    100000 +
+    50000 +
+    50000 +
+    1000 +
+    100;
 
 const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[0] - SOCKET_DATA_OFFSET_BLOB,
@@ -1090,6 +1102,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_PROXY_CONNECT;
     }
 
+    SOCKET get_socket() {
+        return socket_;
+    }
+
     ScSocketInfoStruct()
     {
         Reset();
@@ -1663,13 +1679,6 @@ class Gateway
 
     // Global timer to keep track on old connections.
     volatile socket_timestamp_type global_timer_unsafe_;
-
-    // Sockets to cleanup.
-    session_index_type* sockets_to_cleanup_unsafe_;
-    volatile int64_t num_sockets_to_cleanup_unsafe_;
-
-    // Critical section for sockets cleanup.
-    CRITICAL_SECTION cs_sockets_cleanup_;
 
     ////////////////////////
     // GLOBAL LOCKING
@@ -2386,15 +2395,6 @@ public:
     // Collects outdated sockets if any.
     uint32_t CollectInactiveSockets();
 
-    // Gets number of sockets to cleanup.
-    int64_t get_num_sockets_to_cleanup_unsafe()
-    {
-        return num_sockets_to_cleanup_unsafe_;
-    }
-
-    // Cleans up all collected inactive sockets.
-    uint32_t CleanupInactiveSocketsOnWorkerZero();
-
     // Updates current global timer value on given socket.
     void UpdateSocketTimeStamp(session_index_type index)
     {
@@ -2635,11 +2635,8 @@ public:
         return setting_num_workers_;
     }
 
-    // Getting the total number of overflow chunks for all databases.
-    int64_t NumberOverflowChunksAllWorkersAndDatabases();
-
-    // Getting the number of overflow chunks per database.
-    int64_t NumberOverflowChunksPerDatabase(db_index_type db_index);
+    // Getting the total number of overflow chunks for all workers.
+    int64_t NumberOverflowChunksAllWorkers();
 
     // Getting the number of active connections per port.
     int64_t NumberOfActiveConnectionsPerPort(port_index_type port_index);

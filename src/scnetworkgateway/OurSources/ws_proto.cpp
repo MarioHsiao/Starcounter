@@ -172,18 +172,21 @@ inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
 }
 
 // Send disconnect to database.
-void WsProto::SendDisconnectToDb(
+uint32_t WsProto::SendDisconnectToDb(
     GatewayWorker *gw,
     SocketDataChunk* sd)
 {
     // Obtaining handler info from channel id.
     BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
-        return;
+        return 0;
 
     // TODO: Skip creating a push clone.
     SocketDataChunk* sd_push_to_db = NULL;
-    sd->CloneToPush(gw, &sd_push_to_db);
+    uint32_t err_code = sd->CloneToPush(gw, &sd_push_to_db);
+    if (err_code)
+        return err_code;
+
     sd_push_to_db->ResetAllFlags();
 
     // Setting the opcode indicating socket disconnect.
@@ -191,6 +194,8 @@ void WsProto::SendDisconnectToDb(
 
     // Push chunk to corresponding channel/scheduler.
     gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
+
+    return 0;
 }
 
 // Processes incoming WebSocket frames.

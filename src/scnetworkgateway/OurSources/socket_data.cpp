@@ -44,7 +44,6 @@ void SocketDataChunk::Init(
 // Releases socket info index.
 void SocketDataChunk::ReleaseSocketIndex(GatewayWorker* gw)
 {
-
     g_gateway.ReleaseSocketIndex(socket_info_index_);
     socket_info_index_ = INVALID_SESSION_INDEX;
 }
@@ -85,7 +84,8 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 
     // NOTE: Cloning to receive only on database 0 chunks.
     uint32_t err_code = gw->CreateSocketData(socket_info_index_, sd_clone);
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        return err_code;
 
     // Since another socket is going to be attached.
     reset_socket_representer_flag();
@@ -188,6 +188,10 @@ uint32_t SocketDataChunk::ChangeToBigger(
     else
         new_sd = gw->GetWorkerChunks()->ObtainChunk(data_size);
 
+    // Checking if couldn't obtain chunk.
+    if (NULL == new_sd)
+        return SCERRGWMAXCHUNKSNUMBERREACHED;
+
     // Copying the socket data headers and accumulated buffer.
     new_sd->CopyFromAnotherSocketData(sd);
 
@@ -206,6 +210,10 @@ uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_s
 
     // Taking the chunk where accumulated buffer fits.
     (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(get_accum_buf()->get_accum_len_bytes());
+
+    // Checking if couldn't obtain chunk.
+    if (NULL == (*new_sd))
+        return SCERRGWMAXCHUNKSNUMBERREACHED;
 
     // Copying the socket data headers and accumulated buffer.
     (*new_sd)->CopyFromAnotherSocketData(this);
@@ -276,7 +284,7 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 
     uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(db_chunk_index, &ipc_smc);
     if (err_code)
-        GW_ASSERT(false);
+        return err_code;
 
     *new_ipc_sd = (SocketDataChunk*)((uint8_t*)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
@@ -293,6 +301,14 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
         MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB,
         &actual_written_bytes,
         num_ipc_chunks);
+
+    if (0 != err_code) {
+
+        // Releasing management chunks.
+        worker_db->ReturnLinkedChunksToPool(*db_chunk_index);
+
+        return err_code;
+    }
 
     GW_ASSERT(actual_written_bytes == get_accum_buf()->get_accum_len_bytes());
 

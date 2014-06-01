@@ -852,6 +852,14 @@ public:
         *(uint16_t*)(&ovl_) = num_ip_chunks;
     }
 
+    void set_handler_id(BMX_HANDLER_TYPE handler_id) {
+        *(BMX_HANDLER_TYPE*)((char*)(&ovl_) + 2) = handler_id;
+    }
+
+    BMX_HANDLER_TYPE get_handler_id() {
+        return *(BMX_HANDLER_TYPE*)((char*)(&ovl_) + 2);
+    }
+
 #ifdef GW_TESTING_MODE
 
     // Getting data blob pointer.
