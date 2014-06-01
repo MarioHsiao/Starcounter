@@ -698,44 +698,6 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
     sd = NULL;
 }
 
-// Processes sockets that should be disconnected.
-void GatewayWorker::ProcessSocketDisconnectList()
-{
-    if (0 == sockets_indexes_to_disconnect_.size())
-        return;
-
-    for (std::list<session_index_type>::const_iterator it = sockets_indexes_to_disconnect_.begin();
-        it != sockets_indexes_to_disconnect_.end();
-        ++it)
-    {
-        uint32_t err_code = DisconnectSocket(*it);
-        GW_ASSERT(0 == err_code);
-    }
-
-    sockets_indexes_to_disconnect_.clear();
-}
-
-// Disconnects arbitrary socket.
-uint32_t GatewayWorker::DisconnectSocket(session_index_type socket_index)
-{
-    // Getting existing socket info copy.
-    ScSocketInfoStruct global_socket_info_copy = g_gateway.GetGlobalSocketInfoCopy(socket_index);
-
-    // Creating new socket data and setting required parameters.
-    SocketDataChunk* temp_sd;
-
-    // NOTE: Fetching chunk from database 0.
-    uint32_t err_code = CreateSocketData(socket_index, temp_sd);
-    if (err_code)
-        return err_code;
-
-    temp_sd->AssignSession(global_socket_info_copy.session_);
-
-    DisconnectAndReleaseChunk(temp_sd);
-
-    return 0;
-}
-
 // Initiates receive on arbitrary socket.
 uint32_t GatewayWorker::ReceiveOnSocket(session_index_type socket_index)
 {
@@ -766,18 +728,17 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        goto RELEASE_CHUNK_TO_POOL;
-
     // Checking that socket data is valid.
     sd->CheckForValidity();
 
-    // NOTE: The following is needed because the actual owner of the socket
-    // will not pass the CompareUniqueSocketId check on the next IO operation.
-    // Setting socket representer.
-    sd->set_socket_representer_flag();
-    sd->set_socket_diag_active_conn_flag();
+    // Checking if its a socket representer.
+    if (sd->get_socket_representer_flag()) {
+        GW_ASSERT(true == sd->CompareUniqueSocketId());
+    }
+
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        goto RELEASE_CHUNK_TO_POOL;
 
     uint32_t err_code;
 
@@ -795,6 +756,15 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         {
             sd->reset_destroy_sent_flag();
         }
+    }
+
+    // Checking if this is NOT a socket representer.
+    if (!sd->get_socket_representer_flag()) {
+
+        // NOTE: Not checking for correctness here.
+        closesocket(sd->GetSocket());
+
+        goto RELEASE_CHUNK_TO_POOL;
     }
 
     // Setting unique socket id.
@@ -818,17 +788,10 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
         PrintLastError();
 #endif
-        GW_ASSERT(false);
 
         // Finish disconnect operation.
-        // (e.g. returning to pool or starting accept).
-        if (FinishDisconnect(sd))
-        {
-            // Closing socket resource.
-            closesocket(sd->GetSocket());
-
-            goto RELEASE_CHUNK_TO_POOL;
-        }
+        err_code = FinishDisconnect(sd, true);
+        GW_ASSERT(0 == err_code);
 
         return;
     }
@@ -852,15 +815,14 @@ RELEASE_CHUNK_TO_POOL:
 }
 
 // Socket disconnect finished.
-__forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
+__forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bool socket_error)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKET;
+    GW_ASSERT(true == sd->CompareUniqueSocketId());
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
@@ -889,7 +851,8 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     RemoveFromActiveSockets(sd->GetPortIndex());
 
     // Releasing socket resources.
-    closesocket(sd->GetSocket());
+    if (!socket_error)
+        closesocket(sd->GetSocket());
 
 #ifdef GW_TESTING_MODE
 
@@ -1130,7 +1093,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
 #endif
 
-
 #ifndef GW_TESTING_MODE
 
     // Checking if was rebalanced.
@@ -1359,7 +1321,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Checking correct unique socket.
                     if ((sd->CompareUniqueSocketId()) && (sd->get_socket_representer_flag())) {
 
-                        err_code = FinishDisconnect(sd);
+                        err_code = FinishDisconnect(sd, false);
                         GW_ASSERT(0 == err_code);
 
                     } else {
@@ -1403,7 +1365,9 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // DISCONNECT finished.
                     case DISCONNECT_SOCKET_OPER:
                     {
-                        err_code = FinishDisconnect(sd);
+                        err_code = FinishDisconnect(sd, false);
+                        GW_ASSERT(0 == err_code);
+
                         break;
                     }
 
@@ -1491,6 +1455,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                         err_code = FinishAccept(new_sd);
 
                         if (err_code) {
+
                             // Disconnecting this socket data.
                             DisconnectAndReleaseChunk(new_sd);
 
@@ -1503,9 +1468,6 @@ uint32_t GatewayWorker::WorkerRoutine()
             }
         }
 #endif
-
-        // Processing socket disconnect list.
-        ProcessSocketDisconnectList();
 
         next_sleep_interval_ms = INFINITE;
 
@@ -1532,17 +1494,16 @@ uint32_t GatewayWorker::WorkerRoutine()
         }
 
         // Scanning all channels.
-        err_code = ScanChannels(next_sleep_interval_ms);
+        err_code = ScanChannels(&next_sleep_interval_ms);
         if (err_code)
             return err_code;
+
+        // Pushing overflow chunks if any.
+        PushOverflowChunks(&next_sleep_interval_ms);
 
 #ifdef WORKER_NO_SLEEP
         next_sleep_interval_ms = 0;
 #endif
-
-        // NOTE: Checking inactive sockets cleanup (only first worker).
-        if ((g_gateway.get_num_sockets_to_cleanup_unsafe()) && (worker_id_ == 0))
-            g_gateway.CleanupInactiveSocketsOnWorkerZero();
 
 #ifdef GW_TESTING_MODE
         // Checking if its time to switch to measured test.
@@ -1555,7 +1516,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 }
 
 // Scans all channels for any incoming chunks.
-uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
+uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
 {
     uint32_t err_code;
 
@@ -1594,7 +1555,8 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
                 else
                 {
                     // Gateway needs to loop for a while because of chunks being released.
-                    next_sleep_interval_ms = 100;
+                    if (*next_sleep_interval_ms > 100)
+                        *next_sleep_interval_ms = 100;
 
                     // Releasing all private chunks to shared pool.
                     db->ReturnAllPrivateChunksToSharedPool();
@@ -1626,6 +1588,10 @@ uint32_t GatewayWorker::CreateSocketData(
     else
         out_sd = worker_chunks_.ObtainChunk(data_len);
 
+    // Checking if couldn't obtain chunk.
+    if (NULL == out_sd)
+        return SCERRGWMAXCHUNKSNUMBERREACHED;
+
     // Initializing socket data.
     out_sd->Init(socket_info_index, worker_id_);
     
@@ -1655,12 +1621,105 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
 
     // Pushing chunk to that database.
-    if (NULL != db)
-        db->PushSocketDataToDb(this, sd, handler_id);
-    else
-        ReturnSocketDataChunksToPool(sd);
+    if (NULL != db) {
+
+        // Always storing the handler id.
+        sd->set_handler_id(handler_id);
+
+        // Checking if there is a non-empty overflow queue, so putting in it.
+        if (IsOverflowed()) {
+            PushToOverflowQueue(sd);
+            return 0;
+        }
+
+        uint32_t err_code = db->PushSocketDataToDb(this, sd, handler_id);
+
+        // Checking if any issue occurred.
+        if (err_code) {
+            PushToOverflowQueue(sd);
+            return 0;
+        }
+
+    } else {
+        return SCERRGWNULLCODEHOST;
+    }
 
     return 0;
+}
+
+// Push given chunk to database queue.
+uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* again_for_overflow)
+{
+    // Assuming no tries.
+    *again_for_overflow = false;
+
+    // Checking correct unique socket.
+    if (!sd->CompareUniqueSocketId())
+        return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+
+    // Getting database to which this chunk belongs.
+    WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
+
+    // Pushing chunk to that database.
+    if (NULL != db) {
+
+        uint32_t err_code = db->PushSocketDataToDb(this, sd, handler_id);
+
+        // Checking if we need to put the socket back to overflow.
+        if (err_code) {
+            *again_for_overflow = true;
+            return 0;
+        }
+
+    } else {
+        return SCERRGWNULLCODEHOST;
+    }
+
+    return 0;
+}
+
+// Checks if there is anything in overflow buffer and pushes all chunks from there.
+void GatewayWorker::PushOverflowChunks(uint32_t* next_sleep_interval_ms)
+{
+    uint32_t err_code;
+    bool again_for_overflow;
+
+    // We can't try infinitely.
+    int32_t num_tries = 0;
+
+    // Looping while we have anything in overflow queue.
+    while (IsOverflowed()) {
+
+        SocketDataChunk* sd = PopFromOverlowQueue();
+
+        num_tries++;
+
+        err_code = PushSocketDataFromOverflowToDb(sd, sd->get_handler_id(), &again_for_overflow);
+
+        if (0 == err_code) {
+
+            // Checking if sd is again for overflow.
+            if (again_for_overflow) {
+                PushToOverflowQueue(sd);
+            }
+
+        } else {
+
+            // Disconnecting this socket data.
+            DisconnectAndReleaseChunk(sd);
+        }
+
+        GW_ASSERT(NULL == sd);
+
+        // Checking if number of pushes exceeded.
+        if (num_tries >= MAX_OVERFLOW_ATTEMPTS)
+            break;
+    }
+
+    // Checking if overflowed.
+    if (IsOverflowed()) {
+        *next_sleep_interval_ms = 0;
+    }
 }
 
 // Deleting inactive database.

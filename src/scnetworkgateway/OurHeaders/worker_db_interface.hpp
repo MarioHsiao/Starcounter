@@ -100,8 +100,7 @@ public:
         for (int32_t s = 0; s < num_schedulers_; s++)
         {
             core::channel_type& the_channel = shared_int_.channel(channels_[s]);
-            int32_t queue_length =
-              the_channel.in.count() + the_channel.in_overflow().count();
+            int32_t queue_length = the_channel.in.count();
             if (queue_length < least_used_queue_length)
             {
               least_used_queue_length = queue_length;
@@ -121,23 +120,6 @@ public:
         int32_t* actual_written_bytes,
         uint16_t* num_ipc_chunks
         );
-
-    // Getting the number of overflowed chunks.
-    int64_t GetNumberOverflowedChunks()
-    {
-        int64_t num_overflow_chunks = 0;
-
-        for (int32_t s = 0; s < num_schedulers_; s++)
-        {
-            // Obtaining the channel.
-            core::channel_type& the_channel = shared_int_.channel(channels_[s]);
-
-            // Getting number of overflowed chunks on this channel.
-            num_overflow_chunks += the_channel.in_overflow().count();
-        }
-
-        return num_overflow_chunks;
-    }
 
     // Sends error message.
     uint32_t PushErrorMessage(
@@ -180,19 +162,6 @@ public:
     // Deallocates active database.
     ~WorkerDbInterface()
     {
-#if 0
-        // Freeing all occupied channels.
-        for (std::size_t s = 0; s < num_schedulers_; s++)
-        {
-            core::channel_type& the_channel = shared_int_.channel(channels_[s]);
-
-            // Asserting that there are none overflowed chunks.
-            GW_ASSERT (true == the_channel.in_overflow().empty());
-
-            the_channel.set_to_be_released();
-        }
-#endif
-
         // Deleting channels.
         delete[] channels_;
         channels_ = NULL;
@@ -203,7 +172,7 @@ public:
         core::channel_type& the_channel,
         core::chunk_index the_chunk_index)
     {
-        // Trying to push chunk if overflow is empty.
+        // Trying to push chunk.
         if (the_channel.in.try_push_front(the_chunk_index))
         {
             // Successfully pushed the response message to the channel.
@@ -223,54 +192,18 @@ public:
         return false;
     }
 
-    // Tries to push existing overflow chunks on given scheduler.
-    void PushOverflowedChunksOnScheduler(int32_t sched_id)
-    {
-        // Obtaining the channel.
-        core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
-        core::channel_type::queue& overflow_queue = the_channel.in_overflow();
-
-        // Checking if overflow pool is not empty.
-        while (overflow_queue.not_empty())
-        {
-            // Popping back chunk.
-            core::chunk_index the_chunk_index = overflow_queue.front();
-
-            // Just getting number of chunks to push.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(the_chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-
-            // Popping front chunk.
-            overflow_queue.pop_front();
-
-            // NOTE: If success - chunk is gone, we can't do any operations related to it!
-            // That's why we do pop_front and then push_front.
-            if (!TryPushToChannel(the_channel, the_chunk_index))
-            {
-                // Pushing chunk back to front since it wasn't pushed on channel.
-                overflow_queue.push_front(the_chunk_index);
-            }
-        }
-    }
-
-    // Checks if there is anything in overflow buffer and pushes all chunks from there.
-    void PushOverflowChunks()
-    {
-        for (int32_t s = 0; s < num_schedulers_; s++)
-            PushOverflowedChunksOnScheduler(s);
-    }
-
     // Push whatever chunks we have to channels.
-    void PushLinkedChunksToDb(
+    bool PushLinkedChunksToDb(
         core::chunk_index chunk_index,
         int16_t scheduler_id);
 
-    void PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Releases chunks from private chunk pool to the shared chunk pool.
     uint32_t ReleaseToSharedChunkPool(int32_t num_ipc_chunks);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms);
+    uint32_t ScanChannels(GatewayWorker *gw, uint32_t* next_sleep_interval_ms);
 
     // Getting shared memory chunk.
     shared_memory_chunk* GetSharedMemoryChunkFromIndex(core::chunk_index the_chunk_index)

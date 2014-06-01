@@ -51,7 +51,7 @@ uint32_t WorkerDbInterface::GetOneChunkFromPrivatePool(
 }
 
 // Scans all channels for any incoming chunks.
-uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms)
+uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep_interval_ms)
 {
     core::chunk_index ipc_first_chunk_index;
     uint32_t err_code;
@@ -116,6 +116,15 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_length_bytes());
 
+            // Checking if couldn't obtain chunk.
+            if (NULL == sd) {
+
+                // Releasing IPC chunks.
+                ReturnLinkedChunksToPool(ipc_first_chunk_index);
+
+                continue;
+            }
+
             // Checking if its one or several chunks.
             if (ipc_smc->is_terminated())
             {
@@ -125,8 +134,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             {
                 err_code = sd->CopyIPCChunksToGatewayChunk(this, ipc_sd);
 
-                if (err_code)
-                    return err_code;
+                if (err_code) {
+
+                    // Releasing IPC chunks.
+                    ReturnLinkedChunksToPool(ipc_first_chunk_index);
+
+                    continue;
+                }
             }
 
             // Releasing IPC chunks.
@@ -189,12 +203,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
         }
     }
 
-    // Push everything from overflow queue.
-    PushOverflowChunks();
-
     // Checking if any chunks were popped.
     if (num_popped_chunks > 0)
-        next_sleep_interval_ms = 0;
+        *next_sleep_interval_ms = 0;
 
     return 0;
 }
@@ -243,7 +254,8 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
     // Acquiring linked chunks.
     starcounter::core::chunk_index new_chunk_index;
     uint32_t err_code = GetMultipleChunksFromPrivatePool(&new_chunk_index, num_extra_chunks);
-    GW_ASSERT(0 == err_code);
+    if (0 != err_code)
+        return err_code;
 
     // Linking to the first chunk.
     ((shared_memory_chunk*)cur_chunk_buf)->set_link(new_chunk_index);
@@ -294,7 +306,7 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
 }
 
 // Push given chunk to database queue.
-void WorkerDbInterface::PushLinkedChunksToDb(
+bool WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index the_chunk_index,
     int16_t sched_id)
 {
@@ -304,18 +316,17 @@ void WorkerDbInterface::PushLinkedChunksToDb(
     // Obtaining the channel.
     core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
-    // Trying to push chunk if overflow is empty.
-    if ((the_channel.in_overflow().not_empty()) ||
-        (!TryPushToChannel(the_channel, the_chunk_index)))
+    // Trying to push chunk.
+    if (!TryPushToChannel(the_channel, the_chunk_index))
     {
 #ifdef GW_CHUNKS_DIAG
-        GW_PRINT_WORKER << "Couldn't push chunk into channel. Putting to overflow pool." << GW_ENDL;
+        GW_PRINT_WORKER << "Couldn't push chunk into channel." << GW_ENDL;
 #endif
 
-        // The overflow queue is not empty so the message is first pushed to
-        // the overflow queue, to preserve the order of production.
-        the_channel.in_overflow().push_back(the_chunk_index);
+        return false;
     }
+
+    return true;
 }
 
 // Returns given chunk to private chunk pool.
@@ -363,7 +374,7 @@ void WorkerDbInterface::ReturnAllPrivateChunksToSharedPool()
 }
 
 // Push given chunk to database queue.
-void WorkerDbInterface::PushSocketDataToDb(
+uint32_t WorkerDbInterface::PushSocketDataToDb(
     GatewayWorker* gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE user_handler_id)
@@ -373,13 +384,15 @@ void WorkerDbInterface::PushSocketDataToDb(
 #endif
 
     uint16_t num_ipc_chunks;
-    core::chunk_index first_chunk_index;
+    core::chunk_index ipc_first_chunk_index;
     SocketDataChunk* ipc_sd;
-    uint32_t err_code = sd->CopyGatewayChunkToIPCChunks(this, &ipc_sd, &first_chunk_index, &num_ipc_chunks);
-    GW_ASSERT(0 == err_code);
+    uint32_t err_code = sd->CopyGatewayChunkToIPCChunks(this, &ipc_sd, &ipc_first_chunk_index, &num_ipc_chunks);
 
-    // Returning gateway chunk to pool.
-    gw->ReturnSocketDataChunksToPool(sd);
+    if (0 != err_code) {
+
+        // Can't obtain IPC chunks.
+        return err_code;
+    }
 
     // Setting number of chunks.
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
@@ -403,7 +416,18 @@ void WorkerDbInterface::PushSocketDataToDb(
     GW_ASSERT(sched_id < num_schedulers_);
 
     // Pushing socket data as a chunk.
-    PushLinkedChunksToDb(first_chunk_index, sched_id);
+   if (!PushLinkedChunksToDb(ipc_first_chunk_index, sched_id)) {
+
+        // Releasing management chunks.
+        ReturnLinkedChunksToPool(ipc_first_chunk_index);
+
+        return SCERRCANTPUSHTOCHANNEL;
+   }
+
+   // Returning gateway chunk to pool.
+   gw->ReturnSocketDataChunksToPool(sd);
+
+   return 0;
 }
 
 // Sends error message.
