@@ -5,7 +5,6 @@ using System.ServiceProcess;
 using System.DirectoryServices;
 using System.Diagnostics;
 using System.Configuration.Install;
-using Starcounter.Tools;
 using Starcounter;
 using Starcounter.Internal;
 
