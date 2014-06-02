@@ -33,7 +33,6 @@
     <MonoCsharpBinary Include="..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll" />
     
     <GatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
-    <GACScripts Include="..\BuildSystem\Scripts\gac_*" />
     <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
 
     <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
@@ -66,7 +65,6 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(TestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayTestFiles)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GACScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
