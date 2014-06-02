@@ -170,7 +170,7 @@ namespace Starcounter.XSON.JsonPatch {
                     // Should write value directly to buffer.
                     string value = 
                         change.Obj.AddAndReturnInScope<Change, string>(
-                            (Change c) => { return GetValueAsString(c.Property, c.Obj); },
+                            (Change c) => { return c.Property.ValueToJsonString(c.Obj); },
                             change
                         );
                     writer.Write(value);
@@ -212,17 +212,6 @@ namespace Starcounter.XSON.JsonPatch {
             }
 
             return sizeBytes;
-        }
-
-        private static string GetValueAsString(TValue property, Json parent) {
-            string value;
-            if (parent.Transaction != null) {
-                value = parent.Transaction.AddAndReturn<TValue, Json, string>(
-                    (p, json) => { return p.ValueToJsonString(json); }, property, parent);
-            } else {
-                value = property.ValueToJsonString(parent);
-            }
-            return value;
         }
 
         internal static int CalculateSize(Change change, out int pathSize) {

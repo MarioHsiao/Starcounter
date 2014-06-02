@@ -159,7 +159,7 @@ namespace Starcounter.Templates {
 		}
 
 		internal virtual string ValueToJsonString(Json parent) {
-			return "";
+			return "null";
 		}
 
 		/// <summary>

@@ -86,7 +86,6 @@
     <Compile Include="Components\VS2012Integration.cs" />
     <Compile Include="Components\VS2013Integration.cs" />
     <Compile Include="Components\VSIntegration.cs" />
-    <Compile Include="GAC.cs" />
     <Compile Include="PathVariable.cs" />
     <Compile Include="SettingsLoader.cs" />
     <Compile Include="VsSetup\DevEnv.cs" />
@@ -141,12 +140,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="GACAssembliesInstall.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="GACAssembliesUninstall.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="SetupSettings.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

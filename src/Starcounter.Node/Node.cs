@@ -100,7 +100,7 @@ namespace Starcounter
         static Node()
         {
             // Pre-loading non GAC assemblies and setting assembly resolvers.
-            HelperFunctions.LoadNonGACDependencies();
+            HelperFunctions.PreLoadCustomDependencies();
 
             // Initializes HTTP parser.
             Request.sc_init_http_parser();

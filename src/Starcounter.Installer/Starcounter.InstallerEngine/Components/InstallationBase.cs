@@ -5,7 +5,6 @@ using System.ServiceProcess;
 using System.DirectoryServices;
 using System.Diagnostics;
 using System.Configuration.Install;
-using Starcounter.Tools;
 using Starcounter;
 using Starcounter.Internal;
 
@@ -197,46 +196,6 @@ public class CInstallationBase : CComponentBase
         }
     }
 
-    void InstallGACAssemblies()
-    {
-        string gacFilesListPath;
-        string[] filesToInstall;
-
-        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
-
-        if (!File.Exists(gacFilesListPath))
-            throw new FileNotFoundException("Can't find GAC assemblies list!");
-
-        filesToInstall = File.ReadAllLines(gacFilesListPath);
-
-        foreach (string fileName in filesToInstall)
-        {
-            AssemblyCache.InstallAssembly(Path.Combine(InstallerMain.InstallationDir, fileName));
-        }
-    }
-
-    void UninstallGACAssemblies()
-    {
-        AssemblyCacheUninstallDisposition disposition;
-        string gacFilesListPath;
-        string[] assembliesToInstall;
-
-        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
-
-        if (!File.Exists(gacFilesListPath))
-            Utilities.ReportSetupEvent(String.Format("Warning: Can't find GAC assemblies uninstall list!"));
-
-        assembliesToInstall = File.ReadAllLines(gacFilesListPath);
-
-        foreach (string assemblyName in assembliesToInstall)
-        {
-            AssemblyCache.UninstallAssembly(assemblyName, null, out disposition);
-
-            if (disposition != AssemblyCacheUninstallDisposition.Uninstalled)
-                Utilities.ReportSetupEvent(String.Format("Warning: problem removing assembly {0} from GAC.", assemblyName));
-        }
-    }
-
     /// <summary>
     /// Installs component.
     /// </summary>
@@ -337,10 +296,6 @@ public class CInstallationBase : CComponentBase
         RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
         refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir));
 
-        // Installing Starcounter.dll in the GAC.
-        Utilities.ReportSetupEvent("Adding libraries to GAC...");
-        InstallGACAssemblies();
-
         // Updating progress.
         InstallerMain.ProgressIncrement();
     }
@@ -408,11 +363,6 @@ public class CInstallationBase : CComponentBase
         RegistryKey refAsmRegistry = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx", true);
         if ((refAsmRegistry != null) && (refAsmRegistry.OpenSubKey(ConstantsBank.SCProductName + InstallerMain.SCVersion) != null))
             refAsmRegistry.DeleteSubKeyTree(ConstantsBank.SCProductName + InstallerMain.SCVersion);
-
-        // Removing Starcounter assemblies from the GAC.
-        Utilities.ReportSetupEvent("Removing assemblies from GAC...");
-        try { UninstallGACAssemblies(); }
-        catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
     }
 
     /// <summary>
