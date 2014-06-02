@@ -410,13 +410,6 @@ namespace Weaver {
             // analyzing/weaving code.
             commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
 
-            // Define the "WeaveBootstrapper" command, used to analyze and verify user code.
-
-            // Define the command. Exactly one parameter - the executable - is
-            // expected.
-            commandDefinition = syntaxDefinition.DefineCommand(
-                ProgramCommands.WeaveBootstrapper, "Enables the executable to be bootstraped in Starcounter from the OS shell.", 1);
-
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
 
