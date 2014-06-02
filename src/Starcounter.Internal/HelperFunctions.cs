@@ -128,7 +128,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Load non-GAC library dependencies.
         /// </summary>
-        internal static void LoadNonGACDependencies() {
+        internal static void PreLoadCustomDependencies() {
 
             if (disableAssembliesPreLoading_)
                 return;
