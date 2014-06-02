@@ -732,19 +732,26 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     sd->CheckForValidity();
 
     // Checking if its a socket representer.
-    if (sd->get_socket_representer_flag()) {
-        GW_ASSERT(true == sd->CompareUniqueSocketId());
-    }
+    if (!sd->get_socket_representer_flag()) {
 
-    // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
+        // Checking correct unique socket.
+        if (!sd->CompareUniqueSocketId())
+            goto RELEASE_CHUNK_TO_POOL;
+
+        // Setting unique socket id.
+        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
+
+        // NOTE: Not checking for correctness here.
+        closesocket(sd->GetSocket());
+
         goto RELEASE_CHUNK_TO_POOL;
+    }
 
     uint32_t err_code;
 
     // Sending dead session if its a WebSocket.
-    if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol())
-    {
+    if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol()) {
+
         // Verifying that session is correct and sending delete socket on database.
         if (!sd->get_destroy_sent_flag())
         {
@@ -758,36 +765,38 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         }
     }
 
-    // Checking if this is NOT a socket representer.
-    if (!sd->get_socket_representer_flag()) {
+    // Checking correct unique socket.
+    if (sd->CompareUniqueSocketId()) {
 
-        // NOTE: Not checking for correctness here.
-        closesocket(sd->GetSocket());
+        // Setting unique socket id.
+        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
 
-        goto RELEASE_CHUNK_TO_POOL;
-    }
+        // Calling DisconnectEx.
+        err_code = sd->Disconnect(this);
+        GW_ASSERT(!err_code);
 
-    // Setting unique socket id.
-    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
-
-    // Calling DisconnectEx.
-    err_code = sd->Disconnect(this);
-    GW_ASSERT(!err_code);
-
-    // Checking if operation completed immediately. 
-    int32_t wsa_err_code = WSAGetLastError();
+        // Checking if operation completed immediately. 
+        int32_t wsa_err_code = WSAGetLastError();
 
 #ifdef GW_LOOPED_TEST_MODE
-    wsa_err_code = WSA_IO_PENDING;
+        wsa_err_code = WSA_IO_PENDING;
 #endif
 
-    // Checking if IOCP event was scheduled.
-    if (WSA_IO_PENDING != wsa_err_code)
-    {
+        // Checking if IOCP event was scheduled.
+        if (WSA_IO_PENDING != wsa_err_code) {
+
 #ifdef GW_WARNINGS_DIAG
-        GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
-        PrintLastError();
+            GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+            PrintLastError();
 #endif
+
+            // Finish disconnect operation.
+            err_code = FinishDisconnect(sd, false);
+            GW_ASSERT(0 == err_code);
+
+            return;
+        }
+    } else {
 
         // Finish disconnect operation.
         err_code = FinishDisconnect(sd, true);
@@ -815,14 +824,16 @@ RELEASE_CHUNK_TO_POOL:
 }
 
 // Socket disconnect finished.
-__forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bool socket_error)
+__forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bool already_disconnected)
 {
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Checking correct unique socket.
-    GW_ASSERT(true == sd->CompareUniqueSocketId());
+    if (false == sd->CompareUniqueSocketId()) {
+        already_disconnected = true;
+    }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
@@ -851,7 +862,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
     RemoveFromActiveSockets(sd->GetPortIndex());
 
     // Releasing socket resources.
-    if (!socket_error)
+    if (!already_disconnected)
         closesocket(sd->GetSocket());
 
 #ifdef GW_TESTING_MODE

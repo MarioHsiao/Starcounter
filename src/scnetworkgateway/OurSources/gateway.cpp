@@ -2539,6 +2539,9 @@ uint32_t Gateway::CollectInactiveSockets()
             {
                 case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
                 {
+                    // Updating unique socket id.
+                    GenerateUniqueSocketInfoIds(i, 0);
+
                     // NOTE: Not checking for error code.
                     closesocket(all_sockets_infos_unsafe_[i].get_socket());
                     ++num_inactive;

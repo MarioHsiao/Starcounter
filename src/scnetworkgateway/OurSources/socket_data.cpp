@@ -98,6 +98,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->set_unique_socket_id(unique_socket_id_);
     sd_clone->set_socket_info_index(socket_info_index_);
     sd_clone->set_client_ip_info(client_ip_info_);
+    sd_clone->set_type_of_network_oper(SocketOperType::RECEIVE_SOCKET_OPER);
 
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
