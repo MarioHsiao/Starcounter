@@ -197,46 +197,6 @@ public class CInstallationBase : CComponentBase
         }
     }
 
-    void InstallGACAssemblies()
-    {
-        string gacFilesListPath;
-        string[] filesToInstall;
-
-        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
-
-        if (!File.Exists(gacFilesListPath))
-            throw new FileNotFoundException("Can't find GAC assemblies list!");
-
-        filesToInstall = File.ReadAllLines(gacFilesListPath);
-
-        foreach (string fileName in filesToInstall)
-        {
-            AssemblyCache.InstallAssembly(Path.Combine(InstallerMain.InstallationDir, fileName));
-        }
-    }
-
-    void UninstallGACAssemblies()
-    {
-        AssemblyCacheUninstallDisposition disposition;
-        string gacFilesListPath;
-        string[] assembliesToInstall;
-
-        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
-
-        if (!File.Exists(gacFilesListPath))
-            Utilities.ReportSetupEvent(String.Format("Warning: Can't find GAC assemblies uninstall list!"));
-
-        assembliesToInstall = File.ReadAllLines(gacFilesListPath);
-
-        foreach (string assemblyName in assembliesToInstall)
-        {
-            AssemblyCache.UninstallAssembly(assemblyName, null, out disposition);
-
-            if (disposition != AssemblyCacheUninstallDisposition.Uninstalled)
-                Utilities.ReportSetupEvent(String.Format("Warning: problem removing assembly {0} from GAC.", assemblyName));
-        }
-    }
-
     /// <summary>
     /// Installs component.
     /// </summary>
