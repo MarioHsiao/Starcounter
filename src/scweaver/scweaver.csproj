@@ -89,7 +89,6 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BootstrapWeaver.cs" />
     <Compile Include="CodeWeaver.cs" />
     <Compile Include="CodeWeaverInsidePostSharpDomain.cs" />
     <Compile Include="CodeWeaverModuleLoadStrategy.cs" />
