@@ -154,10 +154,6 @@ namespace Weaver {
                     ExecuteVerifyCommand(inputDirectory, cacheDirectory, fileName, arguments);
                     break;
 
-                case ProgramCommands.WeaveBootstrapper:
-                    ExecuteWeaveBootstrapCommand(inputDirectory, cacheDirectory, fileName, arguments);
-                    break;
-
                 default:
                     error = Error.SCERRBADCOMMANDLINESYNTAX;
                     ReportProgramError(
@@ -225,23 +221,6 @@ namespace Weaver {
             // error itself.
 
             weaver.Execute();
-        }
-
-        /// <summary>
-        /// Weaves an executable to support bootstraping it from the OS shell.
-        /// </summary>
-        /// <param name="inputDirectory">
-        /// The directory where we expect to find the executable.</param>
-        /// <param name="cacheDirectory">The cache directory.</param>
-        /// <param name="fileName">The name of the executable file.</param>
-        /// <param name="arguments">Arguments to the command, parsed from the
-        /// command-line.</param>
-        static void ExecuteWeaveBootstrapCommand(
-            string inputDirectory,
-            string cacheDirectory,
-            string fileName,
-            ApplicationArguments arguments) {
-            BootstrapWeaver.WeaveExecutable(Path.Combine(inputDirectory, fileName));
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
