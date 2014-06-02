@@ -430,5 +430,23 @@ Assert.AreEqual(facit, result );
             Assert.AreEqual(
                 "[{\"op\":\"replace\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
         }
+
+        [Test]
+        public static void TestPatchForTriggers() {
+            var schema = new TObject();
+            var save = schema.Add<TTrigger>("Save$");
+
+            var json = new Json() { Template = schema };
+            json.Session = new Session();
+
+            var patch = JsonPatch.CreateJsonPatch(json.Session, true);
+            json.MarkAsReplaced(save);
+            patch = JsonPatch.CreateJsonPatch(json.Session, true);
+
+            Console.WriteLine(patch);
+
+            var expected = '[' + string.Format(Helper.PATCH, "/Save$", "null") + ']';
+            Assert.AreEqual(expected, patch);
+        }
     }
 }
