@@ -36,7 +36,7 @@ namespace Starcounter.Templates {
 		/// Static constructor to automatically initialize XSON.
 		/// </summary>
 		static TObject() {
-			HelperFunctions.LoadNonGACDependencies();
+			HelperFunctions.PreLoadCustomDependencies();
 			Starcounter_XSON_JsonByExample.Initialize();
 		}
 
