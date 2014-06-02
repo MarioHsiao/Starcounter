@@ -7,6 +7,7 @@
 using System;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using Starcounter.Advanced.XSON;
 using System.Collections;
 using Starcounter.Internal.XSON;
 
@@ -32,17 +33,19 @@ namespace Starcounter {
                 return _data;
             }
             set {
-                if (IsArray) {
-                    _PendingEnumeration = true;
-                    _data = (IEnumerable)value;
-                    this.Array_InitializeAfterImplicitConversion((Json)this.Parent, (TObjArr)this.Template);
-                }
-                else {
-                    if (Template == null) {
-                        (this as Json).CreateDynamicTemplate(); // If there is no template, we'll create a template
+                this.AddInScope<Json, object>((j, v) => {
+                    if (j.IsArray) {
+                        j._PendingEnumeration = true;
+                        j._data = (IEnumerable)v;
+                        j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
+                    } else {
+                        if (j.Template == null) {
+                            j.CreateDynamicTemplate(); // If there is no template, we'll create a template
+                        }
+                        j.InternalSetData(v, (TObject)j.Template, false);
                     }
-                    InternalSetData(value, (TObject)Template, false);
-                }
+                },
+                this, value);
             }
         }
 
