@@ -94,7 +94,7 @@ public:
 
     uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
-    static uint32_t SendDisconnectToDb(GatewayWorker *gw, SocketDataChunk* sd);
+    static uint32_t SendSocketDisconnectToDb(GatewayWorker *gw, SocketDataChunk* sd);
 
     uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 

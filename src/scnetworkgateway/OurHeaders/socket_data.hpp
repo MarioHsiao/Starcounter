@@ -441,6 +441,21 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
     }
 
+    bool get_just_push_disconnect_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT) != 0;
+    }
+
+    void set_just_push_disconnect_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT;
+    }
+
+    void reset_just_push_disconnect_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT;
+    }
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Getting socket diagnostics active connection flag.

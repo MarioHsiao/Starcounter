@@ -138,7 +138,12 @@ uint32_t PortAggregator(
 
                 // Running handler.
                 err_code = gw->RunReceiveHandlers(sd_push_to_db);
+
                 if (err_code) {
+
+                    // Releasing the cloned chunk.
+                    gw->ReturnSocketDataChunksToPool(sd_push_to_db);
+
                     // NOTE: If problems obtaining chunk, breaking the whole aggregated receive.
                     break;
                 }

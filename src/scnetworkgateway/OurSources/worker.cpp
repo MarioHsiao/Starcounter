@@ -682,6 +682,8 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 // Returns given socket data chunk to private chunk pool.
 void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
 {
+    GW_ASSERT(NULL != sd);
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 #ifndef GW_TESTING_MODE
     GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
@@ -1117,7 +1119,8 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
         {
             // Creating new set of prepared connections.
             uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
-            GW_ERR_CHECK(err_code);
+            if (err_code)
+                return err_code;
         }
 
         worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(sd->GetPortIndex());
@@ -1322,6 +1325,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
                 {
+                    GW_ASSERT(sd->get_type_of_network_oper() != SocketOperType::ACCEPT_SOCKET_OPER);
+
                     uint32_t flags;
                     BOOL success = WSAGetOverlappedResult(sd->GetSocket(), fetched_ovls[i].lpOverlapped, (LPDWORD)&oper_num_bytes, FALSE, (LPDWORD)&flags);
                     GW_ASSERT(FALSE == success);
@@ -1526,6 +1531,30 @@ uint32_t GatewayWorker::WorkerRoutine()
     GW_ASSERT(false);
 }
 
+// Creating accepting sockets on all ports.
+uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
+{
+    for (int32_t p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
+    {
+        ServerPort* server_port = g_gateway.get_server_port(p);
+
+        // Checking that port is not empty.
+        if (!server_port->IsEmpty())
+        {
+            // Checking if we need to extend number of accepting sockets.
+            if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
+            {
+                // Creating new set of prepared connections.
+                uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p);
+                if (err_code)
+                    return err_code;
+            }
+        }
+    }
+
+    return 0;
+}
+
 // Scans all channels for any incoming chunks.
 uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
 {
@@ -1625,8 +1654,13 @@ uint32_t GatewayWorker::AddNewDatabase(db_index_type db_index)
 uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+    if (!sd->CompareUniqueSocketId()) {
+
+        // Checking if its a disconnect push.
+        if (!sd->get_just_push_disconnect_flag()) {
+            return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+        }
+    }
 
     // Getting database to which this chunk belongs.
     WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
@@ -1665,8 +1699,13 @@ uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BM
     *again_for_overflow = false;
 
     // Checking correct unique socket.
-    if (!sd->CompareUniqueSocketId())
-        return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+    if (!sd->CompareUniqueSocketId()) {
+
+        // Checking if its a disconnect push.
+        if (!sd->get_just_push_disconnect_flag()) {
+            return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+        }
+    }
 
     // Getting database to which this chunk belongs.
     WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
