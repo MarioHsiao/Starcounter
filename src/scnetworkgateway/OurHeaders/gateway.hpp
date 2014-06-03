@@ -148,10 +148,7 @@ enum GatewayErrorCodes
 };
 
 // Maximum number of ports the gateway operates with.
-const int32_t MAX_PORTS_NUM = 16;
-
-// Maximum number of URIs the gateway operates with.
-const int32_t MAX_URIS_NUM = 1024;
+const int32_t MAX_PORTS_NUM = 32;
 
 // Maximum number of handlers per port.
 const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
@@ -245,20 +242,11 @@ const int32_t MAX_ACTIVE_DATABASES = 16;
 // Maximum number of workers.
 const int32_t MAX_WORKER_THREADS = 32;
 
-// Maximum number of active server ports.
-const int32_t MAX_ACTIVE_SERVER_PORTS = 32;
-
-// Maximum port handle integer.
-const int32_t MAX_POSSIBLE_CONNECTIONS = 10000000;
-
 // Maximum number of test echoes.
 const int32_t MAX_TEST_ECHOES = 50000000;
 
 // Number of seconds monitor thread sleeps between checks.
 const int32_t GW_MONITOR_THREAD_TIMEOUT_SECONDS = 5;
-
-// Maximum reusable connect sockets per worker.
-const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 
 // Maximum blacklisted IPs per worker.
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
@@ -1748,7 +1736,7 @@ class Gateway
     HandlersTable* gw_handlers_;
 
     // All server ports.
-    ServerPort server_ports_[MAX_ACTIVE_SERVER_PORTS];
+    ServerPort server_ports_[MAX_PORTS_NUM];
 
     // Number of used server ports slots.
     volatile int32_t num_server_ports_slots_;
