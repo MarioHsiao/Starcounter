@@ -189,6 +189,9 @@ class GatewayWorker
         rsi = NULL;
     }
 
+    // Creating accepting sockets on all ports.
+    uint32_t CheckAcceptingSocketsOnAllActivePorts();
+
 public:
 
 #if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)

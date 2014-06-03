@@ -320,7 +320,8 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
 {
     // Verifying that session is correct and sending delete session to database.
-    WsProto::SendDisconnectToDb(gw, this);
+    // NOTE: Ignoring the error code.
+    WsProto::SendSocketDisconnectToDb(gw, this);
 
     return 0;
 }
