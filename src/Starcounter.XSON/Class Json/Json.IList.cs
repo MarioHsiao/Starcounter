@@ -302,9 +302,10 @@ namespace Starcounter {
 
             j._cacheIndexInArr = index;
             j.Parent = this;
+            list[index] = j;
 
             if (_dirtyCheckEnabled) {
-                _SetFlag.Add(true);
+                MarkAsReplaced(index);
                 Dirtyfy();
                 CallHasReplacedElement(index, j);
             }
