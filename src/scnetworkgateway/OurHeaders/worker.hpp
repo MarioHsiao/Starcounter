@@ -190,7 +190,7 @@ class GatewayWorker
     }
 
     // Creating accepting sockets on all ports.
-    uint32_t CheckAcceptingSocketsOnAllActivePorts();
+    void CheckAcceptingSocketsOnAllActivePorts();
 
 public:
 

@@ -1101,7 +1101,8 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     {
         // Creating new set of prepared connections.
         uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
     }
 
 #endif
@@ -1118,9 +1119,8 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
         if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
         {
             // Creating new set of prepared connections.
-            uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
-            if (err_code)
-                return err_code;
+            // NOTE: Ignoring error code on purpose.
+            CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
         }
 
         worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(sd->GetPortIndex());
@@ -1325,8 +1325,6 @@ uint32_t GatewayWorker::WorkerRoutine()
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
                 {
-                    GW_ASSERT(sd->get_type_of_network_oper() != SocketOperType::ACCEPT_SOCKET_OPER);
-
                     uint32_t flags;
                     BOOL success = WSAGetOverlappedResult(sd->GetSocket(), fetched_ovls[i].lpOverlapped, (LPDWORD)&oper_num_bytes, FALSE, (LPDWORD)&flags);
                     GW_ASSERT(FALSE == success);
@@ -1517,6 +1515,15 @@ uint32_t GatewayWorker::WorkerRoutine()
         // Pushing overflow chunks if any.
         PushOverflowChunks(&next_sleep_interval_ms);
 
+#ifndef GW_LOOPED_TEST_MODE
+
+        // Creating accepting sockets on all ports and for all databases.
+        // NOTE: Ignoring error code on purpose.
+        if (0 == worker_id_)
+            CheckAcceptingSocketsOnAllActivePorts();
+
+#endif
+
 #ifdef WORKER_NO_SLEEP
         next_sleep_interval_ms = 0;
 #endif
@@ -1532,9 +1539,9 @@ uint32_t GatewayWorker::WorkerRoutine()
 }
 
 // Creating accepting sockets on all ports.
-uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
+void GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
 {
-    for (int32_t p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
+    for (port_index_type p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
     {
         ServerPort* server_port = g_gateway.get_server_port(p);
 
@@ -1545,14 +1552,11 @@ uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
             if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
             {
                 // Creating new set of prepared connections.
-                uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p);
-                if (err_code)
-                    return err_code;
+                // NOTE: Ignoring error code on purpose.
+                CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p);
             }
         }
     }
-
-    return 0;
 }
 
 // Scans all channels for any incoming chunks.
@@ -1590,7 +1594,6 @@ uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
 
                     // Leaving global lock.
                     LeaveGlobalLock();
-
                 }
                 else
                 {
