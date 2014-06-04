@@ -468,7 +468,7 @@ Assert.AreEqual(facit, result );
             subItem1.Text = "S1";
             subItem2.Text = "S2";
             item2.SubItems = new List<Json>();
-
+            
             var patch = JsonPatch.CreateJsonPatch(root.Session, true);
 //            Console.WriteLine(patch);
 
@@ -480,8 +480,9 @@ Assert.AreEqual(facit, result );
 
             patch = JsonPatch.CreateJsonPatch(root.Session, true);
             Console.WriteLine(patch);
+            Console.WriteLine();
 
-            var expected = '[' + string.Format(Helper.PATCH, "Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
+            var expected = '[' + string.Format(Helper.PATCH, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
             Assert.AreEqual(expected, patch);
         }
     }
