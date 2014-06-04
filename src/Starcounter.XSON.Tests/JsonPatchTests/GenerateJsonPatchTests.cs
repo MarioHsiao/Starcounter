@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using Starcounter.XSON.JsonPatch;
 using Starcounter.Advanced.XSON;
+using System.Collections;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -446,6 +447,42 @@ Assert.AreEqual(facit, result );
             Console.WriteLine(patch);
 
             var expected = '[' + string.Format(Helper.PATCH, "/Save$", "null") + ']';
+            Assert.AreEqual(expected, patch);
+        }
+
+        [Test]
+        public static void TestPatchForSubItems() {
+            dynamic item1 = new Json();
+            dynamic item2 = new Json();
+            dynamic subItem1 = new Json();
+            dynamic subItem2 = new Json();
+            dynamic root = new Json();
+
+            root.Session = new Session();
+            root.Header = "Root";
+            item1.Text = "1";
+            item2.Text = "2";
+            root.Items = new List<Json>();
+            root.Items.Add(item1);
+
+            subItem1.Text = "S1";
+            subItem2.Text = "S2";
+            item2.SubItems = new List<Json>();
+            
+            var patch = JsonPatch.CreateJsonPatch(root.Session, true);
+//            Console.WriteLine(patch);
+
+            root.Items[0] = item2;
+            Assert.IsNotNull(item2.Parent);
+
+            item2.SubItems.Add(subItem1);
+            item2.SubItems.Add(subItem2);
+
+            patch = JsonPatch.CreateJsonPatch(root.Session, true);
+            Console.WriteLine(patch);
+            Console.WriteLine();
+
+            var expected = '[' + string.Format(Helper.PATCH, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
             Assert.AreEqual(expected, patch);
         }
     }

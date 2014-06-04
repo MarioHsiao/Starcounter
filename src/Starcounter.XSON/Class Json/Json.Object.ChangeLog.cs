@@ -85,20 +85,24 @@ namespace Starcounter {
 		/// <param name="session"></param>
 		private void LogArrayChangesWithDatabase(Session session) {
 			if (ArrayAddsAndDeletes != null) {
-                session.AddRangeOfChanges(ArrayAddsAndDeletes);
-				ArrayAddsAndDeletes.Clear();
+                for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
+                    var change = ArrayAddsAndDeletes[i];
+                    session.AddChange(change);
 
-				for (int i = 0; i < list.Count; i++) {
-					CheckpointAt(i);
-				}
+                    var index = change.Index;
+                    if (index < list.Count) {
+                        CheckpointAt(index);
+                        ((Json)list[index])._Dirty = false;
+                    }
+                }
+				ArrayAddsAndDeletes.Clear();
 			}
 			
 			var property = Template as TObjArr;
 			for (int t = 0; t < _list.Count; t++) {
-				if (WasReplacedAt(t)) {
-                    session.UpdateValue(this.Parent, property, t);
-				}
-				(_list[t] as Json).LogValueChangesWithDatabase(session);
+                var item = (Json)_list[t];
+                if (item._Dirty)
+                    item.LogValueChangesWithDatabase(session);
 			}
 		}
 
@@ -121,6 +125,9 @@ namespace Starcounter {
 		private void LogObjectValueChangesWithDatabase(Session session) {
             this.AddInScope<Session>((s) => {
                 var template = (TObject)Template;
+                if (template == null)
+                    return;
+
                 var exposed = template.Properties.ExposedProperties;
 
                 if (_Dirty) {
