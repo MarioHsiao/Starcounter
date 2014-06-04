@@ -175,20 +175,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        object IList.this[int index] {
-            get {
-                return list[index];
-            }
-            set {
-                list[index] = value;
-            }
-        }
-
-        /// <summary>
         /// Copies all items to the specified array.
         /// </summary>
         /// <param name="array">The destination array.</param>
@@ -289,6 +275,39 @@ namespace Starcounter {
         /// <returns></returns>
         int IList.Add(object item) {
             return _Add(item);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        internal void Replace(object item, int index) {
+            var j = VerifyJsonForInserting(item);
+
+            var typedListTemplate = ((TObjArr)Template).ElementType;
+            if (typedListTemplate != null) {
+                if (j.Template != typedListTemplate) {
+                    throw new Exception(
+                        String.Format("Cannot add item with template {0} as the array is expecting another template of type {1}",
+                                j.Template.DebugString,
+                                typedListTemplate.DebugString));
+                }
+            }
+
+            var oldJson = (Json)list[index];
+            if (oldJson != null) {
+                oldJson._cacheIndexInArr = -1;
+                oldJson.SetParent(null);
+            }
+
+            j._cacheIndexInArr = index;
+            j.Parent = this;
+
+            if (_dirtyCheckEnabled) {
+                _SetFlag.Add(true);
+                Dirtyfy();
+                CallHasReplacedElement(index, j);
+            }
         }
 
         /// <summary>

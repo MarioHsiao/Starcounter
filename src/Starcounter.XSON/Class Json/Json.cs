@@ -304,14 +304,7 @@ namespace Starcounter {
 			}
 			set {
 				if (this.IsArray) {
-					// TODO: 
-					// Should be delegate on property as well.
-					_SetAt(index, value);
-					if (ArrayAddsAndDeletes == null)
-						ArrayAddsAndDeletes = new List<Change>();
-					ArrayAddsAndDeletes.Add(Change.Update(Parent, (TValue)Template, index));
-					MarkAsReplaced(index);
-					Dirtyfy();
+                    Replace(value, index);
 				} else {
 					TValue property = (TValue)((TObject)Template).Properties[index];
 					property.SetValueAsObject(this, value);

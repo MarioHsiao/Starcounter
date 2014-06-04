@@ -234,6 +234,24 @@ namespace Starcounter {
 			Parent.ChildArrayHasAddedAnElement(tarr, index);
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        internal void CallHasReplacedElement(int index, Json item) {
+            var tarr = (TObjArr)this.Template;
+            if (_dirtyCheckEnabled && Session != null) {
+                if (ArrayAddsAndDeletes == null) {
+                    ArrayAddsAndDeletes = new List<Change>();
+                }
+                ArrayAddsAndDeletes.Add(Change.Add((Json)this.Parent, tarr, index));
+                Dirtyfy();
+                item.SetBoundValuesInTuple();
+            }
+            Parent.ChildArrayHasReplacedAnElement(tarr, index);
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>
