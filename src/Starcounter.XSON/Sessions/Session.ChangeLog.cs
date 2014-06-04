@@ -60,8 +60,8 @@ namespace Starcounter {
         /// Adds a list of changes to the log
         /// </summary>
         /// <param name="toAdd"></param>
-        internal void AddRangeOfChanges(List<Change> toAdd) {
-            _changes.AddRange(toAdd);
+        internal void AddChange(Change change) {
+            _changes.Add(change);
         }
 
         internal List<Change> GetChanges() {
