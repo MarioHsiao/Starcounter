@@ -26,7 +26,9 @@ namespace AggrHttpClient {
 
         const Int32 AggregationStructSizeBytes = 24;
 
-        const UInt16 UserPort = 8080;
+        const Int32 DefaultNumWorkers = 1;
+
+        const UInt16 UserPort = 8181;
         const UInt16 AggregationPort = 9191;
         const String ServerIp = "127.0.0.1"; // 192.168.200.107
         const Int32 RecvBufSize = 1024 * 1024 * 16;
@@ -111,7 +113,7 @@ namespace AggrHttpClient {
 
         static unsafe void Main(string[] args) {
 
-            Int32 numWorkers = 1;
+            Int32 numWorkers = DefaultNumWorkers;
 
             if (args.Length > 0) {
 
@@ -297,6 +299,8 @@ namespace AggrHttpClient {
             Int32 restartOffset = 0;
             Int32 numSentRequests = 0;
 
+            Int32 pn = 0;
+            
             while (totalNumResponses < ws.NumRequestsToSend) {
 
                 if ((numSentRequests < ws.NumRequestsToSend) && ((numSentRequests - totalNumResponses) <= RequestResponseBalance)) {
@@ -314,6 +318,14 @@ namespace AggrHttpClient {
                 Int64 checksum = 0;
 
                 CheckResponses(recvBuf, numRecvBytes, out restartOffset, out numResponses, out numBodyBytes, out checksum);
+
+                pn++;
+                if (pn >= 200) {
+                    lock (ws) {
+                        Console.WriteLine("[" + workerId + "] responses: " + totalNumResponses);
+                    }
+                    pn = 0;
+                }
 
                 totalNumResponses += numResponses;
                 totalNumBodyBytes += numBodyBytes;

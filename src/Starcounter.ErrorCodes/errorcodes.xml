@@ -1539,6 +1539,11 @@
             Current network protocol is not used correctly. Please consult documentation for more details.
         </message>
     </code>
+    <code hex="0026" severity="Error" name="ScErrCantPushToChannel">
+        <message>
+            Channel is full, can't push.
+        </message>
+    </code>
   </facility>
 
   <!-- Database error codes. -->

@@ -8,7 +8,7 @@ namespace network {
 class WorkerChunks
 {
     // Chunk stores.
-    LinearQueue<SocketDataChunk*, MAX_GATEWAY_CHUNKS> worker_chunks_[NumGatewayChunkSizes];
+    LinearQueue<SocketDataChunk*, MAX_WORKER_CHUNKS> worker_chunks_[NumGatewayChunkSizes];
 
     // Number of allocated chunks for each chunks store.
     int32_t num_allocated_chunks_[NumGatewayChunkSizes];
@@ -44,7 +44,7 @@ public:
         sd->InvalidateWhenReturning();
 
         // Checking if we should completely dispose the chunk.
-        if (worker_chunks_[store_index].get_num_entries() >= GatewayChunkStoresSizes[store_index])
+        if (worker_chunks_[store_index].get_num_entries() > GatewayChunkStoresSizes[store_index])
         {
             _aligned_free(sd);
             num_allocated_chunks_[store_index]--;
@@ -75,6 +75,11 @@ public:
         {
             sd = worker_chunks_[chunk_store_index].PopBack();
             goto RETURN_SD;
+        }
+
+        // Checking if we have allocated too many chunks for this store.
+        if (num_allocated_chunks_[chunk_store_index] > GatewayChunkStoresSizes[chunk_store_index]) {
+            return NULL;
         }
 
         // Creating new chunk.
@@ -151,14 +156,14 @@ class GatewayWorker
     // Number of created connections calculated for worker.
     int32_t num_created_conns_worker_;
 
-    // List of sockets indexes to be disconnected.
-    std::list<session_index_type> sockets_indexes_to_disconnect_;
-
     // Thread-safe list of rebalanced accept sockets.
     PSLIST_HEADER rebalance_accept_sockets_;
 
     // Aggregation sockets waiting for send.
     LinearList<SocketDataChunk*, 256> aggr_sds_to_send_;
+
+    // Overflow socket data chunks.
+    LinearQueue<SocketDataChunk*, MAX_WORKER_CHUNKS> overflow_sds_;
 
     // Aggregation timer.
     utils::PreciseTimer aggr_timer_;
@@ -184,6 +189,9 @@ class GatewayWorker
         rsi = NULL;
     }
 
+    // Creating accepting sockets on all ports.
+    uint32_t CheckAcceptingSocketsOnAllActivePorts();
+
 public:
 
 #if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
@@ -193,12 +201,36 @@ public:
 
 #endif
 
+    // Checks if there is anything in overflow buffer and pushes all chunks from there.
+    void PushOverflowChunks(uint32_t* next_sleep_interval_ms);
+
     // Worker chunks.
     WorkerChunks* GetWorkerChunks()
     {
         return &worker_chunks_;
     }
 
+    void PushToOverflowQueue(SocketDataChunkRef sd) {
+        overflow_sds_.PushBack(sd);
+        sd = NULL;
+    }
+
+    SocketDataChunk* PopFromOverlowQueue() {
+
+        if (overflow_sds_.get_num_entries() > 0)
+            return overflow_sds_.PopFront();
+
+        return NULL;
+    }
+
+    int32_t NumOverflowChunks() {
+        return overflow_sds_.get_num_entries();
+    }
+
+    bool IsOverflowed() {
+        return (NumOverflowChunks() > 0);
+    }
+    
     // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(SocketDataChunkRef sd);
 
@@ -219,12 +251,6 @@ public:
 
     // Processes all aggregated chunks.
     uint32_t SendAggregatedChunks();
-
-    // Adds socket to be disconnected.
-    void AddSocketToDisconnectListUnsafe(session_index_type socket_index)
-    {
-        sockets_indexes_to_disconnect_.push_back(socket_index);
-    }
 
     // Starting accumulation.
     uint32_t StartAccumulation(SocketDataChunkRef sd, uint32_t total_desired_bytes, uint32_t num_already_accumulated)
@@ -256,9 +282,6 @@ public:
         return 0;
     }
 
-    // Processes sockets that should be disconnected.
-    void ProcessSocketDisconnectList();
-
 #ifdef GW_LOOPED_TEST_MODE
 
     int64_t GetNumberOfPreparationNetworkEvents()
@@ -282,17 +305,6 @@ public:
     bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, uint32_t* removedOvlsNum, int32_t max_fetched);
 
 #endif
-
-    // Getting number of chunks in overflow queue.
-    int64_t NumberOverflowChunksPerDatabasePerWorker(db_index_type db_index)
-    {
-        if (worker_dbs_[db_index] != NULL)
-        {
-            return worker_dbs_[db_index]->GetNumberOverflowedChunks();
-        }
-
-        return 0;
-    }
 
     // Clone made during last iteration.
     SocketDataChunkRef get_sd_receive_clone()
@@ -520,7 +532,7 @@ public:
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunkRef sd, int32_t numBytesSent);
-    uint32_t FinishDisconnect(SocketDataChunkRef sd);
+    uint32_t FinishDisconnect(SocketDataChunkRef sd, bool socket_error);
     uint32_t FinishConnect(SocketDataChunkRef sd);
     uint32_t FinishAccept(SocketDataChunkRef sd);
 
@@ -529,9 +541,6 @@ public:
 
     // Running disconnect on socket data.
     void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
-
-    // Disconnects arbitrary socket.
-    uint32_t DisconnectSocket(session_index_type socket_index);
 
     // Initiates receive on arbitrary socket.
     uint32_t ReceiveOnSocket(session_index_type socket_index);
@@ -594,8 +603,11 @@ public:
     // Push given chunk to database queue.
     uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
+    // Push given chunk to database queue.
+    uint32_t PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* again_for_overflow);
+
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels(uint32_t& next_sleep_interval_ms);
+    uint32_t ScanChannels(uint32_t* next_sleep_interval_ms);
 
     // Creates the socket data structure.
     uint32_t CreateSocketData(

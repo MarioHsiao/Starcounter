@@ -276,7 +276,6 @@ Gateway::Gateway()
 
     // Initializing critical sections.
     InitializeCriticalSection(&cs_global_lock_);
-    InitializeCriticalSection(&cs_sockets_cleanup_);
     InitializeCriticalSection(&cs_statistics_);
 
     num_pending_sends_ = 0;
@@ -650,8 +649,7 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
 {
     stats_stream << "{\"name\":\"" << db_name_ << "\",";
-    stats_stream << "\"index\":" << static_cast<int32_t>(db_index_) << ",";
-    stats_stream << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksPerDatabase(db_index_) << "}";
+    stats_stream << "\"index\":" << static_cast<int32_t>(db_index_) << "}";
 }
 
 ServerPort::ServerPort()
@@ -1041,6 +1039,13 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
     GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+
+    int64_t sum = 0;
+    for (int32_t i = 0; i < NumGatewayChunkSizes; i++) {
+        sum += GatewayChunkStoresSizes[i];
+    }
+
+    GW_ASSERT(MAX_WORKER_CHUNKS == sum);
 
     return 0;
 
@@ -1853,9 +1858,7 @@ bool ActiveDatabase::IsReadyForCleanup()
     EnterCriticalSection(&cs_db_checks_);
 
     // Checking if all chunks for this database were released.
-    is_ready_for_cleanup_ =
-        (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_) &&
-        (0 == g_gateway.NumberOverflowChunksPerDatabase(db_index_));
+    is_ready_for_cleanup_ = (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_);
 
     LeaveCriticalSection(&cs_db_checks_);
 
@@ -1882,9 +1885,7 @@ uint32_t Gateway::Init()
     GW_ASSERT(free_socket_indexes_unsafe_);
     InitializeSListHead(free_socket_indexes_unsafe_);
 
-    sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
     num_active_sockets_ = 0;
-    num_sockets_to_cleanup_unsafe_ = 0;
 
     // Cleaning all socket infos and setting indexes.
     for (int32_t i = setting_max_connections_ - 1; i >= 0; i--)
@@ -2312,23 +2313,12 @@ void Gateway::CleanUpEmptyPorts()
 }
 
 // Getting the total number of overflow chunks for all databases.
-int64_t Gateway::NumberOverflowChunksAllWorkersAndDatabases()
-{
-    int64_t num_overflow_chunks = 0;
-
-    for (int32_t d = 0; d < num_dbs_slots_; d++)
-        num_overflow_chunks += NumberOverflowChunksPerDatabase(d);
-
-    return num_overflow_chunks;
-}
-
-// Getting the number of overflow chunks per database.
-int64_t Gateway::NumberOverflowChunksPerDatabase(db_index_type db_index)
+int64_t Gateway::NumberOverflowChunksAllWorkers()
 {
     int64_t num_overflow_chunks = 0;
 
     for (int32_t w = 0; w < setting_num_workers_; w++)
-        num_overflow_chunks += gw_workers_[w].NumberOverflowChunksPerDatabasePerWorker(db_index);
+        num_overflow_chunks += gw_workers_[w].NumOverflowChunks();
 
     return num_overflow_chunks;
 }
@@ -2531,73 +2521,29 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
-// Cleans up all collected inactive sockets.
-uint32_t Gateway::CleanupInactiveSocketsOnWorkerZero()
-{
-    EnterCriticalSection(&cs_sockets_cleanup_);
-
-    // Going through all collected inactive sockets.
-    int64_t num_sockets_to_cleanup = num_sockets_to_cleanup_unsafe_;
-
-    for (int32_t i = 0; i < num_sockets_to_cleanup; i++)
-    {
-        // Getting existing socket info reference.
-        ScSocketInfoStruct* global_socket_info_ref = all_sockets_infos_unsafe_ + sockets_to_cleanup_unsafe_[i];
-
-        // Checking if socket is active.
-        if (0 != global_socket_info_ref->socket_timestamp_)
-        {
-            // Resetting the socket info cell.
-            global_socket_info_ref->session_.Reset();
-
-            // Setting the socket time stamp to zero.
-            global_socket_info_ref->ResetTimestamp();
-
-#ifdef GW_SESSIONS_DIAG
-            GW_COUT << "Disconnecting inactive socket " << sockets_to_cleanup_unsafe_[i] << "." << GW_ENDL;
-#endif
-
-            // Adding socket to disconnect queue.
-            g_gateway.get_worker(0)->AddSocketToDisconnectListUnsafe(sockets_to_cleanup_unsafe_[i]);
-        }
-
-        // Inactive socket was successfully cleaned up.
-        num_sockets_to_cleanup_unsafe_--;
-    }
-
-    GW_ASSERT(0 == num_sockets_to_cleanup_unsafe_);
-
-    LeaveCriticalSection(&cs_sockets_cleanup_);
-
-    return 0;
-}
-
 // Collects outdated sockets if any.
 uint32_t Gateway::CollectInactiveSockets()
 {
-    // Checking if collected sockets cleanup is not finished yet.
-    if (num_sockets_to_cleanup_unsafe_)
-        return 0;
-
-    EnterCriticalSection(&cs_sockets_cleanup_);
-
-    GW_ASSERT(0 == num_sockets_to_cleanup_unsafe_);
-
     int32_t num_inactive = 0;
 
     // TODO: Optimize scanning range.
     for (uint32_t i = 0; i < setting_max_connections_; i++)
     {
         // Checking if socket touch time is older than inactive socket timeout.
-        if ((all_sockets_infos_unsafe_[i].socket_timestamp_) &&
-            (global_timer_unsafe_ - all_sockets_infos_unsafe_[i].socket_timestamp_) >= setting_inactive_socket_timeout_seconds_)
+        if ((!all_sockets_infos_unsafe_[i].IsReset()) &&
+            (all_sockets_infos_unsafe_[i].socket_timestamp_) &&
+            ((global_timer_unsafe_ - all_sockets_infos_unsafe_[i].socket_timestamp_) >= setting_inactive_socket_timeout_seconds_))
         {
             // Disconnecting socket.
             switch (all_sockets_infos_unsafe_[i].type_of_network_protocol_)
             {
                 case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
                 {
-                    sockets_to_cleanup_unsafe_[num_inactive] = i;
+                    // Updating unique socket id.
+                    GenerateUniqueSocketInfoIds(i, 0);
+
+                    // NOTE: Not checking for error code.
+                    closesocket(all_sockets_infos_unsafe_[i].get_socket());
                     ++num_inactive;
 
                     break;
@@ -2616,16 +2562,6 @@ uint32_t Gateway::CollectInactiveSockets()
         // Checking if we have checked all active sockets.
         if (num_inactive >= num_active_sockets_)
             break;
-    }
-
-    num_sockets_to_cleanup_unsafe_ = num_inactive;
-
-    LeaveCriticalSection(&cs_sockets_cleanup_);
-
-    if (num_active_sockets_)
-    {
-        // Waking up the worker 0 thread with APC.
-        WakeUpThreadUsingAPC(worker_thread_handles_[0]);
     }
 
     return 0;
@@ -2717,7 +2653,6 @@ uint32_t Gateway::GlobalCleanup()
 
     // Deleting critical sections.
     DeleteCriticalSection(&cs_global_lock_);
-    DeleteCriticalSection(&cs_sockets_cleanup_);
     DeleteCriticalSection(&cs_statistics_);
 
     // Closing the log.
@@ -2959,7 +2894,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
         global_statistics_stream_ 
             << ",\"misc\":{"
-            << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() 
+            << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkers() 
             << ",\"activeSockets\":" << g_gateway.get_num_active_sockets() 
 
 #ifdef GW_TESTING_MODE

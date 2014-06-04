@@ -74,25 +74,23 @@ uint32_t PortAggregator(
 
                 // Sending data on aggregation socket.
                 err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
-                if (err_code)
-                    return err_code;
+
+                if (err_code) {
+                    // NOTE: If problems obtaining chunk, breaking the whole aggregated receive.
+                    break;
+                }
 
                 break;
             }
 
             case starcounter::MixedCodeConstants::AGGR_DESTROY_SOCKET:
             {
-                // Checking if socket is legitimate.
-                if (g_gateway.CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_))
-                {
-                    // Closing socket which will results in stop of all pending operations on that socket.
-                    gw->AddSocketToDisconnectListUnsafe(ags->socket_info_index_);
-                }
+                // TODO: Research what to do on disconnect.
 
-                // Sending data on aggregation socket.
-                err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
-                if (err_code)
-                    return err_code;
+                // Checking if socket is legitimate.
+                if (g_gateway.CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
+                    g_gateway.ReleaseSocketIndex(ags->socket_info_index_);
+                }
 
                 break;
             }
@@ -114,8 +112,14 @@ uint32_t PortAggregator(
 
                 // Cloning chunk to push it to database.
                 err_code = sd->CreateSocketDataFromBigBuffer(gw, ags->socket_info_index_, ags->size_bytes_, orig_data_ptr + num_processed_bytes, &sd_push_to_db);
-                if (err_code)
-                    return err_code;
+
+                // Payload size has been checked, so we can add payload as processed.
+                num_processed_bytes += static_cast<uint32_t>(ags->size_bytes_);
+
+                if (err_code) {
+                    // NOTE: If problems obtaining chunk, breaking the whole aggregated receive.
+                    break;
+                }
 
                 // Applying special parameters to socket data.
                 g_gateway.ApplySocketInfoToSocketData(sd_push_to_db, ags->socket_info_index_, ags->unique_socket_id_);
@@ -130,15 +134,20 @@ uint32_t PortAggregator(
                 // Changing accumulative buffer accordingly.
                 sd_push_to_db->get_accum_buf()->SetAccumulation(ags->size_bytes_, 0);
 
-                // Payload size has been checked, so we can add payload as processed.
-                num_processed_bytes += static_cast<uint32_t>(ags->size_bytes_);
-
                 g_gateway.num_aggregated_recv_messages_++;
 
                 // Running handler.
                 err_code = gw->RunReceiveHandlers(sd_push_to_db);
-                if (err_code)
-                    return err_code;
+
+                if (err_code) {
+
+                    // Releasing the cloned chunk.
+                    if (NULL != sd_push_to_db)
+                        gw->ReturnSocketDataChunksToPool(sd_push_to_db);
+
+                    // NOTE: If problems obtaining chunk, breaking the whole aggregated receive.
+                    break;
+                }
 
                 break;
             }

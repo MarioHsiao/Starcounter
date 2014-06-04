@@ -38,6 +38,7 @@
           $(OutputPath)\Starcounter.Bootstrap.dll;
           $(OutputPath)\Starcounter.Apps.JsonPatch.dll;
           $(OutputPath)\Starcounter.Internal.dll;
+          $(OutputPath)\Starcounter.Logging.dll;
           $(OutputPath)\Starcounter.HyperMedia.dll;
           $(OutputPath)\Starcounter.Node.dll;
           $(OutputPath)\Starcounter.XSON.dll" />

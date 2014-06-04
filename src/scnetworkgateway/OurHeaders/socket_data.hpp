@@ -441,6 +441,21 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
     }
 
+    bool get_just_push_disconnect_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT) != 0;
+    }
+
+    void set_just_push_disconnect_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT;
+    }
+
+    void reset_just_push_disconnect_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT;
+    }
+
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
     // Getting socket diagnostics active connection flag.
@@ -850,6 +865,14 @@ public:
     void SetNumberOfIPCChunks(uint16_t num_ip_chunks)
     {
         *(uint16_t*)(&ovl_) = num_ip_chunks;
+    }
+
+    void set_handler_id(BMX_HANDLER_TYPE handler_id) {
+        *(BMX_HANDLER_TYPE*)((char*)(&ovl_) + 2) = handler_id;
+    }
+
+    BMX_HANDLER_TYPE get_handler_id() {
+        return *(BMX_HANDLER_TYPE*)((char*)(&ovl_) + 2);
     }
 
 #ifdef GW_TESTING_MODE

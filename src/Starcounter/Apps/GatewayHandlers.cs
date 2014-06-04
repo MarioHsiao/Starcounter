@@ -351,7 +351,7 @@ namespace Starcounter
 
                 // Checking if WebSocket is legitimate.
                 WebSocketInternal wsInternal = WebSocket.ObtainWebSocketInternal(data_stream);
-                if (wsInternal == null)
+                if ((wsInternal == null) || (wsInternal.IsDead()))
                 {
                     data_stream.Destroy(true);
                     return 0;

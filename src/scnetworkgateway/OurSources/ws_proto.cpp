@@ -172,25 +172,38 @@ inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
 }
 
 // Send disconnect to database.
-void WsProto::SendDisconnectToDb(
+uint32_t WsProto::SendSocketDisconnectToDb(
     GatewayWorker *gw,
     SocketDataChunk* sd)
 {
     // Obtaining handler info from channel id.
     BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
-        return;
+        return 0;
 
-    // TODO: Skip creating a push clone.
     SocketDataChunk* sd_push_to_db = NULL;
-    sd->CloneToPush(gw, &sd_push_to_db);
+    uint32_t err_code = sd->CloneToPush(gw, &sd_push_to_db);
+    if (err_code)
+        return err_code;
+
     sd_push_to_db->ResetAllFlags();
+    sd_push_to_db->set_just_push_disconnect_flag();
 
     // Setting the opcode indicating socket disconnect.
     sd_push_to_db->get_ws_proto()->get_frame_info()->opcode_ = (MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_CLOSE);
 
     // Push chunk to corresponding channel/scheduler.
-    gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
+    err_code = gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
+
+    if (err_code) {
+
+        // Releasing the cloned chunk.
+        gw->ReturnSocketDataChunksToPool(sd_push_to_db);
+
+        return err_code;
+    }
+
+    return 0;
 }
 
 // Processes incoming WebSocket frames.
@@ -306,8 +319,14 @@ DATA_ACCUMULATED:
         {
             // Unmasking frame and pushing to database.
             err_code = UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id);
-            if (err_code)
+
+            if (err_code) {
+                
+                // Releasing the cloned chunk.
+                gw->ReturnSocketDataChunksToPool(sd_push_to_db);
+
                 return err_code;
+            }
         }
     }
 
@@ -449,15 +468,13 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Since we need to send this chunk over IPC.
     sd->reset_socket_diag_active_conn_flag();
 
-    // Push chunk to corresponding channel/scheduler.
-    gw->PushSocketDataToDb(sd, user_handler_id);
-
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
     GW_COUT << resp_data_begin << GW_ENDL;
 #endif
 
-    return 0;
+    // Push chunk to corresponding channel/scheduler.
+    return gw->PushSocketDataToDb(sd, user_handler_id);
 }
 
 // Masks or unmasks payload.
