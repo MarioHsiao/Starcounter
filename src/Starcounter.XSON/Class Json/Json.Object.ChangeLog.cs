@@ -121,6 +121,9 @@ namespace Starcounter {
 		private void LogObjectValueChangesWithDatabase(Session session) {
             this.AddInScope<Session>((s) => {
                 var template = (TObject)Template;
+                if (template == null)
+                    return;
+
                 var exposed = template.Properties.ExposedProperties;
 
                 if (_Dirty) {

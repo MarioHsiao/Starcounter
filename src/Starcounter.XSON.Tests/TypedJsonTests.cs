@@ -502,6 +502,13 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(0, root.Items.Count);
             Assert.IsNull(item1.Parent);
             Assert.IsNull(item3.Parent);
+
+            root.Items.Add(item1);
+            root.Items[0] = item2;
+
+            Assert.AreEqual(1, root.Items.Count);
+            Assert.IsTrue(null == item1.Parent);
+            Assert.IsNotNull(item2.Parent);
         }
 
         [Test]
