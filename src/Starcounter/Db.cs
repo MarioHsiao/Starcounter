@@ -8,6 +8,7 @@ using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -91,6 +92,7 @@ namespace Starcounter
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
                 sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
+                Debug.Assert(column_definitions.Length > 0);
                 char* name = null;
                 try
                 {
@@ -158,7 +160,15 @@ namespace Starcounter
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transaction(Action action, bool forceSnapshot = false, int maxRetries = 100)
+        public static void Transaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transaction(action, 0, forceSnapshot, maxRetries);
+        }
+
+        internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transaction(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
+        }
+
+        internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100)
         {
             int retries;
             uint r;
@@ -177,7 +187,7 @@ namespace Starcounter
 
             for (; ; )
             {
-                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0)
                 {
                     var currentTransaction = Starcounter.Transaction._current;

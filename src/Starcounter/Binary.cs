@@ -24,10 +24,11 @@ namespace Starcounter
         public static readonly Binary Null = new Binary();
 
         /// <summary>
-        /// Max size allowed for unpacked small binary data (excluding header).
+        /// Max size allowed for unpacked binary data (excluding header).
         /// </summary>
-        public const int BINARY_DATA_MAX_SIZE = 8192;
-        public const int BINARY_DATA_FAKE_MAX_SIZE = 100;
+        public const int BINARY_DATA_MAX_SIZE = (1048576 - 1);
+
+        internal static readonly Binary Infinite = ConstructInfinite();
 
         /// <summary>
         /// Equalses the specified LB1.
@@ -80,7 +81,8 @@ namespace Starcounter
             Int32 len;
             Binary ret;
             // [usage] is the usage in the stream which includes the space
-            // reserved for storing the length of the binary contents.
+            // reserved for storing the length of the binary contents. Header
+            // byte is included in the length.
             len = (usage - 4);
             buffer[0] = (Byte)len;
             buffer[1] = (Byte)(len >> 8);
@@ -112,8 +114,8 @@ namespace Starcounter
             {
                 return false;
             }
-            l += 4;
-            for (i = 4; i < l; i++)
+            l += 5;
+            for (i = 5; i < l; i++)
             {
                 if (bc1[i] != bc2[i])
                 {
@@ -121,6 +123,12 @@ namespace Starcounter
                 }
             }
             return true;
+        }
+
+        private static Binary ConstructInfinite() {
+            var b = new Binary();
+            b._buffer = new byte[] { 1, 0, 0, 0, 1 };
+            return b;
         }
 
         //
@@ -143,12 +151,14 @@ namespace Starcounter
                     throw ErrorCode.ToException(Error.SCERRBINARYVALUEEXCEEDSMAXSIZE,
                         "Maximum possible size is " + BINARY_DATA_MAX_SIZE + 
                         ", while actual size of data is " + len);
-                _buffer = new Byte[len + 4];
-                _buffer[0] = (Byte)len;
-                _buffer[1] = (Byte)(len >> 8);
-                _buffer[2] = (Byte)(len >> 16);
-                _buffer[3] = (Byte)(len >> 24);
-                Buffer.BlockCopy(data, 0, _buffer, 4, len);
+                int len2 = len + 1;
+                _buffer = new Byte[len2 + 4];
+                _buffer[0] = (Byte)len2;
+                _buffer[1] = (Byte)(len2 >> 8);
+                _buffer[2] = (Byte)(len2 >> 16);
+                _buffer[3] = (Byte)(len2 >> 24);
+                _buffer[4] = 0;
+                Buffer.BlockCopy(data, 0, _buffer, 5, len2 - 1);
             }
             return;
         }
@@ -159,14 +169,16 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRBINARYVALUEEXCEEDSMAXSIZE,
                     "Maximum possible size is " + BINARY_DATA_MAX_SIZE +
                     ", while actual size of data is " + len);
-            _buffer = new Byte[len + 4];
-            _buffer[0] = (Byte)len;
-            _buffer[1] = (Byte)(len >> 8);
-            _buffer[2] = (Byte)(len >> 16);
-            _buffer[3] = (Byte)(len >> 24);
+            int len2 = len + 1;
+            _buffer = new Byte[len2 + 4];
+            _buffer[0] = (Byte)len2;
+            _buffer[1] = (Byte)(len2 >> 8);
+            _buffer[2] = (Byte)(len2 >> 16);
+            _buffer[3] = (Byte)(len2 >> 24);
+            _buffer[4] = 0;
             int written;
             fixed (byte* start = _buffer)
-                written = tuple.ReadByteArray(start + 4);
+                written = tuple.ReadByteArray(start + 5);
             Debug.Assert(written == len || written == -1);
             if (written == -1) 
                 _buffer = null;
@@ -174,14 +186,16 @@ namespace Starcounter
 
         internal unsafe Binary(ref SafeTupleReaderBase64 tuple, int index) {
             int len = Base64Binary.MeasureNeededSizeToDecode(tuple.GetValueLength(index));
-            _buffer = new Byte[len + 4];
-            _buffer[0] = (Byte)len;
-            _buffer[1] = (Byte)(len >> 8);
-            _buffer[2] = (Byte)(len >> 16);
-            _buffer[3] = (Byte)(len >> 24);
+            int len2 = len + 1;
+            _buffer = new Byte[len2 + 4];
+            _buffer[0] = (Byte)len2;
+            _buffer[1] = (Byte)(len2 >> 8);
+            _buffer[2] = (Byte)(len2 >> 16);
+            _buffer[3] = (Byte)(len2 >> 24);
+            _buffer[4] = 0;
             int written;
             fixed (byte* start = _buffer)
-                written = tuple.ReadByteArray(index, start + 4, len);
+                written = tuple.ReadByteArray(index, start + 5, len2 - 1);
             Debug.Assert(written == len || written == -1);
             if (written == -1)
                 _buffer = null;
@@ -260,22 +274,22 @@ namespace Starcounter
             {
                 return 0;
             }
-            ret = _buffer[2];
+            ret = _buffer[5];
             if (l == 1)
             {
                 return ret;
             }
-            ret |= (((Int32)_buffer[3]) << 8);
+            ret |= (((Int32)_buffer[6]) << 8);
             if (l == 2)
             {
                 return ret;
             }
-            ret |= (((Int32)_buffer[4]) << 16);
+            ret |= (((Int32)_buffer[7]) << 16);
             if (l == 3)
             {
                 return ret;
             }
-            ret |= (((Int32)_buffer[5]) << 24);
+            ret |= (((Int32)_buffer[8]) << 24);
             return ret;
         }
 
@@ -330,8 +344,8 @@ namespace Starcounter
             l1 = GetLength();
             l2 = other.GetLength();
             shtLength = (l1 < l2) ? l1 : l2;
-            shtLength += 4;
-            for (Int32 i = 4; i < shtLength; i++)
+            shtLength += 5;
+            for (Int32 i = 5; i < shtLength; i++)
             {
                 if (bc1[i] == bc2[i])
                 {
@@ -383,11 +397,11 @@ namespace Starcounter
             shtLength = (l1 < l2) ? l1 : l2;
             for (Int32 i = 0; i < shtLength; i++)
             {
-                if (bc1[i + 4] == other[i])
+                if (bc1[i + 5] == other[i])
                 {
                     continue;
                 }
-                if (bc1[i + 4] < other[i])
+                if (bc1[i + 5] < other[i])
                 {
                     return -1;
                 }
@@ -434,7 +448,7 @@ namespace Starcounter
                 throw new ArgumentOutOfRangeException("index");
             }
 
-            return _buffer[index + 4];
+            return _buffer[index + 5];
         }
 
         /// <summary>
@@ -448,7 +462,7 @@ namespace Starcounter
             {
                 len = GetLength();
                 ret = new Byte[len];
-                Buffer.BlockCopy(_buffer, 4, ret, 0, len);
+                Buffer.BlockCopy(_buffer, 5, ret, 0, len);
                 return ret;
             }
             return null;
@@ -464,9 +478,11 @@ namespace Starcounter
 
         internal Int32 GetLength()
         {
-            // The length is actually 4 bytes but byte 2 and 3 always contain
-            // 0.
-            return ((((Int32)_buffer[1]) << 8) | _buffer[0]);
+            // The length is actually 4 bytes but byte 3 always contain 0.
+            // Header byte is included in the length.
+            return
+                ((((int)_buffer[2]) << 16) | (((int)_buffer[1]) << 8) |
+                _buffer[0]) - 1;
         }
 
         private void VerifyNotNull()
@@ -475,7 +491,7 @@ namespace Starcounter
             {
                 return;
             }
-            throw new InvalidOperationException("Large binary is null.");
+            throw new InvalidOperationException("Binary is null.");
         }
 
         internal unsafe void WriteToTuple(ref TupleWriterBase64 tuple) {
@@ -483,7 +499,7 @@ namespace Starcounter
                 tuple.WriteByteArray(null);
             else
                 fixed (byte* start = _buffer) {
-                    tuple.WriteByteArray(start + 4, GetLength());
+                    tuple.WriteByteArray(start + 5, GetLength());
                 }
         }
 
@@ -492,7 +508,7 @@ namespace Starcounter
                 tuple.WriteByteArray(null);
             else
                 fixed (byte* start = _buffer) {
-                    tuple.WriteByteArray(start + 4, GetLength());
+                    tuple.WriteByteArray(start + 5, GetLength());
                 }
         }
     }
@@ -503,7 +519,7 @@ namespace Starcounter
     /// </summary>
     public sealed class BinaryStream : Stream
     {
-        private const Int32 DEFAULT_CAPACITY = (4096 - 4);
+        private const Int32 DEFAULT_CAPACITY = (4096 - 5);
 
         private Byte[] _buffer;
         private Int32 _position;
@@ -524,8 +540,8 @@ namespace Starcounter
         public BinaryStream(Int32 initialCapacity)
         {
             _buffer = new Byte[AdjustInput(initialCapacity)];
-            _position = 4;
-            _length = 4;
+            _position = 5;
+            _length = 5;
             _isOpen = true;
             _isWritable = true;
             _isFrozen = false;
@@ -536,8 +552,8 @@ namespace Starcounter
             // The large binary has already been verified not to be null before
             // the stream is created.
             _buffer = binary.GetInternalBuffer();
-            _position = 4;
-            _length = (binary.GetLength() + 4);
+            _position = 5;
+            _length = (binary.GetLength() + 5);
             _isOpen = true;
             _isWritable = false;
             _isFrozen = true;
@@ -882,7 +898,7 @@ namespace Starcounter
                 EnsureCapacity(num);
                 _length = num;
             }
-            Buffer.BlockCopy(buffer, 4, _buffer, _position, count);
+            Buffer.BlockCopy(buffer, 5, _buffer, _position, count);
             _position += count;
         }
 
@@ -909,22 +925,22 @@ namespace Starcounter
 
         private int AdjustInput(Int32 value)
         {
-            return (value + 4);
+            return (value + 5);
         }
 
         private long AdjustInput(Int64 value)
         {
-            return (value + 4);
+            return (value + 5);
         }
 
         private int AdjustOutput(Int32 value)
         {
-            return (value - 4);
+            return (value - 5);
         }
 
         private long AdjustOutput(Int64 value)
         {
-            return (value - 4);
+            return (value - 5);
         }
 
         private Boolean EnsureCapacity(Int32 value)

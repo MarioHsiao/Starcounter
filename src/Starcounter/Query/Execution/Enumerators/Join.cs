@@ -408,7 +408,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             //triedEnumeratorRecreation = true;
             unsafe {
                 fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
-                    Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
+                    Byte* recrKey = recrKeyBuffer + 4 + 1; // Skip buffer length
                     // Checking if recreation key is valid.
                     if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
                         ValidateNodeAndReturnOffsetReader(recrKey, OffsetTuppleLength);

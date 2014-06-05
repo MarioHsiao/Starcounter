@@ -78,7 +78,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
     public override void AppendMaxToKey(ByteArrayBuilder key)
     {
-        key.Append(BinaryRangeValue.MAX_VALUE);
+        key.Append(BinaryRangeValue.INFINITE);
     }
 
     /// <summary>

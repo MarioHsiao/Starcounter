@@ -135,13 +135,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 {
                     if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
                     {
-                        firstKeyBuilder.Append(BinaryRangeValue.MAX_VALUE);
+                        firstKeyBuilder.Append(BinaryRangeValue.INFINITE);
                         secondKeyBuilder.Append(BinaryRangeValue.MIN_VALUE);
                     }
                     else
                     {
                         firstKeyBuilder.Append(BinaryRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(BinaryRangeValue.MAX_VALUE);
+                        secondKeyBuilder.Append(BinaryRangeValue.INFINITE);
                     }
                     break;
                 }
@@ -424,7 +424,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 {
                     // Checking if recreation key is valid.
                     if ((*(Int32*)recrKey) > IteratorHelper.RK_EMPTY_LEN)
-                        return TryRecreateEnumerator(recrKey + 4);
+                        return TryRecreateEnumerator(recrKey + 4 + 1);
                 }
             }
 

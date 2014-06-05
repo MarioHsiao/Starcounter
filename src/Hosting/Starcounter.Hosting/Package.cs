@@ -14,6 +14,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
 using Starcounter.Metadata;
+using Starcounter.SqlProcessor;
+using System.Collections.Generic;
 
 namespace Starcounter.Hosting {
 
@@ -192,13 +194,22 @@ namespace Starcounter.Hosting {
 
             if (typeDefs.Length != 0)
             {
+                if (typeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
+                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                    OnRuntimeMetadataPopulated();
+                    // Call CLR class clean up
+                    Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
+                    OnCleanClrMetadata();
+                }
+
+                List<TypeDef> updateColumns = new List<TypeDef>();
                 for (int i = 0; i < typeDefs.Length; i++)
                 {
                     var typeDef = typeDefs[i];
                     var tableDef = typeDef.TableDef;
 
-                    tableDef = CreateOrUpdateDatabaseTable(tableDef);
-                    typeDef.TableDef = tableDef;
+                    if (CreateOrUpdateDatabaseTable(typeDef))
+                        updateColumns.Add(typeDef);
 
                     // Remap properties representing columns in case the column
                     // order has changed.
@@ -207,6 +218,10 @@ namespace Starcounter.Hosting {
                         tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
                         );
                 }
+                foreach (TypeDef typeDef in updateColumns)
+                    Db.SystemTransaction(delegate {
+                        MetadataPopulation.CreateColumnInstances(typeDef);
+                    });
 
                 OnDatabaseSchemaCheckedAndUpdated();
 
@@ -226,13 +241,35 @@ namespace Starcounter.Hosting {
                     InitTypeSpecifications();
                     OnTypeSpecificationsInitialized();
                 }
+
+                MetadataPopulation.PopulateClrMetadata(typeDefs);
+                OnPopulateClrMetadata();
             }
         }
 
         private void InitTypeSpecifications() {
-            HostManager.InitTypeSpecification(typeof(materialized_table.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndex.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndexColumn.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MappedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(Table.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.HostMaterializedTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(Member.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Column.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(Index.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(IndexedColumn.__starcounterTypeSpecification));
         }
 
         /// <summary>
@@ -240,10 +277,12 @@ namespace Starcounter.Hosting {
         /// </summary>
         /// <param name="tableDef">The table def.</param>
         /// <returns>TableDef.</returns>
-        private TableDef CreateOrUpdateDatabaseTable(TableDef tableDef) {
+        private bool CreateOrUpdateDatabaseTable(TypeDef typeDef) {
+            TableDef tableDef = typeDef.TableDef;
             string tableName = tableDef.Name;
             TableDef storedTableDef = null;
             TableDef pendingUpgradeTableDef = null;
+            bool updated = false;
 
             Db.Transaction(() => {
                 storedTableDef = Db.LookupTable(tableName);
@@ -253,17 +292,30 @@ namespace Starcounter.Hosting {
             if (pendingUpgradeTableDef != null) {
                 var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
                 storedTableDef = continueTableUpgrade.ContinueEval();
+                Db.SystemTransaction(delegate {
+                    MetadataPopulation.UpgradeRawTableInstance(typeDef);
+                    updated = true;
+                });
             }
 
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
+                Db.SystemTransaction(delegate {
+                    MetadataPopulation.CreateRawTableInstance(typeDef);
+                    updated = true;
+                });
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
+                Db.SystemTransaction(delegate {
+                    MetadataPopulation.UpgradeRawTableInstance(typeDef);
+                    updated = true;
+                });
             }
+            typeDef.TableDef = storedTableDef;
 
-            return storedTableDef;
+            return updated;
         }
 
         /// <summary>
@@ -302,6 +354,9 @@ namespace Starcounter.Hosting {
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
+        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
+        private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
+        private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)

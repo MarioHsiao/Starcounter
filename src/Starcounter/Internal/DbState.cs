@@ -120,6 +120,23 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(dr);
         }
 
+        internal static void SystemInsert(ushort tableId, ref ulong oid, ref ulong address) {
+            uint dr;
+            ulong oid_local;
+            ulong addr_local;
+
+            unsafe {
+                dr = sccoredb.star_insert_system(tableId, &oid_local, &addr_local);
+            }
+            if (dr == 0) {
+                oid = oid_local;
+                address = addr_local;
+                return;
+            }
+
+            throw ErrorCode.ToException(dr);
+        }
+
         /// <summary>
         /// 
         /// </summary>

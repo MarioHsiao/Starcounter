@@ -66,13 +66,21 @@ namespace StarcounterInternal.Hosting
             else
                 stopwatch_ = new Stopwatch();
 
-            var sysTableTypeDef = materialized_table.CreateTypeDef();
-            var sysColumnTypeDef = materialized_column.CreateTypeDef();
-            var sysIndexTypeDef = materialized_index.CreateTypeDef();
-            var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
+            var sysTableTypeDef = Starcounter.Internal.Metadata.MaterializedTable.CreateTypeDef();
+            var sysColumnTypeDef = Starcounter.Internal.Metadata.MaterializedColumn.CreateTypeDef();
+            var sysIndexTypeDef = Starcounter.Internal.Metadata.MaterializedIndex.CreateTypeDef();
+            var sysIndexColumnTypeDef = Starcounter.Internal.Metadata.MaterializedIndexColumn.CreateTypeDef();
+
+            // Add view meta-data
 
             Package package = new Package(
-                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef },
+                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
+                    Starcounter.Metadata.Type.CreateTypeDef(), Starcounter.Internal.Metadata.MaterializedType.CreateTypeDef(), 
+                    Starcounter.Internal.Metadata.MappedType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
+                    Table.CreateTypeDef(), Starcounter.Internal.Metadata.HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
+                    VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), Member.CreateTypeDef(), 
+                    Column.CreateTypeDef(), CodeProperty.CreateTypeDef(), Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
+                },
                 stopwatch_
                 );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);

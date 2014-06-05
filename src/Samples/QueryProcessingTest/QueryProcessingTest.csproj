@@ -57,6 +57,8 @@
     <Compile Include="DataPopulation.cs" />
     <Compile Include="FetchTest.cs" />
     <Compile Include="HelpMethods.cs" />
+    <Compile Include="InsertIntoTests.cs" />
+    <Compile Include="MetadataTest.cs" />
     <Compile Include="NamespacesTest.cs" />
     <Compile Include="ObjectIdentityTest.cs" />
     <Compile Include="OffsetkeyTest.cs" />
@@ -73,6 +75,9 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="run_queryprocessingtest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="secondrun.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

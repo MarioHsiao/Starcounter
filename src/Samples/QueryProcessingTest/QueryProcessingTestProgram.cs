@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Starcounter.TestFramework;
+using System.IO;
 
 namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
@@ -8,12 +9,21 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
+                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql")) {
+                    HelpMethods.LogEvent("Start loading query processing database.");
+                    int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
+                    HelpMethods.LogEvent("Finish loading query processing database. Loaded " +
+                        nrLoaded + " objects.");
+                } else
+                    HelpMethods.LogEvent("No reload.");
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
+                HelpMethods.LogEvent("Finished test query preparation performance.");
                 TestErrorMessages.RunTestErrorMessages();
                 NamespacesTest.TestClassesNamespaces();
                 WebVisitTests.TestVisits();
+                InsertIntoTests.TestValuesInsertIntoWebVisits();
                 PopulateData();
                 SqlBugsTest.QueryTests();
                 FetchTest.RunFetchTest();
@@ -22,14 +32,18 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
-                if (TestLogger.IsNightlyBuild())
+                MetadataTest.TestPopulatedMetadata();
+                if (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") == "True")
                     BenchmarkQueryCache.BenchQueryCache();
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("Start unloading query processing database.");
                 int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
-                HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " +
+                HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " + 
                     nrUnloaded + " objects.");
+                HelpMethods.LogEvent("Start delete the database data.");
+                Starcounter.Reload.DeleteAll();
+                HelpMethods.LogEvent("Finish delete the database data.");
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());
@@ -48,27 +62,27 @@ namespace QueryProcessingTest {
         }
 
         internal static void CreateIndexes() {
-            if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "accountidindx").First == null)
+            if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "accountidindx").First == null)
                 Starcounter.Db.SQL("create index AccountTypeActiveIndx on Account (notactive, AccountType)");
-            if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "AccountTypeIndx").First == null) {
+            if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "AccountTypeIndx").First == null) {
                 Starcounter.Db.SQL("create index AccountTypeIndx on Account (AccountType)");
                 Starcounter.Db.SQL("create index accountidindx on Account(accountid)");
             }
-            if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "nicknameindx").First == null) {
+            if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "nicknameindx").First == null) {
                 Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
                 Starcounter.Db.SlowSQL("create index anothernicknameindx on User(AnotherNickName)");
             }
-            if (Starcounter.Db.SQL("select i from materialized_index i where name = ?", "UserCompoundIndx").First == null)
+            if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "UserCompoundIndx").First == null)
                 Starcounter.Db.SlowSQL("create index UserCompoundIndx on user(NickName, LastName)");
-            if (Starcounter.Db.SQL("SELECT i FROM materialized_index i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
+            if (Starcounter.Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
             }
 
-            if (Starcounter.Db.SQL("SELECT i FROM materialized_index i WHERE Name=?", "VersionSourceBuildErrorIndex").First == null) {
+            if (Starcounter.Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name=?", "VersionSourceBuildErrorIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorIndex ON VersionSource (BuildError)");
             }
 
-            if (Starcounter.Db.SQL("SELECT i FROM materialized_index i WHERE Name=?", "VersionSourceVersionIndex").First == null) {
+            if (Starcounter.Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name=?", "VersionSourceVersionIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceVersionIndex ON VersionSource (Version)");
             }
         }

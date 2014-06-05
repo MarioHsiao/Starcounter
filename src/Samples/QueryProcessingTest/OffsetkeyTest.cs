@@ -455,8 +455,7 @@ namespace QueryProcessingTest {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
             });
             InsertAccount(GetAccountId(2), client);
-            DoOffsetkey(query, key, new int[] { GetAccountId(2), GetAccountId(3), GetAccountId(4), GetAccountId(5) }, 
-                true);
+            DoOffsetkey(query, key, new int[] { GetAccountId(2), GetAccountId(3), GetAccountId(4), GetAccountId(5) }, true);
         }
 
         static byte[] DoFetch(String query) {
@@ -483,12 +482,12 @@ namespace QueryProcessingTest {
         static void DoOffsetkey(String query, byte[] key, int[] expectedResult, bool firstCanIgnored) {
             int nrs = 0;
             Db.Transaction(delegate {
-            foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
-                if (nrs == 0 && firstCanIgnored && a.AccountId > expectedResult[nrs])
+                foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
+                    if (nrs == 0 && firstCanIgnored && a.AccountId > expectedResult[nrs])
+                        nrs++;
+                    Trace.Assert(a.AccountId == expectedResult[nrs]);
                     nrs++;
-                Trace.Assert(a.AccountId == expectedResult[nrs]);
-                nrs++;
-            }
+                }
             });
             Trace.Assert(nrs == expectedResult.Length);
         }

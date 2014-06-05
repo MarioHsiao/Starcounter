@@ -8,11 +8,18 @@ namespace Starcounter.SqlProcessor {
         public static unsafe extern uint scsql_process_query([MarshalAs(UnmanagedType.LPWStr)]string query);
             /*void* caller, void* executor, */
         [DllImport("scsqlprocessor.dll")]
+        internal static unsafe extern uint scsql_process_modifyquery([MarshalAs(UnmanagedType.LPWStr)]string query, 
+            int* nrObjs);
+        [DllImport("scsqlprocessor.dll")]
         public static unsafe extern ScError* scsql_get_error();
         [DllImport("scsqlprocessor.dll")]
-        public static unsafe extern uint scsql_free_memory();
+        public static extern uint scsql_free_memory();
         [DllImport("scsqlprocessor.dll")]
-        public static unsafe extern uint scsql_dump_memory_leaks();
+        public static extern uint scsql_dump_memory_leaks();
+        [DllImport("scsqlprocessor.dll")]
+        private static extern uint scsql_create_runtime_metadata();
+        [DllImport("scsqlprocessor.dll")]
+        private static extern uint scsql_clean_clrclass();
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -26,6 +33,33 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
             return ex;
+        }
+
+        internal static unsafe int ExecuteQuerySqlProcessor(String query) {
+            int nrObjs = 0;
+            uint err = scsql_process_modifyquery(query, &nrObjs);
+            if (err == 0)
+                return nrObjs;
+            Exception ex = GetSqlException(err, query);
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < 10000);
+            // create the exception
+            scsql_free_memory();
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < 10000);
+            throw ex;
+        }
+
+        public static void PopulateRuntimeMetadata() {
+            uint err = scsql_create_runtime_metadata();
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+        }
+
+        public static void CleanClrMetadata() {
+            uint err = scsql_clean_clrclass();
+            if (err != 0)
+                throw ErrorCode.ToException(err);
         }
 
         /// <summary>
@@ -57,6 +91,10 @@ namespace Starcounter.SqlProcessor {
                         message += ". Note that the token is a keyword.";
                 } else
                     message += ".";
+                if (query.Length > 1000)
+                    message += "\nIn query: " + query.Substring(0, 500);
+                else
+                    message += "\nIn query: " + query;
                 return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, message, position, token, query));
             }
         }

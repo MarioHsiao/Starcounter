@@ -74,12 +74,12 @@ namespace QueryProcessingTest {
                     Title = "Contact"
                 };
 
-                for (var i = 0; i < 1000; i++) {
+                for (ulong i = 0; i < 1000; i++) {
                     var vis1 = new Visit() {
                         Id = i,
                         Ip = "1.1.1.1",
-                        IpBytes = new Binary(new byte[] {1,1,1,1})
-                    }; ;
+                        IpBytes = new Binary(new byte[] { 1, 1, 1, 1 })
+                    };
 
                     var imp1 = new Impression() {
                         Visit = vis1,

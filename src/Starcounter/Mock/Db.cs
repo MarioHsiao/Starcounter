@@ -115,6 +115,10 @@ namespace Starcounter
             return FullQueryProcess<T>(query, true, values);
         }
 
+        public static int Update(String query, params Object[] values) {
+            return SqlProcessor.SqlProcessor.ExecuteQuerySqlProcessor(query);
+        }
+
         private static QueryResultRows<T> FullQueryProcess<T>(String query, bool slowSQL, params Object[] values) {
             if (query == null)
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
@@ -132,6 +136,15 @@ namespace Starcounter
         /// <returns>Number of unloaded objects.</returns>
         public static int Unload(string fileName, ulong shiftId = 0) {
             return Starcounter.Reload.Unload(fileName, shiftId);
+        }
+
+        /// <summary>
+        /// Reloads entire database by executing INSERT INTO statements from the given file.
+        /// </summary>
+        /// <param name="fileName">Name of the file with INSERT INTO statements.</param>
+        /// <returns>Number of inserted objects.</returns>
+        public static int Reload(string fileName) {
+            return Starcounter.Reload.Load(fileName);
         }
     }
 

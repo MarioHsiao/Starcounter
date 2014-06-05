@@ -37,5 +37,6 @@ namespace QueryProcessingTest {
         public DateTime When;
         public String Where;
         public Boolean NotActive;
+        public Double AmountDouble;
     }
 }
