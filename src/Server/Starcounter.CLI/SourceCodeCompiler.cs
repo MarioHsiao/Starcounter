@@ -25,7 +25,7 @@ namespace star {
     ///  the web for example.
     ///  </para>
     /// </remarks>
-    class SourceCodeCompiler {
+    public class SourceCodeCompiler {
         static string starcounterAssembliesFolder = StarcounterEnvironment.InstallationDirectory;
         static string[] DefaultAssemblyReferences = new string[] {
             "Starcounter",
