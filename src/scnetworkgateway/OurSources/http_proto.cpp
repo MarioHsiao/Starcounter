@@ -1329,6 +1329,16 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
 }
 
 // Profilers statistics for Gateway.
+uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    char* test_msg = "Starcounter gateway test response :)";
+
+    *is_handled = true;
+
+    return gw->SendHttpBody(sd, test_msg, (int32_t)strlen(test_msg));
+}
+
+// Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     int32_t resp_len_bytes;

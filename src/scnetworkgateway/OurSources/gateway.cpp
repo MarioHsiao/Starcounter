@@ -1687,6 +1687,29 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     gw_handlers_,
                     setting_gw_stats_port_,
                     "gateway",
+                    "GET /gwtest",
+                    "GET /gwtest ",
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
+                    empty_db_index,
+                    GatewayTestSample,
+                    true);
+
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    ShutdownGateway(NULL, err_code);
+                }
+
+                // Registering URI handler for gateway statistics.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    setting_gw_stats_port_,
+                    "gateway",
                     "GET /profiler/gateway",
                     "GET /profiler/gateway ",
                     NULL,

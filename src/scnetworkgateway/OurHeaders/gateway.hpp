@@ -524,6 +524,13 @@ uint32_t GatewayStatisticsInfo(
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
+uint32_t GatewayTestSample(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_info,
+    bool* is_handled);
+
 // Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(
     HandlersList* hl,
