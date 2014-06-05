@@ -39,6 +39,10 @@ namespace Starcounter.CLI {
         /// none is explicitly given.
         /// </summary>
         public const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
+        /// <summary>
+        /// Provides the name of the folder storing CLI templates.
+        /// </summary>
+        public const string CLITemplateFolderName = "cli-templates";
 
         /// <summary>
         /// Assures a given CLI context is properly initialized when it
