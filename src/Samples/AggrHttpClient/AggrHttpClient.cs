@@ -1,6 +1,7 @@
 ﻿//#define FAST_LOOPBACK
 //#define FAKE_SERVER
 //#define POKER_DEMO_GETPLAYEDID
+//#define GET_STATIC_HTML
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -261,8 +262,13 @@ namespace AggrHttpClient {
 #if POKER_DEMO_GETPLAYEDID
                     String httpRequest = "GET /players/" + i + " HTTP/1.1\r\nHost: SC\r\n\r\n";
 #else
+#if GET_STATIC_HTML
+                    String httpRequest = "GET /gwtest.html HTTP/1.1\r\nHost: SC\r\n\r\n";
+#else
                     String httpRequest = "POST /echotest HTTP/1.1\r\nContent-Length: " + ws.NumBodyCharacters + "\r\n\r\n";
                     httpRequest += body;
+#endif
+                    
 #endif
 
                     Byte[] httpRequestBytes = Encoding.ASCII.GetBytes(httpRequest);
