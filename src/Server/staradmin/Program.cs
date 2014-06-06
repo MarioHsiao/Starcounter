@@ -42,6 +42,9 @@ namespace staradmin {
                     case "log":
                         ViewLogEntries(args);
                         break;
+                    case "unload":
+                        RunUnload(args);
+                        break;
                     default:
                         var template = CLITemplate.GetTemplate(command);
                         if (template == null) {
@@ -156,6 +159,11 @@ namespace staradmin {
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
+        }
+
+        static void RunUnload(string[] args) {
+            var unload = new Unload();
+            unload.Run();
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
