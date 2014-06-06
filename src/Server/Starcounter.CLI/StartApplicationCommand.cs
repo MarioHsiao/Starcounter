@@ -29,11 +29,18 @@ namespace Starcounter.CLI {
         public string JobDescription { get; set; }
 
         /// <summary>
+        /// Gets or sets the string normally displayed in the CLI
+        /// when the command completes.
+        /// </summary>
+        public string JobCompletionDescription { get; set; }
+
+        /// <summary>
         /// <see cref="ApplicationCLICommand.Initialize"/>
         /// </summary>
         protected override void Initialize() {
             base.Initialize();
             JobDescription = string.Format("{0} -> {1}", Application.Name, DatabaseName.ToLowerInvariant());
+            JobCompletionDescription = null;
         }
 
         /// <summary>
@@ -238,8 +245,10 @@ namespace Starcounter.CLI {
         
         void ShowStartResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
+            var description = JobCompletionDescription ?? 
+                string.Format("started, default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber);
 
-            Status.CompleteJob(string.Format("started, default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber));
+            Status.CompleteJob(description);
             if (SharedCLI.Verbosity > OutputLevel.Minimal) {
                 ConsoleUtil.ToConsoleWithColor(
                     string.Format("\"{0}\" started in {1}. Default port is {2} (Application), {3} (Admin))",
