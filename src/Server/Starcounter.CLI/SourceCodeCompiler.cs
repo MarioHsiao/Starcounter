@@ -8,10 +8,10 @@ using System.CodeDom.Compiler;
 using System.IO;
 using Starcounter.Internal;
 
-namespace star {
+namespace Starcounter.CLI {
     /// <summary>
-    /// Implements the source code compiling capabilities of the star.exe
-    /// CLI tool.
+    /// Implements the source code compiling capabilities of our
+    /// CLI tools.
     /// </summary>
     /// <remarks>
     ///  No IoC yet, but kind of the opposite - there is a very tight two-
@@ -25,7 +25,7 @@ namespace star {
     ///  the web for example.
     ///  </para>
     /// </remarks>
-    class SourceCodeCompiler {
+    public class SourceCodeCompiler {
         static string starcounterAssembliesFolder = StarcounterEnvironment.InstallationDirectory;
         static string[] DefaultAssemblyReferences = new string[] {
             "Starcounter",

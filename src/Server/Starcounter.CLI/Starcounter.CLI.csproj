@@ -66,12 +66,16 @@
     <Compile Include="ApplicationCLICommand.cs" />
     <Compile Include="RedirectedStatusConsole.cs" />
     <Compile Include="SharedCLI.cs" />
+    <Compile Include="SourceCodeCompiler.cs" />
     <Compile Include="StartApplicationCommand.cs" />
     <Compile Include="StatusConsole.cs" />
     <Compile Include="StopApplicationCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="cli-apps\UnloadDatabase.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
