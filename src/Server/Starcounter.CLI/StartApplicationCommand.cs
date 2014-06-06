@@ -17,8 +17,15 @@ namespace Starcounter.CLI {
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
     using System.Threading;
 
-    internal class StartApplicationCommand : ApplicationCLICommand {
-
+    /// <summary>
+    /// Implements a <see cref="ApplicationCLICommand"/> that support
+    /// starting an application.
+    /// </summary>
+    public class StartApplicationCommand : ApplicationCLICommand {
+        /// <summary>
+        /// Runs the current command.
+        /// </summary>
+        /// <seealso cref="ApplicationCLICommand.Run"/>
         protected override void Run() {
             var app = Application;
             try {
