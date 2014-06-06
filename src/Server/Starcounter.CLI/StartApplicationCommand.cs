@@ -23,13 +23,27 @@ namespace Starcounter.CLI {
     /// </summary>
     public class StartApplicationCommand : ApplicationCLICommand {
         /// <summary>
+        /// Gets or sets the string normally displayed in the CLI
+        /// when the command starts executing its primary job.
+        /// </summary>
+        public string JobDescription { get; set; }
+
+        /// <summary>
+        /// <see cref="ApplicationCLICommand.Initialize"/>
+        /// </summary>
+        protected override void Initialize() {
+            base.Initialize();
+            JobDescription = string.Format("{0} -> {1}", Application.Name, DatabaseName.ToLowerInvariant());
+        }
+
+        /// <summary>
         /// Runs the current command.
         /// </summary>
         /// <seealso cref="ApplicationCLICommand.Run"/>
         protected override void Run() {
             var app = Application;
             try {
-                Status.StartNewJob(string.Format("{0} -> {1}", app.Name, DatabaseName.ToLowerInvariant()));
+                Status.StartNewJob(JobDescription);
                 ShowHeadline(
                     string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
                     app.Name,
