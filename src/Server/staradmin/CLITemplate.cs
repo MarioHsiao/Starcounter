@@ -1,4 +1,5 @@
-﻿using Starcounter.Internal;
+﻿using Starcounter.CLI;
+using Starcounter.Internal;
 using System;
 using System.IO;
 
@@ -8,7 +9,6 @@ namespace staradmin {
     /// CLI template features.
     /// </summary>
     internal sealed class CLITemplate {
-        const string templatesFolder = "cli-templates";
         const string defaultFileExtension = ".cs";
         const string defaultAppName = "app";
 
@@ -22,7 +22,7 @@ namespace staradmin {
         /// </summary>
         public static string TemplateHome {
             get {
-                return Path.Combine(StarcounterEnvironment.InstallationDirectory, templatesFolder);
+                return Path.Combine(StarcounterEnvironment.InstallationDirectory, SharedCLI.CLITemplateFolderName);
             }
         }
 

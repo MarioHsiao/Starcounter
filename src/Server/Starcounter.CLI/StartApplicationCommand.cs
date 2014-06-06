@@ -17,12 +17,48 @@ namespace Starcounter.CLI {
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
     using System.Threading;
 
-    internal class StartApplicationCommand : ApplicationCLICommand {
+    /// <summary>
+    /// Implements a <see cref="ApplicationCLICommand"/> that support
+    /// starting an application.
+    /// </summary>
+    public class StartApplicationCommand : ApplicationCLICommand {
+        /// <summary>
+        /// Gets or sets the string normally displayed in the CLI
+        /// when the command starts executing its primary job.
+        /// </summary>
+        public string JobDescription { get; set; }
 
+        /// <summary>
+        /// Gets or sets the string normally displayed in the CLI
+        /// when the command completes.
+        /// </summary>
+        public string JobCompletionDescription { get; set; }
+
+        /// <summary>
+        /// Gets or sets the string normally displayed in the CLI
+        /// when everything has been setup and the actual application
+        /// is about to start.
+        /// </summary>
+        public string ApplicationStartingDescription { get; set; }
+
+        /// <summary>
+        /// <see cref="ApplicationCLICommand.Initialize"/>
+        /// </summary>
+        protected override void Initialize() {
+            base.Initialize();
+            JobDescription = string.Format("{0} -> {1}", Application.Name, DatabaseName.ToLowerInvariant());
+            JobCompletionDescription = null;
+            ApplicationStartingDescription = "starting application";
+        }
+
+        /// <summary>
+        /// Runs the current command.
+        /// </summary>
+        /// <seealso cref="ApplicationCLICommand.Run"/>
         protected override void Run() {
             var app = Application;
             try {
-                Status.StartNewJob(string.Format("{0} -> {1}", app.Name, DatabaseName.ToLowerInvariant()));
+                Status.StartNewJob(JobDescription);
                 ShowHeadline(
                     string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
                     app.Name,
@@ -190,7 +226,7 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
-            ShowStatus("starting application");
+            ShowStatus(ApplicationStartingDescription);
             exe = new Executable();
             exe.Path = app.BinaryFilePath;
             exe.ApplicationFilePath = app.FilePath;
@@ -217,8 +253,10 @@ namespace Starcounter.CLI {
         
         void ShowStartResultAndSetExitCode(Node node, string database, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
+            var description = JobCompletionDescription ?? 
+                string.Format("started, default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber);
 
-            Status.CompleteJob(string.Format("started, default port {0}, admin {1}", exe.DefaultUserPort, node.PortNumber));
+            Status.CompleteJob(description);
             if (SharedCLI.Verbosity > OutputLevel.Minimal) {
                 ConsoleUtil.ToConsoleWithColor(
                     string.Format("\"{0}\" started in {1}. Default port is {2} (Application), {3} (Admin))",
