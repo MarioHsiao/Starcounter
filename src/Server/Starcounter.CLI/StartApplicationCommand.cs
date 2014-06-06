@@ -35,12 +35,20 @@ namespace Starcounter.CLI {
         public string JobCompletionDescription { get; set; }
 
         /// <summary>
+        /// Gets or sets the string normally displayed in the CLI
+        /// when everything has been setup and the actual application
+        /// is about to start.
+        /// </summary>
+        public string ApplicationStartingDescription { get; set; }
+
+        /// <summary>
         /// <see cref="ApplicationCLICommand.Initialize"/>
         /// </summary>
         protected override void Initialize() {
             base.Initialize();
             JobDescription = string.Format("{0} -> {1}", Application.Name, DatabaseName.ToLowerInvariant());
             JobCompletionDescription = null;
+            ApplicationStartingDescription = "starting application";
         }
 
         /// <summary>
@@ -218,7 +226,7 @@ namespace Starcounter.CLI {
                 args.CommandParameters.CopyTo(0, userArgs, 0, userArgsCount);
             }
 
-            ShowStatus("starting application");
+            ShowStatus(ApplicationStartingDescription);
             exe = new Executable();
             exe.Path = app.BinaryFilePath;
             exe.ApplicationFilePath = app.FilePath;
