@@ -27,12 +27,17 @@ namespace Starcounter.CLI {
         internal string ServerHost;
         internal int ServerPort;
         internal string ServerName;
-        internal string DatabaseName;
         internal ApplicationBase Application;
         internal ApplicationArguments CLIArguments;
         internal string[] EntrypointArguments;
         internal Node Node;
         internal StatusConsole Status;
+
+        /// <summary>
+        /// Gets the name of the database the current command
+        /// target.
+        /// </summary>
+        public string DatabaseName { get; internal set; }
 
         /// <summary>
         /// Creates a new instance of this class.
@@ -70,14 +75,16 @@ namespace Starcounter.CLI {
             
             string appName;
             string workingDirectory;
+            string databaseName;
             ResolveWorkingDirectory(args, out workingDirectory);
             SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
             var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
 
             SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
-            SharedCLI.ResolveDatabase(args, out command.DatabaseName);
+            SharedCLI.ResolveDatabase(args, out databaseName);
 
             command.Application = app;
+            command.DatabaseName = databaseName;
             command.AdminAPI = new AdminAPI();
             command.CLIArguments = args;
             command.EntrypointArguments = entrypointArgs;
