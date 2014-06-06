@@ -1,7 +1,9 @@
 ﻿
 using Starcounter.CLI;
 using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using System.Collections.Generic;
 using System.IO;
 
 namespace staradmin {
@@ -19,12 +21,28 @@ namespace staradmin {
                 );
             SourceCodeCompiler.CompileSingleFileToExecutable(appFile, out exeFile);
 
-            var unload = ApplicationCLICommand.Create(appFile, exeFile, ApplicationArguments.Empty) as StartApplicationCommand;
+            var unload = ApplicationCLICommand.Create(appFile, exeFile, CreateArguments()) as StartApplicationCommand;
             unload.JobDescription = string.Format("Unloading {0}", unload.DatabaseName);
             unload.JobCompletionDescription = "done";
             unload.ApplicationStartingDescription = "unloading";
 
             unload.Execute();
+        }
+
+        ApplicationArguments CreateArguments() {
+            var syntaxDef = new ApplicationSyntaxDefinition();
+            syntaxDef.ProgramDescription = "staradmin.exe Unload";
+            syntaxDef.DefaultCommand = "unload";
+            SharedCLI.DefineWellKnownOptions(syntaxDef, true);
+            syntaxDef.DefineCommand("unload", "Unloads a database");
+            var syntax = syntaxDef.CreateSyntax();
+
+            var cmdLine = new List<string>();
+            cmdLine.Add(string.Format("--{0}", SharedCLI.Option.NoAutoCreateDb));
+
+            ApplicationArguments args;
+            SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
+            return args;
         }
     }
 }
