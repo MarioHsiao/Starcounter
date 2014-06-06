@@ -81,6 +81,8 @@ namespace Starcounter.CLI {
             command.AdminAPI = new AdminAPI();
             command.CLIArguments = args;
             command.EntrypointArguments = entrypointArgs;
+
+            command.Initialize();
             
             return command;
         }
@@ -111,6 +113,14 @@ namespace Starcounter.CLI {
         /// Runs the current command.
         /// </summary>
         protected abstract void Run();
+
+        /// <summary>
+        /// Allows derived classes to initilize just after the
+        /// command has been created and it's base class properties
+        /// has been resolved.
+        /// </summary>
+        protected virtual void Initialize() {
+        }
 
         static void ResolveWorkingDirectory(ApplicationArguments args, out string workingDirectory) {
             string dir;
