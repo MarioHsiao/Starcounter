@@ -20,7 +20,7 @@ namespace UnloadDatabase {
 
             Console.WriteLine("Unload started at {0}", DateTime.Now.TimeOfDay);
             int unloaded = Db.Unload(filePath);
-            Console.WriteLine("{0}: Unloaded: {1} objects", DateTime.Now.TimeOfDay, unloaded);
+            Console.WriteLine("Unloaded: {0} objects ({1})", unloaded, DateTime.Now.TimeOfDay);
         }
     }
 }
