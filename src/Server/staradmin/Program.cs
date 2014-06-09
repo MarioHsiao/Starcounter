@@ -167,6 +167,9 @@ namespace staradmin {
             if (args.Length > 1) {
                 unload.Database = args[1];
             }
+            if (args.Length > 2) {
+                unload.FilePath = args[2];
+            }
             
             unload.Run();
         }
