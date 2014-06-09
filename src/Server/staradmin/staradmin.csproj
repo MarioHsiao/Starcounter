@@ -48,6 +48,7 @@
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reload.cs" />
     <Compile Include="ServerServiceUtilities.cs" />
     <Compile Include="Unload.cs" />
   </ItemGroup>
