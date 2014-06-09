@@ -45,6 +45,9 @@ namespace staradmin {
                     case "unload":
                         RunUnload(args);
                         break;
+                    case "reload":
+                        RunReload(args);
+                        break;
                     default:
                         var template = CLITemplate.GetTemplate(command);
                         if (template == null) {
@@ -172,6 +175,12 @@ namespace staradmin {
             }
             
             unload.Run();
+        }
+
+        static void RunReload(string[] args) {
+            // staradmin reload <database> <file>
+            var reload = new Reload();
+            reload.Run();
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
