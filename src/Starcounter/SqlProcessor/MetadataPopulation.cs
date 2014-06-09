@@ -160,8 +160,7 @@ namespace Starcounter.SqlProcessor {
                 };
                 if (col.Type == sccoredb.STAR_TYPE_REFERENCE) {
                     PropertyDef prop = typeDef.PropertyDefs[0];
-                    for (int j = 1; prop.ColumnName != col.Name; j++) {
-                        //Debug.Assert(j < typeDef.PropertyDefs.Length);
+                    for (int j = 1; prop.ColumnName != col.Name && j < typeDef.PropertyDefs.Length; j++) {
                         prop = typeDef.PropertyDefs[j];
                     }
                     if (prop.ColumnName == col.Name)
