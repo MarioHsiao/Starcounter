@@ -162,7 +162,12 @@ namespace staradmin {
         }
 
         static void RunUnload(string[] args) {
+            // staradmin unload <database> <file>
             var unload = new Unload();
+            if (args.Length > 1) {
+                unload.Database = args[1];
+            }
+            
             unload.Run();
         }
 
