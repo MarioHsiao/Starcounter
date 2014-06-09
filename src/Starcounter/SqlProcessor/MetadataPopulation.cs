@@ -168,8 +168,8 @@ namespace Starcounter.SqlProcessor {
                         newCol.Type = Db.SQL<RawView>("select v from rawview v where materializedtable.name = ?",
                             prop.TargetTypeName).First;
                 } else
-                    newCol.Type = Db.SQL<Starcounter.Internal.Metadata.MaterializedType>(
-                        "select t from materializedtype t where primitivetype = ?",
+                    newCol.Type = Db.SQL<Starcounter.Internal.Metadata.DbPrimitiveType>(
+                        "select t from DbPrimitiveType t where primitivetype = ?",
                         col.Type).First;
                 //Debug.Assert(newCol.Type != null);
             }
