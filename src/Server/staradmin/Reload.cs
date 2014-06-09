@@ -34,7 +34,7 @@ namespace staradmin {
             syntaxDef.ProgramDescription = "staradmin.exe Reload";
             syntaxDef.DefaultCommand = "reload";
             SharedCLI.DefineWellKnownOptions(syntaxDef, true);
-            syntaxDef.DefineCommand("unload", "Reloads a database");
+            syntaxDef.DefineCommand("reload", "Reloads a database");
             var syntax = syntaxDef.CreateSyntax();
 
             var cmdLine = new List<string>();
