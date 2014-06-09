@@ -53,7 +53,7 @@ namespace Starcounter.SqlProcessor {
                         if (propDef.Type == DbTypeCode.Object)
                             propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
                         else
-                            propType = Db.SQL<Starcounter.Internal.Metadata.MappedType>("select t from mappedtype t where dbtypecode = ?", propDef.Type).First;
+                            propType = Db.SQL<Starcounter.Internal.Metadata.MapPrimitiveType>("select t from MapPrimitivetype t where dbtypecode = ?", propDef.Type).First;
                         if (propType != null) {
                             if (propDef.ColumnName == null) {
                                 CodeProperty codeProp = new CodeProperty {

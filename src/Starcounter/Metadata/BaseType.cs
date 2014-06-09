@@ -70,7 +70,7 @@ namespace Starcounter.Metadata {
     }
 
 
-    public sealed class ClrPrimitiveType : Starcounter.Internal.Metadata.MappedType {
+    public sealed class ClrPrimitiveType : Starcounter.Internal.Metadata.MapPrimitiveType {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -98,8 +98,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Internal.Metadata.MappedType",
-                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Internal.Metadata.MappedType",
+                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Internal.Metadata.MapPrimitiveType",
+                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Internal.Metadata.MapPrimitiveType",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -189,7 +189,7 @@ namespace Starcounter.Internal.Metadata {
         }
     }
 
-    public abstract class MappedType : Starcounter.Metadata.Type {
+    public abstract class MapPrimitiveType : Starcounter.Metadata.Type {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -217,8 +217,8 @@ namespace Starcounter.Internal.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Internal.Metadata.MappedType", "Starcounter.Metadata.Type",
-                "Starcounter.Internal.Metadata.MappedType", "Starcounter.Metadata.Type",
+                "Starcounter.Internal.Metadata.MapPrimitiveType", "Starcounter.Metadata.Type",
+                "Starcounter.Internal.Metadata.MapPrimitiveType", "Starcounter.Metadata.Type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -238,11 +238,11 @@ namespace Starcounter.Internal.Metadata {
         }
 
         /// <inheritdoc />
-        public MappedType(Uninitialized u)
+        public MapPrimitiveType(Uninitialized u)
             : base(u) {
         }
 
-        //internal MappedType()
+        //internal MapPrimitiveType()
         //    : this(null) {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}

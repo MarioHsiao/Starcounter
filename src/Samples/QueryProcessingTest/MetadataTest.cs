@@ -30,7 +30,8 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(count == 9);
             Trace.Assert(acc == 45);
-            Starcounter.Internal.Metadata.MappedType mapt = Db.SQL<Starcounter.Internal.Metadata.MappedType>("select t from mappedtype t where name = ?", 
+            Starcounter.Internal.Metadata.MapPrimitiveType mapt = 
+                Db.SQL<Starcounter.Internal.Metadata.MapPrimitiveType>("select t from MapPrimitiveType t where name = ?", 
                 "Int16").First;
             Trace.Assert(mapt != null);
             Trace.Assert(mapt is ClrPrimitiveType);
@@ -39,7 +40,8 @@ namespace QueryProcessingTest {
             Trace.Assert(mapt.ReadLoss);
             acc = 0;
             count = 0;
-            foreach (Starcounter.Internal.Metadata.MappedType mpt in Db.SQL<Starcounter.Internal.Metadata.MappedType>("select t from mappedtype t")) {
+            foreach (Starcounter.Internal.Metadata.MapPrimitiveType mpt in 
+                Db.SQL<Starcounter.Internal.Metadata.MapPrimitiveType>("select t from MapPrimitiveType t")) {
                 Trace.Assert(mpt.DbPrimitiveType != null);
                 count++;
             }
@@ -110,7 +112,8 @@ namespace QueryProcessingTest {
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits == null);
             count = 0;
-            foreach (Starcounter.Internal.Metadata.MappedType mt in Db.SQL<Starcounter.Internal.Metadata.MappedType>("select t from mappedtype t")) {
+            foreach (Starcounter.Internal.Metadata.MapPrimitiveType mt in 
+                Db.SQL<Starcounter.Internal.Metadata.MapPrimitiveType>("select t from MapPrimitiveType t")) {
                 Starcounter.Binding.DbTypeCode typeCode = (Starcounter.Binding.DbTypeCode)mt.DbTypeCode;
                 Trace.Assert(mt.Name == Enum.GetName(typeof(Starcounter.Binding.DbTypeCode), typeCode));
                 count++;
@@ -264,8 +267,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
             Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullClassName);
             Trace.Assert(c.Type != null);
-            Trace.Assert(c.Type is Starcounter.Internal.Metadata.MappedType);
-            Trace.Assert((c.Type as Starcounter.Internal.Metadata.MappedType).DbTypeCode == (ushort)DbTypeCode.Int32);
+            Trace.Assert(c.Type is Starcounter.Internal.Metadata.MapPrimitiveType);
+            Trace.Assert((c.Type as Starcounter.Internal.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Int32);
             Trace.Assert(c.Type.Name == "Int32");
             Trace.Assert((c.Table as ClrClass).AssemblyName == "QueryProcessingTest");
             c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
@@ -281,8 +284,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
             Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).Name);
             Trace.Assert(c.Type != null);
-            Trace.Assert(c.Type is Starcounter.Internal.Metadata.MappedType);
-            Trace.Assert((c.Type as Starcounter.Internal.Metadata.MappedType).DbTypeCode == (ushort)DbTypeCode.Boolean);
+            Trace.Assert(c.Type is Starcounter.Internal.Metadata.MapPrimitiveType);
+            Trace.Assert((c.Type as Starcounter.Internal.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Boolean);
             Trace.Assert(c.Type.Name == "Boolean");
             Trace.Assert(String.IsNullOrEmpty((c.Table as ClrClass).AssemblyName));
             Trace.Assert((c.Table as ClrClass).AppDomainName == "sccode.exe");
@@ -299,7 +302,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
             Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullClassName);
             Trace.Assert(c.Type != null);
-            Trace.Assert(!(c.Type is Starcounter.Internal.Metadata.MappedType));
+            Trace.Assert(!(c.Type is Starcounter.Internal.Metadata.MapPrimitiveType));
             Trace.Assert(c.Type is ClrClass);
             Trace.Assert((c.Type as ClrClass).Name == "QueryProcessingTest.User");
             Trace.Assert((c.Type as ClrClass).FullClassName == "QueryProcessingTest.User");
@@ -314,8 +317,8 @@ namespace QueryProcessingTest {
                 Trace.Assert((tc.Table as ClrClass).AssemblyName == "QueryProcessingTest");
                 Trace.Assert((tc.Table as ClrClass).AppDomainName == "sccode.exe");
                 Trace.Assert(tc.Type != null);
-                Trace.Assert(tc.Type is Starcounter.Internal.Metadata.MappedType);
-                Trace.Assert((tc.Type as Starcounter.Internal.Metadata.MappedType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
+                Trace.Assert(tc.Type is Starcounter.Internal.Metadata.MapPrimitiveType);
+                Trace.Assert((tc.Type as Starcounter.Internal.Metadata.MapPrimitiveType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
                 Trace.Assert(tc.MaterializedColumn != null);
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
@@ -335,8 +338,8 @@ namespace QueryProcessingTest {
                     Trace.Assert(tc.Table is RawView);
                 }
                 Trace.Assert(tc.Type != null);
-                if (tc.Type is Starcounter.Internal.Metadata.MappedType)
-                    Trace.Assert((tc.Type as Starcounter.Internal.Metadata.MappedType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
+                if (tc.Type is Starcounter.Internal.Metadata.MapPrimitiveType)
+                    Trace.Assert((tc.Type as Starcounter.Internal.Metadata.MapPrimitiveType).DbTypeCode == (UInt16)DbTypeCode.Decimal);
                 else {
                     Trace.Assert(tc.Type is Starcounter.Internal.Metadata.DbPrimitiveType);
                     Trace.Assert((tc.Type as Starcounter.Internal.Metadata.DbPrimitiveType).PrimitiveType == sccoredb.STAR_TYPE_DECIMAL);
