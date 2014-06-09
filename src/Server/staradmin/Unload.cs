@@ -11,6 +11,8 @@ namespace staradmin {
     internal sealed class Unload {
         const string UnloadFileName = "UnloadDatabase.cs";
 
+        public string Database { get; set; }
+
         public void Run() {
             string exeFile;
 
@@ -39,6 +41,9 @@ namespace staradmin {
 
             var cmdLine = new List<string>();
             cmdLine.Add(string.Format("--{0}", SharedCLI.Option.NoAutoCreateDb));
+            if (!string.IsNullOrEmpty(Database)) {
+                cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Database));
+            }
 
             ApplicationArguments args;
             SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
