@@ -53,7 +53,7 @@ namespace Starcounter.SqlProcessor {
                         if (propDef.Type == DbTypeCode.Object)
                             propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
                         else
-                            propType = Db.SQL<Starcounter.Internal.Metadata.MappedType>("select t from mappedtype t where dbtypecode = ?", propDef.Type).First;
+                            propType = Db.SQL<Starcounter.Metadata.MapPrimitiveType>("select t from MapPrimitivetype t where dbtypecode = ?", propDef.Type).First;
                         if (propType != null) {
                             if (propDef.ColumnName == null) {
                                 CodeProperty codeProp = new CodeProperty {
@@ -168,8 +168,8 @@ namespace Starcounter.SqlProcessor {
                         newCol.Type = Db.SQL<RawView>("select v from rawview v where materializedtable.name = ?",
                             prop.TargetTypeName).First;
                 } else
-                    newCol.Type = Db.SQL<Starcounter.Internal.Metadata.MaterializedType>(
-                        "select t from materializedtype t where primitivetype = ?",
+                    newCol.Type = Db.SQL<Starcounter.Metadata.DbPrimitiveType>(
+                        "select t from DbPrimitiveType t where primitivetype = ?",
                         col.Type).First;
                 //Debug.Assert(newCol.Type != null);
             }
