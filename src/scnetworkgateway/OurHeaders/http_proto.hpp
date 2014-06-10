@@ -324,7 +324,13 @@ public:
             if (!reg_uris_[i].get_is_gateway_uri())
             {
                 // Database handler.
-                stats_stream << '"' << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << '"';
+                db_index_type db_index = reg_uris_[i].GetFirstDbIndex();
+                if (INVALID_DB_INDEX == db_index) {
+                    stats_stream << "\"gateway\"";
+                } else {
+                    stats_stream << '"' << g_gateway.GetDatabase(db_index)->get_db_name() << '"';
+                }
+                
                 stats_stream << ",\"application\":\"" << reg_uris_[i].get_app_name() << "\""; 
             }
             else
