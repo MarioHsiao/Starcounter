@@ -183,6 +183,9 @@ namespace staradmin {
             if (args.Length > 1) {
                 reload.Database = args[1];
             }
+            if (args.Length > 2) {
+                reload.FilePath = args[2];
+            }
 
             reload.Run();
         }
