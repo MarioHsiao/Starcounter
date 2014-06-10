@@ -20,7 +20,7 @@ namespace ReloadDatabase {
 
             Console.WriteLine("Reload started at {0}", DateTime.Now.TimeOfDay);
             int reloaded = Db.Reload(filePath);
-            Console.WriteLine("Unloaded: {0} objects ({1})", reloaded, DateTime.Now.TimeOfDay);
+            Console.WriteLine("Reloaded: {0} objects ({1})", reloaded, DateTime.Now.TimeOfDay);
         }
     }
 }
