@@ -11,6 +11,12 @@ namespace staradmin {
     internal sealed class Unload {
         const string UnloadFileName = "UnloadDatabase.cs";
 
+        string UnloadApplicationName {
+            get {
+                return "Starcounter_Internal_Unload_Utility";
+            }
+        }
+
         /// <summary>
         /// Gets or sets the name of the database to unload.
         /// </summary>
@@ -49,6 +55,7 @@ namespace staradmin {
 
             var cmdLine = new List<string>();
             cmdLine.Add(string.Format("--{0}", SharedCLI.Option.NoAutoCreateDb));
+            cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.AppName, UnloadApplicationName));
             if (!string.IsNullOrEmpty(Database)) {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Database));
             }
