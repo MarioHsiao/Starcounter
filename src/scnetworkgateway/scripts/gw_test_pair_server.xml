@@ -20,6 +20,9 @@
 
   <!-- Gateway traffic aggregation port -->
   <AggregationPort>23456</AggregationPort>
+  
+  <!-- Gateway system internal port -->
+  <InternalSystemPort>62000</InternalSystemPort>
 
   <!--
   List of local interfaces to bind to.
