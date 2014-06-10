@@ -47,61 +47,66 @@ namespace Starcounter {
             }
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
                 Debug.Assert(!String.IsNullOrEmpty(tbl.FullName));
-                int tblNrObj = 0;
-                String insertHeader;
-                StringBuilder inStmt = new StringBuilder();
-                StringBuilder selectObjs = new StringBuilder();
-                inStmt.Append("INSERT INTO ");
-                inStmt.Append(QuotePath(tbl.FullName));
-                inStmt.Append("(__id");
-                selectObjs.Append("SELECT __o as __id");
-                foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
-                    inStmt.Append(",");
-                    inStmt.Append(QuoteName(col.Name));
-                    selectObjs.Append(",");
-                    selectObjs.Append(QuoteName(GetPropertyName(col)));
-                }
-                inStmt.Append(")");
-                inStmt.Append("VALUES");
-                insertHeader = inStmt.ToString();
-                selectObjs.Append(" FROM ");
-                selectObjs.Append(QuotePath(tbl.MaterializedTable.Name));
-                selectObjs.Append(" __o");
-                SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
-                Debug.Assert(selectEnum.PropertyBinding == null);
-                Debug.Assert(selectEnum.TypeBinding != null);
-                Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
-                while (selectEnum.MoveNext()) {
-                    IObjectView val = selectEnum.Current;
-                    Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                    if (val.GetObject(0).GetType().ToString() == tbl.MaterializedTable.Name) {
-                        if (tblNrObj == 0)
-                            inStmt.Append("(");
-                        else
-                            inStmt.Append(",(");
-                        inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
-                        for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
-                            inStmt.Append(",");
-                            inStmt.Append(GetString(val, i, shiftId));
-                        }
-                        inStmt.Append(")");
-                        tblNrObj++;
-                        if (tblNrObj == 1000) {
-                            using (StreamWriter file = new StreamWriter(fileName, true)) {
-                                file.WriteLine(inStmt.ToString());
+                if (Binding.Bindings.GetTypeDef(tbl.MaterializedTable.Name) == null) {
+                    LogSources.Hosting.LogWarning("Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
+                    Console.WriteLine("Warning: Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
+                } else {
+                    int tblNrObj = 0;
+                    String insertHeader;
+                    StringBuilder inStmt = new StringBuilder();
+                    StringBuilder selectObjs = new StringBuilder();
+                    inStmt.Append("INSERT INTO ");
+                    inStmt.Append(QuotePath(tbl.FullName));
+                    inStmt.Append("(__id");
+                    selectObjs.Append("SELECT __o as __id");
+                    foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
+                        inStmt.Append(",");
+                        inStmt.Append(QuoteName(col.Name));
+                        selectObjs.Append(",");
+                        selectObjs.Append(QuoteName(GetPropertyName(col)));
+                    }
+                    inStmt.Append(")");
+                    inStmt.Append("VALUES");
+                    insertHeader = inStmt.ToString();
+                    selectObjs.Append(" FROM ");
+                    selectObjs.Append(QuotePath(tbl.MaterializedTable.Name));
+                    selectObjs.Append(" __o");
+                    SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
+                    Debug.Assert(selectEnum.PropertyBinding == null);
+                    Debug.Assert(selectEnum.TypeBinding != null);
+                    Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
+                    while (selectEnum.MoveNext()) {
+                        IObjectView val = selectEnum.Current;
+                        Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
+                        if (val.GetObject(0).GetType().ToString() == tbl.MaterializedTable.Name) {
+                            if (tblNrObj == 0)
+                                inStmt.Append("(");
+                            else
+                                inStmt.Append(",(");
+                            inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
+                            for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
+                                inStmt.Append(",");
+                                inStmt.Append(GetString(val, i, shiftId));
                             }
-                            totalNrObj += tblNrObj;
-                            tblNrObj = 0;
-                            inStmt = new StringBuilder();
-                            inStmt.Append(insertHeader);
+                            inStmt.Append(")");
+                            tblNrObj++;
+                            if (tblNrObj == 1000) {
+                                using (StreamWriter file = new StreamWriter(fileName, true)) {
+                                    file.WriteLine(inStmt.ToString());
+                                }
+                                totalNrObj += tblNrObj;
+                                tblNrObj = 0;
+                                inStmt = new StringBuilder();
+                                inStmt.Append(insertHeader);
+                            }
                         }
                     }
+                    if (tblNrObj > 0)
+                        using (StreamWriter file = new StreamWriter(fileName, true)) {
+                            file.WriteLine(inStmt.ToString());
+                        }
+                    totalNrObj += tblNrObj;
                 }
-                if (tblNrObj > 0)
-                    using (StreamWriter file = new StreamWriter(fileName, true)) {
-                        file.WriteLine(inStmt.ToString());
-                    }
-                totalNrObj += tblNrObj;
             }
             return totalNrObj;
         }

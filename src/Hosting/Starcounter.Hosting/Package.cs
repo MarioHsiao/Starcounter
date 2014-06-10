@@ -254,8 +254,8 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndexColumn.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MappedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.DbPrimitiveType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.MapPrimitiveType.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Table.__starcounterTypeSpecification));
