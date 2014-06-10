@@ -11,6 +11,12 @@ namespace staradmin {
     internal sealed class Reload {
         const string ReloadFileName = "ReloadDatabase.cs";
 
+        string ReloadApplicationName {
+            get {
+                return "Starcounter_Internal_Reload_Utility";
+            }
+        }
+
         /// <summary>
         /// Gets or sets the name of the database to reload
         /// into.
@@ -49,6 +55,7 @@ namespace staradmin {
             var syntax = syntaxDef.CreateSyntax();
 
             var cmdLine = new List<string>();
+            cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.AppName, ReloadApplicationName));
             if (!string.IsNullOrEmpty(Database)) {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Database));
             }
@@ -58,12 +65,7 @@ namespace staradmin {
             }
 
             ApplicationArguments args;
-            if (cmdLine.Count == 0) {
-                args = ApplicationArguments.Empty;
-            } else {
-                SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
-            }
-
+            SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
             return args;
         }
     }
