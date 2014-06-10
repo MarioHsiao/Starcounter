@@ -44,13 +44,17 @@ namespace staradmin {
             var syntax = syntaxDef.CreateSyntax();
 
             var cmdLine = new List<string>();
-            cmdLine.Add(string.Format("--{0}", SharedCLI.Option.NoAutoCreateDb));
             if (!string.IsNullOrEmpty(Database)) {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Database));
             }
 
             ApplicationArguments args;
-            SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
+            if (cmdLine.Count == 0) {
+                args = ApplicationArguments.Empty;
+            } else {
+                SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
+            }
+
             return args;
         }
     }
