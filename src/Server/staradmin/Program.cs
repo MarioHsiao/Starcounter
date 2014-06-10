@@ -180,6 +180,10 @@ namespace staradmin {
         static void RunReload(string[] args) {
             // staradmin reload <database> <file>
             var reload = new Reload();
+            if (args.Length > 1) {
+                reload.Database = args[1];
+            }
+
             reload.Run();
         }
 
