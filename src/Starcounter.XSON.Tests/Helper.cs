@@ -9,7 +9,8 @@ using Starcounter.XSON.JsonPatch;
 namespace Starcounter.Internal.XSON.Tests {
     internal static class Helper {
         internal const string PATCH = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
-
+        internal const string ONE_PATCH_ARR = "[{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}]";
+        internal const string ONE_ADD_PATCH_ARR = "[{{\"op\":\"add\",\"path\":\"{0}\",\"value\":{1}}}]";
         internal static JsonProperty CreateSampleApp() {
             dynamic template = TObject.CreateFromJson(File.ReadAllText("json\\SampleApp.json"));
             dynamic app = new Json() { Template = template };
