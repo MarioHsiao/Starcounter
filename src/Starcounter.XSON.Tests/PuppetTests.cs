@@ -17,7 +17,7 @@ namespace Starcounter.Internal.XSON.Tests {
             StarcounterEnvironment.AppName = "Test";
         }
 
-        [TearDown]
+        [TestFixtureTearDown]
         public static void TearDown() {
             StarcounterEnvironment.AppName = null;
         }
