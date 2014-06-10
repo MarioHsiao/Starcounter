@@ -142,12 +142,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     err_code = g_bmx_data_copy->RegisterPortHandler(port_num, app_name, callback, managed_handler_index, phandler_info);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
-    if (err_code)
-        return err_code;
-
-    // Pushing registered handler.
-    err_code = g_bmx_data->GetRegisteredHandlerByIndex(GetBmxHandlerIndex(*phandler_info))->PushRegisteredPortHandler(g_bmx_data);
-
     return err_code;
 
     _SC_END_FUNC
@@ -177,12 +171,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
     err_code = g_bmx_data_copy->RegisterSubPortHandler(port_num, app_name, sub_port, callback, managed_handler_index, phandler_info);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
-    if (err_code)
-        return err_code;
-
-    // Pushing registered handler.
-    err_code = g_bmx_data->GetRegisteredHandlerByIndex(GetBmxHandlerIndex(*phandler_info))->PushRegisteredSubportHandler(g_bmx_data);
-
     return err_code;
 
     _SC_END_FUNC
@@ -211,12 +199,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
     err_code = g_bmx_data_copy->RegisterWsHandler(port_num, app_name, channel_name, channel_id, callback, managed_handler_index, phandler_info);
     LeaveSafeBmxManagement(g_bmx_data_copy);
-
-    if (err_code)
-        return err_code;
-
-    // Pushing registered handler.
-    err_code = g_bmx_data->GetRegisteredHandlerByIndex(GetBmxHandlerIndex(*phandler_info))->PushRegisteredWsHandler(g_bmx_data);
 
     return err_code;
 
@@ -259,14 +241,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
 
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
-    if (err_code)
-        return err_code;
-
-    // Pushing registered handler.
-#ifndef HANDLER_REST_REGISTRATION
-    err_code = g_bmx_data->GetRegisteredHandlerByIndex(GetBmxHandlerIndex(*phandler_info))->PushRegisteredUriHandler(g_bmx_data);
-#endif
-
     return err_code;
 
     _SC_END_FUNC
@@ -287,13 +261,6 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
     uint32_t err_code = g_bmx_data_copy->UnregisterHandler(handler_index, &is_empty_handler);
     LeaveSafeBmxManagement(g_bmx_data_copy);
-
-    if (err_code)
-        return err_code;
-
-    // Pushing notification to the client if handler is empty.
-    if (is_empty_handler)
-        err_code = g_bmx_data->PushHandlerUnregistration(handler_index);
 
     return err_code;
 

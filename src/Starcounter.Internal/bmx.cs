@@ -32,6 +32,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// A callback from BMX layer.
         /// </summary>
+        [UnmanagedFunctionPointerAttribute(CallingConvention.StdCall)]
         public unsafe delegate UInt32 BMX_HANDLER_CALLBACK(
             UInt16 managed_handler_id,
             Byte* raw_chunk,
@@ -78,7 +79,7 @@ namespace Starcounter.Internal
         public unsafe extern static UInt32 sc_bmx_register_port_handler(
             UInt16 port,
             String app_name,
-            BMX_HANDLER_CALLBACK callback,
+            IntPtr managed_callback,
             UInt16 managed_handler_id,
             out UInt64 handlerInfo
         );
@@ -88,7 +89,7 @@ namespace Starcounter.Internal
             UInt16 port,
             String app_name,
             UInt32 subport,
-            BMX_HANDLER_CALLBACK callback,
+            IntPtr managed_callback,
             UInt16 managed_handler_id,
             out UInt64 handlerInfo
         );
@@ -101,7 +102,7 @@ namespace Starcounter.Internal
             String processedUriInfo,
             Byte* param_types,
             Byte num_params,
-            BMX_HANDLER_CALLBACK callback,
+            IntPtr managed_callback,
             UInt16 managed_handler_id,
             out UInt64 handlerInfo);
 
@@ -111,7 +112,7 @@ namespace Starcounter.Internal
             String app_name,
             String channel_name,
             UInt32 channel_id,
-            BMX_HANDLER_CALLBACK callback,
+            IntPtr managed_callback,
             UInt16 managed_handler_id,
             out UInt64 handlerInfo
         );
@@ -146,9 +147,9 @@ namespace Starcounter.Internal
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         internal extern static UInt32 sc_init_bmx_manager(
-            GlobalSessions.DestroyAppsSessionCallback destroy_apps_session_callback,
-            GlobalSessions.CreateNewAppsSessionCallback create_new_apps_session_callback,
-            ErrorHandlingCallback error_handling_callback
+            IntPtr destroy_apps_session_callback,
+            IntPtr create_new_apps_session_callback,
+            IntPtr error_handling_callback
             );
 
 

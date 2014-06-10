@@ -336,7 +336,7 @@ public:
     void AddNewEntry(
         BMX_HANDLER_TYPE handler_info,
         const char* app_name_string,
-        uint32_t channel_id,
+        ws_channel_id_type channel_id,
         const char* channel_name,
         db_index_type db_index)
     {

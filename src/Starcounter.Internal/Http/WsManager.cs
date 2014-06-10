@@ -169,42 +169,22 @@ namespace Starcounter.Internal
             return null;
         }
 
-        /// <summary>
-        /// Registers the WebSocket handler.
-        /// </summary>
-        void RegisterWsHandlerBmx(
+        static AllWsChannels wsManager_ = new AllWsChannels();
+
+        public static AllWsChannels WsManager { get { return wsManager_; } }
+
+        internal delegate void RegisterWsChannelHandlerNativeDelegate(
             UInt16 port,
             String appName,
             String channelName,
             UInt32 channelId,
             UInt16 managedHandlerIndex,
-            out UInt64 handlerInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            unsafe
-            {
-                UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
-                    port,
-                    appName,
-                    channelName,
-                    channelId,
-                    WebsocketOuterHandler_,
-                    managedHandlerIndex,
-                    out handlerInfo);
+            out UInt64 handlerInfo);
 
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Channel string: " + channelName);
-            }
-        }
+        RegisterWsChannelHandlerNativeDelegate RegisterWsChannelHandlerNative_;
 
-        static AllWsChannels wsManager_ = new AllWsChannels();
-
-        public static AllWsChannels WsManager { get { return wsManager_; } }
-
-        bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler_;
-
-        internal void InitWebSockets(bmx.BMX_HANDLER_CALLBACK WebsocketOuterHandler) {
-            WebsocketOuterHandler_ = WebsocketOuterHandler;
+        internal void InitWebSockets(RegisterWsChannelHandlerNativeDelegate registerWsChannelHandlerNative) {
+            RegisterWsChannelHandlerNative_ = registerWsChannelHandlerNative;
             WebSocket.InitWebSocketsInternal();
         }
 
@@ -236,8 +216,13 @@ namespace Starcounter.Internal
             {
                 w = CreateWsChannel(port, internalChannelName);
 
+                String appName = w.AppName;
+                if (String.IsNullOrEmpty(appName)) {
+                    appName = MixedCodeConstants.EmptyAppName;
+                }
+
                 UInt64 handlerInfo;
-                RegisterWsHandlerBmx(port, w.AppName, internalChannelName, w.ChannelId, w.HandlerId, out handlerInfo);
+                RegisterWsChannelHandlerNative_(port, appName, internalChannelName, w.ChannelId, w.HandlerId, out handlerInfo);
                 w.HandlerInfo = handlerInfo;
             }
 

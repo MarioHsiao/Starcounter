@@ -89,25 +89,12 @@ namespace Starcounter
         private static SubportCallback[] subport_handlers_;
         
         /// <summary>
-        /// The outer port handler.
-        /// </summary>
-		private static bmx.BMX_HANDLER_CALLBACK port_outer_handler_;
-        
-        /// <summary>
-        /// The outer sub-port handler.
-        /// </summary>
-        private static bmx.BMX_HANDLER_CALLBACK subport_outer_handler_;
-
-        /// <summary>
         /// Initializes static members of the <see cref="GatewayHandlers" /> class.
         /// </summary>
         static GatewayHandlers()
 		{
             port_handlers_ = new PortCallback[MAX_HANDLERS];
             subport_handlers_ = new SubportCallback[MAX_HANDLERS];
-
-            port_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(PortOuterHandler);
-            subport_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(SubportOuterHandler);
 		}
 
         /// <summary>
@@ -320,6 +307,80 @@ namespace Starcounter
             return 0;
         }
 
+        internal static void RegisterUriHandlerNative(
+            UInt16 port,
+            String appName,
+            String originalUriInfo,
+            String processedUriInfo,
+            Byte[] nativeParamTypes,
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo) {
+
+            Byte numParams = 0;
+            if (null != nativeParamTypes)
+                numParams = (Byte)nativeParamTypes.Length;
+
+            unsafe {
+                fixed (Byte* pp = nativeParamTypes) {
+
+                    bmx.BMX_HANDLER_CALLBACK fp = HandleIncomingHttpRequest;
+                    GCHandle gch = GCHandle.Alloc(fp);
+                    IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
+
+                    UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
+                        port,
+                        appName,
+                        originalUriInfo,
+                        processedUriInfo,
+                        pp,
+                        numParams,
+                        pinned_delegate,
+                        managedHandlerIndex,
+                        out handlerInfo);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                }
+            }
+
+            String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+            String uriHandlerInfo =
+                dbName + " " +
+                appName + " " +
+                handlerInfo + " " +
+                port + " " +
+                originalUriInfo.Replace(' ', '\\') + " " +
+                processedUriInfo.Replace(' ', '\\') + " " +
+                nativeParamTypes.Length;
+
+            String t = "";
+            if (nativeParamTypes.Length == 0) {
+                t = " 0";
+            } else {
+                for (Int32 i = 0; i < nativeParamTypes.Length; i++) {
+                    t += " " + nativeParamTypes[i];
+                }
+            }
+
+            uriHandlerInfo += t + "\r\n\r\n\r\n\r\n";
+
+            Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
+
+            Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+
+            if (r.StatusCode != 200)
+                throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "URI string: " + originalUriInfo);
+
+        }
+
+        void UnregisterUriHandler(UInt16 port, String originalUriInfo) {
+            // Ensuring correct multi-threading handlers creation.
+            UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+            if (errorCode != 0)
+                throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+        }
+
         /// <summary>
         /// This is the main entry point of incoming WebSocket requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
@@ -461,6 +522,57 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Registers the WebSocket handler.
+        /// </summary>
+        internal static void RegisterWsChannelHandlerNative(
+            UInt16 port,
+            String appName,
+            String channelName,
+            UInt32 channelId,
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo)
+        {
+            // Ensuring correct multi-threading handlers creation.
+            unsafe
+            {
+                bmx.BMX_HANDLER_CALLBACK fp = HandleWebSocket;
+                GCHandle gch = GCHandle.Alloc(fp);
+                IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
+
+                UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
+                    port,
+                    appName,
+                    channelName,
+                    channelId,
+                    pinned_delegate,
+                    managedHandlerIndex,
+                    out handlerInfo);
+
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode, "Channel string: " + channelName);
+
+                String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+                String uriHandlerInfo =
+                    dbName + " " +
+                    appName + " " +
+                    handlerInfo + " " +
+                    port + " " +                            
+                    channelId + " " +
+                    channelName + " ";
+
+                uriHandlerInfo += "\r\n\r\n\r\n\r\n";
+
+                Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
+
+                Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                        
+                if (r.StatusCode != 200)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "WebSocket channel: " + channelName);
+            }
+        }
+
+        /// <summary>
         /// Registers the port handler.
         /// </summary>
         public static void RegisterPortHandler(
@@ -473,15 +585,37 @@ namespace Starcounter
             // Ensuring correct multi-threading handlers creation.
             lock (port_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, appName, port_outer_handler_, managedHandlerIndex, out handlerInfo);
+                bmx.BMX_HANDLER_CALLBACK fp = PortOuterHandler;
+                GCHandle gch = GCHandle.Alloc(fp);
+                IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
+
+                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, appName, pinned_delegate, managedHandlerIndex, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port);
 
                 port_handlers_[managedHandlerIndex] = portCallback;
+
+                String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+                String portInfo =
+                    dbName + " " +
+                    appName + " " +
+                    handlerInfo + " " +
+                    port + " ";
+
+                portInfo += "\r\n\r\n\r\n\r\n";
+
+                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
+
+                Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                        
+                if (r.StatusCode != 200)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
+
             }
 		}
 
-        public static void UnregisterPort(UInt16 port)
+        public static void UnregisterPort(UInt16 port, UInt64 handlerInfo)
 		{
             // Ensuring correct multi-threading handlers creation.
             lock (port_handlers_)
@@ -489,6 +623,22 @@ namespace Starcounter
                 UInt32 errorCode = bmx.sc_bmx_unregister_port(port);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port);
+
+                String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+                String portInfo =
+                    dbName + " " +
+                    handlerInfo + " " +
+                    port + " ";
+
+                portInfo += "\r\n\r\n\r\n\r\n";
+
+                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
+
+                Response r = Node.LocalhostInternalSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+
+                if (r.StatusCode != 200)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
             }
 		}
 
@@ -506,17 +656,40 @@ namespace Starcounter
             // Ensuring correct multi-threading handlers creation.
             lock (subport_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, appName, subport, subport_outer_handler_, managedHandlerIndex, out handlerInfo);
+                bmx.BMX_HANDLER_CALLBACK fp = SubportOuterHandler;
+                GCHandle gch = GCHandle.Alloc(fp);
+                IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
+
+                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, appName, subport, pinned_delegate, managedHandlerIndex, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
 
                 subport_handlers_[managedHandlerIndex] = subportCallback;
+
+                String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+                String portInfo =
+                    dbName + " " +
+                    appName + " " +
+                    handlerInfo + " " +
+                    port + " " + 
+                    subport + " ";
+
+                portInfo += "\r\n\r\n\r\n\r\n";
+
+                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
+
+                Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+
+                if (r.StatusCode != 200)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
             }
         }
 
         public static void UnregisterSubport(
             UInt16 port,
-            UInt32 subport)
+            UInt32 subport,
+            UInt64 handlerInfo)
         {
             // Ensuring correct multi-threading handlers creation.
             lock (subport_handlers_)
@@ -524,6 +697,23 @@ namespace Starcounter
                 UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
+
+                String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+                String portInfo =
+                    dbName + " " +
+                    handlerInfo + " " +
+                    port + " " +
+                    subport + " ";
+
+                portInfo += "\r\n\r\n\r\n\r\n";
+
+                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
+
+                Response r = Node.LocalhostInternalSystemPortNode.DELETE("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+
+                if (r.StatusCode != 200)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
             }
         }
 	}

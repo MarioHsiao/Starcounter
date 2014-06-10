@@ -791,6 +791,20 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             return SCERRBADGATEWAYCONFIG;
         }
 
+        node_elem = root_elem->first_node("InternalSystemPort");
+        if (!node_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read InternalSystemPort property.");
+            return SCERRBADGATEWAYCONFIG;
+        }
+
+        setting_internal_system_port_ = (uint16_t)atoi(node_elem->value());
+        if (setting_internal_system_port_ <= 0 || setting_internal_system_port_ >= 65536)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported InternalSystemPort value.");
+            return SCERRBADGATEWAYCONFIG;
+        }
+
         // Getting aggregation port number.
         node_elem = root_elem->first_node("AggregationPort");
         if (node_elem)
@@ -1215,7 +1229,7 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     CreateNewSocketInfo(si->read_only_index_, port_index, gw->get_worker_id());
 
     // Creating unique ids.
-    GenerateUniqueSocketInfoIds(si->read_only_index_, gw->GenerateSchedulerId());
+    GenerateUniqueSocketInfoIds(si->read_only_index_);
 
     return si->read_only_index_;
 }
@@ -1379,6 +1393,246 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     }
 }
 
+uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    *is_handled = true;
+
+    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+
+    // Looking for the \r\n\r\n\r\n\r\n.
+    char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
+    GW_ASSERT(NULL != end_of_message);
+
+    // Looking for the \r\n\r\n.
+    char* body_string = strstr(request_begin, "\r\n\r\n");
+    GW_ASSERT(NULL != body_string);
+    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+
+    std::stringstream ss(body_string);
+    BMX_HANDLER_TYPE handler_info;
+    uint16_t port;
+    std::string db_name;
+    std::string app_name;
+
+    ss >> db_name;
+    ss >> app_name;
+    ss >> handler_info;
+    ss >> port;
+
+    std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
+    db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
+    GW_ASSERT(INVALID_DB_INDEX != db_index);
+
+    GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+
+    // Entering global lock.
+    gw->EnterGlobalLock();
+
+    // Registering handler on active database.
+    HandlersTable* handlers_table = g_gateway.GetDatabase(db_index)->get_user_handlers();
+
+    // Registering determined URI Apps handler.
+    uint32_t err_code = g_gateway.AddPortHandler(
+        gw,
+        handlers_table,
+        port,
+        app_name.c_str(),
+        handler_info,
+        db_index,
+        AppsPortProcessData);
+
+    // Releasing global lock.
+    gw->LeaveGlobalLock();
+
+    if (err_code) {
+
+        // Ignoring error code if its existing handler.
+        if (SCERRHANDLERALREADYREGISTERED == err_code)
+            err_code = 0;
+
+        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register PORT handler on port %d", port);
+
+        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
+        return err_code;
+
+    } else {
+
+        return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+    }
+}
+
+uint32_t RegisterSubportHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    *is_handled = true;
+
+    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+
+    // Looking for the \r\n\r\n\r\n\r\n.
+    char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
+    GW_ASSERT(NULL != end_of_message);
+
+    // Looking for the \r\n\r\n.
+    char* body_string = strstr(request_begin, "\r\n\r\n");
+    GW_ASSERT(NULL != body_string);
+    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+
+    std::stringstream ss(body_string);
+    BMX_HANDLER_TYPE handler_info;
+    uint16_t port;
+    uint32_t subport;
+    std::string db_name;
+    std::string app_name;
+
+    ss >> db_name;
+    ss >> app_name;
+    ss >> handler_info;
+    ss >> port;
+    ss >> subport;
+
+    std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
+    db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
+    GW_ASSERT(INVALID_DB_INDEX != db_index);
+
+    GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+
+    // Entering global lock.
+    gw->EnterGlobalLock();
+
+    // Registering handler on active database.
+    HandlersTable* handlers_table = g_gateway.GetDatabase(db_index)->get_user_handlers();
+
+    // Registering determined URI Apps handler.
+    uint32_t err_code = g_gateway.AddSubPortHandler(
+        gw,
+        handlers_table,
+        port,
+        app_name.c_str(),
+        subport,
+        handler_info,
+        db_index,
+        AppsSubportProcessData);
+
+    // Releasing global lock.
+    gw->LeaveGlobalLock();
+
+    if (err_code) {
+
+        // Ignoring error code if its existing handler.
+        if (SCERRHANDLERALREADYREGISTERED == err_code)
+            err_code = 0;
+
+        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register sub-port handler on port %d:%d", port, subport);
+
+        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
+        return err_code;
+
+    } else {
+
+        return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+    }
+}
+
+uint32_t RegisterWsHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    *is_handled = true;
+
+    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+
+    // Looking for the \r\n\r\n\r\n\r\n.
+    char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
+    GW_ASSERT(NULL != end_of_message);
+
+    // Looking for the \r\n\r\n.
+    char* body_string = strstr(request_begin, "\r\n\r\n");
+    GW_ASSERT(NULL != body_string);
+    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+
+    std::stringstream ss(body_string);
+    BMX_HANDLER_TYPE handler_info;
+    uint16_t port;
+    std::string db_name;
+    std::string app_name;
+    ws_channel_id_type ws_channel_id;
+    std::string ws_channel_name;
+
+    ss >> db_name;
+    ss >> app_name;
+    ss >> handler_info;
+    ss >> port;
+    ss >> ws_channel_id;
+    ss >> ws_channel_name;
+
+    std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
+    db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
+    GW_ASSERT(INVALID_DB_INDEX != db_index);
+
+    GW_COUT << "Registering WebSocket channel handler on " << db_name << " \"" << ws_channel_name << ":" << ws_channel_id << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+
+    // Entering global lock.
+    gw->EnterGlobalLock();
+
+    // Registering handler on active database.
+    HandlersTable* handlers_table = g_gateway.GetDatabase(db_index)->get_user_handlers();
+
+    uint32_t err_code;
+
+    ServerPort* server_port = g_gateway.FindServerPort(port);
+    if (NULL == server_port)
+    {
+        // Registering handler on active database.
+        err_code = g_gateway.AddPortHandler(
+            gw,
+            g_gateway.get_gw_handlers(),
+            port,
+            app_name.c_str(),
+            handler_info,
+            0,
+            OuterUriProcessData);
+
+        GW_ASSERT(0 == err_code);
+
+        server_port = g_gateway.FindServerPort(port);
+
+        GW_ASSERT(NULL != server_port);
+    }
+
+    // Searching existing WebSocket handler with the same channel name.
+    if (INVALID_URI_INDEX != server_port->get_registered_ws_channels()->FindRegisteredChannelName(ws_channel_name.c_str()))
+        err_code = SCERRHANDLERALREADYREGISTERED;
+
+    if (0 == err_code)
+    {
+        server_port->get_registered_ws_channels()->AddNewEntry(
+            handler_info,
+            app_name.c_str(),
+            ws_channel_id,
+            ws_channel_name.c_str(),
+            db_index);
+    }
+
+    // Releasing global lock.
+    gw->LeaveGlobalLock();
+
+    if (err_code) {
+
+        // Ignoring error code if its existing handler.
+        if (SCERRHANDLERALREADYREGISTERED == err_code)
+            err_code = 0;
+
+        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register WebSockets channel handler \"%S\":%d on port %d", ws_channel_name, ws_channel_id, port);
+
+        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
+        return err_code;
+
+    } else {
+
+        return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+    }
+}
+
 // Checks for new/existing databases and updates corresponding shared memory structures.
 uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_databases)
 {
@@ -1531,225 +1785,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 LeaveGlobalLock();
                 return err_code;
             }
-
-#ifdef GW_TESTING_MODE
-
-            uint16_t port_number = g_gateway.setting_server_test_port();
-            if (!g_gateway.setting_is_master())
-                port_number++;
-
-            // Checking if we are in Gateway HTTP mode.
-            switch (g_gateway.setting_mode())
-            {
-                // Registering pure gateway handler here.
-                case GatewayTestingMode::MODE_GATEWAY_RAW:
-                {
-                    // Registering port handler.
-                    err_code = AddPortHandler(
-                        &gw_workers_[0],
-                        gw_handlers_,
-                        port_number,
-                        "gateway",
-                        bmx::BMX_INVALID_HANDLER_INFO,
-                        empty_db_index,
-                        GatewayPortProcessEcho);
-
-                    if (err_code)
-                    {
-                        // Leaving global lock.
-                        LeaveGlobalLock();
-
-                        ShutdownGateway(NULL, err_code);
-                    }
-
-                    break;
-                }
-
-                // Registering pure gateway handler here.
-                case GatewayTestingMode::MODE_GATEWAY_HTTP:
-                {
-                    // Registering URI handlers.
-                    err_code = AddUriHandler(
-                        &gw_workers_[0],
-                        gw_handlers_,
-                        port_number,
-                        "gateway",
-                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
-                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
-                        NULL,
-                        0,
-                        bmx::BMX_INVALID_HANDLER_INFO,
-                        empty_db_index,
-                        GatewayUriProcessEcho);
-
-                    if (err_code)
-                    {
-                        // Leaving global lock.
-                        LeaveGlobalLock();
-
-                        ShutdownGateway(NULL, err_code);
-                    }
-
-                    break;
-                }
-            }
-
-#else
-
-            // Only registering gateway handlers with Administrator database which is first.
-            if (0 == empty_db_index)
-            {
-#ifdef GW_PROXY_MODE
-
-                // Registering all proxies.
-                for (int32_t i = 0; i < num_reversed_proxies_; i++)
-                {
-                    // Registering URI handlers.
-                    err_code = AddUriHandler(
-                        &gw_workers_[0],
-                        gw_handlers_,
-                        reverse_proxies_[i].sc_proxy_port_,
-                        "gateway",
-                        reverse_proxies_[i].matching_method_and_uri_.c_str(),
-                        reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
-                        NULL,
-                        0,
-                        bmx::BMX_INVALID_HANDLER_INFO,
-                        empty_db_index,
-                        GatewayUriProcessProxy,
-                        false,
-                        reverse_proxies_ + i);
-
-                    if (err_code)
-                    {
-                        // Leaving global lock.
-                        LeaveGlobalLock();
-
-                        ShutdownGateway(NULL, err_code);
-                    }
-                }
-
-#endif
-
-#ifdef HANDLER_REST_REGISTRATION
-
-                // Registering URI handler for gateway statistics.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    8282,
-                    "gateway",
-                    "POST /gw/handler/uri",
-                    "POST /gw/handler/uri ",
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    RegisterUriHandler,
-                    true);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    ShutdownGateway(NULL, err_code);
-                }
-
-#endif
-
-                // Registering URI handler for gateway statistics.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    setting_gw_stats_port_,
-                    "gateway",
-                    "GET /gwstats",
-                    "GET /gwstats ",
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    GatewayStatisticsInfo,
-                    true);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    ShutdownGateway(NULL, err_code);
-                }
-
-                // Registering URI handler for gateway statistics.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    setting_gw_stats_port_,
-                    "gateway",
-                    "GET /gwtest",
-                    "GET /gwtest ",
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    GatewayTestSample,
-                    true);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    ShutdownGateway(NULL, err_code);
-                }
-
-                // Registering URI handler for gateway statistics.
-                err_code = AddUriHandler(
-                    &gw_workers_[0],
-                    gw_handlers_,
-                    setting_gw_stats_port_,
-                    "gateway",
-                    "GET /profiler/gateway",
-                    "GET /profiler/gateway ",
-                    NULL,
-                    0,
-                    bmx::BMX_INVALID_HANDLER_INFO,
-                    empty_db_index,
-                    GatewayProfilersInfo,
-                    true);
-
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    ShutdownGateway(NULL, err_code);
-                }
-
-                if (0 != setting_aggregation_port_)
-                {
-                    // Registering port handler for aggregation.
-                    err_code = AddPortHandler(
-                        &gw_workers_[0],
-                        gw_handlers_,
-                        setting_aggregation_port_,
-                        "gateway",
-                        bmx::BMX_INVALID_HANDLER_INFO,
-                        empty_db_index,
-                        PortAggregator);
-
-                    if (err_code)
-                    {
-                        // Leaving global lock.
-                        LeaveGlobalLock();
-
-                        ShutdownGateway(NULL, err_code);
-                    }
-                }
-            }
-
-#endif
 
             // Leaving global lock.
             LeaveGlobalLock();
@@ -2088,6 +2123,9 @@ uint32_t Gateway::Init()
 	gateway_owner_id_ = 3;
 #endif
 
+    // Registering all gateway handlers.
+    RegisterGatewayHandlers();
+
     // Indicating that network gateway is ready
     // (should be first line of the output).
     GW_COUT << "Gateway is ready!" << GW_ENDL;
@@ -2102,6 +2140,223 @@ uint32_t Gateway::Init()
     GW_PRINT_GLOBAL << "New logging session: " << temp_time_str << GW_ENDL;
 
     return 0;
+}
+
+void Gateway::RegisterGatewayHandlers() {
+
+    uint32_t err_code;
+
+#ifdef GW_TESTING_MODE
+
+    uint16_t port_number = setting_server_test_port();
+    if (!setting_is_master())
+        port_number++;
+
+    // Checking if we are in Gateway HTTP mode.
+    switch (g_gateway.setting_mode())
+    {
+        // Registering pure gateway handler here.
+    case GatewayTestingMode::MODE_GATEWAY_RAW:
+        {
+            // Registering port handler.
+            err_code = AddPortHandler(
+                &gw_workers_[0],
+                gw_handlers_,
+                port_number,
+                "gateway",
+                bmx::BMX_INVALID_HANDLER_INFO,
+                INVALID_DB_INDEX,
+                GatewayPortProcessEcho);
+
+            GW_ASSERT(0 == err_code);
+
+            break;
+        }
+
+        // Registering pure gateway handler here.
+    case GatewayTestingMode::MODE_GATEWAY_HTTP:
+        {
+            // Registering URI handlers.
+            err_code = AddUriHandler(
+                &gw_workers_[0],
+                gw_handlers_,
+                port_number,
+                "gateway",
+                http_tests_information_[setting_mode()].method_and_uri_info,
+                http_tests_information_[setting_mode()].method_and_uri_info,
+                NULL,
+                0,
+                bmx::BMX_INVALID_HANDLER_INFO,
+                INVALID_DB_INDEX,
+                GatewayUriProcessEcho);
+
+            GW_ASSERT(0 == err_code);
+
+            break;
+        }
+    }
+
+#endif
+
+#ifdef GW_PROXY_MODE
+
+    // Registering all proxies.
+    for (int32_t i = 0; i < num_reversed_proxies_; i++)
+    {
+        // Registering URI handlers.
+        err_code = AddUriHandler(
+            &gw_workers_[0],
+            gw_handlers_,
+            reverse_proxies_[i].sc_proxy_port_,
+            "gateway",
+            reverse_proxies_[i].matching_method_and_uri_.c_str(),
+            reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
+            NULL,
+            0,
+            bmx::BMX_INVALID_HANDLER_INFO,
+            INVALID_DB_INDEX,
+            GatewayUriProcessProxy,
+            false,
+            reverse_proxies_ + i);
+
+        GW_ASSERT(0 == err_code);
+    }
+
+#endif
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_internal_system_port_,
+        "gateway",
+        "POST /gw/handler/uri",
+        "POST /gw/handler/uri ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        RegisterUriHandler,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_internal_system_port_,
+        "gateway",
+        "POST /gw/handler/ws",
+        "POST /gw/handler/ws ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        RegisterWsHandler,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_internal_system_port_,
+        "gateway",
+        "POST /gw/handler/port",
+        "POST /gw/handler/port ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        RegisterPortHandler,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_internal_system_port_,
+        "gateway",
+        "POST /gw/handler/subport",
+        "POST /gw/handler/subport ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        RegisterSubportHandler,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_gw_stats_port_,
+        "gateway",
+        "GET /gwstats",
+        "GET /gwstats ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        GatewayStatisticsInfo,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_gw_stats_port_,
+        "gateway",
+        "GET /gwtest",
+        "GET /gwtest ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        GatewayTestSample,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_gw_stats_port_,
+        "gateway",
+        "GET /profiler/gateway",
+        "GET /profiler/gateway ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        GatewayProfilersInfo,
+        true);
+
+    GW_ASSERT(0 == err_code);
+
+    if (0 != setting_aggregation_port_)
+    {
+        // Registering port handler for aggregation.
+        err_code = AddPortHandler(
+            &gw_workers_[0],
+            gw_handlers_,
+            setting_aggregation_port_,
+            "gateway",
+            bmx::BMX_INVALID_HANDLER_INFO,
+            INVALID_DB_INDEX,
+            PortAggregator);
+
+        GW_ASSERT(0 == err_code);
+    }
 }
 
 // Printing statistics for all workers.
@@ -2563,7 +2818,7 @@ uint32_t Gateway::CollectInactiveSockets()
                 case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
                 {
                     // Updating unique socket id.
-                    GenerateUniqueSocketInfoIds(i, 0);
+                    GenerateUniqueSocketInfoIds(i);
 
                     // NOTE: Not checking for error code.
                     closesocket(all_sockets_infos_unsafe_[i].get_socket());
@@ -3394,7 +3649,7 @@ uint32_t Gateway::AddUriHandler(
     else
     {
         wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%s\"." , port, processed_uri_info);
+        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\"." , port, processed_uri_info);
         g_gateway.LogWriteError(temp);
 
         // Disallowing handler duplicates.

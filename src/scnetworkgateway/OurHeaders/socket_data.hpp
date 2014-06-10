@@ -719,10 +719,9 @@ public:
     }
 
     // Setting new unique socket number.
-    void GenerateUniqueSocketInfoIds(scheduler_id_type scheduler_id)
+    void GenerateUniqueSocketInfoIds()
     {
-        session_.scheduler_id_ = scheduler_id;
-        unique_socket_id_ = g_gateway.GenerateUniqueSocketInfoIds(socket_info_index_, session_.scheduler_id_);
+        unique_socket_id_ = g_gateway.GenerateUniqueSocketInfoIds(socket_info_index_);
     }
 
     // Sets session if socket is correct.
@@ -1010,6 +1009,9 @@ public:
     // Start receiving on socket.
     uint32_t Receive(GatewayWorker *gw, uint32_t *num_bytes)
     {
+        // Checking correct unique socket.
+        GW_ASSERT(true == CompareUniqueSocketId());
+
         set_type_of_network_oper(RECEIVE_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
@@ -1026,6 +1028,9 @@ public:
     // Start sending on socket.
     uint32_t Send(GatewayWorker* gw, uint32_t *numBytes)
     {
+        // Checking correct unique socket.
+        GW_ASSERT(true == CompareUniqueSocketId());
+
         set_type_of_network_oper(SEND_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
@@ -1041,6 +1046,9 @@ public:
     // Start accepting on socket.
     uint32_t Accept(GatewayWorker* gw)
     {
+        // Checking correct unique socket.
+        GW_ASSERT(true == CompareUniqueSocketId());
+
         set_type_of_network_oper(ACCEPT_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
@@ -1081,6 +1089,9 @@ public:
     // Start connecting on socket.
     uint32_t Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
     {
+        // Checking correct unique socket.
+        GW_ASSERT(true == CompareUniqueSocketId());
+
         set_type_of_network_oper(CONNECT_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
@@ -1096,6 +1107,9 @@ public:
     // Start disconnecting socket.
     uint32_t Disconnect(GatewayWorker *gw)
     {
+        // Checking correct unique socket.
+        GW_ASSERT(true == CompareUniqueSocketId());
+
         set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);

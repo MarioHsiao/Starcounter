@@ -153,8 +153,8 @@ uint32_t HandlersTable::RegisterPortHandler(
         NULL,
         NULL,
         NULL,
-        db_index,
         0,
+        db_index,
         0,
         NULL);
 
@@ -427,7 +427,7 @@ uint32_t HandlersTable::RegisterUriHandler(
                 if (!strcmp(processed_uri_string, registered_handlers_[i].get_processed_uri_info()))
                 {
                     wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-                    wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%s\".",
+                    wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".",
                         port_num, processed_uri_string);
                     g_gateway.LogWriteError(temp);
 

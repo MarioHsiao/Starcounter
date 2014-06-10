@@ -741,7 +741,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
             goto RELEASE_CHUNK_TO_POOL;
 
         // Setting unique socket id.
-        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
+        sd->GenerateUniqueSocketInfoIds();
 
         // NOTE: Not checking for correctness here.
         closesocket(sd->GetSocket());
@@ -771,7 +771,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     if (sd->CompareUniqueSocketId()) {
 
         // Setting unique socket id.
-        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
+        sd->GenerateUniqueSocketInfoIds();
 
         // Calling DisconnectEx.
         err_code = sd->Disconnect(this);
@@ -906,7 +906,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
         // Start connecting socket.
 
         // Setting unique socket id.
-        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
+        sd->GenerateUniqueSocketInfoIds();
 
         // Calling ConnectEx.
         uint32_t err_code = sd->Connect(this, server_addr);
@@ -1051,7 +1051,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     ChangeNumAcceptingSockets(sd->GetPortIndex(), 1);
 
     // Setting unique socket id.
-    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
+    sd->GenerateUniqueSocketInfoIds();
 
     // Calling AcceptEx.
     uint32_t err_code = sd->Accept(this);

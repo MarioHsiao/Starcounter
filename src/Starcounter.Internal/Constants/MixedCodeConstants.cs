@@ -5,8 +5,6 @@
 // C++ code--removes public keyword for C++
 #define public
 
-//#define HANDLER_REST_REGISTRATION
-
 typedef char* const String;
 typedef unsigned int uint;
 
@@ -208,6 +206,11 @@ namespace Starcounter.Internal
         /// Server directory XML element name in configuration file.
         /// </summary>
         public const String ServerConfigDirName = "server-dir";
+
+        /// <summary>
+        /// Empty application name.
+        /// </summary>
+        public const String EmptyAppName = "unknown";
 
         /// <summary>
         /// Server directory parent XML element name.

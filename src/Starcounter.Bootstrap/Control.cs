@@ -97,6 +97,7 @@ namespace StarcounterInternal.Bootstrap {
 
                 withdb_ = !configuration.NoDb;
                 StarcounterEnvironment.Gateway.NumberOfWorkers = configuration.GatewayNumberOfWorkers;
+                StarcounterEnvironment.Gateway.InternalSystemPort = configuration.InternalSystemPort;
 
                 AssureNoOtherProcessWithTheSameName(configuration);
                 OnAssuredNoOtherProcessWithTheSameName();
@@ -123,10 +124,20 @@ namespace StarcounterInternal.Bootstrap {
 
                 // Initializing the BMX manager if network gateway is used.
                 if (!configuration.NoNetworkGateway) {
-                    bmx.sc_init_bmx_manager(
-                        GlobalSessions.g_destroy_apps_session_callback,
-                        GlobalSessions.g_create_new_apps_session_callback,
-                    Starcounter.Internal.ExceptionManager.ErrorHandlingCallbackFunc);
+
+                    GlobalSessions.DestroyAppsSessionCallback fp1 = GlobalSessions.g_destroy_apps_session_callback;
+                    GCHandle gch1 = GCHandle.Alloc(fp1);
+                    IntPtr pinned_delegate1 = Marshal.GetFunctionPointerForDelegate(fp1);
+
+                    GlobalSessions.CreateNewAppsSessionCallback fp2 = GlobalSessions.g_create_new_apps_session_callback;
+                    GCHandle gch2 = GCHandle.Alloc(fp2);
+                    IntPtr pinned_delegate2 = Marshal.GetFunctionPointerForDelegate(fp2);
+
+                    bmx.ErrorHandlingCallback fp3 = Starcounter.Internal.ExceptionManager.ErrorHandlingCallbackFunc;
+                    GCHandle gch3 = GCHandle.Alloc(fp3);
+                    IntPtr pinned_delegate3 = Marshal.GetFunctionPointerForDelegate(fp3);
+
+                    bmx.sc_init_bmx_manager(pinned_delegate1, pinned_delegate2, pinned_delegate3);
 
                     OnBmxManagerInitialized();
 
@@ -167,6 +178,7 @@ namespace StarcounterInternal.Bootstrap {
                     (byte)schedulerCount,
                     configuration.DefaultUserHttpPort,
                     configuration.DefaultSystemHttpPort,
+                    configuration.DefaultInternalSystemHttpPort,
                     configuration.DefaultSessionTimeoutMinutes,
                     configuration.Name);
 

@@ -60,6 +60,7 @@ typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
 typedef int8_t chunk_store_type;
+typedef uint32_t ws_channel_id_type;
 
 // Statistics macros.
 #define GW_COLLECT_SOCKET_STATISTICS
@@ -1052,7 +1053,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     uint32_t accum_data_bytes_left_;
 
     // WebSockets channel id.
-    uint32_t ws_channel_id_;
+    ws_channel_id_type ws_channel_id_;
 
     //////////////////////////////
     //////// 16 bits data ////////
@@ -1555,6 +1556,9 @@ class Gateway
     // Gateway statistics port.
     uint16_t setting_gw_stats_port_;
 
+    // Internal system port used for communication between codehost and gateway.
+    uint16_t setting_internal_system_port_;
+
     // Gateway aggregation port.
     uint16_t setting_aggregation_port_;
 
@@ -1832,6 +1836,9 @@ public:
     // Printing statistics for all workers.
     void PrintWorkersStatistics(std::stringstream& stats_stream);
 
+    // Registering all gateway handlers.
+    void RegisterGatewayHandlers();
+
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()
     {
@@ -1963,7 +1970,7 @@ public:
         return all_sockets_infos_unsafe_[socket_index].ws_channel_id_;
     }
 
-    void SetWebSocketChannelId(session_index_type socket_index, uint32_t ws_channel_id)
+    void SetWebSocketChannelId(session_index_type socket_index, ws_channel_id_type ws_channel_id)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
@@ -2050,7 +2057,7 @@ public:
     }
 
     // Setting new unique socket number.
-    random_salt_type GenerateUniqueSocketInfoIds(session_index_type socket_index, scheduler_id_type scheduler_id)
+    random_salt_type GenerateUniqueSocketInfoIds(session_index_type socket_index)
     {
         GW_ASSERT(socket_index < setting_max_connections_);
 
@@ -2058,7 +2065,7 @@ public:
         GW_ASSERT(unique_id != INVALID_SESSION_SALT);
 
         all_sockets_infos_unsafe_[socket_index].unique_socket_id_ = unique_id;
-        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = scheduler_id;
+        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = 0;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;
