@@ -110,6 +110,10 @@ namespace Starcounter.XSON.JsonPatch {
 
                     for (int i = 0; i < changes.Count; i++) {
                         WritePatch(changes[i], ref writer, pathSizes[i]);
+
+                        if (changes[i].Property != null)
+                            changes[i].Property.Checkpoint(changes[i].Obj);
+
                         if ((i + 1) < changes.Count)
                             writer.Write(',');
                     }
