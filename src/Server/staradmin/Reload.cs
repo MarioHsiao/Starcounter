@@ -17,6 +17,11 @@ namespace staradmin {
         /// </summary>
         public string Database { get; set; }
 
+        /// <summary>
+        /// Gets or sets the filepath to reload from.
+        /// </summary>
+        public string FilePath { get; set; }
+
         public void Run() {
             string exeFile;
 
@@ -46,6 +51,10 @@ namespace staradmin {
             var cmdLine = new List<string>();
             if (!string.IsNullOrEmpty(Database)) {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Database));
+            }
+            if (!string.IsNullOrEmpty(FilePath)) {
+                var file = Path.GetFullPath(FilePath);
+                cmdLine.Add(string.Format("{0}", file));
             }
 
             ApplicationArguments args;
