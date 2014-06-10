@@ -84,7 +84,10 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session"></param>
 		private void LogArrayChangesWithDatabase(Session session) {
-			if (ArrayAddsAndDeletes != null) {
+            bool logChanges;
+            Json item;
+
+            if (ArrayAddsAndDeletes != null && ArrayAddsAndDeletes.Count > 0) {
                 for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
                     var change = ArrayAddsAndDeletes[i];
                     session.AddChange(change);
@@ -92,18 +95,33 @@ namespace Starcounter {
                     var index = change.Index;
                     if (index < list.Count) {
                         CheckpointAt(index);
-                        ((Json)list[index])._Dirty = false;
+
+                        item = (Json)list[index];
+                        item.SetBoundValuesInTuple();
+                        item._Dirty = false;
                     }
                 }
-				ArrayAddsAndDeletes.Clear();
-			}
-			
-			var property = Template as TObjArr;
-			for (int t = 0; t < _list.Count; t++) {
-                var item = (Json)_list[t];
-                if (item._Dirty)
-                    item.LogValueChangesWithDatabase(session);
-			}
+                
+                for (int i = 0; i < _list.Count; i++) {
+                    // Skip all items we have already added to the changelog.
+                    logChanges = true;
+                    foreach (Change change in ArrayAddsAndDeletes) {
+                        if (change.Index == i) {
+                            logChanges = false;
+                            break;
+                        }
+                    }
+
+                    if (logChanges) {
+                        ((Json)_list[i]).LogValueChangesWithDatabase(session);
+                    }
+                }
+                ArrayAddsAndDeletes.Clear();
+            } else {
+                for (int t = 0; t < _list.Count; t++) {
+                    ((Json)_list[t]).LogValueChangesWithDatabase(session);
+                }
+            }
 		}
 
 		/// <summary>
