@@ -193,7 +193,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-        public static void TestParentAssignmentWithUnboundSetter() {
+        public static void TestParentAssignmentWithUnboundSetterForObject() {
             var schema = new TObject();
             var tpage = schema.Add<TObject>("Page");
             
@@ -206,6 +206,46 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
 
             tpage.UnboundSetter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithUnboundSetterForArr() {
+            var schema = new TObject();
+            var tpages = schema.Add<TObjArr>("Pages");
+
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Arr<Json>(null, null);
+            dynamic oldPage = new Arr<Json>(null, null);
+
+            tpages.UnboundSetter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpages.UnboundSetter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithUnboundSetterForTypedArr() {
+            var schema = new TObject();
+            var tpages = schema.Add<TArray<Json>>("Pages");
+
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Arr<Json>(null, null);
+            dynamic oldPage = new Arr<Json>(null, null);
+
+            tpages.UnboundSetter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpages.UnboundSetter(json, newPage);
             Assert.IsNotNull(newPage.Parent);
             Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
