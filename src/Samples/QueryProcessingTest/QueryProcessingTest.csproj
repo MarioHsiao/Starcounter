@@ -58,6 +58,8 @@
     <Compile Include="FetchTest.cs" />
     <Compile Include="HelpMethods.cs" />
     <Compile Include="InsertIntoTests.cs" />
+    <Compile Include="KernelBugsTest.cs" />
+    <Compile Include="KernelTestDataModel.cs" />
     <Compile Include="MetadataTest.cs" />
     <Compile Include="NamespacesTest.cs" />
     <Compile Include="ObjectIdentityTest.cs" />
