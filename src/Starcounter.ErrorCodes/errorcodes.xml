@@ -3185,6 +3185,11 @@
       <message>
         A type with the same name was already loaded, from a different assembly.</message>
     </code>
+    <code hex="0113" severity="Error" name="ScErrUnloadTableNoClass">
+      <message>
+	  Unloading a table fails, since its class is not loaded. An application, where the class is declared, needs to be loaded before unload is called.
+	  </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
