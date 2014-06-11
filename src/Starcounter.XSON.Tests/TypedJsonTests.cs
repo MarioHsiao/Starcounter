@@ -176,18 +176,160 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-        public static void TestParentAssignment() {
+        public static void TestParentAssignmentWithDefaultSetter() {
             dynamic json = new Json();
-            dynamic newchildJson = new Json();
-            dynamic oldChildJson = new Json();
+            dynamic newPage = new Json();
+            dynamic oldPage = new Json();
 
-            json.Page = oldChildJson;
-            Assert.IsNotNull(oldChildJson.Parent);
+            json.Page = oldPage;
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
 
-            json.Page = newchildJson;
-            Assert.IsNotNull(newchildJson.Parent);
-            Assert.IsNull(oldChildJson.Parent);
+            json.Page = newPage;
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
         }
+
+        [Test]
+        public static void TestParentAssignmentWithUnboundSetterForObject() {
+            var schema = new TObject();
+            var tpage = schema.Add<TObject>("Page");
+            
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Json();
+            dynamic oldPage = new Json();
+
+            tpage.UnboundSetter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpage.UnboundSetter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithUnboundSetterForArr() {
+            var schema = new TObject();
+            var tpages = schema.Add<TObjArr>("Pages");
+
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Arr<Json>(null, null);
+            dynamic oldPage = new Arr<Json>(null, null);
+
+            tpages.UnboundSetter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpages.UnboundSetter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithUnboundSetterForTypedArr() {
+            var schema = new TObject();
+            var tpages = schema.Add<TArray<Json>>("Pages");
+
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Arr<Json>(null, null);
+            dynamic oldPage = new Arr<Json>(null, null);
+
+            tpages.UnboundSetter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpages.UnboundSetter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithCustomSetterForObject() {
+            Json backingValue = null;
+            var schema = new TObject();
+            var tpage = schema.Add<TObject>("Page");
+            tpage.BindingStrategy = BindingStrategy.Unbound;
+            tpage.SetCustomAccessors(
+                (parent) => { return backingValue; },
+                (parent, value) => { backingValue = value; }
+            );
+            
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Json();
+            dynamic oldPage = new Json();
+
+            json.Page = oldPage;
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            
+            json.Page = newPage;
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithCustomSetterForArr() {
+            Json backingValue = null;
+            var schema = new TObject();
+            var tpages = schema.Add<TObjArr>("Pages");
+            tpages.BindingStrategy = BindingStrategy.Unbound;
+            tpages.SetCustomAccessors(
+                (parent) => { return backingValue; },
+                (parent, value) => { backingValue = value; }
+            );
+
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Arr<Json>(null, null);
+            dynamic oldPage = new Arr<Json>(null, null);
+
+            tpages.Setter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpages.Setter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
+        [Test]
+        public static void TestParentAssignmentWithCustomSetterForTypedArr() {
+            Arr<Json> backingValue = null;
+            var schema = new TObject();
+            var tpages = schema.Add<TArray<Json>>("Pages");
+            tpages.BindingStrategy = BindingStrategy.Unbound;
+            tpages.SetCustomAccessors(
+                (parent) => { return backingValue; },
+                (parent, value) => { backingValue = value; }
+            );
+
+            dynamic json = new Json() { Template = schema };
+            dynamic newPage = new Arr<Json>(null, null);
+            dynamic oldPage = new Arr<Json>(null, null);
+
+            tpages.Setter(json, oldPage);
+            Assert.IsNotNull(oldPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+
+            tpages.Setter(json, newPage);
+            Assert.IsNotNull(newPage.Parent);
+            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.IsNull(oldPage.Parent);
+            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+        }
+
 
         /// <summary>
         /// Tests TestCorrectJsonInstances.

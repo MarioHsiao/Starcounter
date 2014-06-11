@@ -158,5 +158,18 @@ namespace Starcounter.Templates {
 				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer((TObject)this);
 			codeGenStarted = false;
 		}
+
+        internal void UpdateParentAndIndex(Json parent, Json newValue) {
+            if (newValue != null) {
+                newValue.Parent = parent;
+                newValue._cacheIndexInArr = TemplateIndex;
+            }
+
+            var oldValue = (Json)GetUnboundValueAsObject(parent);
+            if (oldValue != null) {
+                oldValue.SetParent(null);
+                oldValue._cacheIndexInArr = -1;
+            }
+        }
     }
 }

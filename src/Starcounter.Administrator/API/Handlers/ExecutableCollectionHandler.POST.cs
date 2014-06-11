@@ -97,7 +97,17 @@ namespace Starcounter.Administrator.API.Handlers {
             var headers = new Dictionary<string, string>(2);
             var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.Application.BinaryFilePath, headers);
             exeCreated.StartedBy = exe.StartedBy;
-            exeCreated.Arguments = exe.Arguments;
+
+            // TODO: 
+            // Cannot move Json objects (or arrays) between jsontrees. 
+            // We probably need to implement a Clone-function.
+            // Will manually create items for now, and add issue for cloning.
+//            exeCreated.Arguments = exe.Arguments;
+            foreach (var arg in exe.Arguments) {
+                var newArg = exeCreated.Arguments.Add();
+                newArg.dummy = arg.dummy;
+            }
+
             exeCreated.IsTool = exe.IsTool;
             headers.Add("Location", exeCreated.Uri);
 
