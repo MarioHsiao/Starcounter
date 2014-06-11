@@ -43,7 +43,7 @@ namespace Starcounter.Templates {
 		}
 
         private void SetParentAndUseCustomSetter(Json parent, Json value) {
-            UpdateParentAndIndex(value, parent);
+            UpdateParentAndIndex(parent, value);
             customSetter(parent, value);
         }
 
@@ -206,12 +206,6 @@ namespace Starcounter.Templates {
 		}
 
 		private void BoundOrUnboundSet(Json parent, Json value) {
-			Json oldArr = UnboundGetter(parent);
-			if (oldArr != null) {
-				oldArr.SetParent(null);
-				oldArr._cacheIndexInArr = -1;
-			}
-
 			if (UseBinding(parent)) {
 				BoundSetter(parent, (IEnumerable)value.Data);
 			}

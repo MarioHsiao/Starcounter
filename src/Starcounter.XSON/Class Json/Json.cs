@@ -346,7 +346,7 @@ namespace Starcounter {
             var tobj = (TObject)Template;
             var prop = tobj.Properties[templateIndex] as TContainer;
             if (prop != null) 
-                prop.UpdateParentAndIndex(newValue, this);
+                prop.UpdateParentAndIndex(this, newValue);
         }
     }
 }

@@ -133,7 +133,7 @@ namespace Starcounter.Templates {
 		}
 
 		private void BoundOrUnboundSet(Json parent, Json value) {
-            UpdateParentAndIndex(value, parent);
+            UpdateParentAndIndex(parent, value);
 
 			if (value != null) {
 				if (UseBinding(parent) && BoundSetter != null)
@@ -162,7 +162,7 @@ namespace Starcounter.Templates {
 		}
 
         private void SetParentAndUseCustomSetter(Json parent, Json value) {
-            UpdateParentAndIndex(value, parent);
+            UpdateParentAndIndex(parent, value);
             customSetter(parent, value);
         }
 
