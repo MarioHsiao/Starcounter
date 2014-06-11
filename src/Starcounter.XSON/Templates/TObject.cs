@@ -133,18 +133,11 @@ namespace Starcounter.Templates {
 		}
 
 		private void BoundOrUnboundSet(Json parent, Json value) {
-			Json oldValue = UnboundGetter(parent);
-
-			if (oldValue != null) {
-				oldValue.SetParent(null);
-				oldValue._cacheIndexInArr = -1;
-			}
+            UpdateParentAndIndex(value, parent);
 
 			if (value != null) {
 				if (UseBinding(parent) && BoundSetter != null)
 					BoundSetter(parent, value.Data);
-				value.Parent = parent;
-				value._cacheIndexInArr = TemplateIndex;
 			}
 			UnboundSetter(parent, value);
 
@@ -157,6 +150,7 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 			var p = toTemplate as TObject;
 			if (p != null) {
+                p.customSetter = customSetter;
 				p.UnboundGetter = UnboundGetter;
 				p.UnboundSetter = UnboundSetter;
 				p.hasCustomAccessors = hasCustomAccessors;
@@ -168,16 +162,7 @@ namespace Starcounter.Templates {
 		}
 
         private void SetParentAndUseCustomSetter(Json parent, Json value) {
-            if (value != null) {
-                value.Parent = parent;
-                value._cacheIndexInArr = TemplateIndex;
-            }
-                
-            var old = UnboundGetter(parent);
-            if (old != null) {
-                old.SetParent(null);
-                old._cacheIndexInArr = -1;
-            }
+            UpdateParentAndIndex(value, parent);
             customSetter(parent, value);
         }
 

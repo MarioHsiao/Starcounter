@@ -28,16 +28,7 @@ namespace Starcounter.Templates {
 		}
 
         private void SetParentAndUseCustomSetter(Json parent, Arr<OT> value) {
-            if (value != null) {
-                value.Parent = parent;
-                value._cacheIndexInArr = TemplateIndex;
-            }
-
-            var old = UnboundGetter(parent);
-            if (old != null) {
-                old.SetParent(null);
-                old._cacheIndexInArr = -1;
-            }
+            UpdateParentAndIndex(value, parent);
             customSetter(parent, value);
         }
 
@@ -79,6 +70,7 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 			var p = toTemplate as TArray<OT>;
 			if (p != null) {
+                p.customSetter = customSetter;
 				p.UnboundGetter = UnboundGetter;
 				p.UnboundSetter = UnboundSetter;
 				p.hasCustomAccessors = hasCustomAccessors;

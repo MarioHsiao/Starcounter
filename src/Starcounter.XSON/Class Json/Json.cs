@@ -341,5 +341,12 @@ namespace Starcounter {
 				this[prop.TemplateIndex] = value;
 			}
 		}
+
+        internal void UpdateParentAndCachedIndex(int templateIndex, Json newValue) {
+            var tobj = (TObject)Template;
+            var prop = tobj.Properties[templateIndex] as TContainer;
+            if (prop != null) 
+                prop.UpdateParentAndIndex(newValue, this);
+        }
     }
 }
