@@ -27,9 +27,14 @@ namespace staradmin.Commands {
                 command = new ShowHelpCommand(topic);
             }
 
+            if (CommandIs(args, CommandLine.Commands.Kill)) {
+                var target = args.CommandParameters[0];
+                command = new KillCommand(target);
+            }
+
             if (command == null) {
                 var usage = new ShowUsageCommand();
-                command = new ReportBadInputCommand(string.Format("Invalid input: '{0}'.", args.ToString("given"), usage));
+                command = new ReportBadInputCommand(string.Format("Invalid input: '{0}'.", args.ToString("given")), usage);
             }
 
             return command;
@@ -38,7 +43,7 @@ namespace staradmin.Commands {
         bool CommandIs(ApplicationArguments args, CommandLine.Command command) {
             var arg = args.Command;
             var comparison = StringComparison.InvariantCultureIgnoreCase;
-            return arg.Equals(CommandLine.Commands.Help.Name, comparison);
+            return arg.Equals(command.Name, comparison);
         }
     }
 }
