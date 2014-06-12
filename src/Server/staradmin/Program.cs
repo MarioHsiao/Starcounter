@@ -1,5 +1,6 @@
 ﻿
 using Sc.Tools.Logging;
+using staradmin.Commands;
 using Starcounter;
 using Starcounter.CLI;
 using Starcounter.CommandLine;
@@ -25,10 +26,10 @@ namespace staradmin {
                     return;
                 }
 
-                // Materialize the command and pass it the parsed result
-                // TODO:
+                var factory = new CommandFactory();
+                var command = factory.CreateCommand(appArgs);
 
-                Console.WriteLine(appArgs.Command);
+                command.Execute();
                 return;
             }
 
