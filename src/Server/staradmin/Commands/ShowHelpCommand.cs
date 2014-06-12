@@ -21,8 +21,14 @@ namespace staradmin.Commands {
             if (TopicIs(CommandLine.Commands.Help)) {
                 ShowHelpOnHelp(Console.Out);
             } else {
-                throw new NotImplementedException();
+                ReportUnrecognizedTopic();
             }
+        }
+
+        void ReportUnrecognizedTopic() {
+            var helpOnHelp = new ShowHelpCommand(CommandLine.Commands.Help.Name);
+            var badInput = new ReportBadInputCommand(string.Format("Help for topic '{0}' not found.", Topic), helpOnHelp);
+            badInput.Execute();
         }
 
         void ShowHelpOnHelp(TextWriter writer) {
