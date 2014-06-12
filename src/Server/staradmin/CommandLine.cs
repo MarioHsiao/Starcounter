@@ -13,7 +13,28 @@ using System.Threading.Tasks;
 namespace staradmin {
 
     internal static class CommandLine {
-        
+        class Option {
+            public string Name { get; set; }
+            public string ShortText { get; set; }
+            public string[] Alternatives { get; set; }
+        }
+        class Command : Option { }
+
+        static class Options {
+            public static Option Help = new Option() {
+                Name = "help",
+                ShortText = "Shows help about staradmin.exe",
+                Alternatives = new string[] { "h" }
+            };
+        }
+
+        static class Commands {
+            public static Command Help = new Command() {
+                Name = "help",
+                ShortText = "Shows help about a command"
+            };
+        }
+
         public static void PreParse(ref string[] args) {
             if (args.Length > 0) {
                 var first = args[0].TrimStart('-');
@@ -31,15 +52,45 @@ namespace staradmin {
                 return ApplicationArguments.Empty;
             }
 
-            throw new NotImplementedException();
+            var syntax = Define();
+            try {
+                return new Parser(args).Parse(syntax);
+            } catch (InvalidCommandLineException e) {
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.Exit((int)e.ErrorCode);
+            }
+
+            // Can never happen, but doesn't compile without this
+            return null;
         }
 
         public static void WriteUsage(TextWriter writer) {
-            throw new NotImplementedException();
+            writer.WriteLine("Usage: staradmin [options] <command> [<command options>] [<parameters>]");
+            writer.WriteLine();
+            writer.WriteLine("Options:");
+            var formatting = "  {0,-22}{1,25}";
+            writer.WriteLine(formatting, string.Format("--{0}", Options.Help.Name), Options.Help.ShortText);
+            writer.WriteLine();
+            writer.WriteLine("Commands:");
+            writer.WriteLine(formatting, string.Format("{0}", Commands.Help.Name), Commands.Help.ShortText);
         }
 
         static IApplicationSyntax Define() {
-            throw new NotImplementedException();
+            var appSyntax = new ApplicationSyntaxDefinition();
+            appSyntax.ProgramDescription = "staradmin.exe";
+
+            appSyntax.DefineFlag(
+                Options.Help.Name, 
+                Options.Help.ShortText,
+                OptionAttributes.Default,
+                Options.Help.Alternatives
+                );
+
+            var commandSyntax = appSyntax.DefineCommand(Commands.Help.Name, Commands.Help.ShortText);
+            commandSyntax.MinParameterCount = 0;
+            commandSyntax.MaxParameterCount = 1;
+
+            return appSyntax.CreateSyntax();
         }
     }
 }
