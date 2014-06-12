@@ -12,6 +12,7 @@ namespace staradmin {
 
     class Program {
         static void Main(string[] args) {
+            CommandLine.PreParse(ref args);
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
             SharedCLI.InitCLIContext();
 
