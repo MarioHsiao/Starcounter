@@ -21,11 +21,7 @@ namespace staradmin {
             var runNewParser = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_ADMIN_NEW_SYNTAX"));
             if (runNewParser) {
                 var appArgs = CommandLine.Parse(args);
-                if (appArgs == ApplicationArguments.Empty || appArgs.ContainsFlag(CommandLine.Options.Help.Name)) {
-                    CommandLine.WriteUsage(Console.Out);
-                    return;
-                }
-
+                
                 var factory = new CommandFactory();
                 var command = factory.CreateCommand(appArgs);
 

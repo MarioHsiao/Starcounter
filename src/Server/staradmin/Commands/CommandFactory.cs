@@ -16,6 +16,10 @@ namespace staradmin.Commands {
         /// to create.</param>
         /// <returns>A <see cref="ICommand"/> instance.</returns>
         public ICommand CreateCommand(ApplicationArguments args) {
+            if (args == ApplicationArguments.Empty || args.ContainsFlag(CommandLine.Options.Help.Name)) {
+                return new ShowUsageCommand();
+            }
+
             throw new NotImplementedException();
         }
     }
