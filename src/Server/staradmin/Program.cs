@@ -2,6 +2,7 @@
 using Sc.Tools.Logging;
 using Starcounter;
 using Starcounter.CLI;
+using Starcounter.CommandLine;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,14 @@ namespace staradmin {
             var runNewParser = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_ADMIN_NEW_SYNTAX"));
             if (runNewParser) {
                 var appArgs = CommandLine.Parse(args);
+                if (appArgs == ApplicationArguments.Empty || appArgs.ContainsFlag(CommandLine.Options.Help.Name)) {
+                    CommandLine.WriteUsage(Console.Out);
+                    return;
+                }
+
+                // Materialize the command and pass it the parsed result
+                // TODO:
+
                 Console.WriteLine(appArgs.Command);
                 return;
             }
