@@ -52,7 +52,6 @@
     <Compile Include="Commands\ShowHelpCommand.cs" />
     <Compile Include="Commands\ShowUsageCommand.cs" />
     <Compile Include="ConsoleSession.cs" />
-    <Compile Include="ProcessUtilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reload.cs" />
