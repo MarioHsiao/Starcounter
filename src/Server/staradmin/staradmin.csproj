@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="CLITemplate.cs" />
     <Compile Include="CommandLine.cs" />
+    <Compile Include="Commands\ICommand.cs" />
     <Compile Include="ConsoleSession.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="Program.cs" />
