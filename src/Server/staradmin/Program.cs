@@ -35,8 +35,7 @@ namespace staradmin {
                 command = command.TrimStart('-', '/');
                 switch (command) {
                     case "killall":
-                        ProcessUtilities.KillAllScProcesses();
-                        break;
+                        throw new Exception("No longer supported: use 'staradmin kill all'");
                     case "installservice":
                         bool start = args.Length > 1 && args[1] == "start";
                         ServerServiceUtilities.Install(start);
