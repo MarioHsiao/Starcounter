@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 namespace staradmin {
 
     internal static class CommandLine {
-        class Option {
+        public class Option {
             public string Name { get; set; }
             public string ShortText { get; set; }
             public string[] Alternatives { get; set; }
         }
-        class Command : Option { }
+        public class Command : Option { }
 
-        static class Options {
+        public static class Options {
             public static Option Help = new Option() {
                 Name = "help",
                 ShortText = "Shows help about staradmin.exe",
@@ -28,7 +28,7 @@ namespace staradmin {
             };
         }
 
-        static class Commands {
+        public static class Commands {
             public static Command Help = new Command() {
                 Name = "help",
                 ShortText = "Shows help about a command"
