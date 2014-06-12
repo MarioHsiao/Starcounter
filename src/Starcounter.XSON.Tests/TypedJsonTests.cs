@@ -481,7 +481,8 @@ namespace Starcounter.Internal.XSON.Tests {
             item.AProp = 19;
 
             Person p = new Person();
-            item = json.Items.Add(p);
+            item = json.Items.Add();
+            item.Data = p;
 
             var persons = new List<Person>();
             persons.Add(new Person() { FirstName = "Apa" });

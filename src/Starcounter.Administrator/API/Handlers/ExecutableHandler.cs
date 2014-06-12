@@ -65,6 +65,44 @@ namespace Starcounter.Administrator.API.Handlers {
                 return exe;
             }
 
+            // TODO:
+            // At the moment it is not possible to specify an json to use for an array, which means
+            // that when we want to add an executable to the list in Executables.json it is NOT the same 
+            // as creating an instance of Executable.json and adding it.
+            // Support needs to be added in typed json to allow resuse of json in arrays.
+            // See issue: https://github.com/Starcounter/Starcounter/issues/2059
+            // As a workaround the correct item is created here, but the code of the above method is duplicated.
+            internal static Executables.ItemsElementJson CreateRepresentationForArray(DatabaseInfo state, AppInfo exeState, Dictionary<string, string> headers = null) {
+                var admin = RootHandler.API;
+                var exe = new Executables.ItemsElementJson();
+                var name = state.Name;
+                var engineState = state.Engine;
+                Trace.Assert(engineState != null, "We should never hand out executables instances with no backing state.");
+
+                exe.Uri = uriTemplate.ToAbsoluteUri(name, exeState.Key);
+                exe.Engine.Uri = uriTemplateEngine.ToAbsoluteUri(name);
+                exe.Description = string.Format("\"{0}\" running in {1} (Exe key:{2}, Host PID:{3})",
+                    Path.GetFileName(exeState.BinaryFilePath), name, exeState.Key, engineState.HostProcessId);
+                exe.Path = exeState.BinaryFilePath;
+                exe.ApplicationFilePath = exeState.FilePath;
+                exe.Name = exeState.Name;
+                exe.DefaultUserPort = state.Configuration.Runtime.DefaultUserHttpPort;
+                exe.RuntimeInfo.LoadPath = exeState.HostedFilePath;
+                exe.RuntimeInfo.Started = exeState.Started.HasValue ?
+                    exeState.Started.Value.ToString("s", CultureInfo.InvariantCulture) :
+                    string.Empty;
+                exe.RuntimeInfo.LastRestart = exeState.LastRestart.HasValue ?
+                    exeState.LastRestart.Value.ToString("s", CultureInfo.InvariantCulture) :
+                    string.Empty;
+
+                exe.WorkingDirectory = exeState.WorkingDirectory;
+
+                if (headers != null) {
+                    headers.Add("ETag", engineState.Fingerprint);
+                }
+                return exe;
+            }
+
             /// <summary>
             /// Creates a JSON representation of the given application level
             /// database state, looking in it's engine for the executable.
