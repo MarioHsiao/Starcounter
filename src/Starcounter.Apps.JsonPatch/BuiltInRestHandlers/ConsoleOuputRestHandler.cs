@@ -101,15 +101,13 @@ namespace Starcounter.Internal {
                 // Collect and create console events
                 foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
 
-                    ConsoleEvent consoleEvent = new ConsoleEvent();
+                    ConsoleEvents consoleEvents = new ConsoleEvents();
+                    var consoleEvent = consoleEvents.Items.Add();
                     consoleEvent.databaseName = consoleEventArg.DatabaseName;
                     consoleEvent.applicationName = consoleEventArg.ApplicationName;
                     consoleEvent.text = consoleEventArg.Text;
                     consoleEvent.time = consoleEventArg.Time.ToString("s", CultureInfo.InvariantCulture);
-
-                    ConsoleEvents consoleEvents = new ConsoleEvents();
-                    consoleEvents.Items.Add(consoleEvent);
-
+                    
                     string s = consoleEvents.ToJson();
 
                     WebSocket.ForEach(ConsoleWebSocketChannelName, (WebSocket ws) => {
@@ -167,12 +165,11 @@ namespace Starcounter.Internal {
             ConsoleEvents list = new ConsoleEvents();
 
             foreach (ConsoleEventArgs item in ConsoleWriteEvents) {
-                ConsoleEvent consoleEvent = new ConsoleEvent();
+                var consoleEvent = list.Items.Add();
                 consoleEvent.databaseName = item.DatabaseName;
                 consoleEvent.applicationName = item.ApplicationName;
                 consoleEvent.text = item.Text;
                 consoleEvent.time = item.Time.ToString("s", CultureInfo.InvariantCulture);
-                list.Items.Add(consoleEvent);
             }
 
             return list;

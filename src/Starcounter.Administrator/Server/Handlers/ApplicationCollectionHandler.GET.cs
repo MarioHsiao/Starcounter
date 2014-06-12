@@ -72,7 +72,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                             if (engineInfo.HostedApps != null) {
                                 foreach (AppInfo appInfo in engineInfo.HostedApps) {
                                     var headers = new Dictionary<string, string>(1);
-                                    var executable = ExecutableHandler.JSON.CreateRepresentation(databaseInfo, appInfo, headers);
+                                    var executable = ExecutableHandler.JSON.CreateRepresentationForArray(databaseInfo, appInfo, headers);
 
                                     if (appInfo.Arguments != null) {
                                         foreach (string arg in appInfo.Arguments) {
