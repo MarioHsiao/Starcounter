@@ -16,9 +16,16 @@ namespace staradmin {
         public class Option {
             public string Name { get; set; }
             public string ShortText { get; set; }
+            public string Usage { get; set; }
             public string[] Alternatives { get; set; }
         }
-        public class Command : Option { }
+        public class Command : Option {
+            string fullUsage = null;
+            public string FullUsage {
+                get { return fullUsage ?? Usage; }
+                set { fullUsage = value; }
+            }
+        }
 
         public static class Options {
             public static Option Help = new Option() {
@@ -32,6 +39,11 @@ namespace staradmin {
             public static Command Help = new Command() {
                 Name = "help",
                 ShortText = "Shows help about a command"
+            };
+            public static Command Kill = new Command() {
+                Name = "kill",
+                ShortText = "Kills processes relating to Starcounter",
+                Usage = "staradmin kill <target>"
             };
         }
 
@@ -73,6 +85,7 @@ namespace staradmin {
             writer.WriteLine();
             writer.WriteLine("Commands:");
             writer.WriteLine(formatting, string.Format("{0}", Commands.Help.Name), Commands.Help.ShortText);
+            writer.WriteLine(formatting, string.Format("{0}", Commands.Kill.Name), Commands.Kill.ShortText);
         }
 
         static IApplicationSyntax Define() {
@@ -89,6 +102,8 @@ namespace staradmin {
             var commandSyntax = appSyntax.DefineCommand(Commands.Help.Name, Commands.Help.ShortText);
             commandSyntax.MinParameterCount = 0;
             commandSyntax.MaxParameterCount = 1;
+
+            commandSyntax = appSyntax.DefineCommand(Commands.Kill.Name, Commands.Kill.ShortText, 1);
 
             return appSyntax.CreateSyntax();
         }
