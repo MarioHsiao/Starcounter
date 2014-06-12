@@ -16,6 +16,13 @@ namespace staradmin {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
             SharedCLI.InitCLIContext();
 
+            var runNewParser = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_ADMIN_NEW_SYNTAX"));
+            if (runNewParser) {
+                var appArgs = CommandLine.Parse(args);
+                Console.WriteLine(appArgs.Command);
+                return;
+            }
+
             try {
                 string command = args.Length > 0 ? args[0] : string.Empty;
                 command = command.ToLowerInvariant();
