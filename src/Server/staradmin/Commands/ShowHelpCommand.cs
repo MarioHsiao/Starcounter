@@ -22,7 +22,11 @@ namespace staradmin.Commands {
         public void Execute() {
             if (TopicIs(CommandLine.Commands.Help)) {
                 ShowHelpOnHelp(Console.Out);
-            } else {
+            } 
+            else if (TopicIs(CommandLine.Commands.Kill)) {
+                ShowHelpOnKill(Console.Out);
+            }
+            else {
                 ReportUnrecognizedTopic();
             }
         }
@@ -41,8 +45,20 @@ namespace staradmin.Commands {
             writer.WriteLine("Topics:");
             var formatting = "  {0,-22}{1,25}";
             writer.WriteLine(formatting, string.Format("{0}", CommandLine.Commands.Help.Name), "Display help on the help command");
+            writer.WriteLine(formatting, CommandLine.Commands.Kill.Name, CommandLine.Commands.Kill.ShortText);
             writer.WriteLine();
             writer.WriteLine("To view the overall help, use staradmin --{0}", CommandLine.Options.Help.Name);
+        }
+
+        void ShowHelpOnKill(TextWriter writer) {
+            var cmd = CommandLine.Commands.Kill;
+
+            writer.WriteLine(cmd.ShortText);
+            writer.WriteLine();
+            writer.WriteLine("Usage: {0}", cmd.Usage);
+            writer.WriteLine("Targets:");
+            var formatting = "  {0,-22}{1,25}";
+            writer.WriteLine(formatting, "all", "Kills all Starcounter processes on the target machine.");
         }
 
         bool TopicIs(CommandLine.Command command) {
