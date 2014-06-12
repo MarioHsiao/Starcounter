@@ -20,7 +20,34 @@ namespace staradmin.Commands {
                 return new ShowUsageCommand();
             }
 
+            ICommand command = null;
+            
+            if (CommandIs(args, CommandLine.Commands.Help)) {
+                var topic = args.CommandParameters.Count == 0 ? CommandLine.Commands.Help.Name : args.CommandParameters[0];
+                command = new ShowHelpCommand(topic);
+            }
+
+            if (command != null) {
+                return command;
+            }
+
+            // Internal commmand that displays an error that the command-line
+            // is currently not supported.
+            // TODO:
+
+            // Also, introduce a command that can be used when a command detects
+            // a parameter set it can't interpret, like 'staradmin show foo'. In
+            // such case, we should display that 'staradmin show' does not understand
+            // parameter 'foo' and instead display the help on 'staradmin show'.
+            // TODO:
+
             throw new NotImplementedException();
+        }
+
+        bool CommandIs(ApplicationArguments args, CommandLine.Command command) {
+            var arg = args.Command;
+            var comparison = StringComparison.InvariantCultureIgnoreCase;
+            return arg.Equals(CommandLine.Commands.Help.Name, comparison);
         }
     }
 }
