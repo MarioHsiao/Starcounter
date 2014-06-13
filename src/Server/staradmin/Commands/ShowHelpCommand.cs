@@ -45,11 +45,15 @@ namespace staradmin.Commands {
                 writer.WriteLine();
             }
 
-            writer.WriteLine("Topics:");
-            var formatting = "  {0,-22}{1,25}";
-            writer.WriteLine(formatting, string.Format("{0}", CommandLine.Commands.Help.Name), "Display help on the help command");
-            writer.WriteLine(formatting, CommandLine.Commands.Kill.Name, CommandLine.Commands.Kill.ShortText);
+            var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+            var rows = new Dictionary<string, string>();
+            table.Title = "Topics:";
+            
+            rows.Add(CommandLine.Commands.Help.Name, "Display help on the help command");
+            rows.Add(CommandLine.Commands.Kill.Name, CommandLine.Commands.Kill.ShortText);
+            table.Write(rows);
             writer.WriteLine();
+
             writer.WriteLine("To view the overall help, use staradmin --{0}", CommandLine.Options.Help.Name);
         }
 
