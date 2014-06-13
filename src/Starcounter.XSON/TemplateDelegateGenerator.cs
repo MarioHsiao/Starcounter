@@ -14,7 +14,9 @@ namespace Starcounter.XSON {
 		private static MethodInfo listGetMethodInfo = typeof(IList).GetMethod("get_Item");
 		private static MethodInfo listSetMethodInfo = typeof(IList).GetMethod("set_Item");
 		private static MethodInfo jsonGetDataInfo = typeof(Json).GetMethod("get_Data");
-		private static MethodInfo propertyUseBindingInfo = typeof(TValue).GetMethod("UseBinding");
+        private static MethodInfo propertyUseBindingInfo = typeof(TValue).GetMethod("UseBinding", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static MethodInfo updateParentMethodInfo = typeof(Json).GetMethod("UpdateParentAndCachedIndex", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static MethodInfo getTemplateMethodInfo = typeof(TObject).GetMethod("get_Template");
 		
 		private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
 
@@ -56,7 +58,7 @@ namespace Starcounter.XSON {
 				throw new NotImplementedException();
 
 			var getLambda = GenerateUnboundGetExpression<T>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<T>(typeof(Json), property.TemplateIndex);
+			var setLambda = GenerateUnboundSetExpression<T>(typeof(Json), property.TemplateIndex, false);
 
 			property.UnboundGetter = getLambda.Compile();
 			property.UnboundSetter = setLambda.Compile();
@@ -79,7 +81,7 @@ namespace Starcounter.XSON {
 				throw new NotImplementedException();
 
 			var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex);
+			var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex, true);
 
 			property.UnboundGetter = getLambda.Compile();
 			property.UnboundSetter = setLambda.Compile();
@@ -102,7 +104,7 @@ namespace Starcounter.XSON {
 				throw new NotImplementedException();
 
 			var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex);
+            var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex, true);
 
 			property.UnboundGetter = getLambda.Compile();
 			property.UnboundSetter = setLambda.Compile();
@@ -125,7 +127,7 @@ namespace Starcounter.XSON {
 				throw new NotImplementedException();
 
 			var getLambda = GenerateUnboundGetExpression<Arr<T>>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<Arr<T>>(typeof(Json), property.TemplateIndex);
+            var setLambda = GenerateUnboundSetExpression<Arr<T>>(typeof(Json), property.TemplateIndex, true);
 
 			property.UnboundGetter = getLambda.Compile();
 			property.UnboundSetter = setLambda.Compile();
@@ -268,19 +270,33 @@ namespace Starcounter.XSON {
 			return Expression.Lambda<Func<Json, T>>(expr, jsonParam);
 		}
 
-		private static Expression<Action<Json, T>> GenerateUnboundSetExpression<T>(Type jsonType, int templateIndex) {
+		private static Expression<Action<Json, T>> GenerateUnboundSetExpression<T>(Type jsonType, int templateIndex, bool updateParent) {
+            Expression updateParentExpr = null;
+
             if (templateIndex == -1)
                 throw new ArgumentException("Cannot generate expression with negative templateindex.", "templateIndex");
 
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
-			Expression expr = Expression.Call(jsonParam, valueListInfo);
 
+            if (updateParent) {
+                // Getting the correct template for the value to be set from the parent.
+                updateParentExpr = Expression.Call(jsonParam, 
+                                                   updateParentMethodInfo,
+                                                   Expression.Constant(templateIndex),
+                                                   valueParam
+                                                   );
+            }
+
+			Expression expr = Expression.Call(jsonParam, valueListInfo);
 			expr = Expression.Call(expr, 
 								   listSetMethodInfo, 
 								   Expression.Constant(templateIndex), 
 								   Expression.Convert(valueParam, typeof(object)));
 
+            if (updateParentExpr != null) {
+                expr = Expression.Block(updateParentExpr, expr);
+            }
 			return Expression.Lambda<Action<Json, T>>(expr, jsonParam, valueParam);
 		}
 

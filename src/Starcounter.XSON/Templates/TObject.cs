@@ -19,6 +19,11 @@ namespace Starcounter.Templates {
     /// Defines the properties of an App instance.
     /// </summary>
     public partial class TObject : TContainer {
+        // When a custom setter is used we need to add logic for setting parent.
+        // The original setter is saved here, and the setter with added code (which uses)
+        // this one is set as UnboundSetter (and maybe Setter)
+        private Action<Json, Json> customSetter;
+
 		public Action<Json, Json> Setter;
 		public Func<Json, Json> Getter;
 		internal Action<Json, object> BoundSetter;
@@ -128,18 +133,11 @@ namespace Starcounter.Templates {
 		}
 
 		private void BoundOrUnboundSet(Json parent, Json value) {
-			Json oldValue = UnboundGetter(parent);
-
-			if (oldValue != null) {
-				oldValue.SetParent(null);
-				oldValue._cacheIndexInArr = -1;
-			}
+            UpdateParentAndIndex(parent, value);
 
 			if (value != null) {
 				if (UseBinding(parent) && BoundSetter != null)
 					BoundSetter(parent, value.Data);
-				value.Parent = parent;
-				value._cacheIndexInArr = TemplateIndex;
 			}
 			UnboundSetter(parent, value);
 
@@ -152,6 +150,7 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 			var p = toTemplate as TObject;
 			if (p != null) {
+                p.customSetter = customSetter;
 				p.UnboundGetter = UnboundGetter;
 				p.UnboundSetter = UnboundSetter;
 				p.hasCustomAccessors = hasCustomAccessors;
@@ -161,6 +160,11 @@ namespace Starcounter.Templates {
 #endif
 			}
 		}
+
+        private void SetParentAndUseCustomSetter(Json parent, Json value) {
+            UpdateParentAndIndex(parent, value);
+            customSetter(parent, value);
+        }
 
 		/// <summary>
 		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
@@ -173,13 +177,15 @@ namespace Starcounter.Templates {
 		public void SetCustomAccessors(Func<Json, Json> getter, 
 									   Action<Json, Json> setter,
 									   bool overwriteExisting = true) {
+            customSetter = setter;
 			bool overwrite = (overwriteExisting || !hasCustomAccessors);
 
 			if (BindingStrategy == BindingStrategy.Unbound) {
 				if (overwrite || Getter == null)
 					Getter = getter;
-				if (overwrite || Setter == null)
-					Setter = setter;
+				if (overwrite || Setter == null) {
+                    Setter = SetParentAndUseCustomSetter;
+                }
 			}
 
 			if (overwrite || UnboundGetter == null) {
@@ -189,7 +195,7 @@ namespace Starcounter.Templates {
 #endif
 			}
 			if (overwrite || UnboundSetter == null) {
-				UnboundSetter = setter;
+                UnboundSetter = SetParentAndUseCustomSetter;
 #if DEBUG
 				DebugUnboundSetter = "<custom>";
 #endif

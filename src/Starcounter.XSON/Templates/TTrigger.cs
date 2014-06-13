@@ -136,5 +136,9 @@ namespace Starcounter.Templates {
 
 		internal override void CopyValueDelegates(Template toTemplate) {
 		}
+
+        internal override string ValueToJsonString(Json parent) {
+            return "null";
+        }
     }
 }
