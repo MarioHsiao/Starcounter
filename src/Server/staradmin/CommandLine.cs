@@ -33,6 +33,11 @@ namespace staradmin {
                 ShortText = "Shows help about staradmin.exe",
                 Alternatives = new string[] { "h" }
             };
+            public static Option Database = new Option() {
+                Name = SharedCLI.Option.Db,
+                ShortText = "Specifies the database commands run against",
+                Alternatives = new string[] { "d", "db" }
+            };
         }
 
         public static class Commands {
@@ -85,6 +90,7 @@ namespace staradmin {
 
             table.Title = "Options:";
             rows.Add(string.Format("--{0}", Options.Help.Name), Options.Help.ShortText);
+            rows.Add(string.Format("--{0}=<value>", Options.Database.Name), Options.Database.ShortText);
             table.Write(rows);
             writer.WriteLine();
 
@@ -104,6 +110,12 @@ namespace staradmin {
                 Options.Help.ShortText,
                 OptionAttributes.Default,
                 Options.Help.Alternatives
+                );
+            appSyntax.DefineProperty(
+                Options.Database.Name,
+                Options.Database.ShortText,
+                OptionAttributes.Default,
+                Options.Database.Alternatives
                 );
 
             var commandSyntax = appSyntax.DefineCommand(Commands.Help.Name, Commands.Help.ShortText);
