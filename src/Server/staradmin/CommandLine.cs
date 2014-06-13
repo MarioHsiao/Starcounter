@@ -77,15 +77,22 @@ namespace staradmin {
         }
 
         public static void WriteUsage(TextWriter writer) {
+            var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+            var rows = new Dictionary<string, string>();
+
             writer.WriteLine("Usage: staradmin [options] <command> [<command options>] [<parameters>]");
             writer.WriteLine();
-            writer.WriteLine("Options:");
-            var formatting = "  {0,-22}{1,25}";
-            writer.WriteLine(formatting, string.Format("--{0}", Options.Help.Name), Options.Help.ShortText);
+
+            table.Title = "Options:";
+            rows.Add(string.Format("--{0}", Options.Help.Name), Options.Help.ShortText);
+            table.Write(rows);
             writer.WriteLine();
-            writer.WriteLine("Commands:");
-            writer.WriteLine(formatting, string.Format("{0}", Commands.Help.Name), Commands.Help.ShortText);
-            writer.WriteLine(formatting, string.Format("{0}", Commands.Kill.Name), Commands.Kill.ShortText);
+
+            table.Title = "Commands:";
+            rows.Clear();
+            rows.Add(Commands.Help.Name, Commands.Help.ShortText);
+            rows.Add(Commands.Kill.Name, Commands.Kill.ShortText);
+            table.Write(rows);
         }
 
         static IApplicationSyntax Define() {
