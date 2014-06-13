@@ -123,7 +123,7 @@ namespace Starcounter.CLI {
             LeftMargin = 2;
             ColumnSpace = 1;
             SplitValue = BuiltInValueDelegates.NoSplit;
-            TrimValueItem = BuiltInValueDelegates.TrimToColumnWidth;
+            TrimValueItem = BuiltInValueDelegates.TrimBySplittingUpWords;
         }
 
         /// <summary>
