@@ -67,14 +67,14 @@ namespace QueryProcessingTest {
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
                 "Starcounter.Metadata.Type").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "Type.Metadata.Starcounter.Raw.Starcounter");
+            Trace.Assert(rv.UniqueIdentifierReversed == "Type.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits == null);
             rv = Db.SQL<RawView>("select rw from rawview rw where name like ?", "%ClrClass").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "ClrClass.Metadata.Starcounter.Raw.Starcounter");
+            Trace.Assert(rv.UniqueIdentifierReversed == "ClrClass.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -98,15 +98,15 @@ namespace QueryProcessingTest {
                 false)) {
                 Trace.Assert(v.MaterializedTable != null);
                 Trace.Assert(v.MaterializedTable.Name == v.Name);
-                Trace.Assert(v.FullName == v.FullNameReversed.ReverseOrderDotWords());
+                Trace.Assert(v.FullName == v.UniqueIdentifierReversed.ReverseOrderDotWords());
                 count++;
             }
             Trace.Assert(count == 18);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
                 "materialized_index").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "materialized_index.Raw.Starcounter");
-            Trace.Assert(rv.FullName == rv.FullNameReversed.ReverseOrderDotWords());
+            Trace.Assert(rv.UniqueIdentifierReversed == "materialized_index.Raw.Starcounter");
+            Trace.Assert(rv.FullName == rv.UniqueIdentifierReversed.ReverseOrderDotWords());
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -170,10 +170,10 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView", 
-                "fullNameReversed").First;
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView",
+                "uniqueIdentifierReversed").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Name == "FullNameReversed");
+            Trace.Assert(c.Name == "UniqueIdentifierReversed");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Metadata.DbPrimitiveType);
             Trace.Assert(c.Type.Name == "string");
@@ -214,7 +214,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(!tc.Unique);
                 RawView rw = tc.Table as RawView;
-                Trace.Assert(rw.FullNameReversed.ReverseOrderDotWords() == rw.FullName);
+                Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.FullName);
                 nrColumns++;
             }
             Trace.Assert(nrColumns == 115);
@@ -258,7 +258,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Table is ClrClass);
             ClrClass cl = c.Table as ClrClass;
             Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
-            Trace.Assert(c.Table.FullNameReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
+            Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppDomainName);
             Trace.Assert(c.Table.FullName == cl.AppDomainName + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.FullClassName);

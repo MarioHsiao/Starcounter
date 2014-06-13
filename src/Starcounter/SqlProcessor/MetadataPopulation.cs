@@ -21,7 +21,7 @@ namespace Starcounter.SqlProcessor {
                         //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
                         assemblyName = '.' + app.Name;
                     }
-                    string fullNameRev = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
+                    string uniqueIdentifierRev = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
                     string fullName = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
                     Starcounter.Internal.Metadata.MaterializedTable mattab = 
                         Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
@@ -32,7 +32,7 @@ namespace Starcounter.SqlProcessor {
                     ClrClass obj = new ClrClass {
                         Name = typeDef.Name,
                         FullClassName = typeDef.Name,
-                        FullNameReversed = fullNameRev,
+                        UniqueIdentifierReversed = uniqueIdentifierRev,
                         FullName = fullName,
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
@@ -107,7 +107,7 @@ namespace Starcounter.SqlProcessor {
                 Updatable = true
             };
             rawView.FullName = GetFullName(matTab.Name);
-            rawView.FullNameReversed = GetFullNameReversed(matTab.Name);
+            rawView.UniqueIdentifierReversed = GetFullNameReversed(matTab.Name);
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
