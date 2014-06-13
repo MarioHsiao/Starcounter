@@ -103,15 +103,6 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-    bool active_conn = get_socket_diag_active_conn_flag();
-    reset_socket_diag_active_conn_flag();
-    if (active_conn)
-        sd_clone->set_socket_diag_active_conn_flag();
-    else
-        sd_clone->reset_socket_diag_active_conn_flag();
-#endif
-
     // Setting the clone for the next iteration.
     gw->SetReceiveClone(sd_clone);
 
@@ -164,7 +155,7 @@ void SocketDataChunk::ResetSessionBasedOnProtocol()
             break;
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
-            SetSdSessionIfEmpty();
+            SetSdSessionFromGlobal();
             break;
 
         default:
@@ -221,7 +212,6 @@ uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_s
 
     // This socket becomes unattached.
     (*new_sd)->reset_socket_representer_flag();
-    (*new_sd)->reset_socket_diag_active_conn_flag();
 
     return 0;
 }
@@ -314,16 +304,6 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     GW_ASSERT(actual_written_bytes == get_accum_buf()->get_accum_len_bytes());
 
     return err_code;
-}
-
-// Deletes global session and sends message to database to delete session there.
-uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
-{
-    // Verifying that session is correct and sending delete session to database.
-    // NOTE: Ignoring the error code.
-    WsProto::SendSocketDisconnectToDb(gw, this);
-
-    return 0;
 }
 
 #ifdef GW_LOOPED_TEST_MODE

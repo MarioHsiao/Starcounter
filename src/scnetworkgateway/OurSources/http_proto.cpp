@@ -98,11 +98,7 @@ inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_byte
 // Destructor.
 RegisteredUris::~RegisteredUris()
 {
-    if (clang_engine_)
-    {
-        g_gateway.ClangDestroyEngineFunc(clang_engine_);
-        clang_engine_ = NULL;
-    }
+    uri_matcher_entry_ = NULL;
 }
 
 // Running all registered handlers.
@@ -608,7 +604,7 @@ uint32_t HttpProto::HttpUriDispatcher(
         uri_index_type matched_index = INVALID_URI_INDEX;
 
         // Checking if URI matching code is generated.
-        if (NULL == port_uris->get_latest_match_uri_func())
+        if (false == port_uris->HasGeneratedUriMatcher())
         {
             // Checking if there are any port URIs registered,
             if (port_uris->IsEmpty())
@@ -618,10 +614,17 @@ uint32_t HttpProto::HttpUriDispatcher(
             gw->EnterGlobalLock();
 
             // Checking once again since maybe it was already generated.
-            if (NULL == port_uris->get_latest_match_uri_func())
+            if (false == port_uris->HasGeneratedUriMatcher())
             {
-                // Generating and loading URI matcher.
-                err_code = g_gateway.GenerateUriMatcher(port_uris);
+                // Trying to get cached URI matcher.
+                UriMatcherCacheEntry* cached_uri_matcher = server_port->TryGetUriMatcherFromCache();
+
+                if (NULL != cached_uri_matcher) {
+                    port_uris->SetGeneratedUriMatcher(cached_uri_matcher);
+                } else {
+                    // Generating and loading URI matcher.
+                    err_code = g_gateway.GenerateUriMatcher(server_port, port_uris);
+                }
             }
 
             // Releasing global lock.
@@ -867,9 +870,7 @@ ALL_DATA_ACCUMULATED:
             // We don't need complete header flag anymore.
             sd->reset_complete_header_flag();
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
             g_gateway.IncrementNumProcessedHttpRequests();
-#endif
 
             // Skipping cloning when in testing mode.
 #ifndef GW_TESTING_MODE
@@ -1132,9 +1133,7 @@ ALL_DATA_ACCUMULATED:
             // We don't need complete header flag anymore.
             sd->reset_complete_header_flag();
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
             g_gateway.IncrementNumProcessedHttpRequests();
-#endif
 
             // Translating HTTP content.
             GW_ASSERT(http_request_.content_len_bytes_ == kHttpEchoContentLength);
@@ -1300,9 +1299,6 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
         GW_COUT << "Created proxy socket: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-        // Re-enabling socket representer flag.
-        sd->set_socket_representer_flag();
-
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareToSendOnProxy();
 
@@ -1341,9 +1337,13 @@ uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
 // Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
+    gw->EnterGlobalLock();
+
     int32_t resp_len_bytes;
     std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);
     *is_handled = true;
+
+    gw->LeaveGlobalLock();
 
     return gw->SendHttpBody(sd, s.c_str(), resp_len_bytes);
 }

@@ -345,9 +345,6 @@ public:
         unique_socket_id_ = unique_socket_id;
     }
 
-    // Deletes global session and sends message to database to delete session there.
-    uint32_t SendDeleteSession(GatewayWorker* gw);
-
     // Returns all linked chunks except the main one.
     uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
 
@@ -426,21 +423,6 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_APPROVED;
     }
 
-    bool get_destroy_sent_flag()
-    {
-        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT) != 0;
-    }
-
-    void set_destroy_sent_flag()
-    {
-        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
-    }
-
-    void reset_destroy_sent_flag()
-    {
-        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_DESTROY_SENT;
-    }
-
     bool get_just_push_disconnect_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT) != 0;
@@ -455,28 +437,6 @@ public:
     {
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT;
     }
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
-    // Getting socket diagnostics active connection flag.
-    bool get_socket_diag_active_conn_flag()
-    {
-        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACTIVE_CONN) != 0;
-    }
-
-    // Setting socket diagnostics active connection flag.
-    void set_socket_diag_active_conn_flag()
-    {
-        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACTIVE_CONN;
-    }
-
-    // ReSetting socket diagnostics active connection flag.
-    void reset_socket_diag_active_conn_flag()
-    {
-        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_ACTIVE_CONN;
-    }
-
-#endif
 
 #ifdef GW_PROXY_MODE
 
@@ -701,11 +661,6 @@ public:
         return g_gateway.GetBoundWorkerId(socket_info_index_);
     }
 
-    void SetBoundWorkerId(worker_id_type worker_id)
-    {
-        return g_gateway.SetBoundWorkerId(socket_info_index_, worker_id);
-    }
-
     // Getting destination database index.
     db_index_type GetDestDbIndex()
     {
@@ -724,19 +679,23 @@ public:
         unique_socket_id_ = g_gateway.GenerateUniqueSocketInfoIds(socket_info_index_);
     }
 
+    // Invalidating socket number.
+    void InvalidateSocket()
+    {
+        g_gateway.InvalidateSocket(socket_info_index_);
+    }
+
+    // Invalidating socket number.
+    bool IsInvalidSocket()
+    {
+        return g_gateway.IsInvalidSocket(socket_info_index_);
+    }
+
     // Sets session if socket is correct.
     void SetGlobalSessionIfEmpty()
     {
         // Checking unique socket id and session.
         if (!g_gateway.IsGlobalSessionActive(socket_info_index_))
-            g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
-    }
-
-    // Forcedly sets session if socket is correct.
-    void ForceSetGlobalSessionIfEmpty()
-    {
-        // Checking unique socket id and session.
-        if (session_.IsActive())
             g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
     }
 
@@ -746,11 +705,10 @@ public:
         g_gateway.UpdateSocketTimeStamp(socket_info_index_);
     }
 
-    // Sets session if socket is correct.
-    void SetSdSessionIfEmpty()
+    // Sets session from global.
+    void SetSdSessionFromGlobal()
     {
-        if ((!session_.IsActive()) && (g_gateway.IsGlobalSessionActive(socket_info_index_)))
-            session_ = g_gateway.GetGlobalSessionCopy(socket_info_index_);
+        session_ = g_gateway.GetGlobalSessionCopy(socket_info_index_);
     }
 
     // Releases socket info index.
@@ -788,6 +746,22 @@ public:
         GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
 
         return port_index;
+    }
+
+    // Returns port number.
+    uint16_t GetPortNumber()
+    {
+        port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
+
+        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
+
+        ServerPort* sp = g_gateway.get_server_port(port_index);
+
+        if (!sp->IsEmpty()) {
+            return sp->get_port_number();
+        }
+
+        return INVALID_PORT_NUMBER;
     }
 
     // Returns scheduler id.
@@ -974,14 +948,12 @@ public:
     {
         type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
 
+        // NOTE: Setting global session including scheduler id.
+        g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
+
         // Checking if WebSocket handshake was approved.
         if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) && get_ws_upgrade_approved_flag())
         {
-            // Since we have sent this chunk over IPC.
-            set_socket_diag_active_conn_flag();
-
-            g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
-
             SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
         }
     }
@@ -1172,8 +1144,11 @@ public:
     // Resets socket data session.
     void ResetSdSession()
     {
-        // Resetting session data.
+        worker_id_type saved_worker_id = get_bound_worker_id();
+
         session_.Reset();
+
+        session_.gw_worker_id_ = saved_worker_id;
     }
 };
 

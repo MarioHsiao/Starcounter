@@ -252,9 +252,6 @@ Gateway::Gateway()
     // Worker thread handles.
     worker_thread_handles_ = NULL;
 
-    // IOCP handle.
-    iocp_ = INVALID_HANDLE_VALUE;
-
     // Number of active databases.
     num_dbs_slots_ = 0;
 
@@ -470,18 +467,6 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, SOCKET l
 void ServerPort::Reset()
 {
     InterlockedAnd64(&(num_accepting_sockets_unsafe_), 0);
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
-    for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
-    {
-        g_gateway.get_worker(w)->SetNumActiveConnections(port_index_, 0);
-    }
-
-    InterlockedAnd64(&num_allocated_accept_sockets_unsafe_, 0);
-    InterlockedAnd64(&num_allocated_connect_sockets_unsafe_, 0);
-
-#endif
 }
 
 // Removes this port.
@@ -523,26 +508,23 @@ bool ServerPort::IsEmpty()
     if (registered_ws_channels_ && (!registered_ws_channels_->IsEmpty()))
         return false;
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
     // Checking connections.
     if (NumberOfActiveConnections())
         return false;
 
-#endif
-
     return true;
 }
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
 
 // Retrieves the number of active connections.
 int64_t ServerPort::NumberOfActiveConnections()
 {
-    return g_gateway.NumberOfActiveConnectionsPerPort(port_index_);
-}
+    int64_t num_active_conns = 0;
 
-#endif
+    for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
+        num_active_conns += num_active_sockets_[w];
+
+    return num_active_conns;
+}
 
 // Removes this port.
 void ServerPort::Erase()
@@ -607,7 +589,51 @@ worker_id_type ServerPort::GetLeastBusyWorkerId() {
     return wi;
 }
 
+void UriMatcherCacheEntry::Destroy() {
+
+    GW_ASSERT(NULL != clang_engine_);
+    g_gateway.ClangDestroyEngineFunc(clang_engine_);
+
+    if (NULL != gen_dll_handle_) {
+        BOOL success = FreeLibrary(gen_dll_handle_);
+        GW_ASSERT(TRUE == success);
+    }
+
+    clang_engine_ = NULL;
+    num_uris_ = 0;
+    gen_dll_handle_ = NULL;
+    gen_uri_matcher_func_ = NULL;
+}
+
+UriMatcherCacheEntry* ServerPort::TryGetUriMatcherFromCache() {
+
+    std::string uris_list = registered_uris_->GetSortedString();
+
+    // Going through each cache entry.
+    for (std::list<UriMatcherCacheEntry*>::iterator it = uri_matcher_cache_.begin(); it != uri_matcher_cache_.end(); it++) {
+
+        // Comparing first the number of URIs.
+        if ((*it)->get_num_uris() == registered_uris_->get_num_uris()) {
+
+            // Comparing the sorted URIs list .
+            if (uris_list == (*it)->get_sorted_uris_string()) {
+
+                // List is the same, meaning that generated code is the same.
+                return (*it);
+            }
+        }
+    }
+
+    return NULL;
+}
+
+int32_t ServerPort::GetNumberOfActiveSocketsForWorker(worker_id_type worker_id) {
+
+    return num_active_sockets_[worker_id];
+}
+
 int32_t ServerPort::GetNumberOfActiveSocketsAllWorkers() {
+
     int32_t num_active_sockets = num_active_sockets_[0];
 
     for (int32_t i = 1; i < g_gateway.setting_num_workers(); i++) {
@@ -623,7 +649,6 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
     stats_stream << "{\"port\":" << get_port_number() << ",";
     stats_stream << "\"acceptingSockets\":" << get_num_accepting_sockets() << ",";
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
     stats_stream << "\"activeConnections\":" << NumberOfActiveConnections() << ",";
 
     stats_stream << "\"activeSockets\":\"";
@@ -634,10 +659,6 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
     }
 
     stats_stream << "\",";
-
-    //stats_stream << "\"allocatedAcceptSockets\":" << get_num_allocated_accept_sockets() << ",";
-    //stats_stream << "\"allocatedConnectSockets\": " << get_num_allocated_connect_sockets() << ",";
-#endif
 
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
@@ -1029,7 +1050,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 uint32_t Gateway::AssertCorrectState()
 {
     SocketDataChunk* test_sdc = new SocketDataChunk();
-    uint32_t err_code;
+    uint32_t err_code = 0;
 
     // Checking correct socket data.
     err_code = test_sdc->AssertCorrectState();
@@ -1073,6 +1094,9 @@ FAILED:
 // Creates socket and binds it to server port.
 uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Creating socket.
     sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (sock == INVALID_SOCKET)
@@ -1116,16 +1140,9 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
         }
     }
     
-    // Getting IOCP handle.
-    HANDLE iocp = NULL;
-    if (!gw)
-        iocp = g_gateway.get_iocp();
-    else
-        iocp = gw->get_worker_iocp();
-
     // Attaching socket to IOCP.
-    HANDLE temp = CreateIoCompletionPort((HANDLE) sock, iocp, 0, setting_num_workers_);
-    if (temp != iocp)
+    HANDLE temp = CreateIoCompletionPort((HANDLE) sock, gw->get_worker_iocp(), 0, 1);
+    if (temp != gw->get_worker_iocp())
     {
         PrintLastError(true);
         closesocket(sock);
@@ -1211,7 +1228,7 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     bool proxy_connect_socket)
 {
     PSLIST_ENTRY free_socket_index_entry = InterlockedPopEntrySList(free_socket_indexes_unsafe_);
-    GW_ASSERT(free_socket_index_entry);
+    GW_ASSERT(NULL != free_socket_index_entry);
 
     // NOTE: Socket info has the same address as socket index entry.
     ScSocketInfoStruct* si = (ScSocketInfoStruct*) free_socket_index_entry;
@@ -1237,6 +1254,32 @@ session_index_type Gateway::ObtainFreeSocketIndex(
 // Stub APC function that does nothing.
 void __stdcall EmptyApcFunction(ULONG_PTR arg) {
     // Does nothing.
+}
+
+// APC function that does collect inactive sockets.
+void __stdcall CollectInactiveSocketsApcFunction(ULONG_PTR arg) {
+
+    worker_id_type worker_id = (worker_id_type) arg;
+
+    // Going through all active connections and collecting sockets.
+    g_gateway.CollectInactiveSockets(worker_id);
+}
+
+// APC function that is used for rebalancing sockets.
+void __stdcall RebalanceSocketApcFunction(ULONG_PTR arg) {
+
+    worker_id_type worker_id = (worker_id_type) arg;
+
+    g_gateway.get_worker(worker_id)->ProcessRebalancedSockets();
+}
+
+// Sends an APC signal for rebalancing sockets.
+void Gateway::SendRebalanceAPC(worker_id_type worker_id) {
+    
+    // Obtaining worker thread handle to call an APC event.
+    HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(worker_id);
+
+    QueueUserAPC(RebalanceSocketApcFunction, worker_thread_handle, worker_id);
 }
 
 // Waking up a thread using APC.
@@ -1335,6 +1378,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     ss >> app_name;
     ss >> handler_info;
     ss >> port;
+    GW_ASSERT((port > 0) && (port < 65536));
     ss >> original_uri_info;
     ss >> processed_uri_info;
     ss >> num_params;
@@ -1348,7 +1392,8 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 
     std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
     db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
-    GW_ASSERT(INVALID_DB_INDEX != db_index);
+    if (INVALID_DB_INDEX == db_index)
+        return 0;
 
     GW_COUT << "Registering URI handler on " << db_name << " \"" << processed_uri_info << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
@@ -1418,10 +1463,12 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     ss >> app_name;
     ss >> handler_info;
     ss >> port;
+    GW_ASSERT((port > 0) && (port < 65536));
 
     std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
     db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
-    GW_ASSERT(INVALID_DB_INDEX != db_index);
+    if (INVALID_DB_INDEX == db_index)
+        return 0;
 
     GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
@@ -1489,10 +1536,12 @@ uint32_t RegisterSubportHandler(HandlersList* hl, GatewayWorker *gw, SocketDataC
     ss >> handler_info;
     ss >> port;
     ss >> subport;
+    GW_ASSERT((port > 0) && (port < 65536));
 
     std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
     db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
-    GW_ASSERT(INVALID_DB_INDEX != db_index);
+    if (INVALID_DB_INDEX == db_index)
+        return 0;
 
     GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
@@ -1561,12 +1610,14 @@ uint32_t RegisterWsHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
     ss >> app_name;
     ss >> handler_info;
     ss >> port;
+    GW_ASSERT((port > 0) && (port < 65536));
     ss >> ws_channel_id;
     ss >> ws_channel_name;
 
     std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
     db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
-    GW_ASSERT(INVALID_DB_INDEX != db_index);
+    if (INVALID_DB_INDEX == db_index)
+        return 0;
 
     GW_COUT << "Registering WebSocket channel handler on " << db_name << " \"" << ws_channel_name << ":" << ws_channel_id << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
@@ -1576,7 +1627,7 @@ uint32_t RegisterWsHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
     // Registering handler on active database.
     HandlersTable* handlers_table = g_gateway.GetDatabase(db_index)->get_user_handlers();
 
-    uint32_t err_code;
+    uint32_t err_code = 0;
 
     ServerPort* server_port = g_gateway.FindServerPort(port);
     if (NULL == server_port)
@@ -1643,7 +1694,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
         db_did_go_down_[i] = true;
 
     // Reading file line by line.
-    uint32_t err_code;
+    uint32_t err_code = 0;
     
     // Running through all databases.
     for (std::set<std::string>::iterator it = active_databases.begin();
@@ -1943,8 +1994,6 @@ uint32_t Gateway::Init()
     GW_ASSERT(free_socket_indexes_unsafe_);
     InitializeSListHead(free_socket_indexes_unsafe_);
 
-    num_active_sockets_ = 0;
-
     // Cleaning all socket infos and setting indexes.
     for (int32_t i = setting_max_connections_ - 1; i >= 0; i--)
     {
@@ -1963,14 +2012,6 @@ uint32_t Gateway::Init()
     // Allocating workers data.
     gw_workers_ = new GatewayWorker[setting_num_workers_];
     worker_thread_handles_ = new HANDLE[setting_num_workers_];
-
-    // Creating IO completion port.
-    iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, setting_num_workers_);
-    if (iocp_ == NULL)
-    {
-        GW_COUT << "Failed to create IOCP." << GW_ENDL;
-        return PrintLastError();
-    }
 
     // Filling up worker parameters.
     for (int i = 0; i < setting_num_workers_; i++)
@@ -2144,7 +2185,7 @@ uint32_t Gateway::Init()
 
 void Gateway::RegisterGatewayHandlers() {
 
-    uint32_t err_code;
+    uint32_t err_code = 0;
 
 #ifdef GW_TESTING_MODE
 
@@ -2453,6 +2494,9 @@ std::string Gateway::GetGlobalProfilersString(int32_t* out_stats_len_bytes)
         first = false;
 
         ss << "{\"schedulerId\":" << w << "," << utils::Profiler::GetCurrentNotHosted(w)->GetResultsInJson(false) << "}";
+
+        // NOTE: We automatically resetting all profilers.
+        utils::Profiler::GetCurrentNotHosted(w)->ResetAll();
     }
     ss << "]}";
 
@@ -2543,7 +2587,7 @@ void Gateway::SuspendWorker(GatewayWorker* gw)
 }
 
 // Getting specific worker information.
-GatewayWorker* Gateway::get_worker(int32_t worker_id)
+GatewayWorker* Gateway::get_worker(worker_id_type worker_id)
 {
     return gw_workers_ + worker_id;
 }
@@ -2601,21 +2645,6 @@ int64_t Gateway::NumberOverflowChunksAllWorkers()
     return num_overflow_chunks;
 }
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
-// Getting the number of active connections per port.
-int64_t Gateway::NumberOfActiveConnectionsPerPort(port_index_type port_index)
-{
-    int64_t num_active_conns = 0;
-
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-        num_active_conns += gw_workers_[w].NumberOfActiveConnectionsPerPortPerWorker(port_index);
-
-    return num_active_conns;
-}
-
-#endif
-
 // Waits for all workers to suspend.
 void Gateway::WaitAllWorkersSuspended()
 {
@@ -2641,13 +2670,27 @@ void Gateway::WaitAllWorkersSuspended()
 void Gateway::WakeUpAllWorkers()
 {
     // Waking up all the workers if needed.
-    for (int32_t i = 0; i < g_gateway.setting_num_workers(); i++)
+    for (worker_id_type i = 0; i < g_gateway.setting_num_workers(); i++)
     {
         // Obtaining worker thread handle to call an APC event.
         HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(i);
 
         // Waking up the worker with APC.
         WakeUpThreadUsingAPC(worker_thread_handle);
+    }
+}
+
+// Waking up all workers if they are sleeping.
+void Gateway::WakeUpAllWorkersToCollectInactiveSockets()
+{
+    // Waking up all the workers if needed.
+    for (worker_id_type i = 0; i < g_gateway.setting_num_workers(); i++)
+    {
+        // Obtaining worker thread handle to call an APC event.
+        HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(i);
+
+        // Waking up the worker thread with APC.
+        QueueUserAPC(CollectInactiveSocketsApcFunction, worker_thread_handle, i);
     }
 }
 
@@ -2799,21 +2842,44 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
+void Gateway::DisconnectSocket(SOCKET s) {
+
+    GW_ASSERT(INVALID_SOCKET != s);
+
+    DisconnectExFunc(s, NULL, 0, 0);
+    closesocket(s);
+}
+
 // Collects outdated sockets if any.
-uint32_t Gateway::CollectInactiveSockets()
+uint32_t Gateway::CollectInactiveSockets(int32_t worker_id)
 {
     int32_t num_inactive = 0;
 
     // TODO: Optimize scanning range.
     for (uint32_t i = 0; i < setting_max_connections_; i++)
     {
+        ScSocketInfoStruct* si = all_sockets_infos_unsafe_ + i;
+
+        if ((worker_id == si->session_.gw_worker_id_) &&
+            (!si->IsReset()) &&
+            (INVALID_SOCKET != si->get_socket())) {
+
+            num_inactive++;
+        } else {
+            continue;
+        }
+
         // Checking if socket touch time is older than inactive socket timeout.
-        if ((!all_sockets_infos_unsafe_[i].IsReset()) &&
-            (all_sockets_infos_unsafe_[i].socket_timestamp_) &&
-            ((global_timer_unsafe_ - all_sockets_infos_unsafe_[i].socket_timestamp_) >= setting_inactive_socket_timeout_seconds_))
+        if ((si->socket_timestamp_) &&
+            (global_timer_unsafe_ - si->socket_timestamp_) >= setting_inactive_socket_timeout_seconds_)
         {
+            ServerPort* sp = g_gateway.get_server_port(si->port_index_);
+            if (sp->IsEmpty() || (sp->get_port_number() == setting_internal_system_port_)) {
+                continue;
+            }
+
             // Disconnecting socket.
-            switch (all_sockets_infos_unsafe_[i].type_of_network_protocol_)
+            switch (si->type_of_network_protocol_)
             {
                 case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
                 {
@@ -2821,8 +2887,9 @@ uint32_t Gateway::CollectInactiveSockets()
                     GenerateUniqueSocketInfoIds(i);
 
                     // NOTE: Not checking for error code.
-                    closesocket(all_sockets_infos_unsafe_[i].get_socket());
-                    ++num_inactive;
+                    DisconnectSocket(si->get_socket());
+
+                    g_gateway.InvalidateSocket(i);
 
                     break;
                 }
@@ -2838,7 +2905,7 @@ uint32_t Gateway::CollectInactiveSockets()
         }
 
         // Checking if we have checked all active sockets.
-        if (num_inactive >= num_active_sockets_)
+        if (num_inactive >= NumberOfActiveConnectionsOnAllPortsForWorker(worker_id))
             break;
     }
 
@@ -2853,19 +2920,20 @@ uint32_t __stdcall InactiveSocketsCleanupRoutine(LPVOID params)
 
     while (true)
     {
-#ifdef GW_COLLECT_INACTIVE_SOCKETS
+        for (int32_t i = 0; i < SOCKET_LIFETIME_MULTIPLIER; i++) {
 
-        // Sleeping minimum interval.
-        Sleep(g_gateway.get_min_inactive_socket_life_seconds() * 1000);
+            // Sleeping minimum interval.
+            Sleep(g_gateway.get_min_inactive_socket_life_seconds() * 1000);
 
-        // Increasing global time by minimum number of seconds.
-        g_gateway.step_global_timer_unsafe(g_gateway.get_min_inactive_socket_life_seconds());
+            // Increasing global time by minimum number of seconds.
+            g_gateway.step_global_timer_unsafe(g_gateway.get_min_inactive_socket_life_seconds());
+        }
 
-        // Collecting inactive sockets if any.
-        g_gateway.CollectInactiveSockets();
+#ifndef GW_TESTING_MODE
 
-#else
-        Sleep(100000);
+        // Waking up all workers to perform the collection of inactive sockets.
+        g_gateway.WakeUpAllWorkersToCollectInactiveSockets();
+
 #endif
     }
 
@@ -2923,9 +2991,6 @@ uint32_t __stdcall GatewayMonitorRoutine(LPVOID params)
 // Cleaning up all global resources.
 uint32_t Gateway::GlobalCleanup()
 {
-    // Closing IOCP.
-    CloseHandle(iocp_);
-
     // Cleanup WinSock.
     WSACleanup();
 
@@ -3173,7 +3238,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_ 
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkers() 
-            << ",\"activeSockets\":" << g_gateway.get_num_active_sockets() 
+            << ",\"activeSockets\":" << g_gateway.NumberOfActiveConnectionsOnAllPorts() 
 
 #ifdef GW_TESTING_MODE
             << ",\"perfTestInfo\":{"
@@ -3198,15 +3263,9 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
                 global_statistics_stream_ 
                     << "{\"port\":" << server_ports_[p].get_port_number() 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
                     << ",\"activeConnections\":" << server_ports_[p].NumberOfActiveConnections()
-#endif
                     << ",\"acceptingSockets\":" << server_ports_[p].get_num_accepting_sockets()
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-                    << ",\"allocAccSockets\":" << server_ports_[p].get_num_allocated_accept_sockets()
-                    << ",\"allocConnSockets\":" << server_ports_[p].get_num_allocated_connect_sockets()
-#endif                        
                     << "}";
             }
         }
@@ -3355,7 +3414,7 @@ Gateway::~Gateway()
 
 int32_t Gateway::StartGateway()
 {
-    uint32_t err_code;
+    uint32_t err_code = 0;
 
     // Assert some correct state.
     err_code = AssertCorrectState();
@@ -3524,7 +3583,7 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 #endif
 
 // Generate the code using managed generator.
-uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
+uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* port_uris)
 {
     // Getting registered URIs.
     std::vector<MixedCodeConstants::RegisteredUriManaged> uris_managed = port_uris->GetRegisteredUriManaged();
@@ -3546,8 +3605,7 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
     MixedCodeConstants::MatchUriType match_uri_func;
     HMODULE gen_dll_handle;
 
-    // Unloading existing matcher DLL if any.
-    port_uris->UnloadLatestUriMatcherDllIfAny();
+    UriMatcherCacheEntry* new_entry = new UriMatcherCacheEntry();
 
     // Constructing dll name;
     std::wostringstream dll_name;
@@ -3558,7 +3616,7 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
         UriMatchCodegenCompilerType::COMPILER_CLANG,
         dll_name.str(),
         root_function_name,
-        port_uris->get_clang_engine_addr(),
+        new_entry->get_clang_engine_addr(),
         &match_uri_func,
         &gen_dll_handle);
 
@@ -3566,8 +3624,13 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
     GW_ASSERT(0 == err_code);
 
     // Setting the entry point for new URI matcher.
-    port_uris->set_latest_match_uri_func(match_uri_func);
-    port_uris->set_latest_gen_dll_handle(gen_dll_handle);
+    new_entry->Init(match_uri_func, gen_dll_handle, port_uris->GetSortedString(), port_uris->get_num_uris());
+
+    // Setting generated URI matcher.
+    port_uris->SetGeneratedUriMatcher(new_entry);
+
+    // Unloading existing matcher DLL if any.
+    server_port->RemoveOldestCacheEntry(new_entry);
 
     return 0;
 }
@@ -3588,7 +3651,7 @@ uint32_t Gateway::AddUriHandler(
     bool is_gateway_handler,
     ReverseProxyInfo* reverse_proxy_info)
 {
-    uint32_t err_code;
+    uint32_t err_code = 0;
 
     // Registering URI handler.
     BMX_HANDLER_INDEX_TYPE new_handler_index;
@@ -3726,7 +3789,7 @@ uint32_t Gateway::OpenStarcounterLog()
 {
 	size_t host_name_size;
 	wchar_t *host_name;
-	uint32_t err_code;
+	uint32_t err_code = 0;
 
 	host_name_size = 0;
 //	make_sc_server_uri(setting_sc_server_type_.c_str(), 0, &host_name_size);
@@ -3799,7 +3862,7 @@ void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 	// No asserts in critical log handler. Assertion fails calls critical log
 	// handler to log.
 
-    uint32_t err_code;
+    uint32_t err_code = 0;
 	
 	if (msg)
 	{
@@ -3878,7 +3941,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     set_critical_log_handler(LogGatewayCrash, NULL);
 
     using namespace starcounter::network;
-    uint32_t err_code;
+    uint32_t err_code = 0;
 
     // Processing arguments and initializing log file.
     err_code = g_gateway.ProcessArgumentsAndInitLog(argc, argv);

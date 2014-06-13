@@ -89,6 +89,9 @@ uint32_t HandlersTable::RegisterPortHandler(
     db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
@@ -242,6 +245,9 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
@@ -400,6 +406,9 @@ uint32_t HandlersTable::RegisterUriHandler(
     BMX_HANDLER_INDEX_TYPE& out_handler_index,
     ReverseProxyInfo* reverse_proxy_info)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;

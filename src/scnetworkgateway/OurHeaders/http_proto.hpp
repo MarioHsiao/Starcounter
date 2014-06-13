@@ -190,57 +190,57 @@ class RegisteredUris
     // Array of all registered URIs.
     LinearList<RegisteredUri, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
 
-    // Pointer to generated code verification function.
-    MixedCodeConstants::MatchUriType latest_match_uri_func_;
-
-    // Handle to the latest generated library.
-    HMODULE latest_gen_dll_handle_;
-
-    // Established Clang engine for this port.
-    void* clang_engine_;
+    // URI matcher entry.
+    UriMatcherCacheEntry* uri_matcher_entry_;
 
     // Port to which this URI matcher belongs.
     uint16_t port_number_;
-
+    
 public:
+
+    std::string GetSortedString() {
+        
+        std::vector<std::string> uris_vec;
+
+        // Going through all URIs.
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++) {
+
+            if (!reg_uris_[i].IsEmpty()) {
+
+                uris_vec.push_back(reg_uris_[i].get_processed_uri_info());
+            }
+        }
+
+        std::sort(uris_vec.begin(), uris_vec.end());
+
+        std::string s = "";
+
+        for (std::vector<std::string>::iterator it = uris_vec.begin(); it != uris_vec.end(); it++) {
+
+            s.append(it->c_str());
+            s += "\n";
+        }
+
+        return s;
+    }
+
+    int32_t get_num_uris() {
+        return reg_uris_.get_num_entries();
+    }
 
     uint16_t get_port_number()
     {
         return port_number_;
     }
 
-    // Setting latest uri matching function pointer.
-    void set_latest_match_uri_func(MixedCodeConstants::MatchUriType latest_match_uri_func)
+    bool HasGeneratedUriMatcher()
     {
-        latest_match_uri_func_ = latest_match_uri_func;
+        return (NULL != uri_matcher_entry_);
     }
 
-    MixedCodeConstants::MatchUriType get_latest_match_uri_func()
+    void SetGeneratedUriMatcher(UriMatcherCacheEntry* uri_matcher_entry)
     {
-        return latest_match_uri_func_;
-    }
-
-    void** get_clang_engine_addr()
-    {
-        return &clang_engine_;
-    }
-
-    // Setting latest uri matching dll handle.
-    void set_latest_gen_dll_handle(HMODULE latest_gen_dll_handle)
-    {
-        latest_gen_dll_handle_ = latest_gen_dll_handle;
-    }
-
-    // Checks if generated dll is loaded and unloads it.
-    void UnloadLatestUriMatcherDllIfAny()
-    {
-        if (latest_gen_dll_handle_)
-        {
-            BOOL success = FreeLibrary(latest_gen_dll_handle_);
-            GW_ASSERT(TRUE == success);
-
-            latest_gen_dll_handle_ = NULL;
-        }
+        uri_matcher_entry_ = uri_matcher_entry;
     }
 
     // Getting array of RegisteredUriManaged.
@@ -273,9 +273,7 @@ public:
     // Constructor.
     RegisteredUris(uint16_t port_number)
     {
-        latest_gen_dll_handle_ = NULL;
-        clang_engine_ = NULL;
-        latest_match_uri_func_ = NULL;
+        uri_matcher_entry_ = NULL;
         port_number_ = port_number;
     }
 
@@ -283,9 +281,9 @@ public:
     ~RegisteredUris();
 
     // Invalidates code generation.
-    void InvalidateUriMatcherFunction()
+    void InvalidateUriMatcher()
     {
-        latest_match_uri_func_ = NULL;
+        uri_matcher_entry_ = NULL;
     }
 
     // Runs the generated URI matcher and gets handler information as a result.
@@ -295,7 +293,7 @@ public:
         MixedCodeConstants::UserDelegateParamInfo** out_params = (MixedCodeConstants::UserDelegateParamInfo**)&params_storage;
 
         // TODO: Resolve this hack with only positive handler ids in generated code.
-        return latest_match_uri_func_(uri_info, uri_info_len, out_params) - 1;
+        return uri_matcher_entry_->get_uri_matcher_func()(uri_info, uri_info_len, out_params) - 1;
     }
 
     // Printing the registered URIs.
@@ -382,7 +380,7 @@ public:
         reg_uris_.Add(new_entry);
 
         // Invalidating URI matcher.
-        InvalidateUriMatcherFunction();
+        InvalidateUriMatcher();
     }
 
     // Checking if registered URIs is empty.
@@ -398,7 +396,7 @@ public:
         reg_uris_.RemoveByIndex(index);
 
         // Invalidating URI matcher.
-        InvalidateUriMatcherFunction();
+        InvalidateUriMatcher();
     }
 
     // Removing certain entry.

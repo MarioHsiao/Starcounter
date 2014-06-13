@@ -146,9 +146,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             // Releasing IPC chunks.
             ReturnLinkedChunksToPool(ipc_first_chunk_index);
 
-            // Initializing socket data that arrived from database.
-            sd->PreInitSocketDataFromDb();
-
             // Checking that socket arrived on correct worker.
             GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
 
@@ -157,10 +154,14 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             {
                 gw->DisconnectAndReleaseChunk(sd);
                 continue;
+            } else {
+
+                // Checking that socket is bound to the correct worker.
+                GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
             }
 
-            // Checking that socket is bound to the correct worker.
-            GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+            // Initializing socket data that arrived from database.
+            sd->PreInitSocketDataFromDb();
 
             // Checking for socket data correctness.
             GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
@@ -168,9 +169,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-            // NOTE: We always override the global session with active session received from database.
-            sd->ForceSetGlobalSessionIfEmpty();
 
 #ifdef GW_SMC_LOOPBACK_AGGREGATION
 

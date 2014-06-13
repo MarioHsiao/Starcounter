@@ -369,14 +369,15 @@ namespace Starcounter
 
             Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
-            if (r.StatusCode != 200)
-                throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "URI string: " + originalUriInfo);
-
+            if (r.StatusCode != 200) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register URI string: \"" + originalUriInfo + "\". Error message: " + r.Body);
+            }
         }
 
         void UnregisterUriHandler(UInt16 port, String originalUriInfo) {
             // Ensuring correct multi-threading handlers creation.
             UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+
             if (errorCode != 0)
                 throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
         }
@@ -566,9 +567,10 @@ namespace Starcounter
                 Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
                 Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
-                        
-                if (r.StatusCode != 200)
-                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "WebSocket channel: " + channelName);
+
+                if (r.StatusCode != 200) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register WebSocket channel: \"" + channelName + "\". Error message: " + r.Body);
+                }
             }
         }
 
@@ -609,9 +611,9 @@ namespace Starcounter
 
                 Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
                         
-                if (r.StatusCode != 200)
-                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
-
+                if (r.StatusCode != 200) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + ". Error message: " + r.Body);
+                }
             }
 		}
 
@@ -637,8 +639,9 @@ namespace Starcounter
 
                 Response r = Node.LocalhostInternalSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
-                if (r.StatusCode != 200)
-                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
+                if (r.StatusCode != 200) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + ". Error message: " + r.Body);
+                }
             }
 		}
 
@@ -681,8 +684,9 @@ namespace Starcounter
 
                 Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
-                if (r.StatusCode != 200)
-                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
+                if (r.StatusCode != 200) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
+                }
             }
         }
 
@@ -712,8 +716,9 @@ namespace Starcounter
 
                 Response r = Node.LocalhostInternalSystemPortNode.DELETE("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
-                if (r.StatusCode != 200)
-                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "Port number: " + port);
+                if (r.StatusCode != 200) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
+                }
             }
         }
 	}

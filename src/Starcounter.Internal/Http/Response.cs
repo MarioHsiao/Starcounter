@@ -1590,10 +1590,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+                if (Body != null)
+                    return Body;
 
-                return http_response_struct_->ToString();
+                return null;
             }
         }
     }

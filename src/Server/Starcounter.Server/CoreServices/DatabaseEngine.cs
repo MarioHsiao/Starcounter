@@ -384,7 +384,7 @@ namespace Starcounter.Server {
 
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
-            var response = Node.LocalhostSystemPortNode.DELETE(serviceUris.Host, (String)null, null); 
+            var response = Node.LocalhostInternalSystemPortNode.DELETE(serviceUris.Host, (String)null, null); 
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
