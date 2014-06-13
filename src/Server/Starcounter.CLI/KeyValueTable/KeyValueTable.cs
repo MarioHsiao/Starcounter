@@ -52,6 +52,29 @@ namespace Starcounter.CLI {
                 }
                 return new SingleStringEnumerable(content);
             }
+
+            public static IEnumerable<string> TrimBySplittingUpWords(string content, int columnWidth) {
+                if (content.Length <= columnWidth) {
+                    return new SingleStringEnumerable(content);
+                }
+
+                var words = content.Split(new[] { ' ' }, StringSplitOptions.None);
+                var result = new List<string>();
+                var current = string.Empty;
+
+                foreach (var word in words) {
+                    if ((current.Length + word.Length + 1) > columnWidth) {
+                        result.Add(current.TrimEnd(' '));
+                        current = string.Empty;
+                    }
+                    current += word + " ";
+                }
+
+                if (current != string.Empty) {
+                    result.Add(current.TrimEnd(' '));
+                }
+                return result;
+            }
         }
 
         class SingleStringEnumerable : IEnumerable<string>, IEnumerator<string> {
@@ -136,8 +159,8 @@ namespace Starcounter.CLI {
             var values = SplitValue(value, valueColumnWidth);
 
             foreach (var item in values) {
-                var adaptedToWith = TrimValueItem(item, valueColumnWidth);
-                foreach (var valueItem in adaptedToWith) {
+                var trimmedItems = TrimValueItem(item, valueColumnWidth);
+                foreach (var valueItem in trimmedItems) {
                     Console.WriteLine(format, key, valueItem);
                     key = string.Empty;
                 }
