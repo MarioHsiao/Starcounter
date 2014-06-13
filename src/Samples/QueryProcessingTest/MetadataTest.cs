@@ -277,10 +277,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Table is ClrClass);
             ClrClass cl = c.Table as ClrClass;
             Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
-            Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
-                (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppDomainName);
-            Trace.Assert(c.Table.UniqueIdentifier == cl.AppDomainName + "." + 
-                (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.FullClassName);
+            Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullClassName.ReverseOrderDotWords());
+            Trace.Assert(c.Table.UniqueIdentifier == cl.FullClassName);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));

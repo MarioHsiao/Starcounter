@@ -14,15 +14,15 @@ namespace Starcounter.SqlProcessor {
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
                     string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
-                    string assemblyName = "";
+                    //string assemblyName = "";
                     Application app = Application.CurrentAssigned;
-                    if (app != null) {
-                        //string assemblyPath = app.FilePath;
-                        //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
-                        assemblyName = '.' + app.Name;
-                    }
-                    string uniqueIdentifierRev = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
-                    string uniqueIdentifier = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
+                    //if (app != null) {
+                    //    //string assemblyPath = app.FilePath;
+                    //    //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
+                    //    assemblyName = '.' + app.Name;
+                    //}
+                    string uniqueIdentifierRev = classReverseFullName ;
+                    string uniqueIdentifier = typeDef.Name;
                     Starcounter.Internal.Metadata.MaterializedTable mattab = 
                         Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
                         typeDef.TableDef.Name).First;
