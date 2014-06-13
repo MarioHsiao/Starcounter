@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
     <Compile Include="FilterableLogReader.cs" />
+    <Compile Include="KeyValueTable.cs" />
     <Compile Include="LogConsole.cs" />
     <Compile Include="OutputLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
