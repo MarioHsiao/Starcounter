@@ -34,6 +34,13 @@
       <StarcounterProxyPort>8080</StarcounterProxyPort>
       <MatchingMethodAndUri>POST /echotest@w</MatchingMethodAndUri>
     </ReverseProxy>
+	
+	<ReverseProxy>
+      <DestinationIP>127.0.0.1</DestinationIP>
+      <DestinationPort>8181</DestinationPort>
+      <StarcounterProxyPort>8080</StarcounterProxyPort>
+      <MatchingMethodAndUri>GET /httpcounters</MatchingMethodAndUri>
+    </ReverseProxy>
       
   </ReverseProxies>
   
