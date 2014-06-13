@@ -1,5 +1,7 @@
 ﻿
+using Starcounter.CLI;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace staradmin.Commands {
@@ -42,6 +44,7 @@ namespace staradmin.Commands {
                 writer.WriteLine("Displays help on a specified topic, usually a command.");
                 writer.WriteLine();
             }
+
             writer.WriteLine("Topics:");
             var formatting = "  {0,-22}{1,25}";
             writer.WriteLine(formatting, string.Format("{0}", CommandLine.Commands.Help.Name), "Display help on the help command");
@@ -56,9 +59,12 @@ namespace staradmin.Commands {
             writer.WriteLine(cmd.ShortText);
             writer.WriteLine();
             writer.WriteLine("Usage: {0}", cmd.Usage);
-            writer.WriteLine("Targets:");
-            var formatting = "  {0,-22}{1,25}";
-            writer.WriteLine(formatting, "all", "Kills all Starcounter processes on the target machine.");
+
+            var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+            var rows = new Dictionary<string, string>();
+            table.Title = "Targets:";
+            rows.Add("all", "Kills all processes relating to Starcounter on the current machine. Use this option with care and make sure no mission-critical processes are running.");
+            table.Write(rows);
         }
 
         bool TopicIs(CommandLine.Command command) {
