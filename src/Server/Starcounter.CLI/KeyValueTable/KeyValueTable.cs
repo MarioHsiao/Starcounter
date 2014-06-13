@@ -106,11 +106,16 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="content">The content, including keys and
         /// values.</param>
-        public void Write(Dictionary<string, string> content) {
+        /// <param name="splitValueOption">Optional way of specifying a built-in
+        /// split-up of values.</param>
+        public void Write(Dictionary<string, string> content, ValueSplitOptions splitValueOption = ValueSplitOptions.None) {
             int keyWidth = FindLongestKey(content.Keys).Length;
             keyWidth += ColumnSpace;
 
             var format = "".PadLeft(LeftMargin) + "{0,-" + keyWidth.ToString() + "}{1}";
+            if (splitValueOption == ValueSplitOptions.SplitLines) {
+                SplitValue = BuiltInValueDelegates.SplitOnLines;
+            }
 
             WriteTitle();
             foreach (var item in content) {
