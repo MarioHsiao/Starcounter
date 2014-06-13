@@ -47,7 +47,9 @@ namespace Starcounter.CLI {
             }
 
             public static IEnumerable<string> TrimToColumnWidth(string content, int columnWidth) {
-                content = content.Substring(0, columnWidth);
+                if (content.Length > columnWidth) {
+                    content = content.Substring(0, columnWidth - 1);
+                }
                 return new SingleStringEnumerable(content);
             }
         }
@@ -111,6 +113,7 @@ namespace Starcounter.CLI {
         public void Write(Dictionary<string, string> content, ValueSplitOptions splitValueOption = ValueSplitOptions.None) {
             int keyWidth = FindLongestKey(content.Keys).Length;
             keyWidth += ColumnSpace;
+            int valueWidth = Console.BufferWidth - (LeftMargin + keyWidth);
 
             var format = "".PadLeft(LeftMargin) + "{0,-" + keyWidth.ToString() + "}{1}";
             if (splitValueOption == ValueSplitOptions.SplitLines) {
@@ -119,7 +122,7 @@ namespace Starcounter.CLI {
 
             WriteTitle();
             foreach (var item in content) {
-                WriteOne(format, item.Key, item.Value, 43);
+                WriteOne(format, item.Key, item.Value, valueWidth);
             }
         }
 
