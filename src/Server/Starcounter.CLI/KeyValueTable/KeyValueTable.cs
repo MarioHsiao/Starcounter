@@ -25,6 +25,14 @@ namespace Starcounter.CLI {
         public string Title { get; set; }
 
         /// <summary>
+        /// Gets or sets a value that governs of long values can be
+        /// distributed over several rows (the default). If this is
+        /// set to <c>true</c>, long values will instead be trimmed
+        /// down to the width of the value column.
+        /// </summary>
+        public bool EnforceSingleLine { get; set; }
+
+        /// <summary>
         /// Allows a client to customize the way any value is split up
         /// before written to the value column.
         /// </summary>
@@ -122,6 +130,7 @@ namespace Starcounter.CLI {
         public KeyValueTable() {
             LeftMargin = 2;
             ColumnSpace = 1;
+            EnforceSingleLine = false;
             SplitValue = BuiltInValueDelegates.NoSplit;
             TrimValueItem = BuiltInValueDelegates.TrimBySplittingUpWords;
         }
@@ -141,6 +150,9 @@ namespace Starcounter.CLI {
             var format = "".PadLeft(LeftMargin) + "{0,-" + keyWidth.ToString() + "}{1}";
             if (splitValueOption == ValueSplitOptions.SplitLines) {
                 SplitValue = BuiltInValueDelegates.SplitOnLines;
+            }
+            if (EnforceSingleLine) {
+                TrimValueItem = BuiltInValueDelegates.TrimToColumnWidth;
             }
 
             WriteTitle();
