@@ -39,24 +39,28 @@ namespace Starcounter {
             return prop.Name;
         }
 
-        internal static int Unload(string fileName, ulong shiftId) {
+        internal static int Unload(string fileName, ulong shiftId, Boolean unloadAll) {
             int totalNrObj = 0;
             // Create empty file
             using (StreamWriter fileStream = new StreamWriter(fileName, false)) {
                 fileStream.WriteLine("Database dump. DO NOT EDIT!");
             }
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
-                Debug.Assert(!String.IsNullOrEmpty(tbl.FullName));
+                Debug.Assert(!String.IsNullOrEmpty(tbl.UniqueIdentifier));
                 if (Binding.Bindings.GetTypeDef(tbl.MaterializedTable.Name) == null) {
-                    LogSources.Hosting.LogWarning("Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
-                    Console.WriteLine("Warning: Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
+                    if (unloadAll)
+                        throw ErrorCode.ToException(Error.SCERRUNLOADTABLENOCLASS, 
+                            "Table "+tbl.MaterializedTable.Name+" cannot be unloaded.");
+                    else
+                        LogSources.Hosting.LogWarning("Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
+                    //Console.WriteLine("Warning: Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
                 } else {
                     int tblNrObj = 0;
                     String insertHeader;
                     StringBuilder inStmt = new StringBuilder();
                     StringBuilder selectObjs = new StringBuilder();
                     inStmt.Append("INSERT INTO ");
-                    inStmt.Append(QuotePath(tbl.FullName));
+                    inStmt.Append(QuotePath(tbl.UniqueIdentifier));
                     inStmt.Append("(__id");
                     selectObjs.Append("SELECT __o as __id");
                     foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {

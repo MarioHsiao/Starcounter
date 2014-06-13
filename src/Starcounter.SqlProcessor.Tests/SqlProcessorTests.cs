@@ -35,6 +35,7 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select ");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "selec");
             ProcessQuery(parseOK, "select * from t1");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select sd od bd");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select sd order byd");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select * from tble limit 1, 2");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "(SELECT foo ORDER BY bar) ORDER BY baz");

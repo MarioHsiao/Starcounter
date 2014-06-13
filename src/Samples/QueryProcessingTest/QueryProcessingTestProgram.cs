@@ -9,13 +9,16 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
-                if (File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql")) {
+                var secondRun = File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
+                if (secondRun) {
                     HelpMethods.LogEvent("Start loading query processing database.");
                     int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                     HelpMethods.LogEvent("Finish loading query processing database. Loaded " +
                         nrLoaded + " objects.");
-                } else
+                }
+                else
                     HelpMethods.LogEvent("No reload.");
+                KernelBugsTest.RunKernelBugsTest(secondRun);
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();

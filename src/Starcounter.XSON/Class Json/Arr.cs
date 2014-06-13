@@ -96,25 +96,25 @@ namespace Starcounter {
             return base.Remove(item);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public T Add(object data) {
-            T app;
-            TObjArr template = (TObjArr)Template;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="data"></param>
+        ///// <returns></returns>
+        //public T Add(object data) {
+        //    T app;
+        //    TObjArr template = (TObjArr)Template;
 
-            if (template.ElementType == null) {
-                app = new T();
-                app.CreateDynamicTemplate();
-            } else {
-                app = (T)template.ElementType.CreateInstance(this);
-            }
-            app.Data = data;
-            Add(app);
-            return app;
-        }
+        //    if (template.ElementType == null) {
+        //        app = new T();
+        //        app.CreateDynamicTemplate();
+        //    } else {
+        //        app = (T)template.ElementType.CreateInstance(this);
+        //    }
+        //    app.Data = data;
+        //    Add(app);
+        //    return app;
+        //}
 
         /// <summary>
         /// 
