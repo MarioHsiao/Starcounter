@@ -98,7 +98,7 @@ namespace QueryProcessingTest {
                 false)) {
                 Trace.Assert(v.MaterializedTable != null);
                 Trace.Assert(v.MaterializedTable.Name == v.Name);
-                Trace.Assert(v.FullName == v.UniqueIdentifierReversed.ReverseOrderDotWords());
+                Trace.Assert(v.UniqueIdentifier == v.UniqueIdentifierReversed.ReverseOrderDotWords());
                 count++;
             }
             Trace.Assert(count == 18);
@@ -106,7 +106,7 @@ namespace QueryProcessingTest {
                 "materialized_index").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.UniqueIdentifierReversed == "materialized_index.Raw.Starcounter");
-            Trace.Assert(rv.FullName == rv.UniqueIdentifierReversed.ReverseOrderDotWords());
+            Trace.Assert(rv.UniqueIdentifier == rv.UniqueIdentifierReversed.ReverseOrderDotWords());
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -214,7 +214,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(!tc.Unique);
                 RawView rw = tc.Table as RawView;
-                Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.FullName);
+                Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.UniqueIdentifier);
                 nrColumns++;
             }
             Trace.Assert(nrColumns == 115);
@@ -260,7 +260,7 @@ namespace QueryProcessingTest {
             Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
             Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppDomainName);
-            Trace.Assert(c.Table.FullName == cl.AppDomainName + "." + 
+            Trace.Assert(c.Table.UniqueIdentifier == cl.AppDomainName + "." + 
                 (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.FullClassName);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);

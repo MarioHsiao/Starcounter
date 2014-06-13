@@ -22,7 +22,7 @@ namespace Starcounter.SqlProcessor {
                         assemblyName = '.' + app.Name;
                     }
                     string uniqueIdentifierRev = classReverseFullName + assemblyName + '.' + AppDomain.CurrentDomain.FriendlyName;
-                    string fullName = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
+                    string uniqueIdentifier = AppDomain.CurrentDomain.FriendlyName + assemblyName + '.' + typeDef.Name;
                     Starcounter.Internal.Metadata.MaterializedTable mattab = 
                         Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
                         typeDef.TableDef.Name).First;
@@ -33,7 +33,7 @@ namespace Starcounter.SqlProcessor {
                         Name = typeDef.Name,
                         FullClassName = typeDef.Name,
                         UniqueIdentifierReversed = uniqueIdentifierRev,
-                        FullName = fullName,
+                        UniqueIdentifier = uniqueIdentifier,
                         MaterializedTable = mattab,
                         AssemblyName = (app != null ? app.Name : null),
                         AppDomainName = AppDomain.CurrentDomain.FriendlyName,
@@ -84,7 +84,7 @@ namespace Starcounter.SqlProcessor {
             });
         }
 
-        internal static string GetFullName(string tableName) {
+        internal static string GetUniqueIdentifier(string tableName) {
             return "Starcounter.Raw." + tableName;
         }
 
@@ -106,15 +106,15 @@ namespace Starcounter.SqlProcessor {
                 Inherits = parentTab,
                 Updatable = true
             };
-            rawView.FullName = GetFullName(matTab.Name);
+            rawView.UniqueIdentifier = GetUniqueIdentifier(matTab.Name);
             rawView.UniqueIdentifierReversed = GetFullNameReversed(matTab.Name);
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
             Debug.Assert(Db.SQL<RawView>("select v from rawview v where v.materializedtable.name = ?",
                 typeDef.TableDef.Name).First == null); // Always dropped and new created
-            RawView thisType = Db.SQL<RawView>("select v from rawview v where fullname = ?",
-                GetFullName(typeDef.TableDef.Name)).First;
+            RawView thisType = Db.SQL<RawView>("select v from rawview v where UniqueIdentifier = ?",
+                GetUniqueIdentifier(typeDef.TableDef.Name)).First;
             Debug.Assert(thisType != null);
             Debug.Assert(thisType.MaterializedTable == null);
             Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(

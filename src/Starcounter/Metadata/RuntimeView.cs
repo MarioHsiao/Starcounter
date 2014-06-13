@@ -13,7 +13,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_UniqueIdentifierReversed;
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_UniqueIdentifier;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -39,14 +39,14 @@ namespace Starcounter.Metadata {
                     new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, false)
+                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
                     new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("FullName", DbTypeCode.String)
+                    new PropertyDef("UniqueIdentifier", DbTypeCode.String)
                 });
         }
 
@@ -86,10 +86,10 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public string FullName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName); }
+        public string UniqueIdentifier {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_UniqueIdentifier); }
             internal set {
-                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName,
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_UniqueIdentifier,
                     value);
             }
         }
@@ -105,7 +105,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_UniqueIdentifierReversed;
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_UniqueIdentifier;
             internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
@@ -121,7 +121,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
@@ -129,7 +129,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
                     new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable")
                 });
         }
@@ -150,7 +150,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_UniqueIdentifierReversed;
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_UniqueIdentifier;
             internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
@@ -166,7 +166,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
@@ -174,7 +174,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
                     new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable")
                 });
         }
@@ -192,7 +192,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_UniqueIdentifierReversed;
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_UniqueIdentifier;
             internal static int columnHandle_MaterializedTable;
             internal static int columnHandle_AssemblyName;
             internal static int columnHandle_AppDomainName;
@@ -211,7 +211,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("AssemblyName", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("AppDomainName", sccoredb.STAR_TYPE_STRING, true, false),
@@ -222,7 +222,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
                     new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable"),
                     new PropertyDef("AssemblyName", DbTypeCode.String),
                     new PropertyDef("AppDomainName", DbTypeCode.String),
@@ -283,7 +283,7 @@ namespace Starcounter.Internal.Metadata {
             internal static int columnHandle_UniqueIdentifierReversed;
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
-            internal static int columnHandle_FullName;
+            internal static int columnHandle_UniqueIdentifier;
             internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
@@ -299,7 +299,7 @@ namespace Starcounter.Internal.Metadata {
                     new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
                 },
                 new PropertyDef[] {
@@ -307,7 +307,7 @@ namespace Starcounter.Internal.Metadata {
                     new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
                     new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable")
                 });
         }
