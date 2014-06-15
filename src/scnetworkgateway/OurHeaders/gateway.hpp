@@ -1267,21 +1267,22 @@ class UriMatcherCacheEntry {
     // Number of cached URIs.
     int32_t num_uris_;
 
-    // Established Clang engine for this port.
-    void* clang_engine_;
+    // Established global Clang engine.
+    static void* global_clang_engine_;
 
 public:
 
     UriMatcherCacheEntry() {
-        clang_engine_ = NULL;
         num_uris_ = 0;
         gen_dll_handle_ = NULL;
         gen_uri_matcher_func_ = NULL;
     }
 
-    void** get_clang_engine_addr() {
-        return &clang_engine_;
+    static void** GetGlobalClangEngineAddress() {
+        return &global_clang_engine_;
     }
+
+    static void DestroyGlobalEngine();
 
     int32_t get_num_uris() {
         return num_uris_;

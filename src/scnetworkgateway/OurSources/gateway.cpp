@@ -21,6 +21,8 @@ namespace network {
 // Main network gateway object.
 Gateway g_gateway;
 
+void* UriMatcherCacheEntry::global_clang_engine_ = NULL;
+
 // Pointers to extended WinSock functions.
 LPFN_ACCEPTEX AcceptExFunc = NULL;
 LPFN_CONNECTEX ConnectExFunc = NULL;
@@ -589,17 +591,21 @@ worker_id_type ServerPort::GetLeastBusyWorkerId() {
     return wi;
 }
 
-void UriMatcherCacheEntry::Destroy() {
+void UriMatcherCacheEntry::DestroyGlobalEngine() {
 
-    GW_ASSERT(NULL != clang_engine_);
-    g_gateway.ClangDestroyEngineFunc(clang_engine_);
+    if (NULL != global_clang_engine_) {
+        g_gateway.ClangDestroyEngineFunc(global_clang_engine_);
+        global_clang_engine_ = NULL;
+    }
+}
+
+void UriMatcherCacheEntry::Destroy() {
 
     if (NULL != gen_dll_handle_) {
         BOOL success = FreeLibrary(gen_dll_handle_);
         GW_ASSERT(TRUE == success);
     }
-
-    clang_engine_ = NULL;
+    
     num_uris_ = 0;
     gen_dll_handle_ = NULL;
     gen_uri_matcher_func_ = NULL;
@@ -3410,6 +3416,8 @@ Gateway::~Gateway()
         delete [] gw_workers_;
         gw_workers_ = NULL;
     }
+
+    UriMatcherCacheEntry::DestroyGlobalEngine();
 }
 
 int32_t Gateway::StartGateway()
@@ -3616,7 +3624,7 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
         UriMatchCodegenCompilerType::COMPILER_CLANG,
         dll_name.str(),
         root_function_name,
-        new_entry->get_clang_engine_addr(),
+        UriMatcherCacheEntry::GetGlobalClangEngineAddress(),
         &match_uri_func,
         &gen_dll_handle);
 
