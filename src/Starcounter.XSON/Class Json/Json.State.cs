@@ -11,7 +11,7 @@ namespace Starcounter {
         /// <summary>
         /// Backing field for the transaction applied to this instance (if any).
         /// </summary>
-        private ITransaction _transaction;
+        internal ITransaction _transaction;
 
         /// <summary>
         /// Cache element index if the parent of this Obj is an array (Arr).
