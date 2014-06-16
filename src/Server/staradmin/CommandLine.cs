@@ -102,9 +102,9 @@ namespace staradmin {
 
             table.Title = "Commands:";
             rows.Clear();
-            rows.Add(Commands.Help.Name, Commands.Help.ShortText);
-            rows.Add(Commands.Kill.Name, Commands.Kill.ShortText);
-            rows.Add(Commands.Unload.Name, Commands.Unload.ShortText);
+            foreach (var userCommand in CommandFactory.UserCommands) {
+                rows.Add(userCommand.Info.Name, userCommand.Info.ShortText);
+            }
             table.Write(rows);
         }
 
