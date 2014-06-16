@@ -53,7 +53,7 @@ namespace staradmin {
             public static Command Unload = new Command() {
                 Name = "unload",
                 ShortText = "Unloads data from a data source, usually a database",
-                Usage = "staradmin unload [source] [arguments]"
+                Usage = "staradmin unload [--file=path] [source] [arguments]"
             };
         }
 
