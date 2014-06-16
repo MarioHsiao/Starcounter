@@ -21,11 +21,6 @@ namespace staradmin {
             public string[] Alternatives { get; set; }
         }
         public class Command : Option {
-            string fullUsage = null;
-            public string FullUsage {
-                get { return fullUsage ?? Usage; }
-                set { fullUsage = value; }
-            }
         }
 
         public static class Options {
@@ -38,23 +33,6 @@ namespace staradmin {
                 Name = SharedCLI.Option.Db,
                 ShortText = "Specifies the database commands run against",
                 Alternatives = new string[] { "d", "db" }
-            };
-        }
-
-        public static class Commands {
-            public static Command Help = new Command() {
-                Name = "help",
-                ShortText = "Shows help about a command"
-            };
-            public static Command Kill = new Command() {
-                Name = "kill",
-                ShortText = "Kills processes relating to Starcounter",
-                Usage = "staradmin kill <target>"
-            };
-            public static Command Unload = new Command() {
-                Name = "unload",
-                ShortText = "Unloads data from a data source, usually a database",
-                Usage = "staradmin unload [--file=path] [source] [arguments]"
             };
         }
 
