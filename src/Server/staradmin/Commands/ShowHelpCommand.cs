@@ -33,9 +33,21 @@ namespace staradmin.Commands {
 
             public ICommand CreateCommand(ApplicationArguments args) {
                 var topic = args.CommandParameters.Count == 0 ? help.Name : args.CommandParameters[0];
-                return new ShowHelpCommand(topic);
+                return new ShowHelpCommand(this, topic);
             }
         }
+
+        public static ShowHelpCommand CreateAsInternalHelp(string topic) {
+            var factory = CommandFactory.UserCommands.Find((candidate) => {
+                return candidate.GetType() == typeof(ShowHelpCommand.UserCommand);
+            });
+
+            var cmd = new ShowHelpCommand(factory as ShowHelpCommand.UserCommand, topic);
+            cmd.SupressHeader = true;
+            return cmd;
+        }
+
+        readonly UserCommand userCommand;
 
         /// <summary>
         /// Indicates the header of a certain topic should be
@@ -49,7 +61,8 @@ namespace staradmin.Commands {
         /// </summary>
         public readonly string Topic;
 
-        public ShowHelpCommand(string topic) {
+        ShowHelpCommand(UserCommand cmd, string topic) {
+            userCommand = cmd;
             Topic = topic;
             SupressHeader = false;
         }
@@ -70,7 +83,7 @@ namespace staradmin.Commands {
         }
 
         void ReportUnrecognizedTopic() {
-            var helpOnHelp = new ShowHelpCommand(CommandLine.Commands.Help.Name) { SupressHeader = true };
+            var helpOnHelp = new ShowHelpCommand(this.userCommand, userCommand.Info.Name) { SupressHeader = true };
             var badInput = new ReportBadInputCommand(string.Format("Help for topic '{0}' not found.", Topic), helpOnHelp);
             badInput.Execute();
         }

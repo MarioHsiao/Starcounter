@@ -25,7 +25,7 @@ namespace staradmin.Commands {
             }
 
             public ICommand CreateCommand(ApplicationArguments args) {
-                return new KillCommand(args.CommandParameters[0]);
+                return new KillCommand(this, args.CommandParameters[0]);
             }
         }
 
@@ -44,10 +44,13 @@ namespace staradmin.Commands {
             "ServerLogTail"
         };
 
+        readonly UserCommand userCommand;
         readonly int TimeoutInMilliseconds;
         readonly string Target;
+        
 
-        public KillCommand(string target) {
+        private KillCommand(UserCommand cmd, string target) {
+            userCommand = cmd;
             Target = target;
             TimeoutInMilliseconds = 2000;
         }
@@ -90,7 +93,7 @@ namespace staradmin.Commands {
         }
 
         void ReportUnrecognizedTarget() {
-            var helpOnKill = new ShowHelpCommand(CommandLine.Commands.Kill.Name) { SupressHeader = true };
+            var helpOnKill = ShowHelpCommand.CreateAsInternalHelp(userCommand.Info.Name);
             var badInput = new ReportBadInputCommand(string.Format("Don't know how to kill '{0}'.", Target), helpOnKill);
             badInput.Execute();
         }

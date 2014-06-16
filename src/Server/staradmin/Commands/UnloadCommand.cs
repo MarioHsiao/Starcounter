@@ -35,7 +35,7 @@ namespace staradmin.Commands {
 
             public ICommand CreateCommand(ApplicationArguments args) {
                 var source = args.CommandParameters.Count == 0 ? string.Empty : args.CommandParameters[0];
-                return new UnloadCommand(source);
+                return new UnloadCommand(this, source);
             }
         }
 
@@ -43,9 +43,11 @@ namespace staradmin.Commands {
             public const string Database = "db";
         }
 
+        readonly UserCommand userCommand;
         readonly string source;
 
-        public UnloadCommand(string dataSource = null) {
+        UnloadCommand(UserCommand cmd, string dataSource = null) {
+            userCommand = cmd;
             source = string.IsNullOrEmpty(dataSource) ? Sources.Database : dataSource;
         }
 
@@ -109,7 +111,7 @@ namespace staradmin.Commands {
         }
 
         void ReportUnrecognizedSource() {
-            var helpOnUnload = new ShowHelpCommand(CommandLine.Commands.Unload.Name) { SupressHeader = true };
+            var helpOnUnload = ShowHelpCommand.CreateAsInternalHelp(userCommand.Info.Name);
             var badInput = new ReportBadInputCommand(string.Format("Don't know how to unload '{0}'.", source), helpOnUnload);
             badInput.Execute();
         }
