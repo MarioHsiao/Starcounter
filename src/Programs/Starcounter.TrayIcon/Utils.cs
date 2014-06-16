@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -147,5 +148,97 @@ namespace Starcounter.Tools {
         }
 
 
+        #region "Refresh Notification Area Icons"
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            /// <summary>
+            /// 
+            /// </summary>
+            public int left;
+            /// <summary>
+            /// 
+            /// </summary>
+            public int top;
+            /// <summary>
+            /// 
+            /// </summary>
+            public int right;
+            /// <summary>
+            /// 
+            /// </summary>
+            public int bottom;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lpClassName"></param>
+        /// <param name="lpWindowName"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hwndParent"></param>
+        /// <param name="hwndChildAfter"></param>
+        /// <param name="lpszClass"></param>
+        /// <param name="lpszWindow"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="lpRect"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="msg"></param>
+        /// <param name="wParam"></param>
+        /// <param name="lParam"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void RefreshTrayArea() {
+            IntPtr systemTrayContainerHandle = FindWindow("Shell_TrayWnd", null);
+            IntPtr systemTrayHandle = FindWindowEx(systemTrayContainerHandle, IntPtr.Zero, "TrayNotifyWnd", null);
+            IntPtr sysPagerHandle = FindWindowEx(systemTrayHandle, IntPtr.Zero, "SysPager", null);
+            IntPtr notificationAreaHandle = FindWindowEx(sysPagerHandle, IntPtr.Zero, "ToolbarWindow32", "Notification Area");
+            if (notificationAreaHandle == IntPtr.Zero) {
+                notificationAreaHandle = FindWindowEx(sysPagerHandle, IntPtr.Zero, "ToolbarWindow32", "User Promoted Notification Area");
+                IntPtr notifyIconOverflowWindowHandle = FindWindow("NotifyIconOverflowWindow", null);
+                IntPtr overflowNotificationAreaHandle = FindWindowEx(notifyIconOverflowWindowHandle, IntPtr.Zero, "ToolbarWindow32", "Overflow Notification Area");
+                RefreshTrayArea(overflowNotificationAreaHandle);
+            }
+            RefreshTrayArea(notificationAreaHandle);
+        }
+
+
+        private static void RefreshTrayArea(IntPtr windowHandle) {
+            const uint wmMousemove = 0x0200;
+            RECT rect;
+            GetClientRect(windowHandle, out rect);
+            for (var x = 0; x < rect.right; x += 5)
+                for (var y = 0; y < rect.bottom; y += 5)
+                    SendMessage(windowHandle, wmMousemove, 0, (y << 16) + x);
+        }
+        #endregion
     }
 }
