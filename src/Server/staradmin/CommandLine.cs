@@ -1,4 +1,5 @@
 ﻿
+using staradmin.Commands;
 using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
@@ -124,16 +125,9 @@ namespace staradmin {
                 Options.Database.Alternatives
                 );
 
-            var commandSyntax = appSyntax.DefineCommand(Commands.Help.Name, Commands.Help.ShortText);
-            commandSyntax.MinParameterCount = 0;
-            commandSyntax.MaxParameterCount = 1;
-
-            commandSyntax = appSyntax.DefineCommand(Commands.Kill.Name, Commands.Kill.ShortText, 1);
-
-            commandSyntax = appSyntax.DefineCommand(Commands.Unload.Name, Commands.Unload.ShortText);
-            commandSyntax.MinParameterCount = 0;
-            commandSyntax.MaxParameterCount = 2;
-            commandSyntax.DefineProperty("file", "Specifies the file to unload into");
+            foreach (var userCommand in CommandFactory.UserCommands) {
+                userCommand.Define(appSyntax);
+            }
 
             return appSyntax.CreateSyntax();
         }
