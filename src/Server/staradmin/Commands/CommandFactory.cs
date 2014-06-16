@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.CLI;
 using Starcounter.CommandLine;
 using System;
 
@@ -36,6 +37,17 @@ namespace staradmin.Commands {
                 var usage = new ShowUsageCommand();
                 command = new ReportBadInputCommand(string.Format("Invalid input: '{0}'.", args.ToString("given")), usage);
             }
+
+            var contextCommand = command as ContextAwareCommand;
+            if (contextCommand != null) {
+                string database;
+                SharedCLI.ResolveDatabase(args, out database);
+
+                var context = new Context();
+                context.Database = database;
+
+                contextCommand.Context = context;
+            } 
 
             return command;
         }
