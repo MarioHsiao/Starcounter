@@ -12,6 +12,8 @@ using Starcounter.Server.Rest;
 using Starcounter.Internal.Web;
 using System.Collections.Generic;
 using System.Threading;
+using System.Diagnostics;
+using Starcounter.Hosting;
 
 namespace Starcounter.Administrator.Server {
 
@@ -70,6 +72,9 @@ namespace Starcounter.Administrator.Server {
             if (serverInfo.Configuration.SendUsageAndCrashReports) {
                 Tracking.Client.Instance.StartTrackUsage(Program.ServerInterface, Program.ServerEngine.HostLog);
             }
+
+            // TODO: alemoi check if needed.
+            //Package.SendStartupFinished();
         }
 
         static Int32 WsEchoesCounter = 0;

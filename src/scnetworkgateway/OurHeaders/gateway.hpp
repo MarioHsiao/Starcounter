@@ -1663,6 +1663,8 @@ class Gateway
     // List of active databases.
     ActiveDatabase active_databases_[MAX_ACTIVE_DATABASES];
 
+    bool db_starting_;
+
     // Indicates what databases went down.
     bool db_did_go_down_[MAX_ACTIVE_DATABASES];
 
@@ -1831,6 +1833,18 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    bool get_db_starting() {
+        return db_starting_;
+    }
+
+    void set_db_starting() {
+        db_starting_ = true;
+    }
+
+    void reset_db_starting() {
+        db_starting_ = false;
+    }
 
     uint16_t get_setting_internal_system_port() {
         return setting_internal_system_port_;

@@ -32,6 +32,9 @@ class HandlersList
     // URI string.
     char* original_uri_info_;
     char* processed_uri_info_;
+
+    int32_t processed_uri_info_len_;
+
     char* app_name_;
 
     uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
@@ -74,6 +77,7 @@ public:
 
         original_uri_info_ = NULL;
         processed_uri_info_ = NULL;
+        processed_uri_info_len_ = 0;
         app_name_ = NULL;
     }
 
@@ -133,6 +137,11 @@ public:
     char* get_processed_uri_info()
     {
         return processed_uri_info_;
+    }
+
+    int32_t get_processed_uri_info_len()
+    {
+        return processed_uri_info_len_;
     }
 
     // Gets handler type.
@@ -252,6 +261,8 @@ public:
                 len = (uint32_t) strlen(processed_uri_info);
                 processed_uri_info_ = new char[len + 1];
                 strncpy_s(processed_uri_info_, len + 1, processed_uri_info, len);
+
+                processed_uri_info_len_ = len;
 
                 break;
             }

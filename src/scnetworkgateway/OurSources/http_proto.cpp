@@ -610,28 +610,39 @@ uint32_t HttpProto::HttpUriDispatcher(
             if (port_uris->IsEmpty())
                 return SCERRREQUESTONUNREGISTEREDURI;
 
-            // Entering global lock.
-            gw->EnterGlobalLock();
+            // Trying to fetch the matched index using direct comparison.
+            matched_index = port_uris->FindRegisteredUri(method_and_uri, method_and_uri_len);
 
-            // Checking once again since maybe it was already generated.
-            if (false == port_uris->HasGeneratedUriMatcher())
+            // Checking if we failed to find again.
+            if (matched_index < 0)
             {
-                // Trying to get cached URI matcher.
-                UriMatcherCacheEntry* cached_uri_matcher = server_port->TryGetUriMatcherFromCache();
+                // Entering global lock.
+                gw->EnterGlobalLock();
 
-                if (NULL != cached_uri_matcher) {
-                    port_uris->SetGeneratedUriMatcher(cached_uri_matcher);
-                } else {
-                    // Generating and loading URI matcher.
-                    err_code = g_gateway.GenerateUriMatcher(server_port, port_uris);
+                // Checking once again since maybe it was already generated.
+                if (false == port_uris->HasGeneratedUriMatcher())
+                {
+                    // Trying to get cached URI matcher.
+                    UriMatcherCacheEntry* cached_uri_matcher = server_port->TryGetUriMatcherFromCache();
+
+                    if (NULL != cached_uri_matcher) {
+                        port_uris->SetGeneratedUriMatcher(cached_uri_matcher);
+                    } else {
+                        // Generating and loading URI matcher.
+                        err_code = g_gateway.GenerateUriMatcher(server_port, port_uris);
+                    }
                 }
+
+                // Releasing global lock.
+                gw->LeaveGlobalLock();
+
+                if (err_code)
+                    return err_code;
             }
-
-            // Releasing global lock.
-            gw->LeaveGlobalLock();
-
-            if (err_code)
-                return err_code;
+            else
+            {
+                goto HANDLER_MATCHED;
+            }
         }
 
         // Getting the matched uri index.
@@ -652,6 +663,8 @@ uint32_t HttpProto::HttpUriDispatcher(
 
             return gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
         }
+
+HANDLER_MATCHED:
 
         // Getting matched URI index.
         RegisteredUri* matched_uri = port_uris->GetEntryByIndex(matched_index);

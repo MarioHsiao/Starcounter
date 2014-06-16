@@ -492,14 +492,29 @@ public:
     }
 
     // Find certain URI entry.
-    uri_index_type FindRegisteredUri(const char* processed_uri_info)
+    uri_index_type FindRegisteredUri(const char* method_uri_space)
     {
         // Going through all entries.
-        for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++)
-        {
+        for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++) {
+
             // Doing exact comparison.
-            if (!strcmp(processed_uri_info, reg_uris_[i].get_processed_uri_info()))
-            {
+            if (0 == strcmp(method_uri_space, reg_uris_[i].get_processed_uri_info())) {
+                return i;
+            }
+        }
+
+        // Returning negative if nothing is found.
+        return INVALID_URI_INDEX;
+    }
+
+    // Find certain URI entry.
+    uri_index_type FindRegisteredUri(const char* method_uri_space, const int32_t method_uri_space_len)
+    {
+        // Going through all entries.
+        for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++) {
+
+            // Doing exact comparison.
+            if (0 == strncmp(method_uri_space, reg_uris_[i].get_processed_uri_info(), method_uri_space_len)) {
                 return i;
             }
         }

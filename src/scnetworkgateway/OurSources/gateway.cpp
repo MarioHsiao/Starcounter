@@ -1355,6 +1355,24 @@ const char* const kHttpOKResponse =
 
 const int32_t kHttpOKResponseLength = static_cast<int32_t> (strlen(kHttpOKResponse));
 
+uint32_t DatabaseStartupFinished(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    *is_handled = true;
+
+    GW_COUT << "Database startup finished." << GW_ENDL;
+
+    // Entering global lock.
+    gw->EnterGlobalLock();
+
+    // Resetting database starting flag.
+    g_gateway.reset_db_starting();
+
+    // Releasing global lock.
+    gw->LeaveGlobalLock();
+
+    return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+}
+
 uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     *is_handled = true;
@@ -1843,6 +1861,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 return err_code;
             }
 
+            // Setting flag that database is starting.
+            set_db_starting();
+
             // Leaving global lock.
             LeaveGlobalLock();
 
@@ -1869,6 +1890,8 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
             // Entering global lock.
             EnterGlobalLock();
+
+            reset_db_starting();
 
             // Killing channels events monitor thread.
             active_databases_[s].KillChannelsEventsMonitor();
@@ -2270,6 +2293,23 @@ void Gateway::RegisterGatewayHandlers() {
     }
 
 #endif
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        gw_handlers_,
+        setting_internal_system_port_,
+        "gateway",
+        "POST /gw/dbstartupfinished",
+        "POST /gw/dbstartupfinished ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        DatabaseStartupFinished,
+        true);
+
+    GW_ASSERT(0 == err_code);
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(

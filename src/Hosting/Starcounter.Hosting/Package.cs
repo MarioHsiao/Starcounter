@@ -319,10 +319,26 @@ namespace Starcounter.Hosting {
         }
 
         /// <summary>
+        /// Sends an event that codehost startup is finished.
+        /// </summary>
+        public static void SendStartupFinished() {
+
+            Response resp = Node.LocalhostInternalSystemPortNode.POST("/gw/dbstartupfinished", "Ready!", null);
+
+            if (200 != resp.StatusCode)
+                throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
+        }
+
+        /// <summary>
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
             var entrypoint = assembly_.EntryPoint;
+
+            // TODO: alemoi check if needed.
+            // Sending indication to gateway that application is started.
+            //if (!StarcounterEnvironment.IsAdministratorApp)
+            //    SendStartupFinished();
 
             try {
                 if (entrypoint.GetParameters().Length == 0) {
