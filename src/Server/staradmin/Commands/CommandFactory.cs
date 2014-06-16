@@ -10,12 +10,12 @@ namespace staradmin.Commands {
     /// based on given input.
     /// </summary>
     internal class CommandFactory {
-        readonly List<IUserCommand> userCommands = new List<IUserCommand>();
+        public static readonly List<IUserCommand> UserCommands = new List<IUserCommand>();
 
-        public CommandFactory() {
-            userCommands.Add(new KillCommand.UserCommand());
-            userCommands.Add(new ShowHelpCommand.UserCommand());
-            userCommands.Add(new UnloadCommand.UserCommand());
+        static CommandFactory() {
+            UserCommands.Add(new KillCommand.UserCommand());
+            UserCommands.Add(new ShowHelpCommand.UserCommand());
+            UserCommands.Add(new UnloadCommand.UserCommand());
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace staradmin.Commands {
 
             ICommand command = null;
 
-            var userCommand = userCommands.Find((candidate) => {
+            var userCommand = UserCommands.Find((candidate) => {
                 var arg = args.Command;
                 var comparison = StringComparison.InvariantCultureIgnoreCase;
                 return arg.Equals(candidate.Info.Name, comparison);
