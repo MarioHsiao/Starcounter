@@ -66,6 +66,12 @@ namespace staradmin.Commands {
             if (!string.IsNullOrEmpty(Context.Database)) {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Context.Database));
             }
+
+            string file;
+            if (Context.TryGetCommandProperty("file", out file)) {
+                file = Path.GetFullPath(file);
+                cmdLine.Add(string.Format("{0}", file));
+            }
             
             ApplicationArguments args;
             SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
