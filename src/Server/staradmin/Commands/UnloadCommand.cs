@@ -9,6 +9,36 @@ using System.IO;
 namespace staradmin.Commands {
 
     internal class UnloadCommand : ContextAwareCommand {
+        /// <summary>
+        /// Govern metadata provision about this class as a user command
+        /// and defines the factory method to create the actual command
+        /// to be executed.
+        /// </summary>
+        public class UserCommand : IUserCommand {
+            readonly CommandLine.Command unload = new CommandLine.Command() {
+                Name = "unload",
+                ShortText = "Unloads data from a data source, usually a database",
+                Usage = "staradmin unload [--file=path] [source] [arguments]"
+            };
+
+            public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
+                var syntax = appSyntax.DefineCommand(unload.Name, unload.ShortText);
+                syntax.MinParameterCount = 0;
+                syntax.MaxParameterCount = 2;
+                syntax.DefineProperty("file", "Specifies the file to unload into");
+                return syntax;
+            }
+
+            public CommandLine.Command Info {
+                get { return unload; }
+            }
+
+            public ICommand CreateCommand(ApplicationArguments args) {
+                var source = args.CommandParameters.Count == 0 ? string.Empty : args.CommandParameters[0];
+                return new UnloadCommand(source);
+            }
+        }
+
         class Sources {
             public const string Database = "db";
         }
