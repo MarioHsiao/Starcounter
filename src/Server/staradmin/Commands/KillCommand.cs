@@ -1,9 +1,12 @@
 ﻿
+using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace staradmin.Commands {
 
@@ -26,6 +29,20 @@ namespace staradmin.Commands {
 
             public ICommand CreateCommand(ApplicationArguments args) {
                 return new KillCommand(this, args.CommandParameters[0]);
+            }
+
+            public void WriteHelp(ShowHelpCommand helpCommand, TextWriter writer) {
+                if (!helpCommand.SupressHeader) {
+                    writer.WriteLine(Info.ShortText);
+                    writer.WriteLine();
+                }
+                writer.WriteLine("Usage: {0}", Info.Usage);
+
+                var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+                var rows = new Dictionary<string, string>();
+                table.Title = "Targets:";
+                rows.Add("all", "Kills all processes relating to Starcounter on the current machine. Use this option with care and make sure no mission-critical processes are running.");
+                table.Write(rows);
             }
         }
 

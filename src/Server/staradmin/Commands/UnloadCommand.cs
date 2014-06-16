@@ -37,6 +37,30 @@ namespace staradmin.Commands {
                 var source = args.CommandParameters.Count == 0 ? string.Empty : args.CommandParameters[0];
                 return new UnloadCommand(this, source);
             }
+
+            public void WriteHelp(ShowHelpCommand helpCommand, TextWriter writer) {
+                if (!helpCommand.SupressHeader) {
+                    writer.WriteLine(Info.ShortText);
+                    writer.WriteLine();
+                }
+                writer.WriteLine("Usage: {0}", Info.Usage);
+
+                var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+                var rows = new Dictionary<string, string>();
+                table.Title = "Sources:";
+                rows.Add("db", "Unloads a database. If no source is given, 'db' is used as the default.");
+                table.Write(rows);
+
+                table.Title = "Examples:";
+                table.RowSpace = 1;
+                rows.Clear();
+                rows.Add("staradmin unload db", "Unloads the default database into the default unload file.");
+                rows.Add("staradmin --d=foo unload db", "Unloads the 'foo' database into the default unload file.");
+                rows.Add("staradmin --d=bar unload db --file=data.sql", "Unloads the 'bar' database into the 'data.sql' file, resolved to the same directory from which the command runs.");
+                rows.Add("staradmin unload", "Shorthand for 'staradmin unload db'");
+                writer.WriteLine();
+                table.Write(rows);
+            }
         }
 
         class Sources {
