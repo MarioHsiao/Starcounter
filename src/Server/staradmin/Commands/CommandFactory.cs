@@ -48,7 +48,7 @@ namespace staradmin.Commands {
                 string database;
                 SharedCLI.ResolveDatabase(args, out database);
 
-                var context = new Context();
+                var context = new Context(args);
                 context.Database = database;
 
                 contextCommand.Context = context;
