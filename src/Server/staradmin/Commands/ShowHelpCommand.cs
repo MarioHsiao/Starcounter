@@ -9,7 +9,11 @@ namespace staradmin.Commands {
     /// Govern the dispalying of help for a given topic.
     /// </summary>
     internal class ShowHelpCommand : ICommand {
-        bool HelpOnHelpSupressHeader = false;
+        /// <summary>
+        /// Indicates the header of a certain topic should be
+        /// supressed.
+        /// </summary>
+        public bool SupressHeader { get; set; }
 
         /// <summary>
         /// The topic to show help for, usually a staradmin
@@ -19,6 +23,7 @@ namespace staradmin.Commands {
 
         public ShowHelpCommand(string topic) {
             Topic = topic;
+            SupressHeader = false;
         }
 
         public void Execute() {
@@ -37,13 +42,13 @@ namespace staradmin.Commands {
         }
 
         void ReportUnrecognizedTopic() {
-            var helpOnHelp = new ShowHelpCommand(CommandLine.Commands.Help.Name) { HelpOnHelpSupressHeader = true };
+            var helpOnHelp = new ShowHelpCommand(CommandLine.Commands.Help.Name) { SupressHeader = true };
             var badInput = new ReportBadInputCommand(string.Format("Help for topic '{0}' not found.", Topic), helpOnHelp);
             badInput.Execute();
         }
 
         void ShowHelpOnHelp(TextWriter writer) {
-            if (!HelpOnHelpSupressHeader) {
+            if (!SupressHeader) {
                 writer.WriteLine("Displays help on a specified topic, usually a command.");
                 writer.WriteLine();
             }
@@ -64,8 +69,10 @@ namespace staradmin.Commands {
         void ShowHelpOnKill(TextWriter writer) {
             var cmd = CommandLine.Commands.Kill;
 
-            writer.WriteLine(cmd.ShortText);
-            writer.WriteLine();
+            if (!SupressHeader) {
+                writer.WriteLine(cmd.ShortText);
+                writer.WriteLine();
+            }
             writer.WriteLine("Usage: {0}", cmd.Usage);
 
             var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
@@ -78,8 +85,10 @@ namespace staradmin.Commands {
         void ShowHelpOnUnload(TextWriter writer) {
             var cmd = CommandLine.Commands.Unload;
 
-            writer.WriteLine(cmd.ShortText);
-            writer.WriteLine();
+            if (!SupressHeader) {
+                writer.WriteLine(cmd.ShortText);
+                writer.WriteLine();
+            }
             writer.WriteLine("Usage: {0}", cmd.Usage);
 
             var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
