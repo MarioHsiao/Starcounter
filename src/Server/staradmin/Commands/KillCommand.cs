@@ -67,7 +67,7 @@ namespace staradmin.Commands {
         }
 
         void ReportUnrecognizedTarget() {
-            var helpOnKill = new ShowHelpCommand(CommandLine.Commands.Kill.Name);
+            var helpOnKill = new ShowHelpCommand(CommandLine.Commands.Kill.Name) { SupressHeader = true };
             var badInput = new ReportBadInputCommand(string.Format("Don't know how to kill '{0}'.", Target), helpOnKill);
             badInput.Execute();
         }
