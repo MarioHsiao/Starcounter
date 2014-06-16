@@ -87,27 +87,6 @@ namespace staradmin {
             return null;
         }
 
-        public static void WriteUsage(TextWriter writer) {
-            var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
-            var rows = new Dictionary<string, string>();
-
-            writer.WriteLine("Usage: staradmin [options] <command> [<command options>] [<parameters>]");
-            writer.WriteLine();
-
-            table.Title = "Options:";
-            rows.Add(string.Format("--{0}", Options.Help.Name), Options.Help.ShortText);
-            rows.Add(string.Format("--{0}=<value>", Options.Database.Name), Options.Database.ShortText);
-            table.Write(rows);
-            writer.WriteLine();
-
-            table.Title = "Commands:";
-            rows.Clear();
-            foreach (var userCommand in CommandFactory.UserCommands) {
-                rows.Add(userCommand.Info.Name, userCommand.Info.ShortText);
-            }
-            table.Write(rows);
-        }
-
         static IApplicationSyntax Define() {
             var appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.ProgramDescription = "staradmin.exe";
