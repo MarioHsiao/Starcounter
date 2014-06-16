@@ -22,7 +22,7 @@
   <AggregationPort>9191</AggregationPort>
   
   <!-- Gateway system internal port -->
-  <InternalSystemPort>62000</InternalSystemPort>
+  <InternalSystemPort>8181</InternalSystemPort>
 
   <!-- Information on reverse proxies if any. -->
 
