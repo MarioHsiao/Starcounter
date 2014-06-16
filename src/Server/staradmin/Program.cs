@@ -56,8 +56,7 @@ namespace staradmin {
                         ViewLogEntries(args);
                         break;
                     case "unload":
-                        RunUnload(args);
-                        break;
+                        throw new Exception("No longer supported: use 'staradmin unload db'");
                     case "reload":
                         RunReload(args);
                         break;
@@ -175,19 +174,6 @@ namespace staradmin {
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
-        }
-
-        static void RunUnload(string[] args) {
-            // staradmin unload <database> <file>
-            var unload = new Unload();
-            if (args.Length > 1) {
-                unload.Database = args[1];
-            }
-            if (args.Length > 2) {
-                unload.FilePath = args[2];
-            }
-            
-            unload.Run();
         }
 
         static void RunReload(string[] args) {
