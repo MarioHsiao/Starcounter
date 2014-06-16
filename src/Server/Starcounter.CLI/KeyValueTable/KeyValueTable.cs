@@ -20,6 +20,11 @@ namespace Starcounter.CLI {
         public int ColumnSpace { get; set; }
 
         /// <summary>
+        /// Gets or sets the space between rows.
+        /// </summary>
+        public int RowSpace { get; set; }
+
+        /// <summary>
         /// Gets or sets the title of the table.
         /// </summary>
         public string Title { get; set; }
@@ -130,6 +135,7 @@ namespace Starcounter.CLI {
         public KeyValueTable() {
             LeftMargin = 2;
             ColumnSpace = 1;
+            RowSpace = 0;
             EnforceSingleLine = false;
             SplitValue = BuiltInValueDelegates.NoSplit;
             TrimValueItem = BuiltInValueDelegates.TrimBySplittingUpWords;
@@ -158,6 +164,9 @@ namespace Starcounter.CLI {
             WriteTitle();
             foreach (var item in content) {
                 WriteOne(format, item.Key, item.Value, valueWidth);
+                for (int i = 0; i < RowSpace; i++) {
+                    Console.WriteLine();
+                }
             }
         }
 
