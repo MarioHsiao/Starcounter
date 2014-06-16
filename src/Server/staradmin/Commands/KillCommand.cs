@@ -1,4 +1,6 @@
 ﻿
+using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System;
 using System.Diagnostics;
@@ -6,6 +8,27 @@ using System.Diagnostics;
 namespace staradmin.Commands {
 
     internal class KillCommand : ICommand {
+
+        public class UserCommand : IUserCommand {
+            CommandLine.Command kill = new CommandLine.Command() {
+                Name = "kill",
+                ShortText = "Kills processes relating to Starcounter",
+                Usage = "staradmin kill <target>"
+            };
+
+            public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
+                return appSyntax.DefineCommand(kill.Name, kill.ShortText, 1);
+            }
+
+            public CommandLine.Command Info {
+                get { return kill; }
+            }
+
+            public ICommand CreateCommand(ApplicationArguments args) {
+                return new KillCommand(args.CommandParameters[0]);
+            }
+        }
+
         static string[] knownStarcounterProcessNames = new string[] {
             StarcounterConstants.ProgramNames.ScService,
             StarcounterConstants.ProgramNames.ScIpcMonitor,
