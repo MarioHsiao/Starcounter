@@ -50,6 +50,11 @@ namespace staradmin {
                 ShortText = "Kills processes relating to Starcounter",
                 Usage = "staradmin kill <target>"
             };
+            public static Command Unload = new Command() {
+                Name = "unload",
+                ShortText = "Unloads data from a data source, usually a database",
+                Usage = "staradmin unload [source] [arguments]"
+            };
         }
 
         public static void PreParse(ref string[] args) {
@@ -98,6 +103,7 @@ namespace staradmin {
             rows.Clear();
             rows.Add(Commands.Help.Name, Commands.Help.ShortText);
             rows.Add(Commands.Kill.Name, Commands.Kill.ShortText);
+            rows.Add(Commands.Unload.Name, Commands.Unload.ShortText);
             table.Write(rows);
         }
 
@@ -123,6 +129,11 @@ namespace staradmin {
             commandSyntax.MaxParameterCount = 1;
 
             commandSyntax = appSyntax.DefineCommand(Commands.Kill.Name, Commands.Kill.ShortText, 1);
+
+            commandSyntax = appSyntax.DefineCommand(Commands.Unload.Name, Commands.Unload.ShortText);
+            commandSyntax.MinParameterCount = 0;
+            commandSyntax.MaxParameterCount = 2;
+            commandSyntax.DefineProperty("file", "Specifies the file to unload into");
 
             return appSyntax.CreateSyntax();
         }
