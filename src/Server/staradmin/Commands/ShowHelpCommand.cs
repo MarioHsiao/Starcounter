@@ -1,5 +1,7 @@
 ﻿
 using Starcounter.CLI;
+using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +11,32 @@ namespace staradmin.Commands {
     /// Govern the dispalying of help for a given topic.
     /// </summary>
     internal class ShowHelpCommand : ICommand {
+        /// <summary>
+        /// Govern metadata provision about this class as a user command
+        /// and defines the factory method to create the actual command
+        /// to be executed.
+        /// </summary>
+        public class UserCommand : IUserCommand {
+            readonly CommandLine.Command help = new CommandLine.Command() {
+                Name = "help",
+                ShortText = "Shows help about a command",
+                Usage = "staradmin help [topic]"
+            };
+
+            public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
+                return appSyntax.DefineCommand(help.Name, help.ShortText, 0, 1);
+            }
+
+            public CommandLine.Command Info {
+                get { return help; }
+            }
+
+            public ICommand CreateCommand(ApplicationArguments args) {
+                var topic = args.CommandParameters.Count == 0 ? help.Name : args.CommandParameters[0];
+                return new ShowHelpCommand(topic);
+            }
+        }
+
         /// <summary>
         /// Indicates the header of a certain topic should be
         /// supressed.
