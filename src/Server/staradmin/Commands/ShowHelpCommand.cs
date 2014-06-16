@@ -27,6 +27,9 @@ namespace staradmin.Commands {
             } 
             else if (TopicIs(CommandLine.Commands.Kill)) {
                 ShowHelpOnKill(Console.Out);
+            } 
+            else if (TopicIs(CommandLine.Commands.Unload)) {
+                ShowHelpOnUnload(Console.Out);
             }
             else {
                 ReportUnrecognizedTopic();
@@ -51,6 +54,7 @@ namespace staradmin.Commands {
             
             rows.Add(CommandLine.Commands.Help.Name, "Display help on the help command");
             rows.Add(CommandLine.Commands.Kill.Name, CommandLine.Commands.Kill.ShortText);
+            rows.Add(CommandLine.Commands.Unload.Name, CommandLine.Commands.Unload.ShortText);
             table.Write(rows);
             writer.WriteLine();
 
@@ -68,6 +72,30 @@ namespace staradmin.Commands {
             var rows = new Dictionary<string, string>();
             table.Title = "Targets:";
             rows.Add("all", "Kills all processes relating to Starcounter on the current machine. Use this option with care and make sure no mission-critical processes are running.");
+            table.Write(rows);
+        }
+
+        void ShowHelpOnUnload(TextWriter writer) {
+            var cmd = CommandLine.Commands.Unload;
+
+            writer.WriteLine(cmd.ShortText);
+            writer.WriteLine();
+            writer.WriteLine("Usage: {0}", cmd.Usage);
+
+            var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+            var rows = new Dictionary<string, string>();
+            table.Title = "Sources:";
+            rows.Add("db", "Unloads a database. If no source is given, 'db' is used as the default.");
+            table.Write(rows);
+
+            table.Title = "Examples:";
+            table.RowSpace = 1;
+            rows.Clear();
+            rows.Add("staradmin unload db", "Unloads the default database into the default unload file.");
+            rows.Add("staradmin --d=foo unload db", "Unloads the 'foo' database into the default unload file.");
+            rows.Add("staradmin --d=bar unload db --file=data.sql", "Unloads the 'bar' database into the 'data.sql' file, resolved to the same directory from which the command runs.");
+            rows.Add("staradmin unload", "Shorthand for 'staradmin unload db'");
+            writer.WriteLine();
             table.Write(rows);
         }
 
