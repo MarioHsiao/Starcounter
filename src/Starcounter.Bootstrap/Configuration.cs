@@ -187,15 +187,21 @@ namespace StarcounterInternal.Bootstrap
         /// </summary>
         public UInt16 InternalSystemPort {
             get {
-                if (NoNetworkGateway)
-                    return 0;
-
-                String internalSystemPort;
-                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.InternalSystemPort, out internalSystemPort)) {
-                    return UInt16.Parse(internalSystemPort);
+                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+                string str;
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort, out str)) {
+                    v = UInt16.Parse(str);
                 }
+                return v;
+                //if (NoNetworkGateway)
+                //    return 0;
 
-                throw ErrorCode.ToException(Starcounter.Error.SCERRBADINTERNALSYSTEMPORT);
+                //String internalSystemPort;
+                //if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.InternalSystemPort, out internalSystemPort)) {
+                //    return UInt16.Parse(internalSystemPort);
+                //}
+
+                //throw ErrorCode.ToException(Starcounter.Error.SCERRBADINTERNALSYSTEMPORT);
             }
         }
 
