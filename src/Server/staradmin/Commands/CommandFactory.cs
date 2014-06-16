@@ -2,6 +2,7 @@
 using Starcounter.CLI;
 using Starcounter.CommandLine;
 using System;
+using System.Collections.Generic;
 
 namespace staradmin.Commands {
     /// <summary>
@@ -9,7 +10,14 @@ namespace staradmin.Commands {
     /// based on given input.
     /// </summary>
     internal class CommandFactory {
-        
+        readonly List<IUserCommand> userCommands = new List<IUserCommand>();
+
+        public CommandFactory() {
+            userCommands.Add(new KillCommand.UserCommand());
+            userCommands.Add(new ShowHelpCommand.UserCommand());
+            userCommands.Add(new UnloadCommand.UserCommand());
+        }
+
         /// <summary>
         /// Creates a command based on given arguments.
         /// </summary>
@@ -23,22 +31,15 @@ namespace staradmin.Commands {
 
             ICommand command = null;
 
-            if (CommandIs(args, CommandLine.Commands.Help)) {
-                var topic = args.CommandParameters.Count == 0 ? CommandLine.Commands.Help.Name : args.CommandParameters[0];
-                command = new ShowHelpCommand(topic);
-            }
+            var userCommand = userCommands.Find((candidate) => {
+                var arg = args.Command;
+                var comparison = StringComparison.InvariantCultureIgnoreCase;
+                return arg.Equals(candidate.Info.Name, comparison);
+            });
 
-            if (CommandIs(args, CommandLine.Commands.Kill)) {
-                var target = args.CommandParameters[0];
-                command = new KillCommand(target);
-            }
-
-            if (CommandIs(args, CommandLine.Commands.Unload)) {
-                var source = args.CommandParameters.Count == 0 ? string.Empty : args.CommandParameters[0];
-                command = new UnloadCommand(source);
-            }
-
-            if (command == null) {
+            if (userCommand != null) {
+                command = userCommand.CreateCommand(args);
+            } else {
                 var usage = new ShowUsageCommand();
                 command = new ReportBadInputCommand(string.Format("Invalid input: '{0}'.", args.ToString("given")), usage);
             }
@@ -55,12 +56,6 @@ namespace staradmin.Commands {
             } 
 
             return command;
-        }
-
-        bool CommandIs(ApplicationArguments args, CommandLine.Command command) {
-            var arg = args.Command;
-            var comparison = StringComparison.InvariantCultureIgnoreCase;
-            return arg.Equals(command.Name, comparison);
         }
     }
 }
