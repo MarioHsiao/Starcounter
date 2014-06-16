@@ -95,6 +95,28 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Internal system port.
+        /// </summary>
+        [ThreadStatic]
+        static Node LocalhostInternalSystemPortNode_ = null;
+
+        /// <summary>
+        /// Creates an instance of localhost system node.
+        /// </summary>
+        public static Node LocalhostInternalSystemPortNode {
+            get {
+                // Checking if Node instance is already created for this thread.
+                if (null != LocalhostInternalSystemPortNode_)
+                    return LocalhostInternalSystemPortNode_;
+
+                // Creating new node instance.
+                LocalhostInternalSystemPortNode_ = new Node("127.0.0.1", StarcounterEnvironment.Default.InternalSystemPort);
+
+                return LocalhostInternalSystemPortNode_;
+            }
+        }
+
+        /// <summary>
         /// Static constructor to automatically initialize REST.
         /// </summary>
         static Node()

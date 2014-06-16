@@ -134,10 +134,6 @@ class GatewayWorker
         worker_stats_sent_num_,
         worker_stats_recv_num_;
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-    int64_t port_num_active_conns_[MAX_PORTS_NUM];
-#endif
-
     // All actively connected databases.
     WorkerDbInterface* worker_dbs_[MAX_ACTIVE_DATABASES];
 
@@ -166,7 +162,7 @@ class GatewayWorker
     LinearQueue<SocketDataChunk*, MAX_WORKER_CHUNKS> overflow_sds_;
 
     // Aggregation timer.
-    utils::PreciseTimer aggr_timer_;
+    uint64_t aggr_timer_;
 
     // Worker chunks.
     WorkerChunks worker_chunks_;
@@ -349,35 +345,6 @@ public:
         return g_gateway.get_server_port(port_index)->GetLeastBusyWorkerId();
     }
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
-    // Changes number of active connections.
-    void ChangeNumActiveConnections(port_index_type port_index, int64_t change_value)
-    {
-#ifdef GW_DETAILED_STATISTICS
-        GW_COUT << "ChangeNumActiveConnections: " << change_value << GW_ENDL;
-#endif
-
-        port_num_active_conns_[port_index] += change_value;
-
-        // Changing number of active sockets.
-        g_gateway.ChangeNumActiveSockets(change_value);
-    }
-
-    // Set number of active connections.
-    void SetNumActiveConnections(port_index_type port_index, int64_t set_value)
-    {
-        port_num_active_conns_[port_index] += set_value;
-    }
-
-    // Getting number of active connections per port.
-    int64_t NumberOfActiveConnectionsPerPortPerWorker(port_index_type port_index)
-    {
-        return port_num_active_conns_[port_index];
-    }
-
-#endif
-
     // Generates a new scheduler id.
     scheduler_id_type GenerateSchedulerId()
     {
@@ -511,6 +478,9 @@ public:
             }
         }
     }
+
+    // Processes rebalanced sockets from worker 0.
+    void ProcessRebalancedSockets();
 
     // Main worker function.
     uint32_t WorkerRoutine();

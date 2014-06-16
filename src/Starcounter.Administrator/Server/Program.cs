@@ -11,6 +11,9 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest;
 using Starcounter.Internal.Web;
 using System.Collections.Generic;
+using System.Threading;
+using System.Diagnostics;
+using Starcounter.Hosting;
 
 namespace Starcounter.Administrator.Server {
 
@@ -69,7 +72,15 @@ namespace Starcounter.Administrator.Server {
             if (serverInfo.Configuration.SendUsageAndCrashReports) {
                 Tracking.Client.Instance.StartTrackUsage(Program.ServerInterface, Program.ServerEngine.HostLog);
             }
+
+            // TODO: alemoi check if needed.
+            //Package.SendStartupFinished();
         }
+
+        static Int32 WsEchoesCounter = 0;
+        static Int32 WsDisconnectsCounter = 0;
+        static Int32 WsHandshakesCounter = 0;
+        static Int32 HttpEchoesCounter = 0;
 
         /// <summary>
         /// Register default handlers
@@ -142,12 +153,25 @@ namespace Starcounter.Administrator.Server {
                 return "hello";
             });
 
+            Handle.GET("/httpcounters", (Request req) => {
+
+                Int32 e = HttpEchoesCounter;
+
+                HttpEchoesCounter = 0;
+
+                return new Response() { Body = String.Format("Http counters: echoes received={0}.", e) };
+            });
+
             Handle.POST("/echotest", (Request req) => {
+                Interlocked.Increment(ref HttpEchoesCounter);
+
                 return new Response() { BodyBytes = req.BodyBytes };
             });
 
             Handle.GET("/echotestws", (Request req) => {
                 if (req.WebSocketUpgrade) {
+                    Interlocked.Increment(ref WsHandshakesCounter);
+
                     req.SendUpgrade("echotestws");
 
                     return HandlerStatus.Handled;
@@ -156,15 +180,34 @@ namespace Starcounter.Administrator.Server {
                 return 513;
             });
 
+            Handle.GET("/wscounters", (Request req) => {
+
+                Int32 e = WsEchoesCounter,
+                    d = WsDisconnectsCounter,
+                    h = WsHandshakesCounter;
+
+                WsEchoesCounter = 0;
+                WsDisconnectsCounter = 0;
+                WsHandshakesCounter = 0;
+
+                return new Response() { Body = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}", h, e, d) };
+            });
+
             Handle.Socket("echotestws", (String s, WebSocket ws) => {
+                Interlocked.Increment(ref WsEchoesCounter);
+
                 ws.Send(s);
             });
 
             Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) => {
+                Interlocked.Increment(ref WsEchoesCounter);
+
                 ws.Send(bs);
             });
 
             Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
+                Interlocked.Increment(ref WsDisconnectsCounter);
+
                 // Do nothing!
             });
 

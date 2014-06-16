@@ -60,9 +60,9 @@ typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
 typedef int8_t chunk_store_type;
+typedef uint32_t ws_channel_id_type;
 
 // Statistics macros.
-#define GW_COLLECT_SOCKET_STATISTICS
 //#define GW_DETAILED_STATISTICS
 //#define GW_ECHO_STATISTICS
 
@@ -75,7 +75,6 @@ typedef int8_t chunk_store_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 //#define GW_SESSIONS_DIAG
-#define GW_COLLECT_INACTIVE_SOCKETS
 //#define GW_LOOPBACK_AGGREGATION
 #ifdef GW_SMC_LOOPBACK_AGGREGATION
 #undef GW_LOOPBACK_AGGREGATION
@@ -174,6 +173,9 @@ const int32_t MAX_PROXIED_URIS = 32;
 // Number of sockets to increase the accept roof.
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
+// Maximum number of cached URI matchers.
+const int32_t MAX_CACHED_URI_MATCHERS = 16;
+
 // Offset of data blob in socket data.
 const int32_t SOCKET_DATA_OFFSET_BLOB = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
@@ -252,7 +254,7 @@ const int32_t GW_MONITOR_THREAD_TIMEOUT_SECONDS = 5;
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
 // Socket life time multiplier.
-const int32_t SOCKET_LIFETIME_MULTIPLIER = 3;
+const int32_t SOCKET_LIFETIME_MULTIPLIER = 5;
 
 // First port number used for binding.
 const uint16_t FIRST_BIND_PORT_NUM = 1500;
@@ -979,6 +981,7 @@ struct ScSessionStruct
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
         scheduler_id_ = INVALID_SCHEDULER_ID;
+        gw_worker_id_ = INVALID_WORKER_INDEX;
     }
 
     // Constructing session from string.
@@ -1052,7 +1055,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     uint32_t accum_data_bytes_left_;
 
     // WebSockets channel id.
-    uint32_t ws_channel_id_;
+    ws_channel_id_type ws_channel_id_;
 
     //////////////////////////////
     //////// 16 bits data ////////
@@ -1129,7 +1132,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     }
 
     bool IsReset() {
-        return (INVALID_SOCKET == socket_);
+        return (INVALID_SESSION_SALT == unique_socket_id_);
     }
 };
 
@@ -1250,6 +1253,65 @@ public:
     void Init(std::string db_name, uint64_t unique_num, db_index_type db_index);
 };
 
+class UriMatcherCacheEntry {
+
+    // URI matcher function.
+    MixedCodeConstants::MatchUriType gen_uri_matcher_func_;
+
+    // Generated DLL handle.
+    HMODULE gen_dll_handle_;
+
+    // Cached sorted URI string.
+    std::string sorted_uris_string_;
+
+    // Number of cached URIs.
+    int32_t num_uris_;
+
+    // Established global Clang engine.
+    static void* global_clang_engine_;
+
+public:
+
+    UriMatcherCacheEntry() {
+        num_uris_ = 0;
+        gen_dll_handle_ = NULL;
+        gen_uri_matcher_func_ = NULL;
+    }
+
+    static void** GetGlobalClangEngineAddress() {
+        return &global_clang_engine_;
+    }
+
+    static void DestroyGlobalEngine();
+
+    int32_t get_num_uris() {
+        return num_uris_;
+    }
+
+    std::string get_sorted_uris_string() {
+        return sorted_uris_string_;
+    }
+
+    MixedCodeConstants::MatchUriType get_uri_matcher_func() {
+        GW_ASSERT(NULL != gen_uri_matcher_func_);
+        return gen_uri_matcher_func_;
+    }
+
+    void Init(
+        MixedCodeConstants::MatchUriType gen_uri_matcher_func,
+        HMODULE gen_dll_handle,
+        std::string sorted_uris_string,
+        int32_t num_uris) {
+
+            gen_uri_matcher_func_ = gen_uri_matcher_func;
+            gen_dll_handle_ = gen_dll_handle;
+            sorted_uris_string_ = sorted_uris_string;
+            num_uris_ = num_uris;
+    }
+
+    void Destroy();
+};
+
 // Represents an active server port.
 class HandlersList;
 class SocketDataChunk;
@@ -1268,16 +1330,14 @@ class ServerPort
     // Statistics.
     volatile int64_t num_accepting_sockets_unsafe_;
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-    volatile int64_t num_allocated_accept_sockets_unsafe_;
-    volatile int64_t num_allocated_connect_sockets_unsafe_;
-#endif
-
     // Ports handler lists.
     PortHandlers* port_handlers_;
 
     // All registered URIs belonging to this port.
     RegisteredUris* registered_uris_;
+
+    // URI matcher cache.
+    std::list<UriMatcherCacheEntry*> uri_matcher_cache_;
 
     // All registered WebSockets belonging to this port.
     PortWsChannels* registered_ws_channels_;
@@ -1297,6 +1357,24 @@ class ServerPort
 
 public:
 
+    void RemoveOldestCacheEntry(UriMatcherCacheEntry* new_entry) {
+
+        // Checking if cache contains too many entries.
+        if (uri_matcher_cache_.size() >= MAX_CACHED_URI_MATCHERS) {
+
+            UriMatcherCacheEntry* oldest_uri_matcher = uri_matcher_cache_.front();
+            uri_matcher_cache_.pop_front();
+            oldest_uri_matcher->Destroy();
+
+            delete oldest_uri_matcher;
+        }
+
+        // Adding new entry to cache.
+        uri_matcher_cache_.push_back(new_entry);
+    }
+
+    UriMatcherCacheEntry* TryGetUriMatcherFromCache();
+
     port_index_type get_port_index() {
         return port_index_;
     }
@@ -1310,6 +1388,8 @@ public:
 
         GW_ASSERT(num_active_sockets_[worker_id] >= 0);
     }
+
+    int32_t GetNumberOfActiveSocketsForWorker(worker_id_type worker_id);
 
     int32_t GetNumberOfActiveSocketsAllWorkers();
 
@@ -1406,36 +1486,6 @@ public:
         InterlockedAdd64(&num_accepting_sockets_unsafe_, change_value);
         return num_accepting_sockets_unsafe_;
     }
-
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
-    // Retrieves the number of allocated accept sockets.
-    int64_t get_num_allocated_accept_sockets()
-    {
-        return num_allocated_accept_sockets_unsafe_;
-    }
-
-    // Increments or decrements the number of created accept sockets.
-    int64_t ChangeNumAllocatedAcceptSockets(int64_t change_value)
-    {
-        InterlockedAdd64(&num_allocated_accept_sockets_unsafe_, change_value);
-        return num_allocated_accept_sockets_unsafe_;
-    }
-
-    // Retrieves the number of allocated connect sockets.
-    int64_t get_num_allocated_connect_sockets()
-    {
-        return num_allocated_connect_sockets_unsafe_;
-    }
-
-    // Increments or decrements the number of created connect sockets.
-    int64_t ChangeNumAllocatedConnectSockets(int64_t change_value)
-    {
-        InterlockedAdd64(&num_allocated_connect_sockets_unsafe_, change_value);
-        return num_allocated_connect_sockets_unsafe_;
-    }
-
-#endif
 };
 
 // Information about the reversed proxy.
@@ -1555,6 +1605,9 @@ class Gateway
     // Gateway statistics port.
     uint16_t setting_gw_stats_port_;
 
+    // Internal system port used for communication between codehost and gateway.
+    uint16_t setting_internal_system_port_;
+
     // Gateway aggregation port.
     uint16_t setting_aggregation_port_;
 
@@ -1609,6 +1662,8 @@ class Gateway
 
     // List of active databases.
     ActiveDatabase active_databases_[MAX_ACTIVE_DATABASES];
+
+    bool db_starting_;
 
     // Indicates what databases went down.
     bool db_did_go_down_[MAX_ACTIVE_DATABASES];
@@ -1668,9 +1723,6 @@ class Gateway
 
     // Free socket indexes.
     PSLIST_HEADER free_socket_indexes_unsafe_;
-
-    // Number of active sockets.
-    volatile int64_t num_active_sockets_;
 
     // Global timer to keep track on old connections.
     volatile socket_timestamp_type global_timer_unsafe_;
@@ -1761,9 +1813,6 @@ class Gateway
     // White list with allowed IP-addresses.
     LinearList<ip_info_type, MAX_BLACK_LIST_IPS_PER_WORKER> white_ips_list_;
 
-    // Global IOCP handle.
-    HANDLE iocp_;
-
     // Last bound port number.
     volatile int64_t last_bind_port_num_unsafe_;
 
@@ -1784,6 +1833,26 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    bool get_db_starting() {
+        return db_starting_;
+    }
+
+    void set_db_starting() {
+        db_starting_ = true;
+    }
+
+    void reset_db_starting() {
+        db_starting_ = false;
+    }
+
+    uint16_t get_setting_internal_system_port() {
+        return setting_internal_system_port_;
+    }
+
+    uint16_t get_setting_gw_stats_port() {
+        return setting_gw_stats_port_;
+    }
 
     int64_t num_pending_sends_;
     int64_t num_aggregated_sent_messages_;
@@ -1832,6 +1901,9 @@ public:
     // Printing statistics for all workers.
     void PrintWorkersStatistics(std::stringstream& stats_stream);
 
+    // Registering all gateway handlers.
+    void RegisterGatewayHandlers();
+
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()
     {
@@ -1855,7 +1927,7 @@ public:
     ClangDestroyEngineType ClangDestroyEngineFunc;
 
     // Generate the code using managed generator.
-    uint32_t GenerateUriMatcher(RegisteredUris* port_uris);
+    uint32_t GenerateUriMatcher(ServerPort* sp, RegisteredUris* port_uris);
 
     // Codegen URI matcher.
     CodegenUriMatcher* get_codegen_uri_matcher()
@@ -1917,13 +1989,6 @@ public:
         return all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_;
     }
 
-    void SetBoundWorkerId(session_index_type socket_index, worker_id_type worker_id)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
-    }
-
     // Getting scheduler id.
     int32_t GetSchedulerId(session_index_type socket_index)
     {
@@ -1963,7 +2028,7 @@ public:
         return all_sockets_infos_unsafe_[socket_index].ws_channel_id_;
     }
 
-    void SetWebSocketChannelId(session_index_type socket_index, uint32_t ws_channel_id)
+    void SetWebSocketChannelId(session_index_type socket_index, ws_channel_id_type ws_channel_id)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
@@ -2050,7 +2115,7 @@ public:
     }
 
     // Setting new unique socket number.
-    random_salt_type GenerateUniqueSocketInfoIds(session_index_type socket_index, scheduler_id_type scheduler_id)
+    random_salt_type GenerateUniqueSocketInfoIds(session_index_type socket_index)
     {
         GW_ASSERT(socket_index < setting_max_connections_);
 
@@ -2058,13 +2123,28 @@ public:
         GW_ASSERT(unique_id != INVALID_SESSION_SALT);
 
         all_sockets_infos_unsafe_[socket_index].unique_socket_id_ = unique_id;
-        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = scheduler_id;
+        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = 0;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;
 #endif
 
         return unique_id;
+    }
+
+    // Setting new unique socket number.
+    void InvalidateSocket(session_index_type socket_index)
+    {
+        GW_ASSERT(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].socket_ = INVALID_SOCKET;
+    }
+
+    // Invalidating socket number.
+    bool IsInvalidSocket(session_index_type socket_index) {
+        GW_ASSERT(socket_index < setting_max_connections_);
+
+        return (INVALID_SOCKET == all_sockets_infos_unsafe_[socket_index].socket_);
     }
 
     // Getting unique socket number.
@@ -2359,15 +2439,11 @@ public:
 
 #endif
 
-#ifdef GW_COLLECT_SOCKET_STATISTICS
-
     // Increments number of processed HTTP requests.
     void IncrementNumProcessedHttpRequests()
     {
         InterlockedAdd64(&num_processed_http_requests_unsafe_, 1);
     }
-
-#endif
 
     // Get number of processed HTTP requests.
     int64_t get_num_processed_http_requests()
@@ -2375,20 +2451,10 @@ public:
         return num_processed_http_requests_unsafe_;
     }
 
-    // Number of active sockets.
-    int64_t get_num_active_sockets()
-    {
-        return num_active_sockets_;
-    }
-
-    // Change number of active sockets.
-    void ChangeNumActiveSockets(int64_t value)
-    {
-        InterlockedAdd64(&num_active_sockets_, value);
-    }
-
     // Collects outdated sockets if any.
-    uint32_t CollectInactiveSockets();
+    uint32_t CollectInactiveSockets(int32_t worker_id);
+
+    void DisconnectSocket(SOCKET s);
 
     // Updates current global timer value on given socket.
     void UpdateSocketTimeStamp(session_index_type index)
@@ -2463,10 +2529,10 @@ public:
     }
 
     // Getting specific worker information.
-    GatewayWorker* get_worker(int32_t worker_id);
+    GatewayWorker* get_worker(worker_id_type worker_id);
 
     // Getting specific worker handle.
-    HANDLE get_worker_thread_handle(int32_t worker_id)
+    HANDLE get_worker_thread_handle(worker_id_type worker_id)
     {
         return worker_thread_handles_[worker_id];
     }
@@ -2537,6 +2603,44 @@ public:
         return server_ports_ + port_index;
     }
 
+    // Retrieves the number of active connections.
+    int64_t NumberOfActiveConnectionsOnAllPorts()
+    {
+        int64_t num_active_conns = 0;
+
+        // Going through all ports.
+        for (int32_t i = 0; i < num_server_ports_slots_; i++)
+        {
+            // Checking that port is not empty.
+            if (!server_ports_[i].IsEmpty())
+            {
+                // Deleting port handlers if any.
+                num_active_conns += server_ports_[i].GetNumberOfActiveSocketsAllWorkers();
+            }
+        }
+
+        return num_active_conns;
+    }
+
+    // Retrieves the number of active connections.
+    int64_t NumberOfActiveConnectionsOnAllPortsForWorker(worker_id_type worker_id)
+    {
+        int64_t num_active_conns = 0;
+
+        // Going through all ports.
+        for (int32_t i = 0; i < num_server_ports_slots_; i++)
+        {
+            // Checking that port is not empty.
+            if (!server_ports_[i].IsEmpty())
+            {
+                // Deleting port handlers if any.
+                num_active_conns += server_ports_[i].GetNumberOfActiveSocketsForWorker(worker_id);
+            }
+        }
+
+        return num_active_conns;
+    }
+
     // Get number of active server ports.
     int32_t get_num_server_ports_slots()
     {
@@ -2575,6 +2679,9 @@ public:
 
     // Waking up all workers.
     void WakeUpAllWorkers();
+
+    // Waking up all workers if they are sleeping.
+    void WakeUpAllWorkersToCollectInactiveSockets();
 
     // Opens active databases events with monitor.
     uint32_t OpenActiveDatabasesUpdatedEvent();
@@ -2633,15 +2740,6 @@ public:
     // Getting the total number of overflow chunks for all workers.
     int64_t NumberOverflowChunksAllWorkers();
 
-    // Getting the number of active connections per port.
-    int64_t NumberOfActiveConnectionsPerPort(port_index_type port_index);
-
-    // Get IOCP.
-    HANDLE get_iocp()
-    {
-        return iocp_;
-    }
-
     // Local network interfaces to bind on.
     std::vector<std::string> setting_local_interfaces()
     {
@@ -2659,6 +2757,9 @@ public:
 
     // Initialize the network gateway.
     uint32_t Init();
+
+    // Sends an APC signal for rebalancing sockets.
+    void SendRebalanceAPC(worker_id_type worker_id);
 
     // Checking for database changes.
     uint32_t CheckDatabaseChanges(const std::set<std::string>& active_databases);

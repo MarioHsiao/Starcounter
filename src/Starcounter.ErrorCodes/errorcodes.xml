@@ -1337,6 +1337,9 @@
     <code hex="0093" severity="Error" name="ScErrWeaverFailedResolveReference">
       <message>The weaver failed to resolve a reference to an assembly.</message>
     </code>
+    <code hex="0094" severity="Error" name="ScErrBadInternalSystemPort">
+        <message>Internal system port is missing in configuration file or has invalid value.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
@@ -3189,6 +3192,27 @@
       <message>
 	  Unloading a table fails, since its class is not loaded. An application, where the class is declared, needs to be loaded before unload is called.
 	  </message>
+    </code>
+    <code hex="0114" severity="Error" name="ScErrToManyIndexes">
+      <message>
+        Maximum index count for table exceeded when creating index.
+      </message>
+      <remarks>
+        Keep in mind that this is evaluated using the total amount of indexes on
+        a table, including inherited indexes. Create table where base table
+        because of failure to add default index for this reason.
+      </remarks>
+    </code>
+    <code hex="0115" severity="Error" name="ScErrColumnNameNotUnique">
+      <message>
+        Create table failed because one or more columns shared the same name
+        token as another column.
+      </message>
+      <remarks>
+        Note that in case the table definition inherits another table definition
+        the name of a defined column must not share the name of a inherited
+        column.
+      </remarks>
     </code>
   </facility>
   

@@ -261,10 +261,12 @@ int Start(wchar_t* serverName, BOOL logSteps) {
     wprintf(L"Reading gateway configuration from: %s\n", gateway_cfg_path);
 
     wchar_t *gateway_workers_number;
+    wchar_t *internal_system_port_number;
 
     r = _read_gateway_config(
         gateway_cfg_path,
-        &gateway_workers_number);
+        &gateway_workers_number,
+        &internal_system_port_number);
 
     if (r) goto log_scerr;
 
@@ -492,7 +494,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	str_template =
         L"scadminserver.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
-        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --FLAG:NoDb %s";
+        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --InternalSystemPort=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 
@@ -506,6 +508,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
         wcslen(system_http_port) +	        // DefaultSystemHttpPort
 		wcslen(default_user_http_port) +	// DefaultUserHttpPort
         wcslen(gateway_workers_number) +	// GatewayWorkersNumber
+        wcslen(internal_system_port_number) +	// InternalSystemPort
 		wcslen(admin_logsteps_flag) +		// --LogSteps (or "" if not set)
 		1;
 
@@ -527,6 +530,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
         system_http_port,
 		default_user_http_port,
         gateway_workers_number,
+        internal_system_port_number,
 		admin_logsteps_flag);
 #endif
 

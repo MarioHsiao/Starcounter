@@ -242,7 +242,8 @@ end:
 
 uint32_t _read_gateway_config(
     const wchar_t *gateway_config_path,
-    wchar_t **pgateway_workers_number)
+    wchar_t **pgateway_workers_number,
+    wchar_t **pinternal_system_port_number)
 {
     using namespace rapidxml;
 
@@ -304,6 +305,18 @@ uint32_t _read_gateway_config(
 
     // Converting from UTF-8 to wchar_t.
     int32_t num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, gateway_workers_number->value(), -1, *pgateway_workers_number, (int)str_num_chars);
+    if (0 == num_chars_converted) goto end;
+
+    xml_node<> *internal_system_port_number = root_elem->first_node("InternalSystemPort");
+    if (!internal_system_port_number) goto end;
+
+    str_num_chars = internal_system_port_number->value_size() + 1;
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    *pinternal_system_port_number = (wchar_t *)malloc(str_size_bytes);
+    if (!*pinternal_system_port_number) goto end;
+
+    // Converting from UTF-8 to wchar_t.
+    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, internal_system_port_number->value(), -1, *pinternal_system_port_number, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
     r = 0;

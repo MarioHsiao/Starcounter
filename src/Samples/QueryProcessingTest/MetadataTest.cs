@@ -64,32 +64,35 @@ namespace QueryProcessingTest {
                 count++;
                 }
             Trace.Assert(count == 5);
-            RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
+            RawView rv = Db.SQL<RawView>("select rw from rawview rw where fullname = ?", 
                 "Starcounter.Metadata.Type").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "Type.Metadata.Starcounter.Raw.Starcounter");
+            Trace.Assert(rv.UniqueIdentifierReversed == "Type.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
-            Trace.Assert(rv.MaterializedTable.Name == rv.Name);
+            Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits == null);
-            rv = Db.SQL<RawView>("select rw from rawview rw where name like ?", "%ClrClass").First;
+            rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "ClrClass").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "ClrClass.Metadata.Starcounter.Raw.Starcounter");
+            Trace.Assert(rv.UniqueIdentifierReversed == "ClrClass.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
-            Trace.Assert(rv.MaterializedTable.Name == rv.Name);
+            Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits != null);
-            Trace.Assert(rv.Inherits.Name == "Starcounter.Metadata.VMView");
+            Trace.Assert(rv.Inherits.FullName == "Starcounter.Metadata.VMView");
+            Trace.Assert(rv.Inherits.Name == "VMView");
             Trace.Assert(rv.Inherits.Inherits != null);
             Trace.Assert(rv.Inherits.Inherits.Inherits != null);
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "Starcounter.Metadata.Table");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.FullName == "Starcounter.Metadata.Table");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "Table");
             Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits != null);
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Name == "Starcounter.Metadata.Type");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.FullName == "Starcounter.Metadata.Type");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Name == "Type");
             Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Inherits == null);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
                 Trace.Assert(v.MaterializedTable != null);
-                Trace.Assert(v.MaterializedTable.Name == v.Name);
+                Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
             Trace.Assert(count == 41);
@@ -97,16 +100,16 @@ namespace QueryProcessingTest {
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
                 Trace.Assert(v.MaterializedTable != null);
-                Trace.Assert(v.MaterializedTable.Name == v.Name);
-                Trace.Assert(v.FullName == v.FullNameReversed.ReverseOrderDotWords());
+                Trace.Assert(v.MaterializedTable.Name == v.FullName);
+                Trace.Assert(v.UniqueIdentifier == v.UniqueIdentifierReversed.ReverseOrderDotWords());
                 count++;
             }
             Trace.Assert(count == 18);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
                 "materialized_index").First;
             Trace.Assert(rv != null);
-            Trace.Assert(rv.FullNameReversed == "materialized_index.Raw.Starcounter");
-            Trace.Assert(rv.FullName == rv.FullNameReversed.ReverseOrderDotWords());
+            Trace.Assert(rv.UniqueIdentifierReversed == "materialized_index.Raw.Starcounter");
+            Trace.Assert(rv.UniqueIdentifier == rv.UniqueIdentifierReversed.ReverseOrderDotWords());
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
@@ -132,7 +135,8 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable != null);
             Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable.Name == "materialized_column");
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "Starcounter.Metadata.Column");
+            Trace.Assert(c.Table.Name == "Column");
+            Trace.Assert(c.Table.FullName == "Starcounter.Metadata.Column");
             Trace.Assert(c.Table is RawView);
             Trace.Assert((c.Table as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
@@ -160,26 +164,29 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Name == "Inherits");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Internal.Metadata.HostMaterializedTable);
-            Trace.Assert(c.Type.Name == "Starcounter.Metadata.Table");
+            Trace.Assert(c.Type.Name == "Table");
+            Trace.Assert((c.Type as Table).FullName == "Starcounter.Metadata.Table");
             Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable != null);
-            Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable.Name == c.Type.Name);
+            Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable.Name == (c.Type as Table).FullName);
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "Starcounter.Metadata.Table");
+            Trace.Assert(c.Table.FullName == "Starcounter.Metadata.Table");
+            Trace.Assert(c.Table.Name == "Table");
             Trace.Assert(c.Table is RawView);
             Trace.Assert((c.Table as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(!c.Unique);
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView", 
-                "fullNameReversed").First;
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView",
+                "uniqueIdentifierReversed").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Name == "FullNameReversed");
+            Trace.Assert(c.Name == "UniqueIdentifierReversed");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Metadata.DbPrimitiveType);
             Trace.Assert(c.Type.Name == "string");
             Trace.Assert((c.Type as Starcounter.Metadata.DbPrimitiveType).PrimitiveType == sccoredb.STAR_TYPE_STRING);
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "Starcounter.Metadata.Table");
+            Trace.Assert(c.Table.Name == "Table");
+            Trace.Assert(c.Table.FullName == "Starcounter.Metadata.Table");
             Trace.Assert(c.Table is RawView);
             Trace.Assert((c.Table as RawView).Inherits != null);
             Trace.Assert(c.MaterializedColumn != null);
@@ -190,7 +197,8 @@ namespace QueryProcessingTest {
                 "select c from starcounter.metadata.column c, rawview v where c.Table = v and v.updatable = ?", false)) {
                 Trace.Assert(tc.Type != null);
                 if (tc.Type is Starcounter.Internal.Metadata.HostMaterializedTable)
-                    Trace.Assert((tc.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable.Name == tc.Type.Name);
+                    Trace.Assert((tc.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable.Name == 
+                        (tc.Type as Table).FullName);
                 else {
                     Trace.Assert(tc.Type is Starcounter.Metadata.DbPrimitiveType);
                     Trace.Assert((tc.Type as Starcounter.Metadata.DbPrimitiveType).PrimitiveType != sccoredb.STAR_TYPE_REFERENCE);
@@ -202,7 +210,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!tc.Unique);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 29 + 20);
+            Trace.Assert(nrColumns == 30 + 20);
             nrColumns = 0;
             foreach (Column tc in Db.SQL<Column>("select c from starcounter.metadata.column c where c.Table is RawView")) {
                 Trace.Assert(tc.Type != null);
@@ -214,10 +222,10 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn.Name == tc.Name);
                 Trace.Assert(!tc.Unique);
                 RawView rw = tc.Table as RawView;
-                Trace.Assert(rw.FullNameReversed.ReverseOrderDotWords() == rw.FullName);
+                Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.UniqueIdentifier);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 115);
+            Trace.Assert(nrColumns == 116);
             Starcounter.Internal.Metadata.MaterializedIndex i = 
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "ColumnPrimaryKey").First;
@@ -241,27 +249,36 @@ namespace QueryProcessingTest {
         public static void ClrMetadatTest() {
             int nrCc = 0;
             int nrcc = 0;
-            foreach (ClrClass v in Db.SQL<ClrClass>("select c from ClrClass c where name LIKE ?", 
+            foreach (ClrClass v in Db.SQL<ClrClass>("select c from ClrClass c where fullname LIKE ?", 
                 "%commonclass")) {
                 nrCc++;
-                if (v.Name == "commonclass")
+                if (v.FullName == "commonclass")
                     nrcc++;
             }
             Trace.Assert(nrCc == 7);
             Trace.Assert(nrcc == 1);
+            nrCc = 0;
+            nrcc = 0;
+            foreach (ClrClass v in Db.SQL<ClrClass>("select c from ClrClass c where name = ?",
+                "commonclass")) {
+                nrCc++;
+                if (v.Name == "commonclass")
+                    nrcc++;
+            }
+            Trace.Assert(nrCc == 4);
+            Trace.Assert(nrcc == 2);
             Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
                 "UserIdNr").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "UserIdNr");
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "QueryProcessingTest.User");
+            Trace.Assert(c.Table.Name == "User");
+            Trace.Assert(c.Table.FullName == "QueryProcessingTest.User");
             Trace.Assert(c.Table is ClrClass);
             ClrClass cl = c.Table as ClrClass;
             Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
-            Trace.Assert(c.Table.FullNameReversed == cl.FullClassName.ReverseOrderDotWords() + "." + 
-                (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.AppDomainName);
-            Trace.Assert(c.Table.FullName == cl.AppDomainName + "." + 
-                (cl.AssemblyName == null ? "" : cl.AssemblyName + ".") + cl.FullClassName);
+            Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullClassName.ReverseOrderDotWords());
+            Trace.Assert(c.Table.UniqueIdentifier == cl.FullClassName);
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
@@ -276,13 +293,14 @@ namespace QueryProcessingTest {
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "Starcounter.Metadata.ClrPrimitiveType");
+            Trace.Assert(c.Table.Name == "ClrPrimitiveType");
+            Trace.Assert(c.Table.FullName == "Starcounter.Metadata.ClrPrimitiveType");
             Trace.Assert(c.Table is ClrClass);
             Trace.Assert((c.Table as ClrClass).FullClassName == "Starcounter.Metadata.ClrPrimitiveType");
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
-            Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).Name);
+            Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullName);
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Metadata.MapPrimitiveType);
             Trace.Assert((c.Type as Starcounter.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Boolean);
@@ -294,7 +312,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "Client");
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "QueryProcessingTest.Account");
+            Trace.Assert(c.Table.Name == "Account");
+            Trace.Assert(c.Table.FullName == "QueryProcessingTest.Account");
             Trace.Assert(c.Table is ClrClass);
             Trace.Assert((c.Table as ClrClass).FullClassName == "QueryProcessingTest.Account");
             Trace.Assert(c.MaterializedColumn != null);
@@ -304,7 +323,8 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type != null);
             Trace.Assert(!(c.Type is Starcounter.Metadata.MapPrimitiveType));
             Trace.Assert(c.Type is ClrClass);
-            Trace.Assert((c.Type as ClrClass).Name == "QueryProcessingTest.User");
+            Trace.Assert((c.Type as ClrClass).Name == "User");
+            Trace.Assert((c.Type as ClrClass).FullName == "QueryProcessingTest.User");
             Trace.Assert((c.Type as ClrClass).FullClassName == "QueryProcessingTest.User");
             nrcc = 0;
             foreach (Column tc in Db.SQL<Column>(

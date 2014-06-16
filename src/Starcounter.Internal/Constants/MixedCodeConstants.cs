@@ -5,8 +5,6 @@
 // C++ code--removes public keyword for C++
 #define public
 
-//#define HANDLER_REST_REGISTRATION
-
 typedef char* const String;
 typedef unsigned int uint;
 
@@ -62,7 +60,6 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
             SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 2 << 1,
             SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 2 << 2,
-            SOCKET_DATA_FLAGS_ACTIVE_CONN = 2 << 3,
             SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4,
             SOCKET_DATA_FLAGS_JUST_DISCONNECT = 2 << 5,
             SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
@@ -74,7 +71,6 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 12,
             HTTP_WS_FLAGS_UPGRADE_APPROVED = 2 << 13,
             HTTP_WS_FLAGS_UPGRADE_REQUEST = 2 << 14,
-            HTTP_WS_DESTROY_SENT = 2 << 15,
             HTTP_WS_JUST_PUSH_DISCONNECT = 2 << 16
         };
 
@@ -208,6 +204,11 @@ namespace Starcounter.Internal
         /// Server directory XML element name in configuration file.
         /// </summary>
         public const String ServerConfigDirName = "server-dir";
+
+        /// <summary>
+        /// Empty application name.
+        /// </summary>
+        public const String EmptyAppName = "unknown";
 
         /// <summary>
         /// Server directory parent XML element name.

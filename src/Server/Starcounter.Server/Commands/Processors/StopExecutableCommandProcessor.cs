@@ -92,7 +92,8 @@ namespace Starcounter.Server.Commands {
                 });
 
                 WithinTask(Task.RestartExecutables, (task) => {
-                    var node = Node.LocalhostSystemPortNode;
+
+                    var node = Node.LocalhostInternalSystemPortNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                     foreach (var fellow in fellowApplications) {

@@ -46,7 +46,7 @@ namespace Starcounter {
                 fileStream.WriteLine("Database dump. DO NOT EDIT!");
             }
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
-                Debug.Assert(!String.IsNullOrEmpty(tbl.FullName));
+                Debug.Assert(!String.IsNullOrEmpty(tbl.UniqueIdentifier));
                 if (Binding.Bindings.GetTypeDef(tbl.MaterializedTable.Name) == null) {
                     if (unloadAll)
                         throw ErrorCode.ToException(Error.SCERRUNLOADTABLENOCLASS, 
@@ -60,7 +60,7 @@ namespace Starcounter {
                     StringBuilder inStmt = new StringBuilder();
                     StringBuilder selectObjs = new StringBuilder();
                     inStmt.Append("INSERT INTO ");
-                    inStmt.Append(QuotePath(tbl.FullName));
+                    inStmt.Append(QuotePath(tbl.UniqueIdentifier));
                     inStmt.Append("(__id");
                     selectObjs.Append("SELECT __o as __id");
                     foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
