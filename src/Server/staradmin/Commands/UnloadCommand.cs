@@ -1,5 +1,10 @@
 ﻿
+using Starcounter.CLI;
+using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace staradmin.Commands {
 
@@ -27,7 +32,44 @@ namespace staradmin.Commands {
         }
 
         void UnloadDatabase() {
-            throw new NotImplementedException();
+            var unloadSourceCodeFile = "UnloadDatabase.cs";
+            string exeFile;
+
+            var appFile = Path.Combine(
+                Context.InstallationDirectory,
+                SharedCLI.CLIAppFolderName,
+                unloadSourceCodeFile
+                );
+            SourceCodeCompiler.CompileSingleFileToExecutable(appFile, out exeFile);
+
+            var unload = ApplicationCLICommand.Create(appFile, exeFile, CreateUnloadApplicationArguments()) as StartApplicationCommand;
+            unload.JobDescription = string.Format("Unloading {0}", unload.DatabaseName);
+            unload.JobCompletionDescription = "done";
+            unload.ApplicationStartingDescription = "unloading";
+
+            unload.Execute();
+        }
+
+        ApplicationArguments CreateUnloadApplicationArguments() {
+            var appName = "Starcounter_Internal_Unload_Utility";
+
+            var syntaxDef = new ApplicationSyntaxDefinition();
+            syntaxDef.ProgramDescription = "staradmin.exe Unload";
+            syntaxDef.DefaultCommand = "unload";
+            SharedCLI.DefineWellKnownOptions(syntaxDef, true);
+            syntaxDef.DefineCommand("unload", "Unloads a database");
+            var syntax = syntaxDef.CreateSyntax();
+
+            var cmdLine = new List<string>();
+            cmdLine.Add(string.Format("--{0}", SharedCLI.Option.NoAutoCreateDb));
+            cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.AppName, appName));
+            if (!string.IsNullOrEmpty(Context.Database)) {
+                cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Context.Database));
+            }
+            
+            ApplicationArguments args;
+            SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
+            return args;
         }
 
         void ReportUnrecognizedSource() {
