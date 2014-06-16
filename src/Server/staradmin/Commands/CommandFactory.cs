@@ -33,6 +33,11 @@ namespace staradmin.Commands {
                 command = new KillCommand(target);
             }
 
+            if (CommandIs(args, CommandLine.Commands.Unload)) {
+                var source = args.CommandParameters.Count == 0 ? string.Empty : args.CommandParameters[0];
+                command = new UnloadCommand(source);
+            }
+
             if (command == null) {
                 var usage = new ShowUsageCommand();
                 command = new ReportBadInputCommand(string.Format("Invalid input: '{0}'.", args.ToString("given")), usage);
