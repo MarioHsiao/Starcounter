@@ -45,7 +45,11 @@ namespace NodeTest
 
         public static String CompleteHttpUri;
 
+        public static String HttpCountersUri;
+
         public static String CompleteWebSocketUri;
+
+        public static String WebSocketCountersUri;
 
         public Int32 NumWorkers = 3;
 
@@ -154,6 +158,8 @@ namespace NodeTest
 
             CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
             CompleteWebSocketUri = "ws://" + ServerIp + ":" + ServerPort + ServerNodeTestWsRelativeUri;
+            HttpCountersUri = "http://" + ServerIp + ":" + ServerPort + "/httpcounters";
+            WebSocketCountersUri = "http://" + ServerIp + ":" + ServerPort + "/wscounters";
         }
 
         /// <summary>
@@ -168,7 +174,7 @@ namespace NodeTest
                     // NOTE: Need to sleep to receive correct statistics.
                     Thread.Sleep(1000);
 
-                    String retrieved = (String)X.GET("http://" + ServerIp + ":" + ServerPort + "/wscounters");
+                    String retrieved = (String)X.GET(WebSocketCountersUri);
 
                     String expected = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}",
                         NumEchoesAllWorkers / NumEchoesPerWsConnection,
@@ -183,7 +189,7 @@ namespace NodeTest
                 
                 case ProtocolTypes.ProtocolHttpV1: {
 
-                    String retrieved = (String)X.GET("http://" + ServerIp + ":" + ServerPort + "/httpcounters");
+                    String retrieved = (String)X.GET(HttpCountersUri);
 
                     String expected = String.Format("Http counters: echoes received={0}.", NumEchoesAllWorkers);
 
@@ -814,6 +820,32 @@ namespace NodeTest
             Console.WriteLine("NumSecondsToWait: " + settings.NumSecondsToWait);
             Console.WriteLine("AsyncMode: " + settings.AsyncMode);
             Console.WriteLine("UseAggregation: " + settings.UseAggregation);
+
+            // Waiting until host is available.
+            Boolean hostIsReady = false;
+            Console.Write("Waiting for the host");
+
+            for (Int32 i = 0; i < 10; i++) {
+                
+                Response resp = X.POST(Settings.CompleteHttpUri, "Test!", null);
+
+                if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
+
+                    hostIsReady = true;
+                    break;
+                }
+
+                Thread.Sleep(3000);
+                Console.Write(".");
+            }
+
+            Console.WriteLine();
+
+            if (!hostIsReady)
+                throw new Exception("Host is not ready by some reason!");
+
+            // Resetting the counters.
+            X.GET(Settings.HttpCountersUri);
 
             // Starting all workers.
             Worker[] workers = new Worker[settings.NumWorkers];

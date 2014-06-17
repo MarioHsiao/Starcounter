@@ -51,6 +51,14 @@ void SocketDataChunk::ReleaseSocketIndex(GatewayWorker* gw)
 // Resetting socket.
 void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
 {
+    // Checking if there is a proxy socket.
+    if (HasProxySocket()) {
+
+        session_index_type proxy_socket_index = GetProxySocketIndex();
+
+        g_gateway.DisconnectProxySocket(proxy_socket_index);
+    }
+
     set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);

@@ -21,8 +21,6 @@ namespace network {
 // Main network gateway object.
 Gateway g_gateway;
 
-void* UriMatcherCacheEntry::global_clang_engine_ = NULL;
-
 // Pointers to extended WinSock functions.
 LPFN_ACCEPTEX AcceptExFunc = NULL;
 LPFN_CONNECTEX ConnectExFunc = NULL;
@@ -591,19 +589,16 @@ worker_id_type ServerPort::GetLeastBusyWorkerId() {
     return wi;
 }
 
-void UriMatcherCacheEntry::DestroyGlobalEngine() {
-
-    if (NULL != global_clang_engine_) {
-        g_gateway.ClangDestroyEngineFunc(global_clang_engine_);
-        global_clang_engine_ = NULL;
-    }
-}
-
 void UriMatcherCacheEntry::Destroy() {
 
     if (NULL != gen_dll_handle_) {
         BOOL success = FreeLibrary(gen_dll_handle_);
         GW_ASSERT(TRUE == success);
+    }
+
+    if (NULL != clang_engine_) {
+        g_gateway.ClangDestroyEngineFunc(clang_engine_);
+        clang_engine_ = NULL;
     }
     
     num_uris_ = 0;
@@ -615,8 +610,8 @@ UriMatcherCacheEntry* ServerPort::TryGetUriMatcherFromCache() {
 
     std::string uris_list = registered_uris_->GetSortedString();
 
-    // Going through each cache entry.
-    for (std::list<UriMatcherCacheEntry*>::iterator it = uri_matcher_cache_.begin(); it != uri_matcher_cache_.end(); it++) {
+    // Going through each cache entry (note that we are going from back to front).
+    for (std::list<UriMatcherCacheEntry*>::reverse_iterator it = uri_matcher_cache_.rbegin(); it != uri_matcher_cache_.rend(); it++) {
 
         // Comparing first the number of URIs.
         if ((*it)->get_num_uris() == registered_uris_->get_num_uris()) {
@@ -3456,8 +3451,6 @@ Gateway::~Gateway()
         delete [] gw_workers_;
         gw_workers_ = NULL;
     }
-
-    UriMatcherCacheEntry::DestroyGlobalEngine();
 }
 
 int32_t Gateway::StartGateway()
@@ -3664,7 +3657,7 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
         UriMatchCodegenCompilerType::COMPILER_CLANG,
         dll_name.str(),
         root_function_name,
-        UriMatcherCacheEntry::GetGlobalClangEngineAddress(),
+        new_entry->GetClangEngineAddress(),
         &match_uri_func,
         &gen_dll_handle);
 
