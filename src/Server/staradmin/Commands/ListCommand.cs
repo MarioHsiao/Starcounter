@@ -18,7 +18,7 @@ namespace staradmin.Commands {
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
-                var cmd = appSyntax.DefineCommand(list.Name, list.ShortText, 0);
+                var cmd = appSyntax.DefineCommand(list.Name, list.ShortText, 0, 3);
                 cmd.DefineProperty("max", "Max number of entries to show.");
                 return cmd;
             }
