@@ -23,11 +23,6 @@ namespace star {
             string serverName;
             string serverHost;
             
-            if (args.Length == 0) {
-                AdminCLI.ListApplications();
-                return;
-            }
-
             if (args.Length == 1) {
                 uint code;
                 if (uint.TryParse(args[0], out code)) {
@@ -47,6 +42,11 @@ namespace star {
             var syntax = DefineCommandLineSyntax();
             if (!SharedCLI.TryParse(args, syntax, out appArgs))
                 return;
+
+            if (args.Length == 0) {
+                Usage(syntax, exitCode: 0);
+                return;
+            }
 
             // Process global options that has precedence
 
