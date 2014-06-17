@@ -121,10 +121,18 @@ namespace Starcounter {
                 string stmt = file.ReadLine();
                 if (stmt != "Database dump. DO NOT EDIT!")
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
-                while ((stmt = file.ReadLine()) != null)
+                stmt = file.ReadLine();
+                while (stmt != null) {
+                    string nextStmt = file.ReadLine();
+                    while (nextStmt != null && !nextStmt.StartsWith("INSERT")) {
+                        stmt += nextStmt;
+                        nextStmt = file.ReadLine();
+                    }
                     Db.SystemTransaction(delegate {
                         nrObjs += Db.Update(stmt);
                     });
+                    stmt = nextStmt;
+                }
             }
             return nrObjs;
         }

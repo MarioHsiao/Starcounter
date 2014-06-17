@@ -154,6 +154,17 @@ namespace QueryProcessingTest {
             });
             Trace.Assert(Db.SQL<User>("select u from user u where userid = ?", "SpecUser").First == null);
             Trace.Assert(Db.SQL<Account>("select a from account a where accountid = ?", 1000000).First == null);
+            int nrUnknCOmp = 0;
+            foreach (Company cc in Db.SQL<Company>("select c from company c where c.Country.name = ?", "Unknown"))
+                nrUnknCOmp++;
+            Db.Transaction(delegate {
+                Company comp = new Company { Country = new Country { Name = "Unknown" }, Name = "Single\'quoted\'name" };
+                comp = new Company { Country = new Country { Name = "Unknown" }, Name = "Double\"quoted\"\nname" };
+            });
+            int nrUnknCOmpA = 0;
+            foreach (Company cc in Db.SQL<Company>("select c from company c where c.Country.name = ?", "Unknown"))
+                nrUnknCOmpA++;
+            Trace.Assert(nrUnknCOmp + 2 == nrUnknCOmpA);
             HelpMethods.LogEvent("Finished testing insert into statements with values on web visit data model");
         }
     }
