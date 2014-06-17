@@ -59,7 +59,6 @@
     <Compile Include="ConsoleSession.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Reload.cs" />
     <Compile Include="ServerServiceUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
