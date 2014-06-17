@@ -48,6 +48,7 @@
     <Compile Include="Commands\CommandFactory.cs" />
     <Compile Include="Commands\ContextAwareCommand.cs" />
     <Compile Include="Commands\IUserCommand.cs" />
+    <Compile Include="Commands\ReloadCommand.cs" />
     <Compile Include="Commands\UnloadCommand.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="Commands\ICommand.cs" />
