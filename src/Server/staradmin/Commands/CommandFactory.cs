@@ -17,6 +17,7 @@ namespace staradmin.Commands {
             UserCommands.Add(new ShowHelpCommand.UserCommand());
             UserCommands.Add(new UnloadCommand.UserCommand());
             UserCommands.Add(new ReloadCommand.UserCommand());
+            UserCommands.Add(new ListCommand.UserCommand());
         }
 
         /// <summary>
