@@ -596,6 +596,18 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// Merges transaction into the current transaction.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="verify"></param>
+        /// <returns></returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_transaction_merge_into_current(
+            ulong handle,
+            ulong verify
+            );
+
+        /// <summary>
         /// Sccoredb_begin_commits the specified tran_locked_on_thread.
         /// </summary>
         /// <param name="tran_locked_on_thread">The tran_locked_on_thread.</param>
