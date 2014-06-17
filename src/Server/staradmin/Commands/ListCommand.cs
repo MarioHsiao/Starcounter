@@ -50,8 +50,8 @@ namespace staradmin.Commands {
 
                 var listCommand = command as ListCommand;
                 if (listCommand != null) {
-                    listCommand.userCommand = this;
-                    listCommand.typeOfList = typeOfList;
+                    listCommand.FactoryCommand = this;
+                    listCommand.TypeOfList = typeOfList;
                 }
 
                 return command;
@@ -98,8 +98,8 @@ namespace staradmin.Commands {
             ServerLog
         }
 
-        protected UserCommand userCommand { get; private set; }
-        protected ListType typeOfList { get; private set; }
+        protected UserCommand FactoryCommand { get; private set; }
+        protected ListType TypeOfList { get; private set; }
 
         protected abstract void List();
 
