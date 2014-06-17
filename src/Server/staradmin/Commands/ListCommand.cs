@@ -33,7 +33,13 @@ namespace staradmin.Commands {
                     return new ReportBadInputCommand("Specify the type of objects to list.", helpOnList);
                 }
 
-                return new ListCommand(this, args.CommandParameters[0]);
+                var type = args.CommandParameters[0];
+                var typeOfList = ListCommand.GetTypeOfList(type);
+                if (typeOfList == ListType.Unknown) {
+                    return CreateUnrecognizedType(type);
+                }
+
+                return new ListCommand(this, typeOfList);
             }
 
             public void WriteHelp(ShowHelpCommand helpCommand, TextWriter writer) {
@@ -51,18 +57,55 @@ namespace staradmin.Commands {
                 rows.Add("log", "List the content of the server log");
                 table.Write(rows);
             }
+
+            internal ICommand CreateUnrecognizedType(string type) {
+                var help = ShowHelpCommand.CreateAsInternalHelp(Info.Name);
+                return new ReportBadInputCommand(string.Format("Don't know how to list type '{0}'.", type), help);
+            }
+        }
+
+        static ListType GetTypeOfList(string type) {
+            switch (type.ToLowerInvariant()) {
+                case "app":
+                case "apps":
+                case "application":
+                case "applications":
+                    return ListType.Application;
+                default:
+                    return ListType.Unknown;
+            }
+        }
+
+        enum ListType {
+            Unknown,
+            Database,
+            Application,
+            ServerLog
         }
 
         readonly UserCommand userCommand;
-        readonly string objectType;
+        readonly ListType typeOfList;
 
-        ListCommand(UserCommand cmd, string type) {
+        ListCommand(UserCommand cmd, ListType type) {
             userCommand = cmd;
-            objectType = type;
+            typeOfList = type;
         }
 
         public void Execute() {
-            throw new NotImplementedException();
+            switch (typeOfList) {
+                case ListType.Database:
+                    Console.WriteLine("Listing databases...");
+                    break;
+                case ListType.Application:
+                    AdminCLI.ListApplications();
+                    break;
+                case ListType.ServerLog:
+                    Console.WriteLine("Listing server log...");
+                    break;
+                default:
+                    userCommand.CreateUnrecognizedType(Enum.GetName(typeof(ListType), typeOfList)).Execute();
+                    break;
+            }
         }
     }
 }
