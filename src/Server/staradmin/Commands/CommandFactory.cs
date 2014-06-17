@@ -16,6 +16,7 @@ namespace staradmin.Commands {
             UserCommands.Add(new KillCommand.UserCommand());
             UserCommands.Add(new ShowHelpCommand.UserCommand());
             UserCommands.Add(new UnloadCommand.UserCommand());
+            UserCommands.Add(new ReloadCommand.UserCommand());
         }
 
         /// <summary>
@@ -53,7 +54,7 @@ namespace staradmin.Commands {
                 context.Database = database;
 
                 contextCommand.Context = context;
-            } 
+            }
 
             return command;
         }
