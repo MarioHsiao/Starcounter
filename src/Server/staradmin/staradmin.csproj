@@ -86,6 +86,11 @@
       <Project>{c20f6d2a-3988-4abc-bfc2-95e19aca3c07}</Project>
       <Name>Starcounter.CLI</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
+      <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
+      <Name>Starcounter.Server.Rest</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Server\Starcounter.Server.csproj">
       <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
       <Name>Starcounter.Server</Name>
