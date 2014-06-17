@@ -109,11 +109,17 @@ namespace staradmin.Commands {
             if (Context.TryGetCommandProperty("max", out value)) {
                 uint max;
                 if (!uint.TryParse(value, out max)) {
-                    var help = ShowHelpCommand.CreateAsInternalHelp(FactoryCommand.Info.Name);
-                    var cmd = new ReportBadInputCommand(
-                        string.Format("Invalid 'max' given: '{0}'.", value), help);
-                    cmd.Execute();
-                    return;
+                    switch (value.ToLowerInvariant()) {
+                        case "all":
+                        case "any":
+                            max = int.MaxValue;
+                            break;
+                        default:
+                            var help = ShowHelpCommand.CreateAsInternalHelp(FactoryCommand.Info.Name);
+                            var cmd = new ReportBadInputCommand(string.Format("Invalid 'max' given: '{0}'.", value), help);
+                            cmd.Execute();
+                            return;
+                    }
                 }
                 MaxItems = (int) max;
             }
