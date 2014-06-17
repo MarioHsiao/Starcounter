@@ -42,6 +42,8 @@ namespace staradmin.Commands {
                         command = new ListApplicationsCommand();
                         break;
                     case ListType.ServerLog:
+                        command = new ListLogsCommand();
+                        break;
                     case ListType.Database:
                     default:
                         command = CreateUnrecognizedType(type);
@@ -86,6 +88,9 @@ namespace staradmin.Commands {
                 case "application":
                 case "applications":
                     return ListType.Application;
+                case "log":
+                case "logs":
+                    return ListType.ServerLog;
                 default:
                     return ListType.Unknown;
             }
