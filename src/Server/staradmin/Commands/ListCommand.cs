@@ -100,13 +100,23 @@ namespace staradmin.Commands {
 
         protected UserCommand FactoryCommand { get; private set; }
         protected ListType TypeOfList { get; private set; }
+        protected int? MaxItems { get; private set; }
 
         protected abstract void List();
 
         public override void Execute() {
-            // Check if we got any of the shared options and if so,
-            // process them. Then invoke List.
-            // TODO:
+            string value;
+            if (Context.TryGetCommandProperty("max", out value)) {
+                uint max;
+                if (!uint.TryParse(value, out max)) {
+                    var help = ShowHelpCommand.CreateAsInternalHelp(FactoryCommand.Info.Name);
+                    var cmd = new ReportBadInputCommand(
+                        string.Format("Invalid 'max' given: '{0}'.", value), help);
+                    cmd.Execute();
+                    return;
+                }
+                MaxItems = (int) max;
+            }
 
             List();
         }
