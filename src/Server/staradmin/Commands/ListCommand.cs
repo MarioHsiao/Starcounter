@@ -8,7 +8,7 @@ using System.IO;
 
 namespace staradmin.Commands {
 
-    internal class ListCommand : ICommand {
+    internal abstract class ListCommand : ICommand {
 
         public class UserCommand : IUserCommand {
             CommandLine.Command list = new CommandLine.Command() {
@@ -35,11 +35,26 @@ namespace staradmin.Commands {
 
                 var type = args.CommandParameters[0];
                 var typeOfList = ListCommand.GetTypeOfList(type);
-                if (typeOfList == ListType.Unknown) {
-                    return CreateUnrecognizedType(type);
+
+                ICommand command = null;
+                switch (typeOfList) {
+                    case ListType.Application:
+                        command = new ListApplicationsCommand();
+                        break;
+                    case ListType.ServerLog:
+                    case ListType.Database:
+                    default:
+                        command = CreateUnrecognizedType(type);
+                        break;
                 }
 
-                return new ListCommand(this, typeOfList);
+                var listCommand = command as ListCommand;
+                if (listCommand != null) {
+                    listCommand.userCommand = this;
+                    listCommand.typeOfList = typeOfList;
+                }
+
+                return command;
             }
 
             public void WriteHelp(ShowHelpCommand helpCommand, TextWriter writer) {
@@ -76,36 +91,24 @@ namespace staradmin.Commands {
             }
         }
 
-        enum ListType {
+        protected enum ListType {
             Unknown,
             Database,
             Application,
             ServerLog
         }
 
-        readonly UserCommand userCommand;
-        readonly ListType typeOfList;
+        protected UserCommand userCommand { get; private set; }
+        protected ListType typeOfList { get; private set; }
 
-        ListCommand(UserCommand cmd, ListType type) {
-            userCommand = cmd;
-            typeOfList = type;
-        }
+        protected abstract void List();
 
         public void Execute() {
-            switch (typeOfList) {
-                case ListType.Database:
-                    Console.WriteLine("Listing databases...");
-                    break;
-                case ListType.Application:
-                    AdminCLI.ListApplications();
-                    break;
-                case ListType.ServerLog:
-                    Console.WriteLine("Listing server log...");
-                    break;
-                default:
-                    userCommand.CreateUnrecognizedType(Enum.GetName(typeof(ListType), typeOfList)).Execute();
-                    break;
-            }
+            // Check if we got any of the shared options and if so,
+            // process them. Then invoke List.
+            // TODO:
+
+            List();
         }
     }
 }
