@@ -145,15 +145,15 @@ namespace Starcounter.Advanced.XSON {
 
 
         private static void MergeTransaction(Json main, Json toMerge) {
-            var mainTransaction = main._transaction;
-            var toMergeTransaction = toMerge._transaction;
+            var mainTransaction = main.ThisTransaction;
+            var toMergeTransaction = toMerge.ThisTransaction;
 
             if (mainTransaction != null && toMergeTransaction != null) {
                 mainTransaction.MergeTransaction(toMergeTransaction);
 
                 // TODO: 
                 // Reference counter to make sure commit, rollbacks and dispose works properly.
-                toMerge._transaction = mainTransaction;
+                toMerge.ThisTransaction = mainTransaction;
             }
         }
     }
