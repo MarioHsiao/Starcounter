@@ -8,7 +8,7 @@ using System.IO;
 
 namespace staradmin.Commands {
 
-    internal abstract class ListCommand : ICommand {
+    internal abstract class ListCommand : ContextAwareCommand, ICommand {
 
         public class UserCommand : IUserCommand {
             CommandLine.Command list = new CommandLine.Command() {
@@ -103,7 +103,7 @@ namespace staradmin.Commands {
 
         protected abstract void List();
 
-        public void Execute() {
+        public override void Execute() {
             // Check if we got any of the shared options and if so,
             // process them. Then invoke List.
             // TODO:
