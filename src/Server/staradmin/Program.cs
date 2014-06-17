@@ -58,8 +58,7 @@ namespace staradmin {
                     case "unload":
                         throw new Exception("No longer supported: use 'staradmin unload db'");
                     case "reload":
-                        RunReload(args);
-                        break;
+                        throw new Exception("No longer supported: use 'staradmin reload db'");
                     default:
                         var template = CLITemplate.GetTemplate(command);
                         if (template == null) {
@@ -174,19 +173,6 @@ namespace staradmin {
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
-        }
-
-        static void RunReload(string[] args) {
-            // staradmin reload <database> <file>
-            var reload = new Reload();
-            if (args.Length > 1) {
-                reload.Database = args[1];
-            }
-            if (args.Length > 2) {
-                reload.FilePath = args[2];
-            }
-
-            reload.Run();
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
