@@ -4,34 +4,7 @@
         <div class="panel-heading">Start Application</div>
         <div class="panel-body">
 
-
             <form name="myForm" class="form-horizontal" role="form">
-
-
-
-                <!-- File path -->
-      <!--          <div class="control-group" ng-class="{error: myForm.file.$invalid}">
-                    <label class="control-label" for="file">File</label>
-                    <div class="controls">
-
-                        <div class="input-append">
-                            <input name="file" id="file" class="col-xs-8" placeholder="path to the application" id="appendedInputButton" type="text" ng-model="selectedApplication.Path" required>
-                            <div class="btn-group" ng-hide="recentApplications == 0">
-                                <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu pull-right">
-                                    <li ng-repeat="application in recentApplications | orderBy:reverse">
-                                        <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}}</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <span class="help-block">Full path to the application (relative to the server).</span>
-                    </div>
-
-                </div>-->
-
 
                 <!-- Application file -->
                 <div class="form-group " ng-class="{'has-error': myForm.file.$invalid, 'has-feedback': myForm.file.$invalid}">
@@ -43,13 +16,14 @@
 
                             <div class="input-group-btn">
 
-                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <button class="btn btn-default" type="button" ng-click="btnPick()">...</button>
 
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu pull-right">
 
-                                    <li ng-repeat="application in recentApplications | orderBy:reverse">
+                                    <li ng-repeat="application in recentApplications track by $index | orderBy:reverse">
                                         <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}}</a>
                                     </li>
 
@@ -61,8 +35,6 @@
                         <span class="help-block">Full path to the application (relative to the server).</span>
                     </div>
                 </div>
-
-
 
                 <!-- Database -->
                 <div class="form-group" ng-class="{'has-error': myForm.Database.$invalid, 'has-feedback': myForm.Database.$invalid}">
