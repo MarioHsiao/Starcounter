@@ -38,13 +38,13 @@ namespace staradmin.Commands {
 
                 ICommand command = null;
                 switch (typeOfList) {
-                    case ListType.Application:
+                    case ObjectType.Application:
                         command = new ListApplicationsCommand();
                         break;
-                    case ListType.ServerLog:
+                    case ObjectType.ServerLog:
                         command = new ListLogsCommand();
                         break;
-                    case ListType.Database:
+                    case ObjectType.Database:
                     default:
                         command = CreateUnrecognizedType(type);
                         break;
@@ -81,30 +81,12 @@ namespace staradmin.Commands {
             }
         }
 
-        static ListType GetTypeOfList(string type) {
-            switch (type.ToLowerInvariant()) {
-                case "app":
-                case "apps":
-                case "application":
-                case "applications":
-                    return ListType.Application;
-                case "log":
-                case "logs":
-                    return ListType.ServerLog;
-                default:
-                    return ListType.Unknown;
-            }
-        }
-
-        protected enum ListType {
-            Unknown,
-            Database,
-            Application,
-            ServerLog
+        static ObjectType GetTypeOfList(string type) {
+            return type.ToObjectType();
         }
 
         protected UserCommand FactoryCommand { get; private set; }
-        protected ListType TypeOfList { get; private set; }
+        protected ObjectType TypeOfList { get; private set; }
         protected int? MaxItems { get; private set; }
 
         protected abstract void List();
