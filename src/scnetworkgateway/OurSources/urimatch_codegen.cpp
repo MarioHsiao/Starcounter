@@ -53,7 +53,6 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
     MixedCodeConstants::MatchUriType* out_match_uri_func,
     HMODULE* out_codegen_dll_handle)
 {
-    *clang_engine_addr = NULL;
     *out_codegen_dll_handle = NULL;
     *out_match_uri_func = NULL;
 

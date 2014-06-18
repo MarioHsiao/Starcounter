@@ -149,6 +149,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
     sd->SetProxySocketIndex(proxied_socket_info_index);
     sd->set_socket_info_index(proxied_socket_info_index);
     sd->SetProxySocketIndex(orig_socket_info_index);
+    sd->set_unique_socket_id(g_gateway.GetUniqueSocketId(proxied_socket_info_index));
 
     return 0;
 }

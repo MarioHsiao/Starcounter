@@ -49,7 +49,7 @@ namespace network {
 
 // Data types definitions.
 typedef uint32_t channel_chunk;
-typedef uint64_t random_salt_type;
+typedef int64_t random_salt_type;
 typedef uint32_t session_index_type;
 typedef uint8_t scheduler_id_type;
 typedef uint64_t socket_timestamp_type;
@@ -1104,6 +1104,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         return socket_;
     }
 
+    bool IsInvalidSocket() {
+        return INVALID_SOCKET == socket_;
+    }
+
     ScSocketInfoStruct()
     {
         Reset();
@@ -1267,22 +1271,21 @@ class UriMatcherCacheEntry {
     // Number of cached URIs.
     int32_t num_uris_;
 
-    // Established global Clang engine.
-    static void* global_clang_engine_;
+    // Established Clang engine.
+    void* clang_engine_;
 
 public:
+
+    void** GetClangEngineAddress() {
+        return &clang_engine_;
+    }
 
     UriMatcherCacheEntry() {
         num_uris_ = 0;
         gen_dll_handle_ = NULL;
         gen_uri_matcher_func_ = NULL;
+        clang_engine_ = NULL;
     }
-
-    static void** GetGlobalClangEngineAddress() {
-        return &global_clang_engine_;
-    }
-
-    static void DestroyGlobalEngine();
 
     int32_t get_num_uris() {
         return num_uris_;
@@ -1742,7 +1745,7 @@ class Gateway
     ////////////////////////
 
     // Unique linear socket id.
-    random_salt_type unique_socket_id_;
+    volatile random_salt_type unique_socket_id_;
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type sc_log_handle_;
@@ -2067,6 +2070,28 @@ public:
         all_sockets_infos_unsafe_[socket_index].set_socket_aggregated_flag();
     }
 
+    // Disconnect proxy socket.
+    void DisconnectProxySocket(session_index_type proxy_socket_index)
+    {
+        GW_ASSERT_DEBUG(proxy_socket_index < setting_max_connections_);
+
+        // Checking if socket info is not reseted yet.
+        if (false == all_sockets_infos_unsafe_[proxy_socket_index].IsReset()) {
+
+            // Setting unique socket id.
+            GenerateUniqueSocketInfoIds(proxy_socket_index);
+
+            if (false == all_sockets_infos_unsafe_[proxy_socket_index].IsInvalidSocket()) {
+
+                // NOTE: Not checking for correctness here.
+                DisconnectSocket(all_sockets_infos_unsafe_[proxy_socket_index].get_socket());
+
+                // Making socket unusable.
+                InvalidateSocket(proxy_socket_index);
+            }
+        }
+    }
+
     session_index_type GetProxySocketIndex(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
@@ -2156,8 +2181,7 @@ public:
     // Unique linear socket id.
     random_salt_type get_unique_socket_id()
     {
-        // NOTE: Doing simple increment here.
-        return ++unique_socket_id_;
+        return InterlockedIncrement64(&unique_socket_id_);
     }
 
     // Checks that all Gateway threads are alive.

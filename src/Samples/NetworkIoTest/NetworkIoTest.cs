@@ -361,22 +361,6 @@ namespace NetworkIoTestApp
                         };
                     });
 
-                    Handle.GET(8080, "/httpcounters", (Request req) => {
-
-                        Int32 e = HttpEchoesCounter;
-
-                        HttpEchoesCounter = 0;
-
-                        return new Response() { Body = String.Format("Http counters: echoes received={0}.", e) };
-                    });
-
-                    Handle.POST(8080, "/echotest", (Request req) =>
-                    {
-                        Interlocked.Increment(ref HttpEchoesCounter);
-
-                        return new Response() { BodyBytes = req.BodyBytes };
-                    });
-
                     Handle.GET(8080, "/echotestws", (Request req) =>
                     {
                         if (req.WebSocketUpgrade)
@@ -423,6 +407,21 @@ namespace NetworkIoTestApp
                         Interlocked.Increment(ref WsDisconnectsCounter);
 
                         // Do nothing!
+                    });
+
+                    Handle.GET(8080, "/httpcounters", (Request req) => {
+
+                        Int32 e = HttpEchoesCounter;
+
+                        HttpEchoesCounter = 0;
+
+                        return new Response() { Body = String.Format("Http counters: echoes received={0}.", e) };
+                    });
+
+                    Handle.POST(8080, "/echotest", (Request req) => {
+                        Interlocked.Increment(ref HttpEchoesCounter);
+
+                        return new Response() { BodyBytes = req.BodyBytes };
                     });
 
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>

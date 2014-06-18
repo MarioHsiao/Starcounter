@@ -195,6 +195,7 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(parseOK, "select $1a");
             ProcessQuery(parseOK, "select?a");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select$1a");
+            ProcessQuery(parseOK, "select 'System.Reflection.TargetInvocationException: Obiekt docelowy wywoÅ‚ania zgÅ‚osiÅ‚ wyjÄ…tek'");
             ProcessQuery(parseOK, "select NULL, 231");
             // Fails on _SC_ASSERT_DEBUG in native SQL processor, since not meta-data tables are created
             //ProcessQuery(1004, "INSERT INTO Visit(Id, Company, Start, End, " +

@@ -153,21 +153,6 @@ namespace Starcounter.Administrator.Server {
                 return "hello";
             });
 
-            Handle.GET("/httpcounters", (Request req) => {
-
-                Int32 e = HttpEchoesCounter;
-
-                HttpEchoesCounter = 0;
-
-                return new Response() { Body = String.Format("Http counters: echoes received={0}.", e) };
-            });
-
-            Handle.POST("/echotest", (Request req) => {
-                Interlocked.Increment(ref HttpEchoesCounter);
-
-                return new Response() { BodyBytes = req.BodyBytes };
-            });
-
             Handle.GET("/echotestws", (Request req) => {
                 if (req.WebSocketUpgrade) {
                     Interlocked.Increment(ref WsHandshakesCounter);
@@ -209,6 +194,21 @@ namespace Starcounter.Administrator.Server {
                 Interlocked.Increment(ref WsDisconnectsCounter);
 
                 // Do nothing!
+            });
+
+            Handle.GET("/httpcounters", (Request req) => {
+
+                Int32 e = HttpEchoesCounter;
+
+                HttpEchoesCounter = 0;
+
+                return new Response() { Body = String.Format("Http counters: echoes received={0}.", e) };
+            });
+
+            Handle.POST("/echotest", (Request req) => {
+                Interlocked.Increment(ref HttpEchoesCounter);
+
+                return new Response() { BodyBytes = req.BodyBytes };
             });
 
             #endregion
