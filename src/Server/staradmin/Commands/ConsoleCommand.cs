@@ -53,11 +53,21 @@ namespace staradmin.Commands {
             }
         }
 
+        readonly List<CodeHostConsole> consoles;
+
         ConsoleCommand(UserCommand cmd, string[] sources) {
+            consoles = new List<CodeHostConsole>();
+            foreach (var source in sources) {
+                consoles.Add(new CodeHostConsole(source));
+            }
         }
 
         public override void Execute() {
-            throw new NotImplementedException();
+            var session = ConsoleSession.StartNew(consoles.ToArray());
+            Console.CancelKeyPress += (s, e) => {
+                session.Stop();
+            };
+            session.Wait();
         }
     }
 }
