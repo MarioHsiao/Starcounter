@@ -68,6 +68,7 @@ namespace staradmin {
         static IApplicationSyntax Define() {
             var appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.ProgramDescription = "staradmin.exe";
+            appSyntax.DefaultCommand = "new";
 
             appSyntax.DefineFlag(
                 Options.Help.Name, 
