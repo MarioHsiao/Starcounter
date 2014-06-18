@@ -37,15 +37,24 @@ namespace staradmin.Commands {
                 ICommand command = null;
                 switch (typeToCreate) {
                     case ObjectType.Application:
-                    case ObjectType.ServerLog:
+                        var templateName = args.CommandParameters.Count > 1
+                            ? args.CommandParameters[1]
+                            : CLITemplate.DefaultTemplateName;
+                        command = new NewAppCommand(templateName);
+                        break;
                     case ObjectType.Database:
                     default:
+                    
+                        // Lets try if its the name of a CLI template,
+                        // indicating we should create a new applicaton
+                        // from it
+                        
                         var template = CLITemplate.GetTemplate(type);
                         if (template != null) {
-                            Console.WriteLine("Found!");
+                            command = new NewAppCommand(template);
+                        } else {
+                            command = CreateUnrecognizedType(type);
                         }
-
-                        command = CreateUnrecognizedType(type);
                         break;
                 }
 
