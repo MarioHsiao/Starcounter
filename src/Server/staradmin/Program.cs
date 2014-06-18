@@ -50,8 +50,7 @@ namespace staradmin {
                         ServerServiceUtilities.Stop();
                         break;
                     case "console":
-                        RunConsoleSessionInCurrentProcess(args);
-                        break;
+                        throw new Exception("No longer supported: use 'STAR_ADMIN_NEW_SYNTAX' and 'staradmin console'");
                     case "log":
                         throw new Exception("No longer supported: use 'staradmin list log'");
                     case "unload":
@@ -77,23 +76,6 @@ namespace staradmin {
             } finally {
                 Console.ResetColor();
             }
-        }
-
-        static void RunConsoleSessionInCurrentProcess(string[] args) {
-            var consoles = new List<CodeHostConsole>();
-            if (args.Length == 1) {
-                consoles.Add(new CodeHostConsole(StarcounterConstants.DefaultDatabaseName));
-            } else {
-                for (int i = 1; i < args.Length; i++) {
-                    consoles.Add(new CodeHostConsole(args[i]));
-                }
-            }
-
-            var session = ConsoleSession.StartNew(consoles.ToArray());
-            Console.CancelKeyPress += (s, e) => {
-                session.Stop();
-            };
-            session.Wait();
         }
 
         static void LaunchEditorOnNewAppIfConfigured(string applicationFile) {
