@@ -1,6 +1,7 @@
 ﻿using Starcounter.CLI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace staradmin.Commands {
 
@@ -22,7 +23,8 @@ namespace staradmin.Commands {
 
             table.Title = "Commands:";
             rows.Clear();
-            foreach (var userCommand in CommandFactory.UserCommands) {
+            var sortedCommands = CommandFactory.UserCommands.OrderBy(s => s.Info.Name);
+            foreach (var userCommand in sortedCommands) {
                 rows.Add(userCommand.Info.Name, userCommand.Info.ShortText);
             }
             table.Write(rows);
