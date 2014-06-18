@@ -1,1 +1,1 @@
-staradmin killall
+staradmin kill all

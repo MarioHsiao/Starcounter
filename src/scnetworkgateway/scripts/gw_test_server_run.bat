@@ -1,4 +1,4 @@
-staradmin -killall
+staradmin kill all
 
 timeout 1
 

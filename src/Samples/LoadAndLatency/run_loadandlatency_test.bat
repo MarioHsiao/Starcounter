@@ -9,7 +9,7 @@ SET DB_NAME=LOADANDLATENCY
 SET TEST_NAME=LoadAndLatency
 SET TEST_ARGS=--UserArguments="SpecificTestType=0 %*"
 
-staradmin -killall
+staradmin kill all
 
 :: Checking for existing dirs.
 IF EXIST .db (

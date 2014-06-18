@@ -9,7 +9,7 @@ SET DB_NAME=SQLCACHETRASHER
 SET TEST_NAME=SqlCacheTrasher
 ::SET TEST_ARGS=--UserArguments="param12345"
 
-staradmin -killall
+staradmin kill all
 
 :: Checking for existing dirs.
 IF EXIST .db (

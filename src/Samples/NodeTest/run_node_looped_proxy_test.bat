@@ -21,11 +21,11 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
 :: Success message.
 ECHO Node loop proxy tests finished successfully!
 
-staradmin -killall
+staradmin kill all
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the loop proxy test! 1>&2
-staradmin -killall
+staradmin kill all
 EXIT 1

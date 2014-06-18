@@ -2,7 +2,7 @@
 IF "%SC_RUN_NODE_TEST%"=="False" GOTO :EOF
 
 :: Killing all processes.
-staradmin -killall
+staradmin kill all
 
 :: Starting NetworkIoTest in background.
 START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS"
@@ -17,11 +17,11 @@ IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 ECHO Node tests finished successfully!
 
 :: Killing all processes.
-staradmin -killall
+staradmin kill all
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the Node test! 1>&2
-staradmin -killall
+staradmin kill all
 EXIT 1

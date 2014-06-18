@@ -4455,6 +4455,11 @@
         to build?
       </message>
     </code>
+    <code hex="0012" severity="Error" name="ScErrCLITemplateNotFound">
+      <message>
+        A source code template with the specified name could not be found.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
