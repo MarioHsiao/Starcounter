@@ -13,7 +13,7 @@ namespace staradmin.Commands {
             CommandLine.Command newCommand = new CommandLine.Command() {
                 Name = "new",
                 ShortText = "Creates various types of objects, e.g. databases or applications.",
-                Usage = "staradmin new <type>"
+                Usage = "staradmin new <type|template>"
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
@@ -77,9 +77,23 @@ namespace staradmin.Commands {
                 var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
                 var rows = new Dictionary<string, string>();
                 table.Title = "Types:";
-                rows.Add("db", "Create a new database");
                 rows.Add("app", "Create a new application (based on a template)");
+                rows.Add("db", "Create a new database");
                 table.Write(rows);
+
+                Console.WriteLine();
+                table.Title = "Examples:";
+                table.RowSpace = 1;
+                rows.Clear();
+                rows.Add("staradmin new app", "Creates a new application from the default template, normally named '+'.");
+                rows.Add("staradmin new mytemplate", "Creates a new application from 'mytemplate' template.");
+                rows.Add("staradmin new app + foo", "Creates a new application from '+' template, naming it 'foo'");
+                table.Write(rows);
+
+                Console.WriteLine();
+                Console.WriteLine("Running 'staradmin fubar' is the shorthand of 'staradmin new app fubar';");
+                Console.WriteLine("it creates a new application based on the 'fubar' template. If the template");
+                Console.WriteLine("does not exist, the staradmin usage message is displayed.");
             }
 
             internal ICommand CreateUnrecognizedType(string type) {
