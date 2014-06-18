@@ -39,7 +39,8 @@ extern uint32_t _read_server_config(
 
 extern uint32_t _read_gateway_config(
     const wchar_t *gateway_config_path,
-    wchar_t **pgateway_workers_number);
+    wchar_t **pgateway_workers_number,
+    wchar_t **pinternal_system_port_number);
 
 extern uint32_t _read_database_config(
     const wchar_t *database_config_path,

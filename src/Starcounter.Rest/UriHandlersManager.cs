@@ -1,5 +1,4 @@
-﻿//#define HANDLER_REST_REGISTRATION
-using Starcounter;
+﻿using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Rest;
 using System;
@@ -359,7 +358,17 @@ namespace Starcounter.Rest
         public static Func<Request, Int32, Response> HandleInternalRequest_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
-        public static bmx.BMX_HANDLER_CALLBACK HttpOuterHandler_;
+        public delegate void RegisterUriHandlerNativeDelegate(
+            UInt16 port,
+            String appName,
+            String originalUriInfo,
+            String processedUriInfo,
+            Byte[] nativeParamTypes,
+            UInt16 managedHandlerIndex,
+            out UInt64 handlerInfo);
+
+        internal static RegisterUriHandlerNativeDelegate RegisterUriHandlerNative_;
+
         public static Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
 
         public static void SetHandlerRegisteredCallback(Action<string, ushort> callback) {
@@ -371,12 +380,12 @@ namespace Starcounter.Rest
             return HandleInternalRequest_ != null;
         }
 
-        public static void SetRegisterUriHandlerNew(
-            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
+        public static void SetDelegates(
+            RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             Func<Request, Boolean> onHttpMessageRoot,
             Func<Request, Int32, Response> handleInternalRequest) {
 
-            HttpOuterHandler_ = httpOuterHandler;
+            RegisterUriHandlerNative_ = registerUriHandlerNative;
             OnHttpMessageRoot_ = onHttpMessageRoot;
             HandleInternalRequest_ = handleInternalRequest;
         }
@@ -523,51 +532,6 @@ namespace Starcounter.Rest
             }
         }
 
-        void UnregisterUriHandler(UInt16 port, String originalUriInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (allUriHandlers_)
-            {
-                UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
-            }
-        }
-
-        void RegisterUriHandlerNative(
-            UInt16 port,
-            String appName,
-            String originalUriInfo,
-            String processedUriInfo,
-            Byte[] paramTypes,
-            UInt16 managedHandlerIndex,
-            out UInt64 handlerInfo)
-        {
-            Byte numParams = 0;
-            if (null != paramTypes)
-                numParams = (Byte)paramTypes.Length;
-
-            unsafe
-            {
-                fixed (Byte* pp = paramTypes)
-                {
-                    UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
-                        port,
-                        appName,
-                        originalUriInfo,
-                        processedUriInfo,
-                        pp,
-                        numParams,
-                        UriInjectMethods.HttpOuterHandler_,
-                        managedHandlerIndex,
-                        out handlerInfo);
-
-                    if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
-                }
-            }
-        }
-
         /// <summary>
         /// Registers URI handler on a specific port.
         /// </summary>
@@ -618,15 +582,15 @@ namespace Starcounter.Rest
                     ho);
 
                 // Registering the outer native handler (if any).
-                if (UriInjectMethods.HttpOuterHandler_ != null) {
+                if (UriInjectMethods.RegisterUriHandlerNative_ != null) {
                     if (registerWithGateway_) {
 
                         String appNames = allUriHandlers_[handlerId].AppNames;
                         if (String.IsNullOrEmpty(appNames)) {
-                            appNames = "unknown";
+                            appNames = MixedCodeConstants.EmptyAppName;
                         }
 
-                        RegisterUriHandlerNative(
+                        UriInjectMethods.RegisterUriHandlerNative_(
                             port,
                             appNames,
                             originalUriInfo,
@@ -634,39 +598,6 @@ namespace Starcounter.Rest
                             nativeParamTypes,
                             handlerId,
                             out handlerInfo);
-
-#if HANDLER_REST_REGISTRATION
-                        String dbName = StarcounterEnvironment.DatabaseNameLower;
-
-                        String uriHandlerInfo =
-                            dbName + " " +
-                            appNames + " " +
-                            handlerInfo + " " +
-                            port + " " +                            
-                            originalUriInfo.Replace(' ', '\\') + " " +
-                            processedUriInfo.Replace(' ', '\\') + " " +
-                            nativeParamTypes.Length;
-
-                        String t = "";
-                        if (nativeParamTypes.Length == 0) {
-                            t = " 0";
-                        } else {
-                            for (Int32 i = 0; i < nativeParamTypes.Length; i++) {
-                                t += " " + nativeParamTypes[i];
-                            }
-                        }   
-
-                        uriHandlerInfo += t + "\r\n\r\n\r\n\r\n";
-
-                        Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
-
-                        Node n = new Node("127.0.0.1", 8282);
-                        Response r = n.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
-                        
-                        if (r.StatusCode != 200)
-                            throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, "URI string: " + originalUriInfo);
-
-#endif
                     }
                 }
 

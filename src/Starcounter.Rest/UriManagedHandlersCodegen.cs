@@ -856,13 +856,13 @@ namespace Starcounter.Rest
         }
 
         public static void Setup(
-            bmx.BMX_HANDLER_CALLBACK httpOuterHandler,
+            UriInjectMethods.RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             Func<Request, Boolean> onHttpMessageRoot,
             Func<Request, Int32, Response> handleInternalRequest,
             Action<Boolean> internalAddExtraHandlerLevel)
         {
-            UriInjectMethods.SetRegisterUriHandlerNew(
-                httpOuterHandler,
+            UriInjectMethods.SetDelegates(
+                registerUriHandlerNative,
                 onHttpMessageRoot,
                 handleInternalRequest);
 

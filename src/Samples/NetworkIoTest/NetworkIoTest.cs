@@ -212,14 +212,14 @@ namespace NetworkIoTestApp
         {
             // Checking if length is correct.
             if (args.Length != 3)
-                return;
+                args = new String[] { "DbNumber=1", "PortNumber=8080", "TestType=MODE_NODE_TESTS" };
 
             String db_number_string = args[0].Replace("DbNumber=", ""),
                 port_number_string = args[1].Replace("PortNumber=", ""),
                 test_type_string = args[2].Replace("TestType=", "");
 
             Int32 db_number = 0;
-            TestTypes test_type = TestTypes.MODE_STANDARD_BROWSER;
+            TestTypes test_type = TestTypes.MODE_NODE_TESTS;
             UInt16 port_number = 1235;
 
             Array test_type_values = Enum.GetValues(typeof(TestTypes));
@@ -258,6 +258,11 @@ namespace NetworkIoTestApp
             //DbSession dbs = new DbSession();
             //dbs.RunAsync(() => PrintPerformanceThread(0), 0);
         }
+
+        static Int32 WsEchoesCounter = 0;
+        static Int32 WsDisconnectsCounter = 0;
+        static Int32 WsHandshakesCounter = 0;
+        static Int32 HttpEchoesCounter = 0;
 
         // Handlers registration.
         static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
@@ -356,15 +361,12 @@ namespace NetworkIoTestApp
                         };
                     });
 
-                    Handle.POST(8080, "/echotest", (Request req) =>
-                    {
-                        return new Response() { BodyBytes = req.BodyBytes };
-                    });
-
                     Handle.GET(8080, "/echotestws", (Request req) =>
                     {
                         if (req.WebSocketUpgrade)
                         {
+                            Interlocked.Increment(ref WsHandshakesCounter);
+
                             req.SendUpgrade("echotestws");
 
                             return HandlerStatus.Handled;
@@ -373,19 +375,53 @@ namespace NetworkIoTestApp
                         return 513;
                     });
 
+                    Handle.GET(8080, "/wscounters", (Request req) => {
+
+                        Int32 e = WsEchoesCounter,
+                            d = WsDisconnectsCounter,
+                            h = WsHandshakesCounter;
+
+                        WsEchoesCounter = 0;
+                        WsDisconnectsCounter = 0;
+                        WsHandshakesCounter = 0;
+
+                        return new Response() { Body = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}", h, e, d) };
+                    });
+
                     Handle.Socket(8080, "echotestws", (String s, WebSocket ws) =>
                     {
+                        Interlocked.Increment(ref WsEchoesCounter);
+
                         ws.Send(s);
                     });
 
                     Handle.Socket(8080, "echotestws", (Byte[] bs, WebSocket ws) =>
                     {
+                        Interlocked.Increment(ref WsEchoesCounter);
+
                         ws.Send(bs);
                     });
 
                     Handle.SocketDisconnect(8080, "echotestws", (UInt64 cargoId, IAppsSession session) =>
                     {
+                        Interlocked.Increment(ref WsDisconnectsCounter);
+
                         // Do nothing!
+                    });
+
+                    Handle.GET(8080, "/httpcounters", (Request req) => {
+
+                        Int32 e = HttpEchoesCounter;
+
+                        HttpEchoesCounter = 0;
+
+                        return new Response() { Body = String.Format("Http counters: echoes received={0}.", e) };
+                    });
+
+                    Handle.POST(8080, "/echotest", (Request req) => {
+                        Interlocked.Increment(ref HttpEchoesCounter);
+
+                        return new Response() { BodyBytes = req.BodyBytes };
                     });
 
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>

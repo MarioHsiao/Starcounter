@@ -13,9 +13,6 @@ COPY /Y scnetworkgateway_proxy_test.xml %SERVER_DIR%\personal\scnetworkgateway.x
 :: Starting service in background.
 START CMD /C "scservice.exe"
 
-:: Waiting for test to initialize.
-ping -n 10 127.0.0.1 > nul
-
 :: Starting the client part of the test.
 NodeTest.exe %*
 

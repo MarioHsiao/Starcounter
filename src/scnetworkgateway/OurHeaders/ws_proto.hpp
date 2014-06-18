@@ -207,7 +207,13 @@ public:
             stats_stream << "{\"wschannel\":\"" << reg_ws_channels_[i].get_channel_name() << "\",";
             stats_stream << "\"location\":";
 
-            stats_stream << '"' << g_gateway.GetDatabase(reg_ws_channels_[i].get_db_index())->get_db_name() << '"';
+            db_index_type db_index = reg_ws_channels_[i].get_db_index();
+            if (INVALID_DB_INDEX == db_index) {
+                stats_stream << "\"gateway\"";
+            } else {
+                stats_stream << '"' << g_gateway.GetDatabase(db_index)->get_db_name() << '"';
+            }
+
             stats_stream << ",\"application\":\"" << reg_ws_channels_[i].get_app_name() << "\""; 
 
             stats_stream << "}";
@@ -336,7 +342,7 @@ public:
     void AddNewEntry(
         BMX_HANDLER_TYPE handler_info,
         const char* app_name_string,
-        uint32_t channel_id,
+        ws_channel_id_type channel_id,
         const char* channel_name,
         db_index_type db_index)
     {

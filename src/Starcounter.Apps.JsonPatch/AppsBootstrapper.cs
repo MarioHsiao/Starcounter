@@ -7,6 +7,7 @@ using Starcounter.Rest;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -43,12 +44,14 @@ namespace Starcounter.Internal {
             Byte numSchedulers,
             UInt16 defaultUserHttpPort,
             UInt16 defaultSystemHttpPort,
+            UInt16 defaultInternalSystemPort,
             UInt32 sessionTimeoutMinutes,
             String dbName)
         {
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
             StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
+            StarcounterEnvironment.Default.InternalSystemPort = defaultInternalSystemPort;
             StarcounterEnvironment.Default.SessionTimeoutMinutes = sessionTimeoutMinutes;
 
             StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
@@ -67,12 +70,12 @@ namespace Starcounter.Internal {
             // Giving REST needed delegates.
             unsafe {
                 UriManagedHandlersCodegen.Setup(
-                    GatewayHandlers.HandleIncomingHttpRequest,
+                    GatewayHandlers.RegisterUriHandlerNative,
                     OnHttpMessageRoot,
                     AppServer_.HandleRequest,
                     UriHandlersManager.AddExtraHandlerLevel);
 
-                AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.HandleWebSocket);
+                AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
             }
 
             // Injecting required hosted Node functionality.

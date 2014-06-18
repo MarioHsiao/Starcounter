@@ -89,6 +89,9 @@ uint32_t HandlersTable::RegisterPortHandler(
     db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
@@ -153,8 +156,8 @@ uint32_t HandlersTable::RegisterPortHandler(
         NULL,
         NULL,
         NULL,
-        db_index,
         0,
+        db_index,
         0,
         NULL);
 
@@ -242,6 +245,9 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     db_index_type db_index,
     BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
@@ -400,6 +406,9 @@ uint32_t HandlersTable::RegisterUriHandler(
     BMX_HANDLER_INDEX_TYPE& out_handler_index,
     ReverseProxyInfo* reverse_proxy_info)
 {
+    // NOTE: Only first worker should be able to create sockets.
+    GW_ASSERT(0 == gw->get_worker_id());
+
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRMAXHANDLERSREACHED;
@@ -427,7 +436,7 @@ uint32_t HandlersTable::RegisterUriHandler(
                 if (!strcmp(processed_uri_string, registered_handlers_[i].get_processed_uri_info()))
                 {
                     wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-                    wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%s\".",
+                    wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".",
                         port_num, processed_uri_string);
                     g_gateway.LogWriteError(temp);
 

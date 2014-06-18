@@ -7,9 +7,6 @@ staradmin kill all
 :: Starting NetworkIoTest in background.
 START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS"
 
-:: Waiting for test to initialize.
-ping -n 10 127.0.0.1 > nul
-
 :: Starting the client part of the test.
 NodeTest.exe %*
 

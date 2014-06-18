@@ -1337,6 +1337,9 @@
     <code hex="0093" severity="Error" name="ScErrWeaverFailedResolveReference">
       <message>The weaver failed to resolve a reference to an assembly.</message>
     </code>
+    <code hex="0094" severity="Error" name="ScErrBadInternalSystemPort">
+        <message>Internal system port is missing in configuration file or has invalid value.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->

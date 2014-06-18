@@ -45,7 +45,11 @@ namespace NodeTest
 
         public static String CompleteHttpUri;
 
+        public static String HttpCountersUri;
+
         public static String CompleteWebSocketUri;
+
+        public static String WebSocketCountersUri;
 
         public Int32 NumWorkers = 3;
 
@@ -54,6 +58,8 @@ namespace NodeTest
         public Int32 MaxEchoBytes = 10000;
 
         public Int32 NumEchoesPerWorker = 30000;
+
+        public Int32 NumEchoesPerWsConnection = 10;
 
         public Int32 NumSecondsToWait = 5000;
 
@@ -64,6 +70,12 @@ namespace NodeTest
         public Boolean UseAggregation = false;
 
         public Boolean ConsoleDiag = false;
+
+        public Int64 numEchoesAllWorkers_ = 0;
+
+        public Int64 NumEchoesAllWorkers {
+            get { return numEchoesAllWorkers_; }
+        }
 
         public void Init(string[] args)
         {
@@ -102,6 +114,10 @@ namespace NodeTest
                 {
                     NumEchoesPerWorker = Int32.Parse(arg.Substring("-NumEchoesPerWorker=".Length));
                 }
+                else if (arg.StartsWith("-NumEchoesPerWsConnection="))
+                {
+                    NumEchoesPerWsConnection = Int32.Parse(arg.Substring("-NumEchoesPerWsConnection=".Length));
+                }
                 else if (arg.StartsWith("-NumSecondsToWait="))
                 {
                     NumSecondsToWait = Int32.Parse(arg.Substring("-NumSecondsToWait=".Length));
@@ -127,8 +143,66 @@ namespace NodeTest
                 }
             }
 
+            if (ProtocolTypes.ProtocolWebSockets == ProtocolType) {
+
+                if ((NumEchoesPerWorker % NumEchoesPerWsConnection) != 0) {
+                    throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerWsConnection!");
+                }
+
+                if ((AsyncModes.ModeSync != AsyncMode) || (true == UseAggregation)) {
+                    throw new ArgumentException("WebSockets support only Sync mode (and no aggregation)!");
+                }
+            }
+
+            numEchoesAllWorkers_ = NumEchoesPerWorker * NumWorkers;
+
             CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
             CompleteWebSocketUri = "ws://" + ServerIp + ":" + ServerPort + ServerNodeTestWsRelativeUri;
+            HttpCountersUri = "http://" + ServerIp + ":" + ServerPort + "/httpcounters";
+            WebSocketCountersUri = "http://" + ServerIp + ":" + ServerPort + "/wscounters";
+        }
+
+        /// <summary>
+        /// Checking for correct counters from server side.
+        /// </summary>
+        public void CheckServerCounters() {
+
+            switch (ProtocolType) {
+
+                case ProtocolTypes.ProtocolWebSockets: {
+
+                    // NOTE: Need to sleep to receive correct statistics.
+                    Thread.Sleep(1000);
+
+                    String retrieved = (String)X.GET(WebSocketCountersUri);
+
+                    String expected = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}",
+                        NumEchoesAllWorkers / NumEchoesPerWsConnection,
+                        NumEchoesAllWorkers,
+                        NumEchoesAllWorkers / NumEchoesPerWsConnection);
+
+                    if (retrieved != expected)
+                        throw new Exception(String.Format("Wrong expected counters data. Expected: {0}, Received: {1}", expected, retrieved));
+
+                    break;
+                }
+                
+                case ProtocolTypes.ProtocolHttpV1: {
+
+                    String retrieved = (String)X.GET(HttpCountersUri);
+
+                    String expected = String.Format("Http counters: echoes received={0}.", NumEchoesAllWorkers);
+
+                    if (retrieved != expected)
+                        throw new Exception(String.Format("Wrong expected counters data. Expected: {0}, Received: {1}", expected, retrieved));
+
+                    break;
+                }
+                
+
+                default:
+                    throw new ArgumentException();
+            }
         }
     }
 
@@ -212,7 +286,9 @@ namespace NodeTest
                 await ws.ConnectAsync(serverUri, CancellationToken.None);
 
                 // Within one connection performing several echoes.
-                for (Int32 x = 0; x < worker_.Rand.Next(10); x++)
+                Int32 numRuns = settings_.NumEchoesPerWsConnection;
+
+                for (Int32 n = 0; n < numRuns; n++)
                 {
                     ArraySegment<byte> bytesToSend = new ArraySegment<byte>(bodyBytes);
 
@@ -241,12 +317,18 @@ namespace NodeTest
                         }
                     }
 
+                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Just closing.", CancellationToken.None);
+
                     // Creating response from received byte array.
                     Response resp = new Response { BodyBytes = resp_bytes_ };
 
                     // Checking the response and generating an error if a problem found.
                     if (!CheckResponse(resp))
                         throw new Exception("Incorrect WebSocket response of length: " + resp_bytes_.Length);
+
+                    // Checking if all echoes are processed.
+                    if (worker_.IsAllEchoesReceived())
+                        return;
                 }
             }
         }
@@ -261,9 +343,9 @@ namespace NodeTest
         {
             WebSocket4Net.WebSocket ws = new WebSocket4Net.WebSocket(Settings.CompleteWebSocketUri);
 
-            Int32 numRuns = worker_.Rand.Next(10) + 1;
+            Int32 numRuns = settings_.NumEchoesPerWsConnection;
 
-            AutoResetEvent allDataReceivedEvent = new AutoResetEvent(false);
+            AutoResetEvent allEchoesReceivedEvent = new AutoResetEvent(false);
 
             ws.DataReceived += (s, e) => 
             {
@@ -301,10 +383,16 @@ namespace NodeTest
                     return;
                 }
 
+                // Checking if all echoes are processed.
+                if (worker_.IsAllEchoesReceived()) {
+                    allEchoesReceivedEvent.Set();
+                    return;
+                }
+
                 // Sending data again if number of runs is not exhausted.
                 numRuns--;
                 if (numRuns <= 0)
-                    allDataReceivedEvent.Set();
+                    allEchoesReceivedEvent.Set();
                 else
                     ws.Send(bodyBytes, 0, bodyBytes.Length);
             };
@@ -326,13 +414,15 @@ namespace NodeTest
             {
                 if (!closedGracefully)
                     throw new Exception("WebSocket connection was closed unexpectedly!");
+
+                worker_.IncrementNumClosedConnections();
             };
 
             // Starting the handshake.
             ws.Open();
 
             // Waiting for all tests to finish.
-            if (!allDataReceivedEvent.WaitOne(10000))
+            if (!allEchoesReceivedEvent.WaitOne(10000))
             {
                 throw new Exception("Failed to get WebSocket response in time!");
             }
@@ -413,7 +503,9 @@ namespace NodeTest
         {
 #if FASTEST_POSSIBLE
 
-            NodeTest.WorkersMonitor.IncrementNumFinishedTests();
+            if (NodeTest.WorkersMonitor.IncrementNumFinishedTests())
+                allWorkerEchoesReceived = true;
+
             return true;
 #else
 
@@ -477,7 +569,8 @@ namespace NodeTest
                 }
 
                 // Incrementing number of finished tests.
-                NodeTest.WorkersMonitor.IncrementNumFinishedTests();
+                worker_.IncrementNumFinishedEchoes();
+                NodeTest.WorkersMonitor.IncrementNumFinishedTests();                    
             }
             catch (Exception exc)
             {
@@ -499,6 +592,26 @@ namespace NodeTest
         Settings settings_;
 
         Node worker_node_;
+
+        Int32 numFinishedEchoes_;
+
+        Int32 numClosedConnections_;
+
+        public void IncrementNumFinishedEchoes() {
+            numFinishedEchoes_++;
+        }
+
+        public void IncrementNumClosedConnections() {
+            numClosedConnections_++;
+        }
+
+        public Boolean IsAllEchoesReceived() {
+
+            if (numFinishedEchoes_ >= settings_.NumEchoesPerWorker)
+                return true;
+
+            return false;
+        }
 
         public Node WorkerNode
         {
@@ -565,8 +678,12 @@ namespace NodeTest
 
             try
             {
-                for (Int32 j = 0; j < settings_.NumEchoesPerWorker; j++)
+                for (Int32 n = 0; n < settings_.NumEchoesPerWorker; n++)
                 {
+                    // Checking if all echoes has been received.
+                    if (IsAllEchoesReceived())
+                        return;
+
                     NodeTestInstance test = CreateNewTest();
 
                     if (!test.PerformTest(worker_node_))
@@ -603,9 +720,14 @@ namespace NodeTest
         /// <summary>
         /// Increment global number of finished tests.
         /// </summary>
-        public void IncrementNumFinishedTests()
+        public Boolean IncrementNumFinishedTests()
         {
             Interlocked.Increment(ref num_finished_tests_);
+
+            if (num_finished_tests_ == settings_.NumEchoesAllWorkers)
+                return true;
+
+            return false;
         }
 
         volatile Boolean all_tests_succeeded_ = true;
@@ -633,14 +755,12 @@ namespace NodeTest
         {
             Int64 num_ms_passed = 0, num_ms_max = settings_.NumSecondsToWait * 1000;
 
-            Int64 num_tests_all_workers = settings_.NumEchoesPerWorker * settings_.NumWorkers;
-
             Int32 delay_counter = 0;
             Int64 prev_num_finished_tests = 0;
 
             // Looping until either tests succeed, fail or timeout.
             while (
-                (num_finished_tests_ < num_tests_all_workers) &&
+                (num_finished_tests_ < settings_.NumEchoesAllWorkers) &&
                 (num_ms_passed < num_ms_max) &&
                 (true == all_tests_succeeded_))
             {
@@ -651,7 +771,7 @@ namespace NodeTest
                 if (delay_counter >= 100)
                 {
                     Int64 num_finished_tests = num_finished_tests_;
-                    Console.WriteLine("Finished echoes: " + num_finished_tests + " out of " + num_tests_all_workers + ", last second: " + (num_finished_tests - prev_num_finished_tests));
+                    Console.WriteLine("Finished echoes: " + num_finished_tests + " out of " + settings_.NumEchoesAllWorkers + ", last second: " + (num_finished_tests - prev_num_finished_tests));
                     
                     for (Int32 i = 0; i < workers_.Length; i++)
                         Console.WriteLine("Worker " + i + " send-recv balance: " + workers_[i].WorkerNode.SentReceivedBalance);
@@ -701,6 +821,32 @@ namespace NodeTest
             Console.WriteLine("AsyncMode: " + settings.AsyncMode);
             Console.WriteLine("UseAggregation: " + settings.UseAggregation);
 
+            // Waiting until host is available.
+            Boolean hostIsReady = false;
+            Console.Write("Waiting for the host");
+
+            for (Int32 i = 0; i < 10; i++) {
+                
+                Response resp = X.POST(Settings.CompleteHttpUri, "Test!", null);
+
+                if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
+
+                    hostIsReady = true;
+                    break;
+                }
+
+                Thread.Sleep(3000);
+                Console.Write(".");
+            }
+
+            Console.WriteLine();
+
+            if (!hostIsReady)
+                throw new Exception("Host is not ready by some reason!");
+
+            // Resetting the counters.
+            X.GET(Settings.HttpCountersUri);
+
             // Starting all workers.
             Worker[] workers = new Worker[settings.NumWorkers];
             Thread[] worker_threads = new Thread[settings.NumWorkers];
@@ -725,6 +871,9 @@ namespace NodeTest
                 Environment.Exit(1);
 
             timer.Stop();
+
+            // Checking server counters.
+            settings.CheckServerCounters();
 
             Console.WriteLine("Test succeeded, took ms: " + timer.ElapsedMilliseconds);
 

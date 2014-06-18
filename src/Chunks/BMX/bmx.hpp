@@ -82,13 +82,8 @@ namespace bmx
     const uint32_t MAX_NUMBER_OF_HANDLERS_IN_LIST = 8;
 
     // BMX message types.
-    const uint8_t BMX_REGISTER_PORT = 0;
-    const uint8_t BMX_REGISTER_PORT_SUBPORT = 1;
-    const uint8_t BMX_REGISTER_URI = 2;
-    const uint8_t BMX_REGISTER_WS = 3;
-    const uint8_t BMX_UNREGISTER = 4;
-    const uint8_t BMX_ERROR = 5;
-    const uint8_t BMX_SESSION_DESTROY = 6;
+    const uint8_t BMX_ERROR = 0;
+    const uint8_t BMX_SESSION_DESTROY = 1;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
 
@@ -374,97 +369,6 @@ namespace bmx
             return 0;
         }
 
-        // Writes needed port handler data into chunk.
-        uint32_t WriteRegisteredPortHandler(response_chunk_part *resp_chunk)
-        {
-            // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_PORT) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_))
-            {
-                return 0;
-            }
-
-            resp_chunk->write(BMX_REGISTER_PORT);
-            resp_chunk->write(handler_info_);
-            resp_chunk->write(port_);
-            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
-
-            return resp_chunk->get_offset();
-        }
-
-        // Writes needed subport handler data into chunk.
-        uint32_t WriteRegisteredSubPortHandler(response_chunk_part *resp_chunk)
-        {
-            // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_PORT_SUBPORT) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_) + sizeof(subport_))
-            {
-                return 0;
-            }
-
-            resp_chunk->write(BMX_REGISTER_PORT_SUBPORT);
-            resp_chunk->write(handler_info_);
-            resp_chunk->write(port_);
-            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
-            resp_chunk->write(subport_);
-
-            return resp_chunk->get_offset();
-        }
-
-        // Writes needed URI handler data into chunk.
-        uint32_t WriteRegisteredUriHandler(response_chunk_part *resp_chunk)
-        {
-            // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_) + strlen(original_uri_info_) + strlen(processed_uri_info_) + 1)
-            {
-                return 0;
-            }
-
-            resp_chunk->write(BMX_REGISTER_URI);
-            resp_chunk->write(handler_info_);
-            resp_chunk->write(port_);
-            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
-            resp_chunk->write_string(original_uri_info_, (uint32_t) strlen(original_uri_info_));
-            resp_chunk->write_string(processed_uri_info_, (uint32_t) strlen(processed_uri_info_));
-            resp_chunk->write(num_params_);
-            resp_chunk->write_data_only(param_types_, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
-            resp_chunk->write((uint8_t)proto_type_);
-
-            return resp_chunk->get_offset();
-        }
-
-        // Writes needed WebSocket handler data into chunk.
-        uint32_t WriteRegisteredWsHandler(response_chunk_part *resp_chunk)
-        {
-            // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + strlen(app_name_) + sizeof(subport_) + strlen(original_uri_info_) + 1)
-            {
-                return 0;
-            }
-
-            resp_chunk->write(BMX_REGISTER_WS);
-            resp_chunk->write(handler_info_);
-            resp_chunk->write(port_);
-            resp_chunk->write_string(app_name_, (uint32_t) strlen(app_name_));
-            resp_chunk->write(subport_);
-            resp_chunk->write_string(original_uri_info_, (uint32_t) strlen(original_uri_info_));
-
-            return resp_chunk->get_offset();
-        }
-
-        // Pushes registered URI handler.
-        uint32_t PushRegisteredUriHandler(BmxData* bmx_data);
-
-        // Pushes registered port handler.
-        uint32_t PushRegisteredPortHandler(BmxData* bmx_data);
-
-        uint32_t PushRegisteredWsHandler(BmxData* bmx_data);
-
-        // Pushes registered subport handler.
-        uint32_t PushRegisteredSubportHandler(BmxData* bmx_data);
-
         // Should be called when whole handlers list should be unregistered.
         uint32_t Unregister()
         {
@@ -579,7 +483,6 @@ namespace bmx
         }
 
         // Pushes unregistered handler.
-        uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info);
         uint32_t HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info);
         uint32_t HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 

@@ -54,6 +54,8 @@ namespace Starcounter.Tools {
         [STAThread]
         public static void Main(string[] args) {
 
+            Utils.RefreshTrayArea();
+
             // Assure single instance
             if (mutex.WaitOne(TimeSpan.Zero, true)) {
                 Application.EnableVisualStyles();

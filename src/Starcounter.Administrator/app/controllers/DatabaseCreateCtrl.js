@@ -62,7 +62,7 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$log', '$location', '$a
             // NOTE: The incoming database does only contain one propety 'name'
 
             // Success
-            NoticeFactory.ShowNotice({ type: 'success', msg: "Database was " + database.name + " successfully created" });
+            NoticeFactory.ShowNotice({ type: 'success', msg: "The Database " + database.name + " was successfully created" });
 
             // Navigate to database list if user has not navigated to another page
             if ($location.path() == "/databaseCreate") {

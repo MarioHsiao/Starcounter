@@ -115,6 +115,9 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             uint32_t user_data_offset = static_cast<uint32_t> (payload - (uint8_t *) sd);
             sd->set_user_data_offset_in_socket_data(user_data_offset);
 
+            // Profiling.
+            Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsReceivedMessages);
+
             // Push chunk to corresponding channel/scheduler.
             return gw->PushSocketDataToDb(sd, user_handler_id);
         }
@@ -176,6 +179,9 @@ uint32_t WsProto::SendSocketDisconnectToDb(
     GatewayWorker *gw,
     SocketDataChunk* sd)
 {
+    // Profiling.
+    Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsDisconnects);
+
     // Obtaining handler info from channel id.
     BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
@@ -370,6 +376,9 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Place where masked data should be written.
     payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, total_payload_len, payload, cur_payload_len);
 
+    // Profiling.
+    Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsSends);
+
     // Prepare buffer to send outside.
     sd->PrepareForSend(payload, cur_payload_len);
 
@@ -465,13 +474,18 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Indicating for the host that WebSocket upgrade is made.
     sd->set_ws_upgrade_request_flag();
 
-    // Since we need to send this chunk over IPC.
-    sd->reset_socket_diag_active_conn_flag();
-
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
     GW_COUT << resp_data_begin << GW_ENDL;
 #endif
+
+    // Cloning this socket data to receive.
+    uint32_t err_code = sd->CloneToReceive(gw);
+    if (err_code)
+        return err_code;
+
+    // Profiling.
+    Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsHandshakes);
 
     // Push chunk to corresponding channel/scheduler.
     return gw->PushSocketDataToDb(sd, user_handler_id);
