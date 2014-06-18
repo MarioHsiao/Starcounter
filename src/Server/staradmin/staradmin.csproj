@@ -52,6 +52,7 @@
     <Compile Include="Commands\ListApplicationsCommand.cs" />
     <Compile Include="Commands\ListCommand.cs" />
     <Compile Include="Commands\ListLogsCommand.cs" />
+    <Compile Include="Commands\NewCommand.cs" />
     <Compile Include="Commands\ReloadCommand.cs" />
     <Compile Include="Commands\UnloadCommand.cs" />
     <Compile Include="Context.cs" />

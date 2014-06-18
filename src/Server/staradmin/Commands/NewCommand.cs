@@ -1,0 +1,96 @@
+﻿using Starcounter.CLI;
+using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace staradmin.Commands {
+
+    internal abstract class NewCommand : ContextAwareCommand, ICommand {
+
+        public class UserCommand : IUserCommand {
+            CommandLine.Command newCommand = new CommandLine.Command() {
+                Name = "new",
+                ShortText = "Creates various types of objects, e.g. databases or applications.",
+                Usage = "staradmin new <type>"
+            };
+
+            public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
+                var cmd = appSyntax.DefineCommand(newCommand.Name, newCommand.ShortText, 0, 3);
+                return cmd;
+            }
+
+            public CommandLine.Command Info {
+                get { return newCommand; }
+            }
+
+            public ICommand CreateCommand(ApplicationArguments args) {
+                if (args.CommandParameters.Count == 0) {
+                    var helpOnNew = ShowHelpCommand.CreateAsInternalHelp(newCommand.Name);
+                    return new ReportBadInputCommand("Specify the type of object to create.", helpOnNew);
+                }
+
+                var type = args.CommandParameters[0];
+                var typeToCreate = NewCommand.GetTypeToCreate(type);
+
+                ICommand command = null;
+                switch (typeToCreate) {
+                    case ObjectType.Application:
+                    case ObjectType.ServerLog:
+                    case ObjectType.Database:
+                    default:
+                        var template = CLITemplate.GetTemplate(type);
+                        if (template != null) {
+                            Console.WriteLine("Found!");
+                        }
+
+                        command = CreateUnrecognizedType(type);
+                        break;
+                }
+
+                var newCmd = command as NewCommand;
+                if (newCmd != null) {
+                    newCmd.FactoryCommand = this;
+                    newCmd.TypeToCreate = typeToCreate;
+                }
+
+                return command;
+            }
+
+            public void WriteHelp(ShowHelpCommand helpCommand, TextWriter writer) {
+                if (!helpCommand.SupressHeader) {
+                    writer.WriteLine(Info.ShortText);
+                    writer.WriteLine();
+                }
+                writer.WriteLine("Usage: {0}", Info.Usage);
+
+                var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
+                var rows = new Dictionary<string, string>();
+                table.Title = "Types:";
+                rows.Add("db", "Create a new database");
+                rows.Add("app", "Create a new application (based on a template)");
+                table.Write(rows);
+            }
+
+            internal ICommand CreateUnrecognizedType(string type) {
+                var help = ShowHelpCommand.CreateAsInternalHelp(Info.Name);
+                return new ReportBadInputCommand(string.Format("Don't know how to create new '{0}'.", type), help);
+            }
+        }
+
+        static ObjectType GetTypeToCreate(string type) {
+            return type.ToObjectType();
+        }
+
+        protected UserCommand FactoryCommand { get; private set; }
+        protected ObjectType TypeToCreate { get; private set; }
+        protected int? MaxItems { get; private set; }
+
+        protected abstract void New();
+
+        public override void Execute() {
+            New();
+        }
+    }
+}
