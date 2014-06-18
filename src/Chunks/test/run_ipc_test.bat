@@ -1,7 +1,7 @@
 :: Checking if test should be run.
 IF "%SC_RUN_IPC_TEST%"=="False" GOTO :EOF
 
-staradmin -killall
+staradmin kill all
 
 :: Starting service in background.
 START CMD /C "scservice.exe"
@@ -21,11 +21,11 @@ IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 :: Success message.
 ECHO IPC tests finished successfully!
 
-staradmin -killall
+staradmin kill all
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the IPC test! 1>&2
-staradmin -killall
+staradmin kill all
 EXIT 1

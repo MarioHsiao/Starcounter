@@ -48,7 +48,7 @@ namespace CycleTime {
 
             processInfo = new ProcessStartInfo();
             processInfo.FileName = "staradmin";
-            processInfo.Arguments = "killall";
+            processInfo.Arguments = "kill all";
             processInfo.UseShellExecute = false;
 
             proc = Process.Start(processInfo);

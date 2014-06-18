@@ -8,7 +8,7 @@ set LOOP_TIMES=%1
 IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
 ECHO Test is going to loop %LOOP_TIMES% times:
 
-staradmin -killall
+staradmin kill all
 
 for /l %%x in (1, 1, %LOOP_TIMES%) do (
 
@@ -25,11 +25,11 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
 :: Success message.
 ECHO Star.exe loop tests finished successfully!
 
-staradmin -killall
+staradmin kill all
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the star.exe loop test! 1>&2
-staradmin -killall
+staradmin kill all
 EXIT 1

@@ -4,7 +4,7 @@ IF "%SC_RUN_NODE_TEST_PROXY%"=="False" GOTO :EOF
 SET SERVER_DIR=.srv
 
 :: Killing all processes.
-staradmin -killall
+staradmin kill all
 
 :: Creating repository if it does not exist.
 IF NOT EXIST "%SERVER_DIR%" GOTO TESTFAILED
@@ -29,13 +29,13 @@ ECHO Test finished successfully!
 COPY /Y scnetworkgateway.xml %SERVER_DIR%\personal\scnetworkgateway.xml
 
 :: Killing all processes.
-staradmin -killall
+staradmin kill all
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the test! 1>&2
-staradmin -killall
+staradmin kill all
 
 :: Copying back the default gateway config.
 COPY /Y scnetworkgateway.xml %SERVER_DIR%\personal\scnetworkgateway.xml

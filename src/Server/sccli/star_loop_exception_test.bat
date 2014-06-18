@@ -8,7 +8,7 @@ set LOOP_TIMES=%1
 IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
 ECHO Test is going to loop %LOOP_TIMES% times:
 
-staradmin -killall
+staradmin kill all
 
 for /l %%x in (1, 1, %LOOP_TIMES%) do (
 
@@ -22,5 +22,5 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
 ECHO Star.exe loop exception test finished successfully!
 
 :: Killing all processes.
-staradmin -killall
+staradmin kill all
 GOTO :EOF

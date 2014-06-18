@@ -2,7 +2,7 @@
 :: gw_test_bs.bat 1 "MODE_GATEWAY_SMC_RAW 1000 10000000 100 BSStatsBlaBla" 1 MODE_GATEWAY_SMC_RAW 81 131072 --FLAG:NoDb
 
 :: Killing all processes.
-staradmin -killall
+staradmin kill all
 
 :: Some predefined constants.
 SET DB_DIR=.db
