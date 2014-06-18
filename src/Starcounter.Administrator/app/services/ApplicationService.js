@@ -136,6 +136,67 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
 
     /**
+     * Pick an applications by opening a filedialog on the server
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     */
+    this.pickApplications = function (successCallback, errorCallback) {
+
+        var errorHeader = "Failed to pick an application";
+        var uri = "/api/admin/openappdialog";
+
+        // Example JSON response 
+        //-----------------------
+        //    [{
+        //      "file" : "fullpathtofile"
+        //    }]
+        $http.get(uri).then(function (response) {
+            // Success
+
+            $log.info("Picked Applications (" + response.data.length + ") successfully retrived");
+            if (typeof (successCallback) == "function") {
+                successCallback(response.data);
+            }
+
+        }, function (response) {
+
+            if (response.status == 404) {
+                // No files selected
+                successCallback(response.data);
+                return;
+            }
+
+            // Error
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 403) {
+                    // 500 Server Error
+                    errorHeader = "Browse files is only allowed when the browser and the server is on the same machine";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+
+                errorCallback(messageObject);
+            }
+
+        });
+    }
+
+    /**
      * Refresh applications
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function

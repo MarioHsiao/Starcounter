@@ -16,6 +16,8 @@ using System.IO;
 using Starcounter.Rest.ExtensionMethods;
 using System.Collections.Generic;
 using Starcounter.Administrator.Server.Utilities;
+using System.Windows.Forms;
+using System.Text;
 
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
@@ -93,6 +95,99 @@ namespace Starcounter.Administrator.Server.Handlers {
                     return RestUtils.CreateErrorResponse(e);
                 }
             });
+
+            Handle.GET("/api/admin/openappdialog", (Request req) => {
+
+                bool isLocal = IsLocalIpAddress(req.ClientIpAddress.ToString());
+                if (isLocal == false) {
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden };
+                }
+
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+
+                openFileDialog.Filter = "Application files (*.exe)|*.exe|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.CheckFileExists = true;
+                openFileDialog.CheckPathExists = true;
+                openFileDialog.Multiselect = false;
+
+                Response response = new Response();
+
+                string responsebody = "[";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK) {
+
+                    int cnt = 0;
+                    foreach (string filename in openFileDialog.FileNames) {
+                        if (cnt != 0) {
+                            responsebody += ",";
+                        }
+                        responsebody += string.Format("{{\"file\":\"{0}\"}}", EscapeStringValue(filename));
+                        cnt++;
+                    }
+                    response.StatusCode = (ushort)System.Net.HttpStatusCode.OK;
+                }
+                else {
+
+                    response.StatusCode = (ushort)System.Net.HttpStatusCode.NotFound;
+                }
+
+                responsebody += "]";
+                response.Body = responsebody;
+ 
+                return response;
+            });
         }
+
+        public static bool IsLocalIpAddress(string host) {
+            try { // get host IP addresses
+                IPAddress[] hostIPs = Dns.GetHostAddresses(host);
+                // get local IP addresses
+                IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
+
+                // test if any host IP equals to any local IP or to localhost
+                foreach (IPAddress hostIP in hostIPs) {
+                    // is localhost
+                    if (IPAddress.IsLoopback(hostIP)) return true;
+                    // is local address
+                    foreach (IPAddress localIP in localIPs) {
+                        if (hostIP.Equals(localIP)) return true;
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public static string EscapeStringValue(string value) {
+            const char BACK_SLASH = '\\';
+            const char SLASH = '/';
+            const char DBL_QUOTE = '"';
+
+            var output = new StringBuilder(value.Length);
+            foreach (char c in value) {
+                switch (c) {
+                    case SLASH:
+                        output.AppendFormat("{0}{1}", BACK_SLASH, SLASH);
+                        break;
+
+                    case BACK_SLASH:
+                        output.AppendFormat("{0}{0}", BACK_SLASH);
+                        break;
+
+                    case DBL_QUOTE:
+                        output.AppendFormat("{0}{1}", BACK_SLASH, DBL_QUOTE);
+                        break;
+
+                    default:
+                        output.Append(c);
+                        break;
+                }
+            }
+
+            return output.ToString();
+        }
+
     }
 }
