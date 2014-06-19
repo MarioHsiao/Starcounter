@@ -19,28 +19,28 @@ namespace Starcounter.CLI {
     /// <summary>
     /// Provides functionality for a client to stop applications.
     /// </summary>
-    public class StopApplicationCommand : ApplicationCLICommand {
+    public class StopApplicationFromFileCommand : ApplicationCLICommand {
         readonly internal ApplicationBase Application;
 
         /// <summary>
-        /// Initialize a new <see cref="StopApplicationCommand"/>.
+        /// Initialize a new <see cref="StopApplicationFromFileCommand"/>.
         /// </summary>
         /// <param name="application">The application being targetted.</param>
-        internal StopApplicationCommand(ApplicationBase application)
+        internal StopApplicationFromFileCommand(ApplicationBase application)
             : base(application.Name) {    
             Application = application;
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="StopApplicationCommand"/>
+        /// Creates a new instance of the <see cref="StopApplicationFromFileCommand"/>
         /// class based on the given arguments. This instance can thereafter be
         /// executed with the <see cref="ApplicationCLICommand.Execute"/> method.
         /// </summary>
         /// <param name="applicationFilePath">The application file.</param>
         /// <param name="exePath">The compiled application file.</param>
         /// <param name="args">Arguments given to the CLI host.</param>
-        /// <returns>An instance of <see cref="StopApplicationCommand"/>.</returns>
-        public static StopApplicationCommand FromFile(
+        /// <returns>An instance of <see cref="StopApplicationFromFileCommand"/>.</returns>
+        public static StopApplicationFromFileCommand Create(
             string applicationFilePath,
             string exePath,
             ApplicationArguments args) {
@@ -56,7 +56,7 @@ namespace Starcounter.CLI {
 
             SharedCLI.ResolveDatabase(args, out databaseName);
 
-            var command = new StopApplicationCommand(app) {
+            var command = new StopApplicationFromFileCommand(app) {
                 DatabaseName = databaseName,
                 AdminAPI = new AdminAPI(),
                 CLIArguments = args

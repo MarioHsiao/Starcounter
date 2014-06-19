@@ -231,7 +231,7 @@ namespace star {
                 ApplicationCLICommand cli;
 
                 if (appArgs.ContainsFlag(StarOption.Stop)) {
-                    cli = StopApplicationCommand.FromFile(applicationFilePath, filePath, appArgs);
+                    cli = StopApplicationFromFileCommand.Create(applicationFilePath, filePath, appArgs);
                 } else {
                     cli = StartApplicationCommand.FromFile(applicationFilePath, filePath, appArgs, userArgs);
                 }
