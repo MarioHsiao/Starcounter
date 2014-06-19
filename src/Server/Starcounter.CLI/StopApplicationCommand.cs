@@ -146,6 +146,47 @@ namespace Starcounter.CLI {
 
     /// <summary>
     /// Provides functionality for a client to stop applications based on
+    /// their name.
+    /// </summary>
+    public class StopApplicationByNameCommand : StopApplicationCLICommand {
+        /// <summary>
+        /// Initialize a new <see cref="StopApplicationByNameCommand"/>.
+        /// </summary>
+        /// <param name="applicationName">Name of the application that are to
+        /// be stopped.</param>
+        internal StopApplicationByNameCommand(string applicationName)
+            : base(applicationName) {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="StopApplicationByNameCommand"/>
+        /// from given arguments.
+        /// </summary>
+        /// <param name="name">The name of the application to stop.</param>
+        /// <param name="args">Optional arguments.</param>
+        /// <returns>A new instance of <see cref="StopApplicationByNameCommand"/>
+        /// ready to be executed.</returns>
+        public static StopApplicationByNameCommand Create(string name, ApplicationArguments args = null) {
+            args = args ?? ApplicationArguments.Empty;
+            string db;
+
+            SharedCLI.ResolveDatabase(args, out db);
+            var cmd = new StopApplicationByNameCommand(name) {
+                AdminAPI = new AdminAPI(),
+                CLIArguments = args
+            };
+            SharedCLI.ResolveAdminServer(args, out cmd.ServerHost, out cmd.ServerPort, out cmd.ServerName);
+            return cmd;
+        }
+
+        /// <inheritdoc/>
+        protected override ExecutableReference GetApplicationToStop(Engine engine) {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Provides functionality for a client to stop applications based on
     /// a given application file.
     /// </summary>
     public class StopApplicationFromFileCommand : StopApplicationCLICommand {
