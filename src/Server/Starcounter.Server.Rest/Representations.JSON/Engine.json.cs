@@ -25,5 +25,21 @@ namespace Starcounter.Server.Rest.Representations.JSON {
             }
             return null;
         }
+
+        /// <summary>
+        /// Gets an application by its name.
+        /// </summary>
+        /// <param name="applicationName">The name of the application to
+        /// look for and retrive.</param>
+        /// <returns>The application with the given name, or <c>null</c>
+        /// if not found.</returns>
+        public ExecutableReference GetApplicationByName(string applicationName) {
+            foreach (ExecutableReference exe in this.Executables.Executing) {
+                if (exe.Name.Equals(applicationName, System.StringComparison.InvariantCultureIgnoreCase)) {
+                    return exe;
+                }
+            }
+            return null;
+        }
     }
 }
