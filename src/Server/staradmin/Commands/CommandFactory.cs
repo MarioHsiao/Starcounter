@@ -20,6 +20,7 @@ namespace staradmin.Commands {
             UserCommands.Add(new ListCommand.UserCommand());
             UserCommands.Add(new ConsoleCommand.UserCommand());
             UserCommands.Add(new NewCommand.UserCommand());
+            UserCommands.Add(new StopCommand.UserCommand());
         }
 
         /// <summary>
