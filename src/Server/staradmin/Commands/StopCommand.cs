@@ -17,7 +17,7 @@ namespace staradmin.Commands {
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
-                var cmd = appSyntax.DefineCommand(stop.Name, stop.ShortText, 0, 1);
+                var cmd = appSyntax.DefineCommand(stop.Name, stop.ShortText, 0, 2);
                 return cmd;
             }
 
@@ -37,6 +37,9 @@ namespace staradmin.Commands {
                 ICommand command = null;
                 switch (typeToStop) {
                     case ObjectType.Application:
+                        var app = args.GetCommandParameterOrNull(1);
+                        command = new StopAppCommand(app);
+                        break;
                     case ObjectType.Database:
                     case ObjectType.CodeHost:
                         command = new ReportBadInputCommand(string.Format("Stopping '{0}' is yet not implemented.", typeToStop.ToString()));
@@ -46,10 +49,10 @@ namespace staradmin.Commands {
                         break;
                 }
 
-                var listCommand = command as StopCommand;
-                if (listCommand != null) {
-                    listCommand.FactoryCommand = this;
-                    listCommand.TypeToStop = typeToStop;
+                var stopCommand = command as StopCommand;
+                if (stopCommand != null) {
+                    stopCommand.FactoryCommand = this;
+                    stopCommand.TypeToStop = typeToStop;
                 }
 
                 return command;
