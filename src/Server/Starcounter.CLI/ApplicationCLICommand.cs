@@ -92,14 +92,6 @@ namespace Starcounter.CLI {
         /// </summary>
         protected abstract void Run();
 
-        /// <summary>
-        /// Allows derived classes to initilize just after the
-        /// command has been created and it's base class properties
-        /// has been resolved.
-        /// </summary>
-        protected virtual void Initialize() {
-        }
-
         internal static void HandleUnexpectedResponse(Response response) {
             var red = ConsoleColor.Red;
             int exitCode = response.StatusCode;

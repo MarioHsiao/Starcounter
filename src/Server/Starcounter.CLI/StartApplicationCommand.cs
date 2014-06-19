@@ -100,11 +100,7 @@ namespace Starcounter.CLI {
             workingDirectory = Path.GetFullPath(workingDirectory);
         }
 
-        /// <summary>
-        /// <see cref="ApplicationCLICommand.Initialize"/>
-        /// </summary>
-        protected override void Initialize() {
-            base.Initialize();
+        void Initialize() {
             JobDescription = string.Format("{0} -> {1}", Application.Name, DatabaseName.ToLowerInvariant());
             JobCompletionDescription = null;
             ApplicationStartingDescription = "starting application";
