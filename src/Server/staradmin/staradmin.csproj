@@ -55,6 +55,7 @@
     <Compile Include="Commands\NewAppCommand.cs" />
     <Compile Include="Commands\NewCommand.cs" />
     <Compile Include="Commands\ReloadCommand.cs" />
+    <Compile Include="Commands\StopAppCommand.cs" />
     <Compile Include="Commands\StopCommand.cs" />
     <Compile Include="Commands\UnloadCommand.cs" />
     <Compile Include="Context.cs" />
