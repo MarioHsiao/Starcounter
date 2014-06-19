@@ -181,7 +181,7 @@ namespace Starcounter.CLI {
 
         /// <inheritdoc/>
         protected override ExecutableReference GetApplicationToStop(Engine engine) {
-            throw new NotImplementedException();
+            return engine.GetApplicationByName(ApplicationName);
         }
     }
 
