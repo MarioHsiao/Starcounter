@@ -64,11 +64,69 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
-        /// Implemented by subclasses supporting stopping an application.
+        /// Assures the application is stopped.
         /// </summary>
         /// <param name="engine">The engine (i.e. code host) in the state
         /// it's on when the operation has completed.</param>
-        protected abstract void Stop(out Engine engine);
+        protected virtual void Stop(out Engine engine) {
+            ErrorDetail errorDetail;
+            int statusCode;
+
+            var admin = AdminAPI;
+            var uris = admin.Uris;
+            var node = Node;
+            var databaseName = DatabaseName;
+
+            ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
+
+            ShowStatus("retreiving engine status", true);
+
+            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
+            statusCode = response.FailIfNotSuccessOr(404);
+
+            if (statusCode == 404) {
+                errorDetail = new ErrorDetail();
+                errorDetail.PopulateFromJson(response.Body);
+                switch (errorDetail.ServerCode) {
+                    case Error.SCERRDATABASENOTFOUND:
+                    case Error.SCERRDATABASEENGINENOTRUNNING:
+                        var notAccessible = ErrorCode.ToMessage((uint)errorDetail.ServerCode, string.Format("Database: \"{0}\".", databaseName));
+                        SharedCLI.ShowErrorAndSetExitCode(notAccessible, true);
+                        break;
+                    default:
+                        var other404 = ErrorCode.ToMessage((uint)errorDetail.ServerCode, string.Format("Text from server: \"{0}\".", errorDetail.Text));
+                        SharedCLI.ShowErrorAndSetExitCode(other404, true);
+                        break;
+                }
+            }
+
+            engine = new Engine();
+            engine.PopulateFromJson(response.Body);
+
+            var exeRef = GetApplicationToStop(engine);
+            if (exeRef == null) {
+                var notRunning = ErrorCode.ToMessage(Error.SCERREXECUTABLENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
+                SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
+            } else {
+                var fellowCount = engine.Executables.Executing.Count - 1;
+                var status = string.Format("restarting {0}", databaseName);
+                if (fellowCount > 0) {
+                    status += string.Format(" (and {0} other executable(s))", fellowCount);
+                }
+                ShowStatus(status);
+                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null);
+                response.FailIfNotSuccessOr();
+            }
+        }
+
+        /// <summary>
+        /// Implemented by subclasses supporting stopping an application.
+        /// </summary>
+        /// <param name="engine">The engine in which the application is
+        /// presumably running.</param>
+        /// <returns>A reference to the given application, or null if the
+        /// application is not found.</returns>
+        protected abstract ExecutableReference GetApplicationToStop(Engine engine);
 
         void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationName) {
             var color = ConsoleColor.Green;
@@ -138,56 +196,9 @@ namespace Starcounter.CLI {
         }
 
         /// <inheritdoc/>
-        protected override void Stop(out Engine engine) {
-            ErrorDetail errorDetail;
-            int statusCode;
-
-            var admin = AdminAPI;
-            var uris = admin.Uris;
-            var node = Node;
-            var databaseName = DatabaseName;
+        protected override ExecutableReference GetApplicationToStop(Engine engine) {
             var app = Application;
-
-            ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
-
-            ShowStatus("retreiving engine status", true);
-
-            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
-            statusCode = response.FailIfNotSuccessOr(404);
-
-            if (statusCode == 404) {
-                errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.Body);
-                switch (errorDetail.ServerCode) {
-                    case Error.SCERRDATABASENOTFOUND:
-                    case Error.SCERRDATABASEENGINENOTRUNNING:
-                        var notAccessible = ErrorCode.ToMessage((uint)errorDetail.ServerCode, string.Format("Database: \"{0}\".", databaseName));
-                        SharedCLI.ShowErrorAndSetExitCode(notAccessible, true);
-                        break;
-                    default:
-                        var other404 = ErrorCode.ToMessage((uint)errorDetail.ServerCode, string.Format("Text from server: \"{0}\".", errorDetail.Text));
-                        SharedCLI.ShowErrorAndSetExitCode(other404, true);
-                        break;
-                }
-            }
-
-            engine = new Engine();
-            engine.PopulateFromJson(response.Body);
-
-            ExecutableReference exeRef = engine.GetExecutable(app.FilePath);
-            if (exeRef == null) {
-                var notRunning = ErrorCode.ToMessage(Error.SCERREXECUTABLENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
-                SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
-            } else {
-                var fellowCount = engine.Executables.Executing.Count - 1;
-                var status = string.Format("restarting {0}", databaseName);
-                if (fellowCount > 0) {
-                    status += string.Format(" (and {0} other executable(s))", fellowCount);
-                }
-                ShowStatus(status);
-                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null);
-                response.FailIfNotSuccessOr();
-            }
+            return engine.GetExecutable(app.FilePath);
         }
     }
 }
