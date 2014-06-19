@@ -16,7 +16,10 @@ namespace Starcounter.CLI {
     using Option = Starcounter.CLI.SharedCLI.Option;
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
 
-    internal class StopApplicationCommand : ApplicationCLICommand {
+    /// <summary>
+    /// Provides functionality for a client to stop applications.
+    /// </summary>
+    public class StopApplicationCommand : ApplicationCLICommand {
         readonly internal ApplicationBase Application;
 
         /// <summary>
@@ -28,6 +31,42 @@ namespace Starcounter.CLI {
             Application = application;
         }
 
+        /// <summary>
+        /// Creates a new instance of the <see cref="StopApplicationCommand"/>
+        /// class based on the given arguments. This instance can thereafter be
+        /// executed with the <see cref="ApplicationCLICommand.Execute"/> method.
+        /// </summary>
+        /// <param name="applicationFilePath">The application file.</param>
+        /// <param name="exePath">The compiled application file.</param>
+        /// <param name="args">Arguments given to the CLI host.</param>
+        /// <returns>An instance of <see cref="StopApplicationCommand"/>.</returns>
+        public static StopApplicationCommand FromFile(
+            string applicationFilePath,
+            string exePath,
+            ApplicationArguments args) {
+            if (string.IsNullOrWhiteSpace(applicationFilePath)) {
+                applicationFilePath = exePath;
+            }
+
+            string appName;
+            string databaseName;
+            string workingDirectory = Environment.CurrentDirectory;
+            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
+            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, new string[] {});
+
+            SharedCLI.ResolveDatabase(args, out databaseName);
+
+            var command = new StopApplicationCommand(app) {
+                DatabaseName = databaseName,
+                AdminAPI = new AdminAPI(),
+                CLIArguments = args
+            };
+            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
+
+            return command;
+        }
+
+        /// <inheritdoc/>
         protected override void Run() {
             var app = Application;
             try {
