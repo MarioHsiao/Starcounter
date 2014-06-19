@@ -28,6 +28,14 @@ namespace Starcounter.CLI {
         /// </summary>
         internal string ApplicationName { get; private set; }
 
+        internal ApplicationArguments CLIArguments;
+        internal AdminAPI AdminAPI;
+        internal string ServerHost;
+        internal int ServerPort;
+        internal string ServerName;
+        internal Node Node;
+        internal StatusConsole Status;
+
         /// <summary>
         /// Creates a new instance of this class.
         /// </summary>
@@ -42,14 +50,7 @@ namespace Starcounter.CLI {
     /// </summary>
     public abstract class ApplicationCLICommand : NamedApplicationCLICommand {
         readonly internal ApplicationBase Application;
-        internal ApplicationArguments CLIArguments;
         internal string[] EntrypointArguments;
-        internal AdminAPI AdminAPI;
-        internal string ServerHost;
-        internal int ServerPort;
-        internal string ServerName;
-        internal Node Node;
-        internal StatusConsole Status;
 
         /// <summary>
         /// Gets the name of the database the current command
