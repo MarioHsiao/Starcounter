@@ -1,6 +1,8 @@
 ﻿
 using System;
+
 namespace staradmin {
+    
     /// <summary>
     /// Defines well-known object types, supported by
     /// staradmin for various operations.
@@ -9,7 +11,8 @@ namespace staradmin {
         Unknown,
         Database,
         Application,
-        ServerLog
+        ServerLog,
+        CodeHost
     }
 
     internal static class ObjectTypeExtensions {
@@ -29,6 +32,9 @@ namespace staradmin {
                 case "logs":
                 case "serverlog":
                     return ObjectType.ServerLog;
+                case "host":
+                case "codehost":
+                    return ObjectType.CodeHost;
                 default:
                     return ObjectType.Unknown;
             }
