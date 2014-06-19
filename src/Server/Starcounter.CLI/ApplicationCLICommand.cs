@@ -23,11 +23,6 @@ namespace Starcounter.CLI {
     /// logical name.
     /// </summary>
     public abstract class NamedApplicationCLICommand {
-        /// <summary>
-        /// Gets or sets the application name.
-        /// </summary>
-        internal string ApplicationName { get; private set; }
-
         internal ApplicationArguments CLIArguments;
         internal AdminAPI AdminAPI;
         internal string ServerHost;
@@ -35,6 +30,17 @@ namespace Starcounter.CLI {
         internal string ServerName;
         internal Node Node;
         internal StatusConsole Status;
+
+        /// <summary>
+        /// Gets or sets the application name.
+        /// </summary>
+        internal string ApplicationName { get; private set; }
+
+        /// <summary>
+        /// Gets the name of the database the current command
+        /// target.
+        /// </summary>
+        public string DatabaseName { get; internal set; }
 
         /// <summary>
         /// Creates a new instance of this class.
@@ -49,20 +55,12 @@ namespace Starcounter.CLI {
     /// want to use the common way to start or stop an application.
     /// </summary>
     public abstract class ApplicationCLICommand : NamedApplicationCLICommand {
-        readonly internal ApplicationBase Application;
-        internal string[] EntrypointArguments;
-
-        /// <summary>
-        /// Gets the name of the database the current command
-        /// target.
-        /// </summary>
-        public string DatabaseName { get; internal set; }
 
         /// <summary>
         /// Creates a new instance of this class.
         /// </summary>
-        protected ApplicationCLICommand(ApplicationBase app) : base(app.Name) {
-            Application = app;
+        protected ApplicationCLICommand(string applicationName)
+            : base(applicationName) {
         }
 
         /// <summary>

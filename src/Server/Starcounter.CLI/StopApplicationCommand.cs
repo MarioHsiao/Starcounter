@@ -17,13 +17,15 @@ namespace Starcounter.CLI {
     using UnofficialOption = Starcounter.CLI.SharedCLI.UnofficialOptions;
 
     internal class StopApplicationCommand : ApplicationCLICommand {
+        readonly internal ApplicationBase Application;
 
         /// <summary>
         /// Initialize a new <see cref="StopApplicationCommand"/>.
         /// </summary>
         /// <param name="application">The application being targetted.</param>
         internal StopApplicationCommand(ApplicationBase application)
-            : base(application) {
+            : base(application.Name) {    
+            Application = application;
         }
 
         protected override void Run() {

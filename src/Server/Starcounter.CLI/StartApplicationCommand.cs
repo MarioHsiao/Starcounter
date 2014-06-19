@@ -22,6 +22,9 @@ namespace Starcounter.CLI {
     /// starting an application.
     /// </summary>
     public class StartApplicationCommand : ApplicationCLICommand {
+        readonly internal ApplicationBase Application;
+        internal string[] EntrypointArguments;
+
         /// <summary>
         /// Gets or sets the string normally displayed in the CLI
         /// when the command starts executing its primary job.
@@ -46,7 +49,8 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="application">The application being targetted.</param>
         internal StartApplicationCommand(ApplicationBase application)
-            : base(application) {
+            : base(application.Name) {    
+            Application = application;
         }
 
         /// <summary>
