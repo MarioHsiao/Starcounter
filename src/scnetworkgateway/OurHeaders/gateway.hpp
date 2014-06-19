@@ -331,6 +331,14 @@ inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
     return INVALID_INDEX;
 }
 
+const char* const kHttpOKResponse =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+
+const int32_t kHttpOKResponseLength = static_cast<int32_t> (strlen(kHttpOKResponse));
+
 struct AggregationStruct
 {
     random_salt_type unique_socket_id_;

@@ -1342,14 +1342,6 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
-const char* const kHttpOKResponse =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpOKResponseLength = static_cast<int32_t> (strlen(kHttpOKResponse));
-
 uint32_t DatabaseStartupFinished(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     *is_handled = true;
@@ -3431,8 +3423,8 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     for(int i = 0; i < setting_num_workers_; i++)
         CloseHandle(worker_thread_handles_[i]);
 
-    delete worker_thread_ids;
-    delete worker_thread_handles_;
+    delete [] worker_thread_ids;
+    delete [] worker_thread_handles_;
     delete [] gw_workers_;
     gw_workers_ = NULL;
 

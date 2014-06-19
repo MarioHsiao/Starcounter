@@ -209,19 +209,19 @@ public:
         // Deleting previous allocations if any.
         if (original_uri_info_)
         {
-            delete original_uri_info_;
+            delete [] original_uri_info_;
             original_uri_info_ = NULL;
         }
 
         if (processed_uri_info_)
         {
-            delete processed_uri_info_;
+            delete [] processed_uri_info_;
             processed_uri_info_ = NULL;
         }
 
         if (app_name_)
         {
-            delete app_name_;
+            delete [] app_name_;
             app_name_ = NULL;
         }
 
