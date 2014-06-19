@@ -19,10 +19,10 @@ namespace Starcounter.CLI {
     using Severity = Sc.Tools.Logging.Severity;
 
     /// <summary>
-    /// Represents an CLI command that target an application only by its
-    /// logical name.
+    /// Provides the principal entrypoint to use when a CLI client
+    /// want to use the common way to start or stop an application.
     /// </summary>
-    public abstract class NamedApplicationCLICommand {
+    public abstract class ApplicationCLICommand {
         internal ApplicationArguments CLIArguments;
         internal AdminAPI AdminAPI;
         internal string ServerHost;
@@ -45,22 +45,8 @@ namespace Starcounter.CLI {
         /// <summary>
         /// Creates a new instance of this class.
         /// </summary>
-        protected NamedApplicationCLICommand(string name) {
-            ApplicationName = name;
-        }
-    }
-
-    /// <summary>
-    /// Provides the principal entrypoint to use when a CLI client
-    /// want to use the common way to start or stop an application.
-    /// </summary>
-    public abstract class ApplicationCLICommand : NamedApplicationCLICommand {
-
-        /// <summary>
-        /// Creates a new instance of this class.
-        /// </summary>
-        protected ApplicationCLICommand(string applicationName)
-            : base(applicationName) {
+        protected ApplicationCLICommand(string applicationName) {
+            ApplicationName = applicationName;
         }
 
         /// <summary>
