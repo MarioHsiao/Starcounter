@@ -28,6 +28,62 @@ namespace Starcounter.CLI {
         protected StopApplicationCLICommand(string applicationName)
             : base(applicationName) {
         }
+
+        /// <inheritdoc/>
+        protected override void Run() {
+            try {
+                Status.StartNewJob(string.Format("{0} <- {1}", ApplicationName, DatabaseName.ToLowerInvariant()));
+                ShowHeadline(
+                    string.Format("[Stopping \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
+                    ApplicationName,
+                    DatabaseName,
+                    ServerName,
+                    Node.BaseAddress.Host,
+                    Node.BaseAddress.Port));
+
+                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(ServerName, StringComparison.CurrentCultureIgnoreCase)) {
+                    ShowStatus("retrieving server status", true);
+                    if (!ServerServiceProcess.IsOnline()) {
+                        SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
+                    }
+                }
+
+                try {
+                    Engine engine;
+                    Stop(out engine);
+                    ShowStopResultAndSetExitCode(Node, DatabaseName, engine, ApplicationName);
+                } catch (SocketException se) {
+                    ShowSocketErrorAndSetExitCode(se, Node.BaseAddress, ServerName);
+                    return;
+                }
+
+            } catch (Exception e) {
+                SharedCLI.ShowErrorAndSetExitCode(e, true, false);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Implemented by subclasses supporting stopping an application.
+        /// </summary>
+        /// <param name="engine">The engine (i.e. code host) in the state
+        /// it's on when the operation has completed.</param>
+        protected abstract void Stop(out Engine engine);
+
+        void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationName) {
+            var color = ConsoleColor.Green;
+
+            Status.CompleteJob("stopped");
+            if (SharedCLI.Verbosity > OutputLevel.Minimal) {
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("Stopped \"{0}\" in {1}",
+                    applicationName,
+                    database),
+                    color);
+            }
+
+            Environment.ExitCode = 0;
+        }
     }
 
     /// <summary>
@@ -82,41 +138,7 @@ namespace Starcounter.CLI {
         }
 
         /// <inheritdoc/>
-        protected override void Run() {
-            var app = Application;
-            try {
-                Status.StartNewJob(string.Format("{0} <- {1}", app.Name, DatabaseName.ToLowerInvariant()));
-                ShowHeadline(
-                    string.Format("[Stopping \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
-                    app.Name,
-                    DatabaseName,
-                    ServerName,
-                    Node.BaseAddress.Host,
-                    Node.BaseAddress.Port));
-
-                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(ServerName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowStatus("retrieving server status", true);
-                    if (!ServerServiceProcess.IsOnline()) {
-                        SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
-                    }
-                }
-
-                try {
-                    Engine engine;
-                    DoStop(out engine);
-                    ShowStopResultAndSetExitCode(Node, DatabaseName, engine, ApplicationName);
-                } catch (SocketException se) {
-                    ShowSocketErrorAndSetExitCode(se, Node.BaseAddress, ServerName);
-                    return;
-                }
-
-            } catch (Exception e) {
-                SharedCLI.ShowErrorAndSetExitCode(e, true, false);
-                return;
-            }
-        }
-
-        void DoStop(out Engine engine) {
+        protected override void Stop(out Engine engine) {
             ErrorDetail errorDetail;
             int statusCode;
 
@@ -166,21 +188,6 @@ namespace Starcounter.CLI {
                 response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, null);
                 response.FailIfNotSuccessOr();
             }
-        }
-
-        void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationName) {
-            var color = ConsoleColor.Green;
-
-            Status.CompleteJob("stopped");
-            if (SharedCLI.Verbosity > OutputLevel.Minimal) {
-                ConsoleUtil.ToConsoleWithColor(
-                    string.Format("Stopped \"{0}\" in {1}",
-                    applicationName,
-                    database),
-                    color);
-            }
-
-            Environment.ExitCode = 0;
         }
     }
 }
