@@ -19,17 +19,35 @@ namespace Starcounter.CLI {
     using Severity = Sc.Tools.Logging.Severity;
 
     /// <summary>
+    /// Represents an CLI command that target an application only by its
+    /// logical name.
+    /// </summary>
+    public abstract class NamedApplicationCLICommand {
+        /// <summary>
+        /// Gets or sets the application name.
+        /// </summary>
+        internal string ApplicationName { get; private set; }
+
+        /// <summary>
+        /// Creates a new instance of this class.
+        /// </summary>
+        protected NamedApplicationCLICommand(string name) {
+            ApplicationName = name;
+        }
+    }
+
+    /// <summary>
     /// Provides the principal entrypoint to use when a CLI client
     /// want to use the common way to start or stop an application.
     /// </summary>
-    public abstract class ApplicationCLICommand {
+    public abstract class ApplicationCLICommand : NamedApplicationCLICommand {
+        readonly internal ApplicationBase Application;
+        internal ApplicationArguments CLIArguments;
+        internal string[] EntrypointArguments;
         internal AdminAPI AdminAPI;
         internal string ServerHost;
         internal int ServerPort;
         internal string ServerName;
-        internal ApplicationBase Application;
-        internal ApplicationArguments CLIArguments;
-        internal string[] EntrypointArguments;
         internal Node Node;
         internal StatusConsole Status;
 
@@ -42,7 +60,8 @@ namespace Starcounter.CLI {
         /// <summary>
         /// Creates a new instance of this class.
         /// </summary>
-        protected ApplicationCLICommand() {
+        protected ApplicationCLICommand(ApplicationBase app) : base(app.Name) {
+            Application = app;
         }
 
         /// <summary>
@@ -64,13 +83,6 @@ namespace Starcounter.CLI {
             string[] entrypointArgs = null) {
             if (string.IsNullOrWhiteSpace(applicationFilePath)) {
                 applicationFilePath = exePath;
-            }    
-            
-            ApplicationCLICommand command;
-            if (args.ContainsFlag(Option.Stop)) {
-                command = new StopApplicationCommand();
-            } else {
-                command = new StartApplicationCommand();
             }
             
             string appName;
@@ -80,10 +92,16 @@ namespace Starcounter.CLI {
             SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
             var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
 
-            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
             SharedCLI.ResolveDatabase(args, out databaseName);
 
-            command.Application = app;
+            ApplicationCLICommand command;
+            if (args.ContainsFlag(Option.Stop)) {
+                command = new StopApplicationCommand(app);
+            } else {
+                command = new StartApplicationCommand(app);
+            }
+            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
+
             command.DatabaseName = databaseName;
             command.AdminAPI = new AdminAPI();
             command.CLIArguments = args;

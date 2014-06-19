@@ -18,6 +18,14 @@ namespace Starcounter.CLI {
 
     internal class StopApplicationCommand : ApplicationCLICommand {
 
+        /// <summary>
+        /// Initialize a new <see cref="StopApplicationCommand"/>.
+        /// </summary>
+        /// <param name="application">The application being targetted.</param>
+        internal StopApplicationCommand(ApplicationBase application)
+            : base(application) {
+        }
+
         protected override void Run() {
             var app = Application;
             try {

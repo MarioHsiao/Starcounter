@@ -42,6 +42,14 @@ namespace Starcounter.CLI {
         public string ApplicationStartingDescription { get; set; }
 
         /// <summary>
+        /// Initialize a new <see cref="StartApplicationCommand"/>.
+        /// </summary>
+        /// <param name="application">The application being targetted.</param>
+        internal StartApplicationCommand(ApplicationBase application)
+            : base(application) {
+        }
+
+        /// <summary>
         /// <see cref="ApplicationCLICommand.Initialize"/>
         /// </summary>
         protected override void Initialize() {
