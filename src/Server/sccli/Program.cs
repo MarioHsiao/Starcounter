@@ -228,7 +228,11 @@ namespace star {
             // work executing.
 
             try {
-                var cli = ApplicationCLICommand.Create(applicationFilePath, filePath, appArgs, userArgs);
+                if (appArgs.ContainsFlag(StarOption.Stop)) {
+                    throw new NotSupportedException("Obsolete. Use staradmin stop instead.");
+                }
+
+                var cli = StartApplicationCommand.FromFile(applicationFilePath, filePath, appArgs, userArgs);
                 cli.Execute();
             } finally {
                 // Delete the temporary executable if we have executed

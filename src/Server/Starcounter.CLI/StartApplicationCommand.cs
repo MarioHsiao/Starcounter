@@ -50,6 +50,57 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Creates a new instance of the <see cref="StartApplicationCommand"/>
+        /// class based on the given arguments. This instance can thereafter be
+        /// executed with the <see cref="ApplicationCLICommand.Execute"/> method.
+        /// </summary>
+        /// <param name="applicationFilePath">The application file.</param>
+        /// <param name="exePath">The compiled application file.</param>
+        /// <param name="args">Arguments given to the CLI host.</param>
+        /// <param name="entrypointArgs">Arguments that are to be passed along
+        /// to the application entrypoint.</param>
+        /// <returns>An instance of <see cref="StartApplicationCommand"/>.</returns>
+        public static StartApplicationCommand FromFile(
+            string applicationFilePath,
+            string exePath,
+            ApplicationArguments args,
+            string[] entrypointArgs = null) {
+            if (string.IsNullOrWhiteSpace(applicationFilePath)) {
+                applicationFilePath = exePath;
+            }
+
+            string appName;
+            string workingDirectory;
+            string databaseName;
+            ResolveWorkingDirectory(args, out workingDirectory);
+            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
+            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
+
+            SharedCLI.ResolveDatabase(args, out databaseName);
+
+            var command = new StartApplicationCommand(app) {
+                DatabaseName = databaseName,
+                AdminAPI = new AdminAPI(),
+                CLIArguments = args,
+                EntrypointArguments = entrypointArgs
+            };
+            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
+
+            command.Initialize();
+
+            return command;
+        }
+
+        static void ResolveWorkingDirectory(ApplicationArguments args, out string workingDirectory) {
+            string dir;
+            if (!args.TryGetProperty(Option.ResourceDirectory, out dir)) {
+                dir = Environment.CurrentDirectory;
+            }
+            workingDirectory = dir;
+            workingDirectory = Path.GetFullPath(workingDirectory);
+        }
+
+        /// <summary>
         /// <see cref="ApplicationCLICommand.Initialize"/>
         /// </summary>
         protected override void Initialize() {

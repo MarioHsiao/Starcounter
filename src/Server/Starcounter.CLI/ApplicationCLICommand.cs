@@ -65,54 +65,6 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ApplicationCLICommand"/> class based on
-        /// the given arguments. This instance can thereafter be executed with
-        /// the <see cref="Execute"/> method.
-        /// </summary>
-        /// <param name="applicationFilePath">The application file.</param>
-        /// <param name="exePath">The compiled application file.</param>
-        /// <param name="args">Arguments given to the CLI host.</param>
-        /// <param name="entrypointArgs">Arguments that are to be passed along
-        /// to the application entrypoint, if the given arguments indicate it's
-        /// being started/restarted.</param>
-        /// <returns>An instance of <see cref="ApplicationCLICommand"/>.</returns>
-        public static ApplicationCLICommand Create(
-            string applicationFilePath,
-            string exePath,
-            ApplicationArguments args,
-            string[] entrypointArgs = null) {
-            if (string.IsNullOrWhiteSpace(applicationFilePath)) {
-                applicationFilePath = exePath;
-            }
-            
-            string appName;
-            string workingDirectory;
-            string databaseName;
-            ResolveWorkingDirectory(args, out workingDirectory);
-            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
-            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
-
-            SharedCLI.ResolveDatabase(args, out databaseName);
-
-            ApplicationCLICommand command;
-            if (args.ContainsFlag(Option.Stop)) {
-                command = new StopApplicationCommand(app);
-            } else {
-                command = new StartApplicationCommand(app);
-            }
-            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
-
-            command.DatabaseName = databaseName;
-            command.AdminAPI = new AdminAPI();
-            command.CLIArguments = args;
-            command.EntrypointArguments = entrypointArgs;
-
-            command.Initialize();
-            
-            return command;
-        }
-
-        /// <summary>
         /// Executes the logic of the given CLI arguments on the
         /// application bound to the current instance, on the target
         /// database on the target server.
@@ -145,15 +97,6 @@ namespace Starcounter.CLI {
         /// has been resolved.
         /// </summary>
         protected virtual void Initialize() {
-        }
-
-        static void ResolveWorkingDirectory(ApplicationArguments args, out string workingDirectory) {
-            string dir;
-            if (!args.TryGetProperty(Option.ResourceDirectory, out dir)) {
-                dir = Environment.CurrentDirectory;
-            }
-            workingDirectory = dir;
-            workingDirectory = Path.GetFullPath(workingDirectory);
         }
 
         internal static void HandleUnexpectedResponse(Response response) {
