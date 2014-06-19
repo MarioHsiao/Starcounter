@@ -104,7 +104,7 @@ namespace Starcounter.CLI {
                 try {
                     Engine engine;
                     DoStop(out engine);
-                    ShowStopResultAndSetExitCode(Node, DatabaseName, engine, app.FilePath, CLIArguments);
+                    ShowStopResultAndSetExitCode(Node, DatabaseName, engine, ApplicationName);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, Node.BaseAddress, ServerName);
                     return;
@@ -168,14 +168,14 @@ namespace Starcounter.CLI {
             }
         }
 
-        void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationFile, ApplicationArguments args) {
+        void ShowStopResultAndSetExitCode(Node node, string database, Engine engine, string applicationName) {
             var color = ConsoleColor.Green;
 
             Status.CompleteJob("stopped");
             if (SharedCLI.Verbosity > OutputLevel.Minimal) {
                 ConsoleUtil.ToConsoleWithColor(
                     string.Format("Stopped \"{0}\" in {1}",
-                    Path.GetFileName(applicationFile),
+                    applicationName,
                     database),
                     color);
             }
