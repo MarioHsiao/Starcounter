@@ -19,7 +19,22 @@ namespace Starcounter.CLI {
     /// <summary>
     /// Provides functionality for a client to stop applications.
     /// </summary>
-    public class StopApplicationFromFileCommand : ApplicationCLICommand {
+    public abstract class StopApplicationCLICommand : ApplicationCLICommand {
+        /// <summary>
+        /// Initialize a new <see cref="StopApplicationCLICommand"/>.
+        /// </summary>
+        /// <param name="applicationName">The name of the application being
+        /// targetted.</param>
+        protected StopApplicationCLICommand(string applicationName)
+            : base(applicationName) {
+        }
+    }
+
+    /// <summary>
+    /// Provides functionality for a client to stop applications based on
+    /// a given application file.
+    /// </summary>
+    public class StopApplicationFromFileCommand : StopApplicationCLICommand {
         readonly internal ApplicationBase Application;
 
         /// <summary>
