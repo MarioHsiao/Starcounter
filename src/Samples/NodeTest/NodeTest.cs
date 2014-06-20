@@ -17,6 +17,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Starcounter.TestFramework;
 using System.Net.WebSockets;
+using System.Net.Sockets;
+using System.IO;
 
 namespace NodeTest
 {
@@ -32,7 +34,8 @@ namespace NodeTest
         public enum ProtocolTypes
         {
             ProtocolHttpV1,
-            ProtocolWebSockets
+            ProtocolWebSockets,
+            ProtocolRawPort
         }
 
         public const String ServerNodeTestHttpRelativeUri = "/echotest";
@@ -43,9 +46,15 @@ namespace NodeTest
 
         public UInt16 ServerPort = 8080;
 
+        public UInt16 ServerRawPort = 8585;
+
         public static String CompleteHttpUri;
 
+        public static String ResetCountersUri;
+
         public static String HttpCountersUri;
+
+        public static String RawPortCountersUri;
 
         public static String CompleteWebSocketUri;
 
@@ -57,7 +66,7 @@ namespace NodeTest
 
         public Int32 MaxEchoBytes = 10000;
 
-        public Int32 NumEchoesPerWorker = 30000;
+        public Int32 NumEchoesPerWorker = 10000;
 
         public Int32 NumEchoesPerWsConnection = 10;
 
@@ -77,6 +86,16 @@ namespace NodeTest
             get { return numEchoesAllWorkers_; }
         }
 
+        static Int64 totalBytesSent_ = 0;
+
+        /// <summary>
+        /// Adds to total number of bytes that are sent.
+        /// </summary>
+        /// <param name="numBytes"></param>
+        public static void AddToTotalNumberOfTestBytes(Int32 numBytes) {
+            Interlocked.Add(ref totalBytesSent_, numBytes);
+        }
+
         public void Init(string[] args)
         {
             foreach (String arg in args)
@@ -89,6 +108,10 @@ namespace NodeTest
                 {
                     ServerPort = UInt16.Parse(arg.Substring("-ServerPort=".Length));
                 }
+                else if (arg.StartsWith("-ServerRawPort="))
+                {
+                    ServerRawPort = UInt16.Parse(arg.Substring("-ServerRawPort=".Length));
+                }
                 else if (arg.StartsWith("-ProtocolType="))
                 {
                     String protocolTypeParam = arg.Substring("-ProtocolType=".Length);
@@ -97,6 +120,8 @@ namespace NodeTest
                         ProtocolType = ProtocolTypes.ProtocolHttpV1;
                     else if (protocolTypeParam == "ProtocolWebSockets")
                         ProtocolType = ProtocolTypes.ProtocolWebSockets;
+                    else if (protocolTypeParam == "ProtocolRawPort")
+                        ProtocolType = ProtocolTypes.ProtocolRawPort;
                 }
                 else if (arg.StartsWith("-NumWorkers="))
                 {
@@ -152,13 +177,20 @@ namespace NodeTest
                 if ((AsyncModes.ModeSync != AsyncMode) || (true == UseAggregation)) {
                     throw new ArgumentException("WebSockets support only Sync mode (and no aggregation)!");
                 }
+            } else if (ProtocolTypes.ProtocolRawPort == ProtocolType) {
+
+                if ((AsyncModes.ModeSync != AsyncMode) || (true == UseAggregation)) {
+                    throw new ArgumentException("Raw ports socket supports only Sync mode (and no aggregation)!");
+                }
             }
 
             numEchoesAllWorkers_ = NumEchoesPerWorker * NumWorkers;
 
+            ResetCountersUri = "http://" + ServerIp + ":" + ServerPort + "/resetcounters";
             CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
             CompleteWebSocketUri = "ws://" + ServerIp + ":" + ServerPort + ServerNodeTestWsRelativeUri;
             HttpCountersUri = "http://" + ServerIp + ":" + ServerPort + "/httpcounters";
+            RawPortCountersUri = "http://" + ServerIp + ":" + ServerPort + "/rawportcounters";
             WebSocketCountersUri = "http://" + ServerIp + ":" + ServerPort + "/wscounters";
         }
 
@@ -174,7 +206,7 @@ namespace NodeTest
                     // NOTE: Need to sleep to receive correct statistics.
                     Thread.Sleep(1000);
 
-                    String retrieved = (String)X.GET(WebSocketCountersUri);
+                    String retrieved = (String) X.GET(WebSocketCountersUri);
 
                     String expected = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}",
                         NumEchoesAllWorkers / NumEchoesPerWsConnection,
@@ -189,9 +221,21 @@ namespace NodeTest
                 
                 case ProtocolTypes.ProtocolHttpV1: {
 
-                    String retrieved = (String)X.GET(HttpCountersUri);
+                    String retrieved = (String) X.GET(HttpCountersUri);
 
                     String expected = String.Format("Http counters: echoes received={0}.", NumEchoesAllWorkers);
+
+                    if (retrieved != expected)
+                        throw new Exception(String.Format("Wrong expected counters data. Expected: {0}, Received: {1}", expected, retrieved));
+
+                    break;
+                }
+
+                case ProtocolTypes.ProtocolRawPort: {
+
+                    String retrieved = (String) X.GET(RawPortCountersUri);
+
+                    String expected = String.Format("Raw port counters: bytes received={0}.", totalBytesSent_);
 
                     if (retrieved != expected)
                         throw new Exception(String.Format("Wrong expected counters data. Expected: {0}, Received: {1}", expected, retrieved));
@@ -433,6 +477,72 @@ namespace NodeTest
             ws.Close();
         }
 
+        /// <summary>
+        /// Performs a session of raw port echoes.
+        /// </summary>
+        /// <param name="bodyBytes"></param>
+        /// <param name="respBytes"></param>
+        /// <returns></returns>
+        public void PerformSyncRawPortEcho(Byte[] bodyBytes, Byte[] respBytes) {
+
+            TcpClient tcpClientObj = new TcpClient(settings_.ServerIp, settings_.ServerRawPort);
+            Socket socketObj = tcpClientObj.Client;
+
+            try {
+
+                Int32 numRuns = settings_.NumEchoesPerWsConnection;
+
+                for (Int32 i = 0; i < numRuns; i++) {
+
+                    Int32 bytesSent = socketObj.Send(bodyBytes, 0, bodyBytes.Length, SocketFlags.None);
+
+                    Settings.AddToTotalNumberOfTestBytes(bodyBytes.Length);
+
+                    Int32 totalRecievedBytes = 0;
+
+                    // Looping until we get everything.
+                    while (true) {
+
+                        // Reading the response into predefined buffer.
+                        Int32 curRecievedBytes = socketObj.Receive(respBytes, totalRecievedBytes, respBytes.Length - totalRecievedBytes, SocketFlags.None);
+
+                        totalRecievedBytes += curRecievedBytes;
+
+                        if (curRecievedBytes <= 0) {
+                            throw new IOException("Remote host closed the connection.");
+                        } else if (totalRecievedBytes == respBytes.Length) {
+                            break;
+                        }
+                    }
+
+                    // Creating response from received byte array.
+                    Response resp = new Response { BodyBytes = respBytes };
+
+                    // Checking the response and generating an error if a problem found.
+                    if (!CheckResponse(resp)) {
+                        Console.WriteLine("Incorrect raw socket response of length: " + respBytes.Length);
+                        NodeTest.WorkersMonitor.FailTest();
+                        return;
+                    }
+
+                    // Checking if all echoes are processed.
+                    if (worker_.IsAllEchoesReceived()) {
+                        break;
+                    }
+
+                    // Sending data again if number of runs is not exhausted.
+                    numRuns--;
+                    if (numRuns <= 0) {
+                        break;
+                    }
+                }
+
+            } finally {
+                tcpClientObj.Close();
+                socketObj.Close();
+            }
+        }
+
         // Sends data, gets the response, and checks its correctness.
         public Boolean PerformTest(Node node)
         {
@@ -466,6 +576,13 @@ namespace NodeTest
                         {
                             PerformSyncWebSocket4NetEcho(body_bytes_, resp_bytes_);
                         }
+
+                        return true;
+                    }
+
+                    case Settings.ProtocolTypes.ProtocolRawPort:
+                    {
+                        PerformSyncRawPortEcho(body_bytes_, resp_bytes_);
 
                         return true;
                     }
@@ -825,9 +942,11 @@ namespace NodeTest
             Boolean hostIsReady = false;
             Console.Write("Waiting for the host");
 
+            Response resp;
+
             for (Int32 i = 0; i < 10; i++) {
                 
-                Response resp = X.POST(Settings.CompleteHttpUri, "Test!", null);
+                resp = X.POST(Settings.CompleteHttpUri, "Test!", null);
 
                 if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
 
@@ -845,7 +964,10 @@ namespace NodeTest
                 throw new Exception("Host is not ready by some reason!");
 
             // Resetting the counters.
-            X.GET(Settings.HttpCountersUri);
+            X.GET(Settings.ResetCountersUri, out resp);
+            if (200 == resp.StatusCode) {
+                throw new Exception("Can't reset counters properly!");
+            }
 
             // Starting all workers.
             Worker[] workers = new Worker[settings.NumWorkers];

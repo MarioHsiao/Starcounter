@@ -184,7 +184,6 @@ namespace NetworkIoTestApp
             MODE_GATEWAY_SMC_HTTP,
             MODE_GATEWAY_SMC_APPS_HTTP,
             MODE_GATEWAY_SMC_RAW,
-            MODE_WEBSOCKETS_PORT,
             MODE_STANDARD_BROWSER,
             MODE_APPS_URIS,
             MODE_APPS_URIS_SESSION,
@@ -242,12 +241,6 @@ namespace NetworkIoTestApp
             if (!String.IsNullOrWhiteSpace(port_number_string))
                 port_number = UInt16.Parse(port_number_string);
 
-            // Reading the image file if any.
-            if (File.Exists(ImagePath))
-                ImageBodyBytes = File.ReadAllBytes(ImagePath);
-            else
-                ImageBodyBytes = new Byte[] { (Byte)'N', (Byte)'O', (Byte)'!' };
-
             // Running handlers registration.
             RegisterHandlers(db_number, port_number, test_type);
 
@@ -263,6 +256,7 @@ namespace NetworkIoTestApp
         static Int32 WsDisconnectsCounter = 0;
         static Int32 WsHandshakesCounter = 0;
         static Int32 HttpEchoesCounter = 0;
+        static Int32 RawPortBytesCounter = 0;
 
         // Handlers registration.
         static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
@@ -287,16 +281,6 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_RAW:
                 {
-                    GatewayHandlers.RegisterPortHandler(port_number, "networkiotest", OnRawPortEcho, 5, out handler_id);
-                    Console.WriteLine("Successfully registered new handler: " + handler_id);
-
-                    break;
-                }
-
-                case TestTypes.MODE_WEBSOCKETS_PORT:
-                {
-                    GatewayHandlers.RegisterPortHandler(port_number, "networkiotest", OnWebSocket, 5, out handler_id);
-                    Console.WriteLine("Successfully registered new handler: " + handler_id);
 
                     break;
                 }
@@ -323,14 +307,6 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_APPS_URIS_SESSION:
                 {
                     AppsClass.InitAppHandlersSession();
-
-                    break;
-                }
-
-                case TestTypes.MODE_HTTP_REST_CLIENT:
-                {
-                    AppsBootstrapper.Bootstrap();
-                    Handle.POST<Request>(port_number, "/testrest", OnTestRest);
 
                     break;
                 }
@@ -373,6 +349,17 @@ namespace NetworkIoTestApp
                         }
 
                         return 513;
+                    });
+
+                    Handle.DELETE(8080, "/resetcounters", (Request req) => {
+
+                        WsEchoesCounter = 0;
+                        WsDisconnectsCounter = 0;
+                        WsHandshakesCounter = 0;
+                        HttpEchoesCounter = 0;
+                        RawPortBytesCounter = 0;
+
+                        return 200;
                     });
 
                     Handle.GET(8080, "/wscounters", (Request req) => {
@@ -428,6 +415,17 @@ namespace NetworkIoTestApp
                     {
                         return "CUSTOM method " + method + " with parameter " + p1;
                     });
+
+                    Handle.GET(8080, "/rawportcounters", (Request req) => {
+
+                        Int32 e = RawPortBytesCounter;
+
+                        RawPortBytesCounter = 0;
+
+                        return new Response() { Body = String.Format("Raw port counters: bytes received={0}.", e) };
+                    });
+
+                    GatewayHandlers.RegisterRawPortHandler(8585, StarcounterEnvironment.AppName, OnRawPortEcho, out handler_id);
 
                     Handle.GET("/exc1", (Request req) =>
                     {
@@ -634,458 +632,36 @@ namespace NetworkIoTestApp
         // NOTE: Timer should be static, otherwise its garbage collected.
         static Timer WebSocketSessionsTimer = null;
 
-        private static Boolean OnRawPortEcho(PortHandlerParams p)
+        private static void OnRawPortEcho(RawSocket rawSocket, Byte[] incomingData)
         {
-            if (p.DataStream.PayloadSize != 8)
-                throw new ArgumentOutOfRangeException();
+            Interlocked.Add(ref RawPortBytesCounter, incomingData.Length);
 
-            Byte[] buffer = new Byte[16];
-            UInt64 echo = p.DataStream.ReadUInt64(0);
-            unsafe
-            {
-                fixed (Byte* buf = buffer)
-                {
-                    *(UInt64*) buf = echo;
-                    *(UInt64*) (buf + 8) = echo;
+            // Checking if data is big enough to be splited (JUST an example of several pushes at once).
+            if (incomingData.Length < 10) {
+
+                rawSocket.Send(incomingData);
+
+            } else {
+                // Splitting data on several pushes.
+                const Int32 NumPushes = 3;
+                Int32 pushAtOnce = incomingData.Length / NumPushes,
+                    offset = 0;
+
+                // Simulating several pushes.
+                for (Int32 i = 0; i < NumPushes - 1; i++) {
+
+                    // Writing back the response.
+                    rawSocket.Send(incomingData, offset, pushAtOnce);
+
+                    offset += pushAtOnce;
                 }
-            }
 
-            // Writing back the response.
-            p.DataStream.SendResponse(buffer, 0, 16, Response.ConnectionFlags.NoSpecialFlags);
+                // Sending back the response.
+                rawSocket.Send(incomingData, offset, incomingData.Length - offset);
+            }
 
             // Counting performance.
             perf_counter++;
-
-            return true;
-        }
-
-        private static Boolean OnRawPort(PortHandlerParams p)
-        {
-            Byte[] buffer = new Byte[p.DataStream.PayloadSize];
-            p.DataStream.Read(buffer, 0, buffer.Length);
-
-            // Converting whole buffer to a string.
-            String resUri = ASCIIEncoding.ASCII.GetString(buffer);
-
-            // Generating response.
-            String response = resUri + "_user_" + p.UserSessionId + "_raw_response" + DateTime.Now + ":" + DateTime.Now.Millisecond;
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
-
-            // Writing back the response.
-            p.DataStream.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            return true;
-        }
-
-        private static Boolean OnWebSocket(PortHandlerParams p)
-        {
-            Byte[] buffer = new Byte[p.DataStream.PayloadSize];
-            p.DataStream.Read(buffer, 0, buffer.Length);
-
-            // Converting whole buffer to a string.
-            String resUri = ASCIIEncoding.ASCII.GetString(buffer);
-
-            // Generating response.
-            String response = resUri + "_user_" + p.UserSessionId + "_ws_response_" + DateTime.Now + ":" + DateTime.Now.Millisecond;
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
-
-            // Writing back the response.
-            p.DataStream.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            return true;
-        }
-
-        private static Boolean OnHttpPort(PortHandlerParams p)
-        {
-            // Creating response string.
-            String response =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>Handler URI prefix: whole port </h1>\r\n" +
-                p.ToString() +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(response);
-
-            // Writing back the response.
-            p.DataStream.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-
-            return true;
-        }
-
-        private static Boolean OnHttpRoot(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpRoot </h1>\r\n" +
-                p.ToString() +
-                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
-                "<h1>Host: " + p["Host"] + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        private static Boolean OnHttpPostRoot(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpPostRoot </h1>\r\n" +
-                p.ToString() +
-                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
-                "<h1>Host: " + p["Host"] + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        // Creates internal Request structure.
-        private static Boolean OnInternalHttpRequest(Request p)
-        {
-            String[] request_strings =
-            {
-                "GET /pub/WWW/TheProject.html HTTP/1.1\r\n" +
-                "Host: www.w3.org\r\n" +
-                "\r\n",
-                                         
-                "GET /get_funky_content_length_body_hello HTTP/1.0\r\n" +
-                "conTENT-Length: 5\r\n" +
-                "\r\n" +
-                "HELLO",
-
-                "GET /vi/Q1Nnm4AZv4c/hqdefault.jpg HTTP/1.1\r\n" +
-                "Host: i2.ytimg.com\r\n" +
-                "Connection: keep-alive\r\n" +
-                "User-Agent: Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4\r\n" +
-                "Accept: */*\r\n" +
-                "Referer: http://www.youtube.com/\r\n" +
-                "Accept-Encoding: gzip,deflate,sdch\r\n" +
-                "Accept-Language: en-US,en;q=0.8\r\n" +
-                "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3\r\n" +
-                "\r\n",
-
-                "POST /post_identity_body_world?q=search#hey HTTP/1.1\r\n" +
-                "Accept: */*\r\n" +
-                "Transfer-Encoding: identity\r\n" +
-                "Content-Length: 5\r\n" +
-                "\r\n" +
-                "World",
-
-                "PATCH /file.txt HTTP/1.1\r\n" +
-                "Host: www.example.com\r\n" +
-                "Content-Type: application/example\r\n" +
-                "If-Match: \"e0023aa4e\"\r\n" +
-                "Content-Length: 10\r\n" +
-                "\r\n" +
-                "cccccccccc",
-
-                "POST / HTTP/1.1\r\n" +
-                "Host: www.example.com\r\n" +
-                "Content-Type: application/x-www-form-urlencoded\r\n" +
-                "Content-Length: 4\r\n" +
-                "Connection: close\r\n" +
-                "\r\n" +
-                "q=42\r\n"
-            };
-
-            String responseBody = "";
-
-            // Collecting all parsed HTTP requests.
-            for (Int32 i = 0; i < request_strings.Length; i++)
-            {
-                Byte[] request_bytes = Encoding.ASCII.GetBytes(request_strings[i]);
-                Request internal_request = new Request(request_bytes, request_bytes.Length);
-
-                responseBody += "-------------------------------";
-                responseBody += internal_request.ToString();
-
-                internal_request.Destroy();
-            }
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        // Upload any file to /upload/{file_name}
-        private static Boolean OnHttpUpload(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpUpload </h1>\r\n" +
-                p.ToString() +
-                "<h1>Uploaded file of length: " + p.ContentLength + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            // Obtaining uploaded file name.
-            String file_postfix = "null";
-            if (p.Uri.Length > 8)
-                file_postfix = p.Uri.Substring(8/*/upload/*/);
-
-            String file_name = "uploaded_" + file_postfix;
-            File.WriteAllBytes(file_name, p.BodyBytes);
-            Console.WriteLine("Uploaded file saved: " + file_name);
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Server: Starcounter\r\n" + 
-                "Access-Control-Allow-Origin: *\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        // Download any file from /download/{file_name}
-        private static Boolean OnHttpDownload(Request p)
-        {
-            // Obtaining uploaded file name.
-            String file_postfix = "null";
-            if (p.Uri.Length > 10)
-                file_postfix = p.Uri.Substring(10/*/download/*/);
-
-            // Obtaining uploaded file name.
-            String file_name = "uploaded_" + file_postfix;
-
-            // Trying to load file from disk.
-            Byte[] bodyBytes = new Byte[0];
-            if (File.Exists(file_name))
-            {
-                bodyBytes = File.ReadAllBytes(file_name);
-                Console.WriteLine("Read uploaded file: " + file_name);
-            }
-
-            String headerString =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Length: " + bodyBytes.Length + "\r\n" +
-                "\r\n";
-
-            Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
-
-            // Combining two arrays together.
-            Byte[] responseBytes = new Byte[headerBytes.Length + bodyBytes.Length];
-            headerBytes.CopyTo(responseBytes, 0);
-            bodyBytes.CopyTo(responseBytes, headerBytes.Length);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        private static Boolean OnHttpGetRoot(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpGetRoot </h1>\r\n" +
-                p.ToString() +
-                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
-                "<h1>Host: " + p["Host"] + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        private static Boolean OnHttpKillSession(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpKillSession </h1>\r\n" +
-                p.ToString() +
-                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
-                "<h1>Host: " + p["Host"] + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Generating new session cookie if needed.
-            if (p.CameWithCorrectSession)
-            {
-                // Generating and writing new session.
-                p.DestroySession();
-            }
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        private static Boolean OnHttpSession(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpSession </h1>\r\n" +
-                p.ToString() +
-                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
-                "<h1>Host: " + p["Host"] + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n";
-
-            // Generating new session cookie if needed.
-            if (!p.CameWithCorrectSession)
-            {
-                try
-                {
-                    // Generating and writing new session.
-                    UInt32 err_code = p.GenerateNewSession(SchedulerAppsSessionsPool.Pool.Allocate());
-                    if (err_code != 0)
-                        return false;
-                }
-                catch(Exception exc)
-                {
-                    Console.WriteLine(exc.ToString());
-                }
-
-                // Displaying new session unique number.
-                Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
-            }
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + "\r\n" + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
         }
 
         private static Response OnHttpEcho(Request p)
@@ -1098,130 +674,6 @@ namespace NetworkIoTestApp
 
             return p.Body;
         }
-
-        static Node someNode = new Node("127.0.0.1");
-
-        private static Response OnTestRest(Request p)
-        {
-            String jsonContent = "{\"FirstName\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
-
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + jsonContent.Length + "\r\n" +
-                "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + jsonContent);
-
-            try
-            {
-                return new Response()
-                {
-                    BodyBytes = responseBytes
-                };
-            }
-            catch
-            {
-                return new Response()
-                {
-                    BodyBytes = kHttpServiceUnavailable
-                };
-            }
-        }
-
-        private static Boolean OnHttpUsers(Request p)
-        {
-            String responseBody =
-                "<html>\r\n" +
-                "<body>\r\n" +
-                "<h1>URI handler: OnHttpUsers </h1>\r\n" +
-                p.ToString() +
-                "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
-                "<h1>Host: " + p["Host"] + "</h1>" +
-                "</body>\r\n" +
-                "</html>\r\n";
-
-            String responseHeader = 
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + responseBody.Length + "\r\n" +
-                "\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + responseBody);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        private static Boolean OnHttpOptions(Request p)
-        {
-            String responseHeader =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Access-Control-Allow-Origin: *\r\n" +
-                "Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS\r\n" +
-                "Access-Control-Allow-Headers: Origin, Content-Type, Accept\r\n" +
-                "Content-Length: 0\r\n\r\n";
-
-            // Converting string to byte array.
-            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
-
-        // Loading image file from disk statically.
-        static Byte[] ImageBodyBytes = null;
-
-        private static Boolean OnHttpGetImage(Request p)
-        {
-            String headerString =
-                "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: image/png\r\n" +
-                "Content-Length: " + ImageBodyBytes.Length + "\r\n" +
-                "\r\n";
-
-            Byte[] headerBytes = Encoding.ASCII.GetBytes(headerString);
-
-            // Combining two arrays together.
-            Byte[] responseBytes = new Byte[headerBytes.Length + ImageBodyBytes.Length];
-            headerBytes.CopyTo(responseBytes, 0);
-            ImageBodyBytes.CopyTo(responseBytes, headerBytes.Length);
-
-            try
-            {
-                // Writing back the response.
-                p.SendResponse(responseBytes, 0, responseBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-            catch
-            {
-                // Writing back the error status.
-                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length, Response.ConnectionFlags.NoSpecialFlags);
-            }
-
-            return true;
-        }
+ 
     }
 }

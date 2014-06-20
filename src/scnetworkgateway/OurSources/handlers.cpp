@@ -644,12 +644,20 @@ uint32_t AppsPortProcessData(
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
+        // Its a raw socket protocol.
+        sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
+
         // Resetting user data parameters.
         sd->get_accum_buf()->set_chunk_num_available_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
 
         // Setting matched URI index.
         sd->SetDestDbIndex(hl->get_db_index());
+
+        // Posting cloning receive since all data is accumulated.
+        err_code = sd->CloneToReceive(gw);
+        if (err_code)
+            return err_code;
 
         // Push chunk to corresponding channel/scheduler.
         err_code = gw->PushSocketDataToDb(sd, user_handler_id);
@@ -669,7 +677,8 @@ uint32_t AppsPortProcessData(
 
         // Sending data.
         err_code = gw->Send(sd);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
         // Setting handled flag.
         *is_handled = true;

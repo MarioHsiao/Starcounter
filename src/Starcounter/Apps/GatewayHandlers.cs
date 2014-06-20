@@ -15,28 +15,13 @@ using Starcounter.Rest;
 namespace Starcounter
 {
     /// <summary>
-    /// Struct PortHandlerParams
+    /// Raw socket delegate.
     /// </summary>
-    public struct PortHandlerParams
-    {
-        /// <summary>
-        /// The user session id
-        /// </summary>
-        public UInt64 UserSessionId;
-
-        /// <summary>
-        /// The data stream
-        /// </summary>
-        public NetworkDataStream DataStream;
-    }
-
-    /// <summary>
-    /// Delegate PortCallback
-    /// </summary>
-    /// <param name="info">The info.</param>
-    /// <returns>Boolean.</returns>
-    public delegate Boolean PortCallback(
-		PortHandlerParams info
+    /// <param name="rawSocket"></param>
+    /// <param name="incomingData"></param>
+    public delegate void RawSocketCallback(
+		RawSocket rawSocket,
+        Byte[] incomingData
 	);
 
     /// <summary>
@@ -82,7 +67,13 @@ namespace Starcounter
         /// <summary>
         /// The port_handlers_
         /// </summary>
-        private static PortCallback[] port_handlers_;
+        private static RawSocketCallback[] raw_port_handlers_;
+
+        /// <summary>
+        /// Number of registered raw port handlers.
+        /// </summary>
+        static UInt16 num_raw_port_handlers_ = 0;
+
         /// <summary>
         /// The subport_handlers_
         /// </summary>
@@ -93,7 +84,7 @@ namespace Starcounter
         /// </summary>
         static GatewayHandlers()
 		{
-            port_handlers_ = new PortCallback[MAX_HANDLERS];
+            raw_port_handlers_ = new RawSocketCallback[MAX_HANDLERS];
             subport_handlers_ = new SubportCallback[MAX_HANDLERS];
 		}
 
@@ -105,7 +96,7 @@ namespace Starcounter
         /// <param name="task_info">The task_info.</param>
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
-        private unsafe static UInt32 PortOuterHandler(
+        private unsafe static UInt32 HandleRawSocket(
             UInt16 managed_handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
@@ -114,29 +105,59 @@ namespace Starcounter
             *is_handled = false;
 
             UInt32 chunk_index = task_info->chunk_index;
-            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
             // Fetching the callback.
-            PortCallback user_callback = port_handlers_[managed_handler_id];
+            RawSocketCallback user_callback = raw_port_handlers_[managed_handler_id];
 			if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
+                throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
             // Determining if chunk is single.
             Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
 
-            // Releasing linked chunks if not single.
-            if (!is_single_chunk)
-                throw new NotImplementedException();
+            Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
-            // Creating parameters.
-            PortHandlerParams handler_params = new PortHandlerParams
-            {
-                UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SESSION_LINEAR_INDEX),
-                DataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id)
-            };
+            NetworkDataStream dataStream;
+
+            // Checking if we need to process linked chunks.
+            if (!is_single_chunk) {
+
+                UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
+
+                // Allocating space to copy linked chunks (freed on Request destruction).
+                IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
+
+                // Copying all chunks data.
+                UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                    chunk_index,
+                    raw_chunk,
+                    (Byte*) plain_chunks_data);
+
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode);
+
+                // Adjusting pointers to a new plain byte array.
+                raw_chunk = (Byte*) plain_chunks_data;
+                socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+            }
+
+            // Creating network data stream object.
+            dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+
+            Byte[] dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+
+            Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+
+            // Obtaining socket index and unique id.
+            UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
+            UInt64 socketUniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
+            Byte gwWorkerId = dataStream.GatewayWorkerId;
+
+            RawSocket rawSocket = new RawSocket(socketIndex, socketUniqueId, gwWorkerId, dataStream);
 
             // Calling user callback.
-            *is_handled = user_callback(handler_params);
+            user_callback(rawSocket, dataBytes);
+
+            *is_handled = true;
             
             // Reset managed task state before exiting managed task entry point.
             TaskHelper.Reset();
@@ -166,7 +187,7 @@ namespace Starcounter
             // Fetching the callback.
             SubportCallback user_callback = subport_handlers_[managed_handler_id];
             if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
+                throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
             // Determining if chunk is single.
             Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
@@ -575,27 +596,27 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Registers the port handler.
+        /// Registers the raw port handler.
         /// </summary>
-        public static void RegisterPortHandler(
+        public static void RegisterRawPortHandler(
 			UInt16 port,
             String appName,
-			PortCallback portCallback,
-            UInt16 managedHandlerIndex,
+			RawSocketCallback portCallback,
             out UInt64 handlerInfo)
 		{
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (raw_port_handlers_)
             {
-                bmx.BMX_HANDLER_CALLBACK fp = PortOuterHandler;
+                bmx.BMX_HANDLER_CALLBACK fp = HandleRawSocket;
                 GCHandle gch = GCHandle.Alloc(fp);
                 IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
 
-                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, appName, pinned_delegate, managedHandlerIndex, out handlerInfo);
+                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, appName, pinned_delegate, num_raw_port_handlers_, out handlerInfo);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode, "Port number: " + port);
 
-                port_handlers_[managedHandlerIndex] = portCallback;
+                raw_port_handlers_[num_raw_port_handlers_] = portCallback;
+                num_raw_port_handlers_++;
 
                 String dbName = StarcounterEnvironment.DatabaseNameLower;
 
@@ -620,7 +641,7 @@ namespace Starcounter
         public static void UnregisterPort(UInt16 port, UInt64 handlerInfo)
 		{
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (raw_port_handlers_)
             {
                 UInt32 errorCode = bmx.sc_bmx_unregister_port(port);
                 if (errorCode != 0)

@@ -2001,11 +2001,19 @@ public:
     }
 
     // Getting scheduler id.
-    int32_t GetSchedulerId(session_index_type socket_index)
+    scheduler_id_type GetSchedulerId(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         return all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_;
+    }
+
+    // Set scheduler id.
+    void SetSchedulerId(session_index_type socket_index, scheduler_id_type sched_id)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = sched_id;
     }
 
     // Getting socket index.

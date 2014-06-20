@@ -583,10 +583,21 @@ public:
         return session_.scheduler_id_;
     }
 
+    // Binds current socket to some scheduler.
+    void BindSocketToScheduler(WorkerDbInterface *db);
+
     // Setting scheduler id.
     void set_scheduler_id(scheduler_id_type sched_id)
     {
         session_.scheduler_id_ = sched_id;
+    }
+
+    // Setting scheduler id globally.
+    void SetSchedulerId(scheduler_id_type sched_id)
+    {
+        session_.scheduler_id_ = sched_id;
+
+        g_gateway.SetSchedulerId(socket_info_index_, sched_id);
     }
 
     // Getting session index.
@@ -1002,6 +1013,7 @@ public:
     {
         // Checking correct unique socket.
         GW_ASSERT(true == CompareUniqueSocketId());
+        GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
 
         set_type_of_network_oper(SEND_SOCKET_OPER);
 

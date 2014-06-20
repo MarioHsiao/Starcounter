@@ -2926,14 +2926,6 @@ uint32_t Gateway::CollectInactiveSockets(int32_t worker_id)
 
                     break;
                 }
-
-                /*case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
-                {
-                    sockets_to_cleanup_unsafe_[num_inactive] = i;
-                    ++num_inactive;
-
-                    break;
-                }*/
             }
         }
 

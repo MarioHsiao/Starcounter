@@ -345,12 +345,6 @@ public:
         return g_gateway.get_server_port(port_index)->GetLeastBusyWorkerId();
     }
 
-    // Generates a new scheduler id.
-    scheduler_id_type GenerateSchedulerId()
-    {
-        return GetWorkerDb(0)->GenerateSchedulerId();
-    }
-
     // Getting random generator.
     random_generator* get_random()
     {

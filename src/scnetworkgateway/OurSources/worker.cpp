@@ -1670,6 +1670,9 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
         // Always storing the handler id.
         sd->set_handler_id(handler_id);
 
+        // Binding socket to a specific scheduler, depending on protocol.
+        sd->BindSocketToScheduler(db);
+
         // Checking if there is a non-empty overflow queue, so putting in it.
         if (IsOverflowed()) {
             PushToOverflowQueue(sd);
