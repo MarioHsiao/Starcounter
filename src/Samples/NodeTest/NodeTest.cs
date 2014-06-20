@@ -964,8 +964,8 @@ namespace NodeTest
                 throw new Exception("Host is not ready by some reason!");
 
             // Resetting the counters.
-            X.GET(Settings.ResetCountersUri, out resp);
-            if (200 == resp.StatusCode) {
+            resp = X.DELETE(Settings.ResetCountersUri, (String) null, null);
+            if (200 != resp.StatusCode) {
                 throw new Exception("Can't reset counters properly!");
             }
 
