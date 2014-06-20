@@ -3,7 +3,7 @@ SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
 SET DB_NAME=MYDB
 
-staradmin -killall
+staradmin kill all
 
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% (

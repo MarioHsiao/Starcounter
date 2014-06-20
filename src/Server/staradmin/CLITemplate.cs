@@ -17,6 +17,15 @@ namespace staradmin {
         }
 
         /// <summary>
+        /// Gets the default CLI template name.
+        /// </summary>
+        public static string DefaultTemplateName {
+            get {
+                return "+";
+            }
+        }
+
+        /// <summary>
         /// Gets the full path to the root directory of all CLI
         /// templates.
         /// </summary>

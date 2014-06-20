@@ -11,6 +11,7 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
 
     // Entered or Selected file
     //$scope.file = "";
+    $scope.pickedApplications = null;
 
     $scope.selectedApplication = null;
 
@@ -123,6 +124,31 @@ adminModule.controller('ApplicationStartCtrl', ['$scope', '$log', '$location', '
         $scope.selectedApplication = angular.copy(application);
     }
 
+    /**
+     * Pick Application
+     * @param {object} application Application
+     */
+    $scope.btnPick = function () {
+        ApplicationService.pickApplications(function (response) {
+
+            $scope.pickedApplications = response;
+
+            if ($scope.pickedApplications.length > 0) {
+                // No support for multistarts at the moment
+                $scope.selectedApplication.Path = $scope.pickedApplications[0].file;
+            }
+
+        }, function (messageObject) {
+
+            if (messageObject.isError) {
+                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            }
+            else {
+                $scope.notice = NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+            }
+        });
+    }
+    
 
     /**
      * Remember Application

@@ -24,7 +24,7 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
 :: Success message.
 ECHO Star.exe loop tests finished successfully!
 
-::staradmin -killall
+::staradmin kill all
 GOTO :EOF
 
 :: If we are here than some test has failed.
