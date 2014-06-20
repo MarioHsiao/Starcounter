@@ -68,7 +68,7 @@ namespace NodeTest
 
         public Int32 NumEchoesPerWorker = 10000;
 
-        public Int32 NumEchoesPerWsConnection = 10;
+        public Int32 NumEchoesPerConnection = 10;
 
         public Int32 NumSecondsToWait = 5000;
 
@@ -139,9 +139,9 @@ namespace NodeTest
                 {
                     NumEchoesPerWorker = Int32.Parse(arg.Substring("-NumEchoesPerWorker=".Length));
                 }
-                else if (arg.StartsWith("-NumEchoesPerWsConnection="))
+                else if (arg.StartsWith("-NumEchoesPerConnection="))
                 {
-                    NumEchoesPerWsConnection = Int32.Parse(arg.Substring("-NumEchoesPerWsConnection=".Length));
+                    NumEchoesPerConnection = Int32.Parse(arg.Substring("-NumEchoesPerConnection=".Length));
                 }
                 else if (arg.StartsWith("-NumSecondsToWait="))
                 {
@@ -170,7 +170,7 @@ namespace NodeTest
 
             if (ProtocolTypes.ProtocolWebSockets == ProtocolType) {
 
-                if ((NumEchoesPerWorker % NumEchoesPerWsConnection) != 0) {
+                if ((NumEchoesPerWorker % NumEchoesPerConnection) != 0) {
                     throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerWsConnection!");
                 }
 
@@ -178,6 +178,10 @@ namespace NodeTest
                     throw new ArgumentException("WebSockets support only Sync mode (and no aggregation)!");
                 }
             } else if (ProtocolTypes.ProtocolRawPort == ProtocolType) {
+
+                if ((NumEchoesPerWorker % NumEchoesPerConnection) != 0) {
+                    throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerWsConnection!");
+                }
 
                 if ((AsyncModes.ModeSync != AsyncMode) || (true == UseAggregation)) {
                     throw new ArgumentException("Raw ports socket supports only Sync mode (and no aggregation)!");
@@ -209,9 +213,9 @@ namespace NodeTest
                     String retrieved = (String) X.GET(WebSocketCountersUri);
 
                     String expected = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}",
-                        NumEchoesAllWorkers / NumEchoesPerWsConnection,
+                        NumEchoesAllWorkers / NumEchoesPerConnection,
                         NumEchoesAllWorkers,
-                        NumEchoesAllWorkers / NumEchoesPerWsConnection);
+                        NumEchoesAllWorkers / NumEchoesPerConnection);
 
                     if (retrieved != expected)
                         throw new Exception(String.Format("Wrong expected counters data. Expected: {0}, Received: {1}", expected, retrieved));
@@ -235,7 +239,7 @@ namespace NodeTest
 
                     String retrieved = (String) X.GET(RawPortCountersUri);
 
-                    String expected = String.Format("Raw port counters: bytes received={0}.", totalBytesSent_);
+                    String expected = String.Format("Raw port counters: bytes received={0}, disconnects={1}.", totalBytesSent_, NumEchoesAllWorkers / NumEchoesPerConnection);
 
                     if (retrieved != expected)
                         throw new Exception(String.Format("Wrong expected counters data. Expected: {0}, Received: {1}", expected, retrieved));
@@ -330,7 +334,7 @@ namespace NodeTest
                 await ws.ConnectAsync(serverUri, CancellationToken.None);
 
                 // Within one connection performing several echoes.
-                Int32 numRuns = settings_.NumEchoesPerWsConnection;
+                Int32 numRuns = settings_.NumEchoesPerConnection;
 
                 for (Int32 n = 0; n < numRuns; n++)
                 {
@@ -387,7 +391,7 @@ namespace NodeTest
         {
             WebSocket4Net.WebSocket ws = new WebSocket4Net.WebSocket(Settings.CompleteWebSocketUri);
 
-            Int32 numRuns = settings_.NumEchoesPerWsConnection;
+            Int32 numRuns = settings_.NumEchoesPerConnection;
 
             AutoResetEvent allEchoesReceivedEvent = new AutoResetEvent(false);
 
@@ -490,7 +494,7 @@ namespace NodeTest
 
             try {
 
-                Int32 numRuns = settings_.NumEchoesPerWsConnection;
+                Int32 numRuns = settings_.NumEchoesPerConnection;
 
                 for (Int32 i = 0; i < numRuns; i++) {
 
@@ -527,12 +531,6 @@ namespace NodeTest
 
                     // Checking if all echoes are processed.
                     if (worker_.IsAllEchoesReceived()) {
-                        break;
-                    }
-
-                    // Sending data again if number of runs is not exhausted.
-                    numRuns--;
-                    if (numRuns <= 0) {
                         break;
                     }
                 }
@@ -934,9 +932,10 @@ namespace NodeTest
             Console.WriteLine("MinEchoBytes: " + settings.MinEchoBytes);
             Console.WriteLine("MaxEchoBytes: " + settings.MaxEchoBytes);
             Console.WriteLine("NumEchoesPerWorker: " + settings.NumEchoesPerWorker);
+            Console.WriteLine("NumEchoesPerConnection: " + settings.NumEchoesPerConnection);
             Console.WriteLine("NumSecondsToWait: " + settings.NumSecondsToWait);
             Console.WriteLine("AsyncMode: " + settings.AsyncMode);
-            Console.WriteLine("UseAggregation: " + settings.UseAggregation);
+            Console.WriteLine("UseAggregation: " + settings.UseAggregation);            
 
             // Waiting until host is available.
             Boolean hostIsReady = false;

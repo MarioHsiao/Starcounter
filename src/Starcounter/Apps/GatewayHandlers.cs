@@ -143,9 +143,7 @@ namespace Starcounter
             // Creating network data stream object.
             dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-            Byte[] dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
-
-            Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+            Byte[] dataBytes = null;
 
             // Obtaining socket index and unique id.
             UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
@@ -153,6 +151,20 @@ namespace Starcounter
             Byte gwWorkerId = dataStream.GatewayWorkerId;
 
             RawSocket rawSocket = new RawSocket(socketIndex, socketUniqueId, gwWorkerId, dataStream);
+
+            // Checking if its a socket disconnect.
+            if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
+
+                dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+
+                Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+
+            } else {
+
+                // Making socket unusable.
+                dataStream.Destroy(true);
+                rawSocket.Reset();
+            }
 
             // Calling user callback.
             user_callback(rawSocket, dataBytes);

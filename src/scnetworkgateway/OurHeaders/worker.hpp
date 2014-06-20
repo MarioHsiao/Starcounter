@@ -506,6 +506,12 @@ public:
     // Running disconnect on socket data.
     void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
 
+    // Pushes disconnect message to host if needed.
+    void PushDisconnectIfNeeded(SocketDataChunkRef sd);
+
+    // Send disconnect to database.
+    uint32_t SendRawSocketDisconnectToDb(SocketDataChunk* sd);
+
     // Initiates receive on arbitrary socket.
     uint32_t ReceiveOnSocket(session_index_type socket_index);
 

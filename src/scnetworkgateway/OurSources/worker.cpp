@@ -696,6 +696,60 @@ uint32_t GatewayWorker::ReceiveOnSocket(session_index_type socket_index)
     return 0;
 }
 
+// Send disconnect to database.
+uint32_t GatewayWorker::SendRawSocketDisconnectToDb(SocketDataChunk* sd)
+{
+    SocketDataChunk* sd_push_to_db = NULL;
+    uint32_t err_code = sd->CloneToPush(this, &sd_push_to_db);
+    if (err_code)
+        return err_code;
+
+    sd_push_to_db->ResetAllFlags();
+    sd_push_to_db->set_just_push_disconnect_flag();
+
+    // Searching for server port and corresponding raw port handler.
+    ServerPort* sp = g_gateway.get_server_port(sd->GetPortIndex());
+
+    if ((NULL != sp) && (!sp->IsEmpty())) {
+        
+        bool is_handled = false;
+
+        PortHandlers* ph = sp->get_port_handlers();
+
+        if ((ph != NULL) && (!ph->IsEmpty())) {
+            ph->RunHandlers(this, sd_push_to_db, &is_handled);
+            GW_ASSERT(NULL == sd_push_to_db);
+        }        
+    }
+
+    // Checking if we were not able to push.
+    if (NULL != sd_push_to_db) {
+        // Releasing the cloned chunk.
+        ReturnSocketDataChunksToPool(sd_push_to_db);
+    }
+
+    return 0;
+}
+
+// Pushes disconnect message to host if needed.
+void GatewayWorker::PushDisconnectIfNeeded(SocketDataChunkRef sd) {
+
+    // Processing session according to protocol.
+    switch (sd->get_type_of_network_protocol()) {
+
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS: {
+            // NOTE: Ignoring the error code.
+            WsProto::SendWebSocketDisconnectToDb(this, sd);
+            break;
+        }
+
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
+            SendRawSocketDisconnectToDb(sd);
+            break;
+        }
+    }
+}
+
 // Running disconnect on socket data.
 // NOTE: Socket data chunk can not be used after this function is called!
 void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
@@ -714,12 +768,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         if (!sd->CompareUniqueSocketId())
             goto RELEASE_CHUNK_TO_POOL;
 
-        // Pushing disconnect if its a WebSocket.
-        if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol()) {
-
-            // NOTE: Ignoring the error code.
-            WsProto::SendSocketDisconnectToDb(this, sd);
-        }
+        // Pushing disconnect message to host if needed.
+        PushDisconnectIfNeeded(sd);
 
         // Setting unique socket id.
         sd->GenerateUniqueSocketInfoIds();
@@ -738,12 +788,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     // Checking correct unique socket.
     if (sd->CompareUniqueSocketId()) {
 
-        // Pushing disconnect if its a WebSocket.
-        if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol()) {
-
-            // NOTE: Ignoring the error code.
-            WsProto::SendSocketDisconnectToDb(this, sd);
-        }
+        // Pushing disconnect message to host if needed.
+        PushDisconnectIfNeeded(sd);
 
         // Setting unique socket id.
         sd->GenerateUniqueSocketInfoIds();

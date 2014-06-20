@@ -175,7 +175,7 @@ inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
 }
 
 // Send disconnect to database.
-uint32_t WsProto::SendSocketDisconnectToDb(
+uint32_t WsProto::SendWebSocketDisconnectToDb(
     GatewayWorker *gw,
     SocketDataChunk* sd)
 {

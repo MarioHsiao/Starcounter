@@ -257,6 +257,7 @@ namespace NetworkIoTestApp
         static Int32 WsHandshakesCounter = 0;
         static Int32 HttpEchoesCounter = 0;
         static Int32 RawPortBytesCounter = 0;
+        static Int32 RawPortDisconnectsCounter = 0;
 
         // Handlers registration.
         static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
@@ -358,6 +359,7 @@ namespace NetworkIoTestApp
                         WsHandshakesCounter = 0;
                         HttpEchoesCounter = 0;
                         RawPortBytesCounter = 0;
+                        RawPortDisconnectsCounter = 0;
 
                         return 200;
                     });
@@ -418,11 +420,13 @@ namespace NetworkIoTestApp
 
                     Handle.GET(8080, "/rawportcounters", (Request req) => {
 
-                        Int32 e = RawPortBytesCounter;
+                        Int32 e = RawPortBytesCounter,
+                            d = RawPortDisconnectsCounter;
 
                         RawPortBytesCounter = 0;
+                        RawPortDisconnectsCounter = 0;
 
-                        return new Response() { Body = String.Format("Raw port counters: bytes received={0}.", e) };
+                        return new Response() { Body = String.Format("Raw port counters: bytes received={0}, disconnects={1}.", e, d) };
                     });
 
                     GatewayHandlers.RegisterRawPortHandler(8585, StarcounterEnvironment.AppName, OnRawPortEcho, out handler_id);
@@ -634,6 +638,16 @@ namespace NetworkIoTestApp
 
         private static void OnRawPortEcho(RawSocket rawSocket, Byte[] incomingData)
         {
+            // Checking if we have socket disconnect here.
+            if (null == incomingData) {
+
+                Interlocked.Increment(ref RawPortDisconnectsCounter);
+
+                // Utilize the rawSocket.SocketUniqueId to clean up user socket resources.
+
+                return;
+            }
+
             Interlocked.Add(ref RawPortBytesCounter, incomingData.Length);
 
             // Checking if data is big enough to be splited (JUST an example of several pushes at once).

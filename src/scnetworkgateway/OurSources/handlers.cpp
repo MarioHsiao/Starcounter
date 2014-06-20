@@ -641,6 +641,26 @@ uint32_t AppsPortProcessData(
 {
     uint32_t err_code;
 
+    // Checking if we just want to disconnect.
+    if (sd->get_just_push_disconnect_flag()) {
+
+        // Setting handled flag.
+        *is_handled = true;
+
+        // Push chunk to corresponding channel/scheduler.
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+
+        if (err_code) {
+
+            // Releasing the cloned chunk.
+            gw->ReturnSocketDataChunksToPool(sd);
+
+            return err_code;
+        }
+
+        return 0;
+    }
+
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
