@@ -91,7 +91,7 @@ namespace Starcounter {
         /// </summary>
         public void Disconnect() {
 
-            PushServerMessage(TempDisconnectBuffer, 0, 1);
+            PushServerMessage(TempDisconnectBuffer, 0, 1, Response.ConnectionFlags.DisconnectImmediately);
 
             Reset();
         }

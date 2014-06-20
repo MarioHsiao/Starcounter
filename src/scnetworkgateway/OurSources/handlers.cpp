@@ -692,6 +692,10 @@ uint32_t AppsPortProcessData(
     // Checking if data goes from user code.
     else
     {
+        // Checking if we want to disconnect the socket.
+        if (sd->get_disconnect_socket_flag())
+            return SCERRGWDISCONNECTFLAG;
+
         // Prepare buffer to send outside.
         sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
 
