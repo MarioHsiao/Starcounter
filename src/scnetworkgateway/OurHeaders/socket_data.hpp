@@ -209,14 +209,6 @@ public:
         flags_ = 0;
     }
 
-#ifdef GW_LOOPED_TEST_MODE
-
-    // Pushing given sd to network emulation queue.
-    void PushToMeasuredNetworkEmulationQueue(GatewayWorker* gw);
-    void PushToPreparationNetworkEmulationQueue(GatewayWorker* gw);
-
-#endif
-
     // Checks if socket data is in correct state.
     uint32_t AssertCorrectState()
     {
@@ -438,8 +430,6 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT;
     }
 
-#ifdef GW_PROXY_MODE
-
     // Getting proxying unknown protocol flag.
     bool get_unknown_proxied_proto_flag()
     {
@@ -451,8 +441,6 @@ public:
     {
         flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO;
     }
-
-#endif
 
     // Setting accumulating flag.
     void set_accumulating_flag()
@@ -859,16 +847,6 @@ public:
         return *(BMX_HANDLER_TYPE*)((char*)(&ovl_) + 2);
     }
 
-#ifdef GW_TESTING_MODE
-
-    // Getting data blob pointer.
-    uint8_t* get_data_blob()
-    {
-        return data_blob_;
-    }
-
-#endif
-
     // Copies IPC chunks to gateway chunk.
     uint32_t CopyIPCChunksToGatewayChunk(
         WorkerDbInterface* worker_db,
@@ -999,11 +977,6 @@ public:
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-#ifdef GW_LOOPED_TEST_MODE
-        PushToMeasuredNetworkEmulationQueue(gw);
-        return WSA_IO_PENDING;
-#endif
-
         DWORD flags = 0;
         return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
@@ -1019,11 +992,6 @@ public:
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-#ifdef GW_LOOPED_TEST_MODE
-        PushToMeasuredNetworkEmulationQueue(gw);
-        return WSA_IO_PENDING;
-#endif
-
         return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
     }
 
@@ -1036,11 +1004,6 @@ public:
         set_type_of_network_oper(ACCEPT_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-#ifdef GW_LOOPED_TEST_MODE
-        PushToPreparationNetworkEmulationQueue(gw);
-        return FALSE;
-#endif
 
         // Running Windows API AcceptEx function.
         return AcceptExFunc(
@@ -1059,13 +1022,11 @@ public:
     {
         SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
 
-#ifndef GW_LOOPED_TEST_MODE
         if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
             uint32_t err_code = WSAGetLastError();
 
             return err_code;
         }
-#endif
 
         return 0;
     }
@@ -1080,11 +1041,6 @@ public:
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-#ifdef GW_LOOPED_TEST_MODE
-        PushToPreparationNetworkEmulationQueue(gw);
-        return FALSE;
-#endif
-
         return ConnectExFunc(GetSocket(), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
     }
 
@@ -1097,11 +1053,6 @@ public:
         set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
 
         memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-#ifdef GW_LOOPED_TEST_MODE
-        PushToMeasuredNetworkEmulationQueue(gw);
-        return FALSE;
-#endif
 
         return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
     }

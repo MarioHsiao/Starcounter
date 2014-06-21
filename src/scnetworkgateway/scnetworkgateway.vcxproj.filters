@@ -116,9 +116,6 @@
     <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c">
       <Filter>ThirdPartySources</Filter>
     </ClCompile>
-    <ClCompile Include="OurSources\echo_processors.cpp">
-      <Filter>OurSources</Filter>
-    </ClCompile>
     <ClCompile Include="OurSources\urimatch_codegen.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>

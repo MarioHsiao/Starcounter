@@ -36,7 +36,6 @@
   <ItemGroup>
     <ClCompile Include="..\HTTP\HttpParser\ThirdPartySources\http_parser.c" />
     <ClCompile Include="OurSources\aggregation.cpp" />
-    <ClCompile Include="OurSources\echo_processors.cpp" />
     <ClCompile Include="OurSources\gateway.cpp" />
     <ClCompile Include="OurSources\http_proto.cpp" />
     <ClCompile Include="OurSources\handlers.cpp" />

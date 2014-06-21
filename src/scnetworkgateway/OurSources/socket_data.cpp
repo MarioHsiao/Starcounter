@@ -340,23 +340,5 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     return err_code;
 }
 
-#ifdef GW_LOOPED_TEST_MODE
-
-// Pushing given sd to network emulation queue.
-// NOTE: Passing socket data as a pointer, not reference,
-// since there is no need to pass a reference here
-// (if something sd is converted to null outside this function).
-void SocketDataChunk::PushToMeasuredNetworkEmulationQueue(GatewayWorker* gw)
-{
-    gw->PushToMeasuredNetworkEmulationQueue(this);
-}
-
-void SocketDataChunk::PushToPreparationNetworkEmulationQueue(GatewayWorker* gw)
-{
-    gw->PushToPreparationNetworkEmulationQueue(this);
-}
-
-#endif
-
 } // namespace network
 } // namespace starcounter

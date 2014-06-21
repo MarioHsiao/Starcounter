@@ -302,41 +302,6 @@ Gateway::Gateway()
     memcpy(global_statistics_string_, kHttpStatisticsHeader, kHttpStatisticsHeaderLength);
 
     codegen_uri_matcher_ = NULL;
-
-#ifdef GW_TESTING_MODE
-
-    // Master IP address.
-    setting_master_ip_ = "";
-
-    // Indicates if this node is a master node.
-    setting_is_master_ = true;
-
-    // Number of connections to establish to master.
-    setting_num_connections_to_master_ = 0;
-    setting_num_connections_to_master_per_worker_ = 0;
-
-    // Number of echoes to send to master node from clients.
-    setting_num_echoes_to_master_ = 0;
-
-    // Setting operational mode.
-    setting_mode_ = GatewayTestingMode::MODE_GATEWAY_SMC_HTTP;
-
-    // Number of operations per second.
-    num_gateway_ops_per_second_ = 0;
-
-    // Test finish critical section.
-    InitializeCriticalSection(&cs_test_finished_);
-
-    // Number of measures.
-    num_ops_measures_ = 0;
-
-    cmd_setting_num_workers_ = 0;
-    cmd_setting_mode_ = MODE_GATEWAY_UNKNOWN;
-    cmd_setting_num_connections_to_master_ = 0;
-    cmd_setting_num_echoes_to_master_ = 0;
-    cmd_setting_max_test_time_seconds_ = 0;
-
-#endif    
 }
 
 // Reading command line arguments.
@@ -358,26 +323,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     setting_server_output_dir_ = argv[3];
 
     char temp[128];
-
-#ifdef GW_TESTING_MODE
-    if (argc > 4)
-    {
-        GW_ASSERT(argc == 10);
-
-        cmd_setting_num_workers_ = _wtoi(argv[4]);
-        
-        size_t num_written;
-        wcstombs_s(&num_written, temp, 128, argv[5], _TRUNCATE);
-        cmd_setting_mode_ = GetGatewayTestingMode(temp);
-        cmd_setting_num_connections_to_master_ = _wtoi(argv[6]);
-        cmd_setting_num_echoes_to_master_ = _wtoi(argv[7]);
-        cmd_setting_max_test_time_seconds_ = _wtoi(argv[8]);
-
-        wcstombs_s(&num_written, temp, 128, argv[9], _TRUNCATE);
-        cmd_setting_stats_name_ = std::string(temp);
-    }
-#endif
-
+    
     // Opening Starcounter log.
     uint32_t err_code = g_gateway.OpenStarcounterLog();
     if (err_code)
@@ -747,12 +693,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported WorkersNumber value.");
             return SCERRBADGATEWAYCONFIG;
         }
-
-#ifdef GW_TESTING_MODE
-        if (cmd_setting_num_workers_)
-            setting_num_workers_ = cmd_setting_num_workers_;
-#endif
-
+        
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaxConnections");
         if (!node_elem)
@@ -836,75 +777,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
         // Initializing global timer.
         global_timer_unsafe_ = min_inactive_socket_life_seconds_;
-
-#ifdef GW_TESTING_MODE
-
-        // Getting master node IP address.
-        node_elem = root_elem->first_node("MasterIP");
-        GW_ASSERT(node_elem);
-        setting_master_ip_ = node_elem->value();
-        
-        // Master node does not need its own IP.
-        if (setting_master_ip_ == "")
-            setting_is_master_ = true;
-        else
-            setting_is_master_ = false;
-
-        // Server test port.
-        setting_server_test_port_ = 123;
-        GW_ASSERT(setting_server_test_port_ > 0 && setting_server_test_port_ < 65536);
-
-        // Number of connections to establish to master.
-        setting_num_connections_to_master_ = cmd_setting_num_connections_to_master_;
-
-        GW_ASSERT((setting_num_connections_to_master_ % (setting_num_workers_ * ACCEPT_ROOF_STEP_SIZE)) == 0);
-        setting_num_connections_to_master_per_worker_ = setting_num_connections_to_master_ / setting_num_workers_;
-
-        // Number of echoes to send to master node from clients.
-        setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
-
-        GW_ASSERT(setting_num_echoes_to_master_ <= MAX_TEST_ECHOES);
-        ResetEchoTests();
-
-        // Obtaining testing mode.
-        setting_mode_ = cmd_setting_mode_;
-
-        // Maximum running time for tests.
-        setting_max_test_time_seconds_ = cmd_setting_max_test_time_seconds_;
-        GW_ASSERT(setting_max_test_time_seconds_ > 0 && setting_max_test_time_seconds_ < 10000);
-        GW_ASSERT((setting_max_test_time_seconds_ % GW_MONITOR_THREAD_TIMEOUT_SECONDS) == 0);
-
-        // Loading statistics name.
-        setting_stats_name_ = cmd_setting_stats_name_;
-
-#ifdef GW_LOOPED_TEST_MODE
-        switch (setting_mode_)
-        {
-            case GatewayTestingMode::MODE_GATEWAY_HTTP:
-            case GatewayTestingMode::MODE_GATEWAY_SMC_HTTP:
-            case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP:
-            {
-                looped_echo_request_creator_ = DefaultHttpEchoRequestCreator;
-                looped_echo_response_processor_ = DefaultHttpEchoResponseProcessor;
-
-                break;
-            }
-
-            case GatewayTestingMode::MODE_GATEWAY_RAW:
-            case GatewayTestingMode::MODE_GATEWAY_SMC_RAW:
-            case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW:
-            {
-                looped_echo_request_creator_ = DefaultRawEchoRequestCreator;
-                looped_echo_response_processor_ = DefaultRawEchoResponseProcessor;
-
-                break;
-            }
-        }
-#endif
-
-#endif
-
-#ifdef GW_PROXY_MODE
 
         // Checking if we have reverse proxies.
         xml_node<char>* proxies_node = root_elem->first_node("ReverseProxies");
@@ -1017,8 +889,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 
             num_reversed_proxies_ = n;
         }
-
-#endif
     }
     catch (...)
     {
@@ -1722,28 +1592,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 break;
             }
         }
-
-#ifdef GW_TESTING_MODE
-
-        // Checking certain database names.
-        if (g_gateway.setting_is_master())
-        {
-            if (current_db_name == "MYDB_CLIENT")
-            {
-                GW_COUT << "Ignoring database '" << current_db_name << "' since we are in server mode." << GW_ENDL;
-                is_new_database = false;
-            }
-        }
-        else
-        {
-            if (current_db_name == "MYDB_SERVER")
-            {
-                GW_COUT << "Ignoring database '" << current_db_name << "' since we are in client mode." << GW_ENDL;
-                is_new_database = false;
-            }
-        }
-#endif
-
+        
         // We have a new database being up.
         if (is_new_database)
         {
@@ -2022,34 +1871,23 @@ uint32_t Gateway::Init()
             return errCode;
     }
 
-#ifdef GW_TESTING_MODE
-    // Creating and activating server sockets.
-    if (setting_is_master_)
+    // Going throw all needed ports.
+    for (int32_t p = 0; p < num_server_ports_slots_; p++)
     {
-#endif
+        // Skipping empty port.
+        if (server_ports_[p].IsEmpty())
+            continue;
 
-        // Going throw all needed ports.
-        for (int32_t p = 0; p < num_server_ports_slots_; p++)
-        {
-            // Skipping empty port.
-            if (server_ports_[p].IsEmpty())
-                continue;
+        SOCKET server_socket = INVALID_SOCKET;
 
-            SOCKET server_socket = INVALID_SOCKET;
+        // Creating socket and binding to port (only on the first worker).
+        uint32_t err_code = CreateListeningSocketAndBindToPort(
+            &gw_workers_[0],
+            server_ports_[p].get_port_number(),
+            server_socket);
 
-            // Creating socket and binding to port (only on the first worker).
-            uint32_t err_code = CreateListeningSocketAndBindToPort(
-                &gw_workers_[0],
-                server_ports_[p].get_port_number(),
-                server_socket);
-
-            GW_ERR_CHECK(err_code);
-        }
-
-#ifdef GW_TESTING_MODE
+        GW_ERR_CHECK(err_code);
     }
-
-#endif
 
     // Obtaining function pointers (AcceptEx, ConnectEx, DisconnectEx).
     uint32_t temp;
@@ -2084,23 +1922,7 @@ uint32_t Gateway::Init()
 
     // Initializing Gateway logger.
     gw_log_writer_.Init(setting_log_file_path_);
-
-#ifdef GW_TESTING_MODE
-
-    // Creating server address if we are on client.
-    if (!g_gateway.setting_is_master())
-    {
-        server_addr_ = new sockaddr_in;
-        memset(server_addr_, 0, sizeof(sockaddr_in));
-        server_addr_->sin_family = AF_INET;
-        server_addr_->sin_addr.s_addr = inet_addr(g_gateway.setting_master_ip().c_str());
-        server_addr_->sin_port = htons(g_gateway.setting_server_test_port());
-    }
-
-    InitTestHttpEchoRequests();
-
-#endif
-
+    
     // Loading URI codegen matcher.
     codegen_uri_matcher_ = new CodegenUriMatcher();
     codegen_uri_matcher_->Init();
@@ -2188,60 +2010,6 @@ void Gateway::RegisterGatewayHandlers() {
 
     uint32_t err_code = 0;
 
-#ifdef GW_TESTING_MODE
-
-    uint16_t port_number = setting_server_test_port();
-    if (!setting_is_master())
-        port_number++;
-
-    // Checking if we are in Gateway HTTP mode.
-    switch (g_gateway.setting_mode())
-    {
-        // Registering pure gateway handler here.
-    case GatewayTestingMode::MODE_GATEWAY_RAW:
-        {
-            // Registering port handler.
-            err_code = AddPortHandler(
-                &gw_workers_[0],
-                gw_handlers_,
-                port_number,
-                "gateway",
-                bmx::BMX_INVALID_HANDLER_INFO,
-                INVALID_DB_INDEX,
-                GatewayPortProcessEcho);
-
-            GW_ASSERT(0 == err_code);
-
-            break;
-        }
-
-        // Registering pure gateway handler here.
-    case GatewayTestingMode::MODE_GATEWAY_HTTP:
-        {
-            // Registering URI handlers.
-            err_code = AddUriHandler(
-                &gw_workers_[0],
-                gw_handlers_,
-                port_number,
-                "gateway",
-                http_tests_information_[setting_mode()].method_and_uri_info,
-                http_tests_information_[setting_mode()].method_and_uri_info,
-                NULL,
-                0,
-                bmx::BMX_INVALID_HANDLER_INFO,
-                INVALID_DB_INDEX,
-                GatewayUriProcessEcho);
-
-            GW_ASSERT(0 == err_code);
-
-            break;
-        }
-    }
-
-#endif
-
-#ifdef GW_PROXY_MODE
-
     // Registering all proxies.
     for (int32_t i = 0; i < num_reversed_proxies_; i++)
     {
@@ -2263,8 +2031,6 @@ void Gateway::RegisterGatewayHandlers() {
 
         GW_ASSERT(0 == err_code);
     }
-
-#endif
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -2939,12 +2705,8 @@ uint32_t __stdcall InactiveSocketsCleanupRoutine(LPVOID params)
             g_gateway.step_global_timer_unsafe(g_gateway.get_min_inactive_socket_life_seconds());
         }
 
-#ifndef GW_TESTING_MODE
-
         // Waking up all workers to perform the collection of inactive sockets.
         g_gateway.WakeUpAllWorkersToCollectInactiveSockets();
-
-#endif
     }
 
     return 0;
@@ -3070,19 +2832,6 @@ uint32_t Gateway::GatewayMonitor()
             GW_COUT << "Gateway logging thread is dead." << GW_ENDL;
             GW_ASSERT(false);
         }
-
-        // Checking if we are still running when we should not.
-#ifdef GW_TESTING_MODE
-
-        running_time_seconds += GW_MONITOR_THREAD_TIMEOUT_SECONDS;
-        if (running_time_seconds >= setting_max_test_time_seconds_)
-        {
-            GW_COUT << "Test timed out. Exiting process." << GW_ENDL;
-
-            ShutdownGateway(NULL, SCERRGWTESTTIMEOUT);
-        }
-
-#endif
     }
 
     return 0;
@@ -3173,36 +2922,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Calculating bandwidth.
         double recv_bandwidth_mbit_total = ((diffBytesReceivedAllWorkers * 8) / 1000000.0);
         double send_bandwidth_mbit_total = ((diffBytesSentAllWorkers * 8) / 1000000.0);
-
-#ifdef GW_TESTING_MODE
-
-        // Checking if we have started measurements.
-        if (started_measured_test_)
-        {
-            switch (g_gateway.setting_mode())
-            {
-                case GatewayTestingMode::MODE_GATEWAY_HTTP:
-                case GatewayTestingMode::MODE_GATEWAY_SMC_HTTP:
-                case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP:
-                {
-                    num_gateway_ops_per_second_ += diffProcessedHttpRequestsAllWorkers;
-                    break;
-                }
-
-                case GatewayTestingMode::MODE_GATEWAY_RAW:
-                case GatewayTestingMode::MODE_GATEWAY_SMC_RAW:
-                case GatewayTestingMode::MODE_GATEWAY_SMC_APPS_RAW:
-                {
-                    num_gateway_ops_per_second_ += diffRecvNumAllWorkers;
-                    break;
-                }
-            }
-
-            num_ops_measures_++;
-        }
-
-#endif
-
+        
         EnterCriticalSection(&cs_statistics_);
 
         // Emptying the statistics stream.
@@ -3249,14 +2969,6 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkers() 
             << ",\"activeSockets\":" << g_gateway.NumberOfActiveConnectionsOnAllPorts() 
-
-#ifdef GW_TESTING_MODE
-            << ",\"perfTestInfo\":{"
-            << "\"settingNumEchoesToMaster\":" << setting_num_echoes_to_master_ 
-            << ",\"numConfirmedEchoes\":" << num_confirmed_echoes_unsafe_ 
-            << ",\"numSentEchoes\":" << (current_echo_number_unsafe_ + 1) 
-            << "}"
-#endif
             << "}";
 
         first = true;
@@ -3473,124 +3185,6 @@ int32_t Gateway::StartGateway()
 
     return 0;
 }
-
-#ifdef GW_TESTING_MODE
-
-// Calculates number of created connections for all workers.
-int64_t Gateway::GetNumberOfCreatedConnectionsAllWorkers()
-{
-    int64_t num_created_conns = 0;
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-    {
-        num_created_conns += gw_workers_[w].get_num_created_conns_worker();
-    }
-    return num_created_conns;
-}
-
-#ifdef GW_LOOPED_TEST_MODE
-
-// Getting number of preparation network events.
-int64_t Gateway::GetNumberOfPreparationNetworkEventsAllWorkers()
-{
-    int64_t num_preparation_events = 0;
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-    {
-        num_preparation_events += gw_workers_[w].GetNumberOfPreparationNetworkEvents();
-    }
-    return num_preparation_events;
-}
-
-#endif
-
-// Checks that echo responses are correct.
-bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
-{
-    // First checking if we have confirmed all echoes.
-    if (num_confirmed_echoes_unsafe_ != setting_num_echoes_to_master_)
-        return false;
-
-    EnterCriticalSection(&cs_test_finished_);
-
-    // Checking if test already finished.
-    if (finished_measured_test_)
-    {
-        LeaveCriticalSection(&cs_test_finished_);
-        return false;
-    }
-
-#ifndef DONT_CHECK_ECHOES
-    // Running through all echoes.
-    for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
-    {
-        // Checking that each echo is confirmed.
-        if (confirmed_echoes_shared_[i] != true)
-        {
-            GW_COUT << "Incorrect echo: " << i << GW_ENDL;
-
-            // Failing test if echo is not confirmed.
-            ShutdownTest(gw, false);
-
-            return false;
-        }
-    }
-#endif
-
-    // Gracefully finishing the test.
-    ShutdownTest(gw, true);
-
-    return true;
-}
-
-// Gracefully shutdowns all needed processes after test is finished.
-uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
-{
-    // Test has finished.
-    finished_measured_test_ = true;
-    LeaveCriticalSection(&cs_test_finished_);
-
-    // Checking if we are on the build server.
-    char* envvar_str;
-    size_t num_written;
-    _dupenv_s(&envvar_str, &num_written, "SC_RUNNING_ON_BUILD_SERVER");
-    bool is_on_build_server = false;
-    if (envvar_str)
-    {
-        // Checking for exactly True value.
-        if (0 == strcmp(envvar_str, "True"))
-            is_on_build_server = true;
-    }
-
-    if (success)
-    {
-        GW_COUT << "Echo test finished successfully!" << GW_ENDL;
-
-        int64_t test_finish_time = timeGetTime();
-
-        // Test finished successfully, printing the results.
-        int64_t ops_per_second = GetAverageOpsPerSecond();
-
-        GW_COUT << "Average number of ops per second: " << ops_per_second <<
-            ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;
-
-        // Reporting statistics to build output and build statistics file.
-        ReportStatistics(setting_stats_name_.c_str(), static_cast<double> (ops_per_second));
-
-        if (is_on_build_server)
-            ShutdownGateway(gw, 0);
-
-        return 0;
-    }
-
-    // This is a test failure.
-    GW_COUT << "ERROR with echo testing!" << GW_ENDL;
-
-    if (is_on_build_server)
-        ShutdownGateway(gw, SCERRGWTESTFAILED);
-
-    return 0;
-}
-
-#endif
 
 // Generate the code using managed generator.
 uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* port_uris)
@@ -3885,54 +3479,6 @@ void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 
     //GW_ASSERT(0 == err_code);
 }
-
-#ifdef GW_TESTING_MODE
-
-HttpTestInformation g_test_http_echo_requests[kNumTestHttpEchoRequests] =
-{
-    {
-        "POST /gw-http-echo", 0,
-
-        "POST /gw-http-echo HTTP/1.1\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: 8\r\n"
-        "\r\n"
-        "@@@@@@@@", 0, 0
-    },
-
-    {
-        "POST /smc-http-echo", 0,
-
-        "POST /smc-http-echo HTTP/1.1\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: 8\r\n"
-        "\r\n"
-        "@@@@@@@@", 0, 0
-    },
-    {
-        "POST /apps-http-echo", 0,
-
-        "POST /apps-http-echo HTTP/1.1\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: 8\r\n"
-        "\r\n"
-        "@@@@@@@@", 0, 0
-    }
-};
-
-void Gateway::InitTestHttpEchoRequests()
-{
-    http_tests_information_ = g_test_http_echo_requests;
-
-    for (int32_t i = 0; i < kNumTestHttpEchoRequests; i++)
-    {
-        http_tests_information_[i].method_and_uri_info_len = static_cast<int32_t> (strlen(http_tests_information_[i].method_and_uri_info));
-        http_tests_information_[i].http_request_len = static_cast<int32_t> (strlen(http_tests_information_[i].http_request_str));
-        http_tests_information_[i].http_request_insert_point = static_cast<int32_t> (strstr(http_tests_information_[i].http_request_str, "@") - http_tests_information_[i].http_request_str);
-    }
-}
-
-#endif
 
 } // namespace network
 } // namespace starcounter

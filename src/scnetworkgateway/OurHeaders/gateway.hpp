@@ -98,19 +98,6 @@ typedef uint32_t ws_channel_id_type;
 #endif
 
 //#define GW_PONG_MODE
-//#define GW_TESTING_MODE
-//#define GW_LOOPED_TEST_MODE
-//#define GW_LIMITED_ECHO_TEST
-
-// Checking that macro definitions are correct.
-#ifdef GW_LOOPED_TEST_MODE
-#define GW_TESTING_MODE
-#endif
-
-#ifndef GW_TESTING_MODE
-// Enabling proxy if we are not in testing mode.
-#define GW_PROXY_MODE
-#endif
 
 enum GatewayErrorCodes
 {
@@ -437,20 +424,6 @@ typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
-#ifdef GW_LOOPED_TEST_MODE
-
-// Looped processors.
-typedef uint32_t (*ECHO_REQUEST_CREATOR) (char* buf, echo_id_type echo_id, uint32_t* num_request_bytes);
-typedef uint32_t (*ECHO_RESPONSE_PROCESSOR) (char* buf, uint32_t buf_len, echo_id_type* echo_id);
-
-extern uint32_t DefaultHttpEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t* num_request_bytes);
-extern uint32_t DefaultHttpEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id);
-
-extern uint32_t DefaultRawEchoRequestCreator(char* buf, echo_id_type echo_id, uint32_t* num_request_bytes);
-extern uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_type* echo_id);
-
-#endif
-
 uint32_t OuterPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
@@ -464,17 +437,6 @@ uint32_t AppsPortProcessData(
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
-
-#ifdef GW_TESTING_MODE
-
-uint32_t GatewayPortProcessEcho(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-#endif
 
 uint32_t OuterSubportProcessData(
     HandlersList* hl,
@@ -490,17 +452,6 @@ uint32_t AppsSubportProcessData(
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
-#ifdef GW_TESTING_MODE
-
-uint32_t GatewaySubportProcessEcho(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-#endif
-
 uint32_t OuterUriProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
@@ -514,17 +465,6 @@ uint32_t AppsUriProcessData(
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
-
-#ifdef GW_TESTING_MODE
-
-uint32_t GatewayUriProcessEcho(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-#endif
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
@@ -1625,45 +1565,7 @@ class Gateway
 
     // Local network interfaces to bind on.
     std::vector<std::string> setting_local_interfaces_;
-
-#ifdef GW_TESTING_MODE
-
-    // Master node IP address.
-    std::string setting_master_ip_;
-
-    // Indicates if this node is a master node.
-    bool setting_is_master_;
-
-    // Number of connections to make to master node.
-    int32_t setting_num_connections_to_master_;
-
-    // Number of connections to make to master node per worker.
-    int32_t setting_num_connections_to_master_per_worker_;
-
-    // Number of tracked echoes to master.
-    int32_t setting_num_echoes_to_master_;
-
-    // Server test port.
-    uint16_t setting_server_test_port_;
-
-    // Gateway operational mode.
-    GatewayTestingMode setting_mode_;
-
-    // Maximum running time for tests.
-    int32_t setting_max_test_time_seconds_;
-
-    // Name of the statistics.
-    std::string setting_stats_name_;
-
-    int32_t cmd_setting_num_workers_;
-    GatewayTestingMode cmd_setting_mode_;
-    int32_t cmd_setting_num_connections_to_master_;
-    int32_t cmd_setting_num_echoes_to_master_;
-    int32_t cmd_setting_max_test_time_seconds_;
-    std::string cmd_setting_stats_name_;
-
-#endif
-
+    
     ////////////////////////
     // ACTIVE DATABASES
     ////////////////////////
@@ -1757,47 +1659,6 @@ class Gateway
 
     // Specific gateway log writer.
     GatewayLogWriter gw_log_writer_;
-
-#ifdef GW_TESTING_MODE
-
-    // Confirmed HTTP requests map.
-    bool confirmed_echoes_shared_[MAX_TEST_ECHOES];
-
-    // Starts measured test.
-    bool started_measured_test_;
-    volatile bool finished_measured_test_;
-
-    // Time when test started.
-    uint64_t test_begin_time_;
-
-    // Number of confirmed echoes.
-    volatile int64_t num_confirmed_echoes_unsafe_;
-
-    // Critical section for test finish.
-    CRITICAL_SECTION cs_test_finished_;
-
-    // Current echo number.
-    volatile int64_t current_echo_number_unsafe_;
-
-    // Number of operations per second.
-    int64_t num_gateway_ops_per_second_;
-
-    // Number of measures.
-    int64_t num_ops_measures_;
-
-    // Predefined HTTP requests for tests.
-    HttpTestInformation* http_tests_information_;
-
-#ifdef GW_LOOPED_TEST_MODE
-
-    // Looped echo processors.
-    ECHO_RESPONSE_PROCESSOR looped_echo_response_processor_;
-
-    ECHO_REQUEST_CREATOR looped_echo_request_creator_;
-
-#endif
-
-#endif
 
     // Gateway handlers.
     HandlersTable* gw_handlers_;
@@ -2298,180 +2159,6 @@ public:
         db_index_type db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
 
-#ifdef GW_TESTING_MODE
-
-    // Number of connections to make to master node.
-    int32_t setting_num_connections_to_master()
-    {
-        return setting_num_connections_to_master_;
-    }
-
-    // Number of connections to make to master node per worker.
-    int32_t setting_num_connections_to_master_per_worker()
-    {
-        return setting_num_connections_to_master_per_worker_;
-    }
-
-    // Number of tracked echoes to master.
-    int32_t setting_num_echoes_to_master()
-    {
-        return setting_num_echoes_to_master_;
-    }
-
-    // Server test port.
-    int32_t setting_server_test_port()
-    {
-        return setting_server_test_port_;
-    }
-
-    // Registering confirmed HTTP echo.
-    void ConfirmEcho(int64_t echo_num)
-    {
-        GW_ASSERT(echo_num < setting_num_echoes_to_master_);
-#ifdef DONT_CHECK_ECHOES
-        InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
-        return;
-#endif
-
-        if (false != confirmed_echoes_shared_[echo_num])
-        {
-            GW_COUT << "Echo index occupied: " << echo_num << GW_ENDL;
-            GW_ASSERT(false);
-        }
-
-        confirmed_echoes_shared_[echo_num] = true;
-        //GW_COUT << "Confirmed: " << echo_num << GW_ENDL;
-
-        InterlockedIncrement64(&num_confirmed_echoes_unsafe_);
-    }
-
-    // Getting number of confirmed echoes.
-    int64_t get_num_confirmed_echoes()
-    {
-        return num_confirmed_echoes_unsafe_;
-    }
-
-    // Checks that echo responses are correct.
-    bool CheckConfirmedEchoResponses(GatewayWorker* gw);
-
-    // Starts measured test.
-    bool get_started_measured_test()
-    {
-        return started_measured_test_;
-    }
-
-    // Starts measured test.
-    void StartMeasuredTest()
-    {
-        num_confirmed_echoes_unsafe_ = 0;
-        started_measured_test_ = true;
-        finished_measured_test_ = false;
-        test_begin_time_ = timeGetTime();
-    }
-
-    // Resetting echo tests.
-    void ResetEchoTests()
-    {
-        num_confirmed_echoes_unsafe_ = 0;
-        current_echo_number_unsafe_ = -1;
-        started_measured_test_ = false;
-        finished_measured_test_ = false;
-        test_begin_time_ = 0;
-
-        for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
-            confirmed_echoes_shared_[i] = false;
-    }
-
-    // Incrementing and getting next echo number.
-    int64_t GetNextEchoNumber()
-    {
-        return InterlockedIncrement64(&current_echo_number_unsafe_);
-    }
-
-    // Checks if all echoes have been sent already.
-    bool AllEchoesSent()
-    {
-        return current_echo_number_unsafe_ >= (setting_num_echoes_to_master_ - 1);
-    }
-
-    // Gateway operational mode.
-    GatewayTestingMode setting_mode()
-    {
-        return setting_mode_;
-    }
-
-    // Master node IP address.
-    std::string setting_master_ip()
-    {
-        return setting_master_ip_;
-    }
-
-    // Is master node?
-    bool setting_is_master()
-    {
-        return setting_is_master_;
-    }
-
-    // Getting average number of measured operations.
-    int64_t GetAverageOpsPerSecond()
-    {
-        GW_ASSERT(0 != num_ops_measures_);
-
-        int64_t aver_num_ops = num_gateway_ops_per_second_ / num_ops_measures_;
-
-        num_gateway_ops_per_second_ = 0;
-        num_ops_measures_ = 0;
-
-        return aver_num_ops;
-    }
-
-    // Calculates number of created connections for all workers.
-    int64_t GetNumberOfCreatedConnectionsAllWorkers();
-
-    // Getting number of preparation network events.
-    int64_t GetNumberOfPreparationNetworkEventsAllWorkers();
-
-    void InitTestHttpEchoRequests();
-
-    HttpTestInformation* GetHttpTestInformation()
-    {
-        if (setting_mode_ < kNumTestHttpEchoRequests)
-            return http_tests_information_ + setting_mode_;
-
-        return NULL;
-    }
-
-    // Generates test HTTP request.
-    uint32_t GenerateHttpRequest(char* buf, echo_id_type echo_id)
-    {
-        // Getting current test HTTP request type.
-        HttpTestInformation* test_info = GetHttpTestInformation();
-
-        // Copying HTTP response.
-        memcpy(buf, test_info->http_request_str, test_info->http_request_len);
-
-        // Inserting number into HTTP ping request.
-        uint64_to_hex_string(echo_id, buf + test_info->http_request_insert_point, 8, false);
-
-        return test_info->http_request_len;
-    }
-
-#ifdef GW_LOOPED_TEST_MODE
-    // Looped echo processors.
-    ECHO_RESPONSE_PROCESSOR get_looped_echo_response_processor()
-    {
-        return looped_echo_response_processor_;
-    }
-
-    ECHO_REQUEST_CREATOR get_looped_echo_request_creator()
-    {
-        return looped_echo_request_creator_;
-    }
-
-#endif
-
-#endif
-
     // Increments number of processed HTTP requests.
     void IncrementNumProcessedHttpRequests()
     {
@@ -2899,11 +2586,6 @@ public:
         // Fetching the session by index.
         return all_sockets_infos_unsafe_[index].session_.scheduler_id_;
     }
-
-#ifdef GW_TESTING_MODE
-    // Gracefully shutdowns all needed processes after test is finished.
-    uint32_t ShutdownTest(GatewayWorker* gw, bool success);
-#endif
 };
 
 // Globally accessed gateway object.

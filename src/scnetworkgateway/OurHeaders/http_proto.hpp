@@ -578,8 +578,6 @@ public:
         BMX_HANDLER_TYPE handler_id,
         bool* is_handled);
 
-#ifdef GW_PROXY_MODE
-
     // Reverse proxies the HTTP traffic.
     uint32_t GatewayHttpWsReverseProxy(
         HandlersList* hl,
@@ -587,7 +585,6 @@ public:
         SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
         bool* is_handled);
-#endif
 };
 
 const char* const kHttpGenericHtmlHeader =
