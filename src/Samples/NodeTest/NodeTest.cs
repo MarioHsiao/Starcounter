@@ -921,103 +921,109 @@ namespace NodeTest
         {
             //Debugger.Launch();
 
-            Settings settings = new Settings();
-            settings.Init(args);
+            try {
+                Settings settings = new Settings();
+                settings.Init(args);
 
-            Console.WriteLine("Node test settings!");
-            Console.WriteLine("ServerIp: " + settings.ServerIp);
-            Console.WriteLine("ServerPort: " + settings.ServerPort);
-            Console.WriteLine("ProtocolType: " + settings.ProtocolType);
-            Console.WriteLine("NumWorkers: " + settings.NumWorkers);
-            Console.WriteLine("MinEchoBytes: " + settings.MinEchoBytes);
-            Console.WriteLine("MaxEchoBytes: " + settings.MaxEchoBytes);
-            Console.WriteLine("NumEchoesPerWorker: " + settings.NumEchoesPerWorker);
-            Console.WriteLine("NumEchoesPerConnection: " + settings.NumEchoesPerConnection);
-            Console.WriteLine("NumSecondsToWait: " + settings.NumSecondsToWait);
-            Console.WriteLine("AsyncMode: " + settings.AsyncMode);
-            Console.WriteLine("UseAggregation: " + settings.UseAggregation);            
+                Console.WriteLine("Node test settings!");
+                Console.WriteLine("ServerIp: " + settings.ServerIp);
+                Console.WriteLine("ServerPort: " + settings.ServerPort);
+                Console.WriteLine("ProtocolType: " + settings.ProtocolType);
+                Console.WriteLine("NumWorkers: " + settings.NumWorkers);
+                Console.WriteLine("MinEchoBytes: " + settings.MinEchoBytes);
+                Console.WriteLine("MaxEchoBytes: " + settings.MaxEchoBytes);
+                Console.WriteLine("NumEchoesPerWorker: " + settings.NumEchoesPerWorker);
+                Console.WriteLine("NumEchoesPerConnection: " + settings.NumEchoesPerConnection);
+                Console.WriteLine("NumSecondsToWait: " + settings.NumSecondsToWait);
+                Console.WriteLine("AsyncMode: " + settings.AsyncMode);
+                Console.WriteLine("UseAggregation: " + settings.UseAggregation);
 
-            // Waiting until host is available.
-            Boolean hostIsReady = false;
-            Console.Write("Waiting for the host");
+                // Waiting until host is available.
+                Boolean hostIsReady = false;
+                Console.Write("Waiting for the host");
 
-            Response resp;
+                Response resp;
 
-            for (Int32 i = 0; i < 10; i++) {
-                
-                resp = X.POST(Settings.CompleteHttpUri, "Test!", null);
+                for (Int32 i = 0; i < 10; i++) {
 
-                if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
+                    resp = X.POST(Settings.CompleteHttpUri, "Test!", null);
 
-                    hostIsReady = true;
-                    break;
+                    if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
+
+                        hostIsReady = true;
+                        break;
+                    }
+
+                    Thread.Sleep(3000);
+                    Console.Write(".");
                 }
 
-                Thread.Sleep(3000);
-                Console.Write(".");
-            }
+                Console.WriteLine();
 
-            Console.WriteLine();
+                if (!hostIsReady)
+                    throw new Exception("Host is not ready by some reason!");
 
-            if (!hostIsReady)
-                throw new Exception("Host is not ready by some reason!");
+                // Resetting the counters.
+                resp = X.DELETE(Settings.ResetCountersUri, (String)null, null);
+                if (200 != resp.StatusCode) {
+                    throw new Exception("Can't reset counters properly!");
+                }
 
-            // Resetting the counters.
-            resp = X.DELETE(Settings.ResetCountersUri, (String) null, null);
-            if (200 != resp.StatusCode) {
-                throw new Exception("Can't reset counters properly!");
-            }
+                // Starting all workers.
+                Worker[] workers = new Worker[settings.NumWorkers];
+                Thread[] worker_threads = new Thread[settings.NumWorkers];
 
-            // Starting all workers.
-            Worker[] workers = new Worker[settings.NumWorkers];
-            Thread[] worker_threads = new Thread[settings.NumWorkers];
+                WorkersMonitor.Init(settings, workers);
 
-            WorkersMonitor.Init(settings, workers);
+                for (Int32 w = 0; w < settings.NumWorkers; w++) {
+                    Int32 id = w;
+                    workers[w] = new Worker();
+                    workers[w].Init(settings, w);
 
-            for (Int32 w = 0; w < settings.NumWorkers; w++)
-            {
-                Int32 id = w;
-                workers[w] = new Worker();
-                workers[w].Init(settings, w);
+                    worker_threads[w] = new Thread(() => { workers[id].WorkerLoop(); });
+                    worker_threads[w].Start();
+                }
 
-                worker_threads[w] = new Thread(() => { workers[id].WorkerLoop(); });
-                worker_threads[w].Start();
-            }
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
 
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
+                // Waiting for all workers to succeed or fail.
+                if (!WorkersMonitor.MonitorState())
+                    Environment.Exit(1);
 
-            // Waiting for all workers to succeed or fail.
-            if (!WorkersMonitor.MonitorState())
+                timer.Stop();
+
+                // Checking server counters.
+                settings.CheckServerCounters();
+
+                Console.WriteLine("Test succeeded, took ms: " + timer.ElapsedMilliseconds);
+
+                Double echoesPerSecond = ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds;
+                TestLogger.ReportStatistics(
+                    String.Format("nodetest_{0}_workers_{1}_echo_minbytes_{2}_maxbytes_{3}__echoes_per_second",
+                        settings.ProtocolType,
+                        settings.NumWorkers,
+                        settings.MinEchoBytes,
+                        settings.MaxEchoBytes),
+
+                    echoesPerSecond);
+
+                Console.WriteLine("Echoes/second: " + echoesPerSecond);
+
+                // Forcing quiting.
+                Environment.Exit(0);
+
+                // Waiting for all worker threads to finish.
+                for (Int32 w = 0; w < settings.NumWorkers; w++)
+                    worker_threads[w].Join();
+
+                return 0;
+
+            } catch (Exception exc) {
+                Console.Error.WriteLine(exc.ToString());
                 Environment.Exit(1);
-
-            timer.Stop();
-
-            // Checking server counters.
-            settings.CheckServerCounters();
-
-            Console.WriteLine("Test succeeded, took ms: " + timer.ElapsedMilliseconds);
-
-            Double echoesPerSecond = ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds;
-            TestLogger.ReportStatistics(
-                String.Format("nodetest_{0}_workers_{1}_echo_minbytes_{2}_maxbytes_{3}__echoes_per_second",
-                    settings.ProtocolType,
-                    settings.NumWorkers,
-                    settings.MinEchoBytes,
-                    settings.MaxEchoBytes),
-
-                echoesPerSecond);
-
-            Console.WriteLine("Echoes/second: " + echoesPerSecond);
-
-            // Forcing quiting.
-            Environment.Exit(0);
-
-            // Waiting for all worker threads to finish.
-            for (Int32 w = 0; w < settings.NumWorkers; w++)
-                worker_threads[w].Join();
-
-            return 0;
+                return 1;
+            }
         }
     }
 }
