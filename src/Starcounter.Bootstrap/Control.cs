@@ -97,7 +97,6 @@ namespace StarcounterInternal.Bootstrap {
 
                 withdb_ = !configuration.NoDb;
                 StarcounterEnvironment.Gateway.NumberOfWorkers = configuration.GatewayNumberOfWorkers;
-                StarcounterEnvironment.Gateway.InternalSystemPort = configuration.InternalSystemPort;
 
                 AssureNoOtherProcessWithTheSameName(configuration);
                 OnAssuredNoOtherProcessWithTheSameName();
@@ -146,12 +145,12 @@ namespace StarcounterInternal.Bootstrap {
 
                         SqlRestHandler.Register(
                             configuration.DefaultUserHttpPort,
-                            configuration.DefaultInternalSystemHttpPort);
+                            configuration.DefaultSystemHttpPort);
 
                         // Register console output handlers (Except for the Administrator)
                         if (!StarcounterEnvironment.IsAdministratorApp) {
-                            ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultInternalSystemHttpPort);
-                            Profiler.SetupHandler(configuration.DefaultInternalSystemHttpPort, Db.Environment.DatabaseNameLower);
+                            ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
+                            Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                         }
 
                         PuppetRestHandler.Register(configuration.DefaultUserHttpPort);
@@ -178,7 +177,6 @@ namespace StarcounterInternal.Bootstrap {
                     (byte)schedulerCount,
                     configuration.DefaultUserHttpPort,
                     configuration.DefaultSystemHttpPort,
-                    configuration.DefaultInternalSystemHttpPort,
                     configuration.DefaultSessionTimeoutMinutes,
                     configuration.Name);
 
@@ -235,7 +233,7 @@ namespace StarcounterInternal.Bootstrap {
 
                 OnAppDomainConfigured();
 
-                ManagementService.Setup(configuration.DefaultInternalSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
+                ManagementService.Setup(configuration.DefaultSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
                 OnServerCommandHandlersRegistered();
 
                 if (withdb_) {

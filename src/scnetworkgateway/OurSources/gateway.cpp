@@ -798,21 +798,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             return SCERRBADGATEWAYCONFIG;
         }
 
-        // Getting gateway statistics port number.
-        node_elem = root_elem->first_node("GatewayStatisticsPort");
-        if (!node_elem)
-        {
-            g_gateway.LogWriteCritical(L"Gateway XML: Can't read GatewayStatisticsPort property.");
-            return SCERRBADGATEWAYCONFIG;
-        }
-
-        setting_gw_stats_port_ = (uint16_t)atoi(node_elem->value());
-        if (setting_gw_stats_port_ <= 0 || setting_gw_stats_port_ >= 65536)
-        {
-            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported GatewayStatisticsPort value.");
-            return SCERRBADGATEWAYCONFIG;
-        }
-
         node_elem = root_elem->first_node("InternalSystemPort");
         if (!node_elem)
         {
@@ -2370,7 +2355,7 @@ void Gateway::RegisterGatewayHandlers() {
     err_code = AddUriHandler(
         &gw_workers_[0],
         gw_handlers_,
-        setting_gw_stats_port_,
+        setting_internal_system_port_,
         "gateway",
         "GET /gwstats",
         "GET /gwstats ",
@@ -2387,7 +2372,7 @@ void Gateway::RegisterGatewayHandlers() {
     err_code = AddUriHandler(
         &gw_workers_[0],
         gw_handlers_,
-        setting_gw_stats_port_,
+        setting_internal_system_port_,
         "gateway",
         "GET /gwtest",
         "GET /gwtest ",
@@ -2404,7 +2389,7 @@ void Gateway::RegisterGatewayHandlers() {
     err_code = AddUriHandler(
         &gw_workers_[0],
         gw_handlers_,
-        setting_gw_stats_port_,
+        setting_internal_system_port_,
         "gateway",
         "GET /profiler/gateway",
         "GET /profiler/gateway ",

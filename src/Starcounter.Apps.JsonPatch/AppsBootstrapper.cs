@@ -44,14 +44,12 @@ namespace Starcounter.Internal {
             Byte numSchedulers,
             UInt16 defaultUserHttpPort,
             UInt16 defaultSystemHttpPort,
-            UInt16 defaultInternalSystemPort,
             UInt32 sessionTimeoutMinutes,
             String dbName)
         {
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
             StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
-            StarcounterEnvironment.Default.InternalSystemPort = defaultInternalSystemPort;
             StarcounterEnvironment.Default.SessionTimeoutMinutes = sessionTimeoutMinutes;
 
             StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));

@@ -400,7 +400,7 @@ namespace Starcounter
 
             Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-            Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+            Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
             if (r.StatusCode != 200) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register URI string: \"" + originalUriInfo + "\". Error message: " + r.Body);
@@ -599,7 +599,7 @@ namespace Starcounter
 
                 Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-                Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register WebSocket channel: \"" + channelName + "\". Error message: " + r.Body);
@@ -642,7 +642,7 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
                         
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + ". Error message: " + r.Body);
@@ -670,7 +670,7 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostInternalSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + ". Error message: " + r.Body);
@@ -715,7 +715,7 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostInternalSystemPortNode.POST("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
@@ -747,7 +747,7 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostInternalSystemPortNode.DELETE("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
 
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);

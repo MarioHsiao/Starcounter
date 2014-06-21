@@ -1613,9 +1613,6 @@ class Gateway
     // Number of worker threads.
     int32_t setting_num_workers_;
 
-    // Gateway statistics port.
-    uint16_t setting_gw_stats_port_;
-
     // Internal system port used for communication between codehost and gateway.
     uint16_t setting_internal_system_port_;
 
@@ -1859,10 +1856,6 @@ public:
 
     uint16_t get_setting_internal_system_port() {
         return setting_internal_system_port_;
-    }
-
-    uint16_t get_setting_gw_stats_port() {
-        return setting_gw_stats_port_;
     }
 
     int64_t num_pending_sends_;

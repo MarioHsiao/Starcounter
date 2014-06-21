@@ -183,29 +183,6 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Internal system HTTP port.
-        /// </summary>
-        public UInt16 InternalSystemPort {
-            get {
-                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
-                string str;
-                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort, out str)) {
-                    v = UInt16.Parse(str);
-                }
-                return v;
-                //if (NoNetworkGateway)
-                //    return 0;
-
-                //String internalSystemPort;
-                //if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.InternalSystemPort, out internalSystemPort)) {
-                //    return UInt16.Parse(internalSystemPort);
-                //}
-
-                //throw ErrorCode.ToException(Starcounter.Error.SCERRBADINTERNALSYSTEMPORT);
-            }
-        }
-
-        /// <summary>
         /// Default session timeout.
         /// </summary>
         public UInt32 DefaultSessionTimeoutMinutes
@@ -305,22 +282,7 @@ namespace StarcounterInternal.Bootstrap
                 return v;
             }
         }
-
-        /// <summary>
-        /// Gets the default system internal HTTP port.
-        /// </summary>
-        /// <value>The default system internal HTTP port.</value>
-        public UInt16 DefaultInternalSystemHttpPort {
-            get {
-                UInt16 v = StarcounterConstants.NetworkPorts.DefaultPersonalServerInternalSystemPort;
-                string str;
-                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.InternalSystemPort, out str)) {
-                    v = UInt16.Parse(str);
-                }
-                return v;
-            }
-        }
-
+        
         /// <summary>
         /// Gets a value indicating whether [no db].
         /// </summary>

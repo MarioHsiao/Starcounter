@@ -135,11 +135,6 @@ namespace Starcounter.Internal
             public const UInt16 DefaultPersonalServerSystemHttpPort = 8181;
 
             /// <summary>
-            /// Default internal system port for Personal server.
-            /// </summary>
-            public const UInt16 DefaultPersonalServerInternalSystemPort = 8181;
-
-            /// <summary>
             /// Default aggregation port for Personal server.
             /// </summary>
             public const UInt16 DefaultPersonalServerAggregationPort = 9191;
@@ -239,11 +234,6 @@ namespace Starcounter.Internal
             /// Number of workers used in gateway.
             /// </summary>
             public const string GatewayWorkersNumber = "GatewayWorkersNumber";
-
-            /// <summary>
-            /// Internal system HTTP port.
-            /// </summary>
-            public const string InternalSystemPort = "InternalSystemPort";
 
             /// <summary>
             /// Specifies TCP/IP port to be used by SQL parser.
