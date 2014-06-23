@@ -4,6 +4,7 @@ using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter.CLI {
     /// <summary>
@@ -28,73 +29,58 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
-        /// Display a list of running application in the console.
+        /// Fetches the set of running applications found on the
+        /// target admin server, optionally scoped by a specified
+        /// database.
         /// </summary>
-        public int ListApplications() {
+        /// <param name="database">Optional database to scope the
+        /// request to.</param>
+        /// <returns>A list of all applications matching the
+        /// criteria, grouped by their database.
+        /// </returns>
+        public Dictionary<Engine, Executable[]> GetApplications(string database = null) {
             var admin = adminAPI;
-            var serverHost = serverReference.Host;
-            var serverName = serverReference.Name;
-            var serverPort = serverReference.Port;
 
-            try {
-                
-                var response = node.GET(admin.Uris.Engines);
-                response.FailIfNotSuccessOr(503);
+            var response = node.GET(admin.Uris.Engines);
+            response.FailIfNotSuccessOr(503);
+            if (response.StatusCode == 503) {
+                throw ErrorCode.ToException(Error.SCERRSERVERNOTRUNNING);
+            }
 
-                if (response.StatusCode == 503) {
-                    SharedCLI.ShowInformationAndSetExitCode(
-                        "No applications running (server not running)", 
-                        0, 
-                        showStandardHints: true, 
-                        color: ConsoleColor.DarkGray
-                        );
-                    return 0;
+            // Iterate all engines (i.e. databases that are connected to at
+            // least one running database process). Take the lightweight reference
+            // and fetch the full engine from it.
+
+            var result = new Dictionary<Engine, Executable[]>();
+            
+            var engines = new EngineCollection();
+            engines.PopulateFromJson(response.Body);
+            foreach (EngineCollection.EnginesElementJson engineRef in engines.Engines) {
+                if (database != null && !engineRef.Name.Equals(database, StringComparison.InvariantCultureIgnoreCase)) {
+                    continue;
                 }
 
-                // Iterate all engines (i.e. databases that are connected to at
-                // least one running database process). Take the lightweight reference
-                // and fetch the full engine from it. Then display the most basic
-                // info about each recorded running application.
+                response = node.GET(node.ToLocal(engineRef.Uri));
+                response.FailIfNotSuccessOr(404);
+                if (response.IsSuccessStatusCode) {
+                    var engine = new Engine();
+                    engine.PopulateFromJson(response.Body);
 
-                int count = 0;
-                var engines = new EngineCollection();
-                engines.PopulateFromJson(response.Body);
-                foreach (EngineCollection.EnginesElementJson engineRef in engines.Engines) {
-                    response = node.GET(node.ToLocal(engineRef.Uri));
-                    response.FailIfNotSuccessOr(404);
-                    if (response.IsSuccessStatusCode) {
-                        var engine = new Engine();
-                        engine.PopulateFromJson(response.Body);
-
-                        foreach (Engine.ExecutablesJson.ExecutingElementJson application in engine.Executables.Executing) {
-                            var id = application.Name;
-                            if (!engine.Database.Name.Equals(StarcounterConstants.DefaultDatabaseName, 
-                                StringComparison.InvariantCultureIgnoreCase)) {
-                                id = engine.Database.Name + "\\" + id;
-                            }
-
-                            ConsoleUtil.ToConsoleWithColor(string.Format("[{0}] {1}", ++count, id), ConsoleColor.DarkYellow);
-                            ConsoleUtil.ToConsoleWithColor(string.Format("Path: {0}", application.Path), ConsoleColor.White);
-                            Console.WriteLine();
+                    var apps = new List<Executable>();
+                    foreach (Engine.ExecutablesJson.ExecutingElementJson application in engine.Executables.Executing) {
+                        response = node.GET(node.ToLocal(application.Uri));
+                        response.FailIfNotSuccessOr(404);
+                        if (response.IsSuccessStatusCode) {
+                            var app = new Executable();
+                            app.PopulateFromJson(response.Body);
+                            apps.Add(app);
                         }
                     }
+                    result.Add(engine, apps.ToArray());
                 }
-
-                if (count == 0) {
-                    SharedCLI.ShowInformationAndSetExitCode(
-                        "No applications running",
-                        0,
-                        showStandardHints: true,
-                        color: ConsoleColor.DarkGray
-                        );
-                }
-
-                return count;
-
-            } catch (Exception e) {
-                Console.WriteLine(e.ToString());
-                return -1;
             }
+
+            return result;
         }
     }
 }
