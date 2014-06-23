@@ -40,7 +40,7 @@ namespace Starcounter.CLI {
         /// Gets the name of the database the current command
         /// target.
         /// </summary>
-        public string DatabaseName { get; internal set; }
+        public string DatabaseName { get; set; }
 
         /// <summary>
         /// Creates a new instance of this class.
