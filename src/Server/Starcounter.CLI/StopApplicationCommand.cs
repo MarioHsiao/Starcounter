@@ -173,7 +173,8 @@ namespace Starcounter.CLI {
             SharedCLI.ResolveDatabase(args, out db);
             var cmd = new StopApplicationByNameCommand(name) {
                 AdminAPI = new AdminAPI(),
-                CLIArguments = args
+                CLIArguments = args,
+                DatabaseName = db
             };
             SharedCLI.ResolveAdminServer(args, out cmd.ServerHost, out cmd.ServerPort, out cmd.ServerName);
             return cmd;
