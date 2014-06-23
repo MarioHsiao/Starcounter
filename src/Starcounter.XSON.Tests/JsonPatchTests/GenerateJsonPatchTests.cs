@@ -1,13 +1,11 @@
-﻿using NUnit.Framework;
-using Starcounter.Internal.XSON.Tests;
-using Starcounter.Templates;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Starcounter.XSON.JsonPatch;
+using System.Globalization;
+using System.Threading;
+using NUnit.Framework;
 using Starcounter.Advanced.XSON;
-using System.Collections;
+using Starcounter.Templates;
+using Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -484,6 +482,52 @@ Assert.AreEqual(facit, result );
 
             var expected = '[' + string.Format(Helper.PATCH, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
             Assert.AreEqual(expected, patch);
+        }
+
+        [Test]
+        public static void TestPatchWithDecimal() {
+            dynamic root = new Json();
+            root.Session = new Session();
+            root.Number = 65.0m;
+
+            var oldCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+
+            try {
+                var patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                var expected = '[' + string.Format(Helper.PATCH, "/", @"{""Number"":65.0}") + ']';
+                Assert.AreEqual(expected, patch);
+
+                root.Number = 99.5545m;
+                patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                expected = '[' + string.Format(Helper.PATCH, "/Number", "99.5545") + ']';
+                Assert.AreEqual(expected, patch);
+            } finally {
+                Thread.CurrentThread.CurrentCulture = oldCulture;
+            }
+        }
+
+        [Test]
+        public static void TestPatchWithDouble() {
+            dynamic root = new Json();
+            root.Session = new Session();
+            root.Number = 65.0d;
+
+             var oldCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+
+            try {
+                var patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                var expected = '[' + string.Format(Helper.PATCH, "/", @"{""Number"":65.0}") + ']';
+                Assert.AreEqual(expected, patch);
+
+                root.Number = 99.5545d;
+                patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                expected = '[' + string.Format(Helper.PATCH, "/Number", "99.5545") + ']';
+                Assert.AreEqual(expected, patch);
+            } finally {
+                Thread.CurrentThread.CurrentCulture = oldCulture;
+            }
         }
     }
 }

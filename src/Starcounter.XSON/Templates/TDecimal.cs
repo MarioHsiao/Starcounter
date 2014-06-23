@@ -5,7 +5,7 @@
 // ***********************************************************************
 
 using System;
-using System.Text;
+using System.Globalization;
 
 namespace Starcounter.Templates {
 
@@ -47,7 +47,7 @@ namespace Starcounter.Templates {
         }
 
 		internal override string ValueToJsonString(Json parent) {
-			return Getter(parent).ToString("0.0###########################");
+            return Getter(parent).ToString("0.0###########################", CultureInfo.InvariantCulture);
 		}
     }
 }
