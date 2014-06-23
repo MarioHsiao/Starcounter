@@ -40,7 +40,7 @@ namespace Starcounter.InstallerEngine
         public const String Setting_DefaultSystemServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String;
         public const String Setting_DefaultSystemPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultSystemPrologSqlProcessPort_String;
 
-        public const String GatewayXmlStatisticsPort = "GatewayStatisticsPort";
+        public const String GatewayInternalSystemPort = "InternalSystemPort";
 
         public const String Setting_True = "True";
 

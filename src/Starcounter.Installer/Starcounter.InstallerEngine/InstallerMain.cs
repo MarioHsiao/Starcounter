@@ -90,7 +90,7 @@ namespace Starcounter.InstallerEngine
         // Copy gateway config XML.
         public static void CopyGatewayConfig(
             String serverDir,
-            String gatewayStatsPort)
+            String internalSystemPort)
         {
             // Copying gateway configuration.
             File.Copy(
@@ -101,8 +101,8 @@ namespace Starcounter.InstallerEngine
             // Overwriting server config values.
             if (!Utilities.ReplaceXMLParameterInFile(
                 Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
-                ConstantsBank.GatewayXmlStatisticsPort,
-                gatewayStatsPort))
+                ConstantsBank.GatewayInternalSystemPort,
+                internalSystemPort))
             {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway statistics port.");
             }
