@@ -56,5 +56,16 @@ namespace Starcounter.CLI {
             Host = host;
             Port = port;
         }
+
+        /// <summary>
+        /// Creates a new <see cref="Starcounter.Node"/> based on the values
+        /// of the given instance.
+        /// </summary>
+        /// <returns>A <see cref="Starcounter.Node"/> that can be used to
+        /// communicate with the server being referenced by the current instance.
+        /// </returns>
+        public Node CreateNode() {
+            return new Node(Host, (ushort)Port);
+        }
     }
 }
