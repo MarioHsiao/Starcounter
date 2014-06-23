@@ -97,7 +97,7 @@ namespace staradmin.Commands {
                 );
             SourceCodeCompiler.CompileSingleFileToExecutable(appFile, out exeFile);
 
-            var reload = ApplicationCLICommand.Create(appFile, exeFile, CreateReloadApplicationArguments()) as StartApplicationCommand;
+            var reload = StartApplicationCommand.FromFile(appFile, exeFile, CreateReloadApplicationArguments());
             reload.JobDescription = string.Format("Reloading {0}", reload.DatabaseName);
             reload.JobCompletionDescription = "done";
             reload.ApplicationStartingDescription = "reloading";
