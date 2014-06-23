@@ -20,6 +20,10 @@ namespace staradmin.Commands {
             }
 
             var cmd = StopApplicationByNameCommand.Create(appReference);
+            if (!string.IsNullOrEmpty(Context.Database)) {
+                cmd.DatabaseName = Context.Database;
+            }
+
             cmd.Execute();
         }
     }
