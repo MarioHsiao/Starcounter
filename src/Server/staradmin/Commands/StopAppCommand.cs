@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.CLI;
 using System;
 
 namespace staradmin.Commands {
@@ -18,7 +19,8 @@ namespace staradmin.Commands {
                 return;
             }
 
-            Console.WriteLine("Stopping application {0}", appReference);
+            var cmd = StopApplicationByNameCommand.Create(appReference);
+            cmd.Execute();
         }
     }
 }

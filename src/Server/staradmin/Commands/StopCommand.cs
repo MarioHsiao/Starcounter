@@ -28,7 +28,7 @@ namespace staradmin.Commands {
             public ICommand CreateCommand(ApplicationArguments args) {
                 if (args.CommandParameters.Count == 0) {
                     var helpOnStop = ShowHelpCommand.CreateAsInternalHelp(stop.Name);
-                    return new ReportBadInputCommand("Specify the type of objects to stop.", helpOnStop);
+                    return new ReportBadInputCommand("Specify the type of object to stop.", helpOnStop);
                 }
 
                 var type = args.CommandParameters[0];
