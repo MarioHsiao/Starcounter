@@ -40,6 +40,14 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Creates a new <see cref="ServerReference"/> based on configured defaults.
+        /// </summary>
+        /// <returns>A reference to a server based on defaults.</returns>
+        public static ServerReference CreateDefault() {
+            return CreateFromCommonCLI(ApplicationArguments.Empty);
+        }
+
+        /// <summary>
         /// Initialize a new <see cref="ServerReference"/>.
         /// </summary>
         /// <param name="host">The host of the server referenced.</param>
