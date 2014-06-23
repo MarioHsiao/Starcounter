@@ -323,7 +323,7 @@ namespace Starcounter.Hosting {
         /// </summary>
         public static void SendStartupFinished() {
 
-            Response resp = Node.LocalhostInternalSystemPortNode.POST("/gw/dbstartupfinished", "Ready!", null);
+            Response resp = Node.LocalhostSystemPortNode.POST("/gw/dbstartupfinished", "Ready!", null);
 
             if (200 != resp.StatusCode)
                 throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);

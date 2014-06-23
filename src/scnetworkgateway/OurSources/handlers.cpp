@@ -200,26 +200,10 @@ uint32_t HandlersTable::RegisterPortHandler(
         // Determining how many connections to create.
         int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
 
-#ifdef GW_TESTING_MODE
-
-        // On the test client we immediately creating all needed connections.
-        if (!g_gateway.setting_is_master())
-            how_many = g_gateway.setting_num_connections_to_master_per_worker();
-
-        // Creating new connections if needed for this database.
-        for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++) {
-            err_code = g_gateway.get_worker(w)->CreateNewConnections(how_many, server_port->get_port_index());
-            if (err_code)
-                goto ERROR_HANDLING;
-        }
-#else
-
         // Creating new connections if needed for this database.
         err_code = g_gateway.get_worker(0)->CreateNewConnections(how_many, server_port->get_port_index());
         if (err_code)
             goto ERROR_HANDLING;
-
-#endif
     }
 
     // Adding port handler if does not exist.
@@ -641,15 +625,43 @@ uint32_t AppsPortProcessData(
 {
     uint32_t err_code;
 
+    // Checking if we just want to disconnect.
+    if (sd->get_just_push_disconnect_flag()) {
+
+        // Setting handled flag.
+        *is_handled = true;
+
+        // Push chunk to corresponding channel/scheduler.
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+
+        if (err_code) {
+
+            // Releasing the cloned chunk.
+            gw->ReturnSocketDataChunksToPool(sd);
+
+            return err_code;
+        }
+
+        return 0;
+    }
+
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
+        // Its a raw socket protocol.
+        sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
+
         // Resetting user data parameters.
         sd->get_accum_buf()->set_chunk_num_available_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
 
         // Setting matched URI index.
         sd->SetDestDbIndex(hl->get_db_index());
+
+        // Posting cloning receive since all data is accumulated.
+        err_code = sd->CloneToReceive(gw);
+        if (err_code)
+            return err_code;
 
         // Push chunk to corresponding channel/scheduler.
         err_code = gw->PushSocketDataToDb(sd, user_handler_id);
@@ -664,12 +676,17 @@ uint32_t AppsPortProcessData(
     // Checking if data goes from user code.
     else
     {
+        // Checking if we want to disconnect the socket.
+        if (sd->get_disconnect_socket_flag())
+            return SCERRGWDISCONNECTFLAG;
+
         // Prepare buffer to send outside.
         sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
         // Setting handled flag.
         *is_handled = true;
@@ -679,100 +696,6 @@ uint32_t AppsPortProcessData(
 
     GW_ASSERT(false);
 }
-
-#ifdef GW_TESTING_MODE
-
-// Port echo handler.
-uint32_t GatewayPortProcessEcho(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE user_handler_id,
-    bool* is_handled)
-{
-    uint32_t err_code;
-
-    // Setting handled flag.
-    *is_handled = true;
-
-    if (g_gateway.setting_is_master())
-    {
-        AccumBuffer* accum_buffer = sd->get_accum_buf();
-
-        GW_ASSERT(accum_buffer->get_accum_len_bytes() == 8);
-
-        // Copying echo message.
-        int64_t orig_echo = *(int64_t*)accum_buffer->get_chunk_orig_buf_ptr();
-
-        // Duplicating this echo.
-        *(int64_t*)(accum_buffer->get_chunk_orig_buf_ptr() + 8) = orig_echo;
-
-        // Prepare buffer to send outside.
-        accum_buffer->PrepareForSend(accum_buffer->get_chunk_orig_buf_ptr(), 16);
-
-        // Sending data.
-        err_code = gw->Send(sd);
-        GW_ERR_CHECK(err_code);
-    }
-    else
-    {
-        // Asserting correct number of bytes received.
-#ifndef DONT_CHECK_ECHOES
-        GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == 16);
-#endif
-
-        // Obtaining original echo number.
-        echo_id_type echo_id = *(int32_t*)(sd->get_data_blob() + 8);
-
-#ifdef GW_ECHO_STATISTICS
-        GW_COUT << "Received echo: " << echo_id << GW_ENDL;
-#endif
-
-#ifdef GW_LIMITED_ECHO_TEST
-        // Confirming received echo.
-        g_gateway.ConfirmEcho(echo_id);
-#endif
-
-        // Checking if all echo responses are returned.
-        if (g_gateway.CheckConfirmedEchoResponses(gw))
-        {
-            return SCERRGWTESTFINISHED;
-                        
-            /*
-            EnterGlobalLock();
-            g_gateway.ResetEchoTests();
-            LeaveGlobalLock();
-            return 0;
-            */
-        }
-        else
-        {
-            goto SEND_RAW_ECHO_TO_MASTER;
-        }
-
-SEND_RAW_ECHO_TO_MASTER:
-
-        // Checking that not all echoes are sent.
-        if (!g_gateway.AllEchoesSent())
-        {
-            // Generating echo number.
-            echo_id_type new_echo_num = 0;
-
-#ifdef GW_LIMITED_ECHO_TEST
-            new_echo_num = g_gateway.GetNextEchoNumber();
-#endif
-
-            // Sending echo request to server.
-            err_code = gw->SendRawEcho(sd, new_echo_num);
-            if (err_code)
-                return err_code;
-        }
-    }
-
-    return 0;
-}
-
-#endif
 
 // Outer port handler.
 uint32_t OuterSubportProcessData(
@@ -795,21 +718,6 @@ uint32_t AppsSubportProcessData(
 {
     return AppsPortProcessData(hl, gw, sd, user_handler_id, is_handled);
 }
-
-#ifdef GW_TESTING_MODE
-
-// Subport echo handler.
-uint32_t GatewaySubportProcessEcho(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE user_handler_id,
-    bool* is_handled)
-{
-    return GatewayPortProcessEcho(hl, gw, sd, user_handler_id, is_handled);
-}
-
-#endif
 
 } // namespace network
 } // namespace starcounter

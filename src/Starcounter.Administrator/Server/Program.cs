@@ -196,6 +196,16 @@ namespace Starcounter.Administrator.Server {
                 // Do nothing!
             });
 
+            Handle.DELETE("/resetcounters", (Request req) => {
+
+                WsEchoesCounter = 0;
+                WsDisconnectsCounter = 0;
+                WsHandshakesCounter = 0;
+                HttpEchoesCounter = 0;
+
+                return 200;
+            });
+
             Handle.GET("/httpcounters", (Request req) => {
 
                 Int32 e = HttpEchoesCounter;

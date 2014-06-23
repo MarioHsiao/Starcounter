@@ -525,15 +525,6 @@ uint32_t HttpProto::HttpUriDispatcher(
     BMX_HANDLER_TYPE handler_index,
     bool* is_handled)
 {
-
-#ifdef GW_TESTING_MODE
-
-    // Checking if we are in gateway HTTP mode.
-    if (MODE_GATEWAY_HTTP == g_gateway.setting_mode())
-        return GatewayHttpWsProcessEcho(hl, gw, sd, handler_index, is_handled);
-
-#endif
-
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
@@ -570,8 +561,6 @@ uint32_t HttpProto::HttpUriDispatcher(
         // Checking for any errors.
         if (err_code)
         {
-#ifdef GW_PROXY_MODE
-
             // Checking if we are proxying.
             if (sd->HasProxySocket())
             {
@@ -581,7 +570,6 @@ uint32_t HttpProto::HttpUriDispatcher(
                 // Just running proxy processing.
                 return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
             }
-#endif
 
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
@@ -885,9 +873,6 @@ ALL_DATA_ACCUMULATED:
 
             g_gateway.IncrementNumProcessedHttpRequests();
 
-            // Skipping cloning when in testing mode.
-#ifndef GW_TESTING_MODE
-
             // Aggregation is done separately.
             if (!sd->GetSocketAggregatedFlag())
             {
@@ -896,8 +881,6 @@ ALL_DATA_ACCUMULATED:
                 if (err_code)
                     return err_code;
             }
-
-#endif
 
             // Checking type of response.
 #ifdef GW_PONG_MODE
@@ -969,280 +952,6 @@ ALL_DATA_ACCUMULATED:
     return SCERRGWHTTPPROCESSFAILED;
 }
 
-#ifdef GW_TESTING_MODE
-
-// Parses the HTTP request and pushes processed data to database.
-uint32_t HttpProto::GatewayHttpWsProcessEcho(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
-    bool* is_handled)
-{
-    uint32_t err_code;
-
-    // Getting reference to accumulative buffer.
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
-    // Checking in what mode we are.
-    if (g_gateway.setting_is_master())
-    {
-        // Checking if we are in fill-up mode.
-        if (sd->get_complete_header_flag())
-            goto ALL_DATA_ACCUMULATED;
-
-        // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
-            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
-
-        // Resetting the parsing structure.
-        ResetParser(sd);
-
-        // We can immediately set the request offset.
-        http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
-
-        // Executing HTTP parser.
-        size_t bytes_parsed = http_parser_execute(
-            &g_ts_http_parser_,
-            &g_httpParserSettings,
-            (const char *)accum_buf->get_chunk_orig_buf_ptr(),
-            accum_buf->get_accum_len_bytes());
-
-        // Checking if we should continue receiving the headers.
-        if (!sd->get_complete_header_flag())
-        {
-            // NOTE: At this point we don't really know here what the final size of the request will be.
-            // That is why we just extend the chunk to next bigger one, without specifying the size.
-
-            // Checking if any space left in chunk.
-            if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
-            {
-                err_code = SocketDataChunk::ChangeToBigger(gw, sd);
-
-                if (err_code)
-                    return err_code;
-            }
-
-            // Returning socket to receiving state.
-            err_code = gw->Receive(sd);
-            if (err_code)
-                return err_code;
-
-            // Handled successfully.
-            *is_handled = true;
-
-            return 0;
-        }
-
-        // Checking if we have WebSockets upgrade.
-        if (g_ts_http_parser_.upgrade)
-        {
-#ifdef GW_WEBSOCKET_DIAG
-            GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
-#endif
-
-            // Perform WebSockets handshake.
-            return WsProto::DoHandshake(gw, sd, handler_id, is_handled);
-        }
-        // Handle error. Usually just close the connection.
-        else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
-        {
-            GW_ASSERT(bytes_parsed < accum_buf->get_accum_len_bytes());
-
-            GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
-            return SCERRGWHTTPINCORRECTDATA;
-        }
-        // Standard HTTP.
-        else
-        {
-            // Getting the HTTP method.
-            http_method method = (http_method)g_ts_http_parser_.method;
-            switch (method)
-            {
-            case http_method::HTTP_GET: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::GET_METHOD;
-                break;
-
-            case http_method::HTTP_POST: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::POST_METHOD;
-                break;
-
-            case http_method::HTTP_PUT: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::PUT_METHOD;
-                break;
-
-            case http_method::HTTP_DELETE: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::DELETE_METHOD;
-                break;
-
-            case http_method::HTTP_HEAD: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::HEAD_METHOD;
-                break;
-
-            case http_method::HTTP_OPTIONS: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::OPTIONS_METHOD;
-                break;
-
-            case http_method::HTTP_TRACE: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::TRACE_METHOD;
-                break;
-
-            case http_method::HTTP_PATCH: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::PATCH_METHOD;
-                break;
-
-            default: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::OTHER_METHOD;
-                break;
-            }
-
-            // Calculating total request size.
-            http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
-
-            // Checking if we have any content at all.
-            if (http_request_.content_len_bytes_ > 0)
-            {
-                GW_ASSERT(http_request_.content_offset_ > http_request_.headers_offset_);
-
-                // Checking if we need to continue receiving the content.
-                if (http_request_.request_len_bytes_ > accum_buf->get_accum_len_bytes())
-                {
-                    // Checking for maximum supported HTTP request content size.
-                    if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
-                    {
-                        // Handled successfully.
-                        *is_handled = true;
-
-                        // Setting disconnect after send flag.
-                        sd->set_disconnect_after_send_flag();
-
-#ifdef GW_WARNINGS_DIAG
-                        GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
-#endif
-
-                        // Sending corresponding HTTP response.
-                        return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
-                    }
-
-                    // Setting the desired number of bytes to accumulate.
-                    err_code = gw->StartAccumulation(
-                        sd,
-                        http_request_.request_len_bytes_,
-                        accum_buf->get_accum_len_bytes());
-
-                    if (err_code)
-                        return err_code;
-
-                    // Handled successfully.
-                    *is_handled = true;
-
-                    // Checking if we have not accumulated everything yet.
-                    return gw->Receive(sd);
-                }
-            }
-
-ALL_DATA_ACCUMULATED:
-
-            // We don't need complete header flag anymore.
-            sd->reset_complete_header_flag();
-
-            g_gateway.IncrementNumProcessedHttpRequests();
-
-            // Translating HTTP content.
-            GW_ASSERT(http_request_.content_len_bytes_ == kHttpEchoContentLength);
-
-            // Converting the string to number.
-            //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.content_offset_, kHttpGatewayEchoRequestBodyLength);
-
-            // Saving echo string into temporary buffer.
-            char copied_echo_string[kHttpEchoContentLength];
-            memcpy(copied_echo_string, (char*)sd + http_request_.content_offset_, kHttpEchoContentLength);
-
-            // Coping echo HTTP response.
-            memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), kHttpEchoResponse, kHttpEchoResponseLength);
-
-            // Inserting echo id into HTTP response.
-            memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoContentLength);
-
-            // Sending echo response.
-            err_code = gw->SendPredefinedMessage(sd, NULL, kHttpEchoResponseLength);
-            if (err_code)
-                return err_code;
-
-            // Handled successfully.
-            *is_handled = true;
-
-            return 0;
-        }
-    }
-    else
-    {
-        // Asserting correct number of bytes received.
-#ifndef DONT_CHECK_ECHOES
-        GW_ASSERT(sd->get_accum_buf()->get_accum_len_bytes() == kHttpEchoResponseLength);
-#endif
-
-        // Obtaining original echo number.
-        //echo_id_type echo_id = *(int32_t*)sd->get_accum_buf()->get_orig_buf_ptr();
-        echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_accum_buf()->get_chunk_orig_buf_ptr() + kHttpEchoResponseInsertPoint, kHttpEchoContentLength);
-
-#ifdef GW_ECHO_STATISTICS
-        GW_COUT << "Received echo: " << echo_id << GW_ENDL;
-#endif
-
-#ifdef GW_LIMITED_ECHO_TEST
-        // Confirming received echo.
-        g_gateway.ConfirmEcho(echo_id);
-#endif
-
-        // Handled successfully.
-        *is_handled = true;
-
-        // Checking if all echo responses are returned.
-        if (g_gateway.CheckConfirmedEchoResponses(gw))
-        {
-            return SCERRGWTESTFINISHED;
-                        
-            /*
-            EnterGlobalLock();
-            g_gateway.ResetEchoTests();
-            LeaveGlobalLock();
-            return 0;
-            */
-        }
-        else
-        {
-            goto SEND_HTTP_ECHO_TO_MASTER;
-        }
-
-SEND_HTTP_ECHO_TO_MASTER:
-
-        // Checking that not all echoes are sent.
-        if (!g_gateway.AllEchoesSent())
-        {
-            // Generating echo number.
-            echo_id_type new_echo_num = 0;
-
-#ifdef GW_LIMITED_ECHO_TEST
-            new_echo_num = g_gateway.GetNextEchoNumber();
-#endif
-
-            // Sending echo request to server.
-            return gw->SendHttpEcho(sd, new_echo_num);
-        }
-    }
-
-    return SCERRGWHTTPPROCESSFAILED;
-}
-
-// HTTP/WebSockets handler for Gateway.
-uint32_t GatewayUriProcessEcho(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
-{
-    return sd->get_http_proto()->GatewayHttpWsProcessEcho(hl, gw, sd, handler_id, is_handled);
-}
-
-#endif
-
 // Outer HTTP/WebSockets handler.
 uint32_t OuterUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
@@ -1254,8 +963,6 @@ uint32_t AppsUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 {
     return sd->get_http_proto()->AppsHttpWsProcessData(hl, gw, sd, handler_id, is_handled);
 }
-
-#ifdef GW_PROXY_MODE
 
 // HTTP/WebSockets handler for Gateway proxy.
 uint32_t GatewayUriProcessProxy(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
@@ -1324,8 +1031,6 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 
     return SCERRGWHTTPPROCESSFAILED;
 }
-
-#endif
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)

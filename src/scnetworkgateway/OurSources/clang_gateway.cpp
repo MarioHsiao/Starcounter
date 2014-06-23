@@ -92,6 +92,11 @@ class CodegenEngine
 
 public:
 
+    ~CodegenEngine()
+    {
+        delete exec_engine_;
+    }
+
     CodegenEngine()
     {
         exec_engine_ = NULL;
@@ -142,7 +147,7 @@ public:
 
         llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> diagnostic_options = new clang::DiagnosticOptions();
         clang::DiagnosticConsumer* diagnostic_client = new clang::TextDiagnosticBuffer();
-            //new TextDiagnosticPrinter(llvm::errs(), &*diagnostic_options);
+        //new clang::TextDiagnosticPrinter(llvm::errs(), &*diagnostic_options);
 
         llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> diagnostic_id(new clang::DiagnosticIDs());
         llvm::IntrusiveRefCntPtr<clang::DiagnosticsEngine> diagnostic_engine = 
@@ -249,9 +254,11 @@ extern "C" __declspec(dllexport) void* GwClangCompileCodeAndGetFuntion(
 
 extern "C" __declspec(dllexport) void GwClangDestroyEngine(CodegenEngine* clang_engine)
 {
-    assert(exec_engine_ != NULL);
+    assert(clang_engine != NULL);
 
     clang_engine->Cleanup(false);
+
+    delete clang_engine;
 }
 
 int main()

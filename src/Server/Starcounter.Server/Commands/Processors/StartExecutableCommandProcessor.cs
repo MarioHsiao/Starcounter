@@ -105,7 +105,7 @@ namespace Starcounter.Server.Commands {
                 Exception codeHostExited = null;
                 try {
 
-                    var node = Node.LocalhostInternalSystemPortNode;
+                    var node = Node.LocalhostSystemPortNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                     command.Application.Key = exeKey;

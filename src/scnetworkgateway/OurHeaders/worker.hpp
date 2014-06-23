@@ -166,12 +166,7 @@ class GatewayWorker
 
     // Worker chunks.
     WorkerChunks worker_chunks_;
-
-#ifdef GW_LOOPED_TEST_MODE
-    LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
-    LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
-#endif
-
+    
     // Avoiding false sharing.
     uint8_t pad[CACHE_LINE_SIZE];
 
@@ -278,30 +273,6 @@ public:
         return 0;
     }
 
-#ifdef GW_LOOPED_TEST_MODE
-
-    int64_t GetNumberOfPreparationNetworkEvents()
-    {
-        return emulated_preparation_network_events_queue_.get_num_entries();
-    }
-
-    // Pushing given sd to network emulation queue.
-    void PushToMeasuredNetworkEmulationQueue(SocketDataChunk* sd)
-    {
-        emulated_measured_network_events_queue_.PushBack(sd);
-    }
-
-    // Pushing given sd to network emulation queue.
-    void PushToPreparationNetworkEmulationQueue(SocketDataChunk* sd)
-    {
-        emulated_preparation_network_events_queue_.PushBack(sd);
-    }
-
-    // Processes looped queue.
-    bool ProcessEmulatedNetworkOperations(OVERLAPPED_ENTRY *removedOvls, uint32_t* removedOvlsNum, int32_t max_fetched);
-
-#endif
-
     // Clone made during last iteration.
     SocketDataChunkRef get_sd_receive_clone()
     {
@@ -343,12 +314,6 @@ public:
     worker_id_type GetLeastBusyWorkerId(port_index_type port_index)
     {
         return g_gateway.get_server_port(port_index)->GetLeastBusyWorkerId();
-    }
-
-    // Generates a new scheduler id.
-    scheduler_id_type GenerateSchedulerId()
-    {
-        return GetWorkerDb(0)->GenerateSchedulerId();
     }
 
     // Getting random generator.
@@ -494,10 +459,8 @@ public:
     // Used to create new connections when reaching the limit.
     uint32_t CreateNewConnections(int32_t how_many, port_index_type port_index);
 
-#ifdef GW_PROXY_MODE
     // Allocates a bunch of new connections.
     uint32_t CreateProxySocket(SocketDataChunkRef proxy_sd);
-#endif
 
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
@@ -511,6 +474,12 @@ public:
 
     // Running disconnect on socket data.
     void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
+
+    // Pushes disconnect message to host if needed.
+    void PushDisconnectIfNeeded(SocketDataChunkRef sd);
+
+    // Send disconnect to database.
+    uint32_t SendRawSocketDisconnectToDb(SocketDataChunk* sd);
 
     // Initiates receive on arbitrary socket.
     uint32_t ReceiveOnSocket(session_index_type socket_index);
@@ -585,23 +554,6 @@ public:
         SocketDataChunkRef out_sd,
         const int32_t data_len = GatewayChunkDataSizes[DefaultGatewayChunkSizeType]);
 
-#ifdef GW_TESTING_MODE
-
-    int32_t get_num_created_conns_worker()
-    {
-        return num_created_conns_worker_;
-    }
-
-    // Sends HTTP echo to master.
-    uint32_t SendHttpEcho(SocketDataChunkRef sd, echo_id_type echo_id);
-
-    // Checks if measured test should be started and begins it.
-    void BeginMeasuredTestIfReady();
-
-    // Sends raw echo to master.
-    uint32_t SendRawEcho(SocketDataChunkRef sd, echo_id_type echo_id);
-
-#endif
 };
 
 } // namespace network

@@ -161,11 +161,6 @@ namespace Starcounter.Internal
             /// Number of gateway workers.
             /// </summary>
             public static Byte NumberOfWorkers { get; internal set; }
-
-            /// <summary>
-            /// Internal system port.
-            /// </summary>
-            public static UInt16 InternalSystemPort { get; internal set; }
         }
 
         /// <summary>
@@ -182,11 +177,6 @@ namespace Starcounter.Internal
             /// System HTTP port.
             /// </summary>
             public static UInt16 SystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
-
-            /// <summary>
-            /// Internal system port.
-            /// </summary>
-            public static UInt16 InternalSystemPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerInternalSystemPort;
 
             /// <summary>
             /// Aggregation port.

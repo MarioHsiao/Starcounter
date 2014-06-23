@@ -15,9 +15,6 @@
   <!-- Inactive connections life time in seconds -->
   <InactiveConnectionTimeout>1200</InactiveConnectionTimeout>
 
-  <!-- Gateway global statistics port -->
-  <GatewayStatisticsPort>12345</GatewayStatisticsPort>
-
   <!-- Gateway traffic aggregation port -->
   <AggregationPort>23456</AggregationPort>
   

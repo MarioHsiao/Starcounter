@@ -78,6 +78,7 @@
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Http\HttpHeadersUtf8.cs" />
+    <Compile Include="Http\RawSocket.cs" />
     <Compile Include="Http\ResponseExtensions.cs" />
     <Compile Include="Http\WebSocket.cs" />
     <Compile Include="Http\WsManager.cs" />

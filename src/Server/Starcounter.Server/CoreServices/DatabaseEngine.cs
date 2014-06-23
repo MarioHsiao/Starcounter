@@ -384,7 +384,7 @@ namespace Starcounter.Server {
 
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
-            var response = Node.LocalhostInternalSystemPortNode.DELETE(serviceUris.Host, (String)null, null); 
+            var response = Node.LocalhostSystemPortNode.DELETE(serviceUris.Host, (String)null, null); 
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
@@ -505,7 +505,6 @@ namespace Starcounter.Server {
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes + "={0}", database.Configuration.Runtime.DefaultSessionTimeoutMinutes);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
-            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.InternalSystemPort + "={0}", StarcounterEnvironment.Gateway.InternalSystemPort);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);
 

@@ -20,7 +20,7 @@ namespace Starcounter
         /// <summary>
         /// The unmanaged_chunk_
         /// </summary>
-        Byte* raw_chunk_ = (Byte*) 0;
+        Byte* raw_chunk_ = null;
 
         internal Byte* RawChunk { get { return raw_chunk_; } }
 
@@ -58,6 +58,14 @@ namespace Starcounter
         /// Prohibiting default constructor.
         /// </summary>
         private NetworkDataStream() {}
+
+        /// <summary>
+        /// Releases resources.
+        /// </summary>
+        ~NetworkDataStream()
+        {
+            Destroy(false);
+        }
 
         /// <summary>
         /// Gets the size of the payload.
@@ -147,6 +155,10 @@ namespace Starcounter
         /// <param name="length_bytes">The length in bytes.</param>
         unsafe void SendResponseBufferInternal(Byte* p, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
+            // Checking if we are actually sending something.
+            if (length_bytes <= 0)
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "You are trying to send an empty data.");
+
             // Processing user data and sending it to gateway.
             UInt32 cur_chunk_index = chunk_index_;
             UInt32 ec = bmx.sc_bmx_send_buffer(gw_worker_id_, p + offset, (UInt32)length_bytes, &cur_chunk_index, (UInt32)conn_flags);
