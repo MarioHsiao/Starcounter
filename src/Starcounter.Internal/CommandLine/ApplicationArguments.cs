@@ -105,6 +105,21 @@ namespace Starcounter.CommandLine
         }
 
         /// <summary>
+        /// Gets a command parameter by index, guarding out of bounds.
+        /// </summary>
+        /// <param name="index">The index of the parameter to get.</param>
+        /// <returns>The command parameter with the given index. If the
+        /// current set of arguments has no command or less parameters
+        /// than what is indicated by <paramref name="index"/>, <c>null</c>
+        /// is returned.</returns>
+        public string GetCommandParameterOrNull(int index) {
+            if (!HasCommmand || CommandParameters.Count < index + 1) {
+                return null;
+            }
+            return CommandParameters[index];
+        }
+
+        /// <summary>
         /// Returns the value of a property identified by <paramref name="name" />.
         /// If invoked with a name that is not found, null is returned.
         /// </summary>

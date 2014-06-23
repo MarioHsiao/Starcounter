@@ -228,7 +228,13 @@ namespace star {
             // work executing.
 
             try {
-                var cli = ApplicationCLICommand.Create(applicationFilePath, filePath, appArgs, userArgs);
+                ApplicationCLICommand cli;
+
+                if (appArgs.ContainsFlag(StarOption.Stop)) {
+                    cli = StopApplicationFromFileCommand.Create(applicationFilePath, filePath, appArgs);
+                } else {
+                    cli = StartApplicationCommand.FromFile(applicationFilePath, filePath, appArgs, userArgs);
+                }
                 cli.Execute();
             } finally {
                 // Delete the temporary executable if we have executed
