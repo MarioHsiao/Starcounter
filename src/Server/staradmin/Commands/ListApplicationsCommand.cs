@@ -4,7 +4,8 @@ namespace staradmin.Commands {
 
     internal class ListApplicationsCommand : ListCommand {
         protected override void List() {
-            AdminCLI.ListApplications();
+            var cli = new AdminCLI(ServerReference.CreateDefault());
+            cli.ListApplications();
         }
     }
 }

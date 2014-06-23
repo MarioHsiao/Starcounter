@@ -10,23 +10,34 @@ namespace Starcounter.CLI {
     /// Defines an API to for certain administrative tasks that we
     /// support from the CLI, such as listing running applications.
     /// </summary>
-    public static class AdminCLI {
+    public class AdminCLI {
+        readonly ServerReference serverReference;
+        readonly AdminAPI adminAPI;
+        readonly Node node;
+
+        /// <summary>
+        /// Initialize a new <see cref="AdminCLI"/> instance, given
+        /// a reference to a server.
+        /// </summary>
+        /// <param name="server">The server to bind to.</param>
+        /// <param name="admin">Optional admin API to use.</param>
+        public AdminCLI(ServerReference server, AdminAPI admin = null) {
+            serverReference = server;
+            adminAPI = admin ?? new AdminAPI();
+            node = server.CreateNode();
+        }
+
         /// <summary>
         /// Display a list of running application in the console.
         /// </summary>
-        /// <param name="admin">An optional custom <see cref="AdminAPI"/>
-        /// to use.</param>
-        public static int ListApplications(AdminAPI admin = null) {
-            admin = admin ?? new AdminAPI();
+        public int ListApplications() {
+            var admin = adminAPI;
+            var serverHost = serverReference.Host;
+            var serverName = serverReference.Name;
+            var serverPort = serverReference.Port;
 
-            string serverHost;
-            string serverName;
-            int serverPort;
             try {
-                SharedCLI.ResolveAdminServer(ApplicationArguments.Empty, out serverHost, out serverPort, out serverName);
                 
-                var node = new Node(serverHost, (ushort)serverPort);
-
                 var response = node.GET(admin.Uris.Engines);
                 response.FailIfNotSuccessOr(503);
 
