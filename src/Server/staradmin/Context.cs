@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.Internal;
 using System.Collections.Generic;
@@ -25,6 +26,16 @@ namespace staradmin {
         /// Gets or sets the admin server port.
         /// </summary>
         public int ServerPort { get; set; }
+
+        /// <summary>
+        /// Gets a <see cref="ServerReference"/> corresponding to
+        /// the values of the current instance.
+        /// </summary>
+        public ServerReference ServerReference {
+            get {
+                return new ServerReference(ServerHost, ServerPort);
+            }
+        }
 
         /// <summary>
         /// Initialize a new <see cref="Context"/> based on the
