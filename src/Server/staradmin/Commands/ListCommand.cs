@@ -45,6 +45,8 @@ namespace staradmin.Commands {
                         command = new ListLogsCommand();
                         break;
                     case ObjectType.Database:
+                        command = new ListDatabasesCommand();
+                        break;
                     default:
                         command = CreateUnrecognizedType(type);
                         break;
