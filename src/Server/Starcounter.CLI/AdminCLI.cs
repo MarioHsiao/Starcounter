@@ -94,6 +94,37 @@ namespace Starcounter.CLI {
                 if (response.IsSuccessStatusCode) {
                     var engine = new Engine();
                     engine.PopulateFromJson(response.Body);
+                    result.Add(engine);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// Gets a set of all databases found on the target
+        /// admin server.
+        /// </summary>
+        /// <returns>List of databases found.</returns>
+        public Database[] GetDatabases() {
+            var admin = adminAPI;
+
+            var response = node.GET(admin.Uris.Databases);
+            response.FailIfNotSuccessOr(503);
+            if (response.StatusCode == 503) {
+                throw ErrorCode.ToException(Error.SCERRSERVERNOTRUNNING);
+            }
+
+            var refs = new DatabaseCollection();
+            refs.PopulateFromJson(response.Body);
+            var result = new List<Database>(refs.Databases.Count);
+            foreach (DatabaseCollection.DatabasesElementJson dbref in refs.Databases) {
+                response = node.GET(node.ToLocal(dbref.Uri));
+                response.FailIfNotSuccessOr(404);
+                if (response.IsSuccessStatusCode) {
+                    var db = new Database();
+                    db.PopulateFromJson(response.Body);
+                    result.Add(db);
                 }
             }
 
