@@ -41,6 +41,36 @@ namespace Starcounter.CLI {
         public Dictionary<Engine, Executable[]> GetApplications(string database = null) {
             var admin = adminAPI;
 
+            var result = new Dictionary<Engine, Executable[]>();
+            var hosts = GetEngines(database);
+            foreach (var host in hosts) {
+                var apps = new List<Executable>();
+                foreach (Engine.ExecutablesJson.ExecutingElementJson application in host.Executables.Executing) {
+                    var response = node.GET(node.ToLocal(application.Uri));
+                    response.FailIfNotSuccessOr(404);
+                    if (response.IsSuccessStatusCode) {
+                        var app = new Executable();
+                        app.PopulateFromJson(response.Body);
+                        apps.Add(app);
+                    }
+                }
+                result.Add(host, apps.ToArray());
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the set of running database engines found on the target
+        /// admin server, optionally limited to a single database.
+        /// </summary>
+        /// <param name="database">Optional database to scope the
+        /// request to.</param>
+        /// <returns>A list of all engines matching the criteria.
+        /// </returns>
+        public Engine[] GetEngines(string database = null) {
+            var admin = adminAPI;
+
             var response = node.GET(admin.Uris.Engines);
             response.FailIfNotSuccessOr(503);
             if (response.StatusCode == 503) {
@@ -51,10 +81,9 @@ namespace Starcounter.CLI {
             // least one running database process). Take the lightweight reference
             // and fetch the full engine from it.
 
-            var result = new Dictionary<Engine, Executable[]>();
-            
             var engines = new EngineCollection();
             engines.PopulateFromJson(response.Body);
+            var result = new List<Engine>(engines.Engines.Count);
             foreach (EngineCollection.EnginesElementJson engineRef in engines.Engines) {
                 if (database != null && !engineRef.Name.Equals(database, StringComparison.InvariantCultureIgnoreCase)) {
                     continue;
@@ -65,22 +94,10 @@ namespace Starcounter.CLI {
                 if (response.IsSuccessStatusCode) {
                     var engine = new Engine();
                     engine.PopulateFromJson(response.Body);
-
-                    var apps = new List<Executable>();
-                    foreach (Engine.ExecutablesJson.ExecutingElementJson application in engine.Executables.Executing) {
-                        response = node.GET(node.ToLocal(application.Uri));
-                        response.FailIfNotSuccessOr(404);
-                        if (response.IsSuccessStatusCode) {
-                            var app = new Executable();
-                            app.PopulateFromJson(response.Body);
-                            apps.Add(app);
-                        }
-                    }
-                    result.Add(engine, apps.ToArray());
                 }
             }
 
-            return result;
+            return result.ToArray();
         }
     }
 }
