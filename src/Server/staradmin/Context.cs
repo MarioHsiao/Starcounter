@@ -17,6 +17,16 @@ namespace staradmin {
         public string Database { get; set; }
 
         /// <summary>
+        /// Gets or sets the admin server host.
+        /// </summary>
+        public string ServerHost { get; set; }
+
+        /// <summary>
+        /// Gets or sets the admin server port.
+        /// </summary>
+        public int ServerPort { get; set; }
+
+        /// <summary>
         /// Initialize a new <see cref="Context"/> based on the
         /// given set of application arguments.
         /// </summary>
