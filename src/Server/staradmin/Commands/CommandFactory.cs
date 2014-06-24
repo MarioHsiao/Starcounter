@@ -52,10 +52,16 @@ namespace staradmin.Commands {
             var contextCommand = command as ContextAwareCommand;
             if (contextCommand != null) {
                 string database;
+                string serverHost;
+                int serverPort;
+                string ignored;
                 SharedCLI.ResolveDatabase(args, out database);
-
+                SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out ignored);
+ 
                 var context = new Context(args);
                 context.Database = database;
+                context.ServerHost = serverHost;
+                context.ServerPort = serverPort;
 
                 contextCommand.Context = context;
             }

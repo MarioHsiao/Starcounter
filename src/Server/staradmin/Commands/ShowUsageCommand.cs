@@ -17,7 +17,9 @@ namespace staradmin.Commands {
 
             table.Title = "Options:";
             rows.Add(string.Format("--{0}", CommandLine.Options.Help.Name), CommandLine.Options.Help.ShortText);
-            rows.Add(string.Format("--{0}=<value>", CommandLine.Options.Database.Name), CommandLine.Options.Database.ShortText);
+            rows.Add(string.Format("--{0}=<name>", CommandLine.Options.Database.Name), CommandLine.Options.Database.ShortText);
+            rows.Add(string.Format("--{0}=<host>", CommandLine.Options.ServerHost.Name), CommandLine.Options.ServerHost.ShortText);
+            rows.Add(string.Format("--{0}=<port>", CommandLine.Options.ServerPort.Name), CommandLine.Options.ServerPort.ShortText);
             table.Write(rows);
             writer.WriteLine();
 
