@@ -51,6 +51,7 @@
     <Compile Include="Commands\IUserCommand.cs" />
     <Compile Include="Commands\ListApplicationsCommand.cs" />
     <Compile Include="Commands\ListCommand.cs" />
+    <Compile Include="Commands\ListDatabasesCommand.cs" />
     <Compile Include="Commands\ListLogsCommand.cs" />
     <Compile Include="Commands\NewAppCommand.cs" />
     <Compile Include="Commands\NewCommand.cs" />
