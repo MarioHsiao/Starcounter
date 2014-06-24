@@ -10,7 +10,7 @@ namespace staradmin.Commands {
 
     internal class ListApplicationsCommand : ListCommand {
         protected override void List() {
-            var cli = new AdminCLI(ServerReference.CreateDefault());
+            var cli = new AdminCLI(Context.ServerReference);
             
             try {
                 var apps = cli.GetApplications();
