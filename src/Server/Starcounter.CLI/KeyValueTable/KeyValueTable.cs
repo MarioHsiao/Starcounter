@@ -56,7 +56,7 @@ namespace Starcounter.CLI {
             }
 
             public static IEnumerable<string> SplitOnLines(string content, int ignoredValueWidth) {
-                return content.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+                return content.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             }
 
             public static IEnumerable<string> TrimToColumnWidth(string content, int columnWidth) {

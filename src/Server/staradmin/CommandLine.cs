@@ -34,6 +34,14 @@ namespace staradmin {
                 ShortText = "Specifies the database commands run against",
                 Alternatives = new string[] { "d", "db" }
             };
+            public static Option ServerHost = new Option() {
+                Name = SharedCLI.Option.ServerHost,
+                ShortText = "Specifies the admin server host"
+            };
+            public static Option ServerPort = new Option() {
+                Name = SharedCLI.Option.Serverport,
+                ShortText = "Specifies the admin server port"
+            };
         }
 
         public static void PreParse(ref string[] args) {
@@ -81,6 +89,18 @@ namespace staradmin {
                 Options.Database.ShortText,
                 OptionAttributes.Default,
                 Options.Database.Alternatives
+                );
+            appSyntax.DefineProperty(
+                Options.ServerHost.Name,
+                Options.ServerHost.ShortText,
+                OptionAttributes.Default,
+                Options.ServerHost.Alternatives
+                );
+            appSyntax.DefineProperty(
+                Options.ServerPort.Name,
+                Options.ServerPort.ShortText,
+                OptionAttributes.Default,
+                Options.ServerPort.Alternatives
                 );
 
             foreach (var userCommand in CommandFactory.UserCommands) {
