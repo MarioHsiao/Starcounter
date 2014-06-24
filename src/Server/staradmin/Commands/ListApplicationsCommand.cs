@@ -43,28 +43,22 @@ namespace staradmin.Commands {
         }
 
         void ListResult(Dictionary<Engine, Executable[]> result) {
+            var table = new KeyValueTable();
             var rows = new Dictionary<string, string>();
 
-            // "app4  Database:Default
-            //        Path:C:\apps\myapps
-
-            var s = new StringBuilder();
             foreach (var database in result) {
                 var engine = database.Key;
                 var scopedApps = database.Value;
 
                 foreach (var app in scopedApps) {
-                    s.Clear();
-                    s.AppendFormat("Database: {0}", engine.Database.Name);
-                    s.AppendLine();
-                    s.AppendFormat("Path:{0}", app.Path);
-                    rows.Add(app.Name, s.ToString());
+                    ConsoleUtil.ToConsoleWithColor(string.Format("{0} (in {1})", app.Name, engine.Database.Name), ConsoleColor.DarkYellow);
+                    rows.Clear();
+                    rows.Add("Path", app.ApplicationFilePath);
+                    rows.Add("Started", app.RuntimeInfo.Started);
+                    table.Write(rows);
+                    Console.WriteLine();
                 }
             }
-
-            var table = new KeyValueTable();
-            table.Title = "Applications:";
-            table.Write(rows, ValueSplitOptions.SplitLines);
         }
     }
 }
