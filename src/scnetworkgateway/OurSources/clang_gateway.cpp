@@ -1,79 +1,28 @@
-#include "clang/Driver/Arg.h"
-#include "clang/Driver/ArgList.h"
-#include "clang/Driver/DriverDiagnostic.h"
-#include "clang/Driver/OptTable.h"
-#include "clang/Driver/Options.h"
+
+#include "clang/CodeGen/CodeGenAction.h"
+#include "clang/Basic/DiagnosticOptions.h"
+#include "clang/Basic/TargetInfo.h"
+#include "clang/Driver/Compilation.h"
+#include "clang/Driver/Driver.h"
+#include "clang/Driver/Tool.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/CompilerInvocation.h"
 #include "clang/Frontend/FrontendDiagnostic.h"
-#include "clang/Frontend/TextDiagnosticBuffer.h"
 #include "clang/Frontend/TextDiagnosticPrinter.h"
-#include "clang/FrontendTool/Utils.h"
-#include "clang/CodeGen/ModuleBuilder.h"
-#include "llvm/ADT/Statistic.h"
-#include "llvm/LinkAllPasses.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/ManagedStatic.h"
-#include "llvm/Support/Signals.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/Timer.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/raw_os_ostream.h"
-#include "llvm/ADT/OwningPtr.h"
-#include "llvm/Support/MemoryBuffer.h"
-
-#include "clang/Basic/FileManager.h"
-#include "clang/Basic/LangOptions.h"
-#include "clang/Basic/TargetOptions.h"
-#include "clang/Lex/HeaderSearchOptions.h"
-#include "clang/Lex/PreprocessorOptions.h"
-#include "clang/Lex/HeaderSearch.h"
-#include "clang/Lex/ModuleLoader.h"
-
-#include "llvm/ADT/OwningPtr.h"
-#include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Linker.h"
+#include "clang/Frontend/TextDiagnosticBuffer.h"
+#include "clang/Parse/ParseAST.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/ExecutionEngine/JIT.h"
-
-#include "clang/AST/AST.h"
-#include "clang/Basic/LangOptions.h"
-#include "clang/Basic/SourceManager.h"
-#include "clang/Basic/TargetInfo.h"
-#include "clang/CodeGen/ModuleBuilder.h"
-#include "clang/Frontend/CodeGenOptions.h"
-#include "clang/Lex/Preprocessor.h"
-#include "clang/Lex/MacroInfo.h"
 #include "llvm/IR/Module.h"
-#include "clang/Sema/SemaDiagnostic.h"
-#include "clang/Lex/LexDiagnostic.h"
-#include "clang/Frontend/FrontendOptions.h"
-#include "clang/Frontend/Utils.h"
-#include "clang/Parse/ParseAST.h"
-#include "llvm\Support\TargetSelect.h"
-
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Host.h"
-#include "llvm/ADT/IntrusiveRefCntPtr.h"
-
-#include "clang/Basic/DiagnosticOptions.h"
-#include "clang/Frontend/TextDiagnosticPrinter.h"
-#include "clang/Frontend/CompilerInstance.h"
-#include "clang/Basic/TargetOptions.h"
-#include "clang/Basic/TargetInfo.h"
-#include "clang/Basic/LangOptions.h"
-#include "clang/Basic/FileManager.h"
-#include "clang/Basic/SourceManager.h"
-#include "clang/Lex/Preprocessor.h"
-#include "clang/Basic/Diagnostic.h"
-#include "clang/AST/ASTContext.h"
-#include "clang/AST/ASTConsumer.h"
-#include "clang/Basic/LangOptions.h"
-#include "clang/Parse/Parser.h"
-#include "clang/Parse/ParseAST.h"
-#include "clang/Frontend/TextDiagnosticBuffer.h"
-#include "clang/Frontend/TextDiagnosticPrinter.h"
-#include "clang/Basic/llvm.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/LLVMContext.h"
+#include "clang/codegen/ModuleBuilder.h"
 
 #include <sstream>
 #include <cstdio>
@@ -83,30 +32,22 @@
 
 class CodegenEngine
 {
-    llvm::LLVMContext* llvm_context_;
-
     llvm::ExecutionEngine* exec_engine_;
-    llvm::Linker* linker_;
-
     llvm::Module *module_;
+    llvm::LLVMContext* llvm_context_;
 
 public:
 
     ~CodegenEngine()
     {
-        delete exec_engine_;
+
     }
 
     CodegenEngine()
     {
         exec_engine_ = NULL;
-        linker_ = NULL;
         module_ = NULL;
-
         llvm_context_ = new llvm::LLVMContext();
-
-        // Creating new linker.
-        linker_ = new llvm::Linker("sccodegen", "sccodegen", *llvm_context_);
     }
 
     void Cleanup(bool accumulate_old_modules)
@@ -123,6 +64,9 @@ public:
             delete exec_engine_;
             exec_engine_ = NULL;
         }
+
+        delete llvm_context_;
+        llvm_context_ = new llvm::LLVMContext();
     }
 
     void* CompileCodeAndGetFuntion(
@@ -130,7 +74,12 @@ public:
         const char* func_name,
         bool accumulate_old_modules)
     {
-        clock_t start = clock();
+        using namespace clang;
+        using namespace llvm;
+
+        bool optimize = true;
+
+        clock_t start_parsing = clock();
 
         std::string code_string = code_str, func_name_string = func_name, error_str;
 
@@ -138,93 +87,85 @@ public:
         if (module_)
             Cleanup(accumulate_old_modules);
 
-        clang::CompilerInstance ci;
-        clang::CodeGenOptions code_gen_options;
-        code_gen_options.OptimizationLevel = 3; // All optimizations.
+        CompilerInstance ci;
+        CodeGenOptions code_gen_options;
+        if (optimize) {
+            code_gen_options.OptimizationLevel = 3; // All optimizations.
+        }
 
         clang::TargetOptions* target_options = new clang::TargetOptions();
-        target_options->Triple = llvm::sys::getDefaultTargetTriple();
+        target_options->Triple = sys::getDefaultTargetTriple();
 
-        llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> diagnostic_options = new clang::DiagnosticOptions();
-        clang::DiagnosticConsumer* diagnostic_client = new clang::TextDiagnosticBuffer();
-        //new clang::TextDiagnosticPrinter(llvm::errs(), &*diagnostic_options);
+        IntrusiveRefCntPtr<DiagnosticOptions> diagnostic_options = new DiagnosticOptions();
+        DiagnosticConsumer* diagnostic_client = new TextDiagnosticBuffer();
+            //new TextDiagnosticPrinter(errs(), &*diagnostic_options);
 
-        llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> diagnostic_id(new clang::DiagnosticIDs());
-        llvm::IntrusiveRefCntPtr<clang::DiagnosticsEngine> diagnostic_engine = 
-            new clang::DiagnosticsEngine(diagnostic_id, &*diagnostic_options, &*diagnostic_client);
+        IntrusiveRefCntPtr<DiagnosticIDs> diagnostic_id(new DiagnosticIDs());
+        IntrusiveRefCntPtr<DiagnosticsEngine> diagnostic_engine = 
+            new DiagnosticsEngine(diagnostic_id, &*diagnostic_options, &*diagnostic_client);
 
-        clang::CodeGenerator* codegen_ = CreateLLVMCodeGen(*diagnostic_engine, "-", code_gen_options, *target_options, *llvm_context_);
+        CodeGenerator* codegen_ = CreateLLVMCodeGen(*diagnostic_engine, "-", code_gen_options, *target_options, *llvm_context_);
 
-        ci.createDiagnostics(&*diagnostic_client);
-
-        clang::TargetInfo *pti = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), target_options);
-        ci.setTarget(pti);
         ci.setDiagnostics(&*diagnostic_engine);
 
-        clang::LangOptions& lang_options = ci.getLangOpts();
+        TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), target_options);
+        ci.setTarget(pti);
+
+        LangOptions& lang_options = ci.getLangOpts();
         lang_options.GNUMode = 1; 
         lang_options.CXXExceptions = 1; 
         lang_options.RTTI = 1; 
         lang_options.Bool = 1; 
-        lang_options.CPlusPlus = 1; 
-        lang_options.Optimize = 1;
+        lang_options.CPlusPlus = 1;
+        if (optimize) {
+            lang_options.Optimize = 1;
+        }
 
         ci.getCodeGenOpts() = code_gen_options;
         ci.createFileManager();
         ci.createSourceManager(ci.getFileManager());
         ci.createPreprocessor();
         ci.getPreprocessorOpts().UsePredefines = false;
-        clang::ASTConsumer *astConsumer = new clang::ASTConsumer();
-        ci.setASTConsumer(astConsumer);
+        ci.getFrontendOpts().DisableFree = 0;
+        ci.getDiagnostics().setIgnoreAllWarnings(true);
+        ci.getDiagnosticOpts().IgnoreWarnings = 1;
 
-        ci.createASTContext();
-        ci.createSema(clang::TU_Complete, NULL);
-
-        llvm::MemoryBuffer *mb = llvm::MemoryBuffer::getMemBufferCopy(code_string, "some");
+        MemoryBuffer *mb = MemoryBuffer::getMemBufferCopy(code_string, "some");
         assert(mb && "Error creating MemoryBuffer!");
 
+        ci.setASTConsumer(codegen_);
+        ci.createASTContext();
+
         ci.getSourceManager().createMainFileIDForMemBuffer(mb);
-        diagnostic_client->BeginSourceFile(lang_options);
-        //clang::ParseAST(ci.getSema());
-        clang::ParseAST(ci.getPreprocessor(), codegen_, ci.getASTContext());
-        //ci.getASTContext().Idents.PrintStats();
+        ci.getDiagnosticClient().BeginSourceFile(lang_options);
+        ParseAST(ci.getPreprocessor(), codegen_, ci.getASTContext());
+        ci.getDiagnosticClient().EndSourceFile();
+        
+        clock_t end_parsing = clock();
+
+        clock_t start_jiting = clock();
 
         // Creating new module.
         module_ = codegen_->ReleaseModule();
-        assert(module_ != NULL);
-
-        // Linking all old modules together.
-        if (accumulate_old_modules)
-        {
-            // Linking the new module.
-            linker_->LinkInModule(module_, &error_str);
-            if (!error_str.empty())
-            {
-                std::cout << "Linking problems: " << error_str << std::endl;
-                return NULL;
-            }
-
-            // Link module with the existing ones.
-            module_ = linker_->getModule();
-        }
+        assert(module_ && "Can't release module by some reason!");
 
         // Creating new execution engine for this module.
-        exec_engine_ = llvm::ExecutionEngine::create(module_, false, &error_str, llvm::CodeGenOpt::Aggressive);
-        assert(exec_engine_ != NULL);
+        exec_engine_ = ExecutionEngine::create(module_, false, &error_str, CodeGenOpt::Aggressive);
+        assert(exec_engine_ && "Can't create execution engine by some reason!");
 
-        llvm::Function* module_func = module_->getFunction(func_name_string.c_str());
-        assert(module_func != NULL);
+        Function* module_func = module_->getFunction(func_name_string.c_str());
+        assert(module_func && "Can't find function from generated code module!");
 
         // Obtaining the pointer to created function.
         void* fp = exec_engine_->getPointerToFunction(module_func);
+        assert(fp && "Can't get function address from JITed code!");
 
-        delete codegen_;
-        codegen_ = NULL;
+        clock_t end_jiting = clock();
+        
+        float seconds_parsing = (float) (end_parsing - start_parsing) / CLOCKS_PER_SEC,
+            seconds_jiting = (float) (end_jiting - start_jiting) / CLOCKS_PER_SEC;
 
-        clock_t end = clock();
-        float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-
-        std::cout << "Clang took seconds: " << seconds << std::endl;
+        std::cout << "Codegen took seconds: " << seconds_parsing + seconds_jiting << " (" << seconds_parsing << ", " << seconds_jiting << ")." << std::endl;
 
         return fp;
     }
@@ -254,7 +195,7 @@ extern "C" __declspec(dllexport) void* GwClangCompileCodeAndGetFuntion(
 
 extern "C" __declspec(dllexport) void GwClangDestroyEngine(CodegenEngine* clang_engine)
 {
-    assert(clang_engine != NULL);
+    assert(clang_engine && "Engine must exist to be destroyed!");
 
     clang_engine->Cleanup(false);
 
@@ -267,17 +208,20 @@ int main()
 
     CodegenEngine* cge = NULL; 
 
-    std::ifstream fs(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc.cpp");
-    std::stringstream ss;
-    ss << fs.rdbuf();
+    for (int i = 0; i < 100; i++) {
 
-    GwClangCompileCodeAndGetFuntion(&cge, ss.str().c_str(), "MatchUriForPort8181", false);
+        std::ifstream fs(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc.cpp");
+        std::stringstream ss;
+        ss << fs.rdbuf();
 
-    std::ifstream fs2(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc2.cpp");
-    std::stringstream ss2;
-    ss2 << fs2.rdbuf();
+        GwClangCompileCodeAndGetFuntion(&cge, ss.str().c_str(), "MatchUriForPort8181", false);
 
-    GwClangCompileCodeAndGetFuntion(&cge, ss2.str().c_str(), "MatchUriForPort8181", false);
+        std::ifstream fs2(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc2.cpp");
+        std::stringstream ss2;
+        ss2 << fs2.rdbuf();
+
+        GwClangCompileCodeAndGetFuntion(&cge, ss2.str().c_str(), "MatchUriForPort8181", false);
+    }
 
     return 0;
 }
