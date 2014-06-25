@@ -1,4 +1,3 @@
-
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/Basic/TargetInfo.h"
@@ -89,8 +88,14 @@ public:
 
         CompilerInstance ci;
         CodeGenOptions code_gen_options;
+        code_gen_options.DisableFree = 0;
+
         if (optimize) {
             code_gen_options.OptimizationLevel = 3; // All optimizations.
+        } else {
+            code_gen_options.OptimizationLevel = 0; // No optimizations.
+            code_gen_options.OptimizeSize = 0;
+            code_gen_options.NoInline = 1;
         }
 
         clang::TargetOptions* target_options = new clang::TargetOptions();
@@ -117,8 +122,11 @@ public:
         lang_options.RTTI = 1; 
         lang_options.Bool = 1; 
         lang_options.CPlusPlus = 1;
+
         if (optimize) {
             lang_options.Optimize = 1;
+        } else {
+            lang_options.Optimize = 0;
         }
 
         ci.getCodeGenOpts() = code_gen_options;
@@ -150,7 +158,11 @@ public:
         assert(module_ && "Can't release module by some reason!");
 
         // Creating new execution engine for this module.
-        exec_engine_ = ExecutionEngine::create(module_, false, &error_str, CodeGenOpt::Aggressive);
+        if (optimize) {
+            exec_engine_ = ExecutionEngine::create(module_, false, &error_str, CodeGenOpt::Aggressive);
+        } else {
+            exec_engine_ = ExecutionEngine::create(module_, false, &error_str, CodeGenOpt::None);
+        }
         assert(exec_engine_ && "Can't create execution engine by some reason!");
 
         Function* module_func = module_->getFunction(func_name_string.c_str());
@@ -208,7 +220,7 @@ int main()
 
     CodegenEngine* cge = NULL; 
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100000; i++) {
 
         std::ifstream fs(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc.cpp");
         std::stringstream ss;
