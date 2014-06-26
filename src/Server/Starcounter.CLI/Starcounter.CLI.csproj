@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
+    <Compile Include="CLIClientCommand.cs" />
     <Compile Include="FilterableLogReader.cs" />
     <Compile Include="KeyValueTable\KeyValueTable.cs" />
     <Compile Include="KeyValueTable\ValueSplitOptions.cs" />
