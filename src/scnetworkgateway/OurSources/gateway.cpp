@@ -3189,6 +3189,9 @@ int32_t Gateway::StartGateway()
 // Generate the code using managed generator.
 uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* port_uris)
 {
+    // Measuring time taken for generating matcher.
+    uint64_t begin_time = timeGetTime();
+
     // Getting registered URIs.
     std::vector<MixedCodeConstants::RegisteredUriManaged> uris_managed = port_uris->GetRegisteredUriManaged();
 
@@ -3226,6 +3229,9 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
 
     // Checking that code generation always succeeds.
     GW_ASSERT(0 == err_code);
+
+    // Printing how much time it took for generating the matcher.
+    std::cout << "Total codegen time (" << uris_managed.size() << ", " << port_uris->get_port_number() << "): " << timeGetTime() - begin_time << " ms." << std::endl;
 
     // Setting the entry point for new URI matcher.
     new_entry->Init(match_uri_func, gen_dll_handle, port_uris->GetSortedString(), port_uris->get_num_uris());

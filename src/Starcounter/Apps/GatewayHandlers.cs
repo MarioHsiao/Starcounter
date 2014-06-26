@@ -143,14 +143,18 @@ namespace Starcounter
             // Creating network data stream object.
             dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
+            SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
+
+            // Checking if socket exists and legal.
+            if (null == sc) {
+                dataStream.Destroy(true);
+                return 0;
+            }
+
+            RawSocket rawSocket = sc.Rs;
+            Debug.Assert(null != rawSocket);
+
             Byte[] dataBytes = null;
-
-            // Obtaining socket index and unique id.
-            UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
-            UInt64 socketUniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
-            Byte gwWorkerId = dataStream.GatewayWorkerId;
-
-            RawSocket rawSocket = new RawSocket(socketIndex, socketUniqueId, gwWorkerId, dataStream);
 
             // Checking if its a socket disconnect.
             if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
@@ -162,12 +166,14 @@ namespace Starcounter
             } else {
 
                 // Making socket unusable.
-                dataStream.Destroy(true);
-                rawSocket.Reset();
+                rawSocket.Destroy(true);
             }
 
             // Calling user callback.
             user_callback(rawSocket, dataBytes);
+
+            // Destroying original chunk etc.
+            rawSocket.DestroyDataStream();
 
             *is_handled = true;
             
@@ -444,13 +450,16 @@ namespace Starcounter
                 // Creating network data stream object.
                 NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-                // Checking if WebSocket is legitimate.
-                WebSocketInternal wsInternal = WebSocket.ObtainWebSocketInternal(data_stream);
-                if ((wsInternal == null) || (wsInternal.IsDead()))
-                {
+                SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForWebSocket(data_stream);
+
+                // Checking if WebSocket exists and legal.
+                if (sc == null) {
                     data_stream.Destroy(true);
                     return 0;
                 }
+
+                WebSocketInternal wsInternal = sc.Ws;
+                Debug.Assert(null != wsInternal);
 
                 // Checking if we need to process linked chunks.
                 if (!is_single_chunk)
@@ -482,7 +491,7 @@ namespace Starcounter
 
                         Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
 
-                        ws = new WebSocket(wsInternal, data_stream, null, dataBytes, WebSocket.WsHandlerType.BinaryData);
+                        ws = new WebSocket(wsInternal, null, dataBytes, WebSocket.WsHandlerType.BinaryData);
 
                         break;
                     }
@@ -495,14 +504,14 @@ namespace Starcounter
                             *(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
                             Encoding.UTF8);
 
-                        ws = new WebSocket(wsInternal, data_stream, dataString, null, WebSocket.WsHandlerType.StringMessage);
+                        ws = new WebSocket(wsInternal, dataString, null, WebSocket.WsHandlerType.StringMessage);
 
                         break;
                     }
 
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_CLOSE:
                     {
-                        ws = new WebSocket(wsInternal, data_stream, null, null, WebSocket.WsHandlerType.Disconnect);
+                        ws = new WebSocket(wsInternal, null, null, WebSocket.WsHandlerType.Disconnect);
 
                         break;
                     }
@@ -541,7 +550,7 @@ namespace Starcounter
                 *is_handled = AllWsChannels.WsManager.RunHandler(managed_handler_id, ws);
 
                 // Destroying original chunk etc.
-                ws.ManualDestroy();
+                ws.WsInternal.DestroyDataStream();
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();

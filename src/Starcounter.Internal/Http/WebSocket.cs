@@ -11,46 +11,6 @@ namespace Starcounter
     internal class WebSocketInternal
     {
         /// <summary>
-        /// Unique socket id on gateway.
-        /// </summary>
-        UInt64 socketUniqueId_;
-
-        /// <summary>
-        /// Unique socket id on gateway.
-        /// </summary>
-        internal UInt64 SocketUniqueId { get { return socketUniqueId_; } }
-
-        /// <summary>
-        /// User cargo id.
-        /// </summary>
-        UInt64 cargoId_;
-
-        /// <summary>
-        /// Cargo ID getter.
-        /// </summary>
-        internal UInt64 CargoId { get { return cargoId_; } } 
-
-        /// <summary>
-        /// Socket index on gateway.
-        /// </summary>
-        UInt32 socketIndexNum_;
-
-        /// <summary>
-        /// Socket index on gateway.
-        /// </summary>
-        internal UInt32 SocketIndexNum { get { return socketIndexNum_; } }
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
-        Byte gatewayWorkerId_;
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
-        internal Byte GatewayWorkerId { get { return gatewayWorkerId_; } }
-
-        /// <summary>
         /// Corresponding channel ID.
         /// </summary>
         UInt32 channelId_;
@@ -61,46 +21,75 @@ namespace Starcounter
         internal UInt32 ChannelId { get { return channelId_; } }
 
         /// <summary>
-        /// Active WebSocket node.
+        /// Unique socket id on gateway.
         /// </summary>
-        LinkedListNode<UInt32> activeWebSocketNode_;
+        public UInt64 SocketUniqueId { get { return socketContainer_.SocketUniqueId; } }
 
         /// <summary>
-        /// Active WebSocket node.
+        /// Socket id on gateway.
         /// </summary>
-        internal LinkedListNode<UInt32> ActiveWebSocketNode {
-            get { return activeWebSocketNode_; }
-            set { activeWebSocketNode_ = value; }
+        public UInt32 SocketIndexNum { get { return socketContainer_.SocketIndexNum; } }
+
+        /// <summary>
+        /// Cargo ID getter.
+        /// </summary>
+        public UInt64 CargoId {
+            get { return socketContainer_.CargoId; }
+            set { socketContainer_.CargoId = value; }
         }
 
-        internal WebSocketInternal()
-        {
-            Reset();
-        }
+        /// <summary>
+        /// Network data stream.
+        /// </summary>
+        public NetworkDataStream DataStream { get { return socketContainer_.DataStream; } }
 
-        internal void Init(
-            UInt32 socketIndexNum,
-            UInt64 socketUniqueId,
-            Byte gatewayWorkerId,
-            UInt64 cargoId,
-            UInt32 channelId)
+        /// <summary>
+        /// Socket container.
+        /// </summary>
+        SchedulerResources.SocketContainer socketContainer_;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="outerSocketContainer"></param>
+        /// <param name="channelId"></param>
+        public WebSocketInternal(SchedulerResources.SocketContainer outerSocketContainer, UInt32 channelId)
         {
-            socketIndexNum_ = socketIndexNum;
-            socketUniqueId_ = socketUniqueId;
-            gatewayWorkerId_ = gatewayWorkerId;
-            cargoId_ = cargoId;
+            socketContainer_ = outerSocketContainer;
             channelId_ = channelId;
         }
 
-        internal void Reset()
-        {
-            gatewayWorkerId_ = 255;
-            activeWebSocketNode_ = null;
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        public Byte GatewayWorkerId { get { return socketContainer_.GatewayWorkerId; } }
+
+        /// <summary>
+        /// Destroys only data stream.
+        /// </summary>
+        /// <param name="isStarcounterThread"></param>
+        public void DestroyDataStream() {
+            if (null != socketContainer_)
+                socketContainer_.DestroyDataStream(true);
         }
 
-        public Boolean IsDead()
+        /// <summary>
+        /// Resets the socket.
+        /// </summary>
+        public void Destroy(Boolean isStarcounterThread)
         {
-            return (gatewayWorkerId_ == 255);
+            if (null != socketContainer_) {
+                SchedulerResources.ReturnSocketContainer(socketContainer_, isStarcounterThread);
+                socketContainer_ = null;
+            }
+        }
+
+        /// <summary>
+        /// Checks if socket is dead.
+        /// </summary>
+        /// <returns></returns>
+        public Boolean IsDead() {
+            return ((null == socketContainer_) || (socketContainer_.IsDead()));
         }
     }
 
@@ -129,7 +118,14 @@ namespace Starcounter
             set { Current_ = value; }
         }
 
-        internal WebSocketInternal wsInternal_;
+        WebSocketInternal wsInternal_;
+
+        internal WebSocketInternal WsInternal { get { return wsInternal_; } }
+
+        /// <summary>
+        /// Network data stream.
+        /// </summary>
+        public NetworkDataStream DataStream { get { return wsInternal_.DataStream; } }
 
         /// <summary>
         /// Reference to existing session if any.
@@ -203,7 +199,7 @@ namespace Starcounter
 
             PushServerMessage(this, buf, bytesWritten, true, Response.ConnectionFlags.GracefullyCloseConnection);
 
-            Destroy();
+            Destroy(true);
         }
 
         /// <summary>
@@ -253,7 +249,7 @@ namespace Starcounter
         public static void ForEach(UInt64 cargoId, Action<WebSocket> action) {
             ForEach(null, cargoId, action);
         }
-
+        
         /// <summary>
         /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
         /// </summary>
@@ -263,6 +259,7 @@ namespace Starcounter
         public static void ForEach(String channelName, UInt64 cargoId, Action<WebSocket> action) {
 
             UInt32 channelId = 0;
+
             if (channelName != null)
                 channelId = WsChannelInfo.CalculateChannelIdFromChannelName(channelName);
 
@@ -277,41 +274,49 @@ namespace Starcounter
                     // Saving current WebSocket since we are going to set other.
                     WebSocket origCurrentWebSocket = WebSocket.Current;
 
-                    try
-                    {
-                        // Number of processed WebSockets per scheduler.
-                        SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
+                    try {
+                        SchedulerResources.SchedulerSockets ss = SchedulerResources.AllHostSockets.GetSchedulerSockets(schedId);
 
-                        // Going through each active WebSocket.
-                        foreach (UInt32 wsIndex in sws.ActiveWebSocketIndexes) {
+                        // Going through each gateway worker.
+                        for (Byte gwWorkerId = 0; gwWorkerId < StarcounterEnvironment.Gateway.NumberOfWorkers; gwWorkerId++) {
 
-                            // Getting internal WebSocket structure.
-                            WebSocketInternal wsInternal = sws.GetWebSocketInternal(wsIndex);
+                            SchedulerResources.SocketsPerSchedulerPerGatewayWorker spspgw = ss.GetSocketsPerGatewayWorker(gwWorkerId);
 
-                            // Checking if WebSocket is alive.
-                            if (!wsInternal.IsDead()) {
+                            // Going through each active socket.
+                            foreach (UInt32 wsIndex in spspgw.ActiveSocketIndexes) {
 
-                                // Comparing given channel name if any.
-                                if ((channelName == null) || (wsInternal.ChannelId == channelId)) {
+                                // Getting socket container.
+                                SchedulerResources.SocketContainer sc = spspgw.GetSocket(wsIndex);
 
-                                    // Comparing given cargo ID if any.
-                                    if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
+                                // Checking if socket is alive.
+                                if ((sc != null) && (!sc.IsDead())) {
 
-                                        // Creating WebSocket object used for pushes.
-                                        WebSocket ws = new WebSocket(wsInternal, null, null, null, WebSocket.WsHandlerType.Empty);
+                                    WebSocketInternal wsInternal = sc.Ws;
 
-                                        // Setting current WebSocket.
-                                        WebSocket.Current = ws;
+                                    // Checking if its WebSocket.
+                                    if (null != wsInternal) {
 
-                                        // Running user delegate with WebSocket as parameter.
-                                        action(ws);
+                                        // Comparing given channel name if any.
+                                        if ((null == channelName) || (wsInternal.ChannelId == channelId)) {
+
+                                            // Comparing given cargo ID if any.
+                                            if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
+
+                                                // Creating WebSocket object used for pushes.
+                                                WebSocket ws = new WebSocket(wsInternal, null, null, WebSocket.WsHandlerType.Empty);
+
+                                                // Setting current WebSocket.
+                                                WebSocket.Current = ws;
+
+                                                // Running user delegate with WebSocket as parameter.
+                                                action(ws);
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    finally
-                    {
+                    } finally {
                         // Restoring original current WebSocket.
                         WebSocket.Current = origCurrentWebSocket;
                     }
@@ -357,8 +362,6 @@ namespace Starcounter
             }
         }
 
-        NetworkDataStream dataStream_;
-
         WsHandlerType wsHandlerType_;
 
         internal WsHandlerType HandlerType
@@ -366,31 +369,9 @@ namespace Starcounter
             get { return wsHandlerType_; }
         }
 
-        internal static WebSocketInternal ObtainWebSocketInternal(NetworkDataStream dataStream)
-        {
-            unsafe
-            {
-                // Obtaining socket index and unique id.
-                UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
-                UInt64 uniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
-
-                Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
-
-                WebSocketInternal ws = sws.GetWebSocketInternal(socketIndex);
-
-                // Checking that WebSocket is correct (comparing unique indexes).
-                if ((ws == null) || (ws.SocketUniqueId != uniqueId))
-                    return null;
-
-                return ws;
-            }
-        }
-
-        internal WebSocket(WebSocketInternal wsInternal, NetworkDataStream dataStream, String message, Byte[] bytes, WsHandlerType wsHandlerType)
+        internal WebSocket(WebSocketInternal wsInternal, String message, Byte[] bytes, WsHandlerType wsHandlerType)
         {
             wsInternal_ = wsInternal;
-            dataStream_ = dataStream;
             message_ = message;
             bytes_ = bytes;
             wsHandlerType_ = wsHandlerType;
@@ -403,45 +384,24 @@ namespace Starcounter
             UInt64 cargoId,
             UInt32 channelId)
         {
-            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-            SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
-
-            WebSocketInternal wsi = sws.AddNewWebSocket(socketIndexNum);
-
-            wsi.Init(
-                socketIndexNum,
-                socketUniqueId,
-                gatewayWorkerId,
-                cargoId,
-                channelId);
+            WebSocketInternal wsi = SchedulerResources.ObtainNewWebSocket(socketIndexNum, socketUniqueId, gatewayWorkerId, cargoId, channelId);
 
             wsInternal_ = wsi;
         }
 
-        internal void Destroy() {
-            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-
-            SchedulerWebSockets sws = AllWebSockets.GetSchedulerWebSockets(schedId);
-            sws.RemoveActiveWebSocket(wsInternal_);
-
-            wsInternal_.Reset();
-        }
-
-        internal void ManualDestroy()
-        {
-            // Releasing data stream resources like chunks, etc.
-            if (dataStream_ != null)
-                dataStream_.Destroy(true);
+        /// <summary>
+        /// Destroys the socket.
+        /// </summary>
+        /// <param name="isStarcounterThread"></param>
+        internal void Destroy(Boolean isStarcounterThread) {
+            wsInternal_.Destroy(isStarcounterThread);
         }
 
         /// <summary>
-        /// Releases resources.
+        /// Destructor.
         /// </summary>
-        ~WebSocket()
-        {
-            // Releasing data stream resources like chunks, etc.
-            if (dataStream_ != null)
-                dataStream_.Destroy(false);
+        ~WebSocket() {
+            Destroy(false);
         }
         
         /// <summary>
@@ -459,7 +419,7 @@ namespace Starcounter
             Byte* chunk_mem;
 
             // Checking if we still have the data stream with original chunk available.
-            if (ws.dataStream_ == null || ws.dataStream_.IsDestroyed())
+            if (ws.DataStream == null || ws.DataStream.IsDestroyed())
             {
                 UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunk_index, &chunk_mem);
                 if (0 != err_code)
@@ -471,7 +431,7 @@ namespace Starcounter
             }
             else
             {
-                data_stream = ws.dataStream_;
+                data_stream = ws.DataStream;
                 chunk_index = data_stream.ChunkIndex;
                 chunk_mem = data_stream.RawChunk;
             }
@@ -508,79 +468,6 @@ namespace Starcounter
                 (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = (Byte) MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY;
 
             data_stream.SendResponse(data, 0, dataLen, connFlags);
-        }
-
-        internal class GlobalWebSockets
-        {
-            static SchedulerWebSockets[] WebSocketsPerScheduler = null;
-
-            internal SchedulerWebSockets GetSchedulerWebSockets(Byte schedId) {
-                return WebSocketsPerScheduler[schedId];
-            }
-
-            public GlobalWebSockets() {
-                WebSocketsPerScheduler = new SchedulerWebSockets[StarcounterEnvironment.SchedulerCount];
-
-                for (Int32 i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
-                    WebSocketsPerScheduler[i] = new SchedulerWebSockets();
-                }
-            }
-        }
-
-        internal static GlobalWebSockets AllWebSockets;
-
-        internal class SchedulerWebSockets
-        {
-            public const Int32 MaxWebSocketsPerScheduler = 30000;
-
-            WebSocketInternal[] webSockets_ = new WebSocketInternal[MaxWebSocketsPerScheduler];
-            internal WebSocketInternal[] WebSockets { get { return webSockets_; } }
-
-            LinkedList<UInt32> activeWebSocketIndexes_ = new LinkedList<UInt32>();
-            internal LinkedList<UInt32> ActiveWebSocketIndexes { get { return activeWebSocketIndexes_; } }
-
-            LinkedList<UInt32> freeLinkedListNodes_ = new LinkedList<UInt32>();
-
-            internal WebSocketInternal GetWebSocketInternal(UInt32 socketIndexNum) {
-                return webSockets_[socketIndexNum];
-            }
-
-            internal WebSocketInternal AddNewWebSocket(UInt32 socketIndexNum) {
-
-                if (webSockets_[socketIndexNum] == null) {
-                    webSockets_[socketIndexNum] = new WebSocketInternal();
-                }
-
-                // TODO: Check what happens with WebSockets occupying same slot and if this can happen at all.
-                //Debug.Assert(webSockets_[socketIndexNum].IsDead());
-
-                LinkedListNode<UInt32> lln = null;
-                if (freeLinkedListNodes_.First != null) {
-                    lln = freeLinkedListNodes_.First;
-                    freeLinkedListNodes_.RemoveFirst();
-                    lln.Value = socketIndexNum;
-                } else {
-                    lln = new LinkedListNode<UInt32>(socketIndexNum);
-                }
-
-                activeWebSocketIndexes_.AddLast(lln);
-
-                // Adding reference from WebSocket to the active linked list node.
-                webSockets_[socketIndexNum].ActiveWebSocketNode = lln;
-
-                return webSockets_[socketIndexNum];
-            }
-
-            internal void RemoveActiveWebSocket(WebSocketInternal wsi) {
-                activeWebSocketIndexes_.Remove(wsi.ActiveWebSocketNode);
-                freeLinkedListNodes_.AddLast(wsi.ActiveWebSocketNode);
-                wsi.ActiveWebSocketNode = null;
-            }
-        }
-
-        internal static void InitWebSocketsInternal()
-        {
-            AllWebSockets = new GlobalWebSockets();
         }
     }
 }

@@ -367,7 +367,7 @@ namespace Starcounter {
             if (w == null)
                 throw new Exception("Specified WebSocket channel is not registered: " + channelName);
 
-            WebSocket ws = new WebSocket(null, null, null, null, WebSocket.WsHandlerType.Empty);
+            WebSocket ws = new WebSocket(null, null, null, WebSocket.WsHandlerType.Empty);
 
             if (resp == null)
                 resp = new Response();

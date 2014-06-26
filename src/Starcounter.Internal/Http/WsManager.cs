@@ -132,7 +132,7 @@ namespace Starcounter.Internal
                     if (disconnectHandler_ != null)
                         disconnectHandler_(ws.CargoId, ws.Session);
 
-                    ws.Destroy();
+                    ws.Destroy(true);
 
                     break;
                 }
@@ -185,7 +185,7 @@ namespace Starcounter.Internal
 
         internal void InitWebSockets(RegisterWsChannelHandlerNativeDelegate registerWsChannelHandlerNative) {
             RegisterWsChannelHandlerNative_ = registerWsChannelHandlerNative;
-            WebSocket.InitWebSocketsInternal();
+            SchedulerResources.InitSockets();
         }
 
         WsChannelInfo CreateWsChannel(UInt16 port, String internalChannelName)
