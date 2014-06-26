@@ -56,7 +56,7 @@ namespace Starcounter.CLI {
         /// <summary>
         /// Creates a new instance of the <see cref="StartApplicationCommand"/>
         /// class based on the given arguments. This instance can thereafter be
-        /// executed with the <see cref="ApplicationCLICommand.Execute"/> method.
+        /// executed with the <see cref="CLIClientCommand.Execute"/> method.
         /// </summary>
         /// <param name="applicationFilePath">The application file.</param>
         /// <param name="exePath">The compiled application file.</param>
@@ -88,7 +88,7 @@ namespace Starcounter.CLI {
                 CLIArguments = args,
                 EntrypointArguments = entrypointArgs
             };
-            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
+            command.ResolveServer(args);
 
             command.Initialize();
 
@@ -113,7 +113,7 @@ namespace Starcounter.CLI {
         /// <summary>
         /// Runs the current command.
         /// </summary>
-        /// <seealso cref="ApplicationCLICommand.Run"/>
+        /// <seealso cref="CLIClientCommand.Run"/>
         protected override void Run() {
             var app = Application;
             try {
