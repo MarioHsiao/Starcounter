@@ -754,8 +754,9 @@ namespace Starcounter.XSON.JsonPatch {
 
         private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
             long value;
+            int realValueSize;
 
-            if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
+            if (!JsonHelper.ParseInt(valuePtr, valueSize, out value, out realValueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }

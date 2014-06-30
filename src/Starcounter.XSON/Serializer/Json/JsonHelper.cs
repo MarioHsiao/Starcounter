@@ -71,18 +71,28 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
         public static bool ParseInt(IntPtr ptr, int size, out long value, out int valueSize) {
+            bool dummy;
             long result;
+            IntPtr start = IntPtr.Zero;
 
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                valueSize = SizeToDelimiterOrEnd(pfrag, size);
-                if (IsNullValue(pfrag, valueSize)) {
-                    value = 0;
-                    return true;
+
+                if (*pfrag != (byte)'"') {
+                    valueSize = SizeToDelimiterOrEnd(pfrag, size);
+                    if (IsNullValue(pfrag, valueSize)) {
+                        value = 0;
+                        return true;
+                    }
+                } else {
+                    pfrag++;
+                    valueSize = SizeToDelimiterOrEndString(pfrag, size, out dummy);
                 }
+
+                start = (IntPtr)pfrag;
             }
 
-            if (Utf8Helper.IntFastParseFromAscii(ptr, valueSize, out result)) {
+            if (Utf8Helper.IntFastParseFromAscii(start, valueSize, out result)) {
                 value = result;
                 return true;
             }
