@@ -442,7 +442,7 @@ Assert.AreEqual(facit, result );
             Console.WriteLine(patch);
 
             Assert.AreEqual(
-                "[{\"op\":\"replace\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
+                "[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
         }
 
         [Test]
@@ -510,7 +510,7 @@ Assert.AreEqual(facit, result );
 
             try {
                 var patch = JsonPatch.CreateJsonPatch(root.Session, true);
-                var expected = '[' + string.Format(Helper.PATCH, "/", @"{""Number"":65.0}") + ']';
+                var expected = '[' + string.Format(Helper.PATCH, "", @"{""Number"":65.0}") + ']';
                 Assert.AreEqual(expected, patch);
 
                 root.Number = 99.5545m;
@@ -533,7 +533,7 @@ Assert.AreEqual(facit, result );
 
             try {
                 var patch = JsonPatch.CreateJsonPatch(root.Session, true);
-                var expected = '[' + string.Format(Helper.PATCH, "/", @"{""Number"":65.0}") + ']';
+                var expected = '[' + string.Format(Helper.PATCH, "", @"{""Number"":65.0}") + ']';
                 Assert.AreEqual(expected, patch);
 
                 root.Number = 99.5545d;
@@ -543,6 +543,23 @@ Assert.AreEqual(facit, result );
             } finally {
                 Thread.CurrentThread.CurrentCulture = oldCulture;
             }
+        }
+
+        [Test]
+        public static void TestPatchWithUnnamedProperties() {
+            var schema = new TObject();
+            var tEmpty = schema.Add<TString>("");
+            var tSpace = schema.Add<TString>(" ");
+
+            var json = new Json() { Template = schema };
+            var session = new Session() { Data = json };
+
+            json.Set(tEmpty, "Empty");
+            json.Set(tSpace, "Space");
+
+            var patch = JsonPatch.CreateJsonPatch(session, true);
+            var expected = string.Format(Helper.ONE_PATCH_ARR, "", @"{"""":""Empty"","" "":""Space""}");
+            Assert.AreEqual(expected, patch);
         }
     }
 }
