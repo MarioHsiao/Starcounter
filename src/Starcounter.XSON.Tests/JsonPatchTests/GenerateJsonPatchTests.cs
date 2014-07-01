@@ -42,7 +42,22 @@ namespace Starcounter.Internal.XSON.Tests {
 
             List<Change> changeList = new List<Change>(1);
             changeList.Add(new Change());
-            
+
+            // ["op":"replace","path":"","value":"ApaPapa"]
+            path = "";
+            patch = string.Format(Helper.PATCH, path, @"{""FirstName"":""ApaPapa""}");
+            schema = new TObject();
+            property = schema.Add<TString>("FirstName");
+            json = new Json() { Template = schema };
+            json.FirstName = "ApaPapa";
+            change = Change.Update(json, null);
+            patchSize = JsonPatch.CalculateSize(change, out pathSize);
+            Assert.AreEqual(path.Length, pathSize);
+            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+            changeList[0] = change;
+            patchSize = JsonPatch.CreatePatches(changeList, out patchArr);
+            Assert.AreEqual(patchSize, patchSize);
+
             // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
             path = "/FirstName";
             patch = string.Format(Helper.PATCH, path, Helper.Jsonify("ApaPapa"));
