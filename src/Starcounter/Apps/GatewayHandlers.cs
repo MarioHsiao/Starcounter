@@ -57,7 +57,7 @@ namespace Starcounter
     /// <summary>
     /// Class GatewayHandlers
     /// </summary>
-	internal unsafe class GatewayHandlers
+	public unsafe class GatewayHandlers
 	{
         /// <summary>
         /// Maximum number of user handlers to register.

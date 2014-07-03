@@ -152,7 +152,6 @@ namespace Starcounter.XSON.JsonPatch {
             if (change.Property != null) {
                 WritePath(ref writer, change, pathSize);
             } else {
-                writer.Write('/');
                 childJson = change.Obj;
             }
             writer.Write('"');
@@ -237,6 +236,8 @@ namespace Starcounter.XSON.JsonPatch {
             pathSize = CalculateSizeOfPath(change.Obj, false);
             if (change.Property != null)
                 pathSize += change.Property.TemplateName.Length;
+            else
+                pathSize--; // Path for root is empty, ""
 
             if (change.Index != -1)
                 pathSize += GetSizeOfIntAsUtf8(change.Index) + 1;
@@ -754,8 +755,9 @@ namespace Starcounter.XSON.JsonPatch {
 
         private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
             long value;
+            int realValueSize;
 
-            if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
+            if (!JsonHelper.ParseInt(valuePtr, valueSize, out value, out realValueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }

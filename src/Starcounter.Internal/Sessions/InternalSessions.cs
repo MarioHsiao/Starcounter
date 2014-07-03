@@ -757,6 +757,17 @@ namespace Starcounter.Internal
             }
         }
 
+        public IAppsSession GetSession(string sessionId) {
+            ScSessionStruct ssStruct = new ScSessionStruct();
+            ssStruct.ParseFromString(sessionId);
+
+            // Obtaining corresponding Apps session.
+            IAppsSession apps_session =
+                GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ssStruct);
+
+            return apps_session;
+        }
+
         /// <summary>
         /// Total number of active sessions on all schedulers.
         /// </summary>
