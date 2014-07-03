@@ -173,12 +173,6 @@ public:
     {
         return handler_list_->get_handler_info();
     }
-
-    // Removes certain entry.
-    db_index_type GetDbIndex()
-    {
-        return handler_list_->get_db_index();
-    }
 };
 
 class PortWsChannels
@@ -270,7 +264,7 @@ public:
         {
             stats_stream << "    \"" << reg_ws_channels_[i].get_channel_name() << "\" in";
 
-            stats_stream << " database \"" << g_gateway.GetDatabase(reg_ws_channels_[i].GetDbIndex())->get_db_name() << "\"";
+            stats_stream << " database \"" << g_gateway.GetDatabase(reg_ws_channels_[i].get_db_index())->get_db_name() << "\"";
 
             stats_stream << "<br>";
         }

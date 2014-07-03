@@ -116,6 +116,9 @@ namespace Starcounter.Internal
         public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 180;
         public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 168;
 
+        // Invalid WebSocket channel ID.
+        public const int INVALID_WS_CHANNEL_ID = 0;
+
         /// <summary>
         /// Maximum number of URI callback parameters.
         /// </summary>

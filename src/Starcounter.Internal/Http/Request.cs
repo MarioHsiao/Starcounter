@@ -460,6 +460,9 @@ namespace Starcounter {
                 if (http_request_struct_ == null)
                     return;
 
+                // Removing object from GC.
+                GC.SuppressFinalize(this);
+
                 // Checking if we have constructed this Request
                 // internally in Apps or externally in Gateway.
                 if (isInternalRequest_)

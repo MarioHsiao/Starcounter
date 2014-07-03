@@ -242,7 +242,7 @@ namespace Starcounter
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
-        internal unsafe static UInt32 HandleIncomingHttpRequest(
+        internal unsafe static UInt32 HandleHttpRequest(
             UInt16 managed_handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
@@ -362,7 +362,7 @@ namespace Starcounter
             unsafe {
                 fixed (Byte* pp = nativeParamTypes) {
 
-                    bmx.BMX_HANDLER_CALLBACK fp = HandleIncomingHttpRequest;
+                    bmx.BMX_HANDLER_CALLBACK fp = HandleHttpRequest;
                     GCHandle gch = GCHandle.Alloc(fp);
                     IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
 

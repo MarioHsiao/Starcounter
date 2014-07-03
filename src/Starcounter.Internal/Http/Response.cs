@@ -1139,6 +1139,9 @@ namespace Starcounter
                 if (http_response_struct_ == null)
                     return;
 
+                // Removing object from GC.
+                GC.SuppressFinalize(this);
+
                 // Closing the memory stream if any.
                 if (null != memStream_)
                 {

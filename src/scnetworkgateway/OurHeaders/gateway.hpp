@@ -1081,6 +1081,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SESSION_INDEX;
         aggr_socket_info_index_ = INVALID_SESSION_INDEX;
+        ws_channel_id_ = MixedCodeConstants::INVALID_WS_CHANNEL_ID;
     }
 
     bool IsReset() {

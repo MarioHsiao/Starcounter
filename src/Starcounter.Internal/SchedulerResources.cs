@@ -4,6 +4,7 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal
 {
@@ -96,6 +97,16 @@ namespace Starcounter.Internal
             internal UInt32 SocketIndexNum { get { return socketIndexNum_; } }
 
             /// <summary>
+            /// Scheduler to which socket belongs.
+            /// </summary>
+            Byte scheduler_id_;
+
+            /// <summary>
+            /// Scheduler id.
+            /// </summary>
+            internal Byte SchedulerId { get { return scheduler_id_; } }
+
+            /// <summary>
             /// Gateway worker id.
             /// </summary>
             Byte gatewayWorkerId_;
@@ -141,6 +152,7 @@ namespace Starcounter.Internal
                 socketUniqueId_ = socketUniqueId;
                 gatewayWorkerId_ = gatewayWorkerId;
                 activeListNode_ = activeListNode;
+                scheduler_id_ = StarcounterEnvironment.CurrentSchedulerId;
             }
 
             public void DestroyDataStream(Boolean isStarcounterThread) {
@@ -267,12 +279,19 @@ namespace Starcounter.Internal
 
             public void RemoveActiveSocket(SocketContainer sc, Boolean isStarcounterThread) {
 
+                Debug.Assert(sc.SchedulerId == StarcounterEnvironment.CurrentSchedulerId);
+
                 LinkedListNode<UInt32> activeListNode = sc.ActiveListNode;
+                Debug.Assert(activeListNode != null);
                 Debug.Assert(activeListNode.Value == sc.SocketIndexNum);
 
+                Debug.Assert(sockets_[sc.SocketIndexNum] != null);
                 sockets_[sc.SocketIndexNum] = null;
                 activeSocketIndexes_.Remove(activeListNode);
                 freeLinkedListNodes_.AddLast(activeListNode);
+
+                // Removing object from GC.
+                GC.SuppressFinalize(sc);
 
                 sc.Destroy(isStarcounterThread);
             }
@@ -304,7 +323,21 @@ namespace Starcounter.Internal
         }
 
         internal static void ReturnSocketContainer(SocketContainer sc, Boolean isStarcounterThread) {
-            SocketsPerSchedulerPerGatewayWorker s = AllHostSockets.GetSchedulerWorkerSockets(StarcounterEnvironment.CurrentSchedulerId, sc.GatewayWorkerId);
+
+            SocketsPerSchedulerPerGatewayWorker s;
+
+            // Checking if this was garbage collected.
+            if (!isStarcounterThread) {
+
+                StarcounterBase._DB.RunAsync(() => {
+                    s = AllHostSockets.GetSchedulerWorkerSockets(StarcounterEnvironment.CurrentSchedulerId, sc.GatewayWorkerId);
+                    s.RemoveActiveSocket(sc, true);
+                }, sc.SchedulerId);
+
+                return;
+            }
+
+            s = AllHostSockets.GetSchedulerWorkerSockets(StarcounterEnvironment.CurrentSchedulerId, sc.GatewayWorkerId);
             s.RemoveActiveSocket(sc, isStarcounterThread);
         }
 

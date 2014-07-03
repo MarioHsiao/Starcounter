@@ -1,4 +1,5 @@
 ﻿using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -76,8 +77,7 @@ namespace Starcounter
         /// <summary>
         /// Resets the socket.
         /// </summary>
-        public void Destroy(Boolean isStarcounterThread)
-        {
+        public void Destroy(Boolean isStarcounterThread) {
             if (null != socketContainer_) {
                 SchedulerResources.ReturnSocketContainer(socketContainer_, isStarcounterThread);
                 socketContainer_ = null;
@@ -258,7 +258,7 @@ namespace Starcounter
         /// <param name="cargoId">Cargo ID filter.</param>
         public static void ForEach(String channelName, UInt64 cargoId, Action<WebSocket> action) {
 
-            UInt32 channelId = 0;
+            UInt32 channelId = MixedCodeConstants.INVALID_WS_CHANNEL_ID;
 
             if (channelName != null)
                 channelId = WsChannelInfo.CalculateChannelIdFromChannelName(channelName);
