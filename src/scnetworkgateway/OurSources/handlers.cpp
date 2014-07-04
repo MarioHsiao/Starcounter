@@ -121,27 +121,6 @@ uint32_t HandlersTable::RegisterPortHandler(
 
                 // Disallowing handler duplicates.
                 return SCERRHANDLERALREADYREGISTERED;
-
-                /*
-                // Checking same handler id.
-                if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
-                {
-                    // Search if handler is already in the list.
-                    if (!registered_handlers_[i].HandlerAlreadyExists(port_handler))
-                    {
-                        // Adding new handler to list.
-                        err_code = registered_handlers_[i].AddHandler(port_handler);
-                        GW_ERR_CHECK(err_code);
-                    }
-
-                    // Same handler already exists, checking server port.
-                    goto PROCESS_SERVER_PORT;
-                }
-                else
-                {
-                    return SCERRGWWRONGHANDLERINSLOT;
-                }
-                */
             }
         }
     }
@@ -194,14 +173,11 @@ uint32_t HandlersTable::RegisterPortHandler(
             server_port->set_aggregating_flag();
     }
 
-    // Checking if port contains handlers from this database.
-    if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
+    // Checking if we need to extend number of accepting sockets.
+    if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
     {
-        // Determining how many connections to create.
-        int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
-
         // Creating new connections if needed for this database.
-        err_code = g_gateway.get_worker(0)->CreateNewConnections(how_many, server_port->get_port_index());
+        err_code = g_gateway.get_worker(0)->CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, server_port->get_port_index());
         if (err_code)
             goto ERROR_HANDLING;
     }
@@ -264,27 +240,6 @@ uint32_t HandlersTable::RegisterSubPortHandler(
 
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
-
-                    /*
-                    // Checking same handler id.
-                    if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
-                    {
-                        // Search if handler is already in the list.
-                        if (!registered_handlers_[i].HandlerAlreadyExists(subport_handler))
-                        {
-                            // Adding new handler to list.
-                            err_code = registered_handlers_[i].AddHandler(subport_handler);
-                            GW_ERR_CHECK(err_code);
-                        }
-
-                        // Same handler already exists, checking server port.
-                        goto PROCESS_SERVER_PORT;
-                    }
-                    else
-                    {
-                        return SCERRGWWRONGHANDLERINSLOT;
-                    }
-                    */
                 }
             }
         }
@@ -323,22 +278,6 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     // Checking if port exists.
     if (!server_port)
     {
-        /*
-        SOCKET listening_sock = INVALID_SOCKET;
-
-        // Creating socket and binding to port for all workers.
-        err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
-        if (err_code)
-            goto ERROR_HANDLING;
-
-        // Adding new server port.
-        server_port = g_gateway.AddServerPort(port_num, listening_sock, SUBPORT_BLOB_USER_DATA_OFFSET);
-
-        // Adding new port outer handler.
-        BMX_HANDLER_INDEX_TYPE new_handler_index;
-        err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
-        */
-
         // Registering handler on active database.
         err_code = g_gateway.AddPortHandler(
             gw,
@@ -352,19 +291,6 @@ uint32_t HandlersTable::RegisterSubPortHandler(
         if (err_code)
             goto ERROR_HANDLING;
     }
-
-    // NOTE: Registering a port handler for each database since each database
-    // when deleted, deletes its own port.
-
-    // Checking if port already contains handlers from this database.
-    /*if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
-    {
-        // Adding new port outer handler.
-        BMX_HANDLER_INDEX_TYPE new_handler_index;
-        err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
-        if (err_code)
-            goto ERROR_HANDLING;
-    }*/
 
     return 0;
 
@@ -426,27 +352,6 @@ uint32_t HandlersTable::RegisterUriHandler(
 
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
-
-                    /*
-                    // Checking same handler id.
-                    if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
-                    {
-                        // Search if handler is already in the list.
-                        if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
-                        {
-                            // Adding new handler to list.
-                            err_code = registered_handlers_[i].AddHandler(uri_handler);
-                            GW_ERR_CHECK(err_code);
-                        }
-
-                        // Same handler already exists, checking server port.
-                        goto PROCESS_SERVER_PORT;
-                    }
-                    else
-                    {
-                        return SCERRGWWRONGHANDLERINSLOT;
-                    }
-                    */
                 }
             }
         }
@@ -485,22 +390,6 @@ uint32_t HandlersTable::RegisterUriHandler(
     // Checking if port exists.
     if (!server_port)
     {
-        /*
-        SOCKET listening_sock = INVALID_SOCKET;
-
-        // Creating socket and binding to port for all workers.
-        err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
-        if (err_code)
-            goto ERROR_HANDLING;
-
-        // Adding new server port.
-        server_port = g_gateway.AddServerPort(port_num, listening_sock, HTTP_BLOB_USER_DATA_OFFSET);
-
-        // Adding new port outer handler.
-        BMX_HANDLER_INDEX_TYPE new_handler_index;
-        err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
-        */
-
         // Registering handler on active database.
         err_code = g_gateway.AddPortHandler(
             gw,
@@ -514,19 +403,6 @@ uint32_t HandlersTable::RegisterUriHandler(
         if (err_code)
             goto ERROR_HANDLING;
     }
-
-    // NOTE: Registering a port handler for each database since each database
-    // when deleted, deletes its own port.
-
-    // Checking if port already contains handlers from this database.
-    /*if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
-    {
-        // Adding new port outer handler.
-        BMX_HANDLER_INDEX_TYPE new_handler_index;
-        err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
-        if (err_code)
-            goto ERROR_HANDLING;
-    }*/
 
     return 0;
 

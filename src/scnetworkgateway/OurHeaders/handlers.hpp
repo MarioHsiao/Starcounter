@@ -587,36 +587,6 @@ public:
         return removed;
     }
 
-    // Checking if certain database is contained.
-    int32_t GetEntryIndex(db_index_type db_index)
-    {
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
-        {
-            if (handler_lists_[i]->get_db_index() == db_index)
-            {
-                return i;
-            }
-        }
-
-        return INVALID_INDEX;
-    }
-
-    // Checking if certain handler is contained.
-    int32_t GetEntryIndex(GENERIC_HANDLER_CALLBACK handler)
-    {
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
-        {
-            if (handler_lists_[i]->ContainsHandler(handler))
-            {
-                return i;
-            }
-        }
-
-        return INVALID_INDEX;
-    }
-
     void set_port_number(uint16_t port_num)
     {
         port_number_ = port_num;
