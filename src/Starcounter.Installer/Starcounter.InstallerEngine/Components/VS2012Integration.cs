@@ -164,6 +164,9 @@ namespace Starcounter.InstallerEngine
         /// <returns>True if already installed.</returns>
         public override Boolean IsInstalled()
         {
+            if (!DependenciesCheck.VStudio2012Installed())
+                return false;
+
             var manifest = VSIXUtilities.FindManifestFile(
                 GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
                 VSIXPackageInfo.VS2012.ExtensionIdentity);
