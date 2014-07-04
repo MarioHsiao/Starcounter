@@ -155,22 +155,22 @@ namespace Starcounter.Internal
                 scheduler_id_ = StarcounterEnvironment.CurrentSchedulerId;
             }
 
-            public void DestroyDataStream(Boolean isStarcounterThread) {
+            public void DestroyDataStream() {
 
                 if (null != dataStream_) {
-                    dataStream_.Destroy(isStarcounterThread);
+                    dataStream_.Destroy(true);
                     dataStream_ = null;
                 }
             }
 
-            public void Destroy(Boolean isStarcounterThread) {
+            public void Destroy() {
 
                 Rs = null;
                 Ws = null;
                 socketUniqueId_ = 0;
                 activeListNode_ = null;
 
-                DestroyDataStream(isStarcounterThread);
+                DestroyDataStream();
             }
 
             public Boolean IsDead() {
@@ -256,9 +256,9 @@ namespace Starcounter.Internal
 
             public SocketContainer AddSocket(UInt32 socketIndexNum, UInt64 socketUniqueId, Byte gatewayWorkerId) {
 
-                if (sockets_[socketIndexNum] == null) {
-                    sockets_[socketIndexNum] = new SocketContainer();
-                }
+                Debug.Assert(sockets_[socketIndexNum] == null);
+
+                sockets_[socketIndexNum] = new SocketContainer();
 
                 LinkedListNode<UInt32> lln = null;
 
@@ -277,7 +277,7 @@ namespace Starcounter.Internal
                 return sockets_[socketIndexNum];
             }
 
-            public void RemoveActiveSocket(SocketContainer sc, Boolean isStarcounterThread) {
+            public void RemoveActiveSocket(SocketContainer sc) {
 
                 Debug.Assert(sc.SchedulerId == StarcounterEnvironment.CurrentSchedulerId);
 
@@ -293,7 +293,7 @@ namespace Starcounter.Internal
                 // Removing object from GC.
                 GC.SuppressFinalize(sc);
 
-                sc.Destroy(isStarcounterThread);
+                sc.Destroy();
             }
         }
 
@@ -322,23 +322,12 @@ namespace Starcounter.Internal
             allHostSockets_ = new GlobalSockets();
         }
 
-        internal static void ReturnSocketContainer(SocketContainer sc, Boolean isStarcounterThread) {
+        internal static void ReturnSocketContainer(SocketContainer sc) {
 
             SocketsPerSchedulerPerGatewayWorker s;
 
-            // Checking if this was garbage collected.
-            if (!isStarcounterThread) {
-
-                StarcounterBase._DB.RunAsync(() => {
-                    s = AllHostSockets.GetSchedulerWorkerSockets(StarcounterEnvironment.CurrentSchedulerId, sc.GatewayWorkerId);
-                    s.RemoveActiveSocket(sc, true);
-                }, sc.SchedulerId);
-
-                return;
-            }
-
             s = AllHostSockets.GetSchedulerWorkerSockets(StarcounterEnvironment.CurrentSchedulerId, sc.GatewayWorkerId);
-            s.RemoveActiveSocket(sc, isStarcounterThread);
+            s.RemoveActiveSocket(sc);
         }
 
         internal static SocketContainer ObtainSocketContainerForRawSocket(NetworkDataStream dataStream) {
@@ -411,12 +400,15 @@ namespace Starcounter.Internal
                 SchedulerResources.SocketContainer sc = null;
 
                 // Checking if socket container exists.
-                if (null == sws.GetSocket(socketIndex)) {
-                    sc = sws.AddSocket(socketIndex, socketUniqueId, gatewayWorkerId);
-                } else {
-                    sc = sws.GetSocket(socketIndex, socketUniqueId);
+                sc = sws.GetSocket(socketIndex);
+                if (null != sc) {
+                    sws.RemoveActiveSocket(sc);
                 }
 
+                // Adding new socket.
+                sc = sws.AddSocket(socketIndex, socketUniqueId, gatewayWorkerId);
+
+                Debug.Assert(sc != null);
                 sc.CargoId = cargoId;
 
                 // Checking if we should create raw socket.

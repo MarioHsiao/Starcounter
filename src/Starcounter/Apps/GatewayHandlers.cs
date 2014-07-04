@@ -166,7 +166,7 @@ namespace Starcounter
             } else {
 
                 // Making socket unusable.
-                rawSocket.Destroy(true);
+                rawSocket.Destroy();
             }
 
             // Calling user callback.
@@ -460,6 +460,7 @@ namespace Starcounter
 
                 WebSocketInternal wsInternal = sc.Ws;
                 Debug.Assert(null != wsInternal);
+                Debug.Assert(null != wsInternal.SocketContainer);
 
                 // Checking if we need to process linked chunks.
                 if (!is_single_chunk)
@@ -545,6 +546,8 @@ namespace Starcounter
 
                 // Setting statically available current WebSocket.
                 WebSocket.Current = ws;
+
+                Debug.Assert(null != wsInternal.SocketContainer);
 
                 // Adding session reference.
                 *is_handled = AllWsChannels.WsManager.RunHandler(managed_handler_id, ws);

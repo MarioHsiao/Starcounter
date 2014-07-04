@@ -56,24 +56,17 @@ namespace Starcounter {
         /// <param name="isStarcounterThread"></param>
         internal void DestroyDataStream() {
             if (null != socketContainer_)
-                socketContainer_.DestroyDataStream(true);
+                socketContainer_.DestroyDataStream();
         }
 
         /// <summary>
         /// Resets the socket.
         /// </summary>
-        internal void Destroy(Boolean isStarcounterThread) {
+        internal void Destroy() {
             if (null != socketContainer_) {
-                SchedulerResources.ReturnSocketContainer(socketContainer_, isStarcounterThread);
+                SchedulerResources.ReturnSocketContainer(socketContainer_);
                 socketContainer_ = null;
             }
-        }
-
-        /// <summary>
-        /// Destructor.
-        /// </summary>
-        ~RawSocket() {
-            Destroy(false);
         }
 
         /// <summary>
@@ -96,7 +89,7 @@ namespace Starcounter {
 
             PushServerMessage(TempDisconnectBuffer, 0, 1, Response.ConnectionFlags.DisconnectImmediately);
 
-            Destroy(true);
+            Destroy();
         }
 
         /// <summary>

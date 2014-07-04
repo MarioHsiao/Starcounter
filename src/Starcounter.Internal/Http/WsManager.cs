@@ -132,7 +132,7 @@ namespace Starcounter.Internal
                     if (disconnectHandler_ != null)
                         disconnectHandler_(ws.CargoId, ws.Session);
 
-                    ws.Destroy(true);
+                    ws.Destroy();
 
                     break;
                 }

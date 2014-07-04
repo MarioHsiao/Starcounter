@@ -49,6 +49,10 @@ namespace Starcounter
         /// </summary>
         SchedulerResources.SocketContainer socketContainer_;
 
+        internal SchedulerResources.SocketContainer SocketContainer {
+            get { return socketContainer_; }
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -71,16 +75,17 @@ namespace Starcounter
         /// <param name="isStarcounterThread"></param>
         public void DestroyDataStream() {
             if (null != socketContainer_)
-                socketContainer_.DestroyDataStream(true);
+                socketContainer_.DestroyDataStream();
         }
 
         /// <summary>
         /// Resets the socket.
         /// </summary>
-        public void Destroy(Boolean isStarcounterThread) {
+        public void Destroy() {
             if (null != socketContainer_) {
-                SchedulerResources.ReturnSocketContainer(socketContainer_, isStarcounterThread);
+                SchedulerResources.ReturnSocketContainer(socketContainer_);
                 socketContainer_ = null;
+                channelId_ = MixedCodeConstants.INVALID_WS_CHANNEL_ID;
             }
         }
 
@@ -125,7 +130,13 @@ namespace Starcounter
         /// <summary>
         /// Network data stream.
         /// </summary>
-        public NetworkDataStream DataStream { get { return wsInternal_.DataStream; } }
+        public NetworkDataStream DataStream {
+            get {
+                Debug.Assert(null != wsInternal_);
+
+                return wsInternal_.DataStream;
+            }
+        }
 
         /// <summary>
         /// Reference to existing session if any.
@@ -199,7 +210,7 @@ namespace Starcounter
 
             PushServerMessage(this, buf, bytesWritten, true, Response.ConnectionFlags.GracefullyCloseConnection);
 
-            Destroy(true);
+            Destroy();
         }
 
         /// <summary>
@@ -393,17 +404,14 @@ namespace Starcounter
         /// Destroys the socket.
         /// </summary>
         /// <param name="isStarcounterThread"></param>
-        internal void Destroy(Boolean isStarcounterThread) {
-            wsInternal_.Destroy(isStarcounterThread);
+        internal void Destroy() {
+
+            Debug.Assert(null != wsInternal_);
+
+            wsInternal_.Destroy();
         }
 
-        /// <summary>
-        /// Destructor.
-        /// </summary>
-        ~WebSocket() {
-            Destroy(false);
-        }
-        
+       
         /// <summary>
         /// Creates new Request based on session.
         /// </summary>
