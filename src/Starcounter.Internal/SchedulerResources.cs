@@ -212,48 +212,6 @@ namespace Starcounter.Internal
                 return null;
             }
 
-            public WebSocketInternal GetWebSocket(UInt32 socketIndexNum) {
-                if ((sockets_[socketIndexNum] != null) &&
-                    (sockets_[socketIndexNum].Ws != null)) {
-
-                    return sockets_[socketIndexNum].Ws;
-                }
-
-                return null;
-            }
-
-            public RawSocket GetRawSocket(UInt32 socketIndexNum) {
-                if ((sockets_[socketIndexNum] != null) &&
-                    (sockets_[socketIndexNum].Rs != null)) {
-
-                    return sockets_[socketIndexNum].Rs;
-                }
-
-                return null;
-            }
-
-            public WebSocketInternal GetWebSocket(UInt32 socketIndexNum, UInt64 socketUniqueId) {
-                if ((sockets_[socketIndexNum] != null) &&
-                    (sockets_[socketIndexNum].SocketUniqueId == socketUniqueId) &&
-                    (sockets_[socketIndexNum].Ws != null)) {
-
-                    return sockets_[socketIndexNum].Ws;
-                }
-
-                return null;
-            }
-
-            public RawSocket GetRawSocket(UInt32 socketIndexNum, UInt64 socketUniqueId) {
-                if ((sockets_[socketIndexNum] != null) &&
-                    (sockets_[socketIndexNum].SocketUniqueId == socketUniqueId) &&
-                    (sockets_[socketIndexNum].Rs != null)) {
-
-                    return sockets_[socketIndexNum].Rs;
-                }
-
-                return null;
-            }
-
             public SocketContainer AddSocket(UInt32 socketIndexNum, UInt64 socketUniqueId, Byte gatewayWorkerId) {
 
                 Debug.Assert(sockets_[socketIndexNum] == null);
@@ -289,9 +247,6 @@ namespace Starcounter.Internal
                 sockets_[sc.SocketIndexNum] = null;
                 activeSocketIndexes_.Remove(activeListNode);
                 freeLinkedListNodes_.AddLast(activeListNode);
-
-                // Removing object from GC.
-                GC.SuppressFinalize(sc);
 
                 sc.Destroy();
             }
@@ -385,7 +340,7 @@ namespace Starcounter.Internal
             }
         }
 
-        internal static WebSocketInternal ObtainNewWebSocket(
+        internal static WebSocketInternal CreateNewWebSocket(
             UInt32 socketIndex,
             UInt64 socketUniqueId,
             Byte gatewayWorkerId,
@@ -411,10 +366,9 @@ namespace Starcounter.Internal
                 Debug.Assert(sc != null);
                 sc.CargoId = cargoId;
 
-                // Checking if we should create raw socket.
-                if (null == sc.Ws) {
-                    sc.Ws = new WebSocketInternal(sc, channelId);
-                }
+                Debug.Assert(null == sc.Ws);
+
+                sc.Ws = new WebSocketInternal(sc, channelId);
 
                 return sc.Ws;
             }

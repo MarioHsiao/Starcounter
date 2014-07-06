@@ -395,7 +395,7 @@ namespace Starcounter
             UInt64 cargoId,
             UInt32 channelId)
         {
-            WebSocketInternal wsi = SchedulerResources.ObtainNewWebSocket(socketIndexNum, socketUniqueId, gatewayWorkerId, cargoId, channelId);
+            WebSocketInternal wsi = SchedulerResources.CreateNewWebSocket(socketIndexNum, socketUniqueId, gatewayWorkerId, cargoId, channelId);
 
             wsInternal_ = wsi;
         }
