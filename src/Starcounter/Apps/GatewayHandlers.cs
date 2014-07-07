@@ -114,9 +114,7 @@ namespace Starcounter
             // Determining if chunk is single.
             Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
 
-            Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
-
-            NetworkDataStream dataStream;
+            NetworkDataStream dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
             // Checking if we need to process linked chunks.
             if (!is_single_chunk) {
@@ -137,11 +135,7 @@ namespace Starcounter
 
                 // Adjusting pointers to a new plain byte array.
                 raw_chunk = (Byte*) plain_chunks_data;
-                socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
             }
-
-            // Creating network data stream object.
-            dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
             SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
 
@@ -161,12 +155,19 @@ namespace Starcounter
 
                 dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
 
-                Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+                Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
 
             } else {
 
                 // Making socket unusable.
                 rawSocket.Destroy();
+            }
+
+            // Cleaning the linear buffer in case of multiple chunks.
+            if (!is_single_chunk) {
+
+                BitsAndBytes.Free((IntPtr)raw_chunk);
+                raw_chunk = null;
             }
 
             // Calling user callback.
@@ -441,9 +442,8 @@ namespace Starcounter
                 // Determining if chunk is single.
                 Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
-                Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
-
-                MixedCodeConstants.WebSocketDataTypes wsType = (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
+                MixedCodeConstants.WebSocketDataTypes wsType = 
+                    (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
 
                 WebSocket ws = null;
 
@@ -481,7 +481,6 @@ namespace Starcounter
 
                     // Adjusting pointers to a new plain byte array.
                     raw_chunk = (Byte*) plain_chunks_data;
-                    socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
                 }
 
                 switch (wsType)
@@ -490,7 +489,7 @@ namespace Starcounter
                     {
                         Byte[] dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
 
-                        Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
+                        Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
 
                         ws = new WebSocket(wsInternal, null, dataBytes, WebSocket.WsHandlerType.BinaryData);
 
@@ -500,7 +499,7 @@ namespace Starcounter
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT:
                     {
                         String dataString = new String(
-                            (SByte*)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
+                            (SByte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
                             0,
                             *(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
                             Encoding.UTF8);
@@ -521,17 +520,18 @@ namespace Starcounter
                         throw new Exception("Unknown WebSocket frame type: " + wsType);
                 }
 
+                ScSessionStruct session_ = 
+                    *(ScSessionStruct*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
+
                 // Cleaning the linear buffer in case of multiple chunks.
-                if (!is_single_chunk)
-                {
+                if (!is_single_chunk) {
+
                     BitsAndBytes.Free((IntPtr)raw_chunk);
+                    raw_chunk = null;
                 }
 
-                ScSessionStruct* session_ = (ScSessionStruct*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
-
                 // Obtaining corresponding Apps session.
-                IAppsSession apps_session =
-                    GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref *session_);
+                IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref session_);
 
                 // Searching the existing session.
                 ws.Session = apps_session;
