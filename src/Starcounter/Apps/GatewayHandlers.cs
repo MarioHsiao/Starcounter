@@ -102,84 +102,93 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
 		{
-            *is_handled = false;
+            Boolean is_single_chunk = false;
 
-            UInt32 chunk_index = task_info->chunk_index;
+            try {
 
-            // Fetching the callback.
-            RawSocketCallback user_callback = raw_port_handlers_[managed_handler_id];
-			if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
+                *is_handled = false;
 
-            // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
+                UInt32 chunk_index = task_info->chunk_index;
 
-            NetworkDataStream dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+                // Fetching the callback.
+                RawSocketCallback user_callback = raw_port_handlers_[managed_handler_id];
+                if (user_callback == null)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
-            // Checking if we need to process linked chunks.
-            if (!is_single_chunk) {
+                // Determining if chunk is single.
+                is_single_chunk = ((task_info->flags & 0x01) == 0);
 
-                UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
+                NetworkDataStream dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-                // Allocating space to copy linked chunks (freed on Request destruction).
-                IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
+                // Checking if we need to process linked chunks.
+                if (!is_single_chunk) {
 
-                // Copying all chunks data.
-                UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                    chunk_index,
-                    raw_chunk,
-                    (Byte*) plain_chunks_data);
+                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    // Allocating space to copy linked chunks (freed on Request destruction).
+                    IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
 
-                // Adjusting pointers to a new plain byte array.
-                raw_chunk = (Byte*) plain_chunks_data;
+                    // Copying all chunks data.
+                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                        chunk_index,
+                        raw_chunk,
+                        (Byte*)plain_chunks_data);
+
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode);
+
+                    // Adjusting pointers to a new plain byte array.
+                    raw_chunk = (Byte*)plain_chunks_data;
+                }
+
+                SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
+
+                // Checking if socket exists and legal.
+                if (null == sc) {
+
+                    dataStream.Destroy(true);
+                    return 0;
+                }
+
+                RawSocket rawSocket = sc.Rs;
+                Debug.Assert(null != rawSocket);
+
+                Byte[] dataBytes = null;
+
+                // Checking if its a socket disconnect.
+                if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
+
+                    dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+
+                    Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+
+                } else {
+
+                    // Making socket unusable.
+                    rawSocket.Destroy();
+                }
+
+                // Calling user callback.
+                user_callback(rawSocket, dataBytes);
+
+                // Destroying original chunk etc.
+                rawSocket.DestroyDataStream();
+
+                *is_handled = true;
+
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
+
+            } finally {
+
+                // Cleaning the linear buffer in case of multiple chunks.
+                if (!is_single_chunk) {
+
+                    BitsAndBytes.Free((IntPtr)raw_chunk);
+                    raw_chunk = null;
+                }
+
             }
-
-            SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
-
-            // Checking if socket exists and legal.
-            if (null == sc) {
-                dataStream.Destroy(true);
-                return 0;
-            }
-
-            RawSocket rawSocket = sc.Rs;
-            Debug.Assert(null != rawSocket);
-
-            Byte[] dataBytes = null;
-
-            // Checking if its a socket disconnect.
-            if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
-
-                dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
-
-                Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
-
-            } else {
-
-                // Making socket unusable.
-                rawSocket.Destroy();
-            }
-
-            // Cleaning the linear buffer in case of multiple chunks.
-            if (!is_single_chunk) {
-
-                BitsAndBytes.Free((IntPtr)raw_chunk);
-                raw_chunk = null;
-            }
-
-            // Calling user callback.
-            user_callback(rawSocket, dataBytes);
-
-            // Destroying original chunk etc.
-            rawSocket.DestroyDataStream();
-
-            *is_handled = true;
-            
-            // Reset managed task state before exiting managed task entry point.
-            TaskHelper.Reset();
 
 			return 0;
 		}
@@ -249,6 +258,8 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
         {
+            Boolean is_single_chunk = false;
+
             try
             {
                 *is_handled = false;
@@ -257,7 +268,7 @@ namespace Starcounter
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
                 // Determining if chunk is single.
-                Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+                is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
                 // Socket data begin.
                 Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
@@ -337,11 +348,14 @@ namespace Starcounter
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
-            }
-            catch (Exception exc)
-            {
+
+            } catch (Exception exc) {
+
                 LogSources.Hosting.LogException(exc);
                 return Error.SCERRUNSPECIFIED;
+
+            } finally {
+
             }
 
             return 0;
@@ -432,6 +446,8 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
         {
+            Boolean is_single_chunk = false;
+
             try
             {
                 *is_handled = false;
@@ -440,7 +456,7 @@ namespace Starcounter
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
                 // Determining if chunk is single.
-                Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+                is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
                 MixedCodeConstants.WebSocketDataTypes wsType = 
                     (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
@@ -523,13 +539,6 @@ namespace Starcounter
                 ScSessionStruct session_ = 
                     *(ScSessionStruct*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
 
-                // Cleaning the linear buffer in case of multiple chunks.
-                if (!is_single_chunk) {
-
-                    BitsAndBytes.Free((IntPtr)raw_chunk);
-                    raw_chunk = null;
-                }
-
                 // Obtaining corresponding Apps session.
                 IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref session_);
 
@@ -557,11 +566,20 @@ namespace Starcounter
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
-            }
-            catch (Exception exc)
-            {
+
+            } catch (Exception exc) {
+
                 LogSources.Hosting.LogException(exc);
                 return Error.SCERRUNSPECIFIED;
+
+            } finally {
+
+                // Cleaning the linear buffer in case of multiple chunks.
+                if (!is_single_chunk) {
+
+                    BitsAndBytes.Free((IntPtr)raw_chunk);
+                    raw_chunk = null;
+                }
             }
 
             return 0;
