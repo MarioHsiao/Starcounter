@@ -109,31 +109,60 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestIncomingPatchWithDouble() {
-            //string patch;
-            //byte[] patchArr;
-            //int number;
+            string patch;
+            byte[] patchArr;
+            int number;
 
-            //var schema = new TObject();
-            //var prop = schema.Add<TDouble>("Total");
-            //prop.Editable = true;
+            var schema = new TObject();
+            var prop = schema.Add<TDouble>("Total");
+            prop.Editable = true;
 
-            //dynamic json = new Json() { Template = schema };
-            //var session = new Session();
-            //session.Data = json;
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
 
-            //json.Total = 1.0d;
-            //patch = string.Format(Helper.PATCH, "/Total", "3.3");
-            //patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
-            //number = JsonPatch.EvaluatePatches(session, patchArr);
-            //Assert.AreEqual(number, 1);
-            //Assert.AreEqual(3.3d, json.Total);
+            json.Total = 1.0d;
+            patch = string.Format(Helper.PATCH, "/Total", "3.3");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = JsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3.3d, json.Total);
 
-            //json.Total = 1.0d;
-            //patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3.3"));
-            //patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
-            //number = JsonPatch.EvaluatePatches(session, patchArr);
-            //Assert.AreEqual(number, 1);
-            //Assert.AreEqual(3.3d, json.Total);
+            json.Total = 1.0d;
+            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3.3"));
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = JsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3.3d, json.Total);
+        }
+
+        [Test]
+        public static void TestIncomingPatchWithBoolean() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TBool>("IsTotal");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+
+            json.IsTotal = false;
+            patch = string.Format(Helper.PATCH, "/IsTotal", "true");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = JsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(true, json.IsTotal);
+
+            json.IsTotal = false;
+            patch = string.Format(Helper.PATCH, "/IsTotal", Helper.Jsonify("true"));
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = JsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(true, json.IsTotal);
         }
 
 
