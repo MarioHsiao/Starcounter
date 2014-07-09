@@ -156,12 +156,18 @@ namespace Starcounter.Advanced.XSON {
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
         public static bool ParseBoolean(IntPtr ptr, int size, out bool value, out int valueSize) {
             bool success = false;
+            int extraSize = 0;
 
             value = false;
             valueSize = -1;
             if (size != 0) {
                 unsafe {
                     byte* p = (byte*)ptr;
+
+                    if (*p == '"') {
+                        extraSize = 2;
+                        p++;
+                    }
 
                     switch (*p) {
                         case (byte)'t':
@@ -192,6 +198,8 @@ namespace Starcounter.Advanced.XSON {
                             }
                             break;
                     }
+
+                    valueSize += extraSize;
                 }
             }
             return success;
