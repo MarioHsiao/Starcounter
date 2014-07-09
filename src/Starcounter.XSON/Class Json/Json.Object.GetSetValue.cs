@@ -53,7 +53,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="property">The template to retrieve the value for.</param>
 		/// <returns>The value.</returns>
-		public decimal Get(Property<decimal> property) { return Get<decimal>(property); }
+		public decimal Get(TDecimal property) { return Get<decimal>(property); }
 
 		/// <summary>
 		/// Sets the value for the specified template. If the property
@@ -61,7 +61,15 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="property">The template to set the value to.</param>
 		/// <param name="value">The value to set.</param>
-		public void Set(Property<decimal> property, decimal value) { Set<decimal>(property, value); }
+		public void Set(TDecimal property, decimal value) { Set<decimal>(property, value); }
+
+        /// <summary>
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public double Get(TDouble property) { return Get<double>(property); }
 
 		/// <summary>
 		/// Sets the value for the specified template. If the property
