@@ -374,48 +374,53 @@ namespace Starcounter.XSON.Compiler.Mono {
             mce.LastFoundJsonAttribute = null;
 
             ProcessClassDeclaration(mce, out baseClass, out boundClass );
-                if (className.Equals(foundClassName)) {
+            if (className.Equals(foundClassName)) {
 #if DEBUG
-                    if (metadata.RootClassInfo != null)
-                        throw new Exception("Did not expect root class information to be set in partial class codegen");
+                if (metadata.RootClassInfo != null)
+                    throw new Exception("Did not expect root class information to be set in partial class codegen");
 #endif
-                    if (classInfo == null) {
-                        classInfo = new CodeBehindClassInfo(null);
-                        classInfo.IsRootClass = true;
-                        classInfo.IsDeclaredInCodeBehind = true;
-                    }
-                    else if (!classInfo.IsRootClass) {
-                        throw new Exception(String.Format("The class {0} has the attribute {1} although it has the same name as the .json file name.",
-                            foundClassName, classInfo.RawDebugJsonMapAttribute));
-                    }
-                    classInfo.Namespace = mce.CurrentNamespace;
-                    classInfo.BaseClassName = baseClass;
-                    classInfo.BoundDataClass = boundClass;
-//                    classInfo.AutoBindToDataObject = (genericArg != null);
-					metadata.JsonPropertyMapList.Add(classInfo);
+                if (classInfo == null) {
+                    classInfo = new CodeBehindClassInfo(null);
+                    classInfo.IsRootClass = true;
+                    classInfo.IsDeclaredInCodeBehind = true;
+                } else if (!classInfo.IsRootClass) {
+                    throw new Exception(String.Format("The class {0} has the attribute {1} although it has the same name as the .json file name.",
+                        foundClassName, classInfo.RawDebugJsonMapAttribute));
+                }
+                classInfo.Namespace = mce.CurrentNamespace;
+                classInfo.BaseClassName = baseClass;
+                classInfo.BoundDataClass = boundClass;
+
+                // This is the main codebehind class. If attribute is not set, we add it here and parse it
+                // to get the correct information on how to connect the codebehind classes.
+                if (classInfo.RawDebugJsonMapAttribute == null) {
+                    classInfo = CodeBehindClassInfo.EvaluateAttributeString(className + "_json", classInfo);
+                }
+
+                //                    classInfo.AutoBindToDataObject = (genericArg != null);
+                metadata.JsonPropertyMapList.Add(classInfo);
 
 #if DEBUG
-                    if (metadata.RootClassInfo == null)
-                        throw new Exception("Did expect root class information to be set in partial class codegen");
+                if (metadata.RootClassInfo == null)
+                    throw new Exception("Did expect root class information to be set in partial class codegen");
 #endif
-                    if (classInfo.ClassName == null)
-                        classInfo.ClassName = className;
+                if (classInfo.ClassName == null)
+                    classInfo.ClassName = className;
+            } else {
+                var info = classInfo; // JsonMapInfo.EvaluateAttributeString(attribute);
+                if (info != null) {
+                    //                       info.AutoBindToDataObject = (genericArg != null);
+                    info.ClassName = foundClassName;
+                    info.BaseClassName = baseClass;
+                    info.BoundDataClass = boundClass;
+                    //               info.JsonMapName = attribute.Raw;
+                    info.Namespace = mce.CurrentNamespace;
+                    info.ParentClasses = mce.ClassList;
+                    metadata.JsonPropertyMapList.Add(info);
                 }
-                else {
-                    var info = classInfo; // JsonMapInfo.EvaluateAttributeString(attribute);
-                    if (info != null) {
- //                       info.AutoBindToDataObject = (genericArg != null);
-                        info.ClassName = foundClassName;
-                        info.BaseClassName = baseClass;
-                        info.BoundDataClass = boundClass;
-                        //               info.JsonMapName = attribute.Raw;
-                        info.Namespace = mce.CurrentNamespace;
-                        info.ParentClasses = mce.ClassList;
-                        metadata.JsonPropertyMapList.Add(info);
-                    }
-                }
-                mce.PushClass(foundClassName);
-                SkipToOpenBrace(mce);
+            }
+            mce.PushClass(foundClassName);
+            SkipToOpenBrace(mce);
 //            } else {
  //               SkipBlock(mce); // Not a typed json class. We skip the whole class.
  //           }

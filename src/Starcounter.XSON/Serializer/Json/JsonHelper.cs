@@ -635,7 +635,7 @@ namespace Starcounter.Advanced.XSON {
             int statusCode = 500;
             try { statusCode = response.StatusCode; } catch { }
 
-            if (response.StatusCode > 400) {
+            if (statusCode > 400) {
                 var str = response.Body;
                 if (str != null) {
                     var index = str.IndexOf("HResult");

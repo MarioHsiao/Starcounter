@@ -17,7 +17,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             
 			monoMetadata = MonoAnalyze("Simple", @"Input\simple.json.cs");
 			Assert.AreEqual(null, monoMetadata.RootClassInfo.BoundDataClass);
-			Assert.AreEqual(null, monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
+			Assert.AreEqual("Simple_json", monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
 			Assert.AreEqual("Json", monoMetadata.RootClassInfo.BaseClassName);
 			Assert.AreEqual("MySampleNamespace", monoMetadata.RootClassInfo.Namespace);
 			
