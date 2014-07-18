@@ -40,7 +40,10 @@ namespace QueryProcessingTest {
     }
 
     [Database]
-    public class Company {
+    public class Agent { }
+
+    [Database]
+    public class Company : Agent {
         public string Name;
         public Country Country;
     }
