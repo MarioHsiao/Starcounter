@@ -87,7 +87,7 @@ namespace Starcounter {
                         } else
                             valTypeName = val.GetType().ToString();
                         Debug.Assert(valTypeName != null);
-                        if (valTypeName == tbl.Name) {
+                        if (valTypeName == tbl.MaterializedTable.Name) {
                             if (tblNrObj == 0)
                                 inStmt.Append("(");
                             else
