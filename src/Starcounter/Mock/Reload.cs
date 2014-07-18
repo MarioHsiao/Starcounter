@@ -76,18 +76,26 @@ namespace Starcounter {
                     selectObjs.Append(QuotePath(tbl.MaterializedTable.Name));
                     selectObjs.Append(" __o");
                     SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
-                    Debug.Assert(selectEnum.PropertyBinding == null);
                     Debug.Assert(selectEnum.TypeBinding != null);
-                    Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
                     while (selectEnum.MoveNext()) {
                         IObjectView val = selectEnum.Current;
-                        Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                        if (val.GetObject(0).GetType().ToString() == tbl.MaterializedTable.Name) {
+                        string valTypeName = null;
+                        if (selectEnum.PropertyBinding == null) {
+                            Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
+                            Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
+                            valTypeName = val.GetObject(0).GetType().ToString();
+                        } else
+                            valTypeName = val.GetType().ToString();
+                        Debug.Assert(valTypeName != null);
+                        if (valTypeName == tbl.Name) {
                             if (tblNrObj == 0)
                                 inStmt.Append("(");
                             else
                                 inStmt.Append(",(");
-                            inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
+                            if (selectEnum.PropertyBinding == null)
+                                inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
+                            else
+                                inStmt.Append("object " + (val.GetObjectNo() + shiftId).ToString()); // Value __id
                             for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
                                 inStmt.Append(",");
                                 inStmt.Append(GetString(val, i, shiftId));
