@@ -45,6 +45,12 @@ namespace Starcounter {
                             }
                         },
                         (TObject)Template);
+
+                    if (this._stepSiblings != null) {
+                        foreach (Json stepSibling in _stepSiblings) {
+                            stepSibling.CheckpointChangeLog();
+                        }
+                    }
 				}
 			}
 			_Dirty = false;
