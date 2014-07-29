@@ -12,6 +12,13 @@ using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
 namespace Starcounter {
+    [Flags]
+    public enum SessionOptions : int {
+        Default = 0,
+        IncludeAppName,
+        IncludeSchema,
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -32,12 +39,14 @@ namespace Starcounter {
         private Dictionary<string, int> _indexPerApplication;
         private List<Change> _changes; // The log of Json tree changes pertaining to the session data
         private List<DataAndCache> _stateList;
+        private SessionOptions _sessionOptions;
         
         public Session() {
             _brandNew = true;
             _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<DataAndCache>();
+            _sessionOptions = SessionOptions.Default;
 
             UInt32 errCode = 0;
 
@@ -51,6 +60,15 @@ namespace Starcounter {
 
             if (errCode != 0)
                 throw ErrorCode.ToException(errCode);
+        }
+
+        public SessionOptions Options {
+            get { return _sessionOptions; }
+            set { _sessionOptions = value; }
+        }
+
+        internal bool CheckOption(SessionOptions option) {
+            return (_sessionOptions & option) == option;
         }
 
         /// <summary>
