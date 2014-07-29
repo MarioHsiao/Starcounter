@@ -8,102 +8,49 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Internal;
+using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
 namespace Starcounter {
     /// <summary>
-    /// Class Session
+    /// 
     /// </summary>
-    public partial class Session : IAppsSession {
+    public sealed class Session : IAppsSession, IDisposable {
         private class DataAndCache {
             internal Json Data;
             internal Dictionary<string, Json> Cache;
         }
 
-        /// <summary>
-        /// Current static JSON object.
-        /// </summary>
         [ThreadStatic]
         private static Session _current;
-
-        /// <summary>
-        /// Current static Request object.
-        /// </summary>
         [ThreadStatic]
         private static Request _request;
 
-        /// <summary>
-        /// Dictionary for index in statelist for each application.
-        /// </summary>
-        private Dictionary<string, int> _indexPerApplication;
-
-        /// <summary>
-        /// A list of state and nodecache for each application.
-        /// </summary>
-        private List<DataAndCache> _stateList;
-
-        /// <summary>
-        /// Indicates if session is being used.
-        /// </summary>
-        private bool _isInUse;
-
-        /// <summary>
-        /// Destroy session delegate.
-        /// </summary>
         private Action<Session> _sessionDestroyUserDelegate;
+        private bool _brandNew;
+        private bool _isInUse;
+        private Dictionary<string, int> _indexPerApplication;
+        private List<Change> _changes; // The log of Json tree changes pertaining to the session data
+        private List<DataAndCache> _stateList;
+        
+        public Session() {
+            _brandNew = true;
+            _changes = new List<Change>();
+            _indexPerApplication = new Dictionary<string, int>();
+            _stateList = new List<DataAndCache>();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private string CurrentApplicationName {
-            get {
-                return StarcounterEnvironment.AppName;
-            }
-        }
+            UInt32 errCode = 0;
 
-        // TODO:
-        internal Json GetFirstData() {
-            if (_stateList.Count > 0)
-                return _stateList[0].Data;
-            return null;
-        }
-
-        private DataAndCache GetStateObject() {
-            int stateIndex;
-            string appName;
-
-            appName = CurrentApplicationName;
-            if (appName == null)
-                return null;
-
-            if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
-                return null;
-
-            return _stateList[stateIndex];
-        }
-
-        private DataAndCache AssureStateObject() {
-            DataAndCache dac;
-            int stateIndex;
-            string appName;
-
-            appName = CurrentApplicationName;
-            if (appName == null) {
-                // TODO: 
-                // Should appname always be set and we treat this as an error?
-                return null;
-            }
-
-            if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
-                dac = new DataAndCache();
-                stateIndex = _stateList.Count;
-                _stateList.Add(dac);
-                _indexPerApplication.Add(appName, stateIndex);
+            if (_request != null) {
+                errCode = _request.GenerateNewSession(this);
             } else {
-                dac = _stateList[stateIndex];
+                // Simply generating new session.
+                ScSessionStruct sss = new ScSessionStruct(true);
+                errCode = GlobalSessions.AllGlobalSessions.CreateNewSession(ref sss, this);
             }
 
-            return dac;
+            if (errCode != 0)
+                throw ErrorCode.ToException(errCode);
         }
 
         /// <summary>
@@ -171,72 +118,6 @@ namespace Starcounter {
 
                 }, schedId);
             }
-        }
-
-        /// <summary>
-        /// Tries to get cached JSON node.
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        internal Json GetCachedJsonNode(String uri) {
-            Json obj;
-            Json root;
-            DataAndCache dac;
-            
-            dac = GetStateObject();
-            if (dac == null)
-                return null;
-
-            var cache = dac.Cache;
-            if ((cache == null) || (!cache.TryGetValue(uri, out obj)))
-                return null;
-
-            Debug.Assert(null != obj);
-
-            // Checking if its a root.
-            root = dac.Data;
-            if (root == obj)
-                return root;
-
-            // Checking if node has no parent, indicating that it was removed from tree.
-            // We need to check all the way up to the root, since a parent might have been removed 
-            // further up.
-            if (obj.HasThisRoot(root))
-                return obj;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Adds JSON node to cache.
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="obj"></param>
-        internal void AddJsonNodeToCache(String uri, Json obj) {
-            DataAndCache dac;
-
-            dac = AssureStateObject();
-            if (dac.Cache == null)
-                dac.Cache = new Dictionary<string, Json>();
-
-            // Adding current URI to cache.
-            dac.Cache[uri] = obj;
-        }
-
-        /// <summary>
-        /// Removes URI entry from cache.
-        /// </summary>
-        /// <param name="uri">URI entry.</param>
-        /// <returns>True if URI entry is removed.</returns>
-        internal Boolean RemoveUriFromCache(String uri) {
-            DataAndCache dac = GetStateObject();
-            
-            if (dac != null && dac.Cache != null && dac.Cache.ContainsKey(uri)) {
-                dac.Cache.Remove(uri);
-                return true;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -358,44 +239,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Start usage of given session.
-        /// </summary>
-        /// <param name="session"></param>
-        internal static void Start(Session session) {
-            Debug.Assert(_current == null);
-
-            // Session still can be null, e.g. did not pass the verification.
-            if (session == null)
-                return;
-
-            Session._current = session;
-        }
-
-        /// <summary>
-        /// Finish usage of current session.
-        /// </summary>
-        internal static void End() {
-            if (_current != null) {
-                _current.Clear();
-                Session._current = null;
-            }
-        }
-
-        /// <summary>
-        /// Executes the specified action inside the Session
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        internal static void Execute(Session session, Action action) {
-            try {
-                Start(session);
-                action();
-            } finally {
-                End();
-            }
-        }
-
-        /// <summary>
         /// Returns True if session is being used now.
         /// </summary>
         /// <returns></returns>
@@ -442,6 +285,292 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Return the stateobject for the first item in the statelist. Used internally when 
+        /// application is unknown or only single app is used.
+        /// </summary>
+        /// <returns></returns>
+        internal Json GetFirstData() {
+            if (_stateList.Count > 0)
+                return _stateList[0].Data;
+            return null;
+        }
+
+        private DataAndCache GetStateObject() {
+            int stateIndex;
+            string appName;
+
+            appName = StarcounterEnvironment.AppName;
+            if (appName == null)
+                return null;
+
+            if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
+                return null;
+
+            return _stateList[stateIndex];
+        }
+
+        private DataAndCache AssureStateObject() {
+            DataAndCache dac;
+            int stateIndex;
+            string appName;
+
+            appName = StarcounterEnvironment.AppName;
+            if (appName == null) {
+                // TODO: 
+                // Should appname always be set and we treat this as an error?
+                return null;
+            }
+
+            if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
+                dac = new DataAndCache();
+                stateIndex = _stateList.Count;
+                _stateList.Add(dac);
+                _indexPerApplication.Add(appName, stateIndex);
+            } else {
+                dac = _stateList[stateIndex];
+            }
+
+            return dac;
+        }
+
+        /// <summary>
+        /// Tries to get cached JSON node.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        internal Json GetCachedJsonNode(String uri) {
+            Json obj;
+            Json root;
+            DataAndCache dac;
+
+            dac = GetStateObject();
+            if (dac == null)
+                return null;
+
+            var cache = dac.Cache;
+            if ((cache == null) || (!cache.TryGetValue(uri, out obj)))
+                return null;
+
+            Debug.Assert(null != obj);
+
+            // Checking if its a root.
+            root = dac.Data;
+            if (root == obj)
+                return root;
+
+            // Checking if node has no parent, indicating that it was removed from tree.
+            // We need to check all the way up to the root, since a parent might have been removed 
+            // further up.
+            if (obj.HasThisRoot(root))
+                return obj;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Adds JSON node to cache.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="obj"></param>
+        internal void AddJsonNodeToCache(String uri, Json obj) {
+            DataAndCache dac;
+
+            dac = AssureStateObject();
+            if (dac.Cache == null)
+                dac.Cache = new Dictionary<string, Json>();
+
+            // Adding current URI to cache.
+            dac.Cache[uri] = obj;
+        }
+
+        /// <summary>
+        /// Removes URI entry from cache.
+        /// </summary>
+        /// <param name="uri">URI entry.</param>
+        /// <returns>True if URI entry is removed.</returns>
+        internal Boolean RemoveUriFromCache(String uri) {
+            DataAndCache dac = GetStateObject();
+
+            if (dac != null && dac.Cache != null && dac.Cache.ContainsKey(uri)) {
+                dac.Cache.Remove(uri);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Start usage of given session.
+        /// </summary>
+        /// <param name="session"></param>
+        internal static void Start(Session session) {
+            Debug.Assert(_current == null);
+
+            // Session still can be null, e.g. did not pass the verification.
+            if (session == null)
+                return;
+
+            Session._current = session;
+        }
+
+        /// <summary>
+        /// Finish usage of current session.
+        /// </summary>
+        internal static void End() {
+            if (_current != null) {
+                _current.Clear();
+                Session._current = null;
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified action inside the Session
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        internal static void Execute(Session session, Action action) {
+            try {
+                Start(session);
+                action();
+            } finally {
+                End();
+            }
+        }
+
+        /// <summary>
+        /// Adds an value update change.
+        /// </summary>
+        /// <param name="obj">The json containing the value.</param>
+        /// <param name="property">The property to update</param>
+        internal void UpdateValue(Json obj, TValue property) {
+            _changes.Add(Change.Update(obj, property));
+            property.Checkpoint(obj);
+        }
+
+        /// <summary>
+        /// Adds a value update for an array.
+        /// </summary>
+        /// <param name="obj">The json containing the value.</param>
+        /// <param name="property">The property to update</param>
+        /// <param name="index">The index in the array that should be updated.</param>
+        internal void UpdateValue(Json obj, TObjArr property, int index) {
+            _changes.Add(Change.Update(obj, property, index));
+        }
+
+        /// <summary>
+        /// Adds a list of changes to the log
+        /// </summary>
+        /// <param name="toAdd"></param>
+        internal void AddChange(Change change) {
+            _changes.Add(change);
+        }
+
+        internal List<Change> GetChanges() {
+            return _changes;
+        }
+
+        /// <summary>
+        /// Clears all changes.
+        /// </summary>
+        internal void Clear() {
+            _changes.Clear();
+        }
+
+        /// <summary>
+        /// Returns the number of changes in the log.
+        /// </summary>
+        /// <value></value>
+        public Int32 ChangeCount { get { return _changes.Count; } }
+
+        /// <summary>
+        /// Logs all changes since the last JSON-Patch update. This method generates the log
+        /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
+        /// </summary>
+        public void GenerateChangeLog() {
+            if (_brandNew) {
+                // TODO: 
+                // might be array.
+
+                foreach (var dac in _stateList) {
+                    if (dac.Data != null) {
+                        _changes.Add(Change.Add(dac.Data));
+                        dac.Data.CheckpointChangeLog();
+                    }
+                }
+                _brandNew = false;
+            } else {
+                foreach (var dac in _stateList) {
+                    if (dac.Data != null) {
+                        if (DatabaseHasBeenUpdatedInCurrentTask) {
+                            dac.Data.LogValueChangesWithDatabase(this);
+                        } else {
+                            dac.Data.LogValueChangesWithoutDatabase(this);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool DatabaseHasBeenUpdatedInCurrentTask {
+            get {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HaveAddedOrRemovedObjects { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void CheckpointChangeLog() {
+            foreach (var dac in _stateList) {
+                if (dac.Data != null)
+                    dac.Data.CheckpointChangeLog();
+            }
+            _brandNew = false;
+        }
+
+        public bool BrandNew {
+            get {
+                return _brandNew;
+            }
+        }
+
+        /// <summary>
+        /// Destroys Json tree recursively, including session.
+        /// </summary>
+        /// <param name="json"></param>
+        private void DisposeJsonRecursively(Json json) {
+            if (json == null)
+                return;
+
+            // Disposing transaction if it exists on this node.
+            if (json.TransactionOnThisNode != null) {
+                json.TransactionOnThisNode.Dispose();
+            }
+
+            if (json.Template == null || json.Template.IsPrimitive)
+                return;
+
+            foreach (Template child in ((TContainer)json.Template).Children) {
+                if (child is TObject) {
+                    DisposeJsonRecursively(((TObject)child).Getter(json));
+                } else if (child is TObjArr) {
+                    Json listing = ((TObjArr)child).Getter(json);
+                    foreach (Json listApp in listing) {
+                        DisposeJsonRecursively(listApp);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Destroys the session.
         /// </summary>
         public void Destroy() {
@@ -471,32 +600,8 @@ namespace Starcounter {
             Session._current = null;
         }
 
-        /// <summary>
-        /// Destroys Json tree recursively, including session.
-        /// </summary>
-        /// <param name="json"></param>
-        private void DisposeJsonRecursively(Json json) {
-            if (json == null)
-                return;
-
-            // Disposing transaction if it exists on this node.
-            if (json.TransactionOnThisNode != null) {
-                json.TransactionOnThisNode.Dispose();
-            }
-
-            if (json.Template == null || json.Template.IsPrimitive)
-                return;
-
-            foreach (Template child in ((TContainer)json.Template).Children) {
-                if (child is TObject) {
-                    DisposeJsonRecursively(((TObject)child).Getter(json));
-                } else if (child is TObjArr) {
-                    Json listing = ((TObjArr)child).Getter(json);
-                    foreach (Json listApp in listing) {
-                        DisposeJsonRecursively(listApp);
-                    }
-                }
-            }
+        void IDisposable.Dispose() {
+            Destroy();
         }
     }
 }
