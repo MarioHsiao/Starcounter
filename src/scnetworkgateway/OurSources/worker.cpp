@@ -220,7 +220,7 @@ bool GatewayWorker::ApplySocketInfoToSocketData(
     socket_index_type socket_index,
     random_salt_type unique_socket_id)
 {
-    GW_ASSERT(socket_index < g_gateway.setting_max_connections());
+    GW_ASSERT(socket_index < g_gateway.setting_max_connections_per_worker());
 
     if (CompareUniqueSocketId(sd))
     {
@@ -1367,7 +1367,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
                 // Checking for socket data correctness.
                 sd->CheckForValidity();
-                GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+                GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections_per_worker());
 
                 // Checking that Accept can only be performed on worker 0.
                 if (sd->get_type_of_network_oper() == ACCEPT_SOCKET_OPER)

@@ -1526,8 +1526,7 @@ class Gateway
     // SETTINGS
     ////////////////////////
 
-    // Maximum total number of sockets aka connections.
-    socket_index_type setting_max_connections_;
+    // Maximum total number of sockets aka connections per worker.
     socket_index_type setting_max_connections_per_worker_;
 
     // Maximum receive content length size in bytes.
@@ -1967,13 +1966,7 @@ public:
         return setting_sc_server_type_upper_;
     }
 
-    // Getting maximum number of connections.
-    socket_index_type setting_max_connections()
-    {
-        return setting_max_connections_;
-    }
-
-    // Getting maximum number of connections.
+    // Getting maximum number of connections per worker.
     socket_index_type setting_max_connections_per_worker()
     {
         return setting_max_connections_per_worker_;

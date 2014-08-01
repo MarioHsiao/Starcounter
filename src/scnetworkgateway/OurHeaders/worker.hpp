@@ -575,7 +575,7 @@ public:
     // Checking if unique socket number is correct.
     bool CompareUniqueSocketId(socket_index_type socket_index, random_salt_type unique_socket_id)
     {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         bool is_equal = (sockets_infos_[socket_index].unique_socket_id_ == unique_socket_id);
 
@@ -587,7 +587,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return (MixedCodeConstants::NetworkProtocolType) sockets_infos_[socket_index].type_of_network_protocol_;
     }
@@ -597,7 +597,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].dest_db_index_;
     }
@@ -607,7 +607,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].dest_db_index_ = db_index;
     }
@@ -617,7 +617,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         port_index_type port_index = sockets_infos_[socket_index].port_index_;
 
@@ -645,7 +645,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].session_.gw_worker_id_;
     }
@@ -655,7 +655,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].session_.scheduler_id_;
     }
@@ -665,7 +665,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sd->set_scheduler_id(sched_id);
 
@@ -677,7 +677,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].socket_;
     }
@@ -687,7 +687,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return INVALID_SOCKET_INDEX != sockets_infos_[socket_index].proxy_socket_info_index_;
     }
@@ -697,7 +697,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].get_socket_proxy_connect_flag();
     }
@@ -706,7 +706,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].ws_channel_id_;
     }
@@ -715,7 +715,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].ws_channel_id_ = ws_channel_id;
     }
@@ -725,7 +725,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].aggr_socket_info_index_;
     }
@@ -733,7 +733,7 @@ public:
     // Setting aggregation socket index.
     void SetAggregationSocketIndex(socket_index_type socket_index, socket_index_type aggr_socket_info_index)
     {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].aggr_socket_info_index_ = aggr_socket_info_index;
     }
@@ -743,7 +743,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].get_socket_aggregated_flag();
     }
@@ -751,7 +751,7 @@ public:
     // Setting aggregated socket flag.
     void SetSocketAggregatedFlag(socket_index_type socket_index)
     {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].set_socket_aggregated_flag();
     }
@@ -761,7 +761,7 @@ public:
     {
         socket_index_type proxy_socket_index = GetProxySocketIndex(sd);
 
-        GW_ASSERT_DEBUG(proxy_socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(proxy_socket_index < g_gateway.setting_max_connections_per_worker());
 
         // Checking if socket info is not reseted yet.
         if (false == sockets_infos_[proxy_socket_index].IsReset()) {
@@ -784,7 +784,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].proxy_socket_info_index_;
     }
@@ -793,7 +793,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].proxy_socket_info_index_ = proxy_socket_index;
     }
@@ -802,7 +802,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].accum_data_bytes_left_;
     }
@@ -811,7 +811,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].accum_data_bytes_left_ = num_bytes;
     }
@@ -820,7 +820,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].accum_data_bytes_left_ -= decr_bytes;
     }
@@ -840,7 +840,7 @@ public:
     // Setting new unique socket number.
     random_salt_type GenerateUniqueSocketInfoIds(socket_index_type socket_index)
     {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         random_salt_type unique_id = g_gateway.get_unique_socket_id();
         GW_ASSERT(unique_id != INVALID_SESSION_SALT);
@@ -858,7 +858,7 @@ public:
     // Setting new unique socket number.
     void InvalidateSocket(socket_index_type socket_index)
     {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].socket_ = INVALID_SOCKET;
     }
@@ -868,7 +868,7 @@ public:
 
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return (INVALID_SOCKET == sockets_infos_[sd->get_socket_info_index()].socket_);
     }
@@ -884,7 +884,7 @@ public:
     // Getting unique socket number.
     random_salt_type GetUniqueSocketId(socket_index_type socket_index)
     {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].unique_socket_id_;
     }
@@ -894,7 +894,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].socket_timestamp_ = g_gateway.get_global_timer_unsafe();
     }
@@ -904,7 +904,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sd->set_type_of_network_protocol(proto_type);
 
@@ -916,7 +916,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         // Checking validity of linear session index other wise return a wrong copy.
         if (INVALID_SOCKET_INDEX == socket_index)
@@ -950,7 +950,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].session_.IsActive();
     }
@@ -962,7 +962,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         // Fetching the session by index.
         sockets_infos_[socket_index].session_ = session_copy;
@@ -973,7 +973,7 @@ public:
     {
         socket_index_type socket_index = sd->get_socket_info_index();
 
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections());
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         // Fetching the session by index.
         sockets_infos_[socket_index].session_.Reset();

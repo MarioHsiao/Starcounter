@@ -7,7 +7,7 @@
   <WorkersNumber>1</WorkersNumber>
   
   <!-- Maximum number of connections -->
-  <MaxConnections>1000000</MaxConnections>
+  <MaxConnectionsPerWorker>10000</MaxConnectionsPerWorker>
   
   <!-- Maximum receive content length size in bytes -->
   <MaximumReceiveContentLength>4194304</MaximumReceiveContentLength>

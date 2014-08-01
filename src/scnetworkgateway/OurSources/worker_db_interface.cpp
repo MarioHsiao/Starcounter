@@ -165,7 +165,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
             // Checking for socket data correctness.
             GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
-            GW_ASSERT(sd->get_socket_info_index() <= g_gateway.setting_max_connections_per_worker());
+            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections_per_worker());
 
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;

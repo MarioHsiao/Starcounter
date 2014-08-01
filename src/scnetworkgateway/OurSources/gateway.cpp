@@ -238,7 +238,7 @@ Gateway::Gateway()
     setting_num_workers_ = 0;
 
     // Maximum total number of sockets.
-    setting_max_connections_ = 0;
+    setting_max_connections_per_worker_ = 0;
 
     // Default inactive socket timeout in seconds.
     setting_inactive_socket_timeout_seconds_ = 60 * 20;
@@ -695,21 +695,19 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         }
         
         // Getting maximum connection number.
-        node_elem = root_elem->first_node("MaxConnections");
+        node_elem = root_elem->first_node("MaxConnectionsPerWorker");
         if (!node_elem)
         {
-            g_gateway.LogWriteCritical(L"Gateway XML: Can't read MaxConnections property.");
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read MaxConnectionsPerWorker property.");
             return SCERRBADGATEWAYCONFIG;
         }
 
-        setting_max_connections_ = atoi(node_elem->value());
-        if (setting_max_connections_ < 10 || setting_max_connections_ > 10000000)
+        setting_max_connections_per_worker_ = atoi(node_elem->value());
+        if (setting_max_connections_per_worker_ < 10 || setting_max_connections_per_worker_ > 1000000)
         {
-            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaxConnections value.");
+            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaxConnectionsPerWorker value.");
             return SCERRBADGATEWAYCONFIG;
         }
-
-        setting_max_connections_per_worker_ = setting_max_connections_ / setting_num_workers_;
 
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaximumReceiveContentLength");
