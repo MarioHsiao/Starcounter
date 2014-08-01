@@ -232,7 +232,8 @@ namespace Starcounter.Internal
             PROTOCOL_SUB_PORT,
             PROTOCOL_HTTP1,
             PROTOCOL_WEBSOCKETS,
-            PROTOCOL_HTTP2
+            PROTOCOL_HTTP2,
+            PROTOCOL_COUNT
         };
 
         /// <summary>

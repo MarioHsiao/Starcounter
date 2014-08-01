@@ -68,6 +68,7 @@ __declspec(thread) http_parser g_ts_http_parser_;
 __declspec(thread) uint8_t g_ts_last_field_;
 __declspec(thread) bool g_xhreferer_read_;
 __declspec(thread) SocketDataChunk* g_ts_sd_;
+__declspec(thread) GatewayWorker* g_ts_gw_;
 __declspec(thread) HttpRequest* g_ts_http_request_;
 
 // Constructs HTTP 404 response.
@@ -348,20 +349,7 @@ inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* s
     http_request_.session_string_offset_ = static_cast<uint16_t>(session_id_start - (char*)sd);
 
     // Checking if we have session related socket.
-    sd->SetGlobalSessionIfEmpty();
-
-    // Comparing with global session now.
-    // NOTE: We don't care what session the socket has.
-    /*if (!sd->CompareGlobalSessionSalt())
-    {
-#ifdef GW_SESSIONS_DIAG
-        GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
-#endif
-
-        // Resetting the session information.
-        http_request_.session_string_offset_ = 0;
-        sd->ResetSdSession();
-    }*/
+    g_ts_gw_->SetGlobalSessionIfEmpty(sd);
 }
 
 inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
@@ -529,7 +517,7 @@ uint32_t HttpProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
@@ -562,7 +550,7 @@ uint32_t HttpProto::HttpUriDispatcher(
         if (err_code)
         {
             // Checking if we are proxying.
-            if (sd->HasProxySocket())
+            if (gw->HasProxySocket(sd))
             {
                 // Set the unknown proxied protocol here.
                 sd->set_unknown_proxied_proto_flag();
@@ -584,7 +572,7 @@ uint32_t HttpProto::HttpUriDispatcher(
         // Now we have method and URI and ready to search specific URI handler.
 
         // Getting the corresponding port number.
-        ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
+        ServerPort* server_port = g_gateway.get_server_port(gw->GetPortIndex(sd));
         uint16_t port_num = server_port->get_port_number();
         RegisteredUris* port_uris = server_port->get_registered_uris();
 
@@ -658,7 +646,7 @@ HANDLER_MATCHED:
         RegisteredUri* matched_uri = port_uris->GetEntryByIndex(matched_index);
 
         // Setting matched URI index.
-        sd->SetDestDbIndex(matched_uri->GetFirstDbIndex());
+        gw->SetDestDbIndex(sd, matched_uri->GetFirstDbIndex());
 
         // Checking if we have a session parameter.
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
@@ -684,11 +672,12 @@ HANDLER_MATCHED:
 }
 
 // Resets the parser related fields.
-void HttpProto::ResetParser(SocketDataChunkRef sd)
+void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
     g_ts_sd_ = sd;
+    g_ts_gw_ = gw;
     g_xhreferer_read_ = false;
 
     http_request_.Reset();
@@ -717,11 +706,11 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
-        ResetParser(sd);
+        ResetParser(gw, sd);
 
         // We can immediately set the request offset.
         http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
@@ -874,7 +863,7 @@ ALL_DATA_ACCUMULATED:
             g_gateway.IncrementNumProcessedHttpRequests();
 
             // Aggregation is done separately.
-            if (!sd->GetSocketAggregatedFlag())
+            if (!gw->GetSocketAggregatedFlag(sd))
             {
                 // Posting cloning receive since all data is accumulated.
                 err_code = sd->CloneToReceive(gw);
@@ -929,7 +918,7 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
         // Handled successfully.
@@ -984,10 +973,10 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     *is_handled = true;
 
     // Checking if already in proxy mode.
-    if (sd->HasProxySocket())
+    if (gw->HasProxySocket(sd))
     {
         // Aggregation is done separately.
-        if (!sd->GetSocketAggregatedFlag())
+        if (!gw->GetSocketAggregatedFlag(sd))
         {
             // Posting cloning receive for client.
             err_code = sd->CloneToReceive(gw);
@@ -1000,7 +989,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 
         // Finished receiving from proxied server,
         // now sending to the original user.
-        sd->ExchangeToProxySocket();
+        sd->ExchangeToProxySocket(gw);
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareToSendOnProxy();

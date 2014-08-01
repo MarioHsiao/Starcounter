@@ -165,12 +165,12 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 }
 
 // Obtains user handler info from channel name of the WebSocket.
-inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
+inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
-    ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
+    ServerPort* server_port = g_gateway.get_server_port(gw->GetPortIndex(sd));
     PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
-    uint32_t channel_id = sd->GetWebSocketChannelId();
+    uint32_t channel_id = gw->GetWebSocketChannelId(sd);
     return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
 }
 
@@ -183,7 +183,7 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsDisconnects);
 
     // Obtaining handler info from channel id.
-    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(sd);
+    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
         return 0;
 
@@ -225,7 +225,7 @@ uint32_t WsProto::ProcessWsDataToDb(
     uint32_t err_code = 0;
 
     // Obtaining handler info from channel id.
-    user_handler_id = SearchUserHandlerInfoByChannelId(sd);
+    user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
         return SCERRGWWEBSOCKET;
 
@@ -311,7 +311,7 @@ DATA_ACCUMULATED:
         if (NULL == sd_push_to_db)
         {
             // Aggregation is done separately.
-            if (!sd->GetSocketAggregatedFlag())
+            if (!gw->GetSocketAggregatedFlag(sd))
             {
                 err_code = sd->CloneToReceive(gw);
                 if (err_code)
@@ -465,7 +465,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     sd->get_accum_buf()->AddAccumulatedBytes(resp_len_bytes);
 
     // Setting WebSocket handshake flag.
-    sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+    gw->SetTypeOfNetworkProtocol(sd, MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
 
     // Prepare buffer to send outside.
 

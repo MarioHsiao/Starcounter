@@ -709,6 +709,8 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             return SCERRBADGATEWAYCONFIG;
         }
 
+        setting_max_connections_per_worker_ = setting_max_connections_ / setting_num_workers_;
+
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaximumReceiveContentLength");
         if (!node_elem)
@@ -1050,63 +1052,6 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     return 0;
 }
 
-// Applying session parameters to socket data.
-bool Gateway::ApplySocketInfoToSocketData(
-    SocketDataChunkRef sd,
-    session_index_type socket_index,
-    random_salt_type unique_socket_id)
-{
-    GW_ASSERT(socket_index < setting_max_connections_);
-
-    if (CompareUniqueSocketId(socket_index, unique_socket_id))
-    {
-        ScSocketInfoStruct si = all_sockets_infos_unsafe_[socket_index];
-
-        sd->AssignSession(si.session_);
-        sd->set_unique_socket_id(si.unique_socket_id_);
-        sd->set_socket_info_index(si.read_only_index_);
-        sd->set_type_of_network_protocol((MixedCodeConstants::NetworkProtocolType)si.type_of_network_protocol_);
-
-        // Resetting the session based on protocol.
-        sd->ResetSessionBasedOnProtocol();
-
-        return true;
-    }
-
-    return false;
-}
-
-// Gets free socket index.
-session_index_type Gateway::ObtainFreeSocketIndex(
-    GatewayWorker* gw,
-    SOCKET s,
-    port_index_type port_index,
-    bool proxy_connect_socket)
-{
-    PSLIST_ENTRY free_socket_index_entry = InterlockedPopEntrySList(free_socket_indexes_unsafe_);
-    GW_ASSERT(NULL != free_socket_index_entry);
-
-    // NOTE: Socket info has the same address as socket index entry.
-    ScSocketInfoStruct* si = (ScSocketInfoStruct*) free_socket_index_entry;
-
-    GW_ASSERT(si->IsReset());
-
-    // Marking socket as alive.
-    si->socket_ = s;
-
-    // Checking if this socket is used for connecting to remote machine.
-    if (proxy_connect_socket)
-        si->set_socket_proxy_connect_flag();
-
-    // Creating new socket info.
-    CreateNewSocketInfo(si->read_only_index_, port_index, gw->get_worker_id());
-
-    // Creating unique ids.
-    GenerateUniqueSocketInfoIds(si->read_only_index_);
-
-    return si->read_only_index_;
-}
-
 // Stub APC function that does nothing.
 void __stdcall EmptyApcFunction(ULONG_PTR arg) {
     // Does nothing.
@@ -1118,7 +1063,7 @@ void __stdcall CollectInactiveSocketsApcFunction(ULONG_PTR arg) {
     worker_id_type worker_id = (worker_id_type) arg;
 
     // Going through all active connections and collecting sockets.
-    g_gateway.CollectInactiveSockets(worker_id);
+    g_gateway.get_worker(worker_id)->CollectInactiveSockets();
 }
 
 // APC function that is used for rebalancing sockets.
@@ -1838,24 +1783,6 @@ void ActiveDatabase::StartDeletion()
 // Initializes WinSock, all core data structures, binds server sockets.
 uint32_t Gateway::Init()
 {
-    // Allocating data for sockets infos.
-    all_sockets_infos_unsafe_ = (ScSocketInfoStruct*) _aligned_malloc(sizeof(ScSocketInfoStruct) * setting_max_connections_, MEMORY_ALLOCATION_ALIGNMENT);
-    free_socket_indexes_unsafe_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
-    GW_ASSERT(free_socket_indexes_unsafe_);
-    InitializeSListHead(free_socket_indexes_unsafe_);
-
-    // Cleaning all socket infos and setting indexes.
-    for (int32_t i = setting_max_connections_ - 1; i >= 0; i--)
-    {
-        // Resetting all sockets infos.
-        all_sockets_infos_unsafe_[i].Reset();
-        all_sockets_infos_unsafe_[i].read_only_index_ = i;
-
-        // Pushing to free indexes list.
-        SLIST_ENTRY* e = &(all_sockets_infos_unsafe_[i].free_socket_indexes_entry_);
-        InterlockedPushEntrySList(free_socket_indexes_unsafe_, e);
-    }
-
     // Checking if already initialized.
     GW_ASSERT((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
@@ -2634,60 +2561,6 @@ void Gateway::DisconnectSocket(SOCKET s) {
     closesocket(s);
 }
 
-// Collects outdated sockets if any.
-uint32_t Gateway::CollectInactiveSockets(int32_t worker_id)
-{
-    int32_t num_inactive = 0;
-
-    // TODO: Optimize scanning range.
-    for (uint32_t i = 0; i < setting_max_connections_; i++)
-    {
-        ScSocketInfoStruct* si = all_sockets_infos_unsafe_ + i;
-
-        if ((worker_id == si->session_.gw_worker_id_) &&
-            (!si->IsReset()) &&
-            (INVALID_SOCKET != si->get_socket())) {
-
-            num_inactive++;
-        } else {
-            continue;
-        }
-
-        // Checking if socket touch time is older than inactive socket timeout.
-        if ((si->socket_timestamp_) &&
-            (global_timer_unsafe_ - si->socket_timestamp_) >= setting_inactive_socket_timeout_seconds_)
-        {
-            ServerPort* sp = g_gateway.get_server_port(si->port_index_);
-            if (sp->IsEmpty() || (sp->get_port_number() == setting_internal_system_port_)) {
-                continue;
-            }
-
-            // Disconnecting socket.
-            switch (si->type_of_network_protocol_)
-            {
-                case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
-                {
-                    // Updating unique socket id.
-                    GenerateUniqueSocketInfoIds(i);
-
-                    // NOTE: Not checking for error code.
-                    DisconnectSocket(si->get_socket());
-
-                    g_gateway.InvalidateSocket(i);
-
-                    break;
-                }
-            }
-        }
-
-        // Checking if we have checked all active sockets.
-        if (num_inactive >= NumberOfActiveConnectionsOnAllPortsForWorker(worker_id))
-            break;
-    }
-
-    return 0;
-}
-
 // Entry point for inactive sockets cleanup.
 uint32_t __stdcall InactiveSocketsCleanupRoutine(LPVOID params)
 {
@@ -3424,18 +3297,6 @@ err:
 end:
 	if (host_name) free(host_name);
 	return err_code;
-}
-
-// Releases used socket index.
-void Gateway::ReleaseSocketIndex(session_index_type socket_info_index)
-{
-    // Checking that this socket info wasn't returned before.
-    GW_ASSERT(!all_sockets_infos_unsafe_[socket_info_index].IsReset());
-    
-    all_sockets_infos_unsafe_[socket_info_index].Reset();
-    
-    // Pushing to free indexes list.
-    InterlockedPushEntrySList(free_socket_indexes_unsafe_, &(all_sockets_infos_unsafe_[socket_info_index].free_socket_indexes_entry_));
 }
 
 // Closes Starcounter log.

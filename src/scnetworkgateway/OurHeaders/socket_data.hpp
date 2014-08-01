@@ -31,7 +31,7 @@ class SocketDataChunk
     /////////////////////////
 
     // Socket identifier.
-    session_index_type socket_info_index_;
+    socket_index_type socket_info_index_;
 
     // Socket data flags.
     uint32_t flags_;
@@ -85,7 +85,7 @@ class SocketDataChunk
 public:
 
     // Resets session depending on protocol.
-    void ResetSessionBasedOnProtocol();
+    void ResetSessionBasedOnProtocol(GatewayWorker* gw);
 
     // Checking that gateway chunk is valid.
     void CheckForValidity()
@@ -173,12 +173,12 @@ public:
         return &ws_proto_;
     }
 
-    session_index_type get_unique_aggr_index()
+    socket_index_type get_unique_aggr_index()
     {
         return unique_aggr_index_;
     }
 
-    void set_unique_aggr_index(session_index_type unique_aggr_index)
+    void set_unique_aggr_index(socket_index_type unique_aggr_index)
     {
         unique_aggr_index_ = unique_aggr_index;
     }
@@ -347,7 +347,7 @@ public:
     }
 
     // Checking if its a WebSocket protocol.
-    bool IsWebSocket()
+    bool is_web_socket()
     {
         return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
     }
@@ -572,20 +572,12 @@ public:
     }
 
     // Binds current socket to some scheduler.
-    void BindSocketToScheduler(WorkerDbInterface *db);
+    void BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface *db);
 
     // Setting scheduler id.
     void set_scheduler_id(scheduler_id_type sched_id)
     {
         session_.scheduler_id_ = sched_id;
-    }
-
-    // Setting scheduler id globally.
-    void SetSchedulerId(scheduler_id_type sched_id)
-    {
-        session_.scheduler_id_ = sched_id;
-
-        g_gateway.SetSchedulerId(socket_info_index_, sched_id);
     }
 
     // Getting session index.
@@ -600,6 +592,10 @@ public:
         return session_.random_salt_;
     }
 
+    ScSessionStruct get_session_copy() {
+        return session_;
+    }
+
     // Determines if this sd has active session attached.
     bool HasActiveSession()
     {
@@ -612,117 +608,10 @@ public:
         return unique_socket_id_;
     }
 
-    // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId()
-    {
-        return g_gateway.CompareUniqueSocketId(socket_info_index_, unique_socket_id_);
-    }
-
     // Setting type of network protocol.
     void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType proto_type)
     {
         type_of_network_protocol_ = proto_type;
-    }
-
-    // Setting type of network protocol.
-    void SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType proto_type)
-    {
-        type_of_network_protocol_ = proto_type;
-
-        g_gateway.SetTypeOfNetworkProtocol(socket_info_index_, proto_type);
-    }
-
-    void SetWebSocketChannelId(uint32_t ws_channel_id)
-    {
-        g_gateway.SetWebSocketChannelId(socket_info_index_, ws_channel_id);
-    }
-
-    uint32_t GetWebSocketChannelId()
-    {
-        return g_gateway.GetWebSocketChannelId(socket_info_index_);
-    }
-
-    // Setting aggregated flag on socket.
-    void SetSocketAggregatedFlag()
-    {
-        g_gateway.SetSocketAggregatedFlag(socket_info_index_);
-    }
-
-    // Getting aggregated flag on socket.
-    bool GetSocketAggregatedFlag()
-    {
-        return g_gateway.GetSocketAggregatedFlag(socket_info_index_);
-    }
-
-    // Getting worker id to which this socket is bound.
-    worker_id_type GetBoundWorkerId()
-    {
-        return g_gateway.GetBoundWorkerId(socket_info_index_);
-    }
-
-    // Getting destination database index.
-    db_index_type GetDestDbIndex()
-    {
-        return g_gateway.GetDestDbIndex(socket_info_index_);
-    }
-
-    // Setting destination database index.
-    void SetDestDbIndex(db_index_type db_index)
-    {
-        return g_gateway.SetDestDbIndex(socket_info_index_, db_index);
-    }
-
-    // Setting new unique socket number.
-    void GenerateUniqueSocketInfoIds()
-    {
-        unique_socket_id_ = g_gateway.GenerateUniqueSocketInfoIds(socket_info_index_);
-    }
-
-    // Invalidating socket number.
-    void InvalidateSocket()
-    {
-        g_gateway.InvalidateSocket(socket_info_index_);
-    }
-
-    // Invalidating socket number.
-    bool IsInvalidSocket()
-    {
-        return g_gateway.IsInvalidSocket(socket_info_index_);
-    }
-
-    // Sets session if socket is correct.
-    void SetGlobalSessionIfEmpty()
-    {
-        // Checking unique socket id and session.
-        if (!g_gateway.IsGlobalSessionActive(socket_info_index_))
-            g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
-    }
-
-    // Updates connection timestamp if socket is correct.
-    void UpdateConnectionTimeStamp()
-    {
-        g_gateway.UpdateSocketTimeStamp(socket_info_index_);
-    }
-
-    // Sets session from global.
-    void SetSdSessionFromGlobal()
-    {
-        session_ = g_gateway.GetGlobalSessionCopy(socket_info_index_);
-    }
-
-    // Releases socket info index.
-    void ReleaseSocketIndex(GatewayWorker* gw);
-
-    // Deletes global session.
-    void DeleteGlobalSessionOnDisconnect()
-    {
-        g_gateway.DeleteGlobalSession(socket_info_index_);
-    }
-
-    // Checks if global session data is active.
-    bool CompareGlobalSessionSalt()
-    {
-        return g_gateway.CompareGlobalSessionSalt(socket_info_index_, session_.random_salt_);
     }
 
     // Client IP information.
@@ -737,98 +626,14 @@ public:
         client_ip_info_ = client_ip_info;
     }
 
-    // Returns port index.
-    port_index_type GetPortIndex()
-    {
-        port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
-
-        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
-
-        return port_index;
-    }
-
-    // Returns port number.
-    uint16_t GetPortNumber()
-    {
-        port_index_type port_index = g_gateway.GetPortIndex(socket_info_index_);
-
-        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
-
-        ServerPort* sp = g_gateway.get_server_port(port_index);
-
-        if (!sp->IsEmpty()) {
-            return sp->get_port_number();
-        }
-
-        return INVALID_PORT_NUMBER;
-    }
-
-    // Returns scheduler id.
-    scheduler_id_type GetSchedulerId()
-    {
-        return g_gateway.GetSchedulerId(socket_info_index_);
-    }
-
-    // Returns socket.
-    SOCKET GetSocket()
-    {
-        return g_gateway.GetSocket(socket_info_index_);
-    }
-
-    // Returns true if has proxy socket.
-    bool HasProxySocket()
-    {
-        return g_gateway.HasProxySocket(socket_info_index_);
-    }
-
-    // Returns true if its a proxy connect socket.
-    bool IsProxyConnectSocket()
-    {
-        return g_gateway.IsProxyConnectSocket(socket_info_index_);
-    }
-
-    uint32_t GetWebSocketChannelId(session_index_type socket_index)
-    {
-        return g_gateway.GetWebSocketChannelId(socket_info_index_);
-    }
-
-    void SetWebSocketChannelId(session_index_type socket_index, uint32_t ws_channel_id)
-    {
-        g_gateway.SetWebSocketChannelId(socket_info_index_, ws_channel_id);
-    }
-
-    // Returns aggregation socket index.
-    session_index_type GetAggregationSocketIndex()
-    {
-        return g_gateway.GetAggregationSocketIndex(socket_info_index_);
-    }
-
-    // Sets aggregation socket index.
-    void SetAggregationSocketIndex(session_index_type aggr_socket_index)
-    {
-        g_gateway.SetAggregationSocketIndex(socket_info_index_, aggr_socket_index);
-    }
-
-    // Returns proxy socket index.
-    session_index_type GetProxySocketIndex()
-    {
-        return g_gateway.GetProxySocketIndex(socket_info_index_);
-    }
-
-    // Sets proxy socket index.
-    void SetProxySocketIndex(session_index_type proxy_socket_index)
-    {
-        g_gateway.SetProxySocketIndex(socket_info_index_, proxy_socket_index);
-    }
-
     // Returns socket info index.
-    session_index_type get_socket_info_index()
+    socket_index_type get_socket_info_index()
     {
         return socket_info_index_;
     }
 
     // Sets socket info index.
-    void set_socket_info_index(session_index_type socket_info_index)
+    void set_socket_info_index(socket_index_type socket_info_index)
     {
         socket_info_index_ = socket_info_index;
     }
@@ -916,41 +721,15 @@ public:
     }
 
     // Exchanges sockets during proxying.
-    void ExchangeToProxySocket()
-    {
-        session_index_type proxy_socket_info_index = GetProxySocketIndex();
-
-        // Getting corresponding proxy socket id.
-        random_salt_type proxy_unique_socket_id = g_gateway.GetUniqueSocketId(proxy_socket_info_index);
-
-#ifdef GW_SOCKET_DIAG
-        GW_COUT << "Exchanging sockets: " << socket_info_index_ << "<->" << proxy_socket_info_index << " and ids " <<
-            unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
-#endif
-
-        socket_info_index_ = proxy_socket_info_index;
-        unique_socket_id_ = proxy_unique_socket_id;
-    }
+    void ExchangeToProxySocket(GatewayWorker* gw);
 
     // Initializes socket data that comes from database.
-    void PreInitSocketDataFromDb()
-    {
-        type_of_network_protocol_ = g_gateway.GetTypeOfNetworkProtocol(socket_info_index_);
-
-        // NOTE: Setting global session including scheduler id.
-        g_gateway.SetGlobalSessionCopy(socket_info_index_, session_);
-
-        // Checking if WebSocket handshake was approved.
-        if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) && get_ws_upgrade_approved_flag())
-        {
-            SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
-        }
-    }
+    void PreInitSocketDataFromDb(GatewayWorker* gw);
 
     // Initialization.
     void Init(
-        session_index_type socket_info_index,
-        worker_id_type bound_worker_id);
+        GatewayWorker* gw,
+        socket_index_type socket_info_index);
 
     // Resetting socket.
     void ResetOnDisconnect(GatewayWorker *gw);
@@ -968,94 +747,22 @@ public:
     }
 
     // Start receiving on socket.
-    uint32_t Receive(GatewayWorker *gw, uint32_t *num_bytes)
-    {
-        // Checking correct unique socket.
-        GW_ASSERT(true == CompareUniqueSocketId());
-
-        set_type_of_network_oper(RECEIVE_SOCKET_OPER);
-
-        memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-        DWORD flags = 0;
-        return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
-    }
+    uint32_t Receive(GatewayWorker *gw, uint32_t *num_bytes);
 
     // Start sending on socket.
-    uint32_t Send(GatewayWorker* gw, uint32_t *numBytes)
-    {
-        // Checking correct unique socket.
-        GW_ASSERT(true == CompareUniqueSocketId());
-        GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
-
-        set_type_of_network_oper(SEND_SOCKET_OPER);
-
-        memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-        return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
-    }
+    uint32_t Send(GatewayWorker* gw, uint32_t *numBytes);
 
     // Start accepting on socket.
-    uint32_t Accept(GatewayWorker* gw)
-    {
-        // Checking correct unique socket.
-        GW_ASSERT(true == CompareUniqueSocketId());
-
-        set_type_of_network_oper(ACCEPT_SOCKET_OPER);
-
-        memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-        // Running Windows API AcceptEx function.
-        return AcceptExFunc(
-            g_gateway.get_server_port(GetPortIndex())->get_listening_sock(),
-            GetSocket(),
-            accept_or_params_or_temp_data_,
-            0,
-            SOCKADDR_SIZE_EXT,
-            SOCKADDR_SIZE_EXT,
-            NULL,
-            &ovl_);
-    }
+    uint32_t Accept(GatewayWorker* gw);
 
     // Setting SO_UPDATE_ACCEPT_CONTEXT.
-    uint32_t SetAcceptSocketOptions()
-    {
-        SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
-
-        if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
-            uint32_t err_code = WSAGetLastError();
-
-            return err_code;
-        }
-
-        return 0;
-    }
+    uint32_t SetAcceptSocketOptions(GatewayWorker* gw);
 
     // Start connecting on socket.
-    uint32_t Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
-    {
-        // Checking correct unique socket.
-        GW_ASSERT(true == CompareUniqueSocketId());
-
-        set_type_of_network_oper(CONNECT_SOCKET_OPER);
-
-        memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-        return ConnectExFunc(GetSocket(), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
-    }
+    uint32_t Connect(GatewayWorker* gw, sockaddr_in *serverAddr);
 
     // Start disconnecting socket.
-    uint32_t Disconnect(GatewayWorker *gw)
-    {
-        // Checking correct unique socket.
-        GW_ASSERT(true == CompareUniqueSocketId());
-
-        set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
-
-        memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-        return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
-    }
+    uint32_t Disconnect(GatewayWorker *gw);
 
     // Puts socket data to database.
     void PrepareToDb()
@@ -1086,7 +793,7 @@ public:
     // Clone current socket data to simply send it.
     uint32_t CreateSocketDataFromBigBuffer(
         GatewayWorker*gw,
-        session_index_type socket_info_index,
+        socket_index_type socket_info_index,
         int32_t data_len,
         uint8_t* data,
         SocketDataChunk** new_sd);
@@ -1113,6 +820,9 @@ public:
 
         session_.gw_worker_id_ = saved_worker_id;
     }
+
+    // Setting new unique socket number.
+    void GenerateUniqueSocketInfoIds(GatewayWorker* gw);
 };
 
 } // namespace network
