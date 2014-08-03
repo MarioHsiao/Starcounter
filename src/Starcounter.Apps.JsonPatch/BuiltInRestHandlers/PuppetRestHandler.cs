@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Rest;
-using jp = Starcounter.XSON.JsonPatch;
+using Starcounter.XSON;
 
 namespace Starcounter.Internal {
 
@@ -12,6 +12,7 @@ namespace Starcounter.Internal {
     /// the public Session data of a Starcounter application.
     /// </summary>
     internal static class PuppetRestHandler {
+        private static JsonPatch jsonPatch = new JsonPatch();
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
         internal static void Register(UInt16 defaultUserHttpPort) {
@@ -40,10 +41,10 @@ namespace Starcounter.Internal {
                     IntPtr bodyPtr;
                     uint bodySize;
                     request.GetBodyRaw(out bodyPtr, out bodySize);
-                    jp::JsonPatch.EvaluatePatches(session, bodyPtr, (int)bodySize);
+                    jsonPatch.EvaluatePatches(session, bodyPtr, (int)bodySize);
 
                     return root;
-                } catch (jp::JsonPatchException nex) {
+                } catch (JsonPatchException nex) {
                     return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
                 }
             }, new HandlerOptions() { HandlerLevel = 0 });

@@ -5,22 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Starcounter.Templates;
-using Starcounter.XSON.JsonPatch;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
-    public class PuppetTests {
+    public class PuppetTests : GenerateJsonPatchTests{
 
-        [TestFixtureSetUp]
-        public static void Setup() {
-            GlobalSessions.InitGlobalSessions(1);
-            StarcounterEnvironment.AppName = "Test";
-        }
+        //[TestFixtureSetUp]
+        //public static void Setup() {
+        //    GlobalSessions.InitGlobalSessions(1);
+        //    StarcounterEnvironment.AppName = "Test";
+        //}
 
-        [TestFixtureTearDown]
-        public static void TearDown() {
-            StarcounterEnvironment.AppName = null;
-        }
+        //[TestFixtureTearDown]
+        //public static void TearDown() {
+        //    StarcounterEnvironment.AppName = null;
+        //}
 
         [Test]
         public static void TestSingleSessionState() {
@@ -112,13 +111,13 @@ namespace Starcounter.Internal.XSON.Tests {
             tmp = json.LastName;
 
             // Resetting dirtyflags.
-            var patch = JsonPatch.CreateJsonPatch(json.Session, true);
+            var patch = jsonPatch.CreateJsonPatch(json.Session, true);
 
             //Console.WriteLine(patch);
             //Console.WriteLine();
 
             data.FirstName = "Bengt";
-            patch = JsonPatch.CreateJsonPatch(json.Session, true);
+            patch = jsonPatch.CreateJsonPatch(json.Session, true);
 
             Console.WriteLine(patch);
             Console.WriteLine();
@@ -152,14 +151,14 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Data = data;
             json.Session = new Session();
 
-            var patch = JsonPatch.CreateJsonPatch(json.Session, true);
+            var patch = jsonPatch.CreateJsonPatch(json.Session, true);
             Console.WriteLine(patch);
             Console.WriteLine();
 
             item.Recursives.Add(subItem);
             data.Recursives.Add(item);
 
-            patch = JsonPatch.CreateJsonPatch(json.Session, true);
+            patch = jsonPatch.CreateJsonPatch(json.Session, true);
             Console.WriteLine(patch);
             Console.WriteLine();
 
@@ -167,7 +166,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(expected, patch);
             
             data.Recursives[0].Recursives.Add(subItem);
-            patch = JsonPatch.CreateJsonPatch(json.Session, true);
+            patch = jsonPatch.CreateJsonPatch(json.Session, true);
 
             Console.WriteLine(patch);
             Console.WriteLine();
