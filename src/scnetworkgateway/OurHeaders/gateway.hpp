@@ -1018,9 +1018,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
 
-    // Avoiding false sharing between workers.
-    uint8_t pad[CACHE_LINE_SIZE];
-
     bool get_socket_aggregated_flag()
     {
         return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED) != 0;
