@@ -153,7 +153,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
 
             // Checking correct unique socket.
-            if (!gw->CompareUniqueSocketId(sd))
+            if (!sd->CompareUniqueSocketId())
             {
                 gw->DisconnectAndReleaseChunk(sd);
 
@@ -162,7 +162,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             } else {
 
                 // Checking that socket is bound to the correct worker.
-                GW_ASSERT(gw->GetBoundWorkerId(sd) == worker_id_);
+                GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
             }
 
             // Initializing socket data that arrived from database.

@@ -149,7 +149,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
     }
 
     // Getting new socket index.
-    port_index_type port_index = GetPortIndex(sd);
+    port_index_type port_index = sd->GetPortIndex();
     socket_index_type proxied_socket_info_index = ObtainFreeSocketIndex(new_connect_socket, port_index, true);
 
     // Checking if we can't obtain new socket index.
@@ -162,9 +162,9 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
 
     // Setting proxy sockets indexes.
     socket_index_type orig_socket_info_index = sd->get_socket_info_index();
-    SetProxySocketIndex(sd, proxied_socket_info_index);
+    sd->SetProxySocketIndex(proxied_socket_info_index);
     sd->set_socket_info_index(this, proxied_socket_info_index);
-    SetProxySocketIndex(sd, orig_socket_info_index);
+    sd->SetProxySocketIndex(orig_socket_info_index);
     sd->set_unique_socket_id(GetUniqueSocketId(proxied_socket_info_index));
 
     return 0;
@@ -222,7 +222,7 @@ bool GatewayWorker::ApplySocketInfoToSocketData(
 {
     GW_ASSERT(socket_index < g_gateway.setting_max_connections_per_worker());
 
-    if (CompareUniqueSocketId(sd))
+    if (sd->CompareUniqueSocketId())
     {
         ScSocketInfoStruct si = sockets_infos_[socket_index];
 
@@ -393,18 +393,18 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, port_index_type p
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
     // Checking correct unique socket.
-    if (!CompareUniqueSocketId(sd))
+    if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-    GW_ASSERT(GetBoundWorkerId(sd) == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
     // Checking that not aggregated socket are trying to receive.
-    GW_ASSERT_DEBUG(false == GetSocketAggregatedFlag(sd));
+    GW_ASSERT_DEBUG(false == sd->GetSocketAggregatedFlag());
 
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
 // This label is used to avoid recursiveness between Receive and FinishReceive.
@@ -480,7 +480,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 #endif
 
     // Checking correct unique socket.
-    if (!CompareUniqueSocketId(sd))
+    if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
     // NOTE: Since we are here means that this socket data represents this socket.
@@ -488,7 +488,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-    GW_ASSERT(GetBoundWorkerId(sd) == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
@@ -501,7 +501,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     }
 
     // Updating connection timestamp.
-    UpdateSocketTimeStamp(sd);
+    sd->UpdateSocketTimeStamp();
 
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
@@ -515,10 +515,10 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     worker_stats_recv_num_++;
 
     // Checking if this is a proxied server socket.
-    if (HasProxySocket(sd))
+    if (sd->HasProxySocket())
     {
         // Aggregation is done separately.
-        if (!GetSocketAggregatedFlag(sd))
+        if (!sd->GetSocketAggregatedFlag())
         {
             // Posting cloning receive since all data is accumulated.
             uint32_t err_code = sd->CloneToReceive(this);
@@ -583,7 +583,7 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
 #endif
 
     // Checking correct unique socket.
-    if (!CompareUniqueSocketId(sd))
+    if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Checking that socket data is valid.
@@ -591,10 +591,10 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-    GW_ASSERT(GetBoundWorkerId(sd) == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // Checking if aggregation is involved.
-    if (GetSocketAggregatedFlag(sd))
+    if (sd->GetSocketAggregatedFlag())
     {
         // Increasing number of sends.
         worker_stats_sent_num_++;
@@ -652,7 +652,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 #endif
 
     // Checking correct unique socket.
-    if (!CompareUniqueSocketId(sd))
+    if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
     // Checking that socket data is valid.
@@ -660,7 +660,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
-    GW_ASSERT(GetBoundWorkerId(sd) == worker_id_);
+    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
@@ -682,7 +682,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     GW_ASSERT(num_bytes_sent == accum_buf->get_chunk_num_available_bytes());
 
     // Updating connection timestamp.
-    UpdateSocketTimeStamp(sd);
+    sd->UpdateSocketTimeStamp();
 
     // Incrementing statistics.
     worker_stats_bytes_sent_ += num_bytes_sent;
@@ -765,7 +765,7 @@ uint32_t GatewayWorker::SendRawSocketDisconnectToDb(SocketDataChunk* sd)
     sd_push_to_db->set_just_push_disconnect_flag();
 
     // Searching for server port and corresponding raw port handler.
-    ServerPort* sp = g_gateway.get_server_port(GetPortIndex(sd));
+    ServerPort* sp = g_gateway.get_server_port(sd->GetPortIndex());
 
     if ((NULL != sp) && (!sp->IsEmpty())) {
         
@@ -822,7 +822,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     if (!sd->get_socket_representer_flag()) {
 
         // Checking correct unique socket.
-        if (!CompareUniqueSocketId(sd))
+        if (!sd->CompareUniqueSocketId())
             goto RELEASE_CHUNK_TO_POOL;
 
         // Pushing disconnect message to host if needed.
@@ -832,7 +832,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         GenerateUniqueSocketInfoIds(sd->get_socket_info_index());
 
         // NOTE: Not checking for correctness here.
-        g_gateway.DisconnectSocket(GetSocket(sd));
+        g_gateway.DisconnectSocket(sd->GetSocket());
 
         // Making socket unusable.
         InvalidateSocket(sd->get_socket_info_index());
@@ -843,7 +843,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     uint32_t err_code = 0;
 
     // Checking correct unique socket.
-    if (CompareUniqueSocketId(sd)) {
+    if (sd->CompareUniqueSocketId()) {
 
         // Pushing disconnect message to host if needed.
         PushDisconnectIfNeeded(sd);
@@ -852,7 +852,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         GenerateUniqueSocketInfoIds(sd->get_socket_info_index());
 
         // NOTE: Not checking for correctness here.
-        g_gateway.DisconnectSocket(GetSocket(sd));
+        g_gateway.DisconnectSocket(sd->GetSocket());
 
         // Making socket unusable.
         InvalidateSocket(sd->get_socket_info_index());
@@ -897,7 +897,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
 #endif
 
     // Checking correct unique socket.
-    if (false == CompareUniqueSocketId(sd)) {
+    if (false == sd->CompareUniqueSocketId()) {
         already_disconnected = true;
     }
 
@@ -907,23 +907,23 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
     // Deleting session.
-    DeleteGlobalSession(sd);
+    sd->DeleteGlobalSession();
 
     // Checking if it was an accepting socket.
     if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper())
-        ChangeNumAcceptingSockets(GetPortIndex(sd), -1);
+        ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
 
     // Releasing socket resources.
     if (!already_disconnected) {
 
-        g_gateway.DisconnectSocket(GetSocket(sd));
+        g_gateway.DisconnectSocket(sd->GetSocket());
 
         // Making socket unusable.
         InvalidateSocket(sd->get_socket_info_index());
     }
 
     // Removing from active sockets.
-    RemoveFromActiveSockets(GetPortIndex(sd));
+    RemoveFromActiveSockets(sd->GetPortIndex());
     
     // Resetting the socket data.
     sd->ResetOnDisconnect(this);
@@ -980,7 +980,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
         }
 
         // Adding to active sockets for this worker.
-        AddToActiveSockets(GetPortIndex(sd));
+        AddToActiveSockets(sd->GetPortIndex());
 
         // NOTE: Setting socket data to null, so other
         // manipulations on it are not possible.
@@ -1000,10 +1000,10 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
 #endif
 
     // Checking correct unique socket.
-    GW_ASSERT(true == CompareUniqueSocketId(sd));
+    GW_ASSERT(true == sd->CompareUniqueSocketId());
 
     // Setting SO_UPDATE_CONNECT_CONTEXT.
-    if (setsockopt(GetSocket(sd), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0))
+    if (setsockopt(sd->GetSocket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0))
     {
         GW_PRINT_WORKER << "Can't set SO_UPDATE_CONNECT_CONTEXT on socket." << GW_ENDL;
         return SCERRGWCONNECTEXFAILED;
@@ -1015,10 +1015,10 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
     sd->set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
 
     // Checking if we are in proxy mode.
-    GW_ASSERT(HasProxySocket(sd) == true);
+    GW_ASSERT(sd->HasProxySocket() == true);
 
     // Resuming receive on initial socket.
-    uint32_t err_code = ReceiveOnSocket(GetProxySocketIndex(sd));
+    uint32_t err_code = ReceiveOnSocket(sd->GetProxySocketIndex());
     if (err_code)
         return err_code;
 
@@ -1059,7 +1059,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
         return SCERRGWFAILEDACCEPTEX;
     }
 
-    port_index_type port_index = GetPortIndex(sd);
+    port_index_type port_index = sd->GetPortIndex();
 
     // Updating number of accepting sockets.
     ChangeNumAcceptingSockets(port_index, 1);
@@ -1082,26 +1082,26 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 #endif
 
     // Checking correct unique socket.
-    GW_ASSERT(true == CompareUniqueSocketId(sd));
+    GW_ASSERT(true == sd->CompareUniqueSocketId());
     
     // Checking if was rebalanced.
     if (0 == worker_id_) {
 
         // Decreasing number of accepting sockets.
-        int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(GetPortIndex(sd), -1);
+        int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
 
         // Checking if we need to extend number of accepting sockets.
         if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
         {
             // Creating new set of prepared connections.
             // NOTE: Ignoring error code on purpose.
-            CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, GetPortIndex(sd));
+            CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
         }
 
-        worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(GetPortIndex(sd));
+        worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(sd->GetPortIndex());
 
         // NOTE: All handlers must be registered on worker 0.
-        if (GetPortNumber(sd) == g_gateway.get_setting_internal_system_port())
+        if (sd->GetPortNumber() == g_gateway.get_setting_internal_system_port())
             least_busy_worker_id = 0;
 
         // Checking if rebalanced worker is different.
@@ -1112,10 +1112,10 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             if (NULL == rsi) {
                 rsi = (RebalancedSocketInfo*)_aligned_malloc(sizeof(RebalancedSocketInfo), MEMORY_ALLOCATION_ALIGNMENT);
             }
-            rsi->Init(GetPortIndex(sd), GetSocket(sd));
+            rsi->Init(sd->GetPortIndex(), sd->GetSocket());
 
             // Removing from active sockets.
-            RemoveFromActiveSockets(GetPortIndex(sd));
+            RemoveFromActiveSockets(sd->GetPortIndex());
 
             // Returning all allocated resources except socket.
             sd->ResetAllFlags();
@@ -1131,7 +1131,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
         } else {
             // Associating new socket with least busy worker IOCP.
-            HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) GetSocket(sd), worker_iocp_, 0, 1);
+            HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) sd->GetSocket(), worker_iocp_, 0, 1);
             GW_ASSERT(iocp_handler == worker_iocp_);
             if (iocp_handler != worker_iocp_) {
                 return SCERRGWFAILEDACCEPTEX;
@@ -1140,7 +1140,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     }
 
     // Updating connection timestamp.
-    UpdateSocketTimeStamp(sd);
+    sd->UpdateSocketTimeStamp();
 
     // Setting SO_UPDATE_ACCEPT_CONTEXT.
     uint32_t err_code = sd->SetAcceptSocketOptions(this);
@@ -1308,7 +1308,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
         new_sd->set_socket_representer_flag();
 
         // Adding to active sockets for this worker.
-        AddToActiveSockets(GetPortIndex(new_sd));
+        AddToActiveSockets(new_sd->GetPortIndex());
 
         // Finishing accept.
         new_sd->set_type_of_network_oper(ACCEPT_SOCKET_OPER);
@@ -1377,8 +1377,8 @@ uint32_t GatewayWorker::WorkerRoutine()
                 GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
 
                 // Checking correct unique socket.
-                if (CompareUniqueSocketId(sd))
-                    GW_ASSERT(GetBoundWorkerId(sd) == worker_id_);
+                if (sd->CompareUniqueSocketId())
+                    GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
@@ -1386,10 +1386,10 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Checking correct unique socket.
                     if (sd->get_socket_representer_flag()) {
 
-                        if (CompareUniqueSocketId(sd)) {
+                        if (sd->CompareUniqueSocketId()) {
 
                             uint32_t flags;
-                            BOOL success = WSAGetOverlappedResult(GetSocket(sd), fetched_ovls[i].lpOverlapped, (LPDWORD)&oper_num_bytes, FALSE, (LPDWORD)&flags);
+                            BOOL success = WSAGetOverlappedResult(sd->GetSocket(), fetched_ovls[i].lpOverlapped, (LPDWORD)&oper_num_bytes, FALSE, (LPDWORD)&flags);
                             GW_ASSERT(FALSE == success);
 
                             // IOCP operation has completed but with error.
@@ -1414,7 +1414,7 @@ uint32_t GatewayWorker::WorkerRoutine()
                 }
 
                 // Checking if socket is still legal to be used.
-                if (!CompareUniqueSocketId(sd)) {
+                if (!sd->CompareUniqueSocketId()) {
 
                     // Checking if its a socket representer.
                     if (sd->get_socket_representer_flag()) {
@@ -1674,7 +1674,7 @@ uint32_t GatewayWorker::AddNewDatabase(db_index_type db_index)
 uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     // Checking correct unique socket.
-    if (!CompareUniqueSocketId(sd)) {
+    if (!sd->CompareUniqueSocketId()) {
 
         // Checking if its a disconnect push.
         if (!sd->get_just_push_disconnect_flag()) {
@@ -1683,7 +1683,7 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     }
 
     // Getting database to which this chunk belongs.
-    WorkerDbInterface *db = GetWorkerDb(GetDestDbIndex(sd));
+    WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
 
     // Pushing chunk to that database.
     if (NULL != db) {
@@ -1722,7 +1722,7 @@ uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BM
     *again_for_overflow = false;
 
     // Checking correct unique socket.
-    if (!CompareUniqueSocketId(sd)) {
+    if (!sd->CompareUniqueSocketId()) {
 
         // Checking if its a disconnect push.
         if (!sd->get_just_push_disconnect_flag()) {
@@ -1731,7 +1731,7 @@ uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BM
     }
 
     // Getting database to which this chunk belongs.
-    WorkerDbInterface *db = GetWorkerDb(GetDestDbIndex(sd));
+    WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
 
     // Pushing chunk to that database.
     if (NULL != db) {

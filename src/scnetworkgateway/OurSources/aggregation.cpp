@@ -289,7 +289,7 @@ WRITE_TO_AGGR_SD:
 // Performs a send of given socket data on aggregation socket.
 uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd)
 {
-    socket_index_type aggr_socket_info_index = GetAggregationSocketIndex(sd);
+    socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
     SocketDataChunk* aggr_sd = FindAggregationSdBySocketIndex(aggr_socket_info_index);
     uint32_t err_code;
 
@@ -308,7 +308,7 @@ WRITE_TO_AGGR_SD:
         if (aggr_accum_buf->get_chunk_num_available_bytes() >= total_num_bytes)
         {
             AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
-            aggr_struct->port_number_ = g_gateway.get_server_port(GetPortIndex(sd))->get_port_number();
+            aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
             aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
             aggr_struct->socket_info_index_ = sd->get_socket_info_index();
             aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();

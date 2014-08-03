@@ -469,7 +469,7 @@ uint32_t OuterPortProcessData(
     HandlersTable* handlers_table = g_gateway.GetDatabase(hl->get_db_index())->get_user_handlers();
 
     // Getting the corresponding port number.
-    uint16_t port_num = g_gateway.get_server_port(gw->GetPortIndex(sd))->get_port_number();
+    uint16_t port_num = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
 
     // Searching for the user code handler id.
     handler_index = g_gateway.get_gw_handlers()->FindPortHandlerIndex(port_num);
@@ -525,14 +525,14 @@ uint32_t AppsPortProcessData(
     if (sd->get_to_database_direction_flag())
     {
         // Its a raw socket protocol.
-        gw->SetTypeOfNetworkProtocol(sd, MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
+        sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
 
         // Resetting user data parameters.
         sd->get_accum_buf()->set_chunk_num_available_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
 
         // Setting matched URI index.
-        gw->SetDestDbIndex(sd, hl->get_db_index());
+        sd->SetDestDbIndex(hl->get_db_index());
 
         // Posting cloning receive since all data is accumulated.
         err_code = sd->CloneToReceive(gw);

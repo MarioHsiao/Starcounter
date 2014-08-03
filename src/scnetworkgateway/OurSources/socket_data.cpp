@@ -29,7 +29,7 @@ void SocketDataChunk::Init(
     set_to_database_direction_flag();
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
-    gw->SetTypeOfNetworkProtocol(this, MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
+    SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
     set_unique_socket_id(gw->GetUniqueSocketId(socket_info_index));
     set_bound_worker_id(gw->get_worker_id());
@@ -49,21 +49,21 @@ void SocketDataChunk::GenerateUniqueSocketInfoIds(GatewayWorker* gw)
 uint32_t SocketDataChunk::Receive(GatewayWorker *gw, uint32_t *num_bytes)
 {
     // Checking correct unique socket.
-    GW_ASSERT(true == gw->CompareUniqueSocketId(this));
+    GW_ASSERT(true == CompareUniqueSocketId());
 
     set_type_of_network_oper(RECEIVE_SOCKET_OPER);
 
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
     DWORD flags = 0;
-    return WSARecv(gw->GetSocket(this), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+    return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
 }
 
 // Start sending on socket.
 uint32_t SocketDataChunk::Send(GatewayWorker* gw, uint32_t *numBytes)
 {
     // Checking correct unique socket.
-    GW_ASSERT(true == gw->CompareUniqueSocketId(this));
+    GW_ASSERT(true == CompareUniqueSocketId());
 
     GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
 
@@ -71,14 +71,14 @@ uint32_t SocketDataChunk::Send(GatewayWorker* gw, uint32_t *numBytes)
 
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-    return WSASend(gw->GetSocket(this), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+    return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
 }
 
 // Start accepting on socket.
 uint32_t SocketDataChunk::Accept(GatewayWorker* gw)
 {
     // Checking correct unique socket.
-    GW_ASSERT(true == gw->CompareUniqueSocketId(this));
+    GW_ASSERT(true == CompareUniqueSocketId());
 
     set_type_of_network_oper(ACCEPT_SOCKET_OPER);
 
@@ -86,8 +86,8 @@ uint32_t SocketDataChunk::Accept(GatewayWorker* gw)
 
     // Running Windows API AcceptEx function.
     return AcceptExFunc(
-        g_gateway.get_server_port(gw->GetPortIndex(this))->get_listening_sock(),
-        gw->GetSocket(this),
+        g_gateway.get_server_port(GetPortIndex())->get_listening_sock(),
+        GetSocket(),
         accept_or_params_or_temp_data_,
         0,
         SOCKADDR_SIZE_EXT,
@@ -99,9 +99,9 @@ uint32_t SocketDataChunk::Accept(GatewayWorker* gw)
 // Setting SO_UPDATE_ACCEPT_CONTEXT.
 uint32_t SocketDataChunk::SetAcceptSocketOptions(GatewayWorker* gw)
 {
-    SOCKET listening_sock = g_gateway.get_server_port(gw->GetPortIndex(this))->get_listening_sock();
+    SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
 
-    if (setsockopt(gw->GetSocket(this), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
+    if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
         uint32_t err_code = WSAGetLastError();
 
         return err_code;
@@ -114,33 +114,33 @@ uint32_t SocketDataChunk::SetAcceptSocketOptions(GatewayWorker* gw)
 uint32_t SocketDataChunk::Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
 {
     // Checking correct unique socket.
-    GW_ASSERT(true == gw->CompareUniqueSocketId(this));
+    GW_ASSERT(true == CompareUniqueSocketId());
 
     set_type_of_network_oper(CONNECT_SOCKET_OPER);
 
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-    return ConnectExFunc(gw->GetSocket(this), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
+    return ConnectExFunc(GetSocket(), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
 }
 
 // Start disconnecting socket.
 uint32_t SocketDataChunk::Disconnect(GatewayWorker *gw)
 {
     // Checking correct unique socket.
-    GW_ASSERT(true == gw->CompareUniqueSocketId(this));
+    GW_ASSERT(true == CompareUniqueSocketId());
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
 
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-    return DisconnectExFunc(gw->GetSocket(this), &ovl_, 0, 0);
+    return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
 }
 
 // Resetting socket.
 void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
 {
     // Checking if there is a proxy socket.
-    if (gw->HasProxySocket(this)) {
+    if (HasProxySocket()) {
 
         gw->DisconnectProxySocket(this);
     }
@@ -148,7 +148,7 @@ void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
     set_to_database_direction_flag();
 
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
-    gw->SetTypeOfNetworkProtocol(this, MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
+    SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
     // Clearing attached session.
     //g_gateway.ClearSession(sessionIndex);
@@ -172,7 +172,7 @@ void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
 // Exchanges sockets during proxying.
 void SocketDataChunk::ExchangeToProxySocket(GatewayWorker* gw)
 {
-    socket_index_type proxy_socket_info_index = gw->GetProxySocketIndex(this);
+    socket_index_type proxy_socket_info_index = GetProxySocketIndex();
 
     // Getting corresponding proxy socket id.
     random_salt_type proxy_unique_socket_id = gw->GetUniqueSocketId(proxy_socket_info_index);
@@ -190,16 +190,16 @@ void SocketDataChunk::ExchangeToProxySocket(GatewayWorker* gw)
 // Initializes socket data that comes from database.
 void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
 {
-    type_of_network_protocol_ = gw->GetTypeOfNetworkProtocol(this);
+    type_of_network_protocol_ = GetTypeOfNetworkProtocol();
 
     // NOTE: Setting global session including scheduler id.
-    gw->SetGlobalSessionCopy(this, session_);
+    SetGlobalSessionCopy(session_);
 
     // Checking if WebSocket handshake was approved.
     if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) &&
         get_ws_upgrade_approved_flag())
     {
-        gw->SetWebSocketChannelId(this, *(uint32_t*)accept_or_params_or_temp_data_);
+        SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
     }
 }
 
@@ -234,7 +234,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->set_client_ip_info(client_ip_info_);
     sd_clone->set_type_of_network_oper(SocketOperType::RECEIVE_SOCKET_OPER);
 
-    gw->SetTypeOfNetworkProtocol(sd_clone, get_type_of_network_protocol());
+    sd_clone->SetTypeOfNetworkProtocol(get_type_of_network_protocol());
     
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
@@ -296,7 +296,7 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
 
                 sched_id = db->GenerateSchedulerId();
 
-                gw->SetSchedulerId(this, sched_id);
+                SetSchedulerId(sched_id);
             }
 
             break;
@@ -317,7 +317,7 @@ void SocketDataChunk::ResetSessionBasedOnProtocol(GatewayWorker* gw)
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT:
-            session_ = gw->GetGlobalSessionCopy(this);
+            session_ = GetGlobalSessionCopy();
             break;
 
         default:

@@ -168,9 +168,9 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
-    ServerPort* server_port = g_gateway.get_server_port(gw->GetPortIndex(sd));
+    ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
     PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
-    uint32_t channel_id = gw->GetWebSocketChannelId(sd);
+    uint32_t channel_id = sd->GetWebSocketChannelId();
     return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
 }
 
@@ -311,7 +311,7 @@ DATA_ACCUMULATED:
         if (NULL == sd_push_to_db)
         {
             // Aggregation is done separately.
-            if (!gw->GetSocketAggregatedFlag(sd))
+            if (!sd->GetSocketAggregatedFlag())
             {
                 err_code = sd->CloneToReceive(gw);
                 if (err_code)
@@ -465,7 +465,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     sd->get_accum_buf()->AddAccumulatedBytes(resp_len_bytes);
 
     // Setting WebSocket handshake flag.
-    gw->SetTypeOfNetworkProtocol(sd, MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+    sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
 
     // Prepare buffer to send outside.
 

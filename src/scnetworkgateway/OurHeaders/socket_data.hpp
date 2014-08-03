@@ -829,6 +829,255 @@ public:
 
     // Setting new unique socket number.
     void GenerateUniqueSocketInfoIds(GatewayWorker* gw);
+
+    // Gets session data by index.
+    void SetGlobalSessionCopy(ScSessionStruct session_copy)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        // Fetching the session by index.
+        socket_info_->session_ = session_copy;
+    }
+
+    // Deletes global session.
+    void DeleteGlobalSession()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->session_.Reset();
+    }
+
+    // Sets session if socket is correct.
+    void SetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (!IsGlobalSessionActive())
+            SetGlobalSessionCopy(session_);
+    }
+
+    // Checks if global session data is active.
+    bool IsGlobalSessionActive()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->session_.IsActive();
+    }
+
+    // Gets session data by index.
+    ScSessionStruct GetGlobalSessionCopy()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        // Checking validity of linear session index other wise return a wrong copy.
+        if (INVALID_SOCKET_INDEX == socket_info_index_)
+            return ScSessionStruct();
+
+        // Fetching the session by index.
+        return socket_info_->session_;
+    }
+
+    // Sets connection type on given socket.
+    void SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType proto_type)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        set_type_of_network_protocol(proto_type);
+
+        socket_info_->type_of_network_protocol_ = proto_type;
+    }
+
+    // Updates current global timer value on given socket.
+    void UpdateSocketTimeStamp()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->socket_timestamp_ = g_gateway.get_global_timer_unsafe();
+    }
+
+    // Invalidating socket number.
+    bool IsInvalidSocket() {
+
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return (INVALID_SOCKET == socket_info_->socket_);
+    }
+
+    void DecrementAccumulatedBytesLeft(uint32_t decr_bytes)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->accum_data_bytes_left_ -= decr_bytes;
+    }
+
+    void SetAccumulatedBytesLeft(uint32_t num_bytes)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->accum_data_bytes_left_ = num_bytes;
+    }
+
+    socket_index_type GetAccumulatedBytesLeft()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->accum_data_bytes_left_;
+    }
+
+    void SetProxySocketIndex(socket_index_type proxy_socket_index)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->proxy_socket_info_index_ = proxy_socket_index;
+    }
+
+    socket_index_type GetProxySocketIndex()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->proxy_socket_info_index_;
+    }
+
+    // Getting aggregated socket flag.
+    bool GetSocketAggregatedFlag()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->get_socket_aggregated_flag();
+    }
+
+    // Getting aggregation socket index.
+    socket_index_type GetAggregationSocketIndex()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->aggr_socket_info_index_;
+    }
+
+    void SetWebSocketChannelId(ws_channel_id_type ws_channel_id)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->ws_channel_id_ = ws_channel_id;
+    }
+
+    uint32_t GetWebSocketChannelId()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->ws_channel_id_;
+    }
+
+    // Checks for proxy connect socket flag.
+    bool IsProxyConnectSocket()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->get_socket_proxy_connect_flag();
+    }
+
+    // Checks for proxy socket.
+    bool HasProxySocket()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return (INVALID_SOCKET_INDEX != socket_info_->proxy_socket_info_index_);
+    }
+
+    // Getting socket index.
+    SOCKET GetSocket()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->socket_;
+    }
+
+    // Set scheduler id.
+    void SetSchedulerId(scheduler_id_type sched_id)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        set_scheduler_id(sched_id);
+
+        socket_info_->session_.scheduler_id_ = sched_id;
+    }
+
+    // Getting scheduler id.
+    scheduler_id_type GetSchedulerId()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->session_.scheduler_id_;
+    }
+
+    // Getting worker id.
+    worker_id_type GetBoundWorkerId()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->session_.gw_worker_id_;
+    }
+
+    // Getting socket id.
+    port_index_type GetPortIndex()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        port_index_type port_index = socket_info_->port_index_;
+
+        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
+
+        return port_index;
+    }
+
+    // Returns port number.
+    uint16_t GetPortNumber()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        port_index_type port_index = GetPortIndex();
+
+        ServerPort* sp = g_gateway.get_server_port(port_index);
+
+        if (!sp->IsEmpty()) {
+            return sp->get_port_number();
+        }
+
+        return INVALID_PORT_NUMBER;
+    }
+
+    // Setting destination database index.
+    void SetDestDbIndex(db_index_type db_index)
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->dest_db_index_ = db_index;
+    }
+
+    // Getting destination database index.
+    db_index_type GetDestDbIndex()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->dest_db_index_;
+    }
+
+    // Get type of network protocol for this socket.
+    MixedCodeConstants::NetworkProtocolType GetTypeOfNetworkProtocol()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return (MixedCodeConstants::NetworkProtocolType) socket_info_->type_of_network_protocol_;
+    }
+
+    // Checking if unique socket number is correct.
+    bool CompareUniqueSocketId()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        bool is_equal = (socket_info_->unique_socket_id_ == unique_socket_id_);
+
+        return is_equal;
+    }
 };
 
 } // namespace network

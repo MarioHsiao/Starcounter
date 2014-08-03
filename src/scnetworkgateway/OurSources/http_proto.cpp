@@ -68,7 +68,6 @@ __declspec(thread) http_parser g_ts_http_parser_;
 __declspec(thread) uint8_t g_ts_last_field_;
 __declspec(thread) bool g_xhreferer_read_;
 __declspec(thread) SocketDataChunk* g_ts_sd_;
-__declspec(thread) GatewayWorker* g_ts_gw_;
 __declspec(thread) HttpRequest* g_ts_http_request_;
 
 // Constructs HTTP 404 response.
@@ -349,7 +348,7 @@ inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* s
     http_request_.session_string_offset_ = static_cast<uint16_t>(session_id_start - (char*)sd);
 
     // Checking if we have session related socket.
-    g_ts_gw_->SetGlobalSessionIfEmpty(sd);
+    sd->SetGlobalSessionIfEmpty();
 }
 
 inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
@@ -550,7 +549,7 @@ uint32_t HttpProto::HttpUriDispatcher(
         if (err_code)
         {
             // Checking if we are proxying.
-            if (gw->HasProxySocket(sd))
+            if (sd->HasProxySocket())
             {
                 // Set the unknown proxied protocol here.
                 sd->set_unknown_proxied_proto_flag();
@@ -572,7 +571,7 @@ uint32_t HttpProto::HttpUriDispatcher(
         // Now we have method and URI and ready to search specific URI handler.
 
         // Getting the corresponding port number.
-        ServerPort* server_port = g_gateway.get_server_port(gw->GetPortIndex(sd));
+        ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
         uint16_t port_num = server_port->get_port_number();
         RegisteredUris* port_uris = server_port->get_registered_uris();
 
@@ -646,7 +645,7 @@ HANDLER_MATCHED:
         RegisteredUri* matched_uri = port_uris->GetEntryByIndex(matched_index);
 
         // Setting matched URI index.
-        gw->SetDestDbIndex(sd, matched_uri->GetFirstDbIndex());
+        sd->SetDestDbIndex(matched_uri->GetFirstDbIndex());
 
         // Checking if we have a session parameter.
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
@@ -677,7 +676,6 @@ void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
     g_ts_sd_ = sd;
-    g_ts_gw_ = gw;
     g_xhreferer_read_ = false;
 
     http_request_.Reset();
@@ -863,7 +861,7 @@ ALL_DATA_ACCUMULATED:
             g_gateway.IncrementNumProcessedHttpRequests();
 
             // Aggregation is done separately.
-            if (!gw->GetSocketAggregatedFlag(sd))
+            if (!sd->GetSocketAggregatedFlag())
             {
                 // Posting cloning receive since all data is accumulated.
                 err_code = sd->CloneToReceive(gw);
@@ -973,10 +971,10 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     *is_handled = true;
 
     // Checking if already in proxy mode.
-    if (gw->HasProxySocket(sd))
+    if (sd->HasProxySocket())
     {
         // Aggregation is done separately.
-        if (!gw->GetSocketAggregatedFlag(sd))
+        if (!sd->GetSocketAggregatedFlag())
         {
             // Posting cloning receive for client.
             err_code = sd->CloneToReceive(gw);

@@ -542,7 +542,7 @@ public:
     // Does general data processing using port handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
-        return g_gateway.get_server_port(GetPortIndex(sd))->get_port_handlers()->RunHandlers(gw, sd, is_handled);
+        return g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
     }
 
     // Push given chunk to database queue.
@@ -564,15 +564,6 @@ public:
     bool IsAggregatingPort(socket_index_type socket_index);
 
     // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-        random_salt_type unique_socket_id = sd->get_unique_socket_id();
-
-        return CompareUniqueSocketId(socket_index, unique_socket_id);
-    }
-
-    // Checking if unique socket number is correct.
     bool CompareUniqueSocketId(socket_index_type socket_index, random_salt_type unique_socket_id)
     {
         GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
@@ -580,154 +571,6 @@ public:
         bool is_equal = (sockets_infos_[socket_index].unique_socket_id_ == unique_socket_id);
 
         return is_equal;
-    }
-
-    // Get type of network protocol for this socket.
-    MixedCodeConstants::NetworkProtocolType GetTypeOfNetworkProtocol(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return (MixedCodeConstants::NetworkProtocolType) sockets_infos_[socket_index].type_of_network_protocol_;
-    }
-
-    // Getting destination database index.
-    db_index_type GetDestDbIndex(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].dest_db_index_;
-    }
-
-    // Setting destination database index.
-    void SetDestDbIndex(SocketDataChunk* sd, db_index_type db_index)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].dest_db_index_ = db_index;
-    }
-
-    // Getting socket id.
-    port_index_type GetPortIndex(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        port_index_type port_index = sockets_infos_[socket_index].port_index_;
-
-        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
-
-        return port_index;
-    }
-
-    // Returns port number.
-    uint16_t GetPortNumber(SocketDataChunk* sd)
-    {
-        port_index_type port_index = GetPortIndex(sd);
-
-        ServerPort* sp = g_gateway.get_server_port(port_index);
-
-        if (!sp->IsEmpty()) {
-            return sp->get_port_number();
-        }
-
-        return INVALID_PORT_NUMBER;
-    }
-
-    // Getting worker id.
-    worker_id_type GetBoundWorkerId(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].session_.gw_worker_id_;
-    }
-
-    // Getting scheduler id.
-    scheduler_id_type GetSchedulerId(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].session_.scheduler_id_;
-    }
-
-    // Set scheduler id.
-    void SetSchedulerId(SocketDataChunk* sd, scheduler_id_type sched_id)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sd->set_scheduler_id(sched_id);
-
-        sockets_infos_[socket_index].session_.scheduler_id_ = sched_id;
-    }
-
-    // Getting socket index.
-    SOCKET GetSocket(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].socket_;
-    }
-
-    // Checks for proxy socket.
-    bool HasProxySocket(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return INVALID_SOCKET_INDEX != sockets_infos_[socket_index].proxy_socket_info_index_;
-    }
-
-    // Checks for proxy connect socket flag.
-    bool IsProxyConnectSocket(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].get_socket_proxy_connect_flag();
-    }
-
-    uint32_t GetWebSocketChannelId(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].ws_channel_id_;
-    }
-
-    void SetWebSocketChannelId(SocketDataChunk* sd, ws_channel_id_type ws_channel_id)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].ws_channel_id_ = ws_channel_id;
-    }
-
-    // Getting aggregation socket index.
-    socket_index_type GetAggregationSocketIndex(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].aggr_socket_info_index_;
     }
 
     // Setting aggregation socket index.
@@ -746,16 +589,6 @@ public:
         return sockets_infos_ + socket_index;
     }
 
-    // Getting aggregated socket flag.
-    bool GetSocketAggregatedFlag(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].get_socket_aggregated_flag();
-    }
-
     // Setting aggregated socket flag.
     void SetSocketAggregatedFlag(socket_index_type socket_index)
     {
@@ -767,7 +600,7 @@ public:
     // Disconnect proxy socket.
     void DisconnectProxySocket(SocketDataChunk* sd)
     {
-        socket_index_type proxy_socket_index = GetProxySocketIndex(sd);
+        socket_index_type proxy_socket_index = sd->GetProxySocketIndex();
 
         GW_ASSERT_DEBUG(proxy_socket_index < g_gateway.setting_max_connections_per_worker());
 
@@ -786,51 +619,6 @@ public:
                 InvalidateSocket(proxy_socket_index);
             }
         }
-    }
-
-    socket_index_type GetProxySocketIndex(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].proxy_socket_info_index_;
-    }
-
-    void SetProxySocketIndex(SocketDataChunk* sd, socket_index_type proxy_socket_index)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].proxy_socket_info_index_ = proxy_socket_index;
-    }
-
-    socket_index_type GetAccumulatedBytesLeft(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].accum_data_bytes_left_;
-    }
-
-    void SetAccumulatedBytesLeft(SocketDataChunkRef sd, uint32_t num_bytes)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].accum_data_bytes_left_ = num_bytes;
-    }
-
-    void DecrementAccumulatedBytesLeft(SocketDataChunkRef sd, uint32_t decr_bytes)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].accum_data_bytes_left_ -= decr_bytes;
     }
 
     // Applying session parameters to socket data.
@@ -871,67 +659,12 @@ public:
         sockets_infos_[socket_index].socket_ = INVALID_SOCKET;
     }
 
-    // Invalidating socket number.
-    bool IsInvalidSocket(SocketDataChunk* sd) {
-
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return (INVALID_SOCKET == sockets_infos_[sd->get_socket_info_index()].socket_);
-    }
-
-    // Getting unique socket number.
-    random_salt_type GetUniqueSocketId(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        return GetUniqueSocketId(socket_index);
-    }
-
     // Getting unique socket number.
     random_salt_type GetUniqueSocketId(socket_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         return sockets_infos_[socket_index].unique_socket_id_;
-    }
-
-    // Updates current global timer value on given socket.
-    void UpdateSocketTimeStamp(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].socket_timestamp_ = g_gateway.get_global_timer_unsafe();
-    }
-
-    // Sets connection type on given socket.
-    void SetTypeOfNetworkProtocol(SocketDataChunk* sd, MixedCodeConstants::NetworkProtocolType proto_type)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sd->set_type_of_network_protocol(proto_type);
-
-        sockets_infos_[socket_index].type_of_network_protocol_ = proto_type;
-    }
-
-    // Gets session data by index.
-    ScSessionStruct GetGlobalSessionCopy(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SOCKET_INDEX == socket_index)
-            return ScSessionStruct();
-
-        // Fetching the session by index.
-        return sockets_infos_[socket_index].session_;
     }
 
     // Gets socket info data by index.
@@ -943,59 +676,6 @@ public:
 
         // Fetching the session by index.
         return sockets_infos_[socket_index];
-    }
-
-    // Sets session if socket is correct.
-    void SetGlobalSessionIfEmpty(SocketDataChunk* sd)
-    {
-        // Checking unique socket id and session.
-        if (!IsGlobalSessionActive(sd))
-            SetGlobalSessionCopy(sd, sd->get_session_copy());
-    }
-
-    // Checks if global session data is active.
-    bool IsGlobalSessionActive(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        return sockets_infos_[socket_index].session_.IsActive();
-    }
-
-    // Gets session data by index.
-    void SetGlobalSessionCopy(
-        SocketDataChunk* sd,
-        ScSessionStruct session_copy)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        // Fetching the session by index.
-        sockets_infos_[socket_index].session_ = session_copy;
-    }
-
-    // Gets session data by index.
-    void DeleteGlobalSession(SocketDataChunk* sd)
-    {
-        socket_index_type socket_index = sd->get_socket_info_index();
-
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        // Fetching the session by index.
-        sockets_infos_[socket_index].session_.Reset();
-    }
-
-    // Gets scheduler id for specific session.
-    scheduler_id_type GetGlobalSessionSchedulerId(socket_index_type socket_index)
-    {
-        // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SOCKET_INDEX == socket_index)
-            return INVALID_SCHEDULER_ID;
-
-        // Fetching the session by index.
-        return sockets_infos_[socket_index].session_.scheduler_id_;
     }
 
     // Collects outdated sockets if any.
