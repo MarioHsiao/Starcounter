@@ -738,6 +738,14 @@ public:
         sockets_infos_[socket_index].aggr_socket_info_index_ = aggr_socket_info_index;
     }
 
+    // Getting reference to a particular socket info.
+    ScSocketInfoStruct* GetSocketInfoReference(socket_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        return sockets_infos_ + socket_index;
+    }
+
     // Getting aggregated socket flag.
     bool GetSocketAggregatedFlag(SocketDataChunk* sd)
     {

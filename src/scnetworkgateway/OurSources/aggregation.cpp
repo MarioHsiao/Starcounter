@@ -97,6 +97,7 @@ uint32_t PortAggregator(
 
                 // Checking if socket is legitimate.
                 if (gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
+
                     gw->ReleaseSocketIndex(ags->socket_info_index_);
                     ags->socket_info_index_ = INVALID_SOCKET_INDEX;
                 }

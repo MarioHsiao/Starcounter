@@ -163,7 +163,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
     // Setting proxy sockets indexes.
     socket_index_type orig_socket_info_index = sd->get_socket_info_index();
     SetProxySocketIndex(sd, proxied_socket_info_index);
-    sd->set_socket_info_index(proxied_socket_info_index);
+    sd->set_socket_info_index(this, proxied_socket_info_index);
     SetProxySocketIndex(sd, orig_socket_info_index);
     sd->set_unique_socket_id(GetUniqueSocketId(proxied_socket_info_index));
 
@@ -228,7 +228,7 @@ bool GatewayWorker::ApplySocketInfoToSocketData(
 
         sd->AssignSession(si.session_);
         sd->set_unique_socket_id(si.unique_socket_id_);
-        sd->set_socket_info_index(si.read_only_index_);
+        sd->set_socket_info_index(this, si.read_only_index_);
         sd->set_type_of_network_protocol((MixedCodeConstants::NetworkProtocolType)si.type_of_network_protocol_);
 
         // Resetting the session based on protocol.

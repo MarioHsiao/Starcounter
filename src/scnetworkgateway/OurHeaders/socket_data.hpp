@@ -26,6 +26,9 @@ class SocketDataChunk
     // Client IP address information.
     ip_info_type client_ip_info_;
 
+    // Reference to socket info structure.
+    ScSocketInfoStruct* socket_info_;
+
     /////////////////////////
     // 4 bytes aligned data.
     /////////////////////////
@@ -109,6 +112,8 @@ public:
     {
         chunk_store_index_ = store_type;
     }
+
+    void set_socket_info_reference(GatewayWorker* gw);
 
     worker_id_type get_bound_worker_id()
     {
@@ -633,9 +638,10 @@ public:
     }
 
     // Sets socket info index.
-    void set_socket_info_index(socket_index_type socket_info_index)
+    void set_socket_info_index(GatewayWorker* gw, socket_index_type socket_info_index)
     {
         socket_info_index_ = socket_info_index;
+        set_socket_info_reference(gw);
     }
 
     // Sets number of IPC chunks.

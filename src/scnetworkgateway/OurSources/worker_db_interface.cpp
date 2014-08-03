@@ -146,6 +146,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             // Releasing IPC chunks.
             ReturnLinkedChunksToPool(ipc_first_chunk_index);
 
+            // Setting socket info reference.
+            sd->set_socket_info_reference(gw);
+
             // Checking that socket arrived on correct worker.
             GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
 
@@ -153,7 +156,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             if (!gw->CompareUniqueSocketId(sd))
             {
                 gw->DisconnectAndReleaseChunk(sd);
+
                 continue;
+
             } else {
 
                 // Checking that socket is bound to the correct worker.

@@ -18,11 +18,9 @@ void SocketDataChunk::Init(
 {
     flags_ = 0;
 
-    socket_info_index_ = INVALID_SOCKET_INDEX;
-
     ResetUserDataOffset();
 
-    socket_info_index_ = socket_info_index;
+    set_socket_info_index(gw, socket_info_index);
     
     session_.Reset();
 
@@ -161,6 +159,7 @@ void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
     // Releasing socket index.
     gw->ReleaseSocketIndex(socket_info_index_);
     socket_info_index_ = INVALID_SOCKET_INDEX;
+    socket_info_ = NULL;
 
     // Resetting HTTP/WS stuff.
     get_http_proto()->Reset();
@@ -183,7 +182,8 @@ void SocketDataChunk::ExchangeToProxySocket(GatewayWorker* gw)
         unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
 #endif
 
-    socket_info_index_ = proxy_socket_info_index;
+    set_socket_info_index(gw, proxy_socket_info_index);
+
     unique_socket_id_ = proxy_unique_socket_id;
 }
 
@@ -201,6 +201,11 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
     {
         gw->SetWebSocketChannelId(this, *(uint32_t*)accept_or_params_or_temp_data_);
     }
+}
+
+void SocketDataChunk::set_socket_info_reference(GatewayWorker* gw)
+{
+    socket_info_ = gw->GetSocketInfoReference(socket_info_index_);
 }
 
 // Clones existing socket data chunk for receiving.
@@ -224,12 +229,13 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->session_ = session_;
 
     sd_clone->set_to_database_direction_flag();
-    gw->SetTypeOfNetworkProtocol(sd_clone, get_type_of_network_protocol());
     sd_clone->set_unique_socket_id(unique_socket_id_);
-    sd_clone->set_socket_info_index(socket_info_index_);
+    sd_clone->set_socket_info_index(gw, socket_info_index_);
     sd_clone->set_client_ip_info(client_ip_info_);
     sd_clone->set_type_of_network_oper(SocketOperType::RECEIVE_SOCKET_OPER);
 
+    gw->SetTypeOfNetworkProtocol(sd_clone, get_type_of_network_protocol());
+    
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
 

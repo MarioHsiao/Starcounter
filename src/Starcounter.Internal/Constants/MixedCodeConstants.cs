@@ -92,29 +92,29 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offsets in socket data and chunk.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_SESSION = 152;
-        public const int CHUNK_OFFSET_SESSION = 184;
-        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 196;
-        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 192;
-        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 184;
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 168;
-        public const int SOCKET_DATA_OFFSET_BLOB = 232;
+        public const int SOCKET_DATA_OFFSET_SESSION = 160;
+        public const int CHUNK_OFFSET_SESSION = 192;
+        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 204;
+        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 200;
+        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 192;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 176;
+        public const int SOCKET_DATA_OFFSET_BLOB = 240;
         public const int CHUNK_OFFSET_NUM_IPC_CHUNKS = 32;
-        public const int CHUNK_OFFSET_SOCKET_FLAGS = 84;
-        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 63;
+        public const int CHUNK_OFFSET_SOCKET_FLAGS = 92;
+        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 71;
         public const int SOCKET_DATA_OFFSET_CLIENT_IP = 40;
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 112;
-        public const int SOCKET_DATA_NUM_CLONE_BYTES = 168;
-        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 92;
-        public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = 136;
-        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 104;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 120;
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 176;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 100;
+        public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = 144;
+        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 112;
         public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 32;
-        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 48;
-        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 151;
-        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 165;
-        public const int CHUNK_OFFSET_WS_PAYLOAD_LEN = 176;
-        public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 180;
-        public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 168;
+        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 56;
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 159;
+        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 173;
+        public const int CHUNK_OFFSET_WS_PAYLOAD_LEN = 184;
+        public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 188;
+        public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 176;
 
         // Invalid WebSocket channel ID.
         public const int INVALID_WS_CHANNEL_ID = 0;
