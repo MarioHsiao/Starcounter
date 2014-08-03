@@ -11,6 +11,7 @@ namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
     public class GenerateJsonPatchTests {
         internal static JsonPatch jsonPatch = new JsonPatch();
+        private static string oldAppName = null;
 
         /// <summary>
         /// Sets up the test.
@@ -21,14 +22,22 @@ namespace Starcounter.Internal.XSON.Tests {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);
             Json.DirtyCheckEnabled = true;
+        }
+
+        [SetUp]
+        public static void SetupEachTest() {
+            oldAppName = StarcounterEnvironment.AppName;
             StarcounterEnvironment.AppName = "Test";
         }
 
 		[TearDown]
-		public static void AfterTest() {
+		public static void AfterEachTest() {
 			// Making sure that we are ending the session even if the test failed.
 			Session.End();
+            StarcounterEnvironment.AppName = oldAppName;
 		}
+
+
 
         [Test]
         public static void TestPatchSizes() {
@@ -484,7 +493,7 @@ Assert.AreEqual(facit, result );
             subItem2.Text = "S2";
             item2.SubItems = new List<Json>();
             
-            var patch = JsonPatch.CreateJsonPatch(root.Session, true);
+            var patch = jsonPatch.CreateJsonPatch(root.Session, true);
 //            Console.WriteLine(patch);
 
             root.Items[0] = item2;
@@ -493,7 +502,7 @@ Assert.AreEqual(facit, result );
             item2.SubItems.Add(subItem1);
             item2.SubItems.Add(subItem2);
 
-            patch = JsonPatch.CreateJsonPatch(root.Session, true);
+            patch = jsonPatch.CreateJsonPatch(root.Session, true);
             Console.WriteLine(patch);
             Console.WriteLine();
 
@@ -511,12 +520,12 @@ Assert.AreEqual(facit, result );
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
 
             try {
-                var patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                var patch = jsonPatch.CreateJsonPatch(root.Session, true);
                 var expected = '[' + string.Format(Helper.PATCH, "", @"{""Number"":65.0}") + ']';
                 Assert.AreEqual(expected, patch);
 
                 root.Number = 99.5545m;
-                patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                patch = jsonPatch.CreateJsonPatch(root.Session, true);
                 expected = '[' + string.Format(Helper.PATCH, "/Number", "99.5545") + ']';
                 Assert.AreEqual(expected, patch);
             } finally {
@@ -534,12 +543,12 @@ Assert.AreEqual(facit, result );
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
 
             try {
-                var patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                var patch = jsonPatch.CreateJsonPatch(root.Session, true);
                 var expected = '[' + string.Format(Helper.PATCH, "", @"{""Number"":65.0}") + ']';
                 Assert.AreEqual(expected, patch);
 
                 root.Number = 99.5545d;
-                patch = JsonPatch.CreateJsonPatch(root.Session, true);
+                patch = jsonPatch.CreateJsonPatch(root.Session, true);
                 expected = '[' + string.Format(Helper.PATCH, "/Number", "99.5545") + ']';
                 Assert.AreEqual(expected, patch);
             } finally {

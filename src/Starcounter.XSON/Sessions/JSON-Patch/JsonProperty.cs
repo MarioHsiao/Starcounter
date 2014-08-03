@@ -3,21 +3,24 @@ using Starcounter.Advanced.XSON;
 using System;
 
 namespace Starcounter.XSON {
-    public struct JsonProperty {
-        public Json Json;
-        public TValue Property;
-        private PointerState state;
+    public class JsonProperty {
+        private Json json;
+        private object current;
 
-        private struct PointerState {
-            internal bool NextTokenShouldBeIndex;
-            internal object Current;
-            internal Json Json;
+        private JsonProperty() {
         }
 
         internal JsonProperty(Json json, TValue property) {
-            Json = json;
-            Property = property;
-            state = new PointerState();
+            this.json = json;
+            this.current = property;
+        }
+
+        public TValue Property {
+            get { return current as TValue; }
+        }
+
+        public Json Json {
+            get { return json; }
         }
 
         /// <summary>
@@ -55,43 +58,49 @@ namespace Starcounter.XSON {
             return property;
         }
 
-        private JsonProperty DoEvaluate(JsonPointer pointer, Json root) {
-            state.NextTokenShouldBeIndex = false;
-            state.Current = null;
-            state.Json = root;
-
+        private void DoEvaluate(JsonPointer pointer, Json root) {
+            bool nextIsIndex = false;
+            json = root;
+           
             while (pointer.MoveNext()) {
                 // TODO: 
                 // Check if this can be improved. Searching for transaction and execute every
                 // step in a new action is not the most efficient way.
-                state.Json.AddInScope<JsonProperty, JsonPointer>((prop, ptr) => { prop.EvalutateCurrent(ptr); }, this, pointer);
+                nextIsIndex = json.AddAndReturnInScope<JsonProperty, JsonPointer, bool, bool>(
+                    (prop, ptr, isIndex) => {
+                        prop.EvalutateCurrent(ptr, ref isIndex);
+                        return isIndex;
+                    }, 
+                    this, 
+                    pointer, 
+                    nextIsIndex);
             }
-            return new JsonProperty(state.Json, state.Current as TValue);
+
         }
 
-        private void EvalutateCurrent(JsonPointer ptr) {
+        private void EvalutateCurrent(JsonPointer ptr, ref bool nextIsIndex) {
             int index;
-            if (state.NextTokenShouldBeIndex) {
+            if (nextIsIndex) {
                 // Previous object was a Set. This token should be an index
                 // to that Set. If not, it's an invalid patch.
-                state.NextTokenShouldBeIndex = false;
+                nextIsIndex = false;
                 index = ptr.CurrentAsInt;
-                Json list = ((TObjArr)state.Current).Getter(state.Json);
-                state.Current = list._GetAt(index);
+                Json list = ((TObjArr)current).Getter(json);
+                current = list._GetAt(index);
             } else {
-                if (state.Current is TObject) {
-                    state.Json = ((TObject)state.Current).Getter(state.Json);
+                if (current is TObject) {
+                    json = ((TObject)current).Getter(json);
                 }
-                if (state.Json.IsArray) {
+                if (json.IsArray) {
                     throw new NotImplementedException();
                 }
-                Template t = ((TObject)state.Json.Template).Properties.GetExposedTemplateByName(ptr.Current);
+                Template t = ((TObject)json.Template).Properties.GetExposedTemplateByName(ptr.Current);
                 if (t == null) {
                     bool found = false;
-                    if (state.Json.HasStepSiblings()) {
-                        foreach (Json j in state.Json.GetStepSiblings()) {
+                    if (json.HasStepSiblings()) {
+                        foreach (Json j in json.GetStepSiblings()) {
                             if (j.GetAppName() == ptr.Current) {
-                                state.Current = j;
+                                current = j;
                                 found = true;
                                 break;
                             }
@@ -99,8 +108,8 @@ namespace Starcounter.XSON {
                     }
 
                     if (!found) {
-                        if (state.Json.GetAppName() == ptr.Current) {
-                            state.Current = state.Json;
+                        if (json.GetAppName() == ptr.Current) {
+                            current = json;
                         } else {
                             throw new JsonPatchException(
                                 String.Format("Unknown property '{0}' in path.", ptr.Current),
@@ -109,15 +118,15 @@ namespace Starcounter.XSON {
                         }
                     }
                 } else {
-                    state.Current = t;
+                    current = t;
                 }
             }
 
-            if (state.Current is Json && !(state.Current as Json).IsArray) {
-                state.Json = state.Current as Json;
-            } else if (state.Current is TObjArr) {
-                state.NextTokenShouldBeIndex = true;
-            } else if (!(state.Current is TObject)) {
+            if (current is Json && !(current as Json).IsArray) {
+                json = current as Json;
+            } else if (current is TObjArr) {
+                nextIsIndex = true;
+            } else if (!(current is TObject)) {
                 // Current token points to a value or an action. No more tokens should exist. 
                 if (ptr.MoveNext()) {
                     throw new JsonPatchException(
