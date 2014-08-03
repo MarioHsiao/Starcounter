@@ -4,7 +4,7 @@ using System.Collections;
 using System.IO;
 using NUnit.Framework;
 using Starcounter.Templates;
-using Starcounter.XSON.JsonPatch;
+using Starcounter.XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
     internal static class Helper {
