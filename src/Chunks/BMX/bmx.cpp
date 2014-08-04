@@ -38,20 +38,6 @@ uint32_t BmxData::RegisterPortHandler(
             {
                 // Disallowing handler duplicates.
                 return SCERRHANDLERALREADYREGISTERED;
-
-                // Search if handler is already in the list.
-                if (!registered_handlers_[i].HandlerAlreadyExists(port_handler))
-                {
-                    // Adding new handler to the list.
-                    err_code = registered_handlers_[i].AddUserHandler(port_handler);
-                    if (err_code)
-                        return err_code;
-                }
-
-                // Assigning existing handler id.
-                *phandler_info = MakeHandlerInfo(i, unique_handler_num_);
-
-                return err_code;
             }
         }
     }
@@ -126,20 +112,6 @@ uint32_t BmxData::RegisterSubPortHandler(
                 {
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
-
-                    // Search if handler is already in the list.
-                    if (!registered_handlers_[i].HandlerAlreadyExists(subport_handler))
-                    {
-                        // Adding new handler to the list.
-                        err_code = registered_handlers_[i].AddUserHandler(subport_handler);
-                        if (err_code)
-                            return err_code;
-                    }
-
-                    // Constructing handler info from slot index and unique number.
-                    *phandler_info = MakeHandlerInfo(i, unique_handler_num_);
-
-                    return err_code;
                 }
             }
         }
@@ -225,20 +197,6 @@ uint32_t BmxData::RegisterUriHandler(
                 {
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
-
-                    // Search if handler is already in the list.
-                    if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
-                    {
-                        // Adding new handler to the list.
-                        err_code = registered_handlers_[i].AddUserHandler(uri_handler);
-                        if (err_code)
-                            return err_code;
-                    }
-
-                    // Constructing handler info from slot index and unique number.
-                    *phandler_info = MakeHandlerInfo(i, unique_handler_num_);
-
-                    return err_code;
                 }
             }
         }
@@ -610,6 +568,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     smc = (shared_memory_chunk*)raw_chunk;
     
     BMX_HANDLER_TYPE handler_info = smc->get_bmx_handler_info();
+    task_info.handler_info = handler_info;
     BMX_HANDLER_INDEX_TYPE handler_index = GetBmxHandlerIndex(handler_info);
     _SC_ASSERT(handler_index < unique_handler_num_);
 

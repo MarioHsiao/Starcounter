@@ -39,10 +39,11 @@
 // BMX task information.
 struct TASK_INFO_TYPE
 {
+    BMX_HANDLER_TYPE handler_info;
+    starcounter::core::chunk_index the_chunk_index;
     uint8_t flags;
     uint8_t scheduler_number;
     uint8_t client_worker_id;
-    starcounter::core::chunk_index the_chunk_index;
 };
 
 // User handler callback.
@@ -286,7 +287,6 @@ namespace bmx
             port_ = port;
 
             subport_ = subport;
-            handler_info_ = handler_info;
             managed_handler_index_ = managed_handler_index;
 
             // Deleting previous allocations if any.
@@ -365,6 +365,8 @@ namespace bmx
                     _SC_ASSERT(false);
                 }
             }
+
+            handler_info_ = handler_info;
 
             return 0;
         }

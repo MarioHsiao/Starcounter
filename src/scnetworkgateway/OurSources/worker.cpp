@@ -175,6 +175,7 @@ void GatewayWorker::ReleaseSocketIndex(socket_index_type socket_index)
 {
     // Checking that this socket info wasn't returned before.
     GW_ASSERT(!sockets_infos_[socket_index].IsReset());
+    //GW_ASSERT(sockets_infos_[socket_index].session_.gw_worker_id_ == worker_id_);
 
     sockets_infos_[socket_index].Reset();
 

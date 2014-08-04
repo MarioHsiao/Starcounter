@@ -23,10 +23,11 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential)]
         public struct BMX_TASK_INFO
         {
+            internal UInt64 handler_info;
+            internal UInt32 chunk_index;
             internal Byte flags;
             internal Byte scheduler_number;
-            internal Byte client_worker_id;
-            internal UInt32 chunk_index;
+            internal Byte client_worker_id;            
         };
 
         /// <summary>
