@@ -203,7 +203,7 @@ namespace Starcounter.Rest
                     resp.AppName = appNames_[0];
                 }
 
-                if (req.IsInternal && UriInjectMethods.ResponsesMergerRoutine_ != null) {
+                if (UriInjectMethods.ResponsesMergerRoutine_ != null) {
                     responses = new List<Response>();
                     responses.Add(resp);
                     return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
@@ -243,18 +243,10 @@ namespace Starcounter.Rest
             }
 
             // Checking if we have a response merging function defined.
+            Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
 
-            if (req.IsInternal) {
-//            if (responses.Count > 1) {
-                Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
-
-                // Creating merged response.
-                return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
-
-            } else {
-
-                return responses[0];
-            }
+            // Creating merged response.
+            return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
         }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();
