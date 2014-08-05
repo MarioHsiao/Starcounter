@@ -62,8 +62,6 @@ namespace Starcounter.Advanced.XSON {
             addAppName = (obj._stepParent == null && obj._appName != null);
 
             if (addAppName) {
-//                Debugger.Launch();
-
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
                 sizeBytes += "/polyjuice-merger?".Length + obj._appName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
             }
