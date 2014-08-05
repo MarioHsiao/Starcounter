@@ -14,6 +14,12 @@ namespace Starcounter.Internal.Test
     [TestFixture]
     public class MergedResponsesTests
     {
+        [TestFixtureTearDown]
+        public static void AfterTest(){
+            UriHandlersManager.ResetUriHandlersManagers();
+            UriInjectMethods.ResponsesMergerRoutine_ = null;
+        }
+
         [Test]
         public void Test1()
         {
