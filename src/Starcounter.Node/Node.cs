@@ -974,7 +974,7 @@ namespace Starcounter
                     if (ho.IsSpecificHandler)
                         return resp;
                     else
-                        handlerLevel = i;
+                        handlerLevel++;
                 }
             }
 

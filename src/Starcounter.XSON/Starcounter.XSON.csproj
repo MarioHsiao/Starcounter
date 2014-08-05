@@ -100,7 +100,6 @@
     <Compile Include="Sessions\JSON-Patch\Change.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPointer.cs" />
-    <Compile Include="Sessions\Session.ChangeLog.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Templates\TObject.Expando.cs" />
